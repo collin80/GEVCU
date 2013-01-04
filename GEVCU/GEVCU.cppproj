@@ -1,0 +1,244 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <PropertyGroup>
+    <SchemaVersion>2.0</SchemaVersion>
+    <ProjectVersion>6.0</ProjectVersion>
+    <ToolchainName>com.Atmel.AVRGCC8</ToolchainName>
+    <ProjectGuid>{ffbdb030-50d5-4e0e-8f63-832b9750338b}</ProjectGuid>
+    <avrdevice>ATmega2560</avrdevice>
+    <avrdeviceseries>none</avrdeviceseries>
+    <OutputType>Executable</OutputType>
+    <Language>CPP</Language>
+    <OutputFileName>$(MSBuildProjectName)</OutputFileName>
+    <OutputFileExtension>.elf</OutputFileExtension>
+    <OutputDirectory>$(MSBuildProjectDirectory)\$(Configuration)</OutputDirectory>
+    <AssemblyName>GEVCU</AssemblyName>
+    <Name>GEVCU</Name>
+    <RootNamespace>GEVCU</RootNamespace>
+    <ToolchainFlavour>Native</ToolchainFlavour>
+    <KeepTimersRunning>true</KeepTimersRunning>
+    <OverrideVtor>false</OverrideVtor>
+    <OverrideVtorValue />
+    <eraseonlaunchrule>0</eraseonlaunchrule>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)' == 'Release' ">
+    <ToolchainSettings>
+      <AvrGccCpp>
+  <avrgcc.common.outputfiles.hex>True</avrgcc.common.outputfiles.hex>
+  <avrgcc.common.outputfiles.lss>True</avrgcc.common.outputfiles.lss>
+  <avrgcc.common.outputfiles.eep>True</avrgcc.common.outputfiles.eep>
+  <avrgcc.common.outputfiles.srec>True</avrgcc.common.outputfiles.srec>
+  <avrgcc.compiler.general.ChangeDefaultCharTypeUnsigned>True</avrgcc.compiler.general.ChangeDefaultCharTypeUnsigned>
+  <avrgcc.compiler.general.ChangeDefaultBitFieldUnsigned>True</avrgcc.compiler.general.ChangeDefaultBitFieldUnsigned>
+  <avrgcc.compiler.symbols.DefSymbols>
+    <ListValues>
+      <Value>F_CPU=16000000</Value>
+      <Value>ARDUINO=103</Value>
+    </ListValues>
+  </avrgcc.compiler.symbols.DefSymbols>
+  <avrgcc.compiler.directories.IncludePaths>
+    <ListValues>
+      <Value>../arduino_core</Value>
+      <Value>../mcp2515</Value>
+      <Value>../SPI</Value>
+    </ListValues>
+  </avrgcc.compiler.directories.IncludePaths>
+  <avrgcc.compiler.optimization.level>Optimize for size (-Os)</avrgcc.compiler.optimization.level>
+  <avrgcc.compiler.optimization.PackStructureMembers>True</avrgcc.compiler.optimization.PackStructureMembers>
+  <avrgcc.compiler.optimization.AllocateBytesNeededForEnum>True</avrgcc.compiler.optimization.AllocateBytesNeededForEnum>
+  <avrgcc.compiler.warnings.AllWarnings>True</avrgcc.compiler.warnings.AllWarnings>
+  <avrgcccpp.compiler.general.ChangeDefaultCharTypeUnsigned>True</avrgcccpp.compiler.general.ChangeDefaultCharTypeUnsigned>
+  <avrgcccpp.compiler.general.ChangeDefaultBitFieldUnsigned>True</avrgcccpp.compiler.general.ChangeDefaultBitFieldUnsigned>
+  <avrgcccpp.compiler.symbols.DefSymbols>
+    <ListValues>
+      <Value>F_CPU=16000000</Value>
+      <Value>ARDUINO=103</Value>
+    </ListValues>
+  </avrgcccpp.compiler.symbols.DefSymbols>
+  <avrgcccpp.compiler.directories.IncludePaths>
+    <ListValues>
+      <Value>../arduino_core</Value>
+      <Value>../mcp2515</Value>
+      <Value>../SPI</Value>
+    </ListValues>
+  </avrgcccpp.compiler.directories.IncludePaths>
+  <avrgcccpp.compiler.optimization.level>Optimize for size (-Os)</avrgcccpp.compiler.optimization.level>
+  <avrgcccpp.compiler.optimization.PackStructureMembers>True</avrgcccpp.compiler.optimization.PackStructureMembers>
+  <avrgcccpp.compiler.optimization.AllocateBytesNeededForEnum>True</avrgcccpp.compiler.optimization.AllocateBytesNeededForEnum>
+  <avrgcccpp.compiler.warnings.AllWarnings>True</avrgcccpp.compiler.warnings.AllWarnings>
+  <avrgcccpp.linker.libraries.Libraries>
+    <ListValues>
+      <Value>m</Value>
+    </ListValues>
+  </avrgcccpp.linker.libraries.Libraries>
+</AvrGccCpp>
+    </ToolchainSettings>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)' == 'Debug' ">
+    <ToolchainSettings>
+      <AvrGccCpp>
+  <avrgcc.common.outputfiles.hex>True</avrgcc.common.outputfiles.hex>
+  <avrgcc.common.outputfiles.lss>True</avrgcc.common.outputfiles.lss>
+  <avrgcc.common.outputfiles.eep>True</avrgcc.common.outputfiles.eep>
+  <avrgcc.common.outputfiles.srec>True</avrgcc.common.outputfiles.srec>
+  <avrgcc.compiler.general.ChangeDefaultCharTypeUnsigned>True</avrgcc.compiler.general.ChangeDefaultCharTypeUnsigned>
+  <avrgcc.compiler.general.ChangeDefaultBitFieldUnsigned>True</avrgcc.compiler.general.ChangeDefaultBitFieldUnsigned>
+  <avrgcc.compiler.optimization.level>Optimize (-O1)</avrgcc.compiler.optimization.level>
+  <avrgcc.compiler.optimization.PackStructureMembers>True</avrgcc.compiler.optimization.PackStructureMembers>
+  <avrgcc.compiler.optimization.AllocateBytesNeededForEnum>True</avrgcc.compiler.optimization.AllocateBytesNeededForEnum>
+  <avrgcc.compiler.optimization.DebugLevel>Default (-g2)</avrgcc.compiler.optimization.DebugLevel>
+  <avrgcc.compiler.warnings.AllWarnings>True</avrgcc.compiler.warnings.AllWarnings>
+  <avrgcccpp.compiler.general.ChangeDefaultCharTypeUnsigned>True</avrgcccpp.compiler.general.ChangeDefaultCharTypeUnsigned>
+  <avrgcccpp.compiler.general.ChangeDefaultBitFieldUnsigned>True</avrgcccpp.compiler.general.ChangeDefaultBitFieldUnsigned>
+  <avrgcccpp.compiler.optimization.level>Optimize (-O1)</avrgcccpp.compiler.optimization.level>
+  <avrgcccpp.compiler.optimization.PackStructureMembers>True</avrgcccpp.compiler.optimization.PackStructureMembers>
+  <avrgcccpp.compiler.optimization.AllocateBytesNeededForEnum>True</avrgcccpp.compiler.optimization.AllocateBytesNeededForEnum>
+  <avrgcccpp.compiler.optimization.DebugLevel>Default (-g2)</avrgcccpp.compiler.optimization.DebugLevel>
+  <avrgcccpp.compiler.warnings.AllWarnings>True</avrgcccpp.compiler.warnings.AllWarnings>
+  <avrgcccpp.linker.libraries.Libraries>
+    <ListValues>
+      <Value>m</Value>
+    </ListValues>
+  </avrgcccpp.linker.libraries.Libraries>
+  <avrgcccpp.assembler.debugging.DebugLevel>Default (-Wa,-g)</avrgcccpp.assembler.debugging.DebugLevel>
+</AvrGccCpp>
+    </ToolchainSettings>
+  </PropertyGroup>
+  <ItemGroup>
+    <Compile Include="arduino_core\Arduino.h">
+      <SubType>compile</SubType>
+    </Compile>
+    <Compile Include="arduino_core\binary.h">
+      <SubType>compile</SubType>
+    </Compile>
+    <Compile Include="arduino_core\CDC.cpp">
+      <SubType>compile</SubType>
+    </Compile>
+    <Compile Include="arduino_core\Client.h">
+      <SubType>compile</SubType>
+    </Compile>
+    <Compile Include="arduino_core\HardwareSerial.cpp">
+      <SubType>compile</SubType>
+    </Compile>
+    <Compile Include="arduino_core\HardwareSerial.h">
+      <SubType>compile</SubType>
+    </Compile>
+    <Compile Include="arduino_core\HID.cpp">
+      <SubType>compile</SubType>
+    </Compile>
+    <Compile Include="arduino_core\IPAddress.cpp">
+      <SubType>compile</SubType>
+    </Compile>
+    <Compile Include="arduino_core\IPAddress.h">
+      <SubType>compile</SubType>
+    </Compile>
+    <Compile Include="arduino_core\main.cpp">
+      <SubType>compile</SubType>
+    </Compile>
+    <Compile Include="arduino_core\new.cpp">
+      <SubType>compile</SubType>
+    </Compile>
+    <Compile Include="arduino_core\new.h">
+      <SubType>compile</SubType>
+    </Compile>
+    <Compile Include="arduino_core\pins_arduino.h">
+      <SubType>compile</SubType>
+    </Compile>
+    <Compile Include="arduino_core\Platform.h">
+      <SubType>compile</SubType>
+    </Compile>
+    <Compile Include="arduino_core\Print.cpp">
+      <SubType>compile</SubType>
+    </Compile>
+    <Compile Include="arduino_core\Print.h">
+      <SubType>compile</SubType>
+    </Compile>
+    <Compile Include="arduino_core\Printable.h">
+      <SubType>compile</SubType>
+    </Compile>
+    <Compile Include="arduino_core\Server.h">
+      <SubType>compile</SubType>
+    </Compile>
+    <Compile Include="arduino_core\Stream.cpp">
+      <SubType>compile</SubType>
+    </Compile>
+    <Compile Include="arduino_core\Stream.h">
+      <SubType>compile</SubType>
+    </Compile>
+    <Compile Include="arduino_core\Tone.cpp">
+      <SubType>compile</SubType>
+    </Compile>
+    <Compile Include="arduino_core\Udp.h">
+      <SubType>compile</SubType>
+    </Compile>
+    <Compile Include="arduino_core\USBAPI.h">
+      <SubType>compile</SubType>
+    </Compile>
+    <Compile Include="arduino_core\USBCore.cpp">
+      <SubType>compile</SubType>
+    </Compile>
+    <Compile Include="arduino_core\USBCore.h">
+      <SubType>compile</SubType>
+    </Compile>
+    <Compile Include="arduino_core\USBDesc.h">
+      <SubType>compile</SubType>
+    </Compile>
+    <Compile Include="arduino_core\WCharacter.h">
+      <SubType>compile</SubType>
+    </Compile>
+    <Compile Include="arduino_core\WInterrupts.c">
+      <SubType>compile</SubType>
+    </Compile>
+    <Compile Include="arduino_core\wiring.c">
+      <SubType>compile</SubType>
+    </Compile>
+    <Compile Include="arduino_core\wiring_analog.c">
+      <SubType>compile</SubType>
+    </Compile>
+    <Compile Include="arduino_core\wiring_digital.c">
+      <SubType>compile</SubType>
+    </Compile>
+    <Compile Include="arduino_core\wiring_private.h">
+      <SubType>compile</SubType>
+    </Compile>
+    <Compile Include="arduino_core\wiring_pulse.c">
+      <SubType>compile</SubType>
+    </Compile>
+    <Compile Include="arduino_core\wiring_shift.c">
+      <SubType>compile</SubType>
+    </Compile>
+    <Compile Include="arduino_core\WMath.cpp">
+      <SubType>compile</SubType>
+    </Compile>
+    <Compile Include="arduino_core\WString.cpp">
+      <SubType>compile</SubType>
+    </Compile>
+    <Compile Include="arduino_core\WString.h">
+      <SubType>compile</SubType>
+    </Compile>
+    <Compile Include="GEVCU.cpp">
+      <SubType>compile</SubType>
+    </Compile>
+    <Compile Include="mcp2515\MCP2515.cpp">
+      <SubType>compile</SubType>
+    </Compile>
+    <Compile Include="mcp2515\MCP2515.h">
+      <SubType>compile</SubType>
+    </Compile>
+    <Compile Include="mcp2515\MCP2515_defs.h">
+      <SubType>compile</SubType>
+    </Compile>
+    <Compile Include="SPI\SPI.cpp">
+      <SubType>compile</SubType>
+    </Compile>
+    <Compile Include="SPI\SPI.h">
+      <SubType>compile</SubType>
+    </Compile>
+  </ItemGroup>
+  <ItemGroup>
+    <Folder Include="arduino_core" />
+    <Folder Include="mcp2515" />
+    <Folder Include="SPI" />
+  </ItemGroup>
+  <Import Project="$(AVRSTUDIO_EXE_PATH)\\Vs\\Compiler.targets" />
+</Project>
