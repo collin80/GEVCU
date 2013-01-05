@@ -33,9 +33,9 @@ void setup() {
 	SPI.setBitOrder(MSBFIRST);
 	SPI.begin();
 	
-	// Initialise MCP2515 CAN controller at the specified speed and clock frequency
-	// In this case 125kbps with a 16MHz oscillator
-	// (Note:  This is the oscillator attached to the MCP2515, not the Arduino oscillaltor)
+	// Initialize MCP2515 CAN controller at the specified speed and clock frequency
+	// (Note:  This is the oscillator attached to the MCP2515, not the Arduino oscillator)
+	//speed in KHz, clock in MHz
 	if(CAN.Init(250,16))
 	{
 		Serial.println("MCP2515 Init OK ...");
@@ -44,6 +44,9 @@ void setup() {
 	}
 	
 	attachInterrupt(6, CANHandler, FALLING);
+	CAN.InitFilters(false);
+	CAN.SetRXMask(MASK0, 0x7F0, 0); //match all but bottom four bits
+	CAN.SetRXFilter(FILTER0, 0x100, 0); //allows 0x100 - 0x10F
 
 	Serial.println("Ready ...");
 }
@@ -77,12 +80,12 @@ void loop() {
 		// Send out a return message for each one received
 		// Simply increment message id and data bytes to show proper transmission
 		// Note:  Please see explanation at top of sketch.  You might want to comment this out!
-		// message.id++;
-		//   for(i=0;i<message.dlc;i++) {
-			//    message.data[i]++;
-		//  }
-		//   CAN.LoadBuffer(TXB0, message);
-		//   CAN.SendBuffer(TXB0);
+		message.id++;
+		for(i=0;i<message.dlc;i++) {
+			message.data[i]++;
+		}
+		CAN.LoadBuffer(TXB0, message);
+		CAN.SendBuffer(TXB0);
 	}
 }
 
