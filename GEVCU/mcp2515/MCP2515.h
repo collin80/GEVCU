@@ -68,6 +68,7 @@ class MCP2515
 	bool GetRXFrame(Frame &frame);
 	void SetRXFilter(byte filter, long FilterValue, bool ext);
 	void SetRXMask(byte mask, long MaskValue, bool ext);
+	void InitFilters(bool permissive);
 	void intHandler();
 	
   private:
