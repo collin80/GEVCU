@@ -263,6 +263,7 @@ void MCP2515::Write(byte address, byte data[], byte bytes) {
 
 void MCP2515::SendBuffer(byte buffers) {
   // buffers should be any combination of TXB0, TXB1, TXB2 ORed together, or TXB_ALL
+  digitalWrite(LED_CAN_TX, HIGH);
   digitalWrite(_CS,LOW);
   SPI.transfer(CAN_RTS | buffers);
   digitalWrite(_CS,HIGH);
@@ -383,6 +384,30 @@ bool MCP2515::Mode(byte mode) {
   return ((data & mode)==mode);
 }
 
+/*Initializes all filters to either accept all frames or accept none
+//This doesn't need to be called if you want to accept everything
+//because that's the default. So, call this with permissive = false
+//to state with an accept nothing state and then add acceptance masks/filters
+//thereafter 
+*/
+void MCP2515::InitFilters(bool permissive) {
+	long value;
+	if (permissive) {
+		value = 0;
+	}	
+	else {
+		value = 0x7FF; //all 11 bits set
+	}
+	SetRXMask(MASK0, value, 0);
+	SetRXMask(MASK1, value, 0);
+	SetRXFilter(FILTER0, value, 0);
+	SetRXFilter(FILTER1, value, 0);
+	SetRXFilter(FILTER2, value, 0);
+	SetRXFilter(FILTER3, value, 0);
+	SetRXFilter(FILTER4, value, 0);
+	SetRXFilter(FILTER5, value, 0);
+}
+
 /*
 mask = either MASK0 or MASK1
 MaskValue is either an 11 or 29 bit mask value to set
@@ -490,31 +515,37 @@ void MCP2515::intHandler(void) {
     
     if(interruptFlags & RX0IF) {
       // read from RX buffer 0
+		digitalWrite(LED_CAN_RX, HIGH);
 		message = ReadBuffer(RXB0);
      	EnqueueRX(message);
     }
     if(interruptFlags & RX1IF) {
       // read from RX buffer 1
+	  digitalWrite(LED_CAN_RX, HIGH);
       message = ReadBuffer(RXB1);
       EnqueueRX(message);
     }
     if(interruptFlags & TX0IF) {
+	   digitalWrite(LED_CAN_TX, LOW);
       // TX buffer 0 sent
     }
     if(interruptFlags & TX1IF) {
+		digitalWrite(LED_CAN_TX, LOW);
       // TX buffer 1 sent
     }
     if(interruptFlags & TX2IF) {
+		digitalWrite(LED_CAN_TX, LOW);
       // TX buffer 2 sent
     }
     if(interruptFlags & ERRIF) {
       // error handling code
-	  Serial.println("ERROR!");
     }
     if(interruptFlags & MERRF) {
       // error handling code
       // if TXBnCTRL.TXERR set then transmission error
       // if message is lost TXBnCTRL.MLOA will be set
-	  Serial.println("MERROR!");
     }
+	//Now, acknowledge the interrupts by clearing the intf bits
+	Write(CANINTF, 0); 	
+	digitalWrite(LED_CAN_RX, LOW);
 }
