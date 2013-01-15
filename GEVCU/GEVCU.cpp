@@ -8,6 +8,9 @@
 #include "Arduino.h"
 #include "SPI.h"
 #include "MCP2515.h"
+#include "pedal_pot.h"
+#include "dmoc.h"
+#include "timer.h"
 
 // Pin definitions specific to how the MCP2515 is wired up.
 #define CS_PIN    85
@@ -16,6 +19,8 @@
 
 // Create CAN object with pins as defined
 MCP2515 CAN(CS_PIN, RESET_PIN, INT_PIN);
+THROTTLE Throttle();
+DMOC dmoc();
 
 void CANHandler() {
 	CAN.intHandler();
@@ -36,7 +41,7 @@ void setup() {
 	// Initialize MCP2515 CAN controller at the specified speed and clock frequency
 	// (Note:  This is the oscillator attached to the MCP2515, not the Arduino oscillator)
 	//speed in KHz, clock in MHz
-	if(CAN.Init(250,16))
+	if(CAN.Init(500,16))   //DMOC defaults to 500Khz
 	{
 		Serial.println("MCP2515 Init OK ...");
 	} else {
@@ -45,8 +50,13 @@ void setup() {
 	
 	attachInterrupt(6, CANHandler, FALLING);
 	CAN.InitFilters(false);
+	
+	//Setup CANBUS comm to allow DMOC command and status messages through
 	CAN.SetRXMask(MASK0, 0x7F0, 0); //match all but bottom four bits
-	CAN.SetRXFilter(FILTER0, 0x100, 0); //allows 0x100 - 0x10F
+	CAN.SetRXFilter(FILTER0, 0x230, 0); //allows 0x230 - 0x23F
+	CAN.SetRXFilter(FILTER1, 0x650, 0); //allows 0x650 - 0x65F
+	
+	setupTimer(10000); //10ms or 10000us ticks
 
 	Serial.println("Ready ...");
 }
@@ -56,36 +66,15 @@ byte i=0;
 // CAN message frame (actually just the parts that are exposed by the MCP2515 RX/TX buffers)
 Frame message;
 
-void loop() {
-	
+void loop() {	
 	if (CAN.GetRXFrame(message)) {
-		// Print message
-		Serial.print("ID: ");
-		Serial.println(message.id,HEX);
-		Serial.print("Extended: ");
-		if(message.ide) {
-			Serial.println("Yes");
-		} else {
-			Serial.println("No");
-		}
-		Serial.print("DLC: ");
-		Serial.println(message.dlc,DEC);
-		for(i=0;i<message.dlc;i++) {
-			Serial.print(message.data[i],HEX);
-			Serial.print(" ");
-		}
-		Serial.println();
-		Serial.println();
-
-		// Send out a return message for each one received
-		// Simply increment message id and data bytes to show proper transmission
-		// Note:  Please see explanation at top of sketch.  You might want to comment this out!
-		message.id++;
-		for(i=0;i<message.dlc;i++) {
-			message.data[i]++;
-		}
-		CAN.LoadBuffer(TXB0, message);
-		CAN.SendBuffer(TXB0);
+		dmoc.handleFrame(message);
+	}
+	if (tickReady) {
+		tickReady = false;
+		//do tick related stuff
+		Throttle.handleTick();
+		dmoc.handleTick();
 	}
 }
 
