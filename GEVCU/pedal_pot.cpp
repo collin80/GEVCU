@@ -14,11 +14,20 @@ THROTTLE:THROTTLE(uint8_t Throttle1, uint8_t Throttle2) {
 	Throttle2ADC = Throttle2;
 	if (Throttle2 == 255) numThrottlePots = 1;
 		else numThrottlePots = 2;
+		
+		ThrottleMin1 = ThrottleMin2 = 0;
+		ThrottleMax1 = ThrottleMax2 = 1023;
+		ThrottleAvg = ThrottleFeedback = 0;
+		ThrottleRegen = 300;
+		ThrottleFWD = 500;
+		ThrottleMAP = 400;
+		ThrottleMaxRegen = 30; //30%
 }
 
 //right now only the first throttle ADC port is used. Eventually the second one should be used to cross check so dumb things
 //don't happen. Also, right now values of ADC outside the proper range are just clamped to the proper range. 
-THROTTLE:handleTick() {
+void THROTTLE::handleTick() {
+	
 	Throttle1Val = analogRead(Throttle1ADC);
 	if (numThrottlePots > 1) {
 		Throttle2Val = analogRead(Throttle2ADC);
@@ -29,14 +38,29 @@ THROTTLE:handleTick() {
     ThrottleAvg -= ThrottleFeedback;
     ThrottleFeedback = ThrottleAvg >> 4;
 	
-    if (ThrottleFeedback > Throttle1Max) // clamp it to allow some dead zone.
-		ThrottleFeedback = Throttle1Max;
-    else if (ThrottleFeedback < Throttle1Min)
-		ThrottleFeedback = Throttle1Min;
+    if (ThrottleFeedback > ThrottleMax1) // clamp it to allow some dead zone.
+		ThrottleFeedback = ThrottleMax1;
+    else if (ThrottleFeedback < ThrottleMin1)
+		ThrottleFeedback = ThrottleMin1;
 		
-	/*	
-	uint16_t ThrottleRegen, ThrottleFWD, ThrottleMAP; //Value at which regen finishes, forward motion starts, and the mid point of throttle
-	unsigned int ThrottleMaxRegen; //Percentage of max torque allowable for regen
-	*/
+	//Now ThrottleFeedback is between Min and Max. Time to figure out where in the throttle position that is and set
+	//outputThrottle accordingly.
+	
+	ThrottleFeedback = 0; //by default we give zero throttle
+	if (ThrottleFeedback <= ThrottleRegen) {
+		//-1000 is max throttle regen * (ThrottleMaxRegen / 100) * (How much we're over the minimum divided by the total range)
+		//the operation is cast to long because it could easily be well over 16 bits
+		outputThrottle = -10 * ThrottleMaxRegen  * (long)(ThrottleFeedback - ThrottleMin1) / (long)(ThrottleRegen - ThrottleMin1);
+	}
+	else if ((ThrottleFeedback >= ThrottleFWD) && (ThrottleFeedback <= ThrottleMAP)) { //bottom 50% forward
+		outputThrottle = 500 * (long)(ThrottleFeedback - ThrottleFWD) / (long)(ThrottleMAP - ThrottleFWD);
+	}
+	else { //more than ThrottleMAP
+		outputThrottle = 500 + 500 * (long)(ThrottleFeedback - ThrottleMAP) / (long)(ThrottleMax1 - ThrottleMAP);
+	}
+	
 }
 
+int THROTTLE::getThrottle() {
+	return outputThrottle;
+}

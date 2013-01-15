@@ -73,7 +73,8 @@ void loop() {
 	if (tickReady) {
 		tickReady = false;
 		//do tick related stuff
-		Throttle.handleTick();
+		Throttle.handleTick(); //gets ADC values, calculates throttle position
+		dmoc.setThrottle(Throttle.getThrottle());
 		dmoc.handleTick();
 	}
 }
