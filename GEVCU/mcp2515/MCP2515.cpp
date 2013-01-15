@@ -490,7 +490,7 @@ void MCP2515::intHandler(void) {
     
     if(interruptFlags & RX0IF) {
       // read from RX buffer 0
-	message = ReadBuffer(RXB0);
+		message = ReadBuffer(RXB0);
      	EnqueueRX(message);
     }
     if(interruptFlags & RX1IF) {
@@ -509,10 +509,12 @@ void MCP2515::intHandler(void) {
     }
     if(interruptFlags & ERRIF) {
       // error handling code
+	  Serial.println("ERROR!");
     }
     if(interruptFlags & MERRF) {
       // error handling code
       // if TXBnCTRL.TXERR set then transmission error
       // if message is lost TXBnCTRL.MLOA will be set
+	  Serial.println("MERROR!");
     }
 }

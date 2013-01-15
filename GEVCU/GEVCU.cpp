@@ -77,12 +77,16 @@ void loop() {
 		// Send out a return message for each one received
 		// Simply increment message id and data bytes to show proper transmission
 		// Note:  Please see explanation at top of sketch.  You might want to comment this out!
-		// message.id++;
-		//   for(i=0;i<message.dlc;i++) {
-			//    message.data[i]++;
-		//  }
-		//   CAN.LoadBuffer(TXB0, message);
-		//   CAN.SendBuffer(TXB0);
+		 message.id++;
+		 for(i=0;i<message.dlc;i++) {
+			message.data[i]++;
+		 }
+		 CAN.LoadBuffer(TXB0, message);
+		 CAN.SendBuffer(TXB0); 
 	}
+	delay(100);
+	Serial.print(CAN.Status());
+	Serial.print(" ");
+	
 }
 
