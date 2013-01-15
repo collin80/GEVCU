@@ -220,6 +220,12 @@
     <Compile Include="arduino_core\WString.h">
       <SubType>compile</SubType>
     </Compile>
+    <Compile Include="dmoc.c">
+      <SubType>compile</SubType>
+    </Compile>
+    <Compile Include="dmoc.h">
+      <SubType>compile</SubType>
+    </Compile>
     <Compile Include="GEVCU.cpp">
       <SubType>compile</SubType>
     </Compile>
@@ -230,6 +236,12 @@
       <SubType>compile</SubType>
     </Compile>
     <Compile Include="mcp2515\MCP2515_defs.h">
+      <SubType>compile</SubType>
+    </Compile>
+    <Compile Include="pedal_pot.cpp">
+      <SubType>compile</SubType>
+    </Compile>
+    <Compile Include="pedal_pot.h">
       <SubType>compile</SubType>
     </Compile>
     <Compile Include="SPI\SPI.cpp">

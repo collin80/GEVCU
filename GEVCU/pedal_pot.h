@@ -27,7 +27,7 @@ class THROTTLE {
 	void setT2Min(uint16_t min);
 	void setT1Max(uint16_t min);
 	void setT2Max(uint16_t min);
-	void setRegenStart(uint16_t regen);
+	void setRegenEnd(uint16_t regen);
 	void setFWDStart(uint16_t fwd);
 	void setMAP(uint16_t map);
 	void setMaxRegen(uint16_t regen);

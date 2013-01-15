@@ -27,12 +27,22 @@ THROTTLE:THROTTLE(uint8_t Throttle1, uint8_t Throttle2) {
 //right now only the first throttle ADC port is used. Eventually the second one should be used to cross check so dumb things
 //don't happen. Also, right now values of ADC outside the proper range are just clamped to the proper range. 
 void THROTTLE::handleTick() {
+	long comparitor;
 	
 	Throttle1Val = analogRead(Throttle1ADC);
 	if (numThrottlePots > 1) {
 		Throttle2Val = analogRead(Throttle2ADC);
 	}		
 	uint16_t ThrottleAvg, ThrottleFeedback;
+	
+	//in preparation for checking the two throttles against each other.
+	//its going to be sort of complicated by the fact that the two throttles
+	//very well might move in opposing directions (low->high or high->low) as
+	//pedal is depressed. For now it is assumed throttle1 is working fine and that
+	//it runs low to high as pedal is depressed.
+	//comparitor = (1000 * Throttle1Val) / Throttle2Val;
+	
+	
 	
     ThrottleAvg += Throttle1Val;
     ThrottleAvg -= ThrottleFeedback;

@@ -56,6 +56,17 @@ void setup() {
 	CAN.SetRXFilter(FILTER0, 0x230, 0); //allows 0x230 - 0x23F
 	CAN.SetRXFilter(FILTER1, 0x650, 0); //allows 0x650 - 0x65F
 	
+	//The pedal I have has two pots and one should be twice the value of the other normally (within tolerance)
+	Throttle.setT1Min(82);
+	Throttle.setT1Max(410);	
+	Throttle.setT2Min(158);
+	Throttle.setT2Max(810);
+	//these are based off of throttle 1
+	Throttle.setRegenEnd(125); //so, regen from 82 - 125
+	Throttle.setMaxRegen(30); //thats 30% of forward power
+	Throttle.setFWDStart(165); //deadzone 126 to 164, then forward from there to 410
+	Throttle.setMAP(350); //but 1/2 way power is at 350 so it's gradual until near the end and then it gets brutal
+	
 	setupTimer(10000); //10ms or 10000us ticks
 
 	Serial.println("Ready ...");
