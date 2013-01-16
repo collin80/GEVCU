@@ -220,7 +220,7 @@
     <Compile Include="arduino_core\WString.h">
       <SubType>compile</SubType>
     </Compile>
-    <Compile Include="dmoc.c">
+    <Compile Include="dmoc.cpp">
       <SubType>compile</SubType>
     </Compile>
     <Compile Include="dmoc.h">

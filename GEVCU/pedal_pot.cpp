@@ -8,8 +8,10 @@
  *  Author: Collin
  */ 
 
+#include "pedal_pot.h"
+
 //initialize by telling the code which two ADC channels to use (or set channel 2 to 255 to disable)
-THROTTLE:THROTTLE(uint8_t Throttle1, uint8_t Throttle2) {
+THROTTLE::THROTTLE(uint8_t Throttle1, uint8_t Throttle2) {
 	Throttle1ADC = Throttle1;
 	Throttle2ADC = Throttle2;
 	if (Throttle2 == 255) numThrottlePots = 1;
@@ -73,4 +75,35 @@ void THROTTLE::handleTick() {
 
 int THROTTLE::getThrottle() {
 	return outputThrottle;
+}
+
+void THROTTLE::setT1Min(uint16_t min) {
+	ThrottleMin1 = min;	
+}
+
+void THROTTLE::setT2Min(uint16_t min) {
+	ThrottleMin2 = min;
+}
+
+void THROTTLE::setT1Max(uint16_t max) {
+	ThrottleMax1 = max;
+}
+void THROTTLE::setT2Max(uint16_t max) {
+	ThrottleMax2 = max;
+}
+
+void THROTTLE::setRegenEnd(uint16_t regen) {
+	ThrottleRegen = regen;
+}
+
+void THROTTLE::setFWDStart(uint16_t fwd) {
+	ThrottleFWD = fwd;
+}
+
+void THROTTLE::setMAP(uint16_t map) {
+	ThrottleMAP = map;
+}
+
+void THROTTLE::setMaxRegen(uint16_t regen) {
+	ThrottleMaxRegen = regen;
 }

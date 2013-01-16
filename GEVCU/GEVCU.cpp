@@ -19,8 +19,8 @@
 
 // Create CAN object with pins as defined
 MCP2515 CAN(CS_PIN, RESET_PIN, INT_PIN);
-THROTTLE Throttle();
-DMOC dmoc();
+THROTTLE Throttle(0, 1);
+DMOC dmoc(&CAN);
 
 void CANHandler() {
 	CAN.intHandler();

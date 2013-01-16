@@ -8,6 +8,8 @@
 #ifndef PEDAL_POT_H_
 #define PEDAL_POT_H_
 
+#include "Arduino.h"
+
 class THROTTLE {
    private:
 	uint16_t ThrottleMin1, ThrottleMax1, ThrottleMin2, ThrottleMax2; //Values for when the pedal is at its min and max for each throttle input
@@ -25,12 +27,13 @@ class THROTTLE {
 	int getThrottle();
 	void setT1Min(uint16_t min);
 	void setT2Min(uint16_t min);
-	void setT1Max(uint16_t min);
-	void setT2Max(uint16_t min);
+	void setT1Max(uint16_t max);
+	void setT2Max(uint16_t max);
 	void setRegenEnd(uint16_t regen);
 	void setFWDStart(uint16_t fwd);
 	void setMAP(uint16_t map);
 	void setMaxRegen(uint16_t regen);
+	THROTTLE(uint8_t Throttle1, uint8_t Throttle2);
 	
 };
 
