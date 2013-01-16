@@ -20,7 +20,7 @@ class THROTTLE {
 	uint16_t ThrottleRegen, ThrottleFWD, ThrottleMAP; //Value at which regen finishes, forward motion starts, and the mid point of throttle
 	uint16_t ThrottleMaxRegen; //Percentage of max torque allowable for regen
 	
-	int outputThrottle; //the final signed throttle. [-1000, 1000] in tenths of a percent of maximum
+	signed int outputThrottle; //the final signed throttle. [-1000, 1000] in tenths of a percent of maximum
 	
   public:
 	void handleTick();

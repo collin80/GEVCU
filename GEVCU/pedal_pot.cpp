@@ -30,12 +30,13 @@ THROTTLE::THROTTLE(uint8_t Throttle1, uint8_t Throttle2) {
 //don't happen. Also, right now values of ADC outside the proper range are just clamped to the proper range. 
 void THROTTLE::handleTick() {
 	long comparitor;
+	signed int range;
+	signed int temp;
 	
 	Throttle1Val = analogRead(Throttle1ADC);
 	if (numThrottlePots > 1) {
 		Throttle2Val = analogRead(Throttle2ADC);
 	}		
-	uint16_t ThrottleAvg, ThrottleFeedback;
 	
 	//in preparation for checking the two throttles against each other.
 	//its going to be sort of complicated by the fact that the two throttles
@@ -44,33 +45,37 @@ void THROTTLE::handleTick() {
 	//it runs low to high as pedal is depressed.
 	//comparitor = (1000 * Throttle1Val) / Throttle2Val;
 	
-	
+    if (Throttle1Val > ThrottleMax1) // clamp it to allow some dead zone.
+		Throttle1Val = ThrottleMax1;
+    else if (Throttle1Val < ThrottleMin1)
+		Throttle1Val = ThrottleMin1;	
 	
     ThrottleAvg += Throttle1Val;
     ThrottleAvg -= ThrottleFeedback;
     ThrottleFeedback = ThrottleAvg >> 4;
 	
-    if (ThrottleFeedback > ThrottleMax1) // clamp it to allow some dead zone.
-		ThrottleFeedback = ThrottleMax1;
-    else if (ThrottleFeedback < ThrottleMin1)
-		ThrottleFeedback = ThrottleMin1;
-		
-	//Now ThrottleFeedback is between Min and Max. Time to figure out where in the throttle position that is and set
-	//outputThrottle accordingly.
-	
-	ThrottleFeedback = 0; //by default we give zero throttle
-	if (ThrottleFeedback <= ThrottleRegen) {
-		//-1000 is max throttle regen * (ThrottleMaxRegen / 100) * (How much we're over the minimum divided by the total range)
-		//the operation is cast to long because it could easily be well over 16 bits
-		outputThrottle = -10 * ThrottleMaxRegen  * (long)(ThrottleFeedback - ThrottleMin1) / (long)(ThrottleRegen - ThrottleMin1);
+	outputThrottle = 0; //by default we give zero throttle
+	if ((ThrottleFeedback <= ThrottleRegen) && (ThrottleFeedback > (ThrottleMin1 + 5))) {  //give 5 deadzone at start of pedal so car freewheels at no pedal push
+		range = ThrottleRegen - ThrottleMin1;
+		temp = range - (ThrottleFeedback - ThrottleMin1);
+		outputThrottle = (signed long)((signed long)(-10) * ThrottleMaxRegen  * temp / range);
 	}
-	else if ((ThrottleFeedback >= ThrottleFWD) && (ThrottleFeedback <= ThrottleMAP)) { //bottom 50% forward
-		outputThrottle = 500 * (long)(ThrottleFeedback - ThrottleFWD) / (long)(ThrottleMAP - ThrottleFWD);
-	}
-	else { //more than ThrottleMAP
-		outputThrottle = 500 + 500 * (long)(ThrottleFeedback - ThrottleMAP) / (long)(ThrottleMax1 - ThrottleMAP);
+	else if (ThrottleFeedback >= ThrottleFWD) {	
+		if (ThrottleFeedback <= ThrottleMAP) { //bottom 50% forward
+			range = ThrottleMAP - ThrottleFWD;
+			temp = (ThrottleFeedback - ThrottleFWD);
+			outputThrottle = (signed long)((signed long)(500) * temp / range);
+		}
+		else { //more than ThrottleMAP
+			range = ThrottleMax1 - ThrottleMAP;
+			temp = (ThrottleFeedback - ThrottleMAP);
+			outputThrottle = 500 + (signed int)((signed int)(500) * temp / range);
+		}			
 	}
 	
+	Serial.print(Throttle1Val);
+	Serial.print("*");
+	Serial.println(outputThrottle);
 }
 
 int THROTTLE::getThrottle() {
