@@ -41,7 +41,7 @@ void setup() {
 	// Initialize MCP2515 CAN controller at the specified speed and clock frequency
 	// (Note:  This is the oscillator attached to the MCP2515, not the Arduino oscillator)
 	//speed in KHz, clock in MHz
-	if(CAN.Init(500,16))   //DMOC defaults to 500Khz
+	if(CAN.Init(250,16))   //DMOC defaults to 500Khz
 	{
 		Serial.println("MCP2515 Init OK ...");
 	} else {

@@ -272,7 +272,7 @@ void MCP2515::SendBuffer(byte buffers) {
 void MCP2515::LoadBuffer(byte buffer, Frame message) {
  
   // buffer should be one of TXB0, TXB1 or TXB2
-  if(buffer==TXB0) buffer = 0;
+  if(buffer==TXB0) buffer = 0; //the values we need are 0, 2, 4 TXB1 and TXB2 are already 2 / 4
 
   byte byte1=0; // TXBnSIDH
   byte byte2=0; // TXBnSIDL

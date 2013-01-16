@@ -27,14 +27,16 @@ void DMOC::handleTick() {
 	switch (step) {
 	case RPM:
 		step = TORQUE;
+		sendCmd1();
 		break;
 	case TORQUE:
 		step = WATTS;
+		sendCmd2();
 		break;
 	case WATTS:
 		step = RPM;
-		break;
-			
+		sendCmd3();
+		break;	
 	}
 		
 }
@@ -84,8 +86,8 @@ void DMOC::sendCmd2() {
 	output.data[5] = 0xF8; //lsb
 	output.data[6] = alive;
 	output.data[7] = calcChecksum(output);
-	can->LoadBuffer(TXB0, output);
-	can->SendBuffer(TXB0);
+	can->LoadBuffer(TXB1, output);
+	can->SendBuffer(TXB1);
 }
 	
 //Power limits plus setting ambient temp and whether to cool power train or go into limp mode
@@ -104,8 +106,8 @@ void DMOC::sendCmd3() {
 	output.data[5] = 60; //20 degrees celsius 
 	output.data[6] = alive;
 	output.data[7] = calcChecksum(output);
-	can->LoadBuffer(TXB0, output);
-	can->SendBuffer(TXB0);
+	can->LoadBuffer(TXB2, output);
+	can->SendBuffer(TXB2);
 }		
 			
 byte DMOC::calcChecksum(Frame thisFrame) {

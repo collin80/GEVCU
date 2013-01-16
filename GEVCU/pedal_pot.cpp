@@ -72,10 +72,11 @@ void THROTTLE::handleTick() {
 			outputThrottle = 500 + (signed int)((signed int)(500) * temp / range);
 		}			
 	}
-	
+	/*
 	Serial.print(Throttle1Val);
 	Serial.print("*");
 	Serial.println(outputThrottle);
+	*/
 }
 
 int THROTTLE::getThrottle() {
