@@ -13,6 +13,7 @@ DMOC::DMOC(MCP2515 *canlib) {
 	step = RPM;
 	selectedGear = NEUTRAL;
 	MaxTorque = 500; //in tenths so 50Nm max torque. This is plenty for testing
+	MaxRPM = 2000; //also plenty for a bench test
 	can = canlib;
 }	
 	
@@ -53,13 +54,30 @@ void DMOC::sendCmd1() {
 	output.dlc = 8;
 	output.id = 0x232;
 	output.ide = 0; //standard frame
-	output.data[0] = 0x4E; //msb  RPMS. RPM is offset by -20000 so zero rpm is value of 20000
-	output.data[1] = 0x20; //lsb RPM
+	output.rtr = 0;
+	output.srr = 0;
+	
+	//Requested throttle goes negative to ask for regen but we don't actually want to command
+	//the motor to spin the other direction. Only ever spin forwards for now. Eventually the gear
+	//selection might require that negative RPMs be allowed but we might not use RPM control. TCE doesnt.
+	//The TCE seems to always command just torque.
+	if (requestedThrottle > 0) 
+		requestedRPM = 20000 + (((long)requestedThrottle * (long)MaxRPM) / 1000);
+	else
+		requestedRPM = 20000;
+	output.data[0] = (requestedRPM & 0xFF00) >> 8;
+	output.data[1] = (requestedTorque & 0x00FF);
 	output.data[2] = 0; //not used
 	output.data[3] = 0; //not used
 	output.data[4] = 0; //not used
 	output.data[5] = ON;
-	output.data[6] = (ENABLE<<4) + DRIVE + alive;
+	
+	//Enable drive only if there is commanded throttle. Otherwise go to standby.
+	if (requestedThrottle < -10 || requestedThrottle > 10) 
+		output.data[6] = (ENABLE<<6) + (DRIVE<<4) + alive;
+	else
+		output.data[6] = (ENABLE<<6) + (STANDBY<<4) + alive;
+		
 	output.data[7] = calcChecksum(output);
 	can->LoadBuffer(TXB0, output);
 	can->SendBuffer(TXB0);	
@@ -73,6 +91,8 @@ void DMOC::sendCmd2() {
 	output.dlc = 8;
 	output.id = 0x233;
 	output.ide = 0; //standard frame
+	output.rtr = 0;
+	output.srr = 0;
 	//30000 is the base point where torque = 0
 	//MaxTorque is in tenths like it should be.
 	//Requested throttle is [-1000, 1000] 
@@ -98,6 +118,8 @@ void DMOC::sendCmd3() {
 	output.dlc = 8;
 	output.id = 0x234;
 	output.ide = 0; //standard frame
+	output.rtr = 0;
+	output.srr = 0;
 	output.data[0] = 0xC3; //msb of regen watt limit
 	output.data[1] = 0x50; //lsb
 	output.data[2] = 0xC3; //msb of acceleration limit

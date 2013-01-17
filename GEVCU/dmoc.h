@@ -48,6 +48,7 @@ class DMOC {
 	uint16_t actualTorque;
 	uint16_t actualRPM;
 	uint16_t MaxTorque;	//maximum torque in 0.1 Nm 
+	uint16_t MaxRPM; 
 	int requestedThrottle;
 	int selectedGear;
 	int step;
