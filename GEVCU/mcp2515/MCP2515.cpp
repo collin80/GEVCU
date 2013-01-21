@@ -415,7 +415,9 @@ ext is true if the mask is supposed to be extended (29 bit)
 */
 void MCP2515::SetRXMask(byte mask, long MaskValue, bool ext) {
 	byte temp_buff[4];
+	byte oldMode;
 	
+	oldMode = Read(CANSTAT);
 	Mode(MODE_CONFIG); //have to be in config mode to change mask
 	
 	if (ext) { //fill out all 29 bits
@@ -434,7 +436,7 @@ void MCP2515::SetRXMask(byte mask, long MaskValue, bool ext) {
 	
 	Write(mask, temp_buff, 4); //send the four byte mask out to the proper address
 	
-	Mode(MODE_NORMAL); //Maybe a good idea to figure out what old mode was and set back to that...
+	Mode(oldMode);
 }
 
 /*
@@ -446,7 +448,10 @@ It might be able to be though... The setting of EXIDE would probably just be ign
 */
 void MCP2515::SetRXFilter(byte filter, long FilterValue, bool ext) {
 	byte temp_buff[4];
-	
+	byte oldMode;
+		
+	oldMode = Read(CANSTAT);
+
 	Mode(MODE_CONFIG); //have to be in config mode to change mask
 	
 	if (ext) { //fill out all 29 bits
@@ -466,7 +471,7 @@ void MCP2515::SetRXFilter(byte filter, long FilterValue, bool ext) {
 	
 	Write(filter, temp_buff, 4); //send the four byte mask out to the proper address
 	
-	Mode(MODE_NORMAL); //Maybe a good idea to figure out what old mode was and set back to that...	
+	Mode(oldMode);
 }
 
 //Places the given frame into the receive queue
@@ -482,15 +487,36 @@ void MCP2515::EnqueueRX(Frame& newFrame) {
 }
 
 //Places the given frame into the transmit queue
+//Well, maybe. If there is currently an open hardware buffer
+//it will place it into hardware immediately instead of using
+//the software queue
 void MCP2515::EnqueueTX(Frame& newFrame) {
 	byte counter;
-	tx_frames[tx_frame_write_pos].id = newFrame.id;
-	tx_frames[tx_frame_write_pos].srr = newFrame.srr;
-	tx_frames[tx_frame_write_pos].rtr = newFrame.rtr;
-	tx_frames[tx_frame_write_pos].ide = newFrame.ide;
-	tx_frames[tx_frame_write_pos].dlc = newFrame.dlc;
-	for (counter = 0; counter < 8; counter++) tx_frames[tx_frame_write_pos].data[counter] = newFrame.data[counter];
-	tx_frame_write_pos = (tx_frame_write_pos + 1) % 8;
+	byte status = Status() & 0b01010100; //mask for only the transmit buffer empty bits
+		
+	if (status != 0b01010100) { //found an open slot
+		if (status & 0b00000100) { //transmit buffer 0 is open
+			LoadBuffer(TXB0, newFrame);
+			SendBuffer(TXB0);
+		}
+		else if (status & 0b00010000) { //transmit buffer 1 is open
+			LoadBuffer(TXB1, newFrame);
+			SendBuffer(TXB1);
+		}
+		else { // must have been buffer 2 then.
+			LoadBuffer(TXB2, newFrame);
+			SendBuffer(TXB2);
+		}
+	}
+	else { //hardware is busy. queue it in software
+		tx_frames[tx_frame_write_pos].id = newFrame.id;
+		tx_frames[tx_frame_write_pos].srr = newFrame.srr;
+		tx_frames[tx_frame_write_pos].rtr = newFrame.rtr;
+		tx_frames[tx_frame_write_pos].ide = newFrame.ide;
+		tx_frames[tx_frame_write_pos].dlc = newFrame.dlc;
+		for (counter = 0; counter < 8; counter++) tx_frames[tx_frame_write_pos].data[counter] = newFrame.data[counter];
+		tx_frame_write_pos = (tx_frame_write_pos + 1) % 8;
+	}		
 }
 
 bool MCP2515::GetRXFrame(Frame &frame) {
@@ -526,16 +552,31 @@ void MCP2515::intHandler(void) {
       EnqueueRX(message);
     }
     if(interruptFlags & TX0IF) {
+		// TX buffer 0 sent
 	   digitalWrite(LED_CAN_TX, LOW);
-      // TX buffer 0 sent
+       if (tx_frame_read_pos != tx_frame_write_pos) {
+			LoadBuffer(TXB0, tx_frames[tx_frame_read_pos]);
+		   	SendBuffer(TXB0);
+			tx_frame_read_pos = (tx_frame_read_pos + 1) % 8;
+	   }
     }
     if(interruptFlags & TX1IF) {
-		digitalWrite(LED_CAN_TX, LOW);
-      // TX buffer 1 sent
+		// TX buffer 1 sent
+	  digitalWrite(LED_CAN_TX, LOW);
+	  if (tx_frame_read_pos != tx_frame_write_pos) {
+		  LoadBuffer(TXB1, tx_frames[tx_frame_read_pos]);
+		  SendBuffer(TXB1);
+		  tx_frame_read_pos = (tx_frame_read_pos + 1) % 8;
+	  }
     }
     if(interruptFlags & TX2IF) {
+		// TX buffer 2 sent
 		digitalWrite(LED_CAN_TX, LOW);
-      // TX buffer 2 sent
+		if (tx_frame_read_pos != tx_frame_write_pos) {
+			LoadBuffer(TXB2, tx_frames[tx_frame_read_pos]);
+			SendBuffer(TXB2);
+			tx_frame_read_pos = (tx_frame_read_pos + 1) % 8;
+		}
     }
     if(interruptFlags & ERRIF) {
       // error handling code

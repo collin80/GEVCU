@@ -79,8 +79,7 @@ void DMOC::sendCmd1() {
 		output.data[6] = (ENABLE<<6) + (STANDBY<<4) + alive;
 		
 	output.data[7] = calcChecksum(output);
-	can->LoadBuffer(TXB0, output);
-	can->SendBuffer(TXB0);	
+	can->EnqueueTX(output);
 }
 
 //Torque limits
@@ -106,8 +105,7 @@ void DMOC::sendCmd2() {
 	output.data[5] = 0xF8; //lsb
 	output.data[6] = alive;
 	output.data[7] = calcChecksum(output);
-	can->LoadBuffer(TXB1, output);
-	can->SendBuffer(TXB1);
+	can->EnqueueTX(output);
 }
 	
 //Power limits plus setting ambient temp and whether to cool power train or go into limp mode
@@ -128,8 +126,7 @@ void DMOC::sendCmd3() {
 	output.data[5] = 60; //20 degrees celsius 
 	output.data[6] = alive;
 	output.data[7] = calcChecksum(output);
-	can->LoadBuffer(TXB2, output);
-	can->SendBuffer(TXB2);
+	can->EnqueueTX(output);
 }		
 			
 byte DMOC::calcChecksum(Frame thisFrame) {

@@ -3,6 +3,14 @@
  *
  * Created: 1/4/2013 1:34:14 PM
  *  Author: Collin
+ *
+ *	Need to add a class for keeping track of the various modules installed. This
+ *	class has a list of all the modules so we can call the proper functions
+ *
+ *	Additionally, all modules should inherit from one of the (as of yet unwritten)
+ *	base device classes (motor controller, bms, charger, display)
+ *
+ *
  */ 
 
 #include "Arduino.h"
@@ -28,6 +36,8 @@ void CANHandler() {
 
 void setup() {
 	Serial.begin(115200);
+	
+	Serial.println("GEVCU alpha 01-18-2013");
 	
 	Serial.println("Initializing ...");
 
@@ -57,6 +67,7 @@ void setup() {
 	CAN.SetRXFilter(FILTER1, 0x650, 0); //allows 0x650 - 0x65F
 	
 	//The pedal I have has two pots and one should be twice the value of the other normally (within tolerance)
+	Serial.println("Using dual pot throttle");
 	Throttle.setT1Min(82);
 	Throttle.setT1Max(410);	
 	Throttle.setT2Min(158);
@@ -67,9 +78,15 @@ void setup() {
 	Throttle.setFWDStart(165); //deadzone 126 to 164, then forward from there to 410
 	Throttle.setMAP(350); //but 1/2 way power is at 350 so it's gradual until near the end and then it gets brutal
 	
-	setupTimer(10000); //10ms or 10000us ticks
+	//This could eventually be configurable.
+	setupTimer(10000); //10ms / 10000us ticks / 100Hz
+	Serial.println("100hz update frequency");
+	
+	//This will not be hard coded soon. It should be a list of every hardware support module
+	//compiled into the ROM
+	Serial.println("Installed devices: DMOC645");
 
-	Serial.println("Ready ...");
+	Serial.println("System Ready ");
 }
 
 byte i=0;
@@ -78,10 +95,12 @@ byte i=0;
 Frame message;
 
 void loop() {	
+	byte dotTick = 0;
 	if (CAN.GetRXFrame(message)) {
 		dmoc.handleFrame(message);
 	}
-	if (tickReady) {
+	if (tickReady) { 
+		if (!dotTick++) Serial.print('.'); //print . every 256 ticks (2.56 seconds)
 		tickReady = false;
 		//do tick related stuff
 		Throttle.handleTick(); //gets ADC values, calculates throttle position
