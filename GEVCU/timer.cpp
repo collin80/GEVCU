@@ -55,6 +55,7 @@ void setupTimer(long microSeconds) {
 	}
 	tickReady = false;
 	TIMSK0 = 2; //Lastly, enable OCIE2A
+
 }
 
 ISR(TIMER0_COMPA_vect) {

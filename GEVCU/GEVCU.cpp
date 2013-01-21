@@ -86,7 +86,7 @@ void setup() {
 	//compiled into the ROM
 	Serial.println("Installed devices: DMOC645");
 
-	Serial.println("System Ready ");
+	Serial.print("System Ready ");
 }
 
 byte i=0;
@@ -95,12 +95,13 @@ byte i=0;
 Frame message;
 
 void loop() {	
-	byte dotTick = 0;
+	static byte dotTick = 0;
 	if (CAN.GetRXFrame(message)) {
 		dmoc.handleFrame(message);
 	}
 	if (tickReady) { 
-		if (!dotTick++) Serial.print('.'); //print . every 256 ticks (2.56 seconds)
+		if (dotTick == 0) Serial.print('.'); //print . every 256 ticks (2.56 seconds)
+		dotTick = dotTick + 1;
 		tickReady = false;
 		//do tick related stuff
 		Throttle.handleTick(); //gets ADC values, calculates throttle position
