@@ -220,12 +220,6 @@
     <Compile Include="arduino_core\WString.h">
       <SubType>compile</SubType>
     </Compile>
-    <Compile Include="device.cpp">
-      <SubType>compile</SubType>
-    </Compile>
-    <Compile Include="device.h">
-      <SubType>compile</SubType>
-    </Compile>
     <Compile Include="dmoc.cpp">
       <SubType>compile</SubType>
     </Compile>
@@ -244,18 +238,6 @@
     <Compile Include="mcp2515\MCP2515_defs.h">
       <SubType>compile</SubType>
     </Compile>
-    <Compile Include="modulemanager.cpp">
-      <SubType>compile</SubType>
-    </Compile>
-    <Compile Include="modulemanager.h">
-      <SubType>compile</SubType>
-    </Compile>
-    <Compile Include="motorcontroller.cpp">
-      <SubType>compile</SubType>
-    </Compile>
-    <Compile Include="motorcontroller.h">
-      <SubType>compile</SubType>
-    </Compile>
     <Compile Include="pedal_pot.cpp">
       <SubType>compile</SubType>
     </Compile>
@@ -268,7 +250,7 @@
     <Compile Include="SPI\SPI.h">
       <SubType>compile</SubType>
     </Compile>
-    <Compile Include="timer.c">
+    <Compile Include="timer.cpp">
       <SubType>compile</SubType>
     </Compile>
     <Compile Include="timer.h">
