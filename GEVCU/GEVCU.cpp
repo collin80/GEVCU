@@ -17,6 +17,8 @@
 #include "SPI.h"
 #include "MCP2515.h"
 #include "pedal_pot.h"
+#include "modulemanager.h"
+#include "device.h"
 #include "dmoc.h"
 #include "timer.h"
 
@@ -29,6 +31,7 @@
 MCP2515 CAN(CS_PIN, RESET_PIN, INT_PIN);
 THROTTLE Throttle(0, 1);
 DMOC dmoc(&CAN);
+MODULEMANAGER modules();
 
 void CANHandler() {
 	CAN.intHandler();
@@ -51,7 +54,7 @@ void setup() {
 	// Initialize MCP2515 CAN controller at the specified speed and clock frequency
 	// (Note:  This is the oscillator attached to the MCP2515, not the Arduino oscillator)
 	//speed in KHz, clock in MHz
-	if(CAN.Init(250,16))   //DMOC defaults to 500Khz
+	if(CAN.Init(500,16))   //DMOC defaults to 500Khz
 	{
 		Serial.println("MCP2515 Init OK ...");
 	} else {
@@ -65,6 +68,8 @@ void setup() {
 	CAN.SetRXMask(MASK0, 0x7F0, 0); //match all but bottom four bits
 	CAN.SetRXFilter(FILTER0, 0x230, 0); //allows 0x230 - 0x23F
 	CAN.SetRXFilter(FILTER1, 0x650, 0); //allows 0x650 - 0x65F
+	
+	//modules.add(DMOC);
 	
 	//The pedal I have has two pots and one should be twice the value of the other normally (within tolerance)
 	Serial.println("Using dual pot throttle");
@@ -96,16 +101,25 @@ Frame message;
 
 void loop() {	
 	static byte dotTick = 0;
+	static byte throttle = 0;
+	static byte count = 0;
 	if (CAN.GetRXFrame(message)) {
 		dmoc.handleFrame(message);
 	}
 	if (tickReady) { 
-		if (dotTick == 0) Serial.print('.'); //print . every 256 ticks (2.56 seconds)
+		//if (dotTick == 0) Serial.print('.'); //print . every 256 ticks (2.56 seconds)
 		dotTick = dotTick + 1;
 		tickReady = false;
 		//do tick related stuff
-		Throttle.handleTick(); //gets ADC values, calculates throttle position
-		dmoc.setThrottle(Throttle.getThrottle());
+		//Throttle.handleTick(); //gets ADC values, calculates throttle position
+		count++;
+		if (count > 50) {
+			count = 0;
+			throttle++;
+		}
+		if (throttle > 80) throttle = 0;
+		Serial.println(throttle);
+		dmoc.setThrottle(throttle * (int)10);
 		dmoc.handleTick();
 	}
 }

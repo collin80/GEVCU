@@ -9,12 +9,11 @@
 
 #include "dmoc.h"
 
-DMOC::DMOC(MCP2515 *canlib) {
+DMOC::DMOC(MCP2515 *canlib) : DEVICE(canlib) {
 	step = RPM;
 	selectedGear = NEUTRAL;
-	MaxTorque = 500; //in tenths so 50Nm max torque. This is plenty for testing
+	MaxTorque = 1000; //in tenths so 50Nm max torque. This is plenty for testing
 	MaxRPM = 2000; //also plenty for a bench test
-	can = canlib;
 }	
 	
 void DMOC::handleFrame(Frame& frame) {
@@ -74,9 +73,9 @@ void DMOC::sendCmd1() {
 	
 	//Enable drive only if there is commanded throttle. Otherwise go to standby.
 	if (requestedThrottle < -10 || requestedThrottle > 10) 
-		output.data[6] = (ENABLE<<6) + (DRIVE<<4) + alive;
+		output.data[6] = 0b10010000 + alive;
 	else
-		output.data[6] = (ENABLE<<6) + (STANDBY<<4) + alive;
+		output.data[6] = alive;
 		
 	output.data[7] = calcChecksum(output);
 	can->EnqueueTX(output);
@@ -96,7 +95,7 @@ void DMOC::sendCmd2() {
 	//MaxTorque is in tenths like it should be.
 	//Requested throttle is [-1000, 1000] 
 	//data 0-1 is upper limit, 2-3 is lower limit. They are set to same value to lock torque to this value
-	requestedTorque = 30000 + (((long)requestedThrottle * (long)MaxTorque) / 1000);
+	requestedTorque = 30000L + (((long)requestedThrottle * (long)MaxTorque) / 1000L);
 	output.data[0] = (requestedTorque & 0xFF00) >> 8;
 	output.data[1] = (requestedTorque & 0x00FF);
 	output.data[2] = output.data[0];
@@ -118,8 +117,8 @@ void DMOC::sendCmd3() {
 	output.ide = 0; //standard frame
 	output.rtr = 0;
 	output.srr = 0;
-	output.data[0] = 0xC3; //msb of regen watt limit
-	output.data[1] = 0x50; //lsb
+	output.data[0] = 0xD0; //msb of regen watt limit
+	output.data[1] = 0x84; //lsb
 	output.data[2] = 0xC3; //msb of acceleration limit
 	output.data[3] = 0x50; //lsb
 	output.data[4] = 0; //not used

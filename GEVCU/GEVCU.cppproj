@@ -220,6 +220,12 @@
     <Compile Include="arduino_core\WString.h">
       <SubType>compile</SubType>
     </Compile>
+    <Compile Include="device.cpp">
+      <SubType>compile</SubType>
+    </Compile>
+    <Compile Include="device.h">
+      <SubType>compile</SubType>
+    </Compile>
     <Compile Include="dmoc.cpp">
       <SubType>compile</SubType>
     </Compile>
@@ -236,6 +242,18 @@
       <SubType>compile</SubType>
     </Compile>
     <Compile Include="mcp2515\MCP2515_defs.h">
+      <SubType>compile</SubType>
+    </Compile>
+    <Compile Include="message.cpp">
+      <SubType>compile</SubType>
+    </Compile>
+    <Compile Include="message.h">
+      <SubType>compile</SubType>
+    </Compile>
+    <Compile Include="modulemanager.cpp">
+      <SubType>compile</SubType>
+    </Compile>
+    <Compile Include="modulemanager.h">
       <SubType>compile</SubType>
     </Compile>
     <Compile Include="pedal_pot.cpp">

@@ -13,6 +13,7 @@
 #define DMOC_H_
 
 #include "MCP2515.h"
+#include "device.h"
 
 enum GEARS {
 	NEUTRAL = 0,
@@ -41,7 +42,7 @@ enum OPSTATE {
 	POWERDOWN = 3
 };
 
-class DMOC {
+class DMOC : DEVICE{
   private:
 	uint16_t requestedTorque;
 	uint16_t requestedRPM;
@@ -52,7 +53,6 @@ class DMOC {
 	int requestedThrottle;
 	int selectedGear;
 	int step;
-	MCP2515 * can;
 
     void sendCmd1();
 	void sendCmd2();
@@ -64,8 +64,6 @@ class DMOC {
 	void handleTick();
 	void setThrottle(int throt);
 	DMOC(MCP2515 *canlib);
-	
-	
 };
 
 
