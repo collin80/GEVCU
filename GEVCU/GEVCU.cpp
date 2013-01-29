@@ -33,6 +33,8 @@ THROTTLE Throttle(0, 1);
 DMOC dmoc(&CAN);
 MODULEMANAGER modules();
 
+bool runRamp = false;
+
 void CANHandler() {
 	CAN.intHandler();
 }
@@ -119,8 +121,18 @@ void loop() {
 		}
 		if (throttle > 80) throttle = 0;
 		Serial.println(throttle);
+		if (!runRamp) {
+			throttle = 0;			
+		}
 		dmoc.setThrottle(throttle * (int)10);
 		dmoc.handleTick();
 	}
 }
 
+void serialEvent() {
+	int incoming;
+	incoming = Serial.read();
+	if (incoming == ' ') {
+		runRamp = !runRamp;
+	}
+}

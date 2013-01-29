@@ -10,7 +10,7 @@
 #include "dmoc.h"
 
 DMOC::DMOC(MCP2515 *canlib) : DEVICE(canlib) {
-	step = RPM;
+	step = SPEED_TORQUE;
 	selectedGear = NEUTRAL;
 	MaxTorque = 1000; //in tenths so 50Nm max torque. This is plenty for testing
 	MaxRPM = 2000; //also plenty for a bench test
@@ -25,20 +25,18 @@ void DMOC::handleFrame(Frame& frame) {
 */
 void DMOC::handleTick() {
 	switch (step) {
-	case RPM:
-		step = TORQUE;
+	case SPEED_TORQUE:
+		step = CHAL_RESP;
 		sendCmd1();
-		break;
-	case TORQUE:
-		step = WATTS;
 		sendCmd2();
-		break;
-	case WATTS:
-		step = RPM;
 		sendCmd3();
-		break;	
-	}
-		
+		sendCmd4();
+		sendCmd5();
+		break;
+	case CHAL_RESP:
+		step = SPEED_TORQUE;
+		break;
+	}		
 }
 	
 void DMOC::setThrottle(int throt) {
@@ -48,7 +46,6 @@ void DMOC::setThrottle(int throt) {
 //Commanded RPM plus state of key and gear selector	
 void DMOC::sendCmd1() {
 	Frame output;
-	static byte alive = 0;
 	alive = (alive + 2) & 0x0F;
 	output.dlc = 8;
 	output.id = 0x232;
@@ -65,7 +62,7 @@ void DMOC::sendCmd1() {
 	else
 		requestedRPM = 20000;
 	output.data[0] = (requestedRPM & 0xFF00) >> 8;
-	output.data[1] = (requestedTorque & 0x00FF);
+	output.data[1] = (requestedRPM & 0x00FF);
 	output.data[2] = 0; //not used
 	output.data[3] = 0; //not used
 	output.data[4] = 0; //not used
@@ -84,8 +81,6 @@ void DMOC::sendCmd1() {
 //Torque limits
 void DMOC::sendCmd2() {
 	Frame output;
-	static byte alive = 0;
-	alive = (alive + 2) & 0x0F;
 	output.dlc = 8;
 	output.id = 0x233;
 	output.ide = 0; //standard frame
@@ -95,13 +90,14 @@ void DMOC::sendCmd2() {
 	//MaxTorque is in tenths like it should be.
 	//Requested throttle is [-1000, 1000] 
 	//data 0-1 is upper limit, 2-3 is lower limit. They are set to same value to lock torque to this value
-	requestedTorque = 30000L + (((long)requestedThrottle * (long)MaxTorque) / 1000L);
+	//requestedTorque = 30000L + (((long)requestedThrottle * (long)MaxTorque) / 1000L);
+	requestedTorque = 30500; //set upper torque to hard coded 50nm for now
 	output.data[0] = (requestedTorque & 0xFF00) >> 8;
 	output.data[1] = (requestedTorque & 0x00FF);
-	output.data[2] = output.data[0];
-	output.data[3] = output.data[1];
-	output.data[4] = 0x75; //msb standby torque. -3000 offset, 0.1 scale. These bytes give a standby of 20Nm
-	output.data[5] = 0xF8; //lsb
+	output.data[2] = 0x75; //set lower limit to zero torque
+	output.data[3] = 0x30;
+	output.data[4] = 0x75; //msb standby torque. -3000 offset, 0.1 scale. These bytes give a standby of 0Nm
+	output.data[5] = 0x30; //lsb
 	output.data[6] = alive;
 	output.data[7] = calcChecksum(output);
 	can->EnqueueTX(output);
@@ -110,8 +106,6 @@ void DMOC::sendCmd2() {
 //Power limits plus setting ambient temp and whether to cool power train or go into limp mode
 void DMOC::sendCmd3() {
 	Frame output;
-	static byte alive = 0;
-	alive = (alive + 2) & 0x0F;
 	output.dlc = 8;
 	output.id = 0x234;
 	output.ide = 0; //standard frame
@@ -119,15 +113,61 @@ void DMOC::sendCmd3() {
 	output.srr = 0;
 	output.data[0] = 0xD0; //msb of regen watt limit
 	output.data[1] = 0x84; //lsb
-	output.data[2] = 0xC3; //msb of acceleration limit
-	output.data[3] = 0x50; //lsb
+	output.data[2] = 0x6C; //msb of acceleration limit
+	output.data[3] = 0x66; //lsb
 	output.data[4] = 0; //not used
 	output.data[5] = 60; //20 degrees celsius 
 	output.data[6] = alive;
 	output.data[7] = calcChecksum(output);
 	can->EnqueueTX(output);
 }		
-			
+
+//challenge/response frame 1 - Really doesn't contain anything we need I dont think
+void DMOC::sendCmd4() {
+	Frame output;
+	output.dlc = 8;
+	output.id = 0x235;
+	output.ide = 0; //standard frame
+	output.rtr = 0;
+	output.srr = 0;
+	output.data[0] = 0;
+	output.data[1] = 0;
+	output.data[2] = 0;
+	output.data[3] = 0;
+	output.data[4] = 6;
+	output.data[5] = 1;
+	output.data[6] = alive;
+	output.data[7] = calcChecksum(output);
+	can->EnqueueTX(output);
+}
+
+//Another C/R frame but this one also specifies which shifter position we're in
+void DMOC::sendCmd5() {
+	Frame output;
+	output.dlc = 8;
+	output.id = 0x236;
+	output.ide = 0; //standard frame
+	output.rtr = 0;
+	output.srr = 0;
+	output.data[0] = 0;
+	output.data[1] = 0;
+	output.data[2] = 0;
+	if (requestedThrottle < -10 || requestedThrottle > 10) {
+		output.data[3] = 39;
+		output.data[4] = 19;
+		output.data[5] = 55; //neutral
+	}		
+	else {
+		output.data[3] = 52;
+		output.data[4] = 26;
+		output.data[5] = 59; //drive
+	}		
+	//--PRND12
+	output.data[6] = alive;
+	output.data[7] = calcChecksum(output);
+	can->EnqueueTX(output);
+}
+						
 byte DMOC::calcChecksum(Frame thisFrame) {
 	byte cs;
 	byte i;

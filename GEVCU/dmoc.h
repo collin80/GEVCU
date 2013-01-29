@@ -23,9 +23,8 @@ enum GEARS {
 };
 	
 enum STEP {
-	RPM = 0,
-	TORQUE = 1,
-	WATTS = 2
+	SPEED_TORQUE,
+	CHAL_RESP
 };
 	
 enum KEYSTATE {
@@ -53,10 +52,13 @@ class DMOC : DEVICE{
 	int requestedThrottle;
 	int selectedGear;
 	int step;
+	byte alive;
 
     void sendCmd1();
 	void sendCmd2();
 	void sendCmd3();
+	void sendCmd4();
+	void sendCmd5();
 	byte calcChecksum(Frame thisFrame);
 
   public:
