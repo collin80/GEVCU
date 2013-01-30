@@ -1,0 +1,72 @@
+# depslib dependency file v1.0
+1359575927 source:c:\users\collin\desktop\gevcu\gevcu\message.cpp
+
+1356983243 source:c:\users\collin\desktop\gevcu\gevcu\arduino_core\print.cpp
+	<stdlib.h>
+	<stdio.h>
+	<string.h>
+	<math.h>
+	"Arduino.h"
+	"Print.h"
+
+1356983242 c:\users\collin\desktop\gevcu\gevcu\arduino_core\arduino.h
+	<stdlib.h>
+	<string.h>
+	<math.h>
+	<avr/pgmspace.h>
+	<avr/io.h>
+	<avr/interrupt.h>
+	"binary.h"
+	"WCharacter.h"
+	"WString.h"
+	"HardwareSerial.h"
+	"pins_arduino.h"
+
+1356983243 c:\users\collin\desktop\gevcu\gevcu\arduino_core\binary.h
+
+1356983243 c:\users\collin\desktop\gevcu\gevcu\arduino_core\wcharacter.h
+	<ctype.h>
+
+1356983243 c:\users\collin\desktop\gevcu\gevcu\arduino_core\wstring.h
+	<stdlib.h>
+	<string.h>
+	<ctype.h>
+	<avr/pgmspace.h>
+
+1356983242 c:\users\collin\desktop\gevcu\gevcu\arduino_core\hardwareserial.h
+	<inttypes.h>
+	"Stream.h"
+	"USBAPI.h"
+
+1356983243 c:\users\collin\desktop\gevcu\gevcu\arduino_core\stream.h
+	<inttypes.h>
+	"Print.h"
+
+1356983243 c:\users\collin\desktop\gevcu\gevcu\arduino_core\print.h
+	<inttypes.h>
+	<stdio.h>
+	"WString.h"
+	"Printable.h"
+
+1357326377 c:\users\collin\desktop\gevcu\gevcu\arduino_core\printable.h
+	"new.h"
+
+1356983243 c:\users\collin\desktop\gevcu\gevcu\arduino_core\new.h
+	<stdlib.h>
+
+1356983243 c:\users\collin\desktop\gevcu\gevcu\arduino_core\usbapi.h
+
+1356983637 c:\users\collin\desktop\gevcu\gevcu\arduino_core\pins_arduino.h
+	<avr/pgmspace.h>
+
+1356983243 source:c:\users\collin\desktop\gevcu\gevcu\arduino_core\wiring_digital.c
+	"wiring_private.h"
+	"pins_arduino.h"
+
+1356983243 c:\users\collin\desktop\gevcu\gevcu\arduino_core\wiring_private.h
+	<avr/io.h>
+	<avr/interrupt.h>
+	<stdio.h>
+	<stdarg.h>
+	"Arduino.h"
+

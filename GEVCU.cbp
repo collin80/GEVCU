@@ -1,0 +1,125 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes" ?>
+<CodeBlocks_project_file>
+	<FileVersion major="1" minor="6" />
+	<Project>
+		<Option title="GEVCU" />
+		<Option pch_mode="2" />
+		<Option compiler="avrgcc" />
+		<Build>
+			<Target title="Release">
+				<Option output="bin\Release\GEVCU.elf" prefix_auto="1" extension_auto="0" />
+				<Option working_dir="" />
+				<Option object_output="obj\Release\" />
+				<Option type="5" />
+				<Option compiler="avrgcc" />
+				<Compiler>
+					<Add option="-Os" />
+					<Add option="-funsigned-char -funsigned-bitfields -ffunction-sections -fpack-struct -fshort-enums" />
+					<Add directory="GEVCU\arduino_core" />
+					<Add directory="GEVCU\mcp2515" />
+					<Add directory="GEVCU\SPI" />
+					<Add directory="GEVCU" />
+				</Compiler>
+				<Linker>
+					<Add option="-Wl,--gc-sections" />
+				</Linker>
+			</Target>
+			<Environment>
+				<Variable name="MCU" value="atmega2560" />
+			</Environment>
+		</Build>
+		<Compiler>
+			<Add option="-Wall" />
+			<Add option="-mmcu=atmega2560" />
+			<Add option="-DF_CPU=16000000UL" />
+		</Compiler>
+		<Linker>
+			<Add option="-mmcu=atmega2560" />
+			<Add option="-Wl,-Map=$(TARGET_OUTPUT_DIR)$(TARGET_OUTPUT_BASENAME).map,--cref" />
+		</Linker>
+		<ExtraCommands>
+			<Add after="avr-size --mcu=atmega2560 --format=avr $(TARGET_OUTPUT_FILE)" />
+			<Add after='cmd /c &quot;avr-objdump -h -S $(TARGET_OUTPUT_FILE) &gt; $(TARGET_OUTPUT_DIR)$(TARGET_OUTPUT_BASENAME).lss&quot;' />
+			<Add after="avr-objcopy -R .eeprom -R .fuse -R .lock -R .signature -O ihex $(TARGET_OUTPUT_FILE) $(TARGET_OUTPUT_DIR)$(TARGET_OUTPUT_BASENAME).hex" />
+			<Add after="avr-objcopy --no-change-warnings -j .eeprom --change-section-lma .eeprom=0 -O ihex $(TARGET_OUTPUT_FILE) $(TARGET_OUTPUT_DIR)$(TARGET_OUTPUT_BASENAME).eep" />
+			<Add after="avr-objcopy --no-change-warnings -j .lock --change-section-lma .lock=0 -O ihex $(TARGET_OUTPUT_FILE) $(TARGET_OUTPUT_DIR)$(TARGET_OUTPUT_BASENAME).lock" />
+			<Add after="avr-objcopy --no-change-warnings -j .signature --change-section-lma .signature=0 -O ihex $(TARGET_OUTPUT_FILE) $(TARGET_OUTPUT_DIR)$(TARGET_OUTPUT_BASENAME).sig" />
+			<Add after="avr-objcopy --no-change-warnings -j .fuse --change-section-lma .fuse=0 -O ihex $(TARGET_OUTPUT_FILE) $(TARGET_OUTPUT_DIR)$(TARGET_OUTPUT_BASENAME).fuse" />
+			<Add after="srec_cat $(TARGET_OUTPUT_DIR)$(TARGET_OUTPUT_BASENAME).fuse -Intel -crop 0x00 0x01 -offset  0x00 -O $(TARGET_OUTPUT_DIR)$(TARGET_OUTPUT_BASENAME).lfs -Intel " />
+			<Add after="srec_cat $(TARGET_OUTPUT_DIR)$(TARGET_OUTPUT_BASENAME).fuse -Intel -crop 0x01 0x02 -offset -0x01 -O $(TARGET_OUTPUT_DIR)$(TARGET_OUTPUT_BASENAME).hfs -Intel " />
+			<Add after="srec_cat $(TARGET_OUTPUT_DIR)$(TARGET_OUTPUT_BASENAME).fuse -Intel -crop 0x02 0x03 -offset -0x02 -O $(TARGET_OUTPUT_DIR)$(TARGET_OUTPUT_BASENAME).efs -Intel " />
+		</ExtraCommands>
+		<Unit filename="GEVCU\GEVCU.cpp" />
+		<Unit filename="GEVCU\SPI\SPI.cpp" />
+		<Unit filename="GEVCU\SPI\SPI.h" />
+		<Unit filename="GEVCU\arduino_core\Arduino.h" />
+		<Unit filename="GEVCU\arduino_core\CDC.cpp" />
+		<Unit filename="GEVCU\arduino_core\Client.h" />
+		<Unit filename="GEVCU\arduino_core\HID.cpp" />
+		<Unit filename="GEVCU\arduino_core\HardwareSerial.cpp" />
+		<Unit filename="GEVCU\arduino_core\HardwareSerial.h" />
+		<Unit filename="GEVCU\arduino_core\IPAddress.cpp" />
+		<Unit filename="GEVCU\arduino_core\IPAddress.h" />
+		<Unit filename="GEVCU\arduino_core\Platform.h" />
+		<Unit filename="GEVCU\arduino_core\Print.cpp" />
+		<Unit filename="GEVCU\arduino_core\Print.h" />
+		<Unit filename="GEVCU\arduino_core\Printable.h" />
+		<Unit filename="GEVCU\arduino_core\Server.h" />
+		<Unit filename="GEVCU\arduino_core\Stream.cpp" />
+		<Unit filename="GEVCU\arduino_core\Stream.h" />
+		<Unit filename="GEVCU\arduino_core\Tone.cpp" />
+		<Unit filename="GEVCU\arduino_core\USBAPI.h" />
+		<Unit filename="GEVCU\arduino_core\USBCore.cpp" />
+		<Unit filename="GEVCU\arduino_core\USBCore.h" />
+		<Unit filename="GEVCU\arduino_core\USBDesc.h" />
+		<Unit filename="GEVCU\arduino_core\Udp.h" />
+		<Unit filename="GEVCU\arduino_core\WCharacter.h" />
+		<Unit filename="GEVCU\arduino_core\WInterrupts.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="GEVCU\arduino_core\WMath.cpp" />
+		<Unit filename="GEVCU\arduino_core\WString.cpp" />
+		<Unit filename="GEVCU\arduino_core\WString.h" />
+		<Unit filename="GEVCU\arduino_core\binary.h" />
+		<Unit filename="GEVCU\arduino_core\main.cpp" />
+		<Unit filename="GEVCU\arduino_core\new.cpp" />
+		<Unit filename="GEVCU\arduino_core\new.h" />
+		<Unit filename="GEVCU\arduino_core\pins_arduino.h" />
+		<Unit filename="GEVCU\arduino_core\wiring.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="GEVCU\arduino_core\wiring_analog.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="GEVCU\arduino_core\wiring_digital.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="GEVCU\arduino_core\wiring_private.h" />
+		<Unit filename="GEVCU\arduino_core\wiring_pulse.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="GEVCU\arduino_core\wiring_shift.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="GEVCU\device.cpp" />
+		<Unit filename="GEVCU\device.h" />
+		<Unit filename="GEVCU\dmoc.cpp" />
+		<Unit filename="GEVCU\dmoc.h" />
+		<Unit filename="GEVCU\mcp2515\MCP2515.cpp" />
+		<Unit filename="GEVCU\mcp2515\MCP2515.h" />
+		<Unit filename="GEVCU\mcp2515\MCP2515_defs.h" />
+		<Unit filename="GEVCU\message.cpp" />
+		<Unit filename="GEVCU\message.h" />
+		<Unit filename="GEVCU\modulemanager.cpp" />
+		<Unit filename="GEVCU\modulemanager.h" />
+		<Unit filename="GEVCU\pedal_pot.cpp" />
+		<Unit filename="GEVCU\pedal_pot.h" />
+		<Unit filename="GEVCU\timer.cpp" />
+		<Unit filename="GEVCU\timer.h" />
+		<Extensions>
+			<code_completion />
+			<envvars />
+			<debugger />
+		</Extensions>
+	</Project>
+</CodeBlocks_project_file>
