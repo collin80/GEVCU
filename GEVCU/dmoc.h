@@ -50,7 +50,8 @@ class DMOC : DEVICE{
 	uint16_t MaxTorque;	//maximum torque in 0.1 Nm 
 	uint16_t MaxRPM; 
 	int requestedThrottle;
-	int selectedGear;
+	byte selectedGear;
+	byte opstate;
 	int step;
 	byte alive;
 
@@ -65,6 +66,8 @@ class DMOC : DEVICE{
 	void handleFrame(Frame& frame);
 	void handleTick();
 	void setThrottle(int throt);
+	void setOpState(byte op);
+	void setGear(byte gear);
 	DMOC(MCP2515 *canlib);
 };
 

@@ -33,6 +33,8 @@ THROTTLE Throttle(0, 1);
 DMOC dmoc(&CAN);
 MODULEMANAGER modules();
 
+void printMenu();
+
 bool runRamp = false;
 
 void CANHandler() {
@@ -94,6 +96,22 @@ void setup() {
 	Serial.println("Installed devices: DMOC645");
 
 	Serial.print("System Ready ");
+	printMenu();
+	
+}
+
+void printMenu() {
+	Serial.println("System Menu:");
+	Serial.println("To start: enter letters slowly in this order:");
+	Serial.println("D, S, E, d, <space>");
+	Serial.println("D = disabled op state");
+	Serial.println("S = standby op state");
+	Serial.println("E = enabled op state");
+	Serial.println("n = neutral gear");
+	Serial.println("d = DRIVE gear");
+	Serial.println("r = reverse gear");
+	Serial.println("<space> = start/stop RPM ramp test");
+	Serial.println("");
 }
 
 byte i=0;
@@ -120,19 +138,69 @@ void loop() {
 			throttle++;
 		}
 		if (throttle > 80) throttle = 0;
-		Serial.println(throttle);
 		if (!runRamp) {
 			throttle = 0;			
 		}
-		dmoc.setThrottle(throttle * (int)10);
+		dmoc.setThrottle(throttle * (int)5);
 		dmoc.handleTick();
 	}
 }
 
+
+/*Extremely simple and very unhelpful serial processor 
+Gives no onscreen help at all. Here's your menu:
+Space - Start/Stop accelerator ramp
+(note, they're lower case)
+d - switch to drive
+n - switch to neutral
+r - switch to reverse
+
+Op States: (note, they're upper case)
+D - disable operational state
+S - standby operational state
+E - enable operational state
+
+*/
 void serialEvent() {
 	int incoming;
 	incoming = Serial.read();
-	if (incoming == ' ') {
+	if (incoming == -1) return;
+	switch (incoming) {
+	case 'h':
+	case '?':
+	case 'H':
+		printMenu();
+		break;
+	case ' ':
 		runRamp = !runRamp;
+		if (runRamp) {
+			Serial.println("Start Ramp Test");
+		}
+		else Serial.println("End Ramp Test");
+		break;
+	case 'd':
+		dmoc.setGear(DRIVE);
+		Serial.println("forward");
+		break;
+	case 'n':
+		dmoc.setGear(NEUTRAL);
+		Serial.println("neutral");
+		break;
+	case 'r':
+		dmoc.setGear(REVERSE);
+		Serial.println("reverse");
+		break;
+	case 'D':
+		dmoc.setOpState(DISABLED);
+		Serial.println("disabled");
+		break;
+	case 'S':
+		dmoc.setOpState(STANDBY);
+		Serial.println("standby");
+		break;
+	case 'E':
+		dmoc.setOpState(ENABLE);
+		Serial.println("enabled");
+		break;		
 	}
 }

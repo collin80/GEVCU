@@ -12,7 +12,8 @@
 DMOC::DMOC(MCP2515 *canlib) : DEVICE(canlib) {
 	step = SPEED_TORQUE;
 	selectedGear = NEUTRAL;
-	MaxTorque = 1000; //in tenths so 50Nm max torque. This is plenty for testing
+	opstate = DISABLED;
+	MaxTorque = 500; //in tenths so 50Nm max torque. This is plenty for testing
 	MaxRPM = 2000; //also plenty for a bench test
 }	
 	
@@ -57,7 +58,7 @@ void DMOC::sendCmd1() {
 	//the motor to spin the other direction. Only ever spin forwards for now. Eventually the gear
 	//selection might require that negative RPMs be allowed but we might not use RPM control. TCE doesnt.
 	//The TCE seems to always command just torque.
-	if (requestedThrottle > 0) 
+	if (requestedThrottle > 0 && opstate == ENABLE && selectedGear != NEUTRAL)  
 		requestedRPM = 20000 + (((long)requestedThrottle * (long)MaxRPM) / 1000);
 	else
 		requestedRPM = 20000;
@@ -68,11 +69,7 @@ void DMOC::sendCmd1() {
 	output.data[4] = 0; //not used
 	output.data[5] = ON;
 	
-	//Enable drive only if there is commanded throttle. Otherwise go to standby.
-	if (requestedThrottle < -10 || requestedThrottle > 10) 
-		output.data[6] = 0b10010000 + alive;
-	else
-		output.data[6] = alive;
+	output.data[6] = alive + (selectedGear << 4) + (opstate << 6);
 		
 	output.data[7] = calcChecksum(output);
 	can->EnqueueTX(output);
@@ -91,10 +88,15 @@ void DMOC::sendCmd2() {
 	//Requested throttle is [-1000, 1000] 
 	//data 0-1 is upper limit, 2-3 is lower limit. They are set to same value to lock torque to this value
 	//requestedTorque = 30000L + (((long)requestedThrottle * (long)MaxTorque) / 1000L);
-	requestedTorque = 30500; //set upper torque to hard coded 50nm for now
+	
+	if (requestedThrottle > 0 && opstate == ENABLE && selectedGear != NEUTRAL)  
+		requestedTorque = 30500; //50nm
+	else
+		requestedTorque = 30000; //set upper torque to zero if not drive enabled
+	
 	output.data[0] = (requestedTorque & 0xFF00) >> 8;
 	output.data[1] = (requestedTorque & 0x00FF);
-	output.data[2] = 0x75; //set lower limit to zero torque
+	output.data[2] = 0x75;
 	output.data[3] = 0x30;
 	output.data[4] = 0x75; //msb standby torque. -3000 offset, 0.1 scale. These bytes give a standby of 0Nm
 	output.data[5] = 0x30; //lsb
@@ -130,8 +132,8 @@ void DMOC::sendCmd4() {
 	output.ide = 0; //standard frame
 	output.rtr = 0;
 	output.srr = 0;
-	output.data[0] = 0;
-	output.data[1] = 0;
+	output.data[0] = 37; //i don't know what all these values are
+	output.data[1] = 11; //they're just copied from real traffic
 	output.data[2] = 0;
 	output.data[3] = 0;
 	output.data[4] = 6;
@@ -149,24 +151,32 @@ void DMOC::sendCmd5() {
 	output.ide = 0; //standard frame
 	output.rtr = 0;
 	output.srr = 0;
-	output.data[0] = 0;
-	output.data[1] = 0;
+	output.data[0] = 2;
+	output.data[1] = 127;
 	output.data[2] = 0;
-	if (requestedThrottle < -10 || requestedThrottle > 10) {
-		output.data[3] = 39;
-		output.data[4] = 19;
-		output.data[5] = 55; //neutral
-	}		
-	else {
+	if (opstate == ENABLE && selectedGear != NEUTRAL)  {
 		output.data[3] = 52;
 		output.data[4] = 26;
 		output.data[5] = 59; //drive
+	}		
+	else {
+		output.data[3] = 39;  
+		output.data[4] = 19;    
+		output.data[5] = 55; //neutral
 	}		
 	//--PRND12
 	output.data[6] = alive;
 	output.data[7] = calcChecksum(output);
 	can->EnqueueTX(output);
 }
+				
+void DMOC::setOpState(byte op) {
+	opstate = op;
+}
+
+void DMOC::setGear(byte gear) {
+	selectedGear = gear;
+}	
 						
 byte DMOC::calcChecksum(Frame thisFrame) {
 	byte cs;
