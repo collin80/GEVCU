@@ -35,7 +35,10 @@ MODULEMANAGER modules();
 
 void printMenu();
 
+//Evil, global variables
 bool runRamp = false;
+byte i=0;
+Frame message;
 
 void CANHandler() {
 	CAN.intHandler();
@@ -44,7 +47,7 @@ void CANHandler() {
 void setup() {
 	Serial.begin(115200);
 	
-	Serial.println("GEVCU alpha 01-18-2013");
+	Serial.println("GEVCU alpha 01-31-2013");
 	
 	Serial.println("Initializing ...");
 
@@ -114,10 +117,6 @@ void printMenu() {
 	Serial.println("");
 }
 
-byte i=0;
-
-// CAN message frame (actually just the parts that are exposed by the MCP2515 RX/TX buffers)
-Frame message;
 
 void loop() {	
 	static byte dotTick = 0;
@@ -141,7 +140,7 @@ void loop() {
 		if (!runRamp) {
 			throttle = 0;			
 		}
-		dmoc.setThrottle(throttle * (int)5);
+		dmoc.setThrottle(throttle * (int)12); //with throttle 0-80 this sets throttle to 0 - 960
 		dmoc.handleTick();
 	}
 }

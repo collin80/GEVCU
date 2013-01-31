@@ -14,7 +14,7 @@ DMOC::DMOC(MCP2515 *canlib) : DEVICE(canlib) {
 	selectedGear = NEUTRAL;
 	opstate = DISABLED;
 	MaxTorque = 500; //in tenths so 50Nm max torque. This is plenty for testing
-	MaxRPM = 2000; //also plenty for a bench test
+	MaxRPM = 6000; //also plenty for a bench test
 }	
 	
 void DMOC::handleFrame(Frame& frame) {
@@ -31,8 +31,8 @@ void DMOC::handleTick() {
 		sendCmd1();
 		sendCmd2();
 		sendCmd3();
-		sendCmd4();
-		sendCmd5();
+		//sendCmd4();
+		//sendCmd5();
 		break;
 	case CHAL_RESP:
 		step = SPEED_TORQUE;
