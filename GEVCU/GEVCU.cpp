@@ -37,6 +37,7 @@ void printMenu();
 
 //Evil, global variables
 bool runRamp = false;
+bool runStatic = false;
 byte i=0;
 Frame message;
 
@@ -114,6 +115,7 @@ void printMenu() {
 	Serial.println("d = DRIVE gear");
 	Serial.println("r = reverse gear");
 	Serial.println("<space> = start/stop RPM ramp test");
+	Serial.println("x = lock RPM at current value (toggle)");
 	Serial.println("");
 }
 
@@ -134,7 +136,7 @@ void loop() {
 		count++;
 		if (count > 50) {
 			count = 0;
-			throttle++;
+			if (!runStatic) throttle++;
 		}
 		if (throttle > 80) throttle = 0;
 		if (!runRamp) {
@@ -200,6 +202,13 @@ void serialEvent() {
 	case 'E':
 		dmoc.setOpState(ENABLE);
 		Serial.println("enabled");
-		break;		
+		break;
+	case 'x':
+		runStatic = !runStatic;
+		if (runRamp) {
+			Serial.println("Lock RPM rate");
+		}
+		else Serial.println("Unlock RPM rate");
+		break;
 	}
 }
