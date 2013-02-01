@@ -11,7 +11,7 @@
  *	base device classes (motor controller, bms, charger, display)
  *
  *
- */ 
+ */
 
 #include "Arduino.h"
 #include "SPI.h"
@@ -38,6 +38,7 @@ void printMenu();
 //Evil, global variables
 bool runRamp = false;
 bool runStatic = false;
+bool runThrottle = false;
 byte i=0;
 Frame message;
 
@@ -47,9 +48,9 @@ void CANHandler() {
 
 void setup() {
 	Serial.begin(115200);
-	
+
 	Serial.println("GEVCU alpha 01-31-2013");
-	
+
 	Serial.println("Initializing ...");
 
 	// Set up SPI Communication
@@ -58,7 +59,7 @@ void setup() {
 	SPI.setDataMode(SPI_MODE0);
 	SPI.setBitOrder(MSBFIRST);
 	SPI.begin();
-	
+
 	// Initialize MCP2515 CAN controller at the specified speed and clock frequency
 	// (Note:  This is the oscillator attached to the MCP2515, not the Arduino oscillator)
 	//speed in KHz, clock in MHz
@@ -68,40 +69,40 @@ void setup() {
 	} else {
 		Serial.println("MCP2515 Init Failed ...");
 	}
-	
+
 	attachInterrupt(6, CANHandler, FALLING);
 	CAN.InitFilters(false);
-	
+
 	//Setup CANBUS comm to allow DMOC command and status messages through
 	CAN.SetRXMask(MASK0, 0x7F0, 0); //match all but bottom four bits
 	CAN.SetRXFilter(FILTER0, 0x230, 0); //allows 0x230 - 0x23F
 	CAN.SetRXFilter(FILTER1, 0x650, 0); //allows 0x650 - 0x65F
-	
+
 	//modules.add(DMOC);
-	
+
 	//The pedal I have has two pots and one should be twice the value of the other normally (within tolerance)
 	Serial.println("Using dual pot throttle");
 	Throttle.setT1Min(82);
-	Throttle.setT1Max(410);	
+	Throttle.setT1Max(410);
 	Throttle.setT2Min(158);
 	Throttle.setT2Max(810);
 	//these are based off of throttle 1
-	Throttle.setRegenEnd(125); //so, regen from 82 - 125
+	Throttle.setRegenEnd(82); //no regen
 	Throttle.setMaxRegen(30); //thats 30% of forward power
-	Throttle.setFWDStart(165); //deadzone 126 to 164, then forward from there to 410
-	Throttle.setMAP(350); //but 1/2 way power is at 350 so it's gradual until near the end and then it gets brutal
-	
+	Throttle.setFWDStart(125); //deadzone 82 to 124, then forward from there to 410
+	Throttle.setMAP(300); //but 1/2 way power is at 350 so it's gradual until near the end and then it gets brutal
+
 	//This could eventually be configurable.
 	setupTimer(10000); //10ms / 10000us ticks / 100Hz
 	Serial.println("100hz update frequency");
-	
+
 	//This will not be hard coded soon. It should be a list of every hardware support module
 	//compiled into the ROM
 	Serial.println("Installed devices: DMOC645");
 
 	Serial.print("System Ready ");
 	printMenu();
-	
+
 }
 
 void printMenu() {
@@ -116,51 +117,48 @@ void printMenu() {
 	Serial.println("r = reverse gear");
 	Serial.println("<space> = start/stop RPM ramp test");
 	Serial.println("x = lock RPM at current value (toggle)");
+	Serial.println("t = Use accelerator pedal? (toggle)");
 	Serial.println("");
 }
 
 
-void loop() {	
+void loop() {
 	static byte dotTick = 0;
 	static byte throttle = 0;
 	static byte count = 0;
 	if (CAN.GetRXFrame(message)) {
 		dmoc.handleFrame(message);
 	}
-	if (tickReady) { 
+	if (tickReady) {
 		//if (dotTick == 0) Serial.print('.'); //print . every 256 ticks (2.56 seconds)
 		dotTick = dotTick + 1;
 		tickReady = false;
 		//do tick related stuff
-		//Throttle.handleTick(); //gets ADC values, calculates throttle position
-		count++;
-		if (count > 50) {
-			count = 0;
-			if (!runStatic) throttle++;
+		Throttle.handleTick(); //gets ADC values, calculates throttle position
+		//Serial.println(Throttle.getThrottle());
+		if (!runThrottle) {
+            count++;
+            if (count > 50) {
+                count = 0;
+                if (!runStatic) throttle++;
+            }
+            if (throttle > 80) throttle = 0;
+            if (!runRamp) {
+                throttle = 0;
+            }
+            dmoc.setThrottle(throttle * (int)12); //with throttle 0-80 this sets throttle to 0 - 960
 		}
-		if (throttle > 80) throttle = 0;
-		if (!runRamp) {
-			throttle = 0;			
+		else {
+            dmoc.setThrottle(Throttle.getThrottle());
+            //Serial.println(Throttle.getThrottle());  //just for debugging
 		}
-		dmoc.setThrottle(throttle * (int)12); //with throttle 0-80 this sets throttle to 0 - 960
 		dmoc.handleTick();
 	}
 }
 
 
-/*Extremely simple and very unhelpful serial processor 
-Gives no onscreen help at all. Here's your menu:
-Space - Start/Stop accelerator ramp
-(note, they're lower case)
-d - switch to drive
-n - switch to neutral
-r - switch to reverse
-
-Op States: (note, they're upper case)
-D - disable operational state
-S - standby operational state
-E - enable operational state
-
+/*Single single character interpreter of commands over
+serial connection. There is a help menu (press H or h or ?)
 */
 void serialEvent() {
 	int incoming;
@@ -205,10 +203,18 @@ void serialEvent() {
 		break;
 	case 'x':
 		runStatic = !runStatic;
-		if (runRamp) {
+		if (runStatic) {
 			Serial.println("Lock RPM rate");
 		}
 		else Serial.println("Unlock RPM rate");
 		break;
+	case 't':
+        runThrottle = !runThrottle;
+		if (runThrottle) {
+			Serial.println("Use Throttle Pedal");
+		}
+		else Serial.println("Ignore throttle pedal");
+		break;
 	}
+
 }
