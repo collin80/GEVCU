@@ -1,7 +1,7 @@
 # depslib dependency file v1.0
-1359575927 source:c:\users\collin\desktop\gevcu\gevcu\message.cpp
+1359339152 source:c:\users\collin\desktop\gevcu\gevcu\message.cpp
 
-1356983243 source:c:\users\collin\desktop\gevcu\gevcu\arduino_core\print.cpp
+1357349005 source:c:\users\collin\desktop\gevcu\gevcu\arduino_core\print.cpp
 	<stdlib.h>
 	<stdio.h>
 	<string.h>
@@ -9,7 +9,7 @@
 	"Arduino.h"
 	"Print.h"
 
-1356983242 c:\users\collin\desktop\gevcu\gevcu\arduino_core\arduino.h
+1357349005 c:\users\collin\desktop\gevcu\gevcu\arduino_core\arduino.h
 	<stdlib.h>
 	<string.h>
 	<math.h>
@@ -22,51 +22,205 @@
 	"HardwareSerial.h"
 	"pins_arduino.h"
 
-1356983243 c:\users\collin\desktop\gevcu\gevcu\arduino_core\binary.h
+1357349005 c:\users\collin\desktop\gevcu\gevcu\arduino_core\binary.h
 
-1356983243 c:\users\collin\desktop\gevcu\gevcu\arduino_core\wcharacter.h
+1357349005 c:\users\collin\desktop\gevcu\gevcu\arduino_core\wcharacter.h
 	<ctype.h>
 
-1356983243 c:\users\collin\desktop\gevcu\gevcu\arduino_core\wstring.h
+1357349005 c:\users\collin\desktop\gevcu\gevcu\arduino_core\wstring.h
 	<stdlib.h>
 	<string.h>
 	<ctype.h>
 	<avr/pgmspace.h>
 
-1356983242 c:\users\collin\desktop\gevcu\gevcu\arduino_core\hardwareserial.h
+1357349005 c:\users\collin\desktop\gevcu\gevcu\arduino_core\hardwareserial.h
 	<inttypes.h>
 	"Stream.h"
 	"USBAPI.h"
 
-1356983243 c:\users\collin\desktop\gevcu\gevcu\arduino_core\stream.h
+1357349005 c:\users\collin\desktop\gevcu\gevcu\arduino_core\stream.h
 	<inttypes.h>
 	"Print.h"
 
-1356983243 c:\users\collin\desktop\gevcu\gevcu\arduino_core\print.h
+1357349005 c:\users\collin\desktop\gevcu\gevcu\arduino_core\print.h
 	<inttypes.h>
 	<stdio.h>
 	"WString.h"
 	"Printable.h"
 
-1357326377 c:\users\collin\desktop\gevcu\gevcu\arduino_core\printable.h
+1357349005 c:\users\collin\desktop\gevcu\gevcu\arduino_core\printable.h
 	"new.h"
 
-1356983243 c:\users\collin\desktop\gevcu\gevcu\arduino_core\new.h
+1357349005 c:\users\collin\desktop\gevcu\gevcu\arduino_core\new.h
 	<stdlib.h>
 
-1356983243 c:\users\collin\desktop\gevcu\gevcu\arduino_core\usbapi.h
+1357349005 c:\users\collin\desktop\gevcu\gevcu\arduino_core\usbapi.h
 
-1356983637 c:\users\collin\desktop\gevcu\gevcu\arduino_core\pins_arduino.h
+1357349006 c:\users\collin\desktop\gevcu\gevcu\arduino_core\pins_arduino.h
 	<avr/pgmspace.h>
 
-1356983243 source:c:\users\collin\desktop\gevcu\gevcu\arduino_core\wiring_digital.c
+1357349006 source:c:\users\collin\desktop\gevcu\gevcu\arduino_core\wiring_digital.c
 	"wiring_private.h"
 	"pins_arduino.h"
 
-1356983243 c:\users\collin\desktop\gevcu\gevcu\arduino_core\wiring_private.h
+1357349006 c:\users\collin\desktop\gevcu\gevcu\arduino_core\wiring_private.h
 	<avr/io.h>
 	<avr/interrupt.h>
 	<stdio.h>
 	<stdarg.h>
 	"Arduino.h"
+
+1357349005 source:c:\users\collin\desktop\gevcu\gevcu\arduino_core\cdc.cpp
+	"Platform.h"
+	"USBAPI.h"
+	<avr/wdt.h>
+
+1357349005 c:\users\collin\desktop\gevcu\gevcu\arduino_core\platform.h
+	<inttypes.h>
+	<avr/pgmspace.h>
+	<avr/eeprom.h>
+	<avr/interrupt.h>
+	<util/delay.h>
+	"Arduino.h"
+	"USBDesc.h"
+	"USBCore.h"
+	"USBAPI.h"
+
+1357349005 c:\users\collin\desktop\gevcu\gevcu\arduino_core\usbdesc.h
+
+1357349005 c:\users\collin\desktop\gevcu\gevcu\arduino_core\usbcore.h
+
+1357349005 source:c:\users\collin\desktop\gevcu\gevcu\arduino_core\hardwareserial.cpp
+	<stdlib.h>
+	<stdio.h>
+	<string.h>
+	<inttypes.h>
+	"Arduino.h"
+	"wiring_private.h"
+	"HardwareSerial.h"
+
+1357349005 source:c:\users\collin\desktop\gevcu\gevcu\arduino_core\hid.cpp
+	"Platform.h"
+	"USBAPI.h"
+	"USBDesc.h"
+
+1357349005 source:c:\users\collin\desktop\gevcu\gevcu\arduino_core\ipaddress.cpp
+	<Arduino.h>
+	<IPAddress.h>
+
+1357349005 c:\users\collin\desktop\gevcu\gevcu\arduino_core\ipaddress.h
+	<Printable.h>
+
+1357349005 source:c:\users\collin\desktop\gevcu\gevcu\arduino_core\main.cpp
+	<Arduino.h>
+
+1357349005 source:c:\users\collin\desktop\gevcu\gevcu\arduino_core\new.cpp
+	<new.h>
+
+1357349005 source:c:\users\collin\desktop\gevcu\gevcu\arduino_core\stream.cpp
+	"Arduino.h"
+	"Stream.h"
+
+1357349005 source:c:\users\collin\desktop\gevcu\gevcu\arduino_core\tone.cpp
+	<avr/interrupt.h>
+	<avr/pgmspace.h>
+	"Arduino.h"
+	"pins_arduino.h"
+
+1357349005 source:c:\users\collin\desktop\gevcu\gevcu\arduino_core\usbcore.cpp
+	"Platform.h"
+	"USBAPI.h"
+	"USBDesc.h"
+
+1357349005 source:c:\users\collin\desktop\gevcu\gevcu\arduino_core\winterrupts.c
+	<inttypes.h>
+	<avr/io.h>
+	<avr/interrupt.h>
+	<avr/pgmspace.h>
+	<stdio.h>
+	"wiring_private.h"
+
+1357349006 source:c:\users\collin\desktop\gevcu\gevcu\arduino_core\wiring.c
+	"wiring_private.h"
+
+1357349006 source:c:\users\collin\desktop\gevcu\gevcu\arduino_core\wiring_analog.c
+	"wiring_private.h"
+	"pins_arduino.h"
+
+1357349006 source:c:\users\collin\desktop\gevcu\gevcu\arduino_core\wiring_pulse.c
+	"wiring_private.h"
+	"pins_arduino.h"
+
+1357349006 source:c:\users\collin\desktop\gevcu\gevcu\arduino_core\wiring_shift.c
+	"wiring_private.h"
+
+1357349005 source:c:\users\collin\desktop\gevcu\gevcu\arduino_core\wmath.cpp
+	"stdlib.h"
+
+1357349005 source:c:\users\collin\desktop\gevcu\gevcu\arduino_core\wstring.cpp
+	"WString.h"
+
+1359337736 source:c:\users\collin\desktop\gevcu\gevcu\device.cpp
+	"device.h"
+
+1359339115 c:\users\collin\desktop\gevcu\gevcu\device.h
+	"MCP2515.h"
+
+1359234589 c:\users\collin\desktop\gevcu\gevcu\mcp2515\mcp2515.h
+	"Arduino.h"
+	"MCP2515_defs.h"
+
+1359234589 c:\users\collin\desktop\gevcu\gevcu\mcp2515\mcp2515_defs.h
+	"Arduino.h"
+
+1359663073 source:c:\users\collin\desktop\gevcu\gevcu\dmoc.cpp
+	"dmoc.h"
+
+1359509310 c:\users\collin\desktop\gevcu\gevcu\dmoc.h
+	"MCP2515.h"
+	"device.h"
+
+1359665796 source:c:\users\collin\desktop\gevcu\gevcu\gevcu.cpp
+	"Arduino.h"
+	"SPI.h"
+	"MCP2515.h"
+	"pedal_pot.h"
+	"modulemanager.h"
+	"device.h"
+	"dmoc.h"
+	"timer.h"
+
+1357349005 c:\users\collin\desktop\gevcu\gevcu\spi\spi.h
+	<stdio.h>
+	<Arduino.h>
+	<avr/pgmspace.h>
+
+1358382837 c:\users\collin\desktop\gevcu\gevcu\pedal_pot.h
+	"Arduino.h"
+
+1359397022 c:\users\collin\desktop\gevcu\gevcu\modulemanager.h
+	"device.h"
+
+1357523406 c:\users\collin\desktop\gevcu\gevcu\timer.h
+
+1359234589 source:c:\users\collin\desktop\gevcu\gevcu\mcp2515\mcp2515.cpp
+	"Arduino.h"
+	"SPI.h"
+	"MCP2515.h"
+	"MCP2515_defs.h"
+
+1359336965 source:c:\users\collin\desktop\gevcu\gevcu\modulemanager.cpp
+	"device.h"
+	"modulemanager.h"
+
+1359396981 source:c:\users\collin\desktop\gevcu\gevcu\pedal_pot.cpp
+	"pedal_pot.h"
+
+1357349005 source:c:\users\collin\desktop\gevcu\gevcu\spi\spi.cpp
+	"pins_arduino.h"
+	"SPI.h"
+
+1359234516 source:c:\users\collin\desktop\gevcu\gevcu\timer.cpp
+	"Arduino.h"
+	"timer.h"
 
