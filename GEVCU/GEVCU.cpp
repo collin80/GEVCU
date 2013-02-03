@@ -29,7 +29,7 @@
 
 // Create CAN object with pins as defined
 MCP2515 CAN(CS_PIN, RESET_PIN, INT_PIN);
-THROTTLE Throttle(0, 1);
+POT_THROTTLE throttle(0, 1);
 DMOC dmoc(&CAN);
 MODULEMANAGER modules();
 
@@ -49,7 +49,7 @@ void CANHandler() {
 void setup() {
 	Serial.begin(115200);
 
-	Serial.println("GEVCU alpha 01-31-2013");
+	Serial.println("GEVCU alpha 02-03-2013");
 
 	Serial.println("Initializing ...");
 
@@ -82,15 +82,17 @@ void setup() {
 
 	//The pedal I have has two pots and one should be twice the value of the other normally (within tolerance)
 	Serial.println("Using dual pot throttle");
-	Throttle.setT1Min(82);
-	Throttle.setT1Max(410);
-	Throttle.setT2Min(158);
-	Throttle.setT2Max(810);
-	//these are based off of throttle 1
-	Throttle.setRegenEnd(82); //no regen
-	Throttle.setMaxRegen(30); //thats 30% of forward power
-	Throttle.setFWDStart(125); //deadzone 82 to 124, then forward from there to 410
-	Throttle.setMAP(300); //but 1/2 way power is at 350 so it's gradual until near the end and then it gets brutal
+	//if min is less than max for a throttle then the pot goes low to high as pressed.
+	//if max is less than min for a throttle then the pot goes high to low as pressed.
+	throttle.setT1Min(82);
+	throttle.setT1Max(410);
+	throttle.setT2Min(158);
+	throttle.setT2Max(810);
+	//these are now based on tenths of a percent of pedal (0 - 1000 in other words)
+	throttle.setRegenEnd(0); //no regen
+	throttle.setMaxRegen(30); //thats 30% of forward power
+	throttle.setFWDStart(131); //13.1% throttle
+	throttle.setMAP(665); //half way throttle is at 2/3 of pedal travel
 
 	//This could eventually be configurable.
 	setupTimer(10000); //10ms / 10000us ticks / 100Hz
@@ -124,7 +126,7 @@ void printMenu() {
 
 void loop() {
 	static byte dotTick = 0;
-	static byte throttle = 0;
+	static byte throttleval = 0;
 	static byte count = 0;
 	if (CAN.GetRXFrame(message)) {
 		dmoc.handleFrame(message);
@@ -134,22 +136,22 @@ void loop() {
 		dotTick = dotTick + 1;
 		tickReady = false;
 		//do tick related stuff
-		Throttle.handleTick(); //gets ADC values, calculates throttle position
+		throttle.handleTick(); //gets ADC values, calculates throttle position
 		//Serial.println(Throttle.getThrottle());
 		if (!runThrottle) {
             count++;
             if (count > 50) {
                 count = 0;
-                if (!runStatic) throttle++;
+                if (!runStatic) throttleval++;
             }
-            if (throttle > 80) throttle = 0;
+            if (throttleval > 80) throttleval = 0;
             if (!runRamp) {
-                throttle = 0;
+                throttleval = 0;
             }
-            dmoc.setThrottle(throttle * (int)12); //with throttle 0-80 this sets throttle to 0 - 960
+            dmoc.setThrottle(throttleval * (int)12); //with throttle 0-80 this sets throttle to 0 - 960
 		}
 		else {
-            dmoc.setThrottle(Throttle.getThrottle());
+            dmoc.setThrottle(throttle.getThrottle());
             //Serial.println(Throttle.getThrottle());  //just for debugging
 		}
 		dmoc.handleTick();
@@ -178,27 +180,27 @@ void serialEvent() {
 		else Serial.println("End Ramp Test");
 		break;
 	case 'd':
-		dmoc.setGear(DRIVE);
+		dmoc.setGear(DMOC::DRIVE);
 		Serial.println("forward");
 		break;
 	case 'n':
-		dmoc.setGear(NEUTRAL);
+		dmoc.setGear(DMOC::NEUTRAL);
 		Serial.println("neutral");
 		break;
 	case 'r':
-		dmoc.setGear(REVERSE);
+		dmoc.setGear(DMOC::REVERSE);
 		Serial.println("reverse");
 		break;
 	case 'D':
-		dmoc.setOpState(DISABLED);
+		dmoc.setOpState(DMOC::DISABLED);
 		Serial.println("disabled");
 		break;
 	case 'S':
-		dmoc.setOpState(STANDBY);
+		dmoc.setOpState(DMOC::STANDBY);
 		Serial.println("standby");
 		break;
 	case 'E':
-		dmoc.setOpState(ENABLE);
+		dmoc.setOpState(DMOC::ENABLE);
 		Serial.println("enabled");
 		break;
 	case 'x':

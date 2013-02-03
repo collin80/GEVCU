@@ -5,7 +5,7 @@
  *
  * Created: 1/13/2013 6:10:00 PM
  *  Author: Collin
- */ 
+ */
 
 #include "dmoc.h"
 
@@ -15,12 +15,12 @@ DMOC::DMOC(MCP2515 *canlib) : DEVICE(canlib) {
 	opstate = DISABLED;
 	MaxTorque = 500; //in tenths so 50Nm max torque. This is plenty for testing
 	MaxRPM = 6000; //also plenty for a bench test
-}	
-	
-void DMOC::handleFrame(Frame& frame) {
-		
 }
-	
+
+void DMOC::handleFrame(Frame& frame) {
+
+}
+
 /*Do note that the DMOC expects all three command frames and it expect them to happen at least twice a second. So, probably it'd be ok to essentially
   rotate through all of them, one per tick. That gives us a time frame of 30ms for each command frame. That should be plenty fast.
 */
@@ -37,14 +37,14 @@ void DMOC::handleTick() {
 	case CHAL_RESP:
 		step = SPEED_TORQUE;
 		break;
-	}		
-}
-	
-void DMOC::setThrottle(int throt) {
-	requestedThrottle = throt;	
+	}
 }
 
-//Commanded RPM plus state of key and gear selector	
+void DMOC::setThrottle(int throt) {
+	requestedThrottle = throt;
+}
+
+//Commanded RPM plus state of key and gear selector
 void DMOC::sendCmd1() {
 	Frame output;
 	alive = (alive + 2) & 0x0F;
@@ -53,12 +53,12 @@ void DMOC::sendCmd1() {
 	output.ide = 0; //standard frame
 	output.rtr = 0;
 	output.srr = 0;
-	
+
 	//Requested throttle goes negative to ask for regen but we don't actually want to command
 	//the motor to spin the other direction. Only ever spin forwards for now. Eventually the gear
 	//selection might require that negative RPMs be allowed but we might not use RPM control. TCE doesnt.
 	//The TCE seems to always command just torque.
-	if (requestedThrottle > 0 && opstate == ENABLE && selectedGear != NEUTRAL)  
+	if (requestedThrottle > 0 && opstate == ENABLE && selectedGear != NEUTRAL)
 		requestedRPM = 20000 + (((long)requestedThrottle * (long)MaxRPM) / 1000);
 	else
 		requestedRPM = 20000;
@@ -68,9 +68,9 @@ void DMOC::sendCmd1() {
 	output.data[3] = 0; //not used
 	output.data[4] = 0; //not used
 	output.data[5] = ON;
-	
-	output.data[6] = alive + (selectedGear << 4) + (opstate << 6);
-		
+
+	output.data[6] = alive + ((byte)selectedGear << 4) + ((byte)opstate << 6);
+
 	output.data[7] = calcChecksum(output);
 	can->EnqueueTX(output);
 }
@@ -85,15 +85,15 @@ void DMOC::sendCmd2() {
 	output.srr = 0;
 	//30000 is the base point where torque = 0
 	//MaxTorque is in tenths like it should be.
-	//Requested throttle is [-1000, 1000] 
+	//Requested throttle is [-1000, 1000]
 	//data 0-1 is upper limit, 2-3 is lower limit. They are set to same value to lock torque to this value
 	//requestedTorque = 30000L + (((long)requestedThrottle * (long)MaxTorque) / 1000L);
-	
-	if (requestedThrottle > 0 && opstate == ENABLE && selectedGear != NEUTRAL)  
+
+	if (requestedThrottle > 0 && opstate == ENABLE && selectedGear != NEUTRAL)
 		requestedTorque = 30500; //50nm
 	else
 		requestedTorque = 30000; //set upper torque to zero if not drive enabled
-	
+
 	output.data[0] = (requestedTorque & 0xFF00) >> 8;
 	output.data[1] = (requestedTorque & 0x00FF);
 	output.data[2] = 0x75;
@@ -104,7 +104,7 @@ void DMOC::sendCmd2() {
 	output.data[7] = calcChecksum(output);
 	can->EnqueueTX(output);
 }
-	
+
 //Power limits plus setting ambient temp and whether to cool power train or go into limp mode
 void DMOC::sendCmd3() {
 	Frame output;
@@ -118,11 +118,11 @@ void DMOC::sendCmd3() {
 	output.data[2] = 0x6C; //msb of acceleration limit
 	output.data[3] = 0x66; //lsb
 	output.data[4] = 0; //not used
-	output.data[5] = 60; //20 degrees celsius 
+	output.data[5] = 60; //20 degrees celsius
 	output.data[6] = alive;
 	output.data[7] = calcChecksum(output);
 	can->EnqueueTX(output);
-}		
+}
 
 //challenge/response frame 1 - Really doesn't contain anything we need I dont think
 void DMOC::sendCmd4() {
@@ -158,26 +158,26 @@ void DMOC::sendCmd5() {
 		output.data[3] = 52;
 		output.data[4] = 26;
 		output.data[5] = 59; //drive
-	}		
+	}
 	else {
-		output.data[3] = 39;  
-		output.data[4] = 19;    
+		output.data[3] = 39;
+		output.data[4] = 19;
 		output.data[5] = 55; //neutral
-	}		
+	}
 	//--PRND12
 	output.data[6] = alive;
 	output.data[7] = calcChecksum(output);
 	can->EnqueueTX(output);
 }
-				
-void DMOC::setOpState(byte op) {
+
+void DMOC::setOpState(OPSTATE op) {
 	opstate = op;
 }
 
-void DMOC::setGear(byte gear) {
+void DMOC::setGear(GEARS gear) {
 	selectedGear = gear;
-}	
-						
+}
+
 byte DMOC::calcChecksum(Frame thisFrame) {
 	byte cs;
 	byte i;

@@ -10,7 +10,20 @@
 
 #include "Arduino.h"
 
-class THROTTLE {
+class POT_THROTTLE {
+    public:
+
+        enum THROTTLESTATUS {
+            OK,
+            ERR_LOW_T1,
+            ERR_LOW_T2,
+            ERR_HIGH_T1,
+            ERR_HIGH_T2,
+            ERR_MISMATCH,
+            ERR_MISC
+        };
+
+
    private:
 	uint16_t ThrottleMin1, ThrottleMax1, ThrottleMin2, ThrottleMax2; //Values for when the pedal is at its min and max for each throttle input
 	uint16_t Throttle1Val, Throttle2Val;
@@ -19,13 +32,18 @@ class THROTTLE {
 	uint16_t ThrottleRegen, ThrottleFWD, ThrottleMAP; //Value at which regen finishes, forward motion starts, and the mid point of throttle
 	uint16_t ThrottleMaxRegen; //Percentage of max torque allowable for regen
 	byte ThrottleMaxErr;
-	bool ThrottleValid;
-
+	THROTTLESTATUS ThrottleStatus;
 	signed int outputThrottle; //the final signed throttle. [-1000, 1000] in tenths of a percent of maximum
 
+    int calcThrottle1();
+	int calcThrottle2();
+
+
   public:
+
 	void handleTick();
 	int getThrottle();
+	THROTTLESTATUS getStatus();
 	void setT1Min(uint16_t min);
 	void setT2Min(uint16_t min);
 	void setT1Max(uint16_t max);
@@ -34,9 +52,7 @@ class THROTTLE {
 	void setFWDStart(uint16_t fwd);
 	void setMAP(uint16_t map);
 	void setMaxRegen(uint16_t regen);
-	int calcThrottle1();
-	int calcThrottle2();
-	THROTTLE(uint8_t Throttle1, uint8_t Throttle2);
+	POT_THROTTLE(uint8_t Throttle1, uint8_t Throttle2);
 
 };
 
