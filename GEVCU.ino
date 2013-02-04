@@ -1,23 +1,22 @@
 /*
- * GEVCU.ino
- *
- * Created: 1/4/2013 1:34:14 PM
- *  Author: Collin
- *
- *	Need to add a class for keeping track of the various modules installed. This
- *	class has a list of all the modules so we can call the proper functions
- *
- *	Additionally, all modules should inherit from one of the (as of yet unwritten)
- *	base device classes (motor controller, bms, charger, display)
- *
- *
+  GEVCU.ino
+ 
+  Created: 1/4/2013 1:34:14 PM
+   Author: Collin
+ 
+   New plan of attack:
+	For ease of development and to keep the code simple, devices supported are broken into categories (motor controller,
+	bms, charger, display, misc). The number of supported devices is hard coded. That is, there can be one motor controller. It can
+	be any motor controller but there is no support for two. The exception is misc which can have three devices. All hardware
+	is to be subclassed from the proper master parent class for that form of hardware. That is, a motor controller will derive
+	from the base motor controller class. This allows a standard interface, defined by that base class, to be used to access
+	any hardware of that category. 
  */
 
 #include "Arduino.h"
 #include "SPI.h"
 #include "MCP2515.h"
 #include "pedal_pot.h"
-#include "modulemanager.h"
 #include "device.h"
 #include "dmoc.h"
 #include "timer.h"
@@ -29,9 +28,8 @@
 
 // Create CAN object with pins as defined
 MCP2515 CAN(CS_PIN, RESET_PIN, INT_PIN);
-POT_THROTTLE throttle(0, 1);
+POT_THROTTLE throttle(0, 1); //specify the ADC ports to use for throttle 255 = not used (valid only for second value)
 DMOC dmoc(&CAN);
-MODULEMANAGER modules();
 
 void printMenu();
 
@@ -74,11 +72,9 @@ void setup() {
 	CAN.InitFilters(false);
 
 	//Setup CANBUS comm to allow DMOC command and status messages through
-	CAN.SetRXMask(MASK0, 0x7F0, 0); //match all but bottom four bits
+	CAN.SetRXMask(MASK0, 0x7F0, 0); //match all but bottom four bits, use standard frames
 	CAN.SetRXFilter(FILTER0, 0x230, 0); //allows 0x230 - 0x23F
 	CAN.SetRXFilter(FILTER1, 0x650, 0); //allows 0x650 - 0x65F
-
-	//modules.add(DMOC);
 
 	//The pedal I have has two pots and one should be twice the value of the other normally (within tolerance)
 	Serial.println("Using dual pot throttle");

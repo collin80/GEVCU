@@ -9,7 +9,7 @@
 
 #include "dmoc.h"
 
-DMOC::DMOC(MCP2515 *canlib) : DEVICE(canlib) {
+DMOC::DMOC(MCP2515 *canlib) : MOTORCTRL(canlib) {
 	step = SPEED_TORQUE;
 	selectedGear = NEUTRAL;
 	opstate = DISABLED;
@@ -38,10 +38,6 @@ void DMOC::handleTick() {
 		step = SPEED_TORQUE;
 		break;
 	}
-}
-
-void DMOC::setThrottle(int throt) {
-	requestedThrottle = throt;
 }
 
 //Commanded RPM plus state of key and gear selector
@@ -186,4 +182,8 @@ byte DMOC::calcChecksum(Frame thisFrame) {
 	i = cs + 3;
 	cs = ((int)256 - i);
 	return cs;
+}
+
+int DMOC::getDeviceID() {
+  return (DEVICE::DMOC645);
 }
