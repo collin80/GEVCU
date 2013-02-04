@@ -7,27 +7,13 @@ A project to create a fairly Arduino compatible ECU firmware
 to interface with various electric vehicle hardware over canbus
 (and possibly other comm channels)
 
-The blessed/supported build environment is Code Blocks Arduino Edition 
-version 1/31/2013 which can be downloaded at this link: 
-http://sourceforge.net/projects/arduinodev/files/CodeBlocks-Arduino-20130131.7z/download
-There is also a linux version of it. I haven't tested that yet but I've got 
-no reason to think it won't work. If you use a different version of C:B Arduino it 
-might work but I can't promise it. If/when I change versions I'll post about it.
+The project now builds in the Arduino IDE. So, use it to compile, send the firmware
+to the macchina, and monitor serial. It all works very nicely.
 
-The arduino support files are part of the GEVCU project so that I can control the 
-version of those files and keep builds working but you do need the drivers from 
-the arduino 1.0.3 download. If you don't have the Arduino IDE you can either 
-download it or snag a copy of the drivers I archived at: http://www.kkmfg.com/drivers.zip
-
-Once you've downloaded everything and gotten the Macchina to associate to a com port 
-you'll need to update the project to let it know the com port to use. Once you do this 
-it will attempt to automatically send the compiled firmware to your Macchina every time 
-you build the project. So, find the com port associated with the Macchina in the Device Manager 
-Start -> Control Panel -> Hardware and Sound -> Device Manager. 
-
-Once you've figured out the com port you set it in the project like so (with the project loaded): 
-right click on GEVCU project -> Properties -> Project's Build Options -> Custom Variables -> set UPLOAD_PORT 
-to the proper port.
+You must manually download the newest copy of the MCP2515 library and place it
+into the libraries directory of your Arduino installation.
+Git:https://github.com/collin80/mcp2515.git
+Zip:https://github.com/collin80/mcp2515/archive/master.zip
 
 Lastly, the macchina comes, by default, unterminated. The canbus is supposed to be terminated 
 on both ends of the bus. If you are testing with a DMOC and Macchina then you've got two devices, 
