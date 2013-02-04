@@ -66,21 +66,14 @@ int POT_THROTTLE::calcThrottle2() {
 //right now only the first throttle ADC port is used. Eventually the second one should be used to cross check so dumb things
 //don't happen. Also, right now values of ADC outside the proper range are just clamped to the proper range.
 void POT_THROTTLE::handleTick() {
-   	signed int range;
-	signed int temp, temp2;
-	static uint16_t ThrottleAvg = 0, ThrottleFeedback = 0; //used to create proportional control
+    signed int range;
+    signed int temp, temp2;
+    static uint16_t ThrottleAvg = 0, ThrottleFeedback = 0; //used to create proportional control
 
-	Throttle1Val = analogRead(Throttle1ADC);
-	if (numThrottlePots > 1) {
-		Throttle2Val = analogRead(Throttle2ADC);
-	}
-
-	//in preparation for checking the two throttles against each other.
-	//its going to be sort of complicated by the fact that the two throttles
-	//very well might move in opposing directions (low->high or high->low) as
-	//pedal is depressed. For now it is assumed throttle1 is working fine and that
-	//it runs low to high as pedal is depressed.
-	//comparitor = (1000 * Throttle1Val) / Throttle2Val;
+    Throttle1Val = analogRead(Throttle1ADC);
+    if (numThrottlePots > 1) {
+      Throttle2Val = analogRead(Throttle2ADC);
+    }
 
     ThrottleStatus = OK;
     if (Throttle1Val > ThrottleMax1) { // clamp it to allow some dead zone.
@@ -93,15 +86,18 @@ void POT_THROTTLE::handleTick() {
     }
 
     temp = calcThrottle1();
-    temp2 = calcThrottle2();
-    if ((temp-ThrottleMaxErr) > temp2) { //then throttle1 is too large compared to 2
-        ThrottleStatus = ERR_MISMATCH;
-    }
-    if ((temp2-ThrottleMaxErr) > temp) { //then throttle2 is too large compared to 1
-        ThrottleStatus = ERR_MISMATCH;
-    }
+    
+    if (numThrottlePots > 1) { //can only do these things if there are two or more pots
+      temp2 = calcThrottle2();
+      if ((temp-ThrottleMaxErr) > temp2) { //then throttle1 is too large compared to 2
+          ThrottleStatus = ERR_MISMATCH;
+      }
+      if ((temp2-ThrottleMaxErr) > temp) { //then throttle2 is too large compared to 1
+          ThrottleStatus = ERR_MISMATCH;
+      }
 
-    temp = (temp + temp2) / 2; //temp now the average of the two
+      temp = (temp + temp2) / 2; //temp now the average of the two
+    }
 
     if (! (ThrottleStatus == OK)) {
         outputThrottle = 0; //no throttle if there is a fault

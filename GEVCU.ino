@@ -1,5 +1,5 @@
 /*
- * GEVCU.cpp
+ * GEVCU.ino
  *
  * Created: 1/4/2013 1:34:14 PM
  *  Author: Collin
@@ -149,10 +149,10 @@ void loop() {
                 throttleval = 0;
             }
             dmoc.setThrottle(throttleval * (int)12); //with throttle 0-80 this sets throttle to 0 - 960
-		}
-		else {
+	}
+	else {
             dmoc.setThrottle(throttle.getThrottle());
-            //Serial.println(Throttle.getThrottle());  //just for debugging
+//            Serial.println(throttle.getThrottle());  //just for debugging
 		}
 		dmoc.handleTick();
 	}
