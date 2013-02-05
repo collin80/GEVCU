@@ -54,9 +54,9 @@ void DMOC::sendCmd1() {
 	//the motor to spin the other direction. Only ever spin forwards for now. Eventually the gear
 	//selection might require that negative RPMs be allowed but we might not use RPM control. TCE doesnt.
 	//The TCE seems to always command just torque.
-	if (requestedThrottle > 0 && opstate == ENABLE && selectedGear != NEUTRAL)
+	/*if (requestedThrottle > 0 && opstate == ENABLE && selectedGear != NEUTRAL)
 		requestedRPM = 20000 + (((long)requestedThrottle * (long)MaxRPM) / 1000);
-	else
+	else */
 		requestedRPM = 20000;
 	output.data[0] = (requestedRPM & 0xFF00) >> 8;
 	output.data[1] = (requestedRPM & 0x00FF);
@@ -86,14 +86,17 @@ void DMOC::sendCmd2() {
 	//requestedTorque = 30000L + (((long)requestedThrottle * (long)MaxTorque) / 1000L);
 
 	if (requestedThrottle > 0 && opstate == ENABLE && selectedGear != NEUTRAL)
-		requestedTorque = 30500; //50nm
+		//requestedTorque = 30500; //50nm
+       		requestedTorque = 30000L + (((long)requestedThrottle * (long)MaxTorque) / 1000L);
 	else
 		requestedTorque = 30000; //set upper torque to zero if not drive enabled
 
 	output.data[0] = (requestedTorque & 0xFF00) >> 8;
 	output.data[1] = (requestedTorque & 0x00FF);
-	output.data[2] = 0x75;
-	output.data[3] = 0x30;
+	//output.data[2] = 0x75;
+	//output.data[3] = 0x30;
+        output.data[2] = output.data[0];
+        output.data[3] = output.data[1];
 	output.data[4] = 0x75; //msb standby torque. -3000 offset, 0.1 scale. These bytes give a standby of 0Nm
 	output.data[5] = 0x30; //lsb
 	output.data[6] = alive;
