@@ -18,6 +18,7 @@
 #include "MCP2515.h"
 #include "pedal_pot.h"
 #include "device.h"
+#include "motorctrl.h"
 #include "dmoc.h"
 #include "timer.h"
 
@@ -29,7 +30,7 @@
 // Create CAN object with pins as defined
 MCP2515 CAN(CS_PIN, RESET_PIN, INT_PIN);
 POT_THROTTLE throttle(0, 1); //specify the ADC ports to use for throttle 255 = not used (valid only for second value)
-DMOC dmoc(&CAN);
+MOTORCTRL* motorcontroller; //generic motor controller - instantiate some derived class to fill this out
 
 void printMenu();
 
@@ -94,7 +95,9 @@ void setup() {
 	setupTimer(10000); //10ms / 10000us ticks / 100Hz
 	Serial.println("100hz update frequency");
 
-	//This will not be hard coded soon. It should be a list of every hardware support module
+        motorcontroller = new DMOC(&CAN); //instantiate a DMOC645 device controller as our motor controller
+        
+        //This will not be hard coded soon. It should be a list of every hardware support module
 	//compiled into the ROM
 	Serial.println("Installed devices: DMOC645");
 
@@ -120,12 +123,14 @@ void printMenu() {
 }
 
 
+//Note that the loop uses the motorcontroller object which is of the MOTORCTRL class. This allows
+//the loop to be generic while still supporting a variety of hardware. Let's try to keep it this way.
 void loop() {
 	static byte dotTick = 0;
 	static byte throttleval = 0;
 	static byte count = 0;
 	if (CAN.GetRXFrame(message)) {
-		dmoc.handleFrame(message);
+		motorcontroller->handleFrame(message);
 	}
 	if (tickReady) {
 		//if (dotTick == 0) Serial.print('.'); //print . every 256 ticks (2.56 seconds)
@@ -144,23 +149,28 @@ void loop() {
             if (!runRamp) {
                 throttleval = 0;
             }
-            dmoc.setThrottle(throttleval * (int)12); //with throttle 0-80 this sets throttle to 0 - 960
+            motorcontroller->setThrottle(throttleval * (int)12); //with throttle 0-80 this sets throttle to 0 - 960
 	}
 	else {
-            dmoc.setThrottle(throttle.getThrottle());
+            motorcontroller->setThrottle(throttle.getThrottle());
 //            Serial.println(throttle.getThrottle());  //just for debugging
 		}
-		dmoc.handleTick();
+		motorcontroller->handleTick();
 	}
 }
 
 
 /*Single single character interpreter of commands over
 serial connection. There is a help menu (press H or h or ?)
+
+This function casts the motorcontroller object to DMOC which breaks the
+proper generic interface but is necessary for testing. 
+TODO: This all has to eventually go away.
 */
 void serialEvent() {
 	int incoming;
-	incoming = Serial.read();
+        DMOC* dmoc = (DMOC*)motorcontroller;
+        incoming = Serial.read();
 	if (incoming == -1) return;
 	switch (incoming) {
 	case 'h':
@@ -176,27 +186,27 @@ void serialEvent() {
 		else Serial.println("End Ramp Test");
 		break;
 	case 'd':
-		dmoc.setGear(DMOC::DRIVE);
+		dmoc->setGear(DMOC::DRIVE);
 		Serial.println("forward");
 		break;
 	case 'n':
-		dmoc.setGear(DMOC::NEUTRAL);
+		dmoc->setGear(DMOC::NEUTRAL);
 		Serial.println("neutral");
 		break;
 	case 'r':
-		dmoc.setGear(DMOC::REVERSE);
+		dmoc->setGear(DMOC::REVERSE);
 		Serial.println("reverse");
 		break;
 	case 'D':
-		dmoc.setOpState(DMOC::DISABLED);
+		dmoc->setOpState(DMOC::DISABLED);
 		Serial.println("disabled");
 		break;
 	case 'S':
-		dmoc.setOpState(DMOC::STANDBY);
+		dmoc->setOpState(DMOC::STANDBY);
 		Serial.println("standby");
 		break;
 	case 'E':
-		dmoc.setOpState(DMOC::ENABLE);
+		dmoc->setOpState(DMOC::ENABLE);
 		Serial.println("enabled");
 		break;
 	case 'x':
@@ -214,5 +224,4 @@ void serialEvent() {
 		else Serial.println("Ignore throttle pedal");
 		break;
 	}
-
 }
