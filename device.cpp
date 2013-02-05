@@ -2,7 +2,7 @@
  * device.cpp
  *
  * Created: 1/20/2013 10:14:36 PM
- *  Author: Collin
+ *  Author: Collin Kidder
  */ 
 
 #include "device.h"

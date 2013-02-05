@@ -2,7 +2,7 @@
  * timer.c
  *
  * Created: 1/6/2013 6:54:53 PM
- *  Author: Collin
+ *  Author: Collin Kidder
  */ 
 
 #include "Arduino.h"

@@ -2,7 +2,7 @@
  * message.h
  *
  * Created: 1/27/2013 9:13:02 PM
- *  Author: Collin
+ *  Author: Collin Kidder
  */ 
 
 

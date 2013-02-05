@@ -2,7 +2,7 @@
  * device.h
  *
  * Created: 1/20/2013 10:14:51 PM
- *  Author: Collin
+ *  Author: Collin Kidder
  */ 
 
 
@@ -19,12 +19,14 @@ class DEVICE {
 			DEVICE_BMS,
 			DEVICE_CHARGER,
 			DEVICE_DISPLAY,
+			DEVICE_THROTTLE,
 			DEVICE_MISC
 		};
 		enum DEVID{ //unique device ID for every piece of hardware possible
 			DMOC645 = 0x1000,
 			BRUSACHARGE = 0x1010,
-			TCCHCHARGE = 0x1020
+			TCCHCHARGE = 0x1020,
+			FORDACCELPEDAL = 0x1030
 		};
 	
 	protected:

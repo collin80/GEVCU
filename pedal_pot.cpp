@@ -5,7 +5,7 @@
  * and properly handles both positive and negative travel pots
  *
  * Created: 1/13/2013 6:10:24 PM
- *  Author: Collin
+ *  Author: Collin Kidder
  */
 
 #include "pedal_pot.h"

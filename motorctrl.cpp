@@ -4,7 +4,7 @@
  * Parent class for all motor controllers.
  *
  * Created: 02/04/2013
- *  Author: Collin
+ *  Author: Collin Kidder
  */ 
  
  #include "device.h"

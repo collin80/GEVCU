@@ -2,7 +2,7 @@
  * pedal_pot.h
  *
  * Created: 1/13/2013 7:08:12 PM
- *  Author: Collin
+ *  Author: Collin Kidder
  */
 
 #ifndef PEDAL_POT_H_

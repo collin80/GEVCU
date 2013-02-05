@@ -4,7 +4,7 @@
  * Parent class for all motor controllers.
  *
  * Created: 2/04/2013
- *  Author: Collin
+ *  Author: Collin Kidder
  */ 
  
  #ifndef MOTORCTRL_H_

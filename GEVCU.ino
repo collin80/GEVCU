@@ -2,7 +2,7 @@
   GEVCU.ino
  
   Created: 1/4/2013 1:34:14 PM
-   Author: Collin
+   Author: Collin Kidder
  
    New plan of attack:
 	For ease of development and to keep the code simple, devices supported are broken into categories (motor controller,

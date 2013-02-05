@@ -5,7 +5,7 @@
  *
  *
  * Created: 1/13/2013 9:18:36 PM
- *  Author: Collin
+ *  Author: Collin Kidder
  */
 
 
@@ -71,8 +71,6 @@ public:
   DMOC(MCP2515 *canlib);
   int getDeviceID();
 };
-
-
 
 #endif /* DMOC_H_ */
 

@@ -2,7 +2,7 @@
  * timer.h
  *
  * Created: 1/6/2013 8:26:58 PM
- *  Author: Collin
+ *  Author: Collin Kidder
  */ 
 
 
