@@ -16,6 +16,7 @@
 #include "Arduino.h"
 #include "SPI.h"
 #include "MCP2515.h"
+#include "throttle.h"
 #include "pedal_pot.h"
 #include "device.h"
 #include "motorctrl.h"
@@ -29,7 +30,7 @@
 
 // Create CAN object with pins as defined
 MCP2515 CAN(CS_PIN, RESET_PIN, INT_PIN);
-POT_THROTTLE throttle(0, 1); //specify the ADC ports to use for throttle 255 = not used (valid only for second value)
+THROTTLE *throttle;
 MOTORCTRL* motorcontroller; //generic motor controller - instantiate some derived class to fill this out
 
 void printMenu();
@@ -46,6 +47,7 @@ void CANHandler() {
 }
 
 void setup() {
+  
 	Serial.begin(115200);
 
 	Serial.println("GEVCU alpha 02-03-2013");
@@ -64,9 +66,9 @@ void setup() {
 	//speed in KHz, clock in MHz
 	if(CAN.Init(500,16))   //DMOC defaults to 500Khz
 	{
-		Serial.println("MCP2515 Init OK ...");
+          Serial.println("MCP2515 Init OK ...");
 	} else {
-		Serial.println("MCP2515 Init Failed ...");
+	  Serial.println("MCP2515 Init Failed ...");
 	}
 
 	attachInterrupt(6, CANHandler, FALLING);
@@ -81,15 +83,18 @@ void setup() {
 	Serial.println("Using dual pot throttle");
 	//if min is less than max for a throttle then the pot goes low to high as pressed.
 	//if max is less than min for a throttle then the pot goes high to low as pressed.
-	throttle.setT1Min(82);
-	throttle.setT1Max(410);
-	throttle.setT2Min(158);
-	throttle.setT2Max(810);
+
+        throttle = new POT_THROTTLE(0,1); //specify the ADC ports to use for throttle 255 = not used (valid only for second value)
+        POT_THROTTLE* pot = (POT_THROTTLE *)throttle;        
+        pot->setT1Min(82);
+	pot->setT1Max(410);
+	pot->setT2Min(158);
+	pot->setT2Max(810);
 	//these are now based on tenths of a percent of pedal (0 - 1000 in other words)
-	throttle.setRegenEnd(0); //no regen
-	throttle.setMaxRegen(30); //thats 30% of forward power
-	throttle.setFWDStart(131); //13.1% throttle
-	throttle.setMAP(665); //half way throttle is at 2/3 of pedal travel
+	pot->setRegenEnd(0); //no regen
+	pot->setMaxRegen(30); //thats 30% of forward power
+	pot->setFWDStart(131); //13.1% throttle
+	pot->setMAP(665); //half way throttle is at 2/3 of pedal travel
 
 	//This could eventually be configurable.
 	setupTimer(10000); //10ms / 10000us ticks / 100Hz
@@ -126,37 +131,37 @@ void printMenu() {
 //Note that the loop uses the motorcontroller object which is of the MOTORCTRL class. This allows
 //the loop to be generic while still supporting a variety of hardware. Let's try to keep it this way.
 void loop() {
-	static byte dotTick = 0;
-	static byte throttleval = 0;
-	static byte count = 0;
-	if (CAN.GetRXFrame(message)) {
-		motorcontroller->handleFrame(message);
-	}
-	if (tickReady) {
-		//if (dotTick == 0) Serial.print('.'); //print . every 256 ticks (2.56 seconds)
-		dotTick = dotTick + 1;
-		tickReady = false;
-		//do tick related stuff
-		throttle.handleTick(); //gets ADC values, calculates throttle position
-		//Serial.println(Throttle.getThrottle());
-		if (!runThrottle) {
-            count++;
-            if (count > 50) {
-                count = 0;
-                if (!runStatic) throttleval++;
-            }
-            if (throttleval > 80) throttleval = 0;
-            if (!runRamp) {
-                throttleval = 0;
-            }
-            motorcontroller->setThrottle(throttleval * (int)12); //with throttle 0-80 this sets throttle to 0 - 960
-	}
-	else {
-            motorcontroller->setThrottle(throttle.getThrottle());
-//            Serial.println(throttle.getThrottle());  //just for debugging
-		}
-		motorcontroller->handleTick();
-	}
+  static byte dotTick = 0;
+  static byte throttleval = 0;
+  static byte count = 0;
+  if (CAN.GetRXFrame(message)) {
+    motorcontroller->handleFrame(message);
+  }
+  if (tickReady) {
+    //if (dotTick == 0) Serial.print('.'); //print . every 256 ticks (2.56 seconds)
+    dotTick = dotTick + 1;
+    tickReady = false;
+    //do tick related stuff
+    throttle->handleTick(); //gets ADC values, calculates throttle position
+    //Serial.println(Throttle.getThrottle());
+    if (!runThrottle) {
+      count++;
+      if (count > 50) {
+        count = 0;
+        if (!runStatic) throttleval++;
+      }
+      if (throttleval > 80) throttleval = 0;
+      if (!runRamp) {
+        throttleval = 0;
+      }
+      motorcontroller->setThrottle(throttleval * (int)12); //with throttle 0-80 this sets throttle to 0 - 960
+    }
+    else {
+      motorcontroller->setThrottle(throttle->getThrottle());
+      //Serial.println(throttle.getThrottle());  //just for debugging
+    }
+    motorcontroller->handleTick();
+  }
 }
 
 

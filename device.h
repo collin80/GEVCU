@@ -20,13 +20,15 @@ class DEVICE {
 			DEVICE_CHARGER,
 			DEVICE_DISPLAY,
 			DEVICE_THROTTLE,
-			DEVICE_MISC
+			DEVICE_MISC,
+                        DEVICE_NONE
 		};
-		enum DEVID{ //unique device ID for every piece of hardware possible
+		enum DEVID{ //unique device ID for every piece of hardware possible			
 			DMOC645 = 0x1000,
 			BRUSACHARGE = 0x1010,
 			TCCHCHARGE = 0x1020,
-			FORDACCELPEDAL = 0x1030
+			POTACCELPEDAL = 0x1030,
+			INVALID = 0xFFFF
 		};
 	
 	protected:
@@ -35,8 +37,8 @@ class DEVICE {
 	public:
 	virtual void handleFrame(Frame& frame);
 	virtual void handleTick();
-	virtual int getDeviceType();
-	virtual int getDeviceID();
+	virtual DEVTYPE getDeviceType();
+	virtual DEVID getDeviceID();
 	DEVICE(MCP2515 *canlib);	
 };
 

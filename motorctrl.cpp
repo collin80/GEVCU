@@ -14,7 +14,7 @@ MOTORCTRL::MOTORCTRL(MCP2515 *canlib) : DEVICE(canlib) {
 
 }
 
-int MOTORCTRL::getDeviceType() {
+DEVICE::DEVTYPE MOTORCTRL::getDeviceType() {
 	return (DEVICE::DEVICE_MOTORCTRL);
 }
 
@@ -34,7 +34,7 @@ bool MOTORCTRL::isFaulted() {
 	return (faulted);
 }
 
-int MOTORCTRL::getDeviceID() {
-  return -1;
+DEVICE::DEVID MOTORCTRL::getDeviceID() {
+  return DEVICE::INVALID;
 }
 

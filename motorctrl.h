@@ -15,8 +15,8 @@
 class MOTORCTRL : public DEVICE {
 	
 	public:
-	int getDeviceType();
-	virtual int getDeviceID();
+	DEVICE::DEVTYPE getDeviceType();
+	virtual DEVICE::DEVID getDeviceID();
 	int getThrottle();
 	void setThrottle(int newthrottle);
 	bool isRunning();

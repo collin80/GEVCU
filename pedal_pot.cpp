@@ -147,10 +147,6 @@ void POT_THROTTLE::handleTick() {
 
 }
 
-int POT_THROTTLE::getThrottle() {
-	return outputThrottle;
-}
-
 POT_THROTTLE::THROTTLESTATUS POT_THROTTLE::getStatus() {
     return ThrottleStatus;
 }
@@ -184,4 +180,8 @@ void POT_THROTTLE::setMAP(uint16_t map) {
 
 void POT_THROTTLE::setMaxRegen(uint16_t regen) {
 	ThrottleMaxRegen = regen;
+}
+
+DEVICE::DEVID POT_THROTTLE::getDeviceID() {
+  return (DEVICE::POTACCELPEDAL);
 }

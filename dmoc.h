@@ -69,7 +69,7 @@ public:
   void setOpState(OPSTATE op);
   void setGear(GEARS gear);
   DMOC(MCP2515 *canlib);
-  int getDeviceID();
+  DEVICE::DEVID getDeviceID();
 };
 
 #endif /* DMOC_H_ */

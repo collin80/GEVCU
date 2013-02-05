@@ -9,8 +9,9 @@
 #define PEDAL_POT_H_
 
 #include "Arduino.h"
+#include "throttle.h"
 
-class POT_THROTTLE {
+class POT_THROTTLE : public THROTTLE {
     public:
 
         enum THROTTLESTATUS {
@@ -32,8 +33,7 @@ class POT_THROTTLE {
 	uint16_t ThrottleRegen, ThrottleFWD, ThrottleMAP; //Value at which regen finishes, forward motion starts, and the mid point of throttle
 	uint16_t ThrottleMaxRegen; //Percentage of max torque allowable for regen
 	byte ThrottleMaxErr;
-	THROTTLESTATUS ThrottleStatus;
-	signed int outputThrottle; //the final signed throttle. [-1000, 1000] in tenths of a percent of maximum
+	THROTTLESTATUS ThrottleStatus;	
 
     int calcThrottle1();
 	int calcThrottle2();
@@ -42,7 +42,6 @@ class POT_THROTTLE {
   public:
 
 	void handleTick();
-	int getThrottle();
 	THROTTLESTATUS getStatus();
 	void setT1Min(uint16_t min);
 	void setT2Min(uint16_t min);
@@ -53,6 +52,7 @@ class POT_THROTTLE {
 	void setMAP(uint16_t map);
 	void setMaxRegen(uint16_t regen);
 	POT_THROTTLE(uint8_t Throttle1, uint8_t Throttle2);
+	DEVICE::DEVID getDeviceID();
 
 };
 

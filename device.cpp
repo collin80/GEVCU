@@ -18,12 +18,12 @@ void DEVICE::handleTick() {
 	
 }
 
-int DEVICE::getDeviceType() {
-  return -1;
+DEVICE::DEVTYPE DEVICE::getDeviceType() {
+  return DEVICE_NONE;
 }
 
-int DEVICE::getDeviceID() {
-  return -1;
+DEVICE::DEVID DEVICE::getDeviceID() {
+  return INVALID;
 }
 
 DEVICE::DEVICE(MCP2515 *canlib) {

@@ -184,6 +184,6 @@ byte DMOC::calcChecksum(Frame thisFrame) {
 	return cs;
 }
 
-int DMOC::getDeviceID() {
+DEVICE::DEVID DMOC::getDeviceID() {
   return (DEVICE::DMOC645);
 }
