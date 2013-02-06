@@ -27,6 +27,16 @@ POT_THROTTLE::POT_THROTTLE(uint8_t Throttle1, uint8_t Throttle2) {
 		ThrottleMaxErr = 25; //in tenths of a percent. So 25 = max 2.5% difference
 }
 
+int POT_THROTTLE::getRawThrottle1() {
+	return Throttle1Val;
+}
+
+int POT_THROTTLE::getRawThrottle2() {
+	return Throttle2Val;
+}
+
+
+
 int POT_THROTTLE::calcThrottle1() {
     int range, val, retVal;
 
@@ -77,12 +87,15 @@ void POT_THROTTLE::handleTick() {
 
     ThrottleStatus = OK;
     if (Throttle1Val > ThrottleMax1) { // clamp it to allow some dead zone.
-		Throttle1Val = ThrottleMax1;
 		ThrottleStatus = ERR_HIGH_T1;
     }
     else if (Throttle1Val < ThrottleMin1) {
-		Throttle1Val = ThrottleMin1;
 		ThrottleStatus = ERR_LOW_T1;
+    }
+
+    if (! (ThrottleStatus == OK)) {
+        outputThrottle = 0; //no throttle if there is a fault
+        return;
     }
 
     temp = calcThrottle1();

@@ -30,7 +30,7 @@
 
 // Create CAN object with pins as defined
 MCP2515 CAN(CS_PIN, RESET_PIN, INT_PIN);
-THROTTLE *throttle;
+THROTTLE *throttle; 
 MOTORCTRL* motorcontroller; //generic motor controller - instantiate some derived class to fill this out
 
 void printMenu();
@@ -39,6 +39,7 @@ void printMenu();
 bool runRamp = false;
 bool runStatic = false;
 bool runThrottle = false;
+bool throttleDebug = false;
 byte i=0;
 Frame message;
 
@@ -50,7 +51,7 @@ void setup() {
   
 	Serial.begin(115200);
 
-	Serial.println("GEVCU alpha 02-03-2013");
+	Serial.println("GEVCU alpha 02-06-2013");
 
 	Serial.println("Initializing ...");
 
@@ -85,7 +86,8 @@ void setup() {
 	//if max is less than min for a throttle then the pot goes high to low as pressed.
 
         throttle = new POT_THROTTLE(0,1); //specify the ADC ports to use for throttle 255 = not used (valid only for second value)
-        POT_THROTTLE* pot = (POT_THROTTLE *)throttle;        
+        POT_THROTTLE* pot = (POT_THROTTLE *)throttle;   //since throttle is of the generic base class type we have to cast to get access to
+                                                        //the special functions of a pedal pot. Of course this must not be done in production.
         pot->setT1Min(82);
 	pot->setT1Max(410);
 	pot->setT2Min(158);
@@ -113,17 +115,16 @@ void setup() {
 
 void printMenu() {
 	Serial.println("System Menu:");
-	Serial.println("To start: enter letters slowly in this order:");
-	Serial.println("D, S, E, d, <space>");
 	Serial.println("D = disabled op state");
 	Serial.println("S = standby op state");
 	Serial.println("E = enabled op state");
 	Serial.println("n = neutral gear");
 	Serial.println("d = DRIVE gear");
 	Serial.println("r = reverse gear");
-	Serial.println("<space> = start/stop RPM ramp test");
-	Serial.println("x = lock RPM at current value (toggle)");
+	Serial.println("<space> = start/stop ramp test");
+	Serial.println("x = lock ramp at current value (toggle)");
 	Serial.println("t = Use accelerator pedal? (toggle)");
+	Serial.println("L = output raw throttle values (toggle)");
 	Serial.println("");
 }
 
@@ -144,23 +145,30 @@ void loop() {
     //do tick related stuff
     throttle->handleTick(); //gets ADC values, calculates throttle position
     //Serial.println(Throttle.getThrottle());
-    if (!runThrottle) {
-      count++;
-      if (count > 50) {
-        count = 0;
-        if (!runStatic) throttleval++;
-      }
-      if (throttleval > 80) throttleval = 0;
+   count++;
+   if (count > 50) {
+     count = 0;
+     if (!runStatic) throttleval++;
+     if (throttleval > 80) throttleval = 0;
+     if (throttleDebug) {
+       POT_THROTTLE *pot = (POT_THROTTLE *)throttle;
+	Serial.print("T1: ");
+	Serial.print(pot->getRawThrottle1());
+	Serial.print(" T2: ");
+	Serial.println(pot->getRawThrottle2());
+     }
+   }
+   if (!runThrottle) { //ramping test      
       if (!runRamp) {
         throttleval = 0;
       }
       motorcontroller->setThrottle(throttleval * (int)12); //with throttle 0-80 this sets throttle to 0 - 960
-    }
-    else {
+    } 
+    else { //use the installed throttle
       motorcontroller->setThrottle(throttle->getThrottle());
       //Serial.println(throttle.getThrottle());  //just for debugging
     }
-    motorcontroller->handleTick();
+    motorcontroller->handleTick(); //intentionally far down here so that the throttle is set before this is called
   }
 }
 
@@ -222,11 +230,18 @@ void serialEvent() {
 		else Serial.println("Unlock RPM rate");
 		break;
 	case 't':
-        runThrottle = !runThrottle;
+		runThrottle = !runThrottle;
 		if (runThrottle) {
 			Serial.println("Use Throttle Pedal");
 		}
 		else Serial.println("Ignore throttle pedal");
+		break;
+	case 'L':
+		throttleDebug = !throttleDebug;
+		if (throttleDebug) {
+			Serial.println("Output raw throttle");
+		}
+		else Serial.println("Cease raw throttle output");
 		break;
 	}
 }

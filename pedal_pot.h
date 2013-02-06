@@ -51,6 +51,8 @@ class POT_THROTTLE : public THROTTLE {
 	void setFWDStart(uint16_t fwd);
 	void setMAP(uint16_t map);
 	void setMaxRegen(uint16_t regen);
+	int getRawThrottle1();
+  	int getRawThrottle2();
 	POT_THROTTLE(uint8_t Throttle1, uint8_t Throttle2);
 	DEVICE::DEVID getDeviceID();
 
