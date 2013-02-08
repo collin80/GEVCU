@@ -85,7 +85,7 @@ void DMOC::sendCmd2() {
 	//data 0-1 is upper limit, 2-3 is lower limit. They are set to same value to lock torque to this value
 	//requestedTorque = 30000L + (((long)requestedThrottle * (long)MaxTorque) / 1000L);
 
-	if (requestedThrottle > 0 && opstate == ENABLE && selectedGear != NEUTRAL)
+	if (opstate == ENABLE && selectedGear != NEUTRAL)
 		//requestedTorque = 30500; //50nm
        		requestedTorque = 30000L + (((long)requestedThrottle * (long)MaxTorque) / 1000L);
 	else

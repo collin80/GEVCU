@@ -80,8 +80,9 @@ void setup() {
 	CAN.SetRXFilter(FILTER0, 0x230, 0); //allows 0x230 - 0x23F
 	CAN.SetRXFilter(FILTER1, 0x650, 0); //allows 0x650 - 0x65F
 
-	//The pedal I have has two pots and one should be twice the value of the other normally (within tolerance)
 	Serial.println("Using dual pot throttle");
+
+	//The pedal I have has two pots and one should be twice the value of the other normally (within tolerance)
 	//if min is less than max for a throttle then the pot goes low to high as pressed.
 	//if max is less than min for a throttle then the pot goes high to low as pressed.
 
@@ -93,9 +94,9 @@ void setup() {
 	pot->setT2Min(158);
 	pot->setT2Max(810);
 	//these are now based on tenths of a percent of pedal (0 - 1000 in other words)
-	pot->setRegenEnd(0); //no regen
+	pot->setRegenEnd(200); //no regen
 	pot->setMaxRegen(30); //thats 30% of forward power
-	pot->setFWDStart(131); //13.1% throttle
+	pot->setFWDStart(275); //13.1% throttle
 	pot->setMAP(665); //half way throttle is at 2/3 of pedal travel
 
 	//This could eventually be configurable.
@@ -155,7 +156,9 @@ void loop() {
 	Serial.print("T1: ");
 	Serial.print(pot->getRawThrottle1());
 	Serial.print(" T2: ");
-	Serial.println(pot->getRawThrottle2());
+	Serial.print(pot->getRawThrottle2());
+        Serial.print(" Out: ");
+        Serial.println(pot->getThrottle());
      }
    }
    if (!runThrottle) { //ramping test      
