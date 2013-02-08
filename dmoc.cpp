@@ -17,8 +17,40 @@ DMOC::DMOC(MCP2515 *canlib) : MOTORCTRL(canlib) {
 	MaxRPM = 6000; //also plenty for a bench test
 }
 
-void DMOC::handleFrame(Frame& frame) {
 
+/*
+Finally, the firmware actually processes some of the status messages from the DMOC
+However, currently the alive and checksum bytes aren't checked for validity.
+To be valid a frame has to have a different alive value than the last value we saw
+and also the checksum must match the one we calculate. Right now we'll just assume
+everything has gone according to plan.
+*/
+void DMOC::handleFrame(Frame& frame) {
+  switch (frame.id) {
+    case 0x651: //Temperature status
+      int RotorTemp = frame.data[0];
+      int invTemp = frame.data[1];
+      int StatorTemp = frame.data[2];
+      inverterTemp = invTemp * 10;
+      //now pick highest of motor temps and report it
+      if (RotorTemp > StatorTemp) {
+        motorTemp = RotorTemp * 10;
+      }
+      else {
+        motorTemp = StatorTemp * 10;
+      }
+      break;
+    case 0x23A: //torque report
+      actualTorque = ((frame.data[0] * 256) + frame.data[1]) - 30000;
+      break;
+    case 0x23B: //speed and current operation status
+      actualRPM = ((frame.data[0] * 256) + frame.data[1]) - 20000;
+      actualstate = (OPSTATE)(frame.data[6] >> 4);
+      break;
+    case 0x23E: //electrical status
+      //gives volts and amps for D and Q but does the firmware really care?
+      break;
+  }
 }
 
 /*Do note that the DMOC expects all three command frames and it expect them to happen at least twice a second. So, probably it'd be ok to essentially

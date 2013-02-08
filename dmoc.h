@@ -45,14 +45,9 @@ public:
   };
 
 private:
-  uint16_t requestedTorque;
-  uint16_t requestedRPM;
-  uint16_t actualTorque;
-  uint16_t actualRPM;
-  uint16_t MaxTorque;	//maximum torque in 0.1 Nm
-  uint16_t MaxRPM;
   GEARS selectedGear;
-  OPSTATE opstate;
+  OPSTATE opstate; //the op state we want
+  OPSTATE actualstate; //what the controller is reporting it is
   int step;
   byte alive;
 

@@ -28,6 +28,14 @@ class MOTORCTRL : public DEVICE {
 	int requestedThrottle;
 	bool running;
         bool faulted;
+        signed int motorTemp; //temperature of motor in tenths of degree C
+        signed int inverterTemp; //temperature of inverter in tenths deg C
+        uint16_t requestedTorque; //in tenths of Nm
+        uint16_t requestedRPM; //in RPM
+        uint16_t actualTorque; //in tenths Nm
+        uint16_t actualRPM; //in RPM
+        uint16_t MaxTorque;	//maximum torque in 0.1 Nm
+        uint16_t MaxRPM; //in RPM
 };
 
 #endif
