@@ -27,6 +27,10 @@ POT_THROTTLE::POT_THROTTLE(uint8_t Throttle1, uint8_t Throttle2) {
 		ThrottleMaxErr = 25; //in tenths of a percent. So 25 = max 2.5% difference
 }
 
+void setupDevice() {
+  //load parameters from EEPROM here
+}
+
 int POT_THROTTLE::getRawThrottle1() {
 	return Throttle1Val;
 }
@@ -35,37 +39,17 @@ int POT_THROTTLE::getRawThrottle2() {
 	return Throttle2Val;
 }
 
-
-
-int POT_THROTTLE::calcThrottle1() {
+int POT_THROTTLE::calcThrottle(int clampedVal, int minVal, int maxVal) {
     int range, val, retVal;
 
-    if (ThrottleMin1 < ThrottleMax1) { //low to high pot
-        range = ThrottleMax1 - ThrottleMin1;
-        val = Throttle1Val - ThrottleMin1;
+    if (minVal < maxVal) { //low to high pot
+        range = maxVal - minVal;
+        val = clampedVal - minVal;
         retVal = (int)(((long)val * 1000) / (long)range); //output is tenths of a percent of max throttle
     }
     else { //high to low pot
-        range = ThrottleMin1 - ThrottleMax1;
-        val = Throttle1Val - ThrottleMax1;
-        retVal = (int)(((long)val * 1000) / (long)range); //output is tenths of a percent of max throttle
-        retVal = 1000 - retVal; //reverses the value since the pedal runs reverse
-    }
-
-    return retVal;
-}
-
-int POT_THROTTLE::calcThrottle2() {
-    int range, val, retVal;
-
-    if (ThrottleMin2 < ThrottleMax2) { //low to high pot
-        range = ThrottleMax2 - ThrottleMin2;
-        val = Throttle2Val - ThrottleMin2;
-        retVal = (int)(((long)val * 1000) / (long)range); //output is tenths of a percent of max throttle
-    }
-    else { //high to low pot
-        range = ThrottleMin2 - ThrottleMax2;
-        val = Throttle2Val - ThrottleMax2;
+        range = minVal - maxVal;
+        val = clampedVal - maxVal;
         retVal = (int)(((long)val * 1000) / (long)range); //output is tenths of a percent of max throttle
         retVal = 1000 - retVal; //reverses the value since the pedal runs reverse
     }
@@ -77,7 +61,7 @@ int POT_THROTTLE::calcThrottle2() {
 //don't happen. Also, right now values of ADC outside the proper range are just clamped to the proper range.
 void POT_THROTTLE::handleTick() {
     signed int range;
-    signed int temp, temp2;
+    signed int calcThrottle1, calcThrottle2, clampedVal, tempLow, temp;
     static uint16_t ThrottleAvg = 0, ThrottleFeedback = 0; //used to create proportional control
 
     Throttle1Val = analogRead(Throttle1ADC);
@@ -86,11 +70,25 @@ void POT_THROTTLE::handleTick() {
     }
 
     ThrottleStatus = OK;
-    if (Throttle1Val > ThrottleMax1) { // clamp it to allow some dead zone.
-		ThrottleStatus = ERR_HIGH_T1;
+    clampedVal = Throttle1Val;
+    
+    //The below code now only faults if the value of the ADC is 15 outside of the range +/-
+    //otherwise we'll just clamp
+    if (Throttle1Val > ThrottleMax1) {
+       if (Throttle1Val > (ThrottleMax1 + 15)) {
+          ThrottleStatus = ERR_HIGH_T1;
+       }
+       clampedVal = ThrottleMax1;
     }
-    else if (Throttle1Val < ThrottleMin1) {
-		ThrottleStatus = ERR_LOW_T1;
+    tempLow = 0;
+    if (ThrottleMin1 > 14) {
+      tempLow = ThrottleMin1 - 15;
+    } 
+    if (Throttle1Val < ThrottleMin1) {
+      if (Throttle1Val < tempLow) {
+        ThrottleStatus = ERR_LOW_T1;
+      }
+      clampedVal = ThrottleMin1;
     }
 
     if (! (ThrottleStatus == OK)) {
@@ -98,18 +96,37 @@ void POT_THROTTLE::handleTick() {
         return;
     }
 
-    temp = calcThrottle1();
+    calcThrottle1 = calcThrottle(clampedVal, ThrottleMin1, ThrottleMax1);
     
     if (numThrottlePots > 1) { //can only do these things if there are two or more pots
-      temp2 = calcThrottle2();
-      if ((temp-ThrottleMaxErr) > temp2) { //then throttle1 is too large compared to 2
+      clampedVal = Throttle2Val;
+      if (Throttle2Val > ThrottleMax2) {
+         if (Throttle2Val > (ThrottleMax2 + 15)) {
+            ThrottleStatus = ERR_HIGH_T2;
+         }
+         clampedVal = ThrottleMax2;
+      }
+      tempLow = 0;
+      if (ThrottleMin2 > 14) {
+        tempLow = ThrottleMin2 - 15;
+      } 
+      if (Throttle2Val < ThrottleMin2) {
+        if (Throttle2Val < tempLow) {
+          ThrottleStatus = ERR_LOW_T2;
+        }
+        clampedVal = ThrottleMin2;
+      }
+
+      calcThrottle2 = calcThrottle(clampedVal, ThrottleMin2, ThrottleMax2);
+      
+      if ((calcThrottle1 - ThrottleMaxErr) > calcThrottle2) { //then throttle1 is too large compared to 2
           ThrottleStatus = ERR_MISMATCH;
       }
-      if ((temp2-ThrottleMaxErr) > temp) { //then throttle2 is too large compared to 1
+      if ((calcThrottle2 - ThrottleMaxErr) > calcThrottle1) { //then throttle2 is too large compared to 1
           ThrottleStatus = ERR_MISMATCH;
       }
 
-      temp = (temp + temp2) / 2; //temp now the average of the two
+      calcThrottle1 = (calcThrottle1 + calcThrottle2) / 2; //temp now the average of the two
     }
 
     if (! (ThrottleStatus == OK)) {
@@ -120,7 +137,7 @@ void POT_THROTTLE::handleTick() {
     //Apparently all is well with the throttle input
     //so go ahead and calculate the proper throttle output
 
-    ThrottleAvg += temp;
+    ThrottleAvg += calcThrottle1;
     ThrottleAvg -= ThrottleFeedback;
     ThrottleFeedback = ThrottleAvg >> 4;
 
@@ -130,26 +147,26 @@ void POT_THROTTLE::handleTick() {
        positive or negative travel doesn't matter and is covered by the calcThrottle functions
     */
 
-	if (ThrottleRegen != 0) {
-        if ((ThrottleFeedback <= ThrottleRegen) && (ThrottleFeedback > 3)) {  //give 3 deadzone at start of pedal so car freewheels at no pedal push
+    if (ThrottleRegen != 0) {
+        if (ThrottleFeedback <= ThrottleRegen) {
             range = ThrottleRegen;
             temp = range - ThrottleFeedback;
             outputThrottle = (signed long)((signed long)(-10) * ThrottleMaxRegen  * temp / range);
         }
-	}
+    }
 
-	if (ThrottleFeedback >= ThrottleFWD) {
-		if (ThrottleFeedback <= ThrottleMAP) { //bottom 50% forward
-			range = ThrottleMAP - ThrottleFWD;
-			temp = (ThrottleFeedback - ThrottleFWD);
-			outputThrottle = (signed long)((signed long)(500) * temp / range);
-		}
-		else { //more than ThrottleMAP
-			range = 1000 - ThrottleMAP;
-			temp = (ThrottleFeedback - ThrottleMAP);
-			outputThrottle = 500 + (signed int)((signed long)(500) * temp / range);
-		}
-	}
+    if (ThrottleFeedback >= ThrottleFWD) {
+      if (ThrottleFeedback <= ThrottleMAP) { //bottom 50% forward
+        range = ThrottleMAP - ThrottleFWD;
+	temp = (ThrottleFeedback - ThrottleFWD);
+	outputThrottle = (signed long)((signed long)(500) * temp / range);
+      }
+      else { //more than ThrottleMAP
+        range = 1000 - ThrottleMAP;
+	temp = (ThrottleFeedback - ThrottleMAP);
+        outputThrottle = 500 + (signed int)((signed long)(500) * temp / range);
+      }
+    }
 
 	//Debugging output - Sends raw throttle1 and the actual output throttle value
 	/*

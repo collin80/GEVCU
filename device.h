@@ -37,7 +37,8 @@ class DEVICE {
 	public:
 	virtual void handleFrame(Frame& frame);
 	virtual void handleTick();
-	virtual DEVTYPE getDeviceType();
+        virtual void setupDevice();
+        virtual DEVTYPE getDeviceType();
 	virtual DEVID getDeviceID();
 	DEVICE(MCP2515 *canlib);	
 };

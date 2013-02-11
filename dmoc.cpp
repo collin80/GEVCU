@@ -26,11 +26,12 @@ and also the checksum must match the one we calculate. Right now we'll just assu
 everything has gone according to plan.
 */
 void DMOC::handleFrame(Frame& frame) {
+  int RotorTemp,invTemp, StatorTemp;
   switch (frame.id) {
     case 0x651: //Temperature status
-      int RotorTemp = frame.data[0];
-      int invTemp = frame.data[1];
-      int StatorTemp = frame.data[2];
+      RotorTemp = frame.data[0];
+      invTemp = frame.data[1];
+      StatorTemp = frame.data[2];
       inverterTemp = invTemp * 10;
       //now pick highest of motor temps and report it
       if (RotorTemp > StatorTemp) {
@@ -51,6 +52,10 @@ void DMOC::handleFrame(Frame& frame) {
       //gives volts and amps for D and Q but does the firmware really care?
       break;
   }
+}
+
+void DMOC::setupDevice() {
+  MOTORCTRL::setupDevice(); //first run the parent class version of this function
 }
 
 /*Do note that the DMOC expects all three command frames and it expect them to happen at least twice a second. So, probably it'd be ok to essentially

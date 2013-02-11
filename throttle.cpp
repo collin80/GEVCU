@@ -24,5 +24,8 @@ int THROTTLE::getThrottle() {
 	return outputThrottle;
 }
 
+void THROTTLE::setupDevice() {
+}
+
 THROTTLE::THROTTLE() : DEVICE(0) {
 }

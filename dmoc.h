@@ -61,6 +61,7 @@ private:
 public:
   void handleFrame(Frame& frame);
   void handleTick();	
+  void setupDevice();
   void setOpState(OPSTATE op);
   void setGear(GEARS gear);
   DMOC(MCP2515 *canlib);

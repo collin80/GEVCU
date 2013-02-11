@@ -1,0 +1,33 @@
+A textfile with various notes to whoever else is interested 
+in what's coming down the pike and possibly what they could do:
+
+-All devices should have a setup routine that's automatically
+called at start up. This is where each device should load its
+parameters and set up its hardware - This is implemented in DEVICE,
+MOTORCTRL, DMOC, THROTTLE, POT_THROTTLE now
+
+-I think that handleTick should be of configurable timing. Perhaps
+have the system tick be actually 1ms or 2ms; something fast. And then
+each device configures a timeout of between 1 and 255 ticks (a single
+byte) and once that # of system ticks has happened the device will get
+its handleTick callback. This allows some devices to tick rapidly and some
+to tick slowly. For instance, the DMOC needs to send frames around
+every 20ms but the pedal could probably be called less frequently.
+
+-EEPROM should start being used. ATmega2560 has 4k of EEPROM.
+The Arduino Due has none but you can use flash space for that so 4k can be
+kept aside there as well. If there are 6 devices allowed then they all could
+have a block of 600 bytes of EEPROM set aside for them and that would
+take up 3600 and leave 496 bytes of EEPROM for the system itself.
+
+-The throttle code is still a bit of a mess. It should work more like the
+spec document - It's partially there. Now it is clamped and only errors out
+if things go too far away from spec.
+
+-Much of the spec document pre-assumes there are certain inputs
+and outputs. Such things as gear selection, drive enable, etc. A
+standard needs to be constructed for hardware - what pins to use for
+what. Along these lines, some form of hardward is needed for I/O. This is
+true whether the Macchina or Due is used. Both have the same form factor
+so ideally an Arduino compatible I/O shield is needed that works with both
+5 and 3.3v

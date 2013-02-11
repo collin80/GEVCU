@@ -34,14 +34,12 @@ class POT_THROTTLE : public THROTTLE {
 	uint16_t ThrottleMaxRegen; //Percentage of max torque allowable for regen
 	byte ThrottleMaxErr;
 	THROTTLESTATUS ThrottleStatus;	
-
-    int calcThrottle1();
-	int calcThrottle2();
-
+        int calcThrottle(int, int, int);
 
   public:
 
 	void handleTick();
+        void setupDevice();
 	THROTTLESTATUS getStatus();
 	void setT1Min(uint16_t min);
 	void setT2Min(uint16_t min);

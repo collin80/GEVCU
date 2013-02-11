@@ -18,6 +18,9 @@ void DEVICE::handleTick() {
 	
 }
 
+void DEVICE::setupDevice() {
+}
+
 DEVICE::DEVTYPE DEVICE::getDeviceType() {
   return DEVICE_NONE;
 }
