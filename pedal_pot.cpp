@@ -27,7 +27,7 @@ POT_THROTTLE::POT_THROTTLE(uint8_t Throttle1, uint8_t Throttle2) {
 		ThrottleMaxErr = 25; //in tenths of a percent. So 25 = max 2.5% difference
 }
 
-void setupDevice() {
+void POT_THROTTLE::setupDevice() {
   //load parameters from EEPROM here
 }
 

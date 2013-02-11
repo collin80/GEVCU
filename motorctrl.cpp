@@ -18,7 +18,7 @@ DEVICE::DEVTYPE MOTORCTRL::getDeviceType() {
 	return (DEVICE::DEVICE_MOTORCTRL);
 }
 
-MOTORCTRL::setupDevice() {
+void MOTORCTRL::setupDevice() {
   //this is where common parameters for motor controllers should be loaded from EEPROM
 }
 
