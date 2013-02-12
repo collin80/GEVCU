@@ -51,9 +51,7 @@ void setup() {
   
 	Serial.begin(115200);
 
-	Serial.println("GEVCU alpha 02-06-2013");
-
-	Serial.println("Initializing ...");
+	Serial.println("GEVCU alpha 02-12-2013");
 
 	// Set up SPI Communication
 	// dataMode can be SPI_MODE0 or SPI_MODE3 only for MCP2515
@@ -80,8 +78,6 @@ void setup() {
 	CAN.SetRXFilter(FILTER0, 0x230, 0); //allows 0x230 - 0x23F
 	CAN.SetRXFilter(FILTER1, 0x650, 0); //allows 0x650 - 0x65F
 
-	Serial.println("Using dual pot throttle");
-
 	//The pedal I have has two pots and one should be twice the value of the other normally (within tolerance)
 	//if min is less than max for a throttle then the pot goes low to high as pressed.
 	//if max is less than min for a throttle then the pot goes high to low as pressed.
@@ -101,13 +97,12 @@ void setup() {
 
 	//This could eventually be configurable.
 	setupTimer(10000); //10ms / 10000us ticks / 100Hz
-	Serial.println("100hz update frequency");
 
         motorcontroller = new DMOC(&CAN); //instantiate a DMOC645 device controller as our motor controller
         
         //This will not be hard coded soon. It should be a list of every hardware support module
 	//compiled into the ROM
-	Serial.println("Installed devices: DMOC645");
+	//Serial.println("Installed devices: DMOC645");
 
 	Serial.print("System Ready ");
 	printMenu();

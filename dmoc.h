@@ -49,6 +49,7 @@ private:
   OPSTATE opstate; //the op state we want
   OPSTATE actualstate; //what the controller is reporting it is
   int step;
+  byte online; //counter for whether DMOC appears to be operating
   byte alive;
 
   void sendCmd1();

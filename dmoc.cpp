@@ -15,6 +15,7 @@ DMOC::DMOC(MCP2515 *canlib) : MOTORCTRL(canlib) {
 	opstate = DISABLED;
 	MaxTorque = 500; //in tenths so 50Nm max torque. This is plenty for testing
 	MaxRPM = 6000; //also plenty for a bench test
+        online = 0;
 }
 
 
@@ -27,6 +28,7 @@ everything has gone according to plan.
 */
 void DMOC::handleFrame(Frame& frame) {
   int RotorTemp,invTemp, StatorTemp;
+  online = 1; //if a frame got to here then it passed the filter and must have been from the DMOC
   switch (frame.id) {
     case 0x651: //Temperature status
       RotorTemp = frame.data[0];
@@ -62,19 +64,21 @@ void DMOC::setupDevice() {
   rotate through all of them, one per tick. That gives us a time frame of 30ms for each command frame. That should be plenty fast.
 */
 void DMOC::handleTick() {
-	switch (step) {
-	case SPEED_TORQUE:
-		step = CHAL_RESP;
-		sendCmd1();
-		sendCmd2();
-		sendCmd3();
-		//sendCmd4();
-		//sendCmd5();
-		break;
-	case CHAL_RESP:
-		step = SPEED_TORQUE;
-		break;
-	}
+  switch (step) {
+  case SPEED_TORQUE:
+    if (online == 1) { //only send out commands if the controller is really there.
+      step = CHAL_RESP;
+      sendCmd1();
+      sendCmd2();
+      sendCmd3();
+      //sendCmd4();
+      //sendCmd5();
+    }
+    break;
+  case CHAL_RESP:
+    step = SPEED_TORQUE;
+    break;
+  }
 }
 
 //Commanded RPM plus state of key and gear selector
