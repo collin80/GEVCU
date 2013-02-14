@@ -107,6 +107,7 @@ void DMOC::sendCmd1() {
 	output.data[5] = ON;
 
 	output.data[6] = alive + ((byte)selectedGear << 4) + ((byte)opstate << 6);
+        //output.data[6] = alive + 0b00110000 + ((byte)opstate << 6);
 
 	output.data[7] = calcChecksum(output);
 	can->EnqueueTX(output);
@@ -126,11 +127,11 @@ void DMOC::sendCmd2() {
 	//data 0-1 is upper limit, 2-3 is lower limit. They are set to same value to lock torque to this value
 	//requestedTorque = 30000L + (((long)requestedThrottle * (long)MaxTorque) / 1000L);
 
-	if (opstate == ENABLE && selectedGear != NEUTRAL)
-		//requestedTorque = 30500; //50nm
-       		requestedTorque = 30000L + (((long)requestedThrottle * (long)MaxTorque) / 1000L);
-	else
-		requestedTorque = 30000; //set upper torque to zero if not drive enabled
+    requestedTorque = 30000; //set upper torque to zero if not drive enabled
+	if (opstate == ENABLE) {
+          if (selectedGear == DRIVE) requestedTorque = 30000L + (((long)requestedThrottle * (long)MaxTorque) / 1000L);
+          if (selectedGear == REVERSE) requestedTorque = 30000L - (((long)requestedThrottle * (long)MaxTorque) / 1000L);
+	}		
 
 	output.data[0] = (requestedTorque & 0xFF00) >> 8;
 	output.data[1] = (requestedTorque & 0x00FF);
