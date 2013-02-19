@@ -12,17 +12,30 @@
 
 #include "device.h"
 
+#define MOTORCTL_INPUT_DRIVE_EN    3
+#define MOTORCTL_INPUT_FORWARD     4
+#define MOTORCTL_INPUT_REVERSE     5
+#define MOTORCTL_INPUT_LIMP        6
+
 class MOTORCTRL : public DEVICE {
 	
 	public:
 	DEVICE::DEVTYPE getDeviceType();
 	virtual DEVICE::DEVID getDeviceID();
         virtual void setupDevice();
+       	virtual void handleTick();
 	int getThrottle();
 	void setThrottle(int newthrottle);
 	bool isRunning();
 	bool isFaulted();
-	
+
+        enum GEARSWITCH {
+            GS_NEUTRAL,
+            GS_FORWARD,
+            GS_REVERSE,
+            GS_FAULT
+        };
+        
 	MOTORCTRL(MCP2515 *canlib);
 	
 	protected:
@@ -37,6 +50,7 @@ class MOTORCTRL : public DEVICE {
         uint16_t actualRPM; //in RPM
         uint16_t MaxTorque;	//maximum torque in 0.1 Nm
         uint16_t MaxRPM; //in RPM
+        GEARSWITCH GearSwitch;
 };
 
 #endif
