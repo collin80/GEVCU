@@ -28,7 +28,48 @@ POT_THROTTLE::POT_THROTTLE(uint8_t Throttle1, uint8_t Throttle2) {
 }
 
 void POT_THROTTLE::setupDevice() {
-  //load parameters from EEPROM here
+  THROTTLE::setupDevice(); //call base class first
+  //set digital ports to inputs and pull them up
+  //all inputs currently active low
+  pinMode(THROTTLE_INPUT_BRAKELIGHT, INPUT_PULLUP); //Brake light switch
+  if (prefChecksumValid()) { //checksum is good, read in the values stored in EEPROM
+    prefRead(EETH_MIN_ONE, ThrottleMin1);
+    prefRead(EETH_MAX_ONE, ThrottleMax1);
+    prefRead(EETH_MIN_TWO, ThrottleMin2);
+    prefRead(EETH_MAX_TWO, ThrottleMax2);
+    prefRead(EETH_REGEN, ThrottleRegen);
+    prefRead(EETH_FWD, ThrottleFWD);
+    prefRead(EETH_MAP, ThrottleMAP);
+    prefRead(EETH_BRAKE_MIN, BrakeMin);
+    prefRead(EETH_BRAKE_MAX, BrakeMax);    
+    prefRead(EETH_MAX_ACCEL_REGEN, ThrottleMaxRegen);
+    prefRead(EETH_MAX_BRAKE_REGEN, BrakeMaxRegen); 
+  }
+  else { //checksum invalid. Reinitialize values and store to EEPROM
+    ThrottleMin1 = 82;
+    ThrottleMax1 = 410;
+    ThrottleMin2 = 158;
+    ThrottleMax2 = 810;
+    ThrottleRegen = 0;
+    ThrottleFWD = 175;
+    ThrottleMAP = 665;
+    ThrottleMaxRegen = 30; //mmildly powerful regen for accel pedal
+    BrakeMaxRegen = 80; //pretty strong regen for brakes  
+    BrakeMin = 0;
+    BrakeMax = 0;
+    prefWrite(EETH_MIN_ONE, ThrottleMin1);
+    prefWrite(EETH_MAX_ONE, ThrottleMax1);
+    prefWrite(EETH_MIN_TWO, ThrottleMin2);
+    prefWrite(EETH_MAX_TWO, ThrottleMax2);
+    prefWrite(EETH_REGEN, ThrottleRegen);
+    prefWrite(EETH_FWD, ThrottleFWD);
+    prefWrite(EETH_MAP, ThrottleMAP);
+    prefWrite(EETH_BRAKE_MIN, BrakeMin);
+    prefWrite(EETH_BRAKE_MAX, BrakeMax);    
+    prefWrite(EETH_MAX_ACCEL_REGEN, ThrottleMaxRegen);
+    prefWrite(EETH_MAX_BRAKE_REGEN, BrakeMaxRegen);
+    prefSaveChecksum();
+  }
 }
 
 int POT_THROTTLE::getRawThrottle1() {

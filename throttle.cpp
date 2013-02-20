@@ -25,10 +25,8 @@ int THROTTLE::getThrottle() {
 }
 
 void THROTTLE::setupDevice() {
-  //set digital ports to inputs and pull them up
-  //all inputs currently active low
-  pinMode(THROTTLE_INPUT_BRAKELIGHT, INPUT_PULLUP); //Brake light switch
 }
 
 THROTTLE::THROTTLE() : DEVICE(0) {
+    pref_base_addr = EE_THROTTLE_START;
 }

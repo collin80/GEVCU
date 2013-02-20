@@ -29,6 +29,11 @@ public:
     SPEED_TORQUE,
     CHAL_RESP
   };
+  
+  enum POWERMODE {
+    MODE_TORQUE,
+    MODE_RPM
+  };
 
   enum KEYSTATE {
     OFF = 0,
@@ -67,6 +72,7 @@ public:
   void setGear(GEARS gear);
   DMOC(MCP2515 *canlib);
   DEVICE::DEVID getDeviceID();
+  void setPowerMode(POWERMODE mode);
 };
 
 #endif /* DMOC_H_ */

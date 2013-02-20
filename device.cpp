@@ -71,7 +71,7 @@ void DEVICE::prefRead(uint16_t address, uint32_t &val) {
 uint8_t DEVICE::prefCalcChecksum() {
   uint16_t counter;
   uint8_t accum = 0;
-  for (counter = 0; counter < EE_DEVICE_SIZE; counter++) {
+  for (counter = 1; counter < EE_DEVICE_SIZE; counter++) {
     accum += EEPROM.read(counter + pref_base_addr);
   }
   return accum;

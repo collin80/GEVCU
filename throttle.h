@@ -12,8 +12,6 @@
 
 #include "device.h"
 
-#define THROTTLE_INPUT_BRAKELIGHT  2
-
 class THROTTLE : public DEVICE {
 	public:
 	virtual void handleTick();

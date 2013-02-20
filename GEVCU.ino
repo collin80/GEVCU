@@ -86,20 +86,14 @@ void setup() {
         throttle = new POT_THROTTLE(0,1); //specify the ADC ports to use for throttle 255 = not used (valid only for second value)
         POT_THROTTLE* pot = (POT_THROTTLE *)throttle;   //since throttle is of the generic base class type we have to cast to get access to
                                                         //the special functions of a pedal pot. Of course this must not be done in production.
-        pot->setT1Min(82);
-	pot->setT1Max(410);
-	pot->setT2Min(158);
-	pot->setT2Max(810);
-	//these are now based on tenths of a percent of pedal (0 - 1000 in other words)
-	pot->setRegenEnd(0); //no regen
-	pot->setMaxRegen(30); //thats 30% of forward power
-	pot->setFWDStart(175); //13.1% throttle
-	pot->setMAP(665); //half way throttle is at 2/3 of pedal travel
-
+        throttle->setupDevice();
+        
 	//This could eventually be configurable.
 	setupTimer(10000); //10ms / 10000us ticks / 100Hz
 
         motorcontroller = new DMOC(&CAN); //instantiate a DMOC645 device controller as our motor controller
+        
+        motorcontroller->setupDevice();
         
         //This will not be hard coded soon. It should be a list of every hardware support module
 	//compiled into the ROM

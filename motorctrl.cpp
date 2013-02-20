@@ -51,6 +51,7 @@ void MOTORCTRL::setupDevice() {
     MaxTorque = 500; //50Nm
     prefWrite(EEMC_MAX_RPM, MaxRPM);
     prefWrite(EEMC_MAX_TORQUE, MaxTorque);
+    prefSaveChecksum();
   }
 }
 /*
