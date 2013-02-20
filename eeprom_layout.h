@@ -5,12 +5,13 @@ For safety, allocate 450 bytes for every device
 */
 
 #define EE_MOTORCTL_START	0
-#define EE_DISPLAY_START		450
-#define EE_CHARGER_START		900
+#define EE_DISPLAY_START	450
+#define EE_CHARGER_START	900
 #define EE_BMS_START		1350
 #define EE_THROTTLE_START	1800
 #define EE_MISC_START		2250
 #define EE_SYSTEM_START		3600
+#define EE_DEVICE_SIZE          450 //# of bytes allocated to each device
 
 /*Now, all devices also have a default list of things that WILL be stored in EEPROM. Each actual
 implementation for a given device can store it's own custom info as well. This data must come after

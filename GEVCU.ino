@@ -13,8 +13,9 @@
 	any hardware of that category. 
  */
 
-#include "Arduino.h"
-#include "SPI.h"
+#include <Arduino.h>
+#include <SPI.h>
+#include <EEPROM.h>
 #include "MCP2515.h"
 #include "throttle.h"
 #include "pedal_pot.h"
@@ -90,9 +91,9 @@ void setup() {
 	pot->setT2Min(158);
 	pot->setT2Max(810);
 	//these are now based on tenths of a percent of pedal (0 - 1000 in other words)
-	pot->setRegenEnd(200); //no regen
+	pot->setRegenEnd(0); //no regen
 	pot->setMaxRegen(30); //thats 30% of forward power
-	pot->setFWDStart(275); //13.1% throttle
+	pot->setFWDStart(175); //13.1% throttle
 	pot->setMAP(665); //half way throttle is at 2/3 of pedal travel
 
 	//This could eventually be configurable.
