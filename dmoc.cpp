@@ -7,12 +7,29 @@
  *  Author: Collin Kidder
  */
 
+/*
+Notes on things to add very soon:
+The DMOC code should be a finite state machine which tracks what state the controller is in as opposed to the desired state and properly
+transitions states. For instance, if we're in disabled mode and we want to get to enabled we've got to first set standby and wait
+for the controller to signal that it has gotten there and then switch to enabled and wait until the controller has gotten there
+then we can apply torque commands.
+
+Also, the code should take into consideration the RPM for regen purposes. Of course, the controller probably already does that.
+
+Standby torque needs to be available for some vehicles when the vehicle is placed in enabled and forward or reverse.
+
+Should probably add EEPROM config options to support max output power and max regen power (in watts). The dmoc supports it
+and I'll bet  other controllers do as well. The rest can feel free to ignore it.
+*/
+
+
 #include "dmoc.h"
 
 DMOC::DMOC(MCP2515 *canlib) : MOTORCTRL(canlib) {
 	step = SPEED_TORQUE;
 	selectedGear = NEUTRAL;
 	opstate = DISABLED;
+        actualstate = DISABLED;
 	MaxTorque = 500; //in tenths so 50Nm max torque. This is plenty for testing
 	MaxRPM = 6000; //also plenty for a bench test
         online = 0;
@@ -64,6 +81,9 @@ void DMOC::setupDevice() {
   rotate through all of them, one per tick. That gives us a time frame of 30ms for each command frame. That should be plenty fast.
 */
 void DMOC::handleTick() {
+  
+  MOTORCTRL::handleTick(); //kick the ball up to papa
+  
   switch (step) {
   case SPEED_TORQUE:
     if (online == 1) { //only send out commands if the controller is really there.
@@ -84,6 +104,7 @@ void DMOC::handleTick() {
 //Commanded RPM plus state of key and gear selector
 void DMOC::sendCmd1() {
 	Frame output;
+        OPSTATE newstate;
 	alive = (alive + 2) & 0x0F;
 	output.dlc = 8;
 	output.id = 0x232;
@@ -104,10 +125,15 @@ void DMOC::sendCmd1() {
 	output.data[2] = 0; //not used
 	output.data[3] = 0; //not used
 	output.data[4] = 0; //not used
-	output.data[5] = ON;
+	output.data[5] = ON; //key state
 
-	output.data[6] = alive + ((byte)selectedGear << 4) + ((byte)opstate << 6);
-        //output.data[6] = alive + 0b00110000 + ((byte)opstate << 6);
+        //handle proper state transitions
+        newstate = DISABLED;
+        if (actualstate == DISABLED && (opstate == STANDBY || opstate == ENABLE)) newstate == STANDBY;
+        if ((actualstate == STANDBY || actualstate == ENABLE) && opstate == ENABLE) newstate = ENABLE;
+        if (opstate == POWERDOWN) newstate = POWERDOWN;
+        
+	output.data[6] = alive + ((byte)selectedGear << 4) + ((byte)newstate << 6);
 
 	output.data[7] = calcChecksum(output);
 	can->EnqueueTX(output);
@@ -128,7 +154,7 @@ void DMOC::sendCmd2() {
 	//requestedTorque = 30000L + (((long)requestedThrottle * (long)MaxTorque) / 1000L);
 
     requestedTorque = 30000; //set upper torque to zero if not drive enabled
-	if (opstate == ENABLE) {
+	if (actualstate == ENABLE) { //don't even try sending torque commands until the DMOC reports it is ready
           if (selectedGear == DRIVE) requestedTorque = 30000L + (((long)requestedThrottle * (long)MaxTorque) / 1000L);
           if (selectedGear == REVERSE) requestedTorque = 30000L - (((long)requestedThrottle * (long)MaxTorque) / 1000L);
 	}		

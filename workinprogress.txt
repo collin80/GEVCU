@@ -31,3 +31,19 @@ what. Along these lines, some form of hardward is needed for I/O. This is
 true whether the Macchina or Due is used. Both have the same form factor
 so ideally an Arduino compatible I/O shield is needed that works with both
 5 and 3.3v
+
+-Inputs:
+Throttle Inputs:ADC0, ADC1
+Brake Pressure Input: ADC2
+Brake Light Switch: D2
+Drive Enable: D3
+Gear - Neutral/Park - D4
+Gear - Drive - D5
+Gear - Reverse - D6
+Limp Mode - D7
+
+-Outputs:
+Precharge contactor: D8
+Main Contactor: D9
+Cooling Contactor: D10
+
