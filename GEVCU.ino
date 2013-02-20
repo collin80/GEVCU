@@ -174,67 +174,72 @@ proper generic interface but is necessary for testing.
 TODO: This all has to eventually go away.
 */
 void serialEvent() {
-	int incoming;
-        DMOC* dmoc = (DMOC*)motorcontroller;
-        incoming = Serial.read();
-	if (incoming == -1) return;
-	switch (incoming) {
-	case 'h':
-	case '?':
-	case 'H':
-		printMenu();
-		break;
-	case ' ':
-		runRamp = !runRamp;
-		if (runRamp) {
-			Serial.println("Start Ramp Test");
-		}
-		else Serial.println("End Ramp Test");
-		break;
-	case 'd':
-		dmoc->setGear(DMOC::DRIVE);
-		Serial.println("forward");
-		break;
-	case 'n':
-		dmoc->setGear(DMOC::NEUTRAL);
-		Serial.println("neutral");
-		break;
-	case 'r':
-		dmoc->setGear(DMOC::REVERSE);
-		Serial.println("reverse");
-		break;
-	case 'D':
-		dmoc->setOpState(DMOC::DISABLED);
-		Serial.println("disabled");
-		break;
-	case 'S':
-		dmoc->setOpState(DMOC::STANDBY);
-		Serial.println("standby");
-		break;
-	case 'E':
-		dmoc->setOpState(DMOC::ENABLE);
-		Serial.println("enabled");
-		break;
-	case 'x':
-		runStatic = !runStatic;
-		if (runStatic) {
-			Serial.println("Lock RPM rate");
-		}
-		else Serial.println("Unlock RPM rate");
-		break;
-	case 't':
-		runThrottle = !runThrottle;
-		if (runThrottle) {
-			Serial.println("Use Throttle Pedal");
-		}
-		else Serial.println("Ignore throttle pedal");
-		break;
-	case 'L':
-		throttleDebug = !throttleDebug;
-		if (throttleDebug) {
-			Serial.println("Output raw throttle");
-		}
-		else Serial.println("Cease raw throttle output");
-		break;
-	}
+  int incoming;
+  DMOC* dmoc = (DMOC*)motorcontroller;
+  incoming = Serial.read();
+  if (incoming == -1) return;
+  switch (incoming) {
+    case 'h':
+    case '?':
+    case 'H':
+      printMenu();
+      break;
+    case ' ':
+      runRamp = !runRamp;
+        if (runRamp) {
+	  Serial.println("Start Ramp Test");
+          dmoc->setPowerMode(DMOC::MODE_RPM);
+        }
+	else {
+          Serial.println("End Ramp Test");
+          dmoc->setPowerMode(DMOC::MODE_TORQUE);
+        }
+	break;
+    case 'd':
+      dmoc->setGear(DMOC::DRIVE);
+      Serial.println("forward");
+      break;
+    case 'n':
+      dmoc->setGear(DMOC::NEUTRAL);
+      Serial.println("neutral");
+      break;
+    case 'r':
+      dmoc->setGear(DMOC::REVERSE);
+      Serial.println("reverse");
+      break;
+    case 'D':
+      dmoc->setOpState(DMOC::DISABLED);
+      Serial.println("disabled");
+      break;
+    case 'S':
+      dmoc->setOpState(DMOC::STANDBY);
+      Serial.println("standby");
+      break;
+    case 'E':
+      dmoc->setOpState(DMOC::ENABLE);
+      Serial.println("enabled");
+      break;
+    case 'x':
+      runStatic = !runStatic;
+      if (runStatic) {
+        Serial.println("Lock RPM rate");
+      }
+      else Serial.println("Unlock RPM rate");
+      break;
+    case 't':
+      runThrottle = !runThrottle;
+      if (runThrottle) {
+        Serial.println("Use Throttle Pedal");
+        dmoc->setPowerMode(DMOC::MODE_TORQUE);
+      }
+      else Serial.println("Ignore throttle pedal");
+      break;
+    case 'L':
+      throttleDebug = !throttleDebug;
+      if (throttleDebug) {
+        Serial.println("Output raw throttle");
+      }
+      else Serial.println("Cease raw throttle output");
+      break;
+    }
 }

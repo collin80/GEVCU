@@ -56,6 +56,7 @@ private:
   int step;
   byte online; //counter for whether DMOC appears to be operating
   byte alive;
+  POWERMODE powerMode;
 
   void sendCmd1();
   void sendCmd2();
@@ -73,6 +74,7 @@ public:
   DMOC(MCP2515 *canlib);
   DEVICE::DEVID getDeviceID();
   void setPowerMode(POWERMODE mode);
+  POWERMODE getPowerMode();
 };
 
 #endif /* DMOC_H_ */

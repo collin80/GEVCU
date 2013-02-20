@@ -12,19 +12,12 @@
 
 //initialize by telling the code which two ADC channels to use (or set channel 2 to 255 to disable)
 POT_THROTTLE::POT_THROTTLE(uint8_t Throttle1, uint8_t Throttle2) {
-	Throttle1ADC = Throttle1;
-	Throttle2ADC = Throttle2;
-	if (Throttle2 == 255) numThrottlePots = 1;
-		else numThrottlePots = 2;
-
-		ThrottleMin1 = ThrottleMin2 = 0;
-		ThrottleMax1 = ThrottleMax2 = 1023;
-		ThrottleRegen = 300;
-		ThrottleFWD = 500;
-		ThrottleMAP = 400;
-		ThrottleMaxRegen = 30; //30%
-		ThrottleStatus = OK;
-		ThrottleMaxErr = 25; //in tenths of a percent. So 25 = max 2.5% difference
+  Throttle1ADC = Throttle1;
+  Throttle2ADC = Throttle2;
+  if (Throttle2 == 255) numThrottlePots = 1;
+    else numThrottlePots = 2;
+  ThrottleStatus = OK;
+  ThrottleMaxErr = 25; //in tenths of a percent. So 25 = max 2.5% difference
 }
 
 void POT_THROTTLE::setupDevice() {

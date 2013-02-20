@@ -33,6 +33,7 @@ DMOC::DMOC(MCP2515 *canlib) : MOTORCTRL(canlib) {
 	MaxTorque = 500; //in tenths so 50Nm max torque. This is plenty for testing
 	MaxRPM = 6000; //also plenty for a bench test
         online = 0;
+        powerMode = MODE_TORQUE; 
 }
 
 
@@ -112,13 +113,9 @@ void DMOC::sendCmd1() {
 	output.rtr = 0;
 	output.srr = 0;
 
-	//Requested throttle goes negative to ask for regen but we don't actually want to command
-	//the motor to spin the other direction. Only ever spin forwards for now. Eventually the gear
-	//selection might require that negative RPMs be allowed but we might not use RPM control. TCE doesnt.
-	//The TCE seems to always command just torque.
-	/*if (requestedThrottle > 0 && opstate == ENABLE && selectedGear != NEUTRAL)
+	if (requestedThrottle > 0 && opstate == ENABLE && selectedGear != NEUTRAL && powerMode == MODE_RPM)
 		requestedRPM = 20000 + (((long)requestedThrottle * (long)MaxRPM) / 1000);
-	else */
+	else 
 		requestedRPM = 20000;
 	output.data[0] = (requestedRPM & 0xFF00) >> 8;
 	output.data[1] = (requestedRPM & 0x00FF);
@@ -154,17 +151,23 @@ void DMOC::sendCmd2() {
 	//requestedTorque = 30000L + (((long)requestedThrottle * (long)MaxTorque) / 1000L);
 
     requestedTorque = 30000; //set upper torque to zero if not drive enabled
-	if (actualstate == ENABLE) { //don't even try sending torque commands until the DMOC reports it is ready
+    if (powerMode == MODE_TORQUE) {
+       if (actualstate == ENABLE) { //don't even try sending torque commands until the DMOC reports it is ready
           if (selectedGear == DRIVE) requestedTorque = 30000L + (((long)requestedThrottle * (long)MaxTorque) / 1000L);
           if (selectedGear == REVERSE) requestedTorque = 30000L - (((long)requestedThrottle * (long)MaxTorque) / 1000L);
-	}		
-
-	output.data[0] = (requestedTorque & 0xFF00) >> 8;
-	output.data[1] = (requestedTorque & 0x00FF);
-	//output.data[2] = 0x75;
-	//output.data[3] = 0x30;
-        output.data[2] = output.data[0];
-        output.data[3] = output.data[1];
+       }		
+       output.data[0] = (requestedTorque & 0xFF00) >> 8;
+       output.data[1] = (requestedTorque & 0x00FF);
+       output.data[2] = output.data[0];
+       output.data[3] = output.data[1];
+    }
+    else { //RPM mode so request max torque as upper limit and zero torque as lower limit
+       output.data[0] = (MaxTorque & 0xFF00) >> 8;
+       output.data[1] = (MaxTorque & 0x00FF);
+       output.data[2] = 0x75;
+       output.data[3] = 0x30;
+    }
+       
 	output.data[4] = 0x75; //msb standby torque. -3000 offset, 0.1 scale. These bytes give a standby of 0Nm
 	output.data[5] = 0x30; //lsb
 	output.data[6] = alive;
@@ -258,3 +261,12 @@ byte DMOC::calcChecksum(Frame thisFrame) {
 DEVICE::DEVID DMOC::getDeviceID() {
   return (DEVICE::DMOC645);
 }
+
+void DMOC::setPowerMode(POWERMODE mode) {
+  powerMode = mode;
+}
+
+DMOC::POWERMODE DMOC::getPowerMode() {
+  return powerMode;
+}
+
