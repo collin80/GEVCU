@@ -18,6 +18,9 @@ POT_THROTTLE::POT_THROTTLE(uint8_t Throttle1, uint8_t Throttle2) {
     else numThrottlePots = 2;
   ThrottleStatus = OK;
   ThrottleMaxErr = 25; //in tenths of a percent. So 25 = max 2.5% difference
+#if defined(__SAM3X8E__)
+  analogReadResolution(12);
+#endif
 }
 
 void POT_THROTTLE::setupDevice() {
@@ -25,6 +28,20 @@ void POT_THROTTLE::setupDevice() {
   //set digital ports to inputs and pull them up
   //all inputs currently active low
   pinMode(THROTTLE_INPUT_BRAKELIGHT, INPUT_PULLUP); //Brake light switch
+#ifdef __SAM3X8E__
+    //for now hard code values for Due since it has no EEPROM
+    ThrottleMin1 = 82;
+    ThrottleMax1 = 410;
+    ThrottleMin2 = 158;
+    ThrottleMax2 = 810;
+    ThrottleRegen = 0;
+    ThrottleFWD = 175;
+    ThrottleMAP = 665;
+    ThrottleMaxRegen = 30; //mmildly powerful regen for accel pedal
+    BrakeMaxRegen = 80; //pretty strong regen for brakes  
+    BrakeMin = 0;
+    BrakeMax = 0;
+#else
   if (prefChecksumValid()) { //checksum is good, read in the values stored in EEPROM
     prefRead(EETH_MIN_ONE, ThrottleMin1);
     prefRead(EETH_MAX_ONE, ThrottleMax1);
@@ -63,6 +80,7 @@ void POT_THROTTLE::setupDevice() {
     prefWrite(EETH_MAX_BRAKE_REGEN, BrakeMaxRegen);
     prefSaveChecksum();
   }
+#endif
 }
 
 int POT_THROTTLE::getRawThrottle1() {

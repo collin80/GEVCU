@@ -11,12 +11,26 @@
 	is to be subclassed from the proper master parent class for that form of hardware. That is, a motor controller will derive
 	from the base motor controller class. This allows a standard interface, defined by that base class, to be used to access
 	any hardware of that category. 
+
+
+  Starting a conversion of source to work for Due as well. Issues:
+  -Due library uses two different structures and they aren't the same as the Frame structure from MCP2515 library. Need to reconcile them.
+  -Timer code is very hardware specific. Has to be totally redone for Due
+  -Due has no EEPROM and must emulate it with a wrapper library.
  */
 
 #include <Arduino.h>
-#include <SPI.h>
-#include <EEPROM.h>
-#include "MCP2515.h"
+
+#if defined(__SAM3X8E__)
+  #include "variant.h"
+  #include <CAN.h>
+  #include <ARMtimer.h>
+#else
+  #include <SPI.h>
+  #include <EEPROM.h>
+  #include "MCP2515.h"
+#endif
+
 #include "throttle.h"
 #include "pedal_pot.h"
 #include "device.h"
@@ -24,13 +38,17 @@
 #include "dmoc.h"
 #include "timer.h"
 
-// Pin definitions specific to how the MCP2515 is wired up.
-#define CS_PIN    85
-#define RESET_PIN  7
-#define INT_PIN    84
 
-// Create CAN object with pins as defined
-MCP2515 CAN(CS_PIN, RESET_PIN, INT_PIN);
+#if defined(__SAM3X8E__)
+#else
+  // Pin definitions specific to how the MCP2515 is wired up.
+  #define CS_PIN    85
+  #define RESET_PIN  7
+  #define INT_PIN    84
+  // Create CAN object with pins as defined
+  MCP2515 CAN(CS_PIN, RESET_PIN, INT_PIN);
+#endif
+
 THROTTLE *throttle; 
 MOTORCTRL* motorcontroller; //generic motor controller - instantiate some derived class to fill this out
 
@@ -42,81 +60,139 @@ bool runStatic = false;
 bool runThrottle = false;
 bool throttleDebug = false;
 byte i=0;
-Frame message;
+#ifdef __SAM3X8E__
+  RX_CAN_FRAME message;
+#else
+  Frame message;
+#endif
 
-void CANHandler() {
-	CAN.intHandler();
+#ifndef __SAM3X8E__
+  void CANHandler() {
+    CAN.intHandler();
+  }
+#endif
+
+#ifndef __SAM3X8E__
+void setup_avr() {
+  // Set up SPI Communication
+  // dataMode can be SPI_MODE0 or SPI_MODE3 only for MCP2515
+  SPI.setClockDivider(SPI_CLOCK_DIV2);
+  SPI.setDataMode(SPI_MODE0);
+  SPI.setBitOrder(MSBFIRST);
+  SPI.begin();
+
+  // Initialize MCP2515 CAN controller at the specified speed and clock frequency
+  // (Note:  This is the oscillator attached to the MCP2515, not the Arduino oscillator)
+  //speed in KHz, clock in MHz
+  if(CAN.Init(500,16))   //DMOC defaults to 500Khz
+  {
+    Serial.println("MCP2515 Init OK ...");
+  } else {
+    Serial.println("MCP2515 Init Failed ...");
+  }
+
+  CAN.InitFilters(false);
+
+  //Setup CANBUS comm to allow DMOC command and status messages through
+  CAN.SetRXMask(MASK0, 0x7F0, 0); //match all but bottom four bits, use standard frames
+  CAN.SetRXFilter(FILTER0, 0x230, 0); //allows 0x230 - 0x23F
+  CAN.SetRXFilter(FILTER1, 0x650, 0); //allows 0x650 - 0x65F
 }
+#endif
+
+#ifdef __SAM3X8E__
+void setup_due() {
+    // Initialize CAN0 and CAN1, baudrate at 500Kb/s
+  CAN.init(SystemCoreClock, CAN_BPS_500K);
+  //CAN2.init(SystemCoreClock, CAN_BPS_500K);
+  
+  // Disable all CAN0 & CAN1 interrupts
+  CAN.disable_interrupt(CAN_DISABLE_ALL_INTERRUPT_MASK);
+  //CAN2.disable_interrupt(CAN_DISABLE_ALL_INTERRUPT_MASK);
+  
+  CAN.reset_all_mailbox();
+  //CAN2.reset_all_mailbox();
+  
+  //Now, each canbus device has 8 mailboxes which can freely be assigned to either RX or TX.
+  //The firmware does a lot of both so 5 boxes are for RX, 3 for TX.
+  
+  for(uint8_t count = 0; count < 5; count++) {
+    CAN.mailbox_init(count);
+    CAN.mailbox_set_mode(count, CAN_MB_RX_MODE);
+    CAN.mailbox_set_accept_mask(0, 0x7F0, false);
+  }
+  //First three mailboxes listen for 0x23x frames, last two listen for 0x65x frames
+  CAN.mailbox_set_id(0, 0x230); CAN2.mailbox_set_id(1, 0x230); CAN2.mailbox_set_id(2, 0x230);
+  CAN.mailbox_set_id(3, 0x650); CAN2.mailbox_set_id(4, 0x650);
+  
+  for(uint8_t count = 5; count < 8; count++) {
+    CAN.mailbox_init(count);
+    CAN.mailbox_set_mode(count, CAN_MB_TX_MODE);
+    CAN.mailbox_set_priority(count, 10);
+    CAN.mailbox_set_accept_mask(0, 0x7FF, false);
+  }
+  
+  //Enable interrupts for the RX boxes. TX interrupts aren't wired up yet
+  CAN.enable_interrupt(CAN_IER_MB0 | CAN_IER_MB1 | CAN_IER_MB2 | CAN_IER_MB3 | CAN_IER_MB4);
+  
+  NVIC_EnableIRQ(CAN0_IRQn); //tell the nested interrupt controller to turn on our interrupt
+
+}
+#endif
 
 void setup() {
   
-	Serial.begin(115200);
+  Serial.begin(115200);
 
-	Serial.println("GEVCU alpha 02-12-2013");
+  Serial.println("GEVCU alpha 02-25-2013");
 
-	// Set up SPI Communication
-	// dataMode can be SPI_MODE0 or SPI_MODE3 only for MCP2515
-	SPI.setClockDivider(SPI_CLOCK_DIV2);
-	SPI.setDataMode(SPI_MODE0);
-	SPI.setBitOrder(MSBFIRST);
-	SPI.begin();
+#ifdef __SAM3X8E__
+  setup_due();
+#else
+  setup_avr();
+#endif  
 
-	// Initialize MCP2515 CAN controller at the specified speed and clock frequency
-	// (Note:  This is the oscillator attached to the MCP2515, not the Arduino oscillator)
-	//speed in KHz, clock in MHz
-	if(CAN.Init(500,16))   //DMOC defaults to 500Khz
-	{
-          Serial.println("MCP2515 Init OK ...");
-	} else {
-	  Serial.println("MCP2515 Init Failed ...");
-	}
+  //The pedal I have has two pots and one should be twice the value of the other normally (within tolerance)
+  //if min is less than max for a throttle then the pot goes low to high as pressed.
+  //if max is less than min for a throttle then the pot goes high to low as pressed.
 
-	attachInterrupt(6, CANHandler, FALLING);
-	CAN.InitFilters(false);
-
-	//Setup CANBUS comm to allow DMOC command and status messages through
-	CAN.SetRXMask(MASK0, 0x7F0, 0); //match all but bottom four bits, use standard frames
-	CAN.SetRXFilter(FILTER0, 0x230, 0); //allows 0x230 - 0x23F
-	CAN.SetRXFilter(FILTER1, 0x650, 0); //allows 0x650 - 0x65F
-
-	//The pedal I have has two pots and one should be twice the value of the other normally (within tolerance)
-	//if min is less than max for a throttle then the pot goes low to high as pressed.
-	//if max is less than min for a throttle then the pot goes high to low as pressed.
-
-        throttle = new POT_THROTTLE(0,1); //specify the ADC ports to use for throttle 255 = not used (valid only for second value)
-        POT_THROTTLE* pot = (POT_THROTTLE *)throttle;   //since throttle is of the generic base class type we have to cast to get access to
+  throttle = new POT_THROTTLE(0,1); //specify the ADC ports to use for throttle 255 = not used (valid only for second value)
+  POT_THROTTLE* pot = (POT_THROTTLE *)throttle;   //since throttle is of the generic base class type we have to cast to get access to
                                                         //the special functions of a pedal pot. Of course this must not be done in production.
-        throttle->setupDevice();
+  throttle->setupDevice();
         
-	//This could eventually be configurable.
-	setupTimer(10000); //10ms / 10000us ticks / 100Hz
+  //This could eventually be configurable.
+  setupTimer(10000); //10ms / 10000us ticks / 100Hz
 
-        motorcontroller = new DMOC(&CAN); //instantiate a DMOC645 device controller as our motor controller
+  motorcontroller = new DMOC(&CAN); //instantiate a DMOC645 device controller as our motor controller
         
-        motorcontroller->setupDevice();
+  motorcontroller->setupDevice();
         
-        //This will not be hard coded soon. It should be a list of every hardware support module
-	//compiled into the ROM
-	//Serial.println("Installed devices: DMOC645");
+  //This will not be hard coded soon. It should be a list of every hardware support module
+  //compiled into the ROM
+  //Serial.println("Installed devices: DMOC645");
+#ifndef  __SAM3X8E__
+  attachInterrupt(6, CANHandler, FALLING);
+#endif
 
-	Serial.print("System Ready ");
-	printMenu();
+  Serial.print("System Ready ");
+  printMenu();
 
 }
 
 void printMenu() {
-	Serial.println("System Menu:");
-	Serial.println("D = disabled op state");
-	Serial.println("S = standby op state");
-	Serial.println("E = enabled op state");
-	Serial.println("n = neutral gear");
-	Serial.println("d = DRIVE gear");
-	Serial.println("r = reverse gear");
-	Serial.println("<space> = start/stop ramp test");
-	Serial.println("x = lock ramp at current value (toggle)");
-	Serial.println("t = Use accelerator pedal? (toggle)");
-	Serial.println("L = output raw throttle values (toggle)");
-	Serial.println("");
+  Serial.println("System Menu:");
+  Serial.println("D = disabled op state");
+  Serial.println("S = standby op state");
+  Serial.println("E = enabled op state");
+  Serial.println("n = neutral gear");
+  Serial.println("d = DRIVE gear");
+  Serial.println("r = reverse gear");
+  Serial.println("<space> = start/stop ramp test");
+  Serial.println("x = lock ramp at current value (toggle)");
+  Serial.println("t = Use accelerator pedal? (toggle)");
+  Serial.println("L = output raw throttle values (toggle)");
+  Serial.println("");
 }
 
 
@@ -126,9 +202,16 @@ void loop() {
   static byte dotTick = 0;
   static byte throttleval = 0;
   static byte count = 0;
+#ifdef __SAM3X8E__
+  if (CAN.rx_avail()) {
+    CAN.get_rx_buff(&message);
+    motorcontroller->handleFrame(message);
+  }
+#else
   if (CAN.GetRXFrame(message)) {
     motorcontroller->handleFrame(message);
   }
+#endif
   if (tickReady) {
     //if (dotTick == 0) Serial.print('.'); //print . every 256 ticks (2.56 seconds)
     dotTick = dotTick + 1;

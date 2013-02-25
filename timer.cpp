@@ -7,8 +7,12 @@
 
 #include "Arduino.h"
 #include "timer.h"
+#ifdef __SAM3X8E__
+  #include "ARMtimer.h"
+#endif
 
 volatile int8_t tickReady;
+volatile void due_timer_interrupt();
 
 /*
 Make the timer0 interrupt every specified number of microseconds
@@ -16,6 +20,10 @@ Make the timer0 interrupt every specified number of microseconds
 void setupTimer(long microSeconds) {
 	//Setup timer 0 to operate
 	
+#if defined(__SAM3X8E__)
+  uint32_t freq = 1000000ul / microSeconds;
+  startTimer(TC1, 0, TC3_IRQn, freq, due_timer_interrupt);
+#else
 	long clock = F_CPU / 1000000; // # of MHz
 	clock *= microSeconds; //number of clocks we need to get the proper # of microseconds interrupt
 	
@@ -55,9 +63,15 @@ void setupTimer(long microSeconds) {
 	}
 	tickReady = false;
 	TIMSK0 = 2; //Lastly, enable OCIE2A
-
+#endif
 }
 
+volatile void due_timer_interrupt() {
+  tickReady = true;
+}
+
+#ifndef __SAM3X8E__
 ISR(TIMER0_COMPA_vect) {
-	tickReady = true;
+  tickReady = true;
 }	
+#endif

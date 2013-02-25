@@ -10,9 +10,15 @@
  #include "device.h"
  #include "motorctrl.h"
  
+ 
+#ifdef __SAM3X8E__
+MOTORCTRL::MOTORCTRL(CANRaw *canlib) : DEVICE(canlib) {
+}
+#else
 MOTORCTRL::MOTORCTRL(MCP2515 *canlib) : DEVICE(canlib) {
   pref_base_addr = EE_MOTORCTL_START;
 }
+#endif
 
 DEVICE::DEVTYPE MOTORCTRL::getDeviceType() {
 	return (DEVICE::DEVICE_MOTORCTRL);
@@ -42,6 +48,11 @@ void MOTORCTRL::setupDevice() {
   pinMode(MOTORCTL_INPUT_FORWARD, INPUT_PULLUP); //Forward gear
   pinMode(MOTORCTL_INPUT_REVERSE, INPUT_PULLUP); //Reverse Gear
   pinMode(MOTORCTL_INPUT_LIMP, INPUT_PULLUP); //Limp mode
+
+#ifdef __SAM3X8E__
+    MaxRPM = 5000;
+    MaxTorque = 500; //50Nm
+#else  
   if (prefChecksumValid()) { //checksum is good, read in the values stored in EEPROM
     prefRead(EEMC_MAX_RPM, MaxRPM);
     prefRead(EEMC_MAX_TORQUE, MaxTorque);
@@ -53,6 +64,7 @@ void MOTORCTRL::setupDevice() {
     prefWrite(EEMC_MAX_TORQUE, MaxTorque);
     prefSaveChecksum();
   }
+#endif
 }
 /*
 #define EEMC_ACTIVE_HIGH		24  //1 byte - bitfield - each bit corresponds to whether a given signal is active high (1) or low (0)

@@ -71,7 +71,11 @@ public:
   void setupDevice();
   void setOpState(OPSTATE op);
   void setGear(GEARS gear);
+#ifdef __SAM3X8E__
+  DMOC(CANRaw *canlib);
+#else
   DMOC(MCP2515 *canlib);
+#endif
   DEVICE::DEVID getDeviceID();
   void setPowerMode(POWERMODE mode);
   POWERMODE getPowerMode();

@@ -25,7 +25,11 @@ and I'll bet  other controllers do as well. The rest can feel free to ignore it.
 
 #include "dmoc.h"
 
+#ifdef __SAM3X8E__
+DMOC::DMOC(CANRaw *canlib) : MOTORCTRL(canlib) {
+#else
 DMOC::DMOC(MCP2515 *canlib) : MOTORCTRL(canlib) {
+#endif
 	step = SPEED_TORQUE;
 	selectedGear = NEUTRAL;
 	opstate = DISABLED;
@@ -67,6 +71,7 @@ void DMOC::handleFrame(Frame& frame) {
     case 0x23B: //speed and current operation status
       actualRPM = ((frame.data[0] * 256) + frame.data[1]) - 20000;
       actualstate = (OPSTATE)(frame.data[6] >> 4);
+      Serial.println(actualstate);
       break;
     case 0x23E: //electrical status
       //gives volts and amps for D and Q but does the firmware really care?
@@ -133,7 +138,14 @@ void DMOC::sendCmd1() {
 	output.data[6] = alive + ((byte)selectedGear << 4) + ((byte)newstate << 6);
 
 	output.data[7] = calcChecksum(output);
+#ifdef __SAM3X8E__
+        can->mailbox_set_id(5, output.id);
+        can->mailbox_set_datalen(5, output.dlc);
+        for (uint8_t cnt = 0; cnt < 8; cnt++) can->mailbox_set_databyte(5, cnt, output.data[cnt]);
+        can->global_send_transfer_cmd(CAN_TCR_MB5);
+#else
 	can->EnqueueTX(output);
+#endif
 }
 
 //Torque limits
@@ -172,7 +184,16 @@ void DMOC::sendCmd2() {
 	output.data[5] = 0x30; //lsb
 	output.data[6] = alive;
 	output.data[7] = calcChecksum(output);
+
+#ifdef __SAM3X8E__
+        can->mailbox_set_id(6, output.id);
+        can->mailbox_set_datalen(6, output.dlc);
+        for (uint8_t cnt = 0; cnt < 8; cnt++) can->mailbox_set_databyte(6, cnt, output.data[cnt]);
+        can->global_send_transfer_cmd(CAN_TCR_MB6);
+#else
 	can->EnqueueTX(output);
+#endif
+
 }
 
 //Power limits plus setting ambient temp and whether to cool power train or go into limp mode
@@ -191,7 +212,16 @@ void DMOC::sendCmd3() {
 	output.data[5] = 60; //20 degrees celsius
 	output.data[6] = alive;
 	output.data[7] = calcChecksum(output);
+
+#ifdef __SAM3X8E__
+        can->mailbox_set_id(7, output.id);
+        can->mailbox_set_datalen(7, output.dlc);
+        for (uint8_t cnt = 0; cnt < 8; cnt++) can->mailbox_set_databyte(7, cnt, output.data[cnt]);
+        can->global_send_transfer_cmd(CAN_TCR_MB7);
+#else
 	can->EnqueueTX(output);
+#endif
+
 }
 
 //challenge/response frame 1 - Really doesn't contain anything we need I dont think
@@ -210,7 +240,16 @@ void DMOC::sendCmd4() {
 	output.data[5] = 1;
 	output.data[6] = alive;
 	output.data[7] = calcChecksum(output);
+
+#ifdef __SAM3X8E__
+        can->mailbox_set_id(5, output.id);
+        can->mailbox_set_datalen(5, output.dlc);
+        for (uint8_t cnt = 0; cnt < 8; cnt++) can->mailbox_set_databyte(5, cnt, output.data[cnt]);
+        can->global_send_transfer_cmd(CAN_TCR_MB5);
+#else
 	can->EnqueueTX(output);
+#endif
+
 }
 
 //Another C/R frame but this one also specifies which shifter position we're in
@@ -237,7 +276,16 @@ void DMOC::sendCmd5() {
 	//--PRND12
 	output.data[6] = alive;
 	output.data[7] = calcChecksum(output);
+
+#ifdef __SAM3X8E__
+        can->mailbox_set_id(6, output.id);
+        can->mailbox_set_datalen(6, output.dlc);
+        for (uint8_t cnt = 0; cnt < 8; cnt++) can->mailbox_set_databyte(6, cnt, output.data[cnt]);
+        can->global_send_transfer_cmd(CAN_TCR_MB6);
+#else
 	can->EnqueueTX(output);
+#endif
+
 }
 
 void DMOC::setOpState(OPSTATE op) {

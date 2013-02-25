@@ -8,8 +8,11 @@
 #include "device.h"
 
 //Empty functions to handle these two callbacks if the derived classes don't
-
+#ifdef __SAM3X8E__
+void DEVICE::handleFrame(RX_CAN_FRAME& frame) {
+#else
 void DEVICE::handleFrame(Frame& frame) {
+#endif
 	
 }
 
@@ -32,10 +35,17 @@ DEVICE::DEVICE() {
   pref_base_addr = 0;
 }
 
+#ifdef __SAM3X8E__
+DEVICE::DEVICE(CANRaw* canlib) {
+	can = canlib;
+}
+#else
 DEVICE::DEVICE(MCP2515 *canlib) {
 	can = canlib;
 }
+#endif
 
+#ifndef __SAM3X8E__
 void DEVICE::prefWrite(uint16_t address, uint8_t val) {
   EEPROM.write(address + pref_base_addr, val);
 }
@@ -93,3 +103,4 @@ bool DEVICE::prefChecksumValid() {
   
   return (stored_chk == calc_chk);
 }
+#endif
