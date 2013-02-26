@@ -123,8 +123,8 @@ void setup_due() {
     CAN.mailbox_set_accept_mask(0, 0x7F0, false);
   }
   //First three mailboxes listen for 0x23x frames, last two listen for 0x65x frames
-  CAN.mailbox_set_id(0, 0x230); CAN2.mailbox_set_id(1, 0x230); CAN2.mailbox_set_id(2, 0x230);
-  CAN.mailbox_set_id(3, 0x650); CAN2.mailbox_set_id(4, 0x650);
+  CAN.mailbox_set_id(0, 0x230, false); CAN2.mailbox_set_id(1, 0x230, false); CAN2.mailbox_set_id(2, 0x230, false);
+  CAN.mailbox_set_id(3, 0x650, false); CAN2.mailbox_set_id(4, 0x650, false);
   
   for(uint8_t count = 5; count < 8; count++) {
     CAN.mailbox_init(count);
