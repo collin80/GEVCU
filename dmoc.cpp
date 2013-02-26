@@ -48,7 +48,14 @@ To be valid a frame has to have a different alive value than the last value we s
 and also the checksum must match the one we calculate. Right now we'll just assume
 everything has gone according to plan.
 */
+
+//Both RX_CAN_FRAME and Frame have almost the same members and they're basically named the same
+//too so all that has to be done is change the header to use the proper one for the hardware
+#ifdef __SAM3X8E__
+void DMOC::handleFrame(RX_CAN_FRAME& frame) {
+#else
 void DMOC::handleFrame(Frame& frame) {
+#endif  
   int RotorTemp,invTemp, StatorTemp;
   online = 1; //if a frame got to here then it passed the filter and must have been from the DMOC
   switch (frame.id) {
