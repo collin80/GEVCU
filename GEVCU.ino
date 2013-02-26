@@ -53,6 +53,7 @@ THROTTLE *throttle;
 MOTORCTRL* motorcontroller; //generic motor controller - instantiate some derived class to fill this out
 
 void printMenu();
+void serialEvent();
 
 //Evil, global variables
 bool runRamp = false;
@@ -207,6 +208,7 @@ void loop() {
     CAN.get_rx_buff(&message);
     motorcontroller->handleFrame(message);
   }
+  if (Serial.available()) serialEvent(); //due doesnt have int driven serial yet
 #else
   if (CAN.GetRXFrame(message)) {
     motorcontroller->handleFrame(message);

@@ -30,10 +30,10 @@ void POT_THROTTLE::setupDevice() {
   pinMode(THROTTLE_INPUT_BRAKELIGHT, INPUT_PULLUP); //Brake light switch
 #ifdef __SAM3X8E__
     //for now hard code values for Due since it has no EEPROM
-    ThrottleMin1 = 82;
-    ThrottleMax1 = 410;
-    ThrottleMin2 = 158;
-    ThrottleMax2 = 810;
+    ThrottleMin1 = 325;
+    ThrottleMax1 = 1620;
+    ThrottleMin2 = 642;
+    ThrottleMax2 = 3232;
     ThrottleRegen = 0;
     ThrottleFWD = 175;
     ThrottleMAP = 665;
