@@ -149,7 +149,7 @@ void DMOC::sendCmd1() {
         can->mailbox_set_id(5, output.id, false);
         can->mailbox_set_datalen(5, output.dlc);
         for (uint8_t cnt = 0; cnt < 8; cnt++) can->mailbox_set_databyte(5, cnt, output.data[cnt]);
-        can->global_send_transfer_cmd(CAN_TCR_MB5);
+        can->global_send_transfer_cmd(CAN_TCR_MB5);  
 #else
 	can->EnqueueTX(output);
 #endif

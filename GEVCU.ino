@@ -25,10 +25,12 @@
   #include "variant.h"
   #include <CAN.h>
   #include <ARMtimer.h>
+  #include <Wire.h>
+  #include "eeprom.h"
 #else
   #include <SPI.h>
-  #include <EEPROM.h>
   #include "MCP2515.h"
+  #include <EEPROM.h>
 #endif
 
 #include "throttle.h"
@@ -120,7 +122,7 @@ void setup_due() {
   for(uint8_t count = 0; count < 5; count++) {
     CAN.mailbox_init(count);
     CAN.mailbox_set_mode(count, CAN_MB_RX_MODE);
-    CAN.mailbox_set_accept_mask(0, 0x7F0, false);
+    CAN.mailbox_set_accept_mask(count, 0x7F0, false);
   }
   //First three mailboxes listen for 0x23x frames, last two listen for 0x65x frames
   CAN.mailbox_set_id(0, 0x230, false); CAN2.mailbox_set_id(1, 0x230, false); CAN2.mailbox_set_id(2, 0x230, false);
@@ -130,13 +132,15 @@ void setup_due() {
     CAN.mailbox_init(count);
     CAN.mailbox_set_mode(count, CAN_MB_TX_MODE);
     CAN.mailbox_set_priority(count, 10);
-    CAN.mailbox_set_accept_mask(0, 0x7FF, false);
+    CAN.mailbox_set_accept_mask(count, 0x7FF, false);
   }
   
   //Enable interrupts for the RX boxes. TX interrupts aren't wired up yet
   CAN.enable_interrupt(CAN_IER_MB0 | CAN_IER_MB1 | CAN_IER_MB2 | CAN_IER_MB3 | CAN_IER_MB4);
   
   NVIC_EnableIRQ(CAN0_IRQn); //tell the nested interrupt controller to turn on our interrupt
+  
+  Wire.begin();
 
 }
 #endif
@@ -193,6 +197,7 @@ void printMenu() {
   Serial.println("x = lock ramp at current value (toggle)");
   Serial.println("t = Use accelerator pedal? (toggle)");
   Serial.println("L = output raw throttle values (toggle)");
+  Serial.println("Y = test EEPROM routines");
   Serial.println("");
 }
 
@@ -215,7 +220,7 @@ void loop() {
   }
 #endif
   if (tickReady) {
-    //if (dotTick == 0) Serial.print('.'); //print . every 256 ticks (2.56 seconds)
+    if (dotTick == 0) Serial.print('.'); //print . every 256 ticks (2.56 seconds)
     dotTick = dotTick + 1;
     tickReady = false;
     //do tick related stuff
@@ -325,6 +330,14 @@ void serialEvent() {
         Serial.println("Output raw throttle");
       }
       else Serial.println("Cease raw throttle output");
+      break;
+    case 'Y':
+      Serial.println("Trying to save 0x45 to eeprom location 10");
+      EEPROM.write(10, 0x45);
+      delay(4); //should be enough time for EEPROM to write
+      uint8_t temp = EEPROM.read(10);
+      Serial.print("Got back value of ");
+      Serial.println(temp);      
       break;
     }
 }
