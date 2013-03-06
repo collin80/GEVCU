@@ -26,13 +26,12 @@
   #include <CAN.h>
   #include <ARMtimer.h>
   #include <Wire.h>
-  #include "eeprom.h"
 #else
   #include <SPI.h>
   #include "MCP2515.h"
-  #include <EEPROM.h>
 #endif
 
+#include "mem_cache.h"
 #include "throttle.h"
 #include "pedal_pot.h"
 #include "device.h"
@@ -333,11 +332,11 @@ void serialEvent() {
       break;
     case 'Y':
       Serial.println("Trying to save 0x45 to eeprom location 10");
-      EEPROM.write(10, 0x45);
+      //EEPROM.write(10, 0x45);
       delay(4); //should be enough time for EEPROM to write
-      uint8_t temp = EEPROM.read(10);
+      //uint8_t temp = EEPROM.read(10);
       Serial.print("Got back value of ");
-      Serial.println(temp);      
+      //Serial.println(temp);      
       break;
     }
 }

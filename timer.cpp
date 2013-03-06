@@ -21,6 +21,7 @@ void setupTimer(long microSeconds) {
 	//Setup timer 0 to operate
 	
 #if defined(__SAM3X8E__)
+  //sam3x timer routine wants frequency instead of microseconds so a conversion is necessary
   uint32_t freq = 1000000ul / microSeconds;
   startTimer(TC1, 0, TC3_IRQn, freq, due_timer_interrupt);
 #else
