@@ -70,4 +70,6 @@ class MEMCACHE {
   boolean cache_writepage(uint8_t page);
 };
 
+extern MEMCACHE memcache;
+
 #endif /* MEM_CACHE_H_ */

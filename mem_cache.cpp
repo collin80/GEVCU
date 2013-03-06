@@ -3,7 +3,7 @@
  *
  * Created: 3/6/2013
  *  Author: Collin Kidder
- */ 
+ */
 
 #include "Arduino.h"
 #include "mem_cache.h"
@@ -48,16 +48,16 @@ void MEMCACHE::FlushPage(uint8_t page) {
 void MEMCACHE::handleTick()
 {
   U8 c;
-//  if (AgingTimer > AGING_PERIOD) {
-//    AgingTimer -= AGING_PERIOD;
-    cache_age();
-    for (c=0;c<NUM_CACHED_PAGES;c++) {
-      if ((pages[c].age == MAX_AGE) && (pages[c].dirty)) {
-        FlushPage(c);				
-	return;
-      }
+  //  if (AgingTimer > AGING_PERIOD) {
+  //    AgingTimer -= AGING_PERIOD;
+  cache_age();
+  for (c=0;c<NUM_CACHED_PAGES;c++) {
+    if ((pages[c].age == MAX_AGE) && (pages[c].dirty)) {
+      FlushPage(c);				
+      return;
     }
-//  }
+  }
+  //  }
 }
 
 void MEMCACHE::InvalidatePage(uint8_t page)
@@ -75,7 +75,7 @@ void MEMCACHE::InvalidateAddress(uint16_t address)
 {
   uint16_t addr;
   uint8_t c;
-	
+
   addr = address >> 6; //kick it down to the page we're talking about
   c = cache_hit(addr);
   if (c != 0xFF) InvalidatePage(c);
@@ -100,21 +100,21 @@ void MEMCACHE::AgeFullyAddress(uint16_t address)
 {
   U8 thisCache;
   U16 page_addr;
-	
+
   page_addr = address >> 6; //kick it down to the page we're talking about
   thisCache = cache_hit(page_addr);
-	
+
   if (thisCache != 0xFF) { //if we did indeed have that page in cache
     pages[thisCache].age = MAX_AGE;
   }
 }
 
- 
+
 boolean MEMCACHE::Write(uint16_t address, uint8_t valu)
 {
   uint16_t addr;
   uint8_t c;
-	
+
   addr = address >> 6; //kick it down to the page we're talking about
   c = cache_hit(addr);
   if (c == 0xFF) 	{
@@ -149,7 +149,7 @@ boolean MEMCACHE::Write(uint16_t address, void* data, uint16_t len)
   uint16_t addr;
   uint8_t c;
   uint16_t count;
-		
+
   for (count = 0; count < len; count++) {
     addr = (address+count) >> 6; //kick it down to the page we're talking about
     c = cache_hit(addr);
@@ -164,7 +164,7 @@ boolean MEMCACHE::Write(uint16_t address, void* data, uint16_t len)
     }
     else break;
   }		
-	
+
   if (c != 0xFF) return true; //all ok!
   return false;
 }
@@ -173,14 +173,14 @@ boolean MEMCACHE::Read(uint16_t address, uint8_t* valu)
 {
   uint16_t addr;
   uint8_t c;
-	
+
   addr = address >> 6; //kick it down to the page we're talking about
   c = cache_hit(addr);
-	
+
   if (c == 0xFF) { //page isn't cached. Search the cache, potentially dump a page and bring this one in
     c = cache_readpage(addr);
   }
-	
+
   if (c != 0xFF) {
     *valu = pages[c].data[(uint8_t)(address & 0x003F)];
     if (!pages[c].dirty) pages[c].age = 0; //reset age since we just used it
@@ -210,7 +210,7 @@ boolean MEMCACHE::Read(uint16_t address, void* data, uint16_t len)
   uint16_t addr;
   uint8_t c;
   uint16_t count;
-	
+
   for (count = 0; count < len; count++) {
     addr = (address + count) >> 6;
     c = cache_hit(addr);
@@ -223,7 +223,7 @@ boolean MEMCACHE::Read(uint16_t address, void* data, uint16_t len)
     }
     else break; //bust the for loop if we run into trouble
   }
-	
+
   if (c != 0xFF) return true; //all ok!
   return false;
 }
@@ -297,12 +297,12 @@ uint8_t MEMCACHE::cache_findpage()
     for (c=0;c<NUM_CACHED_PAGES;c++) {
       if (!pages[c].dirty && pages[c].age >= old_v) {
         old_c = c;
-	old_v = pages[c].age;
+        old_v = pages[c].age;
       }
     }
     if (old_c == 0xFF) return 0xFF; //if nothing worked then give up
   }		
-	
+
   //If we got to this point then we have a page to use
   pages[old_c].age = 0;
   pages[old_c].dirty = false;
@@ -317,7 +317,7 @@ uint8_t MEMCACHE::cache_readpage(uint16_t addr)
   uint16_t address = addr << 6;
   uint8_t buffer[3];
   c = cache_findpage();
-  
+
   if (c != 0xFF) {
     buffer[0] = ((address & 0xFF00) >> 8);
     buffer[1] = (address & 0x00FF);
@@ -358,4 +358,5 @@ boolean MEMCACHE::cache_writepage(uint8_t page)
   Wire.endTransmission();
 }
 
+MEMCACHE memcache();
 
