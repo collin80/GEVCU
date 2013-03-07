@@ -342,5 +342,20 @@ void serialEvent() {
       Serial.print("Got back value of ");
       Serial.println(temp);      
       break;
-    }
+    case 'U':
+      Serial.println("Adding a sequence of values from 0 to 255 into eeprom");
+      for (int i = 0; i<256; i++) MemCache.Write(1000+i,(uint8_t)i);
+      MemCache.FlushAllPages(); //write everything to eeprom
+      MemCache.InvalidateAll(); //remove all data from cache
+      break;
+    case 'I':
+      Serial.println("Retrieving data previously saved");
+      uint8_t val;
+      for (int i = 0; i < 256; i++) {
+        MemCache.Read(1000 + i, &val);
+        Serial.print(val);
+        Serial.print(" ");
+      }
+      break;
+  }
 }

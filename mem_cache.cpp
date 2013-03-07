@@ -328,14 +328,22 @@ uint8_t CMEMCACHE::cache_readpage(uint16_t addr)
     Wire.write(buffer, 2);
     Wire.endTransmission();
     delayMicroseconds(150); //give TWI some time to send and chip some time to get page
-
-    Wire.requestFrom(0b01010000, 64);
-    for (e = 0; e < 64; e++)
+    Wire.requestFrom(0b01010000, 32);
+    for (e = 0; e < 32; e++)
     {
       if(Wire.available())    
       { 
         d = Wire.read(); // receive a byte as character
         pages[c].data[e] = d;
+      }
+    }    
+    Wire.requestFrom(0b01010000, 32);
+    for (e = 0; e < 32; e++)
+    {
+      if(Wire.available())    
+      { 
+        d = Wire.read(); // receive a byte as character
+        pages[c].data[e+32] = d;
       }
     }
     pages[c].address = address;
@@ -357,7 +365,10 @@ boolean CMEMCACHE::cache_writepage(uint8_t page)
     buffer[d + 2] = pages[page].data[d];
   }
   Wire.beginTransmission(0b01010000);
-  Wire.write(buffer, 66);    
+  //the wonderful people who wrote the TWI library made the buffer 32 bytes.... Yeah, great...
+  Wire.write(buffer, 32);
+  Wire.write((buffer+32), 32);
+  Wire.write((buffer+64), 2);  
   Wire.endTransmission();
 }
 
