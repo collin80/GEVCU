@@ -11,7 +11,7 @@
 #ifndef MEM_CACHE_H_
 #define MEM_CACHE_H_
 
-#include "wire.h"
+#include <Wire.h>
 
 //Total # of allowable pages to cache. Limits RAM usage
 #define NUM_CACHED_PAGES   16
@@ -35,7 +35,8 @@ typedef struct {
   boolean dirty;
 } PAGECACHE;
 
-class MEMCACHE {
+class CMEMCACHE
+{
   public:
   void FlushSinglePage();
   void FlushAllPages();
@@ -58,7 +59,7 @@ class MEMCACHE {
   boolean Read(uint16_t address, uint32_t* valu);
   boolean Read(uint16_t address, void* data, uint16_t len);
   
-  MEMCACHE();
+  CMEMCACHE();
   
   private:
   PAGECACHE pages[NUM_CACHED_PAGES];
@@ -70,6 +71,6 @@ class MEMCACHE {
   boolean cache_writepage(uint8_t page);
 };
 
-extern MEMCACHE memcache;
+extern CMEMCACHE MemCache;
 
 #endif /* MEM_CACHE_H_ */

@@ -24,7 +24,7 @@
 #if defined(__SAM3X8E__)
   #include "variant.h"
   #include <CAN.h>
-  #include <ARMtimer.h>
+  #include <DueTimer.h>
   #include <Wire.h>
 #else
   #include <SPI.h>
@@ -38,6 +38,7 @@
 #include "motorctrl.h"
 #include "dmoc.h"
 #include "timer.h"
+#include "mem_cache.h"
 
 
 #if defined(__SAM3X8E__)
@@ -223,6 +224,9 @@ void loop() {
     dotTick = dotTick + 1;
     tickReady = false;
     //do tick related stuff
+    
+    MemCache.handleTick();
+    
     throttle->handleTick(); //gets ADC values, calculates throttle position
     //Serial.println(Throttle.getThrottle());
    count++;
@@ -332,11 +336,11 @@ void serialEvent() {
       break;
     case 'Y':
       Serial.println("Trying to save 0x45 to eeprom location 10");
-      //EEPROM.write(10, 0x45);
-      delay(4); //should be enough time for EEPROM to write
-      //uint8_t temp = EEPROM.read(10);
+      uint8_t temp;
+      MemCache.Write(10, (uint8_t) 0x45);
+      MemCache.Read(10, &temp);
       Serial.print("Got back value of ");
-      //Serial.println(temp);      
+      Serial.println(temp);      
       break;
     }
 }

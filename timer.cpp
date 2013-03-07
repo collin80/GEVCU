@@ -8,11 +8,12 @@
 #include "Arduino.h"
 #include "timer.h"
 #ifdef __SAM3X8E__
-  #include "ARMtimer.h"
+  #include "DueTimer.h"
 #endif
 
 volatile int8_t tickReady;
 volatile void due_timer_interrupt();
+volatile int8_t AgingTimer;
 
 /*
 Make the timer0 interrupt every specified number of microseconds
@@ -23,7 +24,7 @@ void setupTimer(long microSeconds) {
 #if defined(__SAM3X8E__)
   //sam3x timer routine wants frequency instead of microseconds so a conversion is necessary
   uint32_t freq = 1000000ul / microSeconds;
-  startTimer(TC1, 0, TC3_IRQn, freq, due_timer_interrupt);
+  startTimer3(freq, due_timer_interrupt);
 #else
 	long clock = F_CPU / 1000000; // # of MHz
 	clock *= microSeconds; //number of clocks we need to get the proper # of microseconds interrupt
@@ -69,10 +70,12 @@ void setupTimer(long microSeconds) {
 
 volatile void due_timer_interrupt() {
   tickReady = true;
+  AgingTimer++;
 }
 
 #ifndef __SAM3X8E__
 ISR(TIMER0_COMPA_vect) {
   tickReady = true;
+  AgingTimer++;
 }	
 #endif
