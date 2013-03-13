@@ -15,17 +15,27 @@
 
   Starting a conversion of source to work for Due as well. Issues:
   -Due library uses two different structures and they aren't the same as the Frame structure from MCP2515 library. Need to reconcile them.
-  -Timer code is very hardware specific. Has to be totally redone for Due
-  -Due has no EEPROM and must emulate it with a wrapper library.
+  -Timer code is very hardware specific. Has to be totally redone for Due - Technically this is now done. There are still two different methods but it is abstracted
+  -Due has no EEPROM and must emulate it with a wrapper library - Also there. There is a memory caching system but it needs testing.
+ 
+ New shield pins:
+ 
+ Digital inputs: D9, D11, D12, D13
+ 
+ Digital Outputs: D58, D59, D60, D61 
+
+ Analog Inputs: A0, A1, A2, A3
+ 
+ 
  */
 
 #include <Arduino.h>
 
 #if defined(__SAM3X8E__)
   #include "variant.h"
-  #include <CAN.h>
+  #include <due_can.h>
   #include <DueTimer.h>
-  #include <Wire.h>
+  #include <due_wire.h>
 #else
   #include <SPI.h>
   #include "MCP2515.h"

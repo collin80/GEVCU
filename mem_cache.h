@@ -11,7 +11,7 @@
 #ifndef MEM_CACHE_H_
 #define MEM_CACHE_H_
 
-#include <Wire.h>
+#include <due_wire.h>
 
 //Total # of allowable pages to cache. Limits RAM usage
 #define NUM_CACHED_PAGES   16

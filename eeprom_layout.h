@@ -2,6 +2,10 @@
 EEPROM Map. There is support for up to 6 devices: A motor controller, display, charger, BMS, Throttle,  and a misc device (EPAS, WOC, etc)
 The EEPROM on an ATMEGA2560 is 4K. The firmware should have some space as well. This leads to 9 devices which might need EEPROM storage.
 For safety, allocate 450 bytes for every device
+
+Now a 24AA256 chip is found on our custom shield. This has 32KB of memory. So, the first 4K are used to emulate the 4K on the Mega2560
+the next 4K is to be utilized as a backup of the 4K space. This allows the backup space to be used like a "known good" location so that
+the normal eeprom space can be quickly reset to the known good.
 */
 
 #define EE_MOTORCTL_START	0
@@ -57,6 +61,44 @@ the end of the stardard data. The below numbers are offsets from the device's ee
 #define EETH_BRAKE_MAX			36 //2 bytes - ADC value of max value for brake input
 #define EETH_MAX_ACCEL_REGEN            38 //1 byte - maximum percentage of throttle to command on accel pedal regen
 #define EETH_MAX_BRAKE_REGEN            39 //1 byte - maximum percentage of throttle to command for braking regen. Starts at max accel regen and works up to here.
+
+
+//System Data
+#define EESYS_SYSTEM_TYPE        10  //1 byte - 10 = Macchina/MCP2515, 20 = Arduino Due w/ dual shield
+#define EESYS_ADC0_GAIN          30  //2 bytes - ADC gain centered at 1024 being 1 to 1 gain, thus 512 is 0.5 gain, 2048 is double, etc
+#define EESYS_ADC0_OFFSET        32  //2 bytes - ADC offset from zero - ADC reads 12 bit so the offset will be [0,4095]
+#define EESYS_ADC1_GAIN          34  //2 bytes - ADC gain centered at 1024 being 1 to 1 gain, thus 512 is 0.5 gain, 2048 is double, etc
+#define EESYS_ADC1_OFFSET        36  //2 bytes - ADC offset from zero - ADC reads 12 bit so the offset will be [0,4095]
+#define EESYS_ADC2_GAIN          38  //2 bytes - ADC gain centered at 1024 being 1 to 1 gain, thus 512 is 0.5 gain, 2048 is double, etc
+#define EESYS_ADC2_OFFSET        40  //2 bytes - ADC offset from zero - ADC reads 12 bit so the offset will be [0,4095]
+#define EESYS_ADC3_GAIN          42  //2 bytes - ADC gain centered at 1024 being 1 to 1 gain, thus 512 is 0.5 gain, 2048 is double, etc
+#define EESYS_ADC3_OFFSET        44  //2 bytes - ADC offset from zero - ADC reads 12 bit so the offset will be [0,4095]
+
+#define EESYS_CAN0_BAUD          100 //2 bytes - Baud rate of CAN0 in 1000's of baud. So a value of 500 = 500k baud. Set to 0 to disable CAN0
+#define EESYS_CAN1_BAUD          102 //2 bytes - Baud rate of CAN1 in 1000's of baud. So a value of 500 = 500k baud. Set to 0 to disable CAN1
+#define EESYS_SERUSB_BAUD        104 //2 bytes - Baud rate of serial debugging port. Multiplied by 10 to get baud. So 115200 baud will be set as 11520
+#define EESYS_TWI_BAUD           106 //2 bytes - Baud for TWI in 1000's just like CAN bauds. So 100k baud is set as 100
+#define EESYS_TICK_RATE          108 //2 bytes - # of system ticks per second. Can range the full 16 bit value [1, 65536] which yields ms rate of [15us, 1000ms]
+
+//Technically there are two different canbus systems in use. The MCP2515 has 2 masks and 5 filters. The Arduino DUE
+//Has 8 masks and 8 filters potentially (not really, you do need transmit boxes too). So, the most masks and filters
+//we could ever set is 7 (using one mb as transmit) so support accordingly. 
+
+#define EESYS_CAN_RX_COUNT       199 //1 byte - how many mailboxes to use for RX on the Due. On the Macchina it is always 5.
+#define EESYS_CAN_MASK0          200 //4 bytes - first canbus mask - bit 31 sets whether it is extended or not (set = extended)
+#define EESYS_CAN_FILTER0        204 //4 bytes - first canbus filter - uses mask 0 on Due and Macchina
+#define EESYS_CAN_MASK1          208 //4 bytes - second canbus mask - bit 31 sets whether it is extended or not (set = extended)
+#define EESYS_CAN_FILTER1        212 //4 bytes - second canbus filter - uses mask 0 on Macchina, Mask 1 on Due
+#define EESYS_CAN_MASK2          216 //4 bytes - third canbus mask - bit 31 sets whether it is extended or not (set = extended)
+#define EESYS_CAN_FILTER2        220 //4 bytes - third canbus filter - uses mask 1 on Macchina, Mask 2 on Due
+#define EESYS_CAN_MASK3          224 //4 bytes - fourth canbus mask - bit 31 sets whether it is extended or not (set = extended)
+#define EESYS_CAN_FILTER3        228 //4 bytes - fourth canbus filter - uses mask 1 on Macchina, Mask 3 on Due
+#define EESYS_CAN_MASK4          232 //4 bytes - fifth canbus mask - bit 31 sets whether it is extended or not (set = extended)
+#define EESYS_CAN_FILTER4        236 //4 bytes - fifth canbus filter - uses mask 1 on Macchina, Mask 4 on Due
+#define EESYS_CAN_MASK5          240 //4 bytes - sixth canbus mask - bit 31 sets whether it is extended or not (set = extended)
+#define EESYS_CAN_FILTER5        244 //4 bytes - sixth canbus filter - not valid on Macchina, Mask 5 on Due
+#define EESYS_CAN_MASK6          248 //4 bytes - seventh canbus mask - bit 31 sets whether it is extended or not (set = extended)
+#define EESYS_CAN_FILTER6        252 //4 bytes - seventh canbus filter - not valid on Macchina, Mask 6 on Due
 
 
 

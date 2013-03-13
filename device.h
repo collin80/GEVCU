@@ -11,7 +11,7 @@
 
 #include "eeprom_layout.h"
 #ifdef __SAM3X8E__
-  #include <CAN.h>
+  #include <due_can.h>
 #else
   #include "MCP2515.h"
   #include <EEPROM.h>
