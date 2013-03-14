@@ -18,9 +18,7 @@ POT_THROTTLE::POT_THROTTLE(uint8_t Throttle1, uint8_t Throttle2) {
     else numThrottlePots = 2;
   ThrottleStatus = OK;
   ThrottleMaxErr = 25; //in tenths of a percent. So 25 = max 2.5% difference
-#if defined(__SAM3X8E__)
   analogReadResolution(12);
-#endif
 }
 
 void POT_THROTTLE::setupDevice() {

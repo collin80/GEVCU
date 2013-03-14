@@ -11,14 +11,9 @@
  #include "motorctrl.h"
  
  
-#ifdef __SAM3X8E__
+
 MOTORCTRL::MOTORCTRL(CANRaw *canlib) : DEVICE(canlib) {
 }
-#else
-MOTORCTRL::MOTORCTRL(MCP2515 *canlib) : DEVICE(canlib) {
-  pref_base_addr = EE_MOTORCTL_START;
-}
-#endif
 
 DEVICE::DEVTYPE MOTORCTRL::getDeviceType() {
 	return (DEVICE::DEVICE_MOTORCTRL);

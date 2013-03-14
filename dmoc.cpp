@@ -25,11 +25,8 @@ and I'll bet  other controllers do as well. The rest can feel free to ignore it.
 
 #include "dmoc.h"
 
-#ifdef __SAM3X8E__
+
 DMOC::DMOC(CANRaw *canlib) : MOTORCTRL(canlib) {
-#else
-DMOC::DMOC(MCP2515 *canlib) : MOTORCTRL(canlib) {
-#endif
 	step = SPEED_TORQUE;
 	selectedGear = NEUTRAL;
 	opstate = DISABLED;
@@ -51,11 +48,7 @@ everything has gone according to plan.
 
 //Both RX_CAN_FRAME and Frame have almost the same members and they're basically named the same
 //too so all that has to be done is change the header to use the proper one for the hardware
-#ifdef __SAM3X8E__
 void DMOC::handleFrame(RX_CAN_FRAME& frame) {
-#else
-void DMOC::handleFrame(Frame& frame) {
-#endif  
   int RotorTemp,invTemp, StatorTemp;
   online = 1; //if a frame got to here then it passed the filter and must have been from the DMOC
   switch (frame.id) {
@@ -145,14 +138,11 @@ void DMOC::sendCmd1() {
 	output.data[6] = alive + ((byte)selectedGear << 4) + ((byte)newstate << 6);
 
 	output.data[7] = calcChecksum(output);
-#ifdef __SAM3X8E__
+
         can->mailbox_set_id(5, output.id, false);
         can->mailbox_set_datalen(5, output.dlc);
         for (uint8_t cnt = 0; cnt < 8; cnt++) can->mailbox_set_databyte(5, cnt, output.data[cnt]);
         can->global_send_transfer_cmd(CAN_TCR_MB5);  
-#else
-	can->EnqueueTX(output);
-#endif
 }
 
 //Torque limits
@@ -192,14 +182,10 @@ void DMOC::sendCmd2() {
 	output.data[6] = alive;
 	output.data[7] = calcChecksum(output);
 
-#ifdef __SAM3X8E__
         can->mailbox_set_id(6, output.id, false);
         can->mailbox_set_datalen(6, output.dlc);
         for (uint8_t cnt = 0; cnt < 8; cnt++) can->mailbox_set_databyte(6, cnt, output.data[cnt]);
         can->global_send_transfer_cmd(CAN_TCR_MB6);
-#else
-	can->EnqueueTX(output);
-#endif
 
 }
 
@@ -220,14 +206,10 @@ void DMOC::sendCmd3() {
 	output.data[6] = alive;
 	output.data[7] = calcChecksum(output);
 
-#ifdef __SAM3X8E__
         can->mailbox_set_id(7, output.id, false);
         can->mailbox_set_datalen(7, output.dlc);
         for (uint8_t cnt = 0; cnt < 8; cnt++) can->mailbox_set_databyte(7, cnt, output.data[cnt]);
         can->global_send_transfer_cmd(CAN_TCR_MB7);
-#else
-	can->EnqueueTX(output);
-#endif
 
 }
 
@@ -248,14 +230,10 @@ void DMOC::sendCmd4() {
 	output.data[6] = alive;
 	output.data[7] = calcChecksum(output);
 
-#ifdef __SAM3X8E__
         can->mailbox_set_id(5, output.id, false);
         can->mailbox_set_datalen(5, output.dlc);
         for (uint8_t cnt = 0; cnt < 8; cnt++) can->mailbox_set_databyte(5, cnt, output.data[cnt]);
         can->global_send_transfer_cmd(CAN_TCR_MB5);
-#else
-	can->EnqueueTX(output);
-#endif
 
 }
 
@@ -284,14 +262,10 @@ void DMOC::sendCmd5() {
 	output.data[6] = alive;
 	output.data[7] = calcChecksum(output);
 
-#ifdef __SAM3X8E__
         can->mailbox_set_id(6, output.id, false);
         can->mailbox_set_datalen(6, output.dlc);
         for (uint8_t cnt = 0; cnt < 8; cnt++) can->mailbox_set_databyte(6, cnt, output.data[cnt]);
         can->global_send_transfer_cmd(CAN_TCR_MB6);
-#else
-	can->EnqueueTX(output);
-#endif
 
 }
 

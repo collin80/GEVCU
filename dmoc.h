@@ -66,20 +66,14 @@ private:
   byte calcChecksum(Frame thisFrame);
 
 public:
-#ifdef __SAM3X8E__
+
   void handleFrame(RX_CAN_FRAME& frame);
-#else
-  void handleFrame(Frame& frame);
-#endif
   void handleTick();	
   void setupDevice();
   void setOpState(OPSTATE op);
   void setGear(GEARS gear);
-#ifdef __SAM3X8E__
+
   DMOC(CANRaw *canlib);
-#else
-  DMOC(MCP2515 *canlib);
-#endif
   DEVICE::DEVID getDeviceID();
   void setPowerMode(POWERMODE mode);
   POWERMODE getPowerMode();

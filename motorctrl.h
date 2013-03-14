@@ -36,11 +36,7 @@ class MOTORCTRL : public DEVICE {
             GS_FAULT
         };
         
-#ifdef __SAM3X8E__
         MOTORCTRL(CANRaw *canlib);
-#else
-	MOTORCTRL(MCP2515 *canlib);
-#endif
 	
 	protected:
 	int requestedThrottle;

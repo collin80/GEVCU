@@ -31,16 +31,11 @@
 
 #include <Arduino.h>
 
-#if defined(__SAM3X8E__)
-  #include "variant.h"
-  #include <due_can.h>
-  #include <DueTimer.h>
-  #include <due_wire.h>
-#else
-  #include <SPI.h>
-  #include "MCP2515.h"
-#endif
 
+#include "variant.h"
+#include <due_can.h>
+#include <DueTimer.h>
+#include <due_wire.h>
 #include "mem_cache.h"
 #include "throttle.h"
 #include "pedal_pot.h"
@@ -49,17 +44,6 @@
 #include "dmoc.h"
 #include "timer.h"
 #include "mem_cache.h"
-
-
-#if defined(__SAM3X8E__)
-#else
-  // Pin definitions specific to how the MCP2515 is wired up.
-  #define CS_PIN    85
-  #define RESET_PIN  7
-  #define INT_PIN    84
-  // Create CAN object with pins as defined
-  MCP2515 CAN(CS_PIN, RESET_PIN, INT_PIN);
-#endif
 
 THROTTLE *throttle; 
 MOTORCTRL* motorcontroller; //generic motor controller - instantiate some derived class to fill this out
@@ -73,47 +57,9 @@ bool runStatic = false;
 bool runThrottle = false;
 bool throttleDebug = false;
 byte i=0;
-#ifdef __SAM3X8E__
-  RX_CAN_FRAME message;
-#else
-  Frame message;
-#endif
 
-#ifndef __SAM3X8E__
-  void CANHandler() {
-    CAN.intHandler();
-  }
-#endif
+RX_CAN_FRAME message;
 
-#ifndef __SAM3X8E__
-void setup_avr() {
-  // Set up SPI Communication
-  // dataMode can be SPI_MODE0 or SPI_MODE3 only for MCP2515
-  SPI.setClockDivider(SPI_CLOCK_DIV2);
-  SPI.setDataMode(SPI_MODE0);
-  SPI.setBitOrder(MSBFIRST);
-  SPI.begin();
-
-  // Initialize MCP2515 CAN controller at the specified speed and clock frequency
-  // (Note:  This is the oscillator attached to the MCP2515, not the Arduino oscillator)
-  //speed in KHz, clock in MHz
-  if(CAN.Init(500,16))   //DMOC defaults to 500Khz
-  {
-    Serial.println("MCP2515 Init OK ...");
-  } else {
-    Serial.println("MCP2515 Init Failed ...");
-  }
-
-  CAN.InitFilters(false);
-
-  //Setup CANBUS comm to allow DMOC command and status messages through
-  CAN.SetRXMask(MASK0, 0x7F0, 0); //match all but bottom four bits, use standard frames
-  CAN.SetRXFilter(FILTER0, 0x230, 0); //allows 0x230 - 0x23F
-  CAN.SetRXFilter(FILTER1, 0x650, 0); //allows 0x650 - 0x65F
-}
-#endif
-
-#ifdef __SAM3X8E__
 void setup_due() {
     // Initialize CAN0 and CAN1, baudrate at 500Kb/s
   CAN.init(SystemCoreClock, CAN_BPS_500K);
@@ -153,7 +99,6 @@ void setup_due() {
   Wire.begin();
 
 }
-#endif
 
 void setup() {
   
@@ -161,11 +106,7 @@ void setup() {
 
   Serial.println("GEVCU alpha 02-25-2013");
 
-#ifdef __SAM3X8E__
   setup_due();
-#else
-  setup_avr();
-#endif  
 
   //The pedal I have has two pots and one should be twice the value of the other normally (within tolerance)
   //if min is less than max for a throttle then the pot goes low to high as pressed.
@@ -186,9 +127,6 @@ void setup() {
   //This will not be hard coded soon. It should be a list of every hardware support module
   //compiled into the ROM
   //Serial.println("Installed devices: DMOC645");
-#ifndef  __SAM3X8E__
-  attachInterrupt(6, CANHandler, FALLING);
-#endif
 
   Serial.print("System Ready ");
   printMenu();
@@ -218,17 +156,11 @@ void loop() {
   static byte dotTick = 0;
   static byte throttleval = 0;
   static byte count = 0;
-#ifdef __SAM3X8E__
   if (CAN.rx_avail()) {
     CAN.get_rx_buff(&message);
     motorcontroller->handleFrame(message);
   }
   if (Serial.available()) serialEvent(); //due doesnt have int driven serial yet
-#else
-  if (CAN.GetRXFrame(message)) {
-    motorcontroller->handleFrame(message);
-  }
-#endif
   if (tickReady) {
     if (dotTick == 0) Serial.print('.'); //print . every 256 ticks (2.56 seconds)
     dotTick = dotTick + 1;
