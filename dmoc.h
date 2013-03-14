@@ -12,7 +12,7 @@
 #ifndef DMOC_H_
 #define DMOC_H_
 
-#include "MCP2515.h"
+
 #include "motorctrl.h"
 
 class DMOC : 
@@ -63,7 +63,7 @@ private:
   void sendCmd3();
   void sendCmd4();
   void sendCmd5();
-  byte calcChecksum(Frame thisFrame);
+  byte calcChecksum(TX_CAN_FRAME thisFrame);
 
 public:
 

@@ -109,14 +109,13 @@ void DMOC::handleTick() {
 
 //Commanded RPM plus state of key and gear selector
 void DMOC::sendCmd1() {
-	Frame output;
+	TX_CAN_FRAME output;
         OPSTATE newstate;
 	alive = (alive + 2) & 0x0F;
 	output.dlc = 8;
 	output.id = 0x232;
 	output.ide = 0; //standard frame
 	output.rtr = 0;
-	output.srr = 0;
 
 	if (requestedThrottle > 0 && opstate == ENABLE && selectedGear != NEUTRAL && powerMode == MODE_RPM)
 		requestedRPM = 20000 + (((long)requestedThrottle * (long)MaxRPM) / 1000);
@@ -147,12 +146,11 @@ void DMOC::sendCmd1() {
 
 //Torque limits
 void DMOC::sendCmd2() {
-	Frame output;
+	TX_CAN_FRAME output;
 	output.dlc = 8;
 	output.id = 0x233;
 	output.ide = 0; //standard frame
 	output.rtr = 0;
-	output.srr = 0;
 	//30000 is the base point where torque = 0
 	//MaxTorque is in tenths like it should be.
 	//Requested throttle is [-1000, 1000]
@@ -191,12 +189,11 @@ void DMOC::sendCmd2() {
 
 //Power limits plus setting ambient temp and whether to cool power train or go into limp mode
 void DMOC::sendCmd3() {
-	Frame output;
+	TX_CAN_FRAME output;
 	output.dlc = 8;
 	output.id = 0x234;
 	output.ide = 0; //standard frame
 	output.rtr = 0;
-	output.srr = 0;
 	output.data[0] = 0xD0; //msb of regen watt limit
 	output.data[1] = 0x84; //lsb
 	output.data[2] = 0x6C; //msb of acceleration limit
@@ -215,12 +212,11 @@ void DMOC::sendCmd3() {
 
 //challenge/response frame 1 - Really doesn't contain anything we need I dont think
 void DMOC::sendCmd4() {
-	Frame output;
+	TX_CAN_FRAME output;
 	output.dlc = 8;
 	output.id = 0x235;
 	output.ide = 0; //standard frame
 	output.rtr = 0;
-	output.srr = 0;
 	output.data[0] = 37; //i don't know what all these values are
 	output.data[1] = 11; //they're just copied from real traffic
 	output.data[2] = 0;
@@ -239,12 +235,11 @@ void DMOC::sendCmd4() {
 
 //Another C/R frame but this one also specifies which shifter position we're in
 void DMOC::sendCmd5() {
-	Frame output;
+	TX_CAN_FRAME output;
 	output.dlc = 8;
 	output.id = 0x236;
 	output.ide = 0; //standard frame
 	output.rtr = 0;
-	output.srr = 0;
 	output.data[0] = 2;
 	output.data[1] = 127;
 	output.data[2] = 0;
@@ -277,7 +272,7 @@ void DMOC::setGear(GEARS gear) {
 	selectedGear = gear;
 }
 
-byte DMOC::calcChecksum(Frame thisFrame) {
+byte DMOC::calcChecksum(TX_CAN_FRAME thisFrame) {
 	byte cs;
 	byte i;
 	cs = thisFrame.id;

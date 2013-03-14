@@ -11,12 +11,6 @@
 	is to be subclassed from the proper master parent class for that form of hardware. That is, a motor controller will derive
 	from the base motor controller class. This allows a standard interface, defined by that base class, to be used to access
 	any hardware of that category. 
-
-
-  Starting a conversion of source to work for Due as well. Issues:
-  -Due library uses two different structures and they aren't the same as the Frame structure from MCP2515 library. Need to reconcile them.
-  -Timer code is very hardware specific. Has to be totally redone for Due - Technically this is now done. There are still two different methods but it is abstracted
-  -Due has no EEPROM and must emulate it with a wrapper library - Also there. There is a memory caching system but it needs testing.
  
  New shield pins:
  
