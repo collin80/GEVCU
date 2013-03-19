@@ -70,16 +70,16 @@ void CMEMCACHE::InvalidatePage(uint8_t page)
     cache_writepage(page);
   }
   pages[page].dirty = false;
-  pages[page].address = 0x3FF;
+  pages[page].address = 0xFFFFFF;
   pages[page].age = 0;
 }
 
-void CMEMCACHE::InvalidateAddress(uint16_t address)
+void CMEMCACHE::InvalidateAddress(uint32_t address)
 {
-  uint16_t addr;
+  uint32_t addr;
   uint8_t c;
 
-  addr = address >> 6; //kick it down to the page we're talking about
+  addr = address >> 8; //kick it down to the page we're talking about
   c = cache_hit(addr);
   if (c != 0xFF) InvalidatePage(c);
 }
@@ -99,12 +99,12 @@ void CMEMCACHE::AgeFullyPage(uint8_t page)
   }
 }
 
-void CMEMCACHE::AgeFullyAddress(uint16_t address)
+void CMEMCACHE::AgeFullyAddress(uint32_t address)
 {
-  U8 thisCache;
-  U16 page_addr;
+  uint8_t thisCache;
+  uint32_t page_addr;
 
-  page_addr = address >> 6; //kick it down to the page we're talking about
+  page_addr = address >> 8; //kick it down to the page we're talking about
   thisCache = cache_hit(page_addr);
 
   if (thisCache != 0xFF) { //if we did indeed have that page in cache
@@ -113,19 +113,19 @@ void CMEMCACHE::AgeFullyAddress(uint16_t address)
 }
 
 
-boolean CMEMCACHE::Write(uint16_t address, uint8_t valu)
+boolean CMEMCACHE::Write(uint32_t address, uint8_t valu)
 {
-  uint16_t addr;
+  uint32_t addr;
   uint8_t c;
 
-  addr = address >> 6; //kick it down to the page we're talking about
+  addr = address >> 8; //kick it down to the page we're talking about
   c = cache_hit(addr);
   if (c == 0xFF) 	{
     c = cache_findpage(); //try to free up a page
     if (c != 0xFF) c = cache_readpage(addr); //and populate it with the existing data
   }		
   if (c != 0xFF) {
-    pages[c].data[(uint8_t)(address & 0x003F)] = valu;
+    pages[c].data[(uint16_t)(address & 0x00FF)] = valu;
     pages[c].dirty = true;
     pages[c].address = addr; //set this in case we actually are setting up a new cache page
     return true;
@@ -133,35 +133,35 @@ boolean CMEMCACHE::Write(uint16_t address, uint8_t valu)
   return false;
 }
 
-boolean CMEMCACHE::Write(uint16_t address, uint16_t valu)
+boolean CMEMCACHE::Write(uint32_t address, uint16_t valu)
 {
   boolean result;
   result = Write(address, &valu, 2);
   return result;
 }
 
-boolean CMEMCACHE::Write(uint16_t address, uint32_t valu)
+boolean CMEMCACHE::Write(uint32_t address, uint32_t valu)
 {
   boolean result;
   result = Write(address, &valu, 4);
   return result;
 }
 
-boolean CMEMCACHE::Write(uint16_t address, void* data, uint16_t len)
+boolean CMEMCACHE::Write(uint32_t address, void* data, uint16_t len)
 {
-  uint16_t addr;
+  uint32_t addr;
   uint8_t c;
   uint16_t count;
 
   for (count = 0; count < len; count++) {
-    addr = (address+count) >> 6; //kick it down to the page we're talking about
+    addr = (address+count) >> 8; //kick it down to the page we're talking about
     c = cache_hit(addr);
     if (c == 0xFF) {
       c = cache_findpage(); //try to find a page that either isn't loaded or isn't dirty
       if (c != 0xFF) c = cache_readpage(addr); //and populate it with the existing data
     }
     if (c != 0xFF) { //could we find a suitable cache page to write to?
-      pages[c].data[(uint8_t)((address+count) & 0x003F)] = *(uint8_t *)(data + count);
+      pages[c].data[(uint16_t)((address+count) & 0x00FF)] = *(uint8_t *)(data + count);
       pages[c].dirty = true;
       pages[c].address = addr; //set this in case we actually are setting up a new cache page	
     }
@@ -172,12 +172,12 @@ boolean CMEMCACHE::Write(uint16_t address, void* data, uint16_t len)
   return false;
 }
 
-boolean CMEMCACHE::Read(uint16_t address, uint8_t* valu)
+boolean CMEMCACHE::Read(uint32_t address, uint8_t* valu)
 {
-  uint16_t addr;
+  uint32_t addr;
   uint8_t c;
 
-  addr = address >> 6; //kick it down to the page we're talking about
+  addr = address >> 8; //kick it down to the page we're talking about
   c = cache_hit(addr);
 
   if (c == 0xFF) { //page isn't cached. Search the cache, potentially dump a page and bring this one in
@@ -185,7 +185,7 @@ boolean CMEMCACHE::Read(uint16_t address, uint8_t* valu)
   }
 
   if (c != 0xFF) {
-    *valu = pages[c].data[(uint8_t)(address & 0x003F)];
+    *valu = pages[c].data[(uint16_t)(address & 0x00FF)];
     if (!pages[c].dirty) pages[c].age = 0; //reset age since we just used it
     return true; //all ok!
   }
@@ -194,34 +194,34 @@ boolean CMEMCACHE::Read(uint16_t address, uint8_t* valu)
   }	
 }
 
-boolean CMEMCACHE::Read(uint16_t address, uint16_t* valu)
+boolean CMEMCACHE::Read(uint32_t address, uint16_t* valu)
 {
   boolean result;
   result = Read(address, valu, 2);
   return result;
 }
 
-boolean CMEMCACHE::Read(uint16_t address, uint32_t* valu)
+boolean CMEMCACHE::Read(uint32_t address, uint32_t* valu)
 {
   boolean result;
   result = Read(address, valu, 4);
   return result;
 }
 
-boolean CMEMCACHE::Read(uint16_t address, void* data, uint16_t len)
+boolean CMEMCACHE::Read(uint32_t address, void* data, uint16_t len)
 {
-  uint16_t addr;
+  uint32_t addr;
   uint8_t c;
   uint16_t count;
 
   for (count = 0; count < len; count++) {
-    addr = (address + count) >> 6;
+    addr = (address + count) >> 8;
     c = cache_hit(addr);
     if (c == 0xFF) { //page isn't cached. Search the cache, potentially dump a page and bring this one in
       c = cache_readpage(addr);
     }		
     if (c != 0xFF) {
-      *(uint8_t *)(data + count) = pages[c].data[(uint8_t)((address+count) & 0x003F)];
+      *(uint8_t *)(data + count) = pages[c].data[(uint16_t)((address+count) & 0x00FF)];
       if (!pages[c].dirty) pages[c].age = 0; //reset age since we just used it
     }
     else break; //bust the for loop if we run into trouble
@@ -235,12 +235,16 @@ CMEMCACHE::CMEMCACHE()
 {
   U8 c;
   for (c = 0; c < NUM_CACHED_PAGES; c++) {
-    pages[c].address = 0x3FF; //maximum number. This is way over what our chip will actually support so it signals unused
+    pages[c].address = 0xFFFFFF; //maximum number. This is way over what our chip will actually support so it signals unused
     pages[c].age = 0;
     pages[c].dirty = false;
   }		
   //WriteTimer = 0;
   AgingTimer = 0;
+  
+  //digital pin 19 is connected to the write protect function of the EEPROM. It is active high so set it low to enable writes
+  pinMode(19, OUTPUT);
+  digitalWrite(19, LOW);
 
 }
 
@@ -251,7 +255,7 @@ boolean CMEMCACHE::isWriting()
 
 }
 
-uint8_t CMEMCACHE::cache_hit(U16 address)
+uint8_t CMEMCACHE::cache_hit(uint32_t address)
 {
   uint8_t c;
   for (c = 0; c < NUM_CACHED_PAGES; c++) {
@@ -278,7 +282,7 @@ uint8_t CMEMCACHE::cache_findpage()
   uint8_t c;
   uint8_t old_c, old_v;
   for (c=0;c<NUM_CACHED_PAGES;c++) {
-    if (pages[c].address == 0x3FF) { //found an empty cache page so populate it and return its number
+    if (pages[c].address == 0xFFFFFF) { //found an empty cache page so populate it and return its number
       pages[c].age = 0;
       pages[c].dirty = false;
       return c;
@@ -309,27 +313,30 @@ uint8_t CMEMCACHE::cache_findpage()
   //If we got to this point then we have a page to use
   pages[old_c].age = 0;
   pages[old_c].dirty = false;
-  pages[old_c].address = 0x3FF; //mark it unused
+  pages[old_c].address = 0xFFFFFF; //mark it unused
 
   return old_c;	
 }
 
 uint8_t CMEMCACHE::cache_readpage(uint16_t addr)
 {
-  uint8_t c,d,e;
-  uint16_t address = addr << 6;
+  uint16_t c,d,e;
+  uint32_t address = addr << 8;
   uint8_t buffer[3];
+  uint8_t i2c_id;
   c = cache_findpage();
 
   if (c != 0xFF) {
     buffer[0] = ((address & 0xFF00) >> 8);
-    buffer[1] = (address & 0x00FF);
-    Wire.beginTransmission(0b01010000);  
+    //buffer[1] = (address & 0x00FF);
+    buffer[1] = 0; //the pages are 256 bytes so the start of a page is always 00 for the LSB
+    i2c_id = 0b01010000 + ((address >> 16) & 0x03); //10100 is the chip ID then the two upper bits of the address
+    Wire.beginTransmission(i2c_id);  
     Wire.write(buffer, 2);
     Wire.endTransmission();
     delayMicroseconds(150); //give TWI some time to send and chip some time to get page
-    Wire.requestFrom(0b01010000, 64);
-    for (e = 0; e < 64; e++)
+    Wire.requestFrom(i2c_id, 256);
+    for (e = 0; e < 256; e++)
     {
       if(Wire.available())    
       { 
@@ -346,17 +353,20 @@ uint8_t CMEMCACHE::cache_readpage(uint16_t addr)
 
 boolean CMEMCACHE::cache_writepage(uint8_t page)
 {
-  U8 d;
-  U16 addr;
-  uint8_t buffer[66];
-  addr = pages[page].address << 6;
+  uint8_t d;
+  uint32_t addr;
+  uint8_t buffer[258];
+  uint8_t i2c_id;
+  addr = pages[page].address << 8;
   buffer[0] = ((addr & 0xFF00) >> 8);
-  buffer[1] = (addr & 0x00FF);
-  for (d = 0; d < 64; d++) {  
+  //buffer[1] = (addr & 0x00FF);
+  buffer[1] = 0; //pages are 256 bytes so LSB is always 0 for the start of a page
+  i2c_id = 0b01010000 + ((address >> 16) & 0x03); //10100 is the chip ID then the two upper bits of the address
+  for (d = 0; d < 256; d++) {  
     buffer[d + 2] = pages[page].data[d];
   }
-  Wire.beginTransmission(0b01010000);
-  Wire.write(buffer, 66);
+  Wire.beginTransmission(i2c_id);
+  Wire.write(buffer, 258);
   Wire.endTransmission();
 }
 

@@ -29,8 +29,8 @@
 #define AGING_PERIOD       200
 
 typedef struct {
-  uint8_t data[64];
-  uint16_t address; //address of start of page
+  uint8_t data[256];
+  uint32_t address; //address of start of page
   uint8_t age; //
   boolean dirty;
 } PAGECACHE;
@@ -43,31 +43,31 @@ class CMEMCACHE
   void FlushPage(uint8_t page);
   void handleTick();
   void InvalidatePage(uint8_t page);
-  void InvalidateAddress(uint16_t address);
+  void InvalidateAddress(uint32_t address);
   void InvalidateAll();
   void AgeFullyPage(uint8_t page);
-  void AgeFullyAddress(uint16_t address);
+  void AgeFullyAddress(uint32_t address);
   
-  boolean Write(uint16_t address, uint8_t valu);
-  boolean Write(uint16_t address, uint16_t valu);
-  boolean Write(uint16_t address, uint32_t valu);
-  boolean Write(uint16_t address, void* data, uint16_t len);
+  boolean Write(uint32_t address, uint8_t valu);
+  boolean Write(uint32_t address, uint16_t valu);
+  boolean Write(uint32_t address, uint32_t valu);
+  boolean Write(uint32_t address, void* data, uint16_t len);
   
   //It's sort of weird to make the read function take a reference but it allows for overloading
-  boolean Read(uint16_t address, uint8_t* valu);
-  boolean Read(uint16_t address, uint16_t* valu);
-  boolean Read(uint16_t address, uint32_t* valu);
-  boolean Read(uint16_t address, void* data, uint16_t len);
+  boolean Read(uint32_t address, uint8_t* valu);
+  boolean Read(uint32_t address, uint16_t* valu);
+  boolean Read(uint32_t address, uint32_t* valu);
+  boolean Read(uint32_t address, void* data, uint16_t len);
   
   CMEMCACHE();
   
   private:
   PAGECACHE pages[NUM_CACHED_PAGES];
   boolean isWriting();
-  uint8_t cache_hit(U16 address);
+  uint8_t cache_hit(U32 address);
   void cache_age();
   uint8_t cache_findpage();
-  uint8_t cache_readpage(uint16_t addr);
+  uint8_t cache_readpage(uint32_t addr);
   boolean cache_writepage(uint8_t page);
 };
 
