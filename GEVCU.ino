@@ -11,21 +11,12 @@
 	is to be subclassed from the proper master parent class for that form of hardware. That is, a motor controller will derive
 	from the base motor controller class. This allows a standard interface, defined by that base class, to be used to access
 	any hardware of that category. 
- 
- New shield pins:
- 
- Digital inputs: D9, D11, D12, D13
- 
- Digital Outputs: D58, D59, D60, D61 
-
- Analog Inputs: A0, A1, A2, A3
- 
- 
+  
+  
+   D19 is Write Protect for EEPROM chip (which enables WP on high)
  */
 
 #include <Arduino.h>
-
-
 #include "variant.h"
 #include <due_can.h>
 #include <DueTimer.h>
