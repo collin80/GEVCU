@@ -1,11 +1,8 @@
 /*
-EEPROM Map. There is support for up to 6 devices: A motor controller, display, charger, BMS, Throttle,  and a misc device (EPAS, WOC, etc)
-The EEPROM on an ATMEGA2560 is 4K. The firmware should have some space as well. This leads to 9 devices which might need EEPROM storage.
-For safety, allocate 450 bytes for every device
-
-Now a 24AA256 chip is found on our custom shield. This has 32KB of memory. So, the first 4K are used to emulate the 4K on the Mega2560
-the next 4K is to be utilized as a backup of the 4K space. This allows the backup space to be used like a "known good" location so that
-the normal eeprom space can be quickly reset to the known good.
+*EEPROM Map. There is support for up to 6 devices: A motor controller, display, charger, BMS, Throttle,  and a misc device (EPAS, WOC, etc)
+* 
+*There is a 256KB eeprom chip which stores these settings. The 4K is allocated to primary storage and 4K is allocated to a "known good"
+* storage location. This leaves most of EEPROM free for something else, probably logging. 
 */
 
 #define EE_MOTORCTL_START	0
@@ -100,5 +97,20 @@ the end of the stardard data. The below numbers are offsets from the device's ee
 #define EESYS_CAN_MASK6          248 //4 bytes - seventh canbus mask - bit 31 sets whether it is extended or not (set = extended)
 #define EESYS_CAN_FILTER6        252 //4 bytes - seventh canbus filter - not valid on Macchina, Mask 6 on Due
 
+#define EESYS_WIFI_SSID	         300 //32 bytes - the SSID to create or use (prefixed with ! if create ad-hoc)
+#define EESYS_WIFI_CHAN		 332 //1 byte - the wifi channel (1 - 11) to use
+#define EESYS_WIFI_DHCP		 333 //1 byte - DHCP mode, 0 = off, 1 = server, 2 = client
+#define EESYS_WIFI_MODE          334 //1 byte - 0 = B, 1 = G
+#define EESYS_WIFI_IPADDR        335 //4 bytes - IP address to use if DHCP is off
 
+/*
+AT+i commands:
+WWW - turn on WWW server (0 = turn off, 1-3 = allow that many port 80 accesses, 100 = allow one HTTPS connection
+WRFU - Turn on wifi
+WRFD - Turn off wifi
+WLBM - Use Wifi B
+WLGM - Use wifi G
+WNXT - get next edited param
+
+*/
 
