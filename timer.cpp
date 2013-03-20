@@ -7,7 +7,7 @@
 
 #include "Arduino.h"
 #include "timer.h"
-#include "DueTimer.h"
+#include <DueTimer.h>
 
 volatile int8_t tickReady;
 volatile void due_timer_interrupt();

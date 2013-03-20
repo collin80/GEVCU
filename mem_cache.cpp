@@ -318,7 +318,7 @@ uint8_t CMEMCACHE::cache_findpage()
   return old_c;	
 }
 
-uint8_t CMEMCACHE::cache_readpage(uint16_t addr)
+uint8_t CMEMCACHE::cache_readpage(uint32_t addr)
 {
   uint16_t c,d,e;
   uint32_t address = addr << 8;
@@ -361,7 +361,7 @@ boolean CMEMCACHE::cache_writepage(uint8_t page)
   buffer[0] = ((addr & 0xFF00) >> 8);
   //buffer[1] = (addr & 0x00FF);
   buffer[1] = 0; //pages are 256 bytes so LSB is always 0 for the start of a page
-  i2c_id = 0b01010000 + ((address >> 16) & 0x03); //10100 is the chip ID then the two upper bits of the address
+  i2c_id = 0b01010000 + ((addr >> 16) & 0x03); //10100 is the chip ID then the two upper bits of the address
   for (d = 0; d < 256; d++) {  
     buffer[d + 2] = pages[page].data[d];
   }
