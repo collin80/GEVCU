@@ -34,7 +34,7 @@ THROTTLE *throttle;
 MOTORCTRL* motorcontroller; //generic motor controller - instantiate some derived class to fill this out
 
 void printMenu();
-void serialEvent();
+void SerialEvent();
 
 //Evil, global variables
 bool runRamp = false;
@@ -87,9 +87,9 @@ void setup_due() {
 
 void setup() {
   
-  Serial.begin(115200);
+  SerialUSB.begin(115200);
 
-  Serial.println("GEVCU alpha 02-25-2013");
+  SerialUSB.println("GEVCU alpha 02-25-2013");
 
   setup_due();
 
@@ -111,27 +111,27 @@ void setup() {
         
   //This will not be hard coded soon. It should be a list of every hardware support module
   //compiled into the ROM
-  //Serial.println("Installed devices: DMOC645");
+  //SerialUSB.println("Installed devices: DMOC645");
 
-  Serial.print("System Ready ");
+  SerialUSB.print("System Ready ");
   printMenu();
 
 }
 
 void printMenu() {
-  Serial.println("System Menu:");
-  Serial.println("D = disabled op state");
-  Serial.println("S = standby op state");
-  Serial.println("E = enabled op state");
-  Serial.println("n = neutral gear");
-  Serial.println("d = DRIVE gear");
-  Serial.println("r = reverse gear");
-  Serial.println("<space> = start/stop ramp test");
-  Serial.println("x = lock ramp at current value (toggle)");
-  Serial.println("t = Use accelerator pedal? (toggle)");
-  Serial.println("L = output raw throttle values (toggle)");
-  Serial.println("Y = test EEPROM routines");
-  Serial.println("");
+  SerialUSB.println("System Menu:");
+  SerialUSB.println("D = disabled op state");
+  SerialUSB.println("S = standby op state");
+  SerialUSB.println("E = enabled op state");
+  SerialUSB.println("n = neutral gear");
+  SerialUSB.println("d = DRIVE gear");
+  SerialUSB.println("r = reverse gear");
+  SerialUSB.println("<space> = start/stop ramp test");
+  SerialUSB.println("x = lock ramp at current value (toggle)");
+  SerialUSB.println("t = Use accelerator pedal? (toggle)");
+  SerialUSB.println("L = output raw throttle values (toggle)");
+  SerialUSB.println("Y = test EEPROM routines");
+  SerialUSB.println("");
 }
 
 
@@ -145,9 +145,9 @@ void loop() {
     CAN.get_rx_buff(&message);
     motorcontroller->handleFrame(message);
   }
-  if (Serial.available()) serialEvent(); //due doesnt have int driven serial yet
+  if (SerialUSB.available()) serialEvent(); //due doesnt have int driven serial yet
   if (tickReady) {
-    if (dotTick == 0) Serial.print('.'); //print . every 256 ticks (2.56 seconds)
+    if (dotTick == 0) SerialUSB.print('.'); //print . every 256 ticks (2.56 seconds)
     dotTick = dotTick + 1;
     tickReady = false;
     //do tick related stuff
@@ -155,7 +155,7 @@ void loop() {
     MemCache.handleTick();
     
     throttle->handleTick(); //gets ADC values, calculates throttle position
-    //Serial.println(Throttle.getThrottle());
+    //SerialUSB.println(Throttle.getThrottle());
    count++;
    if (count > 50) {
      count = 0;
@@ -163,12 +163,12 @@ void loop() {
      if (throttleval > 80) throttleval = 0;
      if (throttleDebug) {
        POT_THROTTLE *pot = (POT_THROTTLE *)throttle;
-	Serial.print("T1: ");
-	Serial.print(pot->getRawThrottle1());
-	Serial.print(" T2: ");
-	Serial.print(pot->getRawThrottle2());
-        Serial.print(" Out: ");
-        Serial.println(pot->getThrottle());
+	SerialUSB.print("T1: ");
+	SerialUSB.print(pot->getRawThrottle1());
+	SerialUSB.print(" T2: ");
+	SerialUSB.print(pot->getRawThrottle2());
+        SerialUSB.print(" Out: ");
+        SerialUSB.println(pot->getThrottle());
      }
    }
    if (!runThrottle) { //ramping test      
@@ -179,7 +179,7 @@ void loop() {
     } 
     else { //use the installed throttle
       motorcontroller->setThrottle(throttle->getThrottle());
-      //Serial.println(throttle.getThrottle());  //just for debugging
+      //SerialUSB.println(throttle.getThrottle());  //just for debugging
     }
     motorcontroller->handleTick(); //intentionally far down here so that the throttle is set before this is called
   }
@@ -196,7 +196,7 @@ TODO: This all has to eventually go away.
 void serialEvent() {
   int incoming;
   DMOC* dmoc = (DMOC*)motorcontroller;
-  incoming = Serial.read();
+  incoming = SerialUSB.read();
   if (incoming == -1) return;
   switch (incoming) {
     case 'h':
@@ -207,81 +207,81 @@ void serialEvent() {
     case ' ':
       runRamp = !runRamp;
         if (runRamp) {
-	  Serial.println("Start Ramp Test");
+	  SerialUSB.println("Start Ramp Test");
           dmoc->setPowerMode(DMOC::MODE_RPM);
         }
 	else {
-          Serial.println("End Ramp Test");
+          SerialUSB.println("End Ramp Test");
           dmoc->setPowerMode(DMOC::MODE_TORQUE);
         }
 	break;
     case 'd':
       dmoc->setGear(DMOC::DRIVE);
-      Serial.println("forward");
+      SerialUSB.println("forward");
       break;
     case 'n':
       dmoc->setGear(DMOC::NEUTRAL);
-      Serial.println("neutral");
+      SerialUSB.println("neutral");
       break;
     case 'r':
       dmoc->setGear(DMOC::REVERSE);
-      Serial.println("reverse");
+      SerialUSB.println("reverse");
       break;
     case 'D':
       dmoc->setOpState(DMOC::DISABLED);
-      Serial.println("disabled");
+      SerialUSB.println("disabled");
       break;
     case 'S':
       dmoc->setOpState(DMOC::STANDBY);
-      Serial.println("standby");
+      SerialUSB.println("standby");
       break;
     case 'E':
       dmoc->setOpState(DMOC::ENABLE);
-      Serial.println("enabled");
+      SerialUSB.println("enabled");
       break;
     case 'x':
       runStatic = !runStatic;
       if (runStatic) {
-        Serial.println("Lock RPM rate");
+        SerialUSB.println("Lock RPM rate");
       }
-      else Serial.println("Unlock RPM rate");
+      else SerialUSB.println("Unlock RPM rate");
       break;
     case 't':
       runThrottle = !runThrottle;
       if (runThrottle) {
-        Serial.println("Use Throttle Pedal");
+        SerialUSB.println("Use Throttle Pedal");
         dmoc->setPowerMode(DMOC::MODE_TORQUE);
       }
-      else Serial.println("Ignore throttle pedal");
+      else SerialUSB.println("Ignore throttle pedal");
       break;
     case 'L':
       throttleDebug = !throttleDebug;
       if (throttleDebug) {
-        Serial.println("Output raw throttle");
+        SerialUSB.println("Output raw throttle");
       }
-      else Serial.println("Cease raw throttle output");
+      else SerialUSB.println("Cease raw throttle output");
       break;
     case 'Y':
-      Serial.println("Trying to save 0x45 to eeprom location 10");
+      SerialUSB.println("Trying to save 0x45 to eeprom location 10");
       uint8_t temp;
       MemCache.Write(10, (uint8_t) 0x45);
       MemCache.Read(10, &temp);
-      Serial.print("Got back value of ");
-      Serial.println(temp);      
+      SerialUSB.print("Got back value of ");
+      SerialUSB.println(temp);      
       break;
     case 'U':
-      Serial.println("Adding a sequence of values from 0 to 255 into eeprom");
+      SerialUSB.println("Adding a sequence of values from 0 to 255 into eeprom");
       for (int i = 0; i<256; i++) MemCache.Write(1000+i,(uint8_t)i);
       MemCache.FlushAllPages(); //write everything to eeprom
       MemCache.InvalidateAll(); //remove all data from cache
       break;
     case 'I':
-      Serial.println("Retrieving data previously saved");
+      SerialUSB.println("Retrieving data previously saved");
       uint8_t val;
       for (int i = 0; i < 256; i++) {
         MemCache.Read(1000 + i, &val);
-        Serial.print(val);
-        Serial.print(" ");
+        SerialUSB.print(val);
+        SerialUSB.print(" ");
       }
       break;
   }
