@@ -14,6 +14,10 @@
 #define EE_SYSTEM_START		3600
 #define EE_DEVICE_SIZE          450 //# of bytes allocated to each device
 
+#define EE_MAIN_OFFSET          0 //offset from start of EEPROM where main config is
+#define EE_LKG_OFFSET           4096  //offset from start of EEPROM where last known good config is
+#define EE_SYS_LOG              9192  //offset from start of EEPROM where the system log starts. <SYS LOG YET TO BE DEFINED>
+      
 /*Now, all devices also have a default list of things that WILL be stored in EEPROM. Each actual
 implementation for a given device can store it's own custom info as well. This data must come after
 the end of the stardard data. The below numbers are offsets from the device's eeprom section
@@ -23,7 +27,6 @@ the end of the stardard data. The below numbers are offsets from the device's ee
 #define EE_CHECKSUM 		0 //1 byte - checksum for this section of EEPROM to makesure it is valid
 #define EE_DEVICE_ID		1 //2 bytes - the value of the ENUM DEVID of this device.
 #define EE_DEVICE_ENABLE	3 //1 byte - if this is zero then the device is disabled
-
 
 
 //Motor controller data
@@ -38,8 +41,8 @@ the end of the stardard data. The below numbers are offsets from the device's ee
 #define EEMC_LIMP_SCALE			25 //1 byte - percentage of power to allow during limp mode
 #define EEMC_MAX_REGEN			26 //1 byte - percentage of max torque to apply to regen
 #define EEMC_REGEN_SCALE		28 //1 byte - percentage - reduces all regen related values (throttle, brake, maximum above)
-#define EEMC_PRECHARGE_RELAY	29 //1 byte - 0 = no precharge relay 1 = yes, there is one
-#define EEMC_CONTACTOR_RELAY	30 //1 byte - 0 = no contactor relay 1 = yes there is
+#define EEMC_PRECHARGE_RELAY	        29 //1 byte - 0 = no precharge relay 1 = yes, there is one
+#define EEMC_CONTACTOR_RELAY	        30 //1 byte - 0 = no contactor relay 1 = yes there is
 #define EEMC_COOLING			31 //1 byte - set point in C for starting up cooling relay
 #define EEMC_MIN_TEMP_MOTOR		32 //2 bytes - signed int - Smallest value on temp gauge (1% PWM output)
 #define EEMC_MAX_TEMP_MOTOR		34 //2 bytes - signed int - Highest value on temp gauge (99% PWM output)
@@ -51,9 +54,9 @@ the end of the stardard data. The below numbers are offsets from the device's ee
 #define EETH_MAX_ONE			22 //2 bytes - ADC value of maximum value for first channel
 #define EETH_MIN_TWO			24 //2 bytes - ADC value of minimum value for second channel
 #define EETH_MAX_TWO			26 //2 bytes - ADC value of maximum value for second channel
-#define EETH_REGEN				28 //2 bytes - unsigned int - tenths of a percent (0-1000) of pedal position where regen stops
-#define EETH_FWD				30 //2 bytes - unsigned int - tenths of a percent (0-1000) of pedal position where forward motion starts 
-#define EETH_MAP				32 //2 bytes - unsigned int - tenths of a percent (0-1000) of pedal position where forward motion is at 50% throttle
+#define EETH_REGEN		        28 //2 bytes - unsigned int - tenths of a percent (0-1000) of pedal position where regen stops
+#define EETH_FWD			30 //2 bytes - unsigned int - tenths of a percent (0-1000) of pedal position where forward motion starts 
+#define EETH_MAP			32 //2 bytes - unsigned int - tenths of a percent (0-1000) of pedal position where forward motion is at 50% throttle
 #define EETH_BRAKE_MIN			34 //2 bytes - ADC value of minimum value for brake input
 #define EETH_BRAKE_MAX			36 //2 bytes - ADC value of max value for brake input
 #define EETH_MAX_ACCEL_REGEN            38 //1 byte - maximum percentage of throttle to command on accel pedal regen
