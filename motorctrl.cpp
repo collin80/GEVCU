@@ -13,6 +13,7 @@
  
 
 MOTORCTRL::MOTORCTRL(CANRaw *canlib) : DEVICE(canlib) {
+  pref_base_addr = EE_MOTORCTL_START;
 }
 
 DEVICE::DEVTYPE MOTORCTRL::getDeviceType() {

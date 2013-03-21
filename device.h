@@ -35,7 +35,7 @@ class DEVICE {
     protected:
 
     CANRaw* can;
-    uint16_t pref_base_addr;
+    uint32_t pref_base_addr;
 	
     public:
     DEVICE();
@@ -46,6 +46,15 @@ class DEVICE {
     virtual DEVTYPE getDeviceType();
     virtual DEVID getDeviceID();
     DEVICE(CANRaw *canlib);
+    void prefWrite(uint16_t address, uint8_t val);
+    void prefWrite(uint16_t address, uint16_t val);
+    void prefWrite(uint16_t address, uint32_t val);
+    void prefRead(uint16_t address, uint8_t *val);
+    void prefRead(uint16_t address, uint16_t *val);
+    void prefRead(uint16_t address, uint32_t *val);
+    uint8_t prefCalcChecksum();
+    void prefSaveChecksum();
+    bool prefChecksumValid();
 };
 
 #endif /* DEVICE_H_ */
