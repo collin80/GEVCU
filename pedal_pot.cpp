@@ -9,6 +9,7 @@
  */
 
 #include "pedal_pot.h"
+#include "sys_io.h"
 
 //initialize by telling the code which two ADC channels to use (or set channel 2 to 255 to disable)
 POT_THROTTLE::POT_THROTTLE(uint8_t Throttle1, uint8_t Throttle2) {
@@ -114,9 +115,9 @@ void POT_THROTTLE::handleTick() {
     signed int calcThrottle1, calcThrottle2, clampedVal, tempLow, temp;
     static uint16_t ThrottleAvg = 0, ThrottleFeedback = 0; //used to create proportional control
 
-    Throttle1Val = analogRead(Throttle1ADC);
+    Throttle1Val = getAnalog(Throttle1ADC);
     if (numThrottlePots > 1) {
-      Throttle2Val = analogRead(Throttle2ADC);
+      Throttle2Val = getAnalog(Throttle2ADC);
     }
 
     ThrottleStatus = OK;

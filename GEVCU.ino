@@ -11,9 +11,6 @@
 	is to be subclassed from the proper master parent class for that form of hardware. That is, a motor controller will derive
 	from the base motor controller class. This allows a standard interface, defined by that base class, to be used to access
 	any hardware of that category. 
-  
-  
-   D19 is Write Protect for EEPROM chip (which enables WP on high)
  */
 
 #include <Arduino.h>
@@ -89,7 +86,7 @@ void setup() {
   
   SerialUSB.begin(115200);
 
-  SerialUSB.println("GEVCU alpha 02-25-2013");
+  SerialUSB.println("GEVCU alpha 03-21-2013");
 
   setup_due();
 
@@ -97,7 +94,7 @@ void setup() {
   //if min is less than max for a throttle then the pot goes low to high as pressed.
   //if max is less than min for a throttle then the pot goes high to low as pressed.
 
-  throttle = new POT_THROTTLE(0,1); //specify the ADC ports to use for throttle 255 = not used (valid only for second value)
+  throttle = new POT_THROTTLE(0,1); //specify the shield ADC ports to use for throttle 255 = not used (valid only for second value)
   POT_THROTTLE* pot = (POT_THROTTLE *)throttle;   //since throttle is of the generic base class type we have to cast to get access to
                                                         //the special functions of a pedal pot. Of course this must not be done in production.
   throttle->setupDevice();
