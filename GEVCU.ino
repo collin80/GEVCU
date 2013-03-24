@@ -27,6 +27,7 @@
 #include "dmoc.h"
 #include "timer.h"
 #include "mem_cache.h"
+#include "sys_io.h"
 
 THROTTLE *throttle; 
 MOTORCTRL* motorcontroller; //generic motor controller - instantiate some derived class to fill this out
@@ -93,7 +94,7 @@ void setup_due() {
   sysPrefs.Read(EESYS_RTC_DATE, &temp);
   rtc_clock.change_date(temp);
   
-
+  setup_sys_io(); //get calibration data for system IO
 }
 
 void setup() {
@@ -140,8 +141,10 @@ void printMenu() {
   SerialUSB.println("<space> = start/stop ramp test");
   SerialUSB.println("x = lock ramp at current value (toggle)");
   SerialUSB.println("t = Use accelerator pedal? (toggle)");
-  SerialUSB.println("L = output raw throttle values (toggle)");
-  SerialUSB.println("Y = test EEPROM routines");
+  SerialUSB.println("L = output raw input values (toggle)");
+  SerialUSB.println("K = set all outputs high");
+  SerialUSB.println("J = set all outputs low");
+  SerialUSB.println("Y,U,I = test EEPROM routines");
   SerialUSB.println("");
 }
 
@@ -152,6 +155,7 @@ void loop() {
   static byte dotTick = 0;
   static byte throttleval = 0;
   static byte count = 0;
+  uint16_t adcval;
   if (CAN.rx_avail()) {
     CAN.get_rx_buff(&message);
     motorcontroller->handleFrame(message);
@@ -173,13 +177,18 @@ void loop() {
      if (!runStatic) throttleval++;
      if (throttleval > 80) throttleval = 0;
      if (throttleDebug) {
-       POT_THROTTLE *pot = (POT_THROTTLE *)throttle;
-	SerialUSB.print("T1: ");
-	SerialUSB.print(pot->getRawThrottle1());
-	SerialUSB.print(" T2: ");
-	SerialUSB.print(pot->getRawThrottle2());
-        SerialUSB.print(" Out: ");
-        SerialUSB.println(pot->getThrottle());
+       adcval = getAnalog(0);
+       SerialUSB.print("A0: ");
+       SerialUSB.print(adcval);
+       adcval = getAnalog(1);
+       SerialUSB.print("A1: ");
+       SerialUSB.print(adcval);
+       adcval = getAnalog(2);
+       SerialUSB.print("A2: ");
+       SerialUSB.print(adcval);
+       adcval = getAnalog(3);
+       SerialUSB.print("A3: ");
+       SerialUSB.println(adcval);
      }
    }
    if (!runThrottle) { //ramping test      
@@ -294,6 +303,18 @@ void serialEvent() {
         SerialUSB.print(val);
         SerialUSB.print(" ");
       }
+      break;
+    case 'K': //set all outputs high
+      setOutput(0, true);
+      setOutput(1, true);
+      setOutput(2, true);
+      setOutput(3, true);
+      break;
+    case 'J': //set the four outputs low
+      setOutput(0, false);
+      setOutput(1, false);
+      setOutput(2, false);
+      setOutput(3, false);    
       break;
   }
 }

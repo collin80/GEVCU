@@ -27,6 +27,9 @@ void setup_sys_io() {
 }
 
 //get value of one of the 4 analog inputs
+//Probably handles scaling, bias, and differential input
+//but does nothing to smooth the output. Subsequent stages
+//must handle that.
 uint16_t getAnalog(uint8_t which) {
 	uint32_t low, high;
 	
@@ -35,6 +38,7 @@ uint16_t getAnalog(uint8_t which) {
 	low = analogRead(adc[which][0]);
 	high = analogRead(adc[which][1]);
 
+        //first remove the bias to bring us back to where it rests at zero input volts
         low -= adc_comp[which].offset;
         high -= adc_comp[which].offset;
         
@@ -44,6 +48,8 @@ uint16_t getAnalog(uint8_t which) {
         high *= adc_comp[which].gain;
         high = high >> 10;
 	
+        //Lastly, the input scheme is basically differential so we have to subtract
+        //low from high to get the actual value
 	high = high - low;
 	
 	return high;
