@@ -27,20 +27,6 @@ void POT_THROTTLE::setupDevice() {
   //set digital ports to inputs and pull them up
   //all inputs currently active low
   pinMode(THROTTLE_INPUT_BRAKELIGHT, INPUT_PULLUP); //Brake light switch
-#ifdef __SAM3X8E__
-    //for now hard code values for Due since it has no EEPROM
-    ThrottleMin1 = 325;
-    ThrottleMax1 = 1620;
-    ThrottleMin2 = 642;
-    ThrottleMax2 = 3232;
-    ThrottleRegen = 0;
-    ThrottleFWD = 175;
-    ThrottleMAP = 665;
-    ThrottleMaxRegen = 30; //mmildly powerful regen for accel pedal
-    BrakeMaxRegen = 80; //pretty strong regen for brakes  
-    BrakeMin = 0;
-    BrakeMax = 0;
-#else
   if (prefs->checksumValid()) { //checksum is good, read in the values stored in EEPROM
     prefs->Read(EETH_MIN_ONE, &ThrottleMin1);
     prefs->Read(EETH_MAX_ONE, &ThrottleMax1);
@@ -79,7 +65,6 @@ void POT_THROTTLE::setupDevice() {
     prefs->Write(EETH_MAX_BRAKE_REGEN, BrakeMaxRegen);
     prefs->saveChecksum();
   }
-#endif
 }
 
 int POT_THROTTLE::getRawThrottle1() {

@@ -44,12 +44,7 @@ void MOTORCTRL::setupDevice() {
   pinMode(MOTORCTL_INPUT_FORWARD, INPUT_PULLUP); //Forward gear
   pinMode(MOTORCTL_INPUT_REVERSE, INPUT_PULLUP); //Reverse Gear
   pinMode(MOTORCTL_INPUT_LIMP, INPUT_PULLUP); //Limp mode
-
-#ifdef __SAM3X8E__
-    MaxRPM = 5000;
-    MaxTorque = 500; //50Nm
-#else  
-  if (prefChecksumValid()) { //checksum is good, read in the values stored in EEPROM
+  if (prefs->checksumValid()) { //checksum is good, read in the values stored in EEPROM
     prefs->Read(EEMC_MAX_RPM, &MaxRPM);
     prefs->Read(EEMC_MAX_TORQUE, &MaxTorque);
   }
@@ -60,7 +55,6 @@ void MOTORCTRL::setupDevice() {
     prefs->Write(EEMC_MAX_TORQUE, MaxTorque);
     prefs->saveChecksum();
   }
-#endif
 }
 /*
 #define EEMC_ACTIVE_HIGH		24  //1 byte - bitfield - each bit corresponds to whether a given signal is active high (1) or low (0)
