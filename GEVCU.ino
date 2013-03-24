@@ -181,14 +181,22 @@ void loop() {
        SerialUSB.print("A0: ");
        SerialUSB.print(adcval);
        adcval = getAnalog(1);
-       SerialUSB.print("A1: ");
+       SerialUSB.print(" A1: ");
        SerialUSB.print(adcval);
        adcval = getAnalog(2);
-       SerialUSB.print("A2: ");
+       SerialUSB.print(" A2: ");
        SerialUSB.print(adcval);
        adcval = getAnalog(3);
-       SerialUSB.print("A3: ");
-       SerialUSB.println(adcval);
+       SerialUSB.print(" A3: ");
+       SerialUSB.print(adcval);
+       if (getDigital(0)) SerialUSB.print(" D0: HIGH");
+         else SerialUSB.print(" D0: LOW");
+       if (getDigital(1)) SerialUSB.print(" D1: HIGH");
+         else SerialUSB.print(" D1: LOW");
+       if (getDigital(2)) SerialUSB.print(" D2: HIGH");
+         else SerialUSB.print(" D2: LOW");
+       if (getDigital(3)) SerialUSB.print(" D3: HIGH");
+         else SerialUSB.print(" D3: LOW");
      }
    }
    if (!runThrottle) { //ramping test      
