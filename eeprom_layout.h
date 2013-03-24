@@ -11,7 +11,7 @@
 #define EE_BMS_START		1350
 #define EE_THROTTLE_START	1800
 #define EE_MISC_START		2250
-#define EE_SYSTEM_START		3600
+#define EE_SYSTEM_START		2700
 #define EE_DEVICE_SIZE          450 //# of bytes allocated to each device
 
 #define EE_MAIN_OFFSET          0 //offset from start of EEPROM where main config is
@@ -80,6 +80,14 @@ the end of the stardard data. The below numbers are offsets from the device's ee
 #define EESYS_TWI_BAUD           106 //2 bytes - Baud for TWI in 1000's just like CAN bauds. So 100k baud is set as 100
 #define EESYS_TICK_RATE          108 //2 bytes - # of system ticks per second. Can range the full 16 bit value [1, 65536] which yields ms rate of [15us, 1000ms]
 
+//We store the current system time from the RTC in EEPROM every so often. 
+//RTC is not battery backed up on the Due so a power failure will reset it.
+//These storage spaces let the firmware reload the last knowm time to bootstrap itself
+//as much as possible. The hope is that we'll be able to get access to internet eventually
+//and use NTP to get the real time.
+#define EESYS_RTC_TIME           150 //4 bytes - BCD packed version of the current time in the same format as it is stored in RTC chip
+#define EESYS_RTC_DATE           154 //4 bytes - BCD version of date in format of RTC chip
+
 //Technically there are two different canbus systems in use. The MCP2515 has 2 masks and 5 filters. The Arduino DUE
 //Has 8 masks and 8 filters potentially (not really, you do need transmit boxes too). So, the most masks and filters
 //we could ever set is 7 (using one mb as transmit) so support accordingly. 
@@ -100,11 +108,36 @@ the end of the stardard data. The below numbers are offsets from the device's ee
 #define EESYS_CAN_MASK6          248 //4 bytes - seventh canbus mask - bit 31 sets whether it is extended or not (set = extended)
 #define EESYS_CAN_FILTER6        252 //4 bytes - seventh canbus filter - not valid on Macchina, Mask 6 on Due
 
-#define EESYS_WIFI_SSID	         300 //32 bytes - the SSID to create or use (prefixed with ! if create ad-hoc)
-#define EESYS_WIFI_CHAN		 332 //1 byte - the wifi channel (1 - 11) to use
-#define EESYS_WIFI_DHCP		 333 //1 byte - DHCP mode, 0 = off, 1 = server, 2 = client
-#define EESYS_WIFI_MODE          334 //1 byte - 0 = B, 1 = G
-#define EESYS_WIFI_IPADDR        335 //4 bytes - IP address to use if DHCP is off
+//Allow for a few defined WIFI SSIDs that the GEVCU will try to automatically connect to. 
+#define EESYS_WIFI0_SSID	 300 //32 bytes - the SSID to create or use (prefixed with ! if create ad-hoc)
+#define EESYS_WIFI0_CHAN         332 //1 byte - the wifi channel (1 - 11) to use
+#define EESYS_WIFI0_DHCP         333 //1 byte - DHCP mode, 0 = off, 1 = server, 2 = client
+#define EESYS_WIFI0_MODE         334 //1 byte - 0 = B, 1 = G
+#define EESYS_WIFI0_IPADDR       335 //4 bytes - IP address to use if DHCP is off
+#define EESYS_WIFI0_KEY          339 //40 bytes - the security key (13 bytes for WEP, 8 - 83 for WPA but only up to 40 here
+
+#define EESYS_WIFI1_SSID	 400 //32 bytes - the SSID to create or use (prefixed with ! if create ad-hoc)
+#define EESYS_WIFI1_CHAN         432 //1 byte - the wifi channel (1 - 11) to use
+#define EESYS_WIFI1_DHCP	 433 //1 byte - DHCP mode, 0 = off, 1 = server, 2 = client
+#define EESYS_WIFI1_MODE         434 //1 byte - 0 = B, 1 = G
+#define EESYS_WIFI1_IPADDR       435 //4 bytes - IP address to use if DHCP is off
+#define EESYS_WIFI1_KEY          439 //40 bytes - the security key (13 bytes for WEP, 8 - 83 for WPA but only up to 40 here
+
+#define EESYS_WIFI2_SSID	 500 //32 bytes - the SSID to create or use (prefixed with ! if create ad-hoc)
+#define EESYS_WIFI2_CHAN         532 //1 byte - the wifi channel (1 - 11) to use
+#define EESYS_WIFI2_DHCP	 533 //1 byte - DHCP mode, 0 = off, 1 = server, 2 = client
+#define EESYS_WIFI2_MODE         534 //1 byte - 0 = B, 1 = G
+#define EESYS_WIFI2_IPADDR       535 //4 bytes - IP address to use if DHCP is off
+#define EESYS_WIFI2_KEY          539 //40 bytes - the security key (13 bytes for WEP, 8 - 83 for WPA but only up to 40 here
+
+//If the above networks can't be joined then try to form our own adhoc network
+//with the below parameters.
+#define EESYS_WIFIX_SSID	 500 //32 bytes - the SSID to create or use (prefixed with ! if create ad-hoc)
+#define EESYS_WIFIX_CHAN         532 //1 byte - the wifi channel (1 - 11) to use
+#define EESYS_WIFIX_DHCP	 533 //1 byte - DHCP mode, 0 = off, 1 = server, 2 = client
+#define EESYS_WIFIX_MODE         534 //1 byte - 0 = B, 1 = G
+#define EESYS_WIFIX_IPADDR       535 //4 bytes - IP address to use if DHCP is off
+#define EESYS_WIFIX_KEY          539 //40 bytes - the security key (13 bytes for WEP, 8 - 83 for WPA but only up to 40 here
 
 /*
 AT+i commands:
