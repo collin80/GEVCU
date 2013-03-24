@@ -41,18 +41,18 @@ void POT_THROTTLE::setupDevice() {
     BrakeMin = 0;
     BrakeMax = 0;
 #else
-  if (prefChecksumValid()) { //checksum is good, read in the values stored in EEPROM
-    prefRead(EETH_MIN_ONE, ThrottleMin1);
-    prefRead(EETH_MAX_ONE, ThrottleMax1);
-    prefRead(EETH_MIN_TWO, ThrottleMin2);
-    prefRead(EETH_MAX_TWO, ThrottleMax2);
-    prefRead(EETH_REGEN, ThrottleRegen);
-    prefRead(EETH_FWD, ThrottleFWD);
-    prefRead(EETH_MAP, ThrottleMAP);
-    prefRead(EETH_BRAKE_MIN, BrakeMin);
-    prefRead(EETH_BRAKE_MAX, BrakeMax);    
-    prefRead(EETH_MAX_ACCEL_REGEN, ThrottleMaxRegen);
-    prefRead(EETH_MAX_BRAKE_REGEN, BrakeMaxRegen); 
+  if (prefs->checksumValid()) { //checksum is good, read in the values stored in EEPROM
+    prefs->Read(EETH_MIN_ONE, &ThrottleMin1);
+    prefs->Read(EETH_MAX_ONE, &ThrottleMax1);
+    prefs->Read(EETH_MIN_TWO, &ThrottleMin2);
+    prefs->Read(EETH_MAX_TWO, &ThrottleMax2);
+    prefs->Read(EETH_REGEN, &ThrottleRegen);
+    prefs->Read(EETH_FWD, &ThrottleFWD);
+    prefs->Read(EETH_MAP, &ThrottleMAP);
+    prefs->Read(EETH_BRAKE_MIN, &BrakeMin);
+    prefs->Read(EETH_BRAKE_MAX, &BrakeMax);    
+    prefs->Read(EETH_MAX_ACCEL_REGEN, &ThrottleMaxRegen);
+    prefs->Read(EETH_MAX_BRAKE_REGEN, &BrakeMaxRegen); 
   }
   else { //checksum invalid. Reinitialize values and store to EEPROM
     ThrottleMin1 = 82;
@@ -66,18 +66,18 @@ void POT_THROTTLE::setupDevice() {
     BrakeMaxRegen = 80; //pretty strong regen for brakes  
     BrakeMin = 0;
     BrakeMax = 0;
-    prefWrite(EETH_MIN_ONE, ThrottleMin1);
-    prefWrite(EETH_MAX_ONE, ThrottleMax1);
-    prefWrite(EETH_MIN_TWO, ThrottleMin2);
-    prefWrite(EETH_MAX_TWO, ThrottleMax2);
-    prefWrite(EETH_REGEN, ThrottleRegen);
-    prefWrite(EETH_FWD, ThrottleFWD);
-    prefWrite(EETH_MAP, ThrottleMAP);
-    prefWrite(EETH_BRAKE_MIN, BrakeMin);
-    prefWrite(EETH_BRAKE_MAX, BrakeMax);    
-    prefWrite(EETH_MAX_ACCEL_REGEN, ThrottleMaxRegen);
-    prefWrite(EETH_MAX_BRAKE_REGEN, BrakeMaxRegen);
-    prefSaveChecksum();
+    prefs->Write(EETH_MIN_ONE, ThrottleMin1);
+    prefs->Write(EETH_MAX_ONE, ThrottleMax1);
+    prefs->Write(EETH_MIN_TWO, ThrottleMin2);
+    prefs->Write(EETH_MAX_TWO, ThrottleMax2);
+    prefs->Write(EETH_REGEN, ThrottleRegen);
+    prefs->Write(EETH_FWD, ThrottleFWD);
+    prefs->Write(EETH_MAP, ThrottleMAP);
+    prefs->Write(EETH_BRAKE_MIN, BrakeMin);
+    prefs->Write(EETH_BRAKE_MAX, BrakeMax);    
+    prefs->Write(EETH_MAX_ACCEL_REGEN, ThrottleMaxRegen);
+    prefs->Write(EETH_MAX_BRAKE_REGEN, BrakeMaxRegen);
+    prefs->saveChecksum();
   }
 #endif
 }

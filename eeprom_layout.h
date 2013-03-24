@@ -15,9 +15,16 @@
 #define EE_DEVICE_SIZE          450 //# of bytes allocated to each device
 
 #define EE_MAIN_OFFSET          0 //offset from start of EEPROM where main config is
-#define EE_LKG_OFFSET           4096  //offset from start of EEPROM where last known good config is
-#define EE_SYS_LOG              9192  //offset from start of EEPROM where the system log starts. <SYS LOG YET TO BE DEFINED>
-      
+#define EE_LKG_OFFSET           4096  //start EEPROM addr where last known good config is
+
+//start EEPROM addr where the system log starts. <SYS LOG YET TO BE DEFINED>
+//62K of space set aside for this log.
+#define EE_SYS_LOG              8192  
+
+//start EEPROM addr for fault log (Used by fault_handler)
+//62K of space allocated to this log. That's over 1260 faults stored.
+#define EE_FAULT_LOG            71680
+
 /*Now, all devices also have a default list of things that WILL be stored in EEPROM. Each actual
 implementation for a given device can store it's own custom info as well. This data must come after
 the end of the stardard data. The below numbers are offsets from the device's eeprom section

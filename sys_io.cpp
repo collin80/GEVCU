@@ -8,7 +8,8 @@
  */ 
 
 #include "sys_io.h"
-#include "mem_cache.h"
+#include "eeprom_layout.h"
+#include "pref_handler.h"
 
 //pin definitions for system IO
 uint8_t adc[NUM_ANALOG][2] = {{6,7}, {4,5}, {2,3}, {0,1}}; //low, high
@@ -20,8 +21,8 @@ void setup_sys_io() {
   int i;
   //requires the value to be contiguous in memory
   for (i = 0; i < NUM_ANALOG; i++) {
-    MemCache.Read(EE_SYSTEM_START + EESYS_ADC0_GAIN + 4*i, &adc_comp[i].gain);
-    MemCache.Read(EE_SYSTEM_START + EESYS_ADC0_OFFSET + 4*i, &adc_comp[i].offset);
+    sysPrefs.Read(EESYS_ADC0_GAIN + 4*i, &adc_comp[i].gain);
+    sysPrefs.Read(EESYS_ADC0_OFFSET + 4*i, &adc_comp[i].offset);
   }
 }
 

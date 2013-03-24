@@ -13,11 +13,11 @@
  
 
 MOTORCTRL::MOTORCTRL(CANRaw *canlib) : DEVICE(canlib) {
-  pref_base_addr = EE_MOTORCTL_START;
+  prefs = new PREFHANDLER(EE_MOTORCTL_START);
 }
 
 DEVICE::DEVTYPE MOTORCTRL::getDeviceType() {
-	return (DEVICE::DEVICE_MOTORCTRL);
+  return (DEVICE::DEVICE_MOTORCTRL);
 }
 
 void MOTORCTRL::handleTick() {
@@ -50,15 +50,15 @@ void MOTORCTRL::setupDevice() {
     MaxTorque = 500; //50Nm
 #else  
   if (prefChecksumValid()) { //checksum is good, read in the values stored in EEPROM
-    prefRead(EEMC_MAX_RPM, MaxRPM);
-    prefRead(EEMC_MAX_TORQUE, MaxTorque);
+    prefs->Read(EEMC_MAX_RPM, &MaxRPM);
+    prefs->Read(EEMC_MAX_TORQUE, &MaxTorque);
   }
   else { //checksum invalid. Reinitialize values and store to EEPROM
     MaxRPM = 5000;
     MaxTorque = 500; //50Nm
-    prefWrite(EEMC_MAX_RPM, MaxRPM);
-    prefWrite(EEMC_MAX_TORQUE, MaxTorque);
-    prefSaveChecksum();
+    prefs->Write(EEMC_MAX_RPM, MaxRPM);
+    prefs->Write(EEMC_MAX_TORQUE, MaxTorque);
+    prefs->saveChecksum();
   }
 #endif
 }

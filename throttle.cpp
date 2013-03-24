@@ -28,5 +28,5 @@ void THROTTLE::setupDevice() {
 }
 
 THROTTLE::THROTTLE() : DEVICE(0) {
-    pref_base_addr = EE_THROTTLE_START;
+  prefs = new PREFHANDLER(EE_THROTTLE_START);
 }

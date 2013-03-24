@@ -18,6 +18,7 @@
 #include <due_can.h>
 #include <DueTimer.h>
 #include <due_wire.h>
+#include <due_rtc.h>
 #include "mem_cache.h"
 #include "throttle.h"
 #include "pedal_pot.h"
@@ -29,6 +30,8 @@
 
 THROTTLE *throttle; 
 MOTORCTRL* motorcontroller; //generic motor controller - instantiate some derived class to fill this out
+RTC_clock rtc_clock(XTAL); //init RTC with the external 32k crystal as a reference
+PREFHANDLER sysPrefs(EE_SYSTEM_START);
 
 void printMenu();
 void SerialEvent();
@@ -43,6 +46,8 @@ byte i=0;
 RX_CAN_FRAME message;
 
 void setup_due() {
+  uint32_t temp;
+  
     // Initialize CAN0 and CAN1, baudrate at 500Kb/s
   CAN.init(SystemCoreClock, CAN_BPS_500K);
   //CAN2.init(SystemCoreClock, CAN_BPS_500K);
@@ -63,8 +68,8 @@ void setup_due() {
     CAN.mailbox_set_accept_mask(count, 0x7F0, false);
   }
   //First three mailboxes listen for 0x23x frames, last two listen for 0x65x frames
-  CAN.mailbox_set_id(0, 0x230, false); CAN2.mailbox_set_id(1, 0x230, false); CAN2.mailbox_set_id(2, 0x230, false);
-  CAN.mailbox_set_id(3, 0x650, false); CAN2.mailbox_set_id(4, 0x650, false);
+  CAN.mailbox_set_id(0, 0x230, false); CAN.mailbox_set_id(1, 0x230, false); CAN.mailbox_set_id(2, 0x230, false);
+  CAN.mailbox_set_id(3, 0x650, false); CAN.mailbox_set_id(4, 0x650, false);
   
   for(uint8_t count = 5; count < 8; count++) {
     CAN.mailbox_init(count);
@@ -79,6 +84,15 @@ void setup_due() {
   NVIC_EnableIRQ(CAN0_IRQn); //tell the nested interrupt controller to turn on our interrupt
   
   Wire.begin();
+  
+  rtc_clock.init();
+  //Now, we have no idea what the real time is but the EEPROM should have stored a time in the past.
+  //It's better than nothing while we try to figure out the proper time.
+  sysPrefs.Read(EESYS_RTC_TIME, &temp);
+  rtc_clock.change_time(temp);
+  sysPrefs.Read(EESYS_RTC_DATE, &temp);
+  rtc_clock.change_date(temp);
+  
 
 }
 
@@ -89,7 +103,7 @@ void setup() {
   SerialUSB.println("GEVCU alpha 03-21-2013");
 
   setup_due();
-
+  
   //The pedal I have has two pots and one should be twice the value of the other normally (within tolerance)
   //if min is less than max for a throttle then the pot goes low to high as pressed.
   //if max is less than min for a throttle then the pot goes high to low as pressed.

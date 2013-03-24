@@ -11,6 +11,7 @@
 
 #include "eeprom_layout.h"
 #include <due_can.h>
+#include "pref_handler.h"
 
 class DEVICE {
   public:
@@ -33,9 +34,8 @@ class DEVICE {
     };
 	
     protected:
-
     CANRaw* can;
-    uint32_t pref_base_addr;
+    PREFHANDLER *prefs;
 	
     public:
     DEVICE();
@@ -46,15 +46,6 @@ class DEVICE {
     virtual DEVTYPE getDeviceType();
     virtual DEVID getDeviceID();
     DEVICE(CANRaw *canlib);
-    void prefWrite(uint16_t address, uint8_t val);
-    void prefWrite(uint16_t address, uint16_t val);
-    void prefWrite(uint16_t address, uint32_t val);
-    void prefRead(uint16_t address, uint8_t *val);
-    void prefRead(uint16_t address, uint16_t *val);
-    void prefRead(uint16_t address, uint32_t *val);
-    uint8_t prefCalcChecksum();
-    void prefSaveChecksum();
-    bool prefChecksumValid();
 };
 
 #endif /* DEVICE_H_ */

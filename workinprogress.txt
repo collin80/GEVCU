@@ -47,3 +47,9 @@ Precharge contactor: D8
 Main Contactor: D9
 Cooling Contactor: D10
 
+
+Use RTC function of Due
+
+Allow Wifi to remote control all sorts of stuff, connect to internet and send
+notifications, etc.
+

@@ -15,8 +15,7 @@
 
 #include "motorctrl.h"
 
-class DMOC : 
-public MOTORCTRL {
+class DMOC : public MOTORCTRL {
 public:
   enum GEARS {
     NEUTRAL = 0,

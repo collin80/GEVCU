@@ -12,6 +12,7 @@
 #define SYS_IO_H_
 
 #include <Arduino.h>
+#include "pref_handler.h"
 
 #define NUM_ANALOG	4
 #define NUM_DIGITAL	4
@@ -27,5 +28,7 @@ uint16_t getAnalog(uint8_t which); //get value of one of the 4 analog inputs
 boolean getDigital(uint8_t which); //get value of one of the 4 digital inputs
 void setOutput(uint8_t which, boolean active); //set output high or not
 boolean getOutput(uint8_t which); //get current value of output state (high?)
+
+extern PREFHANDLER sysPrefs;
 	
 #endif
