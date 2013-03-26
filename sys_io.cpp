@@ -21,8 +21,10 @@ void setup_sys_io() {
   int i;
   //requires the value to be contiguous in memory
   for (i = 0; i < NUM_ANALOG; i++) {
-    sysPrefs.Read(EESYS_ADC0_GAIN + 4*i, &adc_comp[i].gain);
-    sysPrefs.Read(EESYS_ADC0_OFFSET + 4*i, &adc_comp[i].offset);
+    //sysPrefs.Read(EESYS_ADC0_GAIN + 4*i, &adc_comp[i].gain);
+    //sysPrefs.Read(EESYS_ADC0_OFFSET + 4*i, &adc_comp[i].offset);
+    adc_comp[i].gain = 1024;
+    adc_comp[i].offset = 0;
   }
 }
 
