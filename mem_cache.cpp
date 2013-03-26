@@ -34,7 +34,7 @@ void CMEMCACHE::FlushAllPages()
     if (pages[c].dirty) { //found a dirty page so flush it
       cache_writepage(c);
       pages[c].dirty = false;
-      delay(7); 
+      delay(10); //10ms is longest it would take to write a page according to datasheet
     }
   }
 }
@@ -325,7 +325,7 @@ uint8_t CMEMCACHE::cache_readpage(uint32_t addr)
   uint8_t buffer[3];
   uint8_t i2c_id;
   c = cache_findpage();
-
+  Serial.print("r");
   if (c != 0xFF) {
     buffer[0] = ((address & 0xFF00) >> 8);
     //buffer[1] = (address & 0x00FF);
@@ -333,9 +333,9 @@ uint8_t CMEMCACHE::cache_readpage(uint32_t addr)
     i2c_id = 0b01010000 + ((address >> 16) & 0x03); //10100 is the chip ID then the two upper bits of the address
     Wire.beginTransmission(i2c_id);  
     Wire.write(buffer, 2);
-    Wire.endTransmission();
-    delayMicroseconds(150); //give TWI some time to send and chip some time to get page
-    Wire.requestFrom(i2c_id, 256);
+    Wire.endTransmission(false); //do NOT generate stop
+    //delayMicroseconds(50); //give TWI some time to send and chip some time to get page
+    Wire.requestFrom(i2c_id, 256); //this will generate stop though.
     for (e = 0; e < 256; e++)
     {
       if(Wire.available())    
@@ -344,7 +344,7 @@ uint8_t CMEMCACHE::cache_readpage(uint32_t addr)
         pages[c].data[e] = d;
       }
     }    
-    pages[c].address = address;
+    pages[c].address = addr;
     pages[c].age = 0;
     pages[c].dirty = false;
   }
@@ -353,7 +353,7 @@ uint8_t CMEMCACHE::cache_readpage(uint32_t addr)
 
 boolean CMEMCACHE::cache_writepage(uint8_t page)
 {
-  uint8_t d;
+  uint16_t d;
   uint32_t addr;
   uint8_t buffer[258];
   uint8_t i2c_id;
@@ -367,7 +367,7 @@ boolean CMEMCACHE::cache_writepage(uint8_t page)
   }
   Wire.beginTransmission(i2c_id);
   Wire.write(buffer, 258);
-  Wire.endTransmission();
+  Wire.endTransmission(true);
 }
 
 CMEMCACHE MemCache;
