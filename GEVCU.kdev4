@@ -1,0 +1,4 @@
+[Project]
+Name=GEVCU
+Manager=KDevCMakeManager
+VersionControl=kdevgit
