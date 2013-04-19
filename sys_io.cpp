@@ -12,7 +12,7 @@
 #include "pref_handler.h"
 
 //pin definitions for system IO
-uint8_t adc[NUM_ANALOG][2] = {{6,7}, {4,5}, {2,3}, {0,1}}; //low, high
+uint8_t adc[NUM_ANALOG][2] = {{1,0}, {3,2}, {5,4}, {7,6}}; //low, high
 uint8_t dig[] = {8, 11, 12, 13};
 uint8_t out[] = {50, 26, 44, 36};
 ADC_COMP adc_comp[NUM_ANALOG];
@@ -34,6 +34,8 @@ void setup_sys_io() {
 //must handle that.
 uint16_t getAnalog(uint8_t which) {
 	uint32_t low, high;
+	
+	analogResolution(12);
 	
 	if (which >= NUM_ANALOG) which = 0;
 	
