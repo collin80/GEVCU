@@ -50,6 +50,7 @@ public:
 
 private:
   GEARS selectedGear;
+  GEARS actualgear;
   OPSTATE opstate; //the op state we want
   OPSTATE actualstate; //what the controller is reporting it is
   int step;

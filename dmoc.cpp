@@ -46,8 +46,6 @@ and also the checksum must match the one we calculate. Right now we'll just assu
 everything has gone according to plan.
 */
 
-//Both RX_CAN_FRAME and Frame have almost the same members and they're basically named the same
-//too so all that has to be done is change the header to use the proper one for the hardware
 void DMOC::handleFrame(RX_CAN_FRAME& frame) {
   int RotorTemp,invTemp, StatorTemp;
   online = 1; //if a frame got to here then it passed the filter and must have been from the DMOC
@@ -70,8 +68,9 @@ void DMOC::handleFrame(RX_CAN_FRAME& frame) {
       break;
     case 0x23B: //speed and current operation status
       actualRPM = ((frame.data[0] * 256) + frame.data[1]) - 20000;
-      actualstate = (OPSTATE)(frame.data[6] >> 4);
-      Serial.println(actualstate);
+      actualstate = (OPSTATE)(frame.data[6] >> 6);
+      actualgear = (GEARS)(frame.data[6]>>4) & 0x03;
+      //Serial.println(actualstate);
       break;
     case 0x23E: //electrical status
       //gives volts and amps for D and Q but does the firmware really care?
@@ -134,8 +133,10 @@ void DMOC::sendCmd1() {
         if ((actualstate == STANDBY || actualstate == ENABLE) && opstate == ENABLE) newstate = ENABLE;
         if (opstate == POWERDOWN) newstate = POWERDOWN;
         
-	output.data[6] = alive + ((byte)selectedGear << 4) + ((byte)newstate << 6);
-
+	output.data[6] = alive + ((byte)selectedGear << 4) + ((byte)newstate << 6); //use new automatic state system.
+	//output.data[6] = alive + ((byte)selectedGear << 4) + ((byte)opstate << 6); //use old manual system
+        //actualstate = opstate;
+ 
 	output.data[7] = calcChecksum(output);
 
         can->mailbox_set_id(5, output.id, false);
