@@ -69,7 +69,7 @@ void DMOC::handleFrame(RX_CAN_FRAME& frame) {
     case 0x23B: //speed and current operation status
       actualRPM = ((frame.data[0] * 256) + frame.data[1]) - 20000;
       actualstate = (OPSTATE)(frame.data[6] >> 6);
-      actualgear = (GEARS)(frame.data[6]>>4) & 0x03;
+      actualgear = (GEARS)((frame.data[6]>>4) & 0x03);
       //Serial.println(actualstate);
       break;
     case 0x23E: //electrical status

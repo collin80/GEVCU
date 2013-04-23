@@ -7,6 +7,8 @@
  *  Author: Collin Kidder
  */
  
+#include "ichip_2128.h" 
+ 
 //initialization of hardware and parameters
 void WIFI::init() {
 }
@@ -33,7 +35,7 @@ String WIFI::getParamById(String paramName) {
 }
 
 //set the given parameter with the given string
-WIFI::String setParam(String paramName, String valu) {
+String WIFI::setParam(String paramName, String valu) {
 }
 
 WIFI::WIFI() {

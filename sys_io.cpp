@@ -7,6 +7,7 @@
  *  Author: Collin Kidder
  */ 
 
+#include "arduino.h"
 #include "sys_io.h"
 #include "eeprom_layout.h"
 #include "pref_handler.h"
@@ -35,7 +36,7 @@ void setup_sys_io() {
 uint16_t getAnalog(uint8_t which) {
 	uint32_t low, high;
 	
-	analogResolution(12);
+	//analogResolution(12);
 	
 	if (which >= NUM_ANALOG) which = 0;
 	
