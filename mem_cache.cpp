@@ -335,7 +335,7 @@ uint8_t CMEMCACHE::cache_readpage(uint32_t addr)
     Wire.write(buffer, 2);
     Wire.endTransmission(false); //do NOT generate stop
     //delayMicroseconds(50); //give TWI some time to send and chip some time to get page
-    Wire.requestFrom(i2c_id, 256); //this will generate stop though.
+    Wire.requestFrom(i2c_id, (uint8_t)256); //this will generate stop though.
     for (e = 0; e < 256; e++)
     {
       if(Wire.available())    

@@ -35,7 +35,8 @@ void setup_sys_io() {
 uint16_t getAnalog(uint8_t which) {
 	uint32_t low, high;
 	
-	analogResolution(12);
+//TODO: fix this call
+//	analogResolution(12);
 	
 	if (which >= NUM_ANALOG) which = 0;
 	

@@ -35,7 +35,7 @@ RTC_clock rtc_clock(XTAL); //init RTC with the external 32k crystal as a referen
 PREFHANDLER sysPrefs(EE_SYSTEM_START);
 
 void printMenu();
-void SerialEvent();
+void serialEvent();
 
 //Evil, global variables
 bool runRamp = false;

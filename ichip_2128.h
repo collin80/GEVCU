@@ -51,9 +51,10 @@
  * 
  */
 
-
 #ifndef ICHIP2128_H_
 #define ICHIP2128_H_
+
+#include "Arduino.h"
 
 class WIFI {
     private:
@@ -69,6 +70,6 @@ class WIFI {
     String setParam(String paramName, String valu); //set the given parameter with the given string
     WIFI();
     WIFI(USARTClass *which);
-}
+};
 
 #endif
