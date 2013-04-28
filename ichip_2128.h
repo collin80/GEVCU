@@ -54,7 +54,10 @@
 #ifndef ICHIP2128_H_
 #define ICHIP2128_H_
 
-#include "Arduino.h"
+#include <Arduino.h>
+#include "config.h"
+
+#ifdef __arm__ // Arduino Due specific implementation
 
 class WIFI {
     private:
@@ -72,4 +75,5 @@ class WIFI {
     WIFI(USARTClass *which);
 };
 
+#endif
 #endif

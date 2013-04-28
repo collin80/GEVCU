@@ -9,7 +9,6 @@
  */
 
 #include "pedal_pot.h"
-#include "sys_io.h"
 
 //initialize by telling the code which two ADC channels to use (or set channel 2 to 255 to disable)
 POT_THROTTLE::POT_THROTTLE(uint8_t Throttle1, uint8_t Throttle2) {
@@ -19,7 +18,9 @@ POT_THROTTLE::POT_THROTTLE(uint8_t Throttle1, uint8_t Throttle2) {
     else numThrottlePots = 2;
   ThrottleStatus = OK;
   ThrottleMaxErr = 25; //in tenths of a percent. So 25 = max 2.5% difference
+#ifdef __arm__ // Arduino Due specific implementation
   analogReadResolution(12);
+#endif
 }
 
 void POT_THROTTLE::setupDevice() {
@@ -28,17 +29,17 @@ void POT_THROTTLE::setupDevice() {
   //all inputs currently active low
   pinMode(THROTTLE_INPUT_BRAKELIGHT, INPUT_PULLUP); //Brake light switch
   if (prefs->checksumValid()) { //checksum is good, read in the values stored in EEPROM
-    prefs->Read(EETH_MIN_ONE, &ThrottleMin1);
-    prefs->Read(EETH_MAX_ONE, &ThrottleMax1);
-    prefs->Read(EETH_MIN_TWO, &ThrottleMin2);
-    prefs->Read(EETH_MAX_TWO, &ThrottleMax2);
-    prefs->Read(EETH_REGEN, &ThrottleRegen);
-    prefs->Read(EETH_FWD, &ThrottleFWD);
-    prefs->Read(EETH_MAP, &ThrottleMAP);
-    prefs->Read(EETH_BRAKE_MIN, &BrakeMin);
-    prefs->Read(EETH_BRAKE_MAX, &BrakeMax);    
-    prefs->Read(EETH_MAX_ACCEL_REGEN, &ThrottleMaxRegen);
-    prefs->Read(EETH_MAX_BRAKE_REGEN, &BrakeMaxRegen); 
+    prefs->read(EETH_MIN_ONE, &ThrottleMin1);
+    prefs->read(EETH_MAX_ONE, &ThrottleMax1);
+    prefs->read(EETH_MIN_TWO, &ThrottleMin2);
+    prefs->read(EETH_MAX_TWO, &ThrottleMax2);
+    prefs->read(EETH_REGEN, &ThrottleRegen);
+    prefs->read(EETH_FWD, &ThrottleFWD);
+    prefs->read(EETH_MAP, &ThrottleMAP);
+    prefs->read(EETH_BRAKE_MIN, &BrakeMin);
+    prefs->read(EETH_BRAKE_MAX, &BrakeMax);
+    prefs->read(EETH_MAX_ACCEL_REGEN, &ThrottleMaxRegen);
+    prefs->read(EETH_MAX_BRAKE_REGEN, &BrakeMaxRegen);
   }
   else { //checksum invalid. Reinitialize values and store to EEPROM
     ThrottleMin1 = 82;
@@ -52,17 +53,17 @@ void POT_THROTTLE::setupDevice() {
     BrakeMaxRegen = 80; //pretty strong regen for brakes  
     BrakeMin = 0;
     BrakeMax = 0;
-    prefs->Write(EETH_MIN_ONE, ThrottleMin1);
-    prefs->Write(EETH_MAX_ONE, ThrottleMax1);
-    prefs->Write(EETH_MIN_TWO, ThrottleMin2);
-    prefs->Write(EETH_MAX_TWO, ThrottleMax2);
-    prefs->Write(EETH_REGEN, ThrottleRegen);
-    prefs->Write(EETH_FWD, ThrottleFWD);
-    prefs->Write(EETH_MAP, ThrottleMAP);
-    prefs->Write(EETH_BRAKE_MIN, BrakeMin);
-    prefs->Write(EETH_BRAKE_MAX, BrakeMax);    
-    prefs->Write(EETH_MAX_ACCEL_REGEN, ThrottleMaxRegen);
-    prefs->Write(EETH_MAX_BRAKE_REGEN, BrakeMaxRegen);
+    prefs->write(EETH_MIN_ONE, ThrottleMin1);
+    prefs->write(EETH_MAX_ONE, ThrottleMax1);
+    prefs->write(EETH_MIN_TWO, ThrottleMin2);
+    prefs->write(EETH_MAX_TWO, ThrottleMax2);
+    prefs->write(EETH_REGEN, ThrottleRegen);
+    prefs->write(EETH_FWD, ThrottleFWD);
+    prefs->write(EETH_MAP, ThrottleMAP);
+    prefs->write(EETH_BRAKE_MIN, BrakeMin);
+    prefs->write(EETH_BRAKE_MAX, BrakeMax);
+    prefs->write(EETH_MAX_ACCEL_REGEN, ThrottleMaxRegen);
+    prefs->write(EETH_MAX_BRAKE_REGEN, BrakeMaxRegen);
     prefs->saveChecksum();
   }
 }

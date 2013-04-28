@@ -5,5 +5,5 @@
  *  Author: Collin Kidder
  */ 
 
-#include "Arduino.h"
+#include "fault_handler.h"
 

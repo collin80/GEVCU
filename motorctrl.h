@@ -10,6 +10,8 @@
  #ifndef MOTORCTRL_H_
 #define MOTORCTRL_H_
 
+#include <Arduino.h>
+#include "config.h"
 #include "device.h"
 
 #define MOTORCTL_INPUT_DRIVE_EN    3
@@ -36,7 +38,7 @@ class MOTORCTRL : public DEVICE {
             GS_FAULT
         };
         
-        MOTORCTRL(CANRaw *canlib);
+        MOTORCTRL(CANHandler *canbus);
 	
 	protected:
 	int requestedThrottle;

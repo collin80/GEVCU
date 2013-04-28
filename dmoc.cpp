@@ -26,7 +26,7 @@ and I'll bet  other controllers do as well. The rest can feel free to ignore it.
 #include "dmoc.h"
 
 
-DMOC::DMOC(CANRaw *canlib) : MOTORCTRL(canlib) {
+DMOC::DMOC(CANHandler *canhandler) : MOTORCTRL(canhandler) {
 	step = SPEED_TORQUE;
 	selectedGear = NEUTRAL;
 	opstate = DISABLED;
@@ -46,7 +46,7 @@ and also the checksum must match the one we calculate. Right now we'll just assu
 everything has gone according to plan.
 */
 
-void DMOC::handleFrame(RX_CAN_FRAME& frame) {
+void DMOC::handleFrame(CANFrame& frame) {
   int RotorTemp,invTemp, StatorTemp;
   online = 1; //if a frame got to here then it passed the filter and must have been from the DMOC
   switch (frame.id) {
@@ -108,8 +108,8 @@ void DMOC::handleTick() {
 
 //Commanded RPM plus state of key and gear selector
 void DMOC::sendCmd1() {
-	TX_CAN_FRAME output;
-        OPSTATE newstate;
+	CANFrame output;
+    OPSTATE newstate;
 	alive = (alive + 2) & 0x0F;
 	output.dlc = 8;
 	output.id = 0x232;
@@ -139,15 +139,12 @@ void DMOC::sendCmd1() {
  
 	output.data[7] = calcChecksum(output);
 
-        can->mailbox_set_id(5, output.id, false);
-        can->mailbox_set_datalen(5, output.dlc);
-        for (uint8_t cnt = 0; cnt < 8; cnt++) can->mailbox_set_databyte(5, cnt, output.data[cnt]);
-        can->global_send_transfer_cmd(CAN_TCR_MB5);  
+	canbus->sendFrame(5, output);
 }
 
 //Torque limits
 void DMOC::sendCmd2() {
-	TX_CAN_FRAME output;
+	CANFrame output;
 	output.dlc = 8;
 	output.id = 0x233;
 	output.ide = 0; //standard frame
@@ -181,16 +178,12 @@ void DMOC::sendCmd2() {
 	output.data[6] = alive;
 	output.data[7] = calcChecksum(output);
 
-        can->mailbox_set_id(6, output.id, false);
-        can->mailbox_set_datalen(6, output.dlc);
-        for (uint8_t cnt = 0; cnt < 8; cnt++) can->mailbox_set_databyte(6, cnt, output.data[cnt]);
-        can->global_send_transfer_cmd(CAN_TCR_MB6);
-
+	canbus->sendFrame(6, output);
 }
 
 //Power limits plus setting ambient temp and whether to cool power train or go into limp mode
 void DMOC::sendCmd3() {
-	TX_CAN_FRAME output;
+	CANFrame output;
 	output.dlc = 8;
 	output.id = 0x234;
 	output.ide = 0; //standard frame
@@ -204,16 +197,12 @@ void DMOC::sendCmd3() {
 	output.data[6] = alive;
 	output.data[7] = calcChecksum(output);
 
-        can->mailbox_set_id(7, output.id, false);
-        can->mailbox_set_datalen(7, output.dlc);
-        for (uint8_t cnt = 0; cnt < 8; cnt++) can->mailbox_set_databyte(7, cnt, output.data[cnt]);
-        can->global_send_transfer_cmd(CAN_TCR_MB7);
-
+	canbus->sendFrame(7, output);
 }
 
 //challenge/response frame 1 - Really doesn't contain anything we need I dont think
 void DMOC::sendCmd4() {
-	TX_CAN_FRAME output;
+	CANFrame output;
 	output.dlc = 8;
 	output.id = 0x235;
 	output.ide = 0; //standard frame
@@ -227,16 +216,12 @@ void DMOC::sendCmd4() {
 	output.data[6] = alive;
 	output.data[7] = calcChecksum(output);
 
-        can->mailbox_set_id(5, output.id, false);
-        can->mailbox_set_datalen(5, output.dlc);
-        for (uint8_t cnt = 0; cnt < 8; cnt++) can->mailbox_set_databyte(5, cnt, output.data[cnt]);
-        can->global_send_transfer_cmd(CAN_TCR_MB5);
-
+	canbus->sendFrame(5, output);
 }
 
 //Another C/R frame but this one also specifies which shifter position we're in
 void DMOC::sendCmd5() {
-	TX_CAN_FRAME output;
+	CANFrame output;
 	output.dlc = 8;
 	output.id = 0x236;
 	output.ide = 0; //standard frame
@@ -258,11 +243,7 @@ void DMOC::sendCmd5() {
 	output.data[6] = alive;
 	output.data[7] = calcChecksum(output);
 
-        can->mailbox_set_id(6, output.id, false);
-        can->mailbox_set_datalen(6, output.dlc);
-        for (uint8_t cnt = 0; cnt < 8; cnt++) can->mailbox_set_databyte(6, cnt, output.data[cnt]);
-        can->global_send_transfer_cmd(CAN_TCR_MB6);
-
+	canbus->sendFrame(6, output);
 }
 
 void DMOC::setOpState(OPSTATE op) {
@@ -273,7 +254,7 @@ void DMOC::setGear(GEARS gear) {
 	selectedGear = gear;
 }
 
-byte DMOC::calcChecksum(TX_CAN_FRAME thisFrame) {
+byte DMOC::calcChecksum(CANFrame thisFrame) {
 	byte cs;
 	byte i;
 	cs = thisFrame.id;
