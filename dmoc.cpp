@@ -48,6 +48,7 @@ everything has gone according to plan.
 
 void DMOC::handleFrame(CANFrame& frame) {
   int RotorTemp,invTemp, StatorTemp;
+  int temp;
   online = 1; //if a frame got to here then it passed the filter and must have been from the DMOC
   switch (frame.id) {
     case 0x651: //Temperature status
@@ -68,9 +69,36 @@ void DMOC::handleFrame(CANFrame& frame) {
       break;
     case 0x23B: //speed and current operation status
       actualRPM = ((frame.data[0] * 256) + frame.data[1]) - 20000;
-      actualstate = (OPSTATE)(frame.data[6] >> 6);
-      actualgear = (GEARS)((frame.data[6]>>4) & 0x03);
-      //Serial.println(actualstate);
+      temp = (OPSTATE)(frame.data[6] >> 4);
+      //actually, the above is an operation status report which doesn't correspond
+      //to the state enum so translate here.
+      switch (temp) {
+        case 0: //Initializing
+          actualstate = DISABLED;
+          break;
+        case 1: //disabled 
+          actualstate = DISABLED;
+          break;
+        case 2: //ready (standby)
+          actualstate = STANDBY;
+          break;
+        case 3: //enabled
+          actualstate = ENABLE;
+          break;
+        case 4: //Power Down
+          actualstate = POWERDOWN;
+          break;
+        case 5: //Fault
+          actualstate = DISABLED;
+          break;        
+        case 6: //Critical Fault
+          actualstate = DISABLED;
+          break;        
+        case 7: //LOS
+          actualstate = DISABLED;
+          break;        
+      }
+//      SerialUSB.println(temp);
       break;
     case 0x23E: //electrical status
       //gives volts and amps for D and Q but does the firmware really care?
@@ -129,11 +157,11 @@ void DMOC::sendCmd1() {
 
         //handle proper state transitions
         newstate = DISABLED;
-        if (actualstate == DISABLED && (opstate == STANDBY || opstate == ENABLE)) newstate == STANDBY;
+        if (actualstate == DISABLED && (opstate == STANDBY || opstate == ENABLE)) newstate = STANDBY;
         if ((actualstate == STANDBY || actualstate == ENABLE) && opstate == ENABLE) newstate = ENABLE;
         if (opstate == POWERDOWN) newstate = POWERDOWN;
         
-	output.data[6] = alive + ((byte)selectedGear << 4) + ((byte)newstate << 6); //use new automatic state system.
+        output.data[6] = alive + ((byte)selectedGear << 4) + ((byte)newstate << 6); //use new automatic state system.
 	//output.data[6] = alive + ((byte)selectedGear << 4) + ((byte)opstate << 6); //use old manual system
         //actualstate = opstate;
  
@@ -167,8 +195,8 @@ void DMOC::sendCmd2() {
        output.data[3] = output.data[1];
     }
     else { //RPM mode so request max torque as upper limit and zero torque as lower limit
-       output.data[0] = (MaxTorque & 0xFF00) >> 8;
-       output.data[1] = (MaxTorque & 0x00FF);
+       output.data[0] = ((30000L + MaxTorque) & 0xFF00) >> 8;
+       output.data[1] = ((30000L + MaxTorque) & 0x00FF);
        output.data[2] = 0x75;
        output.data[3] = 0x30;
     }

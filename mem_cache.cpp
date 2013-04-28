@@ -326,7 +326,7 @@ uint8_t CMEMCACHE::cache_readpage(uint32_t addr)
   uint8_t buffer[3];
   uint8_t i2c_id;
   c = cache_findpage();
-  Serial.print("r");
+  SerialUSB.print("r");
   if (c != 0xFF) {
     buffer[0] = ((address & 0xFF00) >> 8);
     //buffer[1] = (address & 0x00FF);

@@ -41,7 +41,7 @@ void CANHandler::init() {
 	for (uint8_t count = 0; count < 5; count++) {
 		CAN.mailbox_init(count);
 		CAN.mailbox_set_mode(count, CAN_MB_RX_MODE);
-		CAN.mailbox_set_accept_mask(count, 0x7F0, false);
+		CAN.mailbox_set_accept_mask(count, 0x7F0, false); //pay attention to everything but the last hex digit
 	}
 	//First three mailboxes listen for 0x23x frames, last two listen for 0x65x frames
 	CAN.mailbox_set_id(0, 0x230, false);
@@ -60,7 +60,7 @@ void CANHandler::init() {
 	//Enable interrupts for the RX boxes. TX interrupts aren't wired up yet
 	CAN.enable_interrupt(CAN_IER_MB0 | CAN_IER_MB1 | CAN_IER_MB2 | CAN_IER_MB3 | CAN_IER_MB4);
 
-	Serial.println("CAN INIT OK");
+	SerialUSB.println("CAN INIT OK");
 
 	NVIC_EnableIRQ(CAN0_IRQn); //tell the nested interrupt controller to turn on our interrupt
 }
@@ -131,9 +131,9 @@ void CANHandler::init() {
 	// clock in MHz
 	if(CAN.Init(CFG_MACHINA_CAN_SPEED, 16))
 	{
-		Serial.println("MCP2515 Init OK ...");
+		SerialUSB.println("MCP2515 Init OK ...");
 	} else {
-		Serial.println("MCP2515 Init Failed ...");
+		SerialUSB.println("MCP2515 Init Failed ...");
 	}
 
 	attachInterrupt(6, CANInterruptHandler, FALLING);

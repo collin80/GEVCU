@@ -29,6 +29,7 @@
 #define CFG_MACHINA_CAN_PIN_RESET 7 // specify the number of the RESET pin
 #define CFG_MACHINA_CAN_PIN_INT 84 // specify the number of the INT pin
 #define CFG_MACHINA_CAN_SPEED 500 // specify the speed of the CAN bus in kbps
+#define SerialUSB Serial // a workaround to map the missing SerialUSB in the Uno to the standard Serial output
 
 #else
 #error Hardware not supported.
