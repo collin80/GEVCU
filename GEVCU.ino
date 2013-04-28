@@ -13,29 +13,36 @@
 	any hardware of that category. 
  */
 
-#include <Arduino.h>
-#include "variant.h"
-#include <due_can.h>
-#include <DueTimer.h>
-#include <due_wire.h>
+#include "GEVCU.h"
+
+// The following includes are required in the .ino file by the Arduino IDE in order to properly
+// identify the required libraries for the build.
+#ifdef __arm__ // Arduino Due specific implementation
 #include <due_rtc.h>
-#include "mem_cache.h"
-#include "throttle.h"
-#include "pedal_pot.h"
-#include "device.h"
-#include "motorctrl.h"
-#include "dmoc.h"
-#include "timer.h"
-#include "mem_cache.h"
-#include "sys_io.h"
+#include <due_can.h>
+#include <due_wire.h>
+#include <DueTimer.h>
+#elif defined(__AVR__) // Machina specific implementation
+#include <EEPROM.h>
+#include <SPI.h>
+#include <MCP2515.h>
+#endif
+#ifdef CFG_LCD_MONITOR_ENABLED
+#include <LiquidCrystal.h>
+#endif
+
+#ifdef __arm__ // Arduino Due specific implementation
+RTC_clock rtc_clock(XTAL); //init RTC with the external 32k crystal as a reference
+#endif
 
 THROTTLE *throttle; 
 MOTORCTRL* motorcontroller; //generic motor controller - instantiate some derived class to fill this out
-RTC_clock rtc_clock(XTAL); //init RTC with the external 32k crystal as a reference
 PREFHANDLER sysPrefs(EE_SYSTEM_START);
+CANHandler *canbus;
 
-void printMenu();
-void SerialEvent();
+#ifdef CFG_LCD_MONITOR_ENABLED
+LiquidCrystal lcd(CFG_LCD_MONITOR_PINS);
+#endif
 
 //Evil, global variables
 bool runRamp = false;
@@ -44,76 +51,40 @@ bool runThrottle = false;
 bool throttleDebug = false;
 byte i=0;
 
-RX_CAN_FRAME message;
-
-void setup_due() {
-  uint32_t temp;
-  
-    // Initialize CAN0 and CAN1, baudrate at 500Kb/s
-  CAN.init(SystemCoreClock, CAN_BPS_500K);
-  //CAN2.init(SystemCoreClock, CAN_BPS_500K);
-  
-  // Disable all CAN0 & CAN1 interrupts
-  CAN.disable_interrupt(CAN_DISABLE_ALL_INTERRUPT_MASK);
-  //CAN2.disable_interrupt(CAN_DISABLE_ALL_INTERRUPT_MASK);
-  
-  CAN.reset_all_mailbox();
-  //CAN2.reset_all_mailbox();
-  
-  //Now, each canbus device has 8 mailboxes which can freely be assigned to either RX or TX.
-  //The firmware does a lot of both so 5 boxes are for RX, 3 for TX.
-  
-  for(uint8_t count = 0; count < 5; count++) {
-    CAN.mailbox_init(count);
-    CAN.mailbox_set_mode(count, CAN_MB_RX_MODE);
-    
-    CAN.mailbox_set_accept_mask(count, 0x7F0, false); //pay attention to everything but the last hex digit
-  }
-  //First three mailboxes listen for 0x23x frames, last two listen for 0x65x frames
-  CAN.mailbox_set_id(0, 0x230, false); CAN.mailbox_set_id(1, 0x230, false); CAN.mailbox_set_id(2, 0x230, false);
-  CAN.mailbox_set_id(3, 0x650, false); CAN.mailbox_set_id(4, 0x650, false);
-  
-  for(uint8_t count = 5; count < 8; count++) {
-    CAN.mailbox_init(count);
-    CAN.mailbox_set_mode(count, CAN_MB_TX_MODE);
-    CAN.mailbox_set_priority(count, 10);
-    CAN.mailbox_set_accept_mask(count, 0x7FF, false);
-  }
-  
-  //Enable interrupts for the RX boxes. TX interrupts aren't wired up yet
-  CAN.enable_interrupt(CAN_IER_MB0 | CAN_IER_MB1 | CAN_IER_MB2 | CAN_IER_MB3 | CAN_IER_MB4);
-  
-  SerialUSB.println("CAN INIT OK");
-  
-  NVIC_EnableIRQ(CAN0_IRQn); //tell the nested interrupt controller to turn on our interrupt
-  
-  Wire.begin();
-  
-  SerialUSB.println("TWI INIT OK");
-  
-  rtc_clock.init();
-  //Now, we have no idea what the real time is but the EEPROM should have stored a time in the past.
-  //It's better than nothing while we try to figure out the proper time.
-  /*
-  sysPrefs.Read(EESYS_RTC_TIME, &temp);
-  rtc_clock.change_time(temp);
-  sysPrefs.Read(EESYS_RTC_DATE, &temp);
-  rtc_clock.change_date(temp);
-  */
-  SerialUSB.println("RTC INIT OK");
-  
-  setup_sys_io(); //get calibration data for system IO
-  SerialUSB.println("SYSIO INIT OK");
-}
-
 void setup() {
   
   SerialUSB.begin(115200);
 
   SerialUSB.println("GEVCU alpha 04-21-2013");
 
-  setup_due();
+  canbus = new CANHandler();
   
+#ifdef __arm__ // Arduino Due specific implementation
+    Wire.begin();
+
+	SerialUSB.println("TWI INIT OK");
+
+	rtc_clock.init();
+	//Now, we have no idea what the real time is but the EEPROM should have stored a time in the past.
+	//It's better than nothing while we try to figure out the proper time.
+	/*
+	 uint32_t temp;
+	 sysPrefs.Read(EESYS_RTC_TIME, &temp);
+	 rtc_clock.change_time(temp);
+	 sysPrefs.Read(EESYS_RTC_DATE, &temp);
+	 rtc_clock.change_date(temp);
+	 */
+	SerialUSB.println("RTC INIT OK");
+#endif
+
+	setup_sys_io(); //get calibration data for system IO
+	SerialUSB.println("SYSIO INIT OK");
+
+#ifdef CFG_LCD_MONITOR_ENABLED
+    lcd.begin(CFG_LCD_MONITOR_COLUMNS, CFG_LCD_MONITOR_ROWS);
+  	lcd.print("GEVCU is running");
+#endif
+
   //The pedal I have has two pots and one should be twice the value of the other normally (within tolerance)
   //if min is less than max for a throttle then the pot goes low to high as pressed.
   //if max is less than min for a throttle then the pot goes high to low as pressed.
@@ -126,7 +97,7 @@ void setup() {
   //This could eventually be configurable.
   setupTimer(10000); //10ms / 10000us ticks / 100Hz
 
-  motorcontroller = new DMOC(&CAN); //instantiate a DMOC645 device controller as our motor controller
+  motorcontroller = new DMOC(canbus); //instantiate a DMOC645 device controller as our motor controller
         
   //motorcontroller->setupDevice();
         
@@ -161,23 +132,32 @@ void printMenu() {
 //Note that the loop uses the motorcontroller object which is of the MOTORCTRL class. This allows
 //the loop to be generic while still supporting a variety of hardware. Let's try to keep it this way.
 void loop() {
+  static CANFrame message;
   static byte dotTick = 0;
   static byte throttleval = 0;
   static byte count = 0;
   uint16_t adcval;
-  if (CAN.rx_avail()) {
-    CAN.get_rx_buff(&message);
+
+  if (canbus->readFrame(message)) {
     motorcontroller->handleFrame(message);
   }
+
   if (SerialUSB.available()) serialEvent(); //due doesnt have int driven serial yet
   if (tickReady) {
     if (dotTick == 0) SerialUSB.print('.'); //print . every 256 ticks (2.56 seconds)
     dotTick = dotTick + 1;
     tickReady = false;
     //do tick related stuff
-    
+
+#ifdef __arm__ // Arduino Due specific implementation
     MemCache.handleTick();
-    
+#endif
+
+#ifdef CFG_LCD_MONITOR_ENABLED
+    lcd.setCursor(0, 1);
+    lcd.print(count);
+#endif
+
     throttle->handleTick(); //gets ADC values, calculates throttle position
     //Serial.println(Throttle.getThrottle());
    count++;
@@ -302,7 +282,8 @@ void serialEvent() {
       }
       else SerialUSB.println("Cease raw throttle output");
       break;
-    case 'Y':
+#ifdef __arm__ // Arduino Due specific implementation
+      case 'Y':
       SerialUSB.println("Trying to save 0x45 to eeprom location 10");
       uint8_t temp;
       MemCache.Write(10, (uint8_t) 0x45);
@@ -328,6 +309,7 @@ void serialEvent() {
       }
       SerialUSB.println("");
       break;
+#endif
     case 'K': //set all outputs high
       setOutput(0, true);
       setOutput(1, true);
@@ -341,4 +323,5 @@ void serialEvent() {
       setOutput(3, false);    
       break;
   }
+
 }

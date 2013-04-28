@@ -7,8 +7,10 @@
  *  Author: Collin Kidder
  */
  
-#include "ichip_2128.h" 
- 
+#include "ichip_2128.h"
+
+#ifdef __arm__ // Arduino Due specific implementation
+
 //initialization of hardware and parameters
 void WIFI::init() {
 }
@@ -45,3 +47,5 @@ WIFI::WIFI() {
 WIFI::WIFI(USARTClass *which) {
   serialInterface = which;
 }
+
+#endif

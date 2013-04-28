@@ -7,12 +7,10 @@
  *  Author: Collin Kidder
  */ 
  
- #include "device.h"
  #include "motorctrl.h"
  
- 
 
-MOTORCTRL::MOTORCTRL(CANRaw *canlib) : DEVICE(canlib) {
+MOTORCTRL::MOTORCTRL(CANHandler *canbus) : DEVICE(canbus) {
   prefs = new PREFHANDLER(EE_MOTORCTL_START);
 }
 
@@ -45,14 +43,14 @@ void MOTORCTRL::setupDevice() {
   pinMode(MOTORCTL_INPUT_REVERSE, INPUT_PULLUP); //Reverse Gear
   pinMode(MOTORCTL_INPUT_LIMP, INPUT_PULLUP); //Limp mode
   if (prefs->checksumValid()) { //checksum is good, read in the values stored in EEPROM
-    prefs->Read(EEMC_MAX_RPM, &MaxRPM);
-    prefs->Read(EEMC_MAX_TORQUE, &MaxTorque);
+    prefs->read(EEMC_MAX_RPM, &MaxRPM);
+    prefs->read(EEMC_MAX_TORQUE, &MaxTorque);
   }
   else { //checksum invalid. Reinitialize values and store to EEPROM
     MaxRPM = 5000;
     MaxTorque = 500; //50Nm
-    prefs->Write(EEMC_MAX_RPM, MaxRPM);
-    prefs->Write(EEMC_MAX_TORQUE, MaxTorque);
+    prefs->write(EEMC_MAX_RPM, MaxRPM);
+    prefs->write(EEMC_MAX_TORQUE, MaxTorque);
     prefs->saveChecksum();
   }
 }

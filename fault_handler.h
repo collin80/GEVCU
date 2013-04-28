@@ -14,6 +14,9 @@
 #ifndef FAULT_H_
 #define FAULT_H_
 
+#include <Arduino.h>
+#include "config.h"
+
 //structure to use for storing and retrieving faults.
 //Stores the info a fault record will contain.
 typedef struct {

@@ -9,6 +9,12 @@
 #ifndef TIMER_H_
 #define TIMER_H_
 
+#include <Arduino.h>
+#include "config.h"
+#if defined(__arm__) // Arduino Due specific implementation
+#include <DueTimer.h>
+#endif
+
 #ifdef __cplusplus
 extern "C" {
 #endif

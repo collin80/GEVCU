@@ -6,10 +6,9 @@
  */ 
 
 #include "device.h"
-#include "pref_handler.h"
 
 //Empty functions to handle these two callbacks if the derived classes don't
-void DEVICE::handleFrame(RX_CAN_FRAME& frame) {
+void DEVICE::handleFrame(CANFrame& frame) {
 	
 }
 
@@ -32,6 +31,6 @@ DEVICE::DEVICE() {
 }
 
 
-DEVICE::DEVICE(CANRaw* canlib) {
-  can = canlib;
+DEVICE::DEVICE(CANHandler* canhandler) {
+  canbus = canhandler;
 }

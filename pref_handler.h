@@ -12,6 +12,13 @@
 #define PREF_HANDLER_H_
 
 #include <Arduino.h>
+#include "config.h"
+#include "eeprom_layout.h"
+#if defined (__arm__) // Arduino Due specific implementation
+#include "mem_cache.h"
+#elif defined(__AVR__) // Machina specific implementation
+#include <EEPROM.h>
+#endif
 
 #define PREF_MODE_NORMAL  false
 #define PREF_MODE_LKG     true
@@ -26,12 +33,12 @@ class PREFHANDLER {
   PREFHANDLER();
   PREFHANDLER(uint32_t base);
   void LKG_mode(bool mode);
-  void Write(uint16_t address, uint8_t val);
-  void Write(uint16_t address, uint16_t val);
-  void Write(uint16_t address, uint32_t val);
-  void Read(uint16_t address, uint8_t *val);
-  void Read(uint16_t address, uint16_t *val);
-  void Read(uint16_t address, uint32_t *val);
+  void write(uint16_t address, uint8_t val);
+  void write(uint16_t address, uint16_t val);
+  void write(uint16_t address, uint32_t val);
+  void read(uint16_t address, uint8_t *val);
+  void read(uint16_t address, uint16_t *val);
+  void read(uint16_t address, uint32_t *val);
   uint8_t calcChecksum();
   void saveChecksum();
   bool checksumValid();
