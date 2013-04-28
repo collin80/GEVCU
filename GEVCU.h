@@ -19,11 +19,7 @@
 #include "sys_io.h"
 #include "can_handler.h"
 #ifdef __arm__ // Arduino Due specific implementation
-#include <due_rtc.h>
 #include "mem_cache.h"
-#endif
-#ifdef CFG_LCD_MONITOR_ENABLED
-#include <LiquidCrystal.h>
 #endif
 
 #ifdef __cplusplus

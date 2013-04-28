@@ -28,6 +28,7 @@
 									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/GEVCU/Libraries/Ethernet}&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/GEVCU/Libraries/Ethernet/utility}&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/GEVCU/Libraries/SPI}&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/GEVCU/Libraries/LiquidCrystal}&quot;"/>
 								</option>
 								<inputType id="it.baeyens.arduino.compiler.cpp.sketch.input.17133827" name="CPP source files" superClass="it.baeyens.arduino.compiler.cpp.sketch.input"/>
 							</tool>
@@ -42,6 +43,7 @@
 									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/GEVCU/Libraries/Ethernet}&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/GEVCU/Libraries/Ethernet/utility}&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/GEVCU/Libraries/SPI}&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/GEVCU/Libraries/LiquidCrystal}&quot;"/>
 								</option>
 								<inputType id="it.baeyens.arduino.compiler.c.sketch.input.1631851147" name="C Source Files" superClass="it.baeyens.arduino.compiler.c.sketch.input"/>
 							</tool>

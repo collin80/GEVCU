@@ -13,6 +13,8 @@
 	any hardware of that category. 
  */
 
+#include "GEVCU.h"
+
 // The following includes are required in the .ino file by the Arduino IDE in order to properly
 // identify the required libraries for the build.
 #ifdef __arm__ // Arduino Due specific implementation
@@ -25,8 +27,9 @@
 #include <SPI.h>
 #include <MCP2515.h>
 #endif
-
-#include "GEVCU.h"
+#ifdef CFG_LCD_MONITOR_ENABLED
+#include <LiquidCrystal.h>
+#endif
 
 #ifdef __arm__ // Arduino Due specific implementation
 RTC_clock rtc_clock(XTAL); //init RTC with the external 32k crystal as a reference
@@ -79,7 +82,7 @@ void setup() {
 	Serial.println("SYSIO INIT OK");
 
 #ifdef CFG_LCD_MONITOR_ENABLED
-    lcd.begin(CONFIG_LCD_MONITOR_COLUMNS, CONFIG_LCD_MONITOR_ROWS);
+    lcd.begin(CFG_LCD_MONITOR_COLUMNS, CFG_LCD_MONITOR_ROWS);
   	lcd.print("GEVCU is running");
 #endif
 
