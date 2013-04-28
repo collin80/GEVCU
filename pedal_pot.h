@@ -8,8 +8,10 @@
 #ifndef PEDAL_POT_H_
 #define PEDAL_POT_H_
 
-#include "Arduino.h"
+#include <Arduino.h>
+#include "config.h"
 #include "throttle.h"
+#include "sys_io.h"
 
 #define THROTTLE_INPUT_BRAKELIGHT  2
 

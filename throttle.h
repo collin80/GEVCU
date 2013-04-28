@@ -10,6 +10,8 @@
 #ifndef THROTTLE_H_
 #define THROTTLE_H_
 
+#include <Arduino.h>
+#include "config.h"
 #include "device.h"
 
 class THROTTLE : public DEVICE {

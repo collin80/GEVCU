@@ -5,7 +5,8 @@
  *  Author: Collin Kidder
  */
 
-#include "Arduino.h"
+#ifdef __arm__ // Arduino Due specific implementation
+
 #include "mem_cache.h"
 
 extern volatile uint8_t AgingTimer;
@@ -325,7 +326,7 @@ uint8_t CMEMCACHE::cache_readpage(uint32_t addr)
   uint8_t buffer[3];
   uint8_t i2c_id;
   c = cache_findpage();
-  Serial.print("r");
+  SerialUSB.print("r");
   if (c != 0xFF) {
     buffer[0] = ((address & 0xFF00) >> 8);
     //buffer[1] = (address & 0x00FF);
@@ -335,7 +336,7 @@ uint8_t CMEMCACHE::cache_readpage(uint32_t addr)
     Wire.write(buffer, 2);
     Wire.endTransmission(false); //do NOT generate stop
     //delayMicroseconds(50); //give TWI some time to send and chip some time to get page
-    Wire.requestFrom(i2c_id, 256); //this will generate stop though.
+    Wire.requestFrom(i2c_id, (uint8_t)256); //this will generate stop though.
     for (e = 0; e < 256; e++)
     {
       if(Wire.available())    
@@ -372,3 +373,4 @@ boolean CMEMCACHE::cache_writepage(uint8_t page)
 
 CMEMCACHE MemCache;
 
+#endif
