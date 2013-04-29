@@ -12,6 +12,8 @@
 #define SYS_IO_H_
 
 #include <Arduino.h>
+#include "config.h"
+#include "eeprom_layout.h"
 #include "pref_handler.h"
 
 #define NUM_ANALOG	4

@@ -12,7 +12,8 @@
 #ifndef DMOC_H_
 #define DMOC_H_
 
-
+#include <Arduino.h>
+#include "config.h"
 #include "motorctrl.h"
 
 class DMOC : public MOTORCTRL {
@@ -63,17 +64,17 @@ private:
   void sendCmd3();
   void sendCmd4();
   void sendCmd5();
-  byte calcChecksum(TX_CAN_FRAME thisFrame);
+  byte calcChecksum(CANFrame thisFrame);
 
 public:
 
-  void handleFrame(RX_CAN_FRAME& frame);
+  void handleFrame(CANFrame& frame);
   void handleTick();	
   void setupDevice();
   void setOpState(OPSTATE op);
   void setGear(GEARS gear);
 
-  DMOC(CANRaw *canlib);
+  DMOC(CANHandler *canbus);
   DEVICE::DEVID getDeviceID();
   void setPowerMode(POWERMODE mode);
   POWERMODE getPowerMode();

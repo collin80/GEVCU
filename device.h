@@ -9,8 +9,10 @@
 #ifndef DEVICE_H_
 #define DEVICE_H_
 
+#include <Arduino.h>
+#include "config.h"
 #include "eeprom_layout.h"
-#include <due_can.h>
+#include "can_handler.h"
 #include "pref_handler.h"
 
 class DEVICE {
@@ -34,18 +36,18 @@ class DEVICE {
     };
 	
     protected:
-    CANRaw* can;
+    CANHandler *canbus;
     PREFHANDLER *prefs;
 	
     public:
     DEVICE();
 
-  virtual void handleFrame(RX_CAN_FRAME& frame);
+  virtual void handleFrame(CANFrame& frame);
     virtual void handleTick();
     virtual void setupDevice();
     virtual DEVTYPE getDeviceType();
     virtual DEVID getDeviceID();
-    DEVICE(CANRaw *canlib);
+    DEVICE(CANHandler *canbus);
 };
 
 #endif /* DEVICE_H_ */

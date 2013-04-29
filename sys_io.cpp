@@ -7,10 +7,7 @@
  *  Author: Collin Kidder
  */ 
 
-#include "arduino.h"
 #include "sys_io.h"
-#include "eeprom_layout.h"
-#include "pref_handler.h"
 
 //pin definitions for system IO
 uint8_t adc[NUM_ANALOG][2] = {{1,0}, {3,2}, {5,4}, {7,6}}; //low, high
