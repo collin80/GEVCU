@@ -35,7 +35,8 @@
 RTC_clock rtc_clock(XTAL); //init RTC with the external 32k crystal as a reference
 #endif
 
-THROTTLE *throttle; 
+THROTTLE *accelerator; 
+THROTTLE *brake; 
 MOTORCTRL* motorcontroller; //generic motor controller - instantiate some derived class to fill this out
 PREFHANDLER sysPrefs(EE_SYSTEM_START);
 CANHandler *canbus;
@@ -89,17 +90,18 @@ void setup() {
   //if min is less than max for a throttle then the pot goes low to high as pressed.
   //if max is less than min for a throttle then the pot goes high to low as pressed.
 
-  throttle = new POT_THROTTLE(0,1); //specify the shield ADC ports to use for throttle 255 = not used (valid only for second value)
-  POT_THROTTLE* pot = (POT_THROTTLE *)throttle;   //since throttle is of the generic base class type we have to cast to get access to
-                                                        //the special functions of a pedal pot. Of course this must not be done in production.
-  //throttle->setupDevice();
+  accelerator = new POT_THROTTLE(0,1, true); //specify the shield ADC ports to use for throttle 255 = not used (valid only for second value)
+  brake = new POT_THROTTLE(2, 255, false); //set up the brake input as the third ADC input from the shield.
+  
+  accelerator->setupDevice();
+  brake->setupDevice();
         
   //This could eventually be configurable.
   setupTimer(10000); //10ms / 10000us ticks / 100Hz
 
   motorcontroller = new DMOC(canbus); //instantiate a DMOC645 device controller as our motor controller
         
-  //motorcontroller->setupDevice();
+  motorcontroller->setupDevice();
         
   //This will not be hard coded soon. It should be a list of every hardware support module
   //compiled into the ROM
@@ -158,7 +160,8 @@ void loop() {
     lcd.print(count);
 #endif
 
-    throttle->handleTick(); //gets ADC values, calculates throttle position
+    accelerator->handleTick(); //gets ADC values, calculates throttle position
+	brake->handleTick();
     //Serial.println(Throttle.getThrottle());
    count++;
    if (count > 50) {
@@ -196,7 +199,11 @@ void loop() {
       motorcontroller->setThrottle(throttleval * (int)12); //with throttle 0-80 this sets throttle to 0 - 960
     } 
     else { //use the installed throttle
-      motorcontroller->setThrottle(throttle->getThrottle());
+	  int throttlepos = accelerator->getThrottle();
+	  if (brake->getThrottle() != 0) { //if the brake has been pressed it overrides the accelerator.
+		  throttlepos = brake->getThrottle();
+	  }
+      motorcontroller->setThrottle(throttlepos);
       //Serial.println(throttle.getThrottle());  //just for debugging
     }
     motorcontroller->handleTick(); //intentionally far down here so that the throttle is set before this is called

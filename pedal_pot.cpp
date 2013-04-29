@@ -11,13 +11,14 @@
 #include "pedal_pot.h"
 
 //initialize by telling the code which two ADC channels to use (or set channel 2 to 255 to disable)
-POT_THROTTLE::POT_THROTTLE(uint8_t Throttle1, uint8_t Throttle2) {
+POT_THROTTLE::POT_THROTTLE(uint8_t Throttle1, uint8_t Throttle2, bool isAccel = true) {
   Throttle1ADC = Throttle1;
   Throttle2ADC = Throttle2;
   if (Throttle2 == 255) numThrottlePots = 1;
     else numThrottlePots = 2;
   ThrottleStatus = OK;
   ThrottleMaxErr = 25; //in tenths of a percent. So 25 = max 2.5% difference
+  isAccelerator = isAccel;
 #ifdef __arm__ // Arduino Due specific implementation
   analogReadResolution(12);
 #endif
@@ -27,7 +28,7 @@ void POT_THROTTLE::setupDevice() {
   THROTTLE::setupDevice(); //call base class first
   //set digital ports to inputs and pull them up
   //all inputs currently active low
-  pinMode(THROTTLE_INPUT_BRAKELIGHT, INPUT_PULLUP); //Brake light switch
+  //pinMode(THROTTLE_INPUT_BRAKELIGHT, INPUT_PULLUP); //Brake light switch
   if (prefs->checksumValid()) { //checksum is good, read in the values stored in EEPROM
     prefs->read(EETH_MIN_ONE, &ThrottleMin1);
     prefs->read(EETH_MAX_ONE, &ThrottleMax1);
@@ -94,82 +95,75 @@ int POT_THROTTLE::calcThrottle(int clampedVal, int minVal, int maxVal) {
     return retVal;
 }
 
-//right now only the first throttle ADC port is used. Eventually the second one should be used to cross check so dumb things
-//don't happen. Also, right now values of ADC outside the proper range are just clamped to the proper range.
-void POT_THROTTLE::handleTick() {
+void POT_THROTTLE::doAccel() {
     signed int range;
     signed int calcThrottle1, calcThrottle2, clampedVal, tempLow, temp;
-    static uint16_t ThrottleAvg = 0, ThrottleFeedback = 0; //used to create proportional control
+	static uint16_t ThrottleAvg = 0, ThrottleFeedback = 0; //used to create proportional control
 
-    Throttle1Val = getAnalog(Throttle1ADC);
-    if (numThrottlePots > 1) {
-      Throttle2Val = getAnalog(Throttle2ADC);
-    }
-
-    ThrottleStatus = OK;
     clampedVal = Throttle1Val;
-    
-    //The below code now only faults if the value of the ADC is 15 outside of the range +/-
-    //otherwise we'll just clamp
-    if (Throttle1Val > ThrottleMax1) {
-       if (Throttle1Val > (ThrottleMax1 + 15)) {
-          ThrottleStatus = ERR_HIGH_T1;
-       }
-       clampedVal = ThrottleMax1;
-    }
-    tempLow = 0;
-    if (ThrottleMin1 > 14) {
-      tempLow = ThrottleMin1 - 15;
-    } 
-    if (Throttle1Val < ThrottleMin1) {
-      if (Throttle1Val < tempLow) {
-        ThrottleStatus = ERR_LOW_T1;
-      }
-      clampedVal = ThrottleMin1;
-    }
 
-    if (! (ThrottleStatus == OK)) {
-        outputThrottle = 0; //no throttle if there is a fault
-        return;
-    }
 
-    calcThrottle1 = calcThrottle(clampedVal, ThrottleMin1, ThrottleMax1);
-    
-    if (numThrottlePots > 1) { //can only do these things if there are two or more pots
-      clampedVal = Throttle2Val;
-      if (Throttle2Val > ThrottleMax2) {
-         if (Throttle2Val > (ThrottleMax2 + 15)) {
-            ThrottleStatus = ERR_HIGH_T2;
-         }
-         clampedVal = ThrottleMax2;
-      }
-      tempLow = 0;
-      if (ThrottleMin2 > 14) {
-        tempLow = ThrottleMin2 - 15;
-      } 
-      if (Throttle2Val < ThrottleMin2) {
-        if (Throttle2Val < tempLow) {
-          ThrottleStatus = ERR_LOW_T2;
-        }
-        clampedVal = ThrottleMin2;
-      }
+	//The below code now only faults if the value of the ADC is 15 outside of the range +/-
+	//otherwise we'll just clamp
+	if (Throttle1Val > ThrottleMax1) {
+		if (Throttle1Val > (ThrottleMax1 + 15)) {
+			ThrottleStatus = ERR_HIGH_T1;
+		}
+		clampedVal = ThrottleMax1;
+	}
+	tempLow = 0;
+	if (ThrottleMin1 > 14) {
+		tempLow = ThrottleMin1 - 15;
+	} 
+	if (Throttle1Val < ThrottleMin1) {
+		if (Throttle1Val < tempLow) {
+			ThrottleStatus = ERR_LOW_T1;
+		}
+		clampedVal = ThrottleMin1;
+	}
 
-      calcThrottle2 = calcThrottle(clampedVal, ThrottleMin2, ThrottleMax2);
+	if (! (ThrottleStatus == OK)) {
+		outputThrottle = 0; //no throttle if there is a fault
+		return;
+	}
+	calcThrottle1 = calcThrottle(clampedVal, ThrottleMin1, ThrottleMax1);
+   
+	if (numThrottlePots > 1) { //can only do these things if there are two or more pots
+		clampedVal = Throttle2Val;
+		if (Throttle2Val > ThrottleMax2) {
+			if (Throttle2Val > (ThrottleMax2 + 15)) {
+				ThrottleStatus = ERR_HIGH_T2;
+			}
+			clampedVal = ThrottleMax2;
+		}
+		tempLow = 0;
+		if (ThrottleMin2 > 14) {
+			tempLow = ThrottleMin2 - 15;
+		} 
+		if (Throttle2Val < ThrottleMin2) {
+			if (Throttle2Val < tempLow) {
+				ThrottleStatus = ERR_LOW_T2;
+			}
+			clampedVal = ThrottleMin2;
+		}
+
+		calcThrottle2 = calcThrottle(clampedVal, ThrottleMin2, ThrottleMax2);
       
-      if ((calcThrottle1 - ThrottleMaxErr) > calcThrottle2) { //then throttle1 is too large compared to 2
-          ThrottleStatus = ERR_MISMATCH;
-      }
-      if ((calcThrottle2 - ThrottleMaxErr) > calcThrottle1) { //then throttle2 is too large compared to 1
-          ThrottleStatus = ERR_MISMATCH;
-      }
+		if ((calcThrottle1 - ThrottleMaxErr) > calcThrottle2) { //then throttle1 is too large compared to 2
+			ThrottleStatus = ERR_MISMATCH;
+		}
+		if ((calcThrottle2 - ThrottleMaxErr) > calcThrottle1) { //then throttle2 is too large compared to 1
+			ThrottleStatus = ERR_MISMATCH;
+		}
 
-      calcThrottle1 = (calcThrottle1 + calcThrottle2) / 2; //temp now the average of the two
-    }
+		calcThrottle1 = (calcThrottle1 + calcThrottle2) / 2; //temp now the average of the two
+	}
 
-    if (! (ThrottleStatus == OK)) {
-        outputThrottle = 0; //no throttle if there is a fault
-        return;
-    }
+	if (! (ThrottleStatus == OK)) {
+		outputThrottle = 0; //no throttle if there is a fault
+		return;
+	}
+	
 
     //Apparently all is well with the throttle input
     //so go ahead and calculate the proper throttle output
@@ -204,14 +198,94 @@ void POT_THROTTLE::handleTick() {
         outputThrottle = 500 + (signed int)((signed long)(500) * temp / range);
       }
     }
+}
 
-	//Debugging output - Sends raw throttle1 and the actual output throttle value
-	/*
-	Serial.print(Throttle1Val);
-	Serial.print("*");
-	Serial.println(outputThrottle);
-	*/
+//the brake only really uses one variable input and uses different parameters
+void POT_THROTTLE::doBrake() {
+    signed int range;
+    signed int calcThrottle1, calcThrottle2, clampedVal, tempLow, temp;
+	static uint16_t ThrottleAvg = 0, ThrottleFeedback = 0; //used to create proportional control
 
+    clampedVal = Throttle1Val;
+
+	//The below code now only faults if the value of the ADC is 15 outside of the range +/-
+	//otherwise we'll just clamp
+	if (Throttle1Val > BrakeMax) {
+		if (Throttle1Val > (BrakeMax + 15)) {
+			ThrottleStatus = ERR_HIGH_T1;
+		}
+		clampedVal = BrakeMax;
+	}
+
+	tempLow = 0;
+	if (BrakeMin > 14) {
+		tempLow = BrakeMin - 15;
+	} 
+	if (Throttle1Val < BrakeMin) {
+		if (Throttle1Val < tempLow) {
+			ThrottleStatus = ERR_LOW_T1;
+		}
+		clampedVal = BrakeMin;
+	}
+
+	if (! (ThrottleStatus == OK)) {
+		outputThrottle = 0; //no throttle if there is a fault
+		return;
+	}
+	calcThrottle1 = calcThrottle(clampedVal, BrakeMin, BrakeMax);
+   
+
+    //Apparently all is well with the throttle input
+    //so go ahead and calculate the proper throttle output
+
+
+	//still use this smoothing/easing code for the brake. It works quickly enough
+    ThrottleAvg += calcThrottle1;
+    ThrottleAvg -= ThrottleFeedback;
+    ThrottleFeedback = ThrottleAvg >> 4;
+
+	outputThrottle = 0; //by default we give zero throttle
+
+	//I suppose I should explain. This prevents flutter in the ADC readings of the brake from slamming
+	//regen on intermittantly just because the value fluttered a couple of numbers. This makes sure
+	//that we're actually pushing the pedal. Without this even a small flutter at the brake will send
+	//ThrottleMaxRegen regen out and ignore the accelerator. That'd be unpleasant.
+	if (ThrottleFeedback < 15) {
+		outputThrottle = 0;
+		return;
+	}
+
+    if (BrakeMaxRegen != 0) { //is the brake regen even enabled?
+		int range = BrakeMaxRegen - ThrottleMaxRegen; //we start the brake at ThrottleMaxRegen so the range is reduced by that amount
+		if (range < 1) { //detect stupidity and abort
+			outputThrottle = 0;
+			return;
+		}
+		outputThrottle = (signed int)((signed int)-10 * range * ThrottleFeedback) / (signed int)1000;
+		outputThrottle -= -10 * ThrottleMaxRegen;    
+    }
+
+}
+
+
+//right now only the first throttle ADC port is used. Eventually the second one should be used to cross check so dumb things
+//don't happen. Also, right now values of ADC outside the proper range are just clamped to the proper range.
+void POT_THROTTLE::handleTick() {
+    Throttle1Val = getAnalog(Throttle1ADC);
+    if (numThrottlePots > 1) {
+      Throttle2Val = getAnalog(Throttle2ADC);
+    }
+
+    ThrottleStatus = OK;
+
+	if (isAccelerator) 
+	{
+		doAccel();
+	}
+	else 
+	{	
+		doBrake();
+	}
 }
 
 POT_THROTTLE::THROTTLESTATUS POT_THROTTLE::getStatus() {
