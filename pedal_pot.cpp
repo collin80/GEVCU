@@ -200,7 +200,16 @@ void POT_THROTTLE::doAccel() {
     }
 }
 
-//the brake only really uses one variable input and uses different parameters
+/*
+the brake only really uses one variable input and uses different parameters
+
+story time: this code will start at ThrottleMaxRegen when applying the brake. It
+will do this even if you're currently flooring it. The accelerator pedal is ignored
+if there is any pressure detected on the brake. This is a sort of failsafe. It should
+not be possible to go racing down the road with a stuck accelerator. As soon as the
+brake is pressed it overrides the accelerator signal. Sorry, no standing burn outs.
+
+*/
 void POT_THROTTLE::doBrake() {
     signed int range;
     signed int calcThrottle1, calcThrottle2, clampedVal, tempLow, temp;

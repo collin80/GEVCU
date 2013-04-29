@@ -161,9 +161,13 @@ void DMOC::sendCmd1() {
         if ((actualstate == STANDBY || actualstate == ENABLE) && opstate == ENABLE) newstate = ENABLE;
         if (opstate == POWERDOWN) newstate = POWERDOWN;
         
-        output.data[6] = alive + ((byte)selectedGear << 4) + ((byte)newstate << 6); //use new automatic state system.
-	//output.data[6] = alive + ((byte)selectedGear << 4) + ((byte)opstate << 6); //use old manual system
-        //actualstate = opstate;
+		if (actualstate == ENABLE) {
+			output.data[6] = alive + ((byte)selectedGear << 4) + ((byte)newstate << 6); //use new automatic state system.
+		}
+		else { //force neutral gear until the system is enabled.
+			output.data[6] = alive + ((byte)NEUTRAL << 4) + ((byte)newstate << 6); //use new automatic state system.
+		}
+	
  
 	output.data[7] = calcChecksum(output);
 
@@ -201,6 +205,7 @@ void DMOC::sendCmd2() {
        output.data[3] = 0x30;
     }
        
+	//what the hell is standby torque? Does it keep the transmission spinning for automatics? I don't know.
 	output.data[4] = 0x75; //msb standby torque. -3000 offset, 0.1 scale. These bytes give a standby of 0Nm
 	output.data[5] = 0x30; //lsb
 	output.data[6] = alive;
@@ -280,8 +285,17 @@ void DMOC::setOpState(OPSTATE op) {
 
 void DMOC::setGear(GEARS gear) {
 	selectedGear = gear;
+	//if the gear was just set to drive or reverse and the DMOC is not currently in enabled
+	//op state then ask for it by name
+	if (selectedGear != NEUTRAL) {
+		opstate = ENABLE;
+	}
+	//should it be set to standby when selecting neutral? I don't know. Doing that prevents regen
+	//when in neutral and I don't think people will like that.
 }
 
+//this might look stupid. You might not believe this is real. It is. This is how you
+//calculate the checksum for the DMOC frames.
 byte DMOC::calcChecksum(CANFrame thisFrame) {
 	byte cs;
 	byte i;
