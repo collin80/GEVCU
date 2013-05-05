@@ -52,64 +52,164 @@ bool runThrottle = false;
 bool throttleDebug = false;
 byte i=0;
 
+
+//initializes all the system EEPROM values. Chances are this should be broken out a bit but
+//there is only one checksum check for all of them so it's simple to do it all here.
+void initSysEEPROM() {
+  //three temporary storage places to make saving to EEPROM easy
+  uint8_t eight;
+  uint16_t sixteen;
+  uint32_t thirtytwo; 
+
+  eight = SYSTEM_DUE;
+  sysPrefs.write(EESYS_SYSTEM_TYPE, eight);
+  
+  sixteen = 1024; //no gain
+  sysPrefs.write(EESYS_ADC0_GAIN, sixteen);
+  sysPrefs.write(EESYS_ADC1_GAIN, sixteen);
+  sysPrefs.write(EESYS_ADC2_GAIN, sixteen);
+  sysPrefs.write(EESYS_ADC3_GAIN, sixteen);
+  
+  sixteen = 0; //no offset
+  sysPrefs.write(EESYS_ADC0_OFFSET, sixteen);
+  sysPrefs.write(EESYS_ADC1_OFFSET, sixteen);
+  sysPrefs.write(EESYS_ADC2_OFFSET, sixteen);
+  sysPrefs.write(EESYS_ADC3_OFFSET, sixteen);
+
+  sixteen = 500; //multiplied by 1000 so 500k baud
+  sysPrefs.write(EESYS_CAN0_BAUD, sixteen);
+  sysPrefs.write(EESYS_CAN1_BAUD, sixteen);
+  
+  sixteen = 11520; //multiplied by 10
+  sysPrefs.write(EESYS_SERUSB_BAUD, sixteen);
+  
+  sixteen = 100; //multiplied by 1000
+  sysPrefs.write(EESYS_TWI_BAUD, sixteen);
+
+  sixteen = 100; //number of ticks per second
+  sysPrefs.write(EESYS_TICK_RATE, sixteen);
+
+  thirtytwo = 0;
+  sysPrefs.write(EESYS_RTC_TIME, thirtytwo);
+  sysPrefs.write(EESYS_RTC_DATE, thirtytwo);
+  
+  eight = 5; //how many RX mailboxes
+  sysPrefs.write(EESYS_CAN_RX_COUNT, eight);
+  
+  thirtytwo = 0x7f0; //standard frame, ignore bottom 4 bits
+  sysPrefs.write(EESYS_CAN_MASK0, thirtytwo);
+  sysPrefs.write(EESYS_CAN_MASK1, thirtytwo);
+  sysPrefs.write(EESYS_CAN_MASK2, thirtytwo);
+  sysPrefs.write(EESYS_CAN_MASK3, thirtytwo);
+  sysPrefs.write(EESYS_CAN_MASK4, thirtytwo);
+  
+  thirtytwo = 0x230;
+  sysPrefs.write(EESYS_CAN_FILTER0, thirtytwo);
+  sysPrefs.write(EESYS_CAN_FILTER1, thirtytwo);
+  sysPrefs.write(EESYS_CAN_FILTER2, thirtytwo);
+  
+  thirtytwo = 0x650;
+  sysPrefs.write(EESYS_CAN_FILTER3, thirtytwo);
+  sysPrefs.write(EESYS_CAN_FILTER4, thirtytwo);
+  
+  thirtytwo = 0; //ok, not technically 32 bytes but the four zeros still shows it is unused.
+  sysPrefs.write(EESYS_WIFI0_SSID, thirtytwo);
+  sysPrefs.write(EESYS_WIFI1_SSID, thirtytwo);
+  sysPrefs.write(EESYS_WIFI2_SSID, thirtytwo);
+  sysPrefs.write(EESYS_WIFIX_SSID, thirtytwo);
+
+  eight = 0; //no channel, DHCP off, B mode
+  sysPrefs.write(EESYS_WIFI0_CHAN, eight);
+  sysPrefs.write(EESYS_WIFI0_DHCP, eight);
+  sysPrefs.write(EESYS_WIFI0_MODE, eight);
+
+  sysPrefs.write(EESYS_WIFI1_CHAN, eight);
+  sysPrefs.write(EESYS_WIFI1_DHCP, eight);
+  sysPrefs.write(EESYS_WIFI1_MODE, eight);
+
+  sysPrefs.write(EESYS_WIFI2_CHAN, eight);
+  sysPrefs.write(EESYS_WIFI2_DHCP, eight);
+  sysPrefs.write(EESYS_WIFI2_MODE, eight);
+
+  sysPrefs.write(EESYS_WIFIX_CHAN, eight);
+  sysPrefs.write(EESYS_WIFIX_DHCP, eight);
+  sysPrefs.write(EESYS_WIFIX_MODE, eight);
+  
+  thirtytwo = 0;
+  sysPrefs.write(EESYS_WIFI0_IPADDR, thirtytwo);
+  sysPrefs.write(EESYS_WIFI1_IPADDR, thirtytwo);
+  sysPrefs.write(EESYS_WIFI2_IPADDR, thirtytwo);
+  sysPrefs.write(EESYS_WIFIX_IPADDR, thirtytwo);
+
+  sysPrefs.write(EESYS_WIFI0_KEY, thirtytwo);
+  sysPrefs.write(EESYS_WIFI1_KEY, thirtytwo);
+  sysPrefs.write(EESYS_WIFI2_KEY, thirtytwo);
+  sysPrefs.write(EESYS_WIFIX_KEY, thirtytwo);
+  
+  sysPrefs.saveChecksum();
+}
+
+
 void setup() {
   
   SerialUSB.begin(115200);
 
-  SerialUSB.println("GEVCU alpha 04-21-2013");
+  SerialUSB.println("GEVCU alpha 05-05-2013");
 
   canbus = new CANHandler();
   
 #ifdef __arm__ // Arduino Due specific implementation
     Wire.begin();
 
-	SerialUSB.println("TWI INIT OK");
+    SerialUSB.println("TWI INIT OK");
 
-	rtc_clock.init();
-	//Now, we have no idea what the real time is but the EEPROM should have stored a time in the past.
-	//It's better than nothing while we try to figure out the proper time.
-	/*
-	 uint32_t temp;
-	 sysPrefs.Read(EESYS_RTC_TIME, &temp);
-	 rtc_clock.change_time(temp);
-	 sysPrefs.Read(EESYS_RTC_DATE, &temp);
-	 rtc_clock.change_date(temp);
-	 */
-	SerialUSB.println("RTC INIT OK");
+    if (!sysPrefs.checksumValid()) { //checksum is good, read in the values stored in EEPROM
+        initSysEEPROM();
+    }
+    
+    rtc_clock.init();
+    //Now, we have no idea what the real time is but the EEPROM should have stored a time in the past.
+    //It's better than nothing while we try to figure out the proper time.
+    uint32_t temp;
+    sysPrefs.read(EESYS_RTC_TIME, &temp);
+    rtc_clock.change_time(temp);
+    sysPrefs.read(EESYS_RTC_DATE, &temp);
+    rtc_clock.change_date(temp);
+	 
+    SerialUSB.println("RTC INIT OK");
 #endif
 
-	setup_sys_io(); //get calibration data for system IO
-	SerialUSB.println("SYSIO INIT OK");
+    setup_sys_io(); //get calibration data for system IO
+    SerialUSB.println("SYSIO INIT OK");
 
 #ifdef CFG_LCD_MONITOR_ENABLED
-    lcd.begin(CFG_LCD_MONITOR_COLUMNS, CFG_LCD_MONITOR_ROWS);
-  	lcd.print("GEVCU is running");
+      lcd.begin(CFG_LCD_MONITOR_COLUMNS, CFG_LCD_MONITOR_ROWS);
+      lcd.print("GEVCU is running");
 #endif
 
-  //The pedal I have has two pots and one should be twice the value of the other normally (within tolerance)
-  //if min is less than max for a throttle then the pot goes low to high as pressed.
-  //if max is less than min for a throttle then the pot goes high to low as pressed.
+    //The pedal I have has two pots and one should be twice the value of the other normally (within tolerance)
+    //if min is less than max for a throttle then the pot goes low to high as pressed.
+    //if max is less than min for a throttle then the pot goes high to low as pressed.
 
-  accelerator = new POT_THROTTLE(0,1, true); //specify the shield ADC ports to use for throttle 255 = not used (valid only for second value)
-  brake = new POT_THROTTLE(2, 255, false); //set up the brake input as the third ADC input from the shield.
+    accelerator = new POT_THROTTLE(0,1, true); //specify the shield ADC ports to use for throttle 255 = not used (valid only for second value)
+    brake = new POT_THROTTLE(2, 255, false); //set up the brake input as the third ADC input from the shield.
   
-  accelerator->setupDevice();
-  brake->setupDevice();
+    accelerator->setupDevice();
+    brake->setupDevice();
         
-  //This could eventually be configurable.
-  setupTimer(10000); //10ms / 10000us ticks / 100Hz
+    //This could eventually be configurable.
+    setupTimer(10000); //10ms / 10000us ticks / 100Hz
 
-  motorcontroller = new DMOC(canbus); //instantiate a DMOC645 device controller as our motor controller
+    motorcontroller = new DMOC(canbus); //instantiate a DMOC645 device controller as our motor controller
         
-  motorcontroller->setupDevice();
+    motorcontroller->setupDevice();
         
-  //This will not be hard coded soon. It should be a list of every hardware support module
-  //compiled into the ROM
-  //Serial.println("Installed devices: DMOC645");
+    //This will not be hard coded soon. It should be a list of every hardware support module
+    //compiled into the ROM
+    //Serial.println("Installed devices: DMOC645");
 
-  SerialUSB.print("System Ready ");
-  printMenu();
-
+    SerialUSB.print("System Ready ");
+    printMenu();
 }
 
 void printMenu() {
@@ -161,7 +261,7 @@ void loop() {
 #endif
 
     accelerator->handleTick(); //gets ADC values, calculates throttle position
-	brake->handleTick();
+    brake->handleTick();
     //Serial.println(Throttle.getThrottle());
    count++;
    if (count > 50) {

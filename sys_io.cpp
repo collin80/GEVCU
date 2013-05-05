@@ -14,6 +14,7 @@ uint8_t adc[NUM_ANALOG][2] = {{1,0}, {2,3}, {4,5}, {7,6}}; //low, high
 uint8_t dig[] = {11, 9, 13, 12};
 uint8_t out[] = {55, 22, 48, 34};
 
+extern PREFHANDLER sysPrefs;
 
 ADC_COMP adc_comp[NUM_ANALOG];
 
@@ -21,11 +22,21 @@ void setup_sys_io() {
   int i;
   //requires the value to be contiguous in memory
   for (i = 0; i < NUM_ANALOG; i++) {
-    //sysPrefs.Read(EESYS_ADC0_GAIN + 4*i, &adc_comp[i].gain);
-    //sysPrefs.Read(EESYS_ADC0_OFFSET + 4*i, &adc_comp[i].offset);
-    adc_comp[i].gain = 1024;
-    adc_comp[i].offset = 0;
+    sysPrefs.read(EESYS_ADC0_GAIN + 4*i, &adc_comp[i].gain);
+    sysPrefs.read(EESYS_ADC0_OFFSET + 4*i, &adc_comp[i].offset);
+    //adc_comp[i].gain = 1024;
+    //adc_comp[i].offset = 0;
   }
+  pinMode(dig[0], INPUT);
+  pinMode(dig[1], INPUT);
+  pinMode(dig[2], INPUT);
+  pinMode(dig[3], INPUT);
+  
+  pinMode(out[0], OUTPUT);
+  pinMode(out[1], OUTPUT);
+  pinMode(out[2], OUTPUT);
+  pinMode(out[3], OUTPUT);
+  
 }
 
 //get value of one of the 4 analog inputs
@@ -62,7 +73,7 @@ uint16_t getAnalog(uint8_t which) {
 //get value of one of the 4 digital inputs
 boolean getDigital(uint8_t which) {
 	if (which >= NUM_DIGITAL) which = 0;
-	return !digitalRead(dig[which]);
+	return !(digitalRead(dig[which]));
 }
 
 //set output high or not

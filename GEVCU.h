@@ -31,6 +31,9 @@ void setup();
 } // extern "C"
 #endif
 
+#define SYSTEM_MACCHINA   10
+#define SYSTEM_DUE        20
+
 void printMenu();
 void serialEvent();
 
