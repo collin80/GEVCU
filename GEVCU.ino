@@ -330,9 +330,11 @@ TODO: This all has to eventually go away.
 */
 void serialEvent() {
   int incoming;
+  static int state = 0;
   DMOC* dmoc = (DMOC*)motorcontroller;
   incoming = SerialUSB.read();
   if (incoming == -1) return;
+ if (state == 0) {
   switch (incoming) {
     case 'h':
     case '?':
@@ -432,13 +434,16 @@ void serialEvent() {
       setOutput(1, true);
       setOutput(2, true);
       setOutput(3, true);
+      SerialUSB.println("Setting all outputs ON");
       break;
     case 'J': //set the four outputs low
       setOutput(0, false);
       setOutput(1, false);
       setOutput(2, false);
       setOutput(3, false);    
+      SerialUSB.println("Setting all outputs OFF");      
       break;
   }
-
+ }
+ 
 }

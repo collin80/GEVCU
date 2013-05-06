@@ -20,6 +20,8 @@
 #define NUM_DIGITAL	4
 #define NUM_OUTPUT	4
 
+#define NUM_ADC_SAMPLES  16
+
 typedef struct {
   uint16_t offset;
   uint16_t gain;

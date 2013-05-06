@@ -17,7 +17,7 @@ uint8_t out[] = {55, 22, 48, 34};
 //the ADC values fluctuate a lot so smoothing is required.
 //we'll smooth the last 8 values into an average and use
 //rolling buffers. 
-uint16_t adc_buffer[NUM_ANALOG][8];
+uint16_t adc_buffer[NUM_ANALOG][NUM_ADC_SAMPLES];
 uint8_t adc_pointer[NUM_ANALOG]; //pointer to next position to use
 
 extern PREFHANDLER sysPrefs;
@@ -30,7 +30,7 @@ void setup_sys_io() {
   for (i = 0; i < NUM_ANALOG; i++) {
     sysPrefs.read(EESYS_ADC0_GAIN + 4*i, &adc_comp[i].gain);
     sysPrefs.read(EESYS_ADC0_OFFSET + 4*i, &adc_comp[i].offset);
-    for (int j = 0; j < 8; j++) adc_buffer[i][j] = 0;
+    for (int j = 0; j < NUM_ADC_SAMPLES; j++) adc_buffer[i][j] = 0;
     adc_pointer[i] = 0;
     //adc_comp[i].gain = 1024;
     //adc_comp[i].offset = 0;
@@ -55,10 +55,15 @@ uint16_t getDiffADC(uint8_t which) {
   if (low < high) {
 
     //first remove the bias to bring us back to where it rests at zero input volts
+
     if (low >= adc_comp[which].offset) low -= adc_comp[which].offset;
       else low = 0;
     if (high >= adc_comp[which].offset) high -= adc_comp[which].offset;
       else high = 0;
+
+     low -= adc_comp[which].offset;
+    high -= adc_comp[which].offset;
+   
         
     //gain multiplier is 1024 for 1 to 1 gain, less for lower gain, more for higher.
     low *= adc_comp[which].gain;
@@ -79,14 +84,14 @@ uint16_t getDiffADC(uint8_t which) {
 
 void addNewADCVal(uint8_t which, uint16_t val) {
   adc_buffer[which][adc_pointer[which]] = val;
-  adc_pointer[which] = (adc_pointer[which] + 1) % 8;
+  adc_pointer[which] = (adc_pointer[which] + 1) % NUM_ADC_SAMPLES;
 }
 
 uint16_t getADCAvg(uint8_t which) {
   uint32_t sum;
   sum = 0;
-  for (int j = 0; j < 8; j++) sum += adc_buffer[which][j];
-  sum = sum >> 3; //divide by 8
+  for (int j = 0; j < NUM_ADC_SAMPLES; j++) sum += adc_buffer[which][j];
+  sum = sum / NUM_ADC_SAMPLES;
   return ((uint16_t)sum);
 }
 
