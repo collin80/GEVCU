@@ -1,10 +1,10 @@
 A textfile with various notes to whoever else is interested 
 in what's coming down the pike and possibly what they could do:
 
--All devices should have a setup routine that's automatically
-called at start up. This is where each device should load its
-parameters and set up its hardware - This is implemented in DEVICE,
-MOTORCTRL, DMOC, THROTTLE, POT_THROTTLE now
+- The #1 order of business right now is to make sure that it is not necessary
+to have a serial connection to the Due in order to function. This should now
+be the case. If digital input 0 is set high then everything will go enabled.
+If D1 is set high, everything will disable.
 
 -I think that handleTick should be of configurable timing. Perhaps
 have the system tick be actually 1ms or 2ms; something fast. And then
@@ -13,16 +13,6 @@ byte) and once that # of system ticks has happened the device will get
 its handleTick callback. This allows some devices to tick rapidly and some
 to tick slowly. For instance, the DMOC needs to send frames around
 every 20ms but the pedal could probably be called less frequently.
-
--EEPROM should start being used. ATmega2560 has 4k of EEPROM.
-The Arduino Due has none but you can use flash space for that so 4k can be
-kept aside there as well. If there are 6 devices allowed then they all could
-have a block of 600 bytes of EEPROM set aside for them and that would
-take up 3600 and leave 496 bytes of EEPROM for the system itself.
-
--The throttle code is still a bit of a mess. It should work more like the
-spec document - It's partially there. Now it is clamped and only errors out
-if things go too far away from spec.
 
 -Much of the spec document pre-assumes there are certain inputs
 and outputs. Such things as gear selection, drive enable, etc. A
@@ -33,22 +23,16 @@ so ideally an Arduino compatible I/O shield is needed that works with both
 5 and 3.3v
 
 -Inputs:
-Throttle Inputs:ADC0, ADC1
-Brake Pressure Input: ADC2
-Brake Light Switch: D2
-Drive Enable: D3
-Gear - Neutral/Park - D4
-Gear - Drive - D5
-Gear - Reverse - D6
-Limp Mode - D7
+Throttle Inputs:AI0, AI1
+Brake Pressure Input: AI2
+Drive Enable: D0
+Drive Disable: D1
 
 -Outputs:
 Precharge contactor: D8
 Main Contactor: D9
 Cooling Contactor: D10
 
-
-Use RTC function of Due
 
 Allow Wifi to remote control all sorts of stuff, connect to internet and send
 notifications, etc.

@@ -75,6 +75,7 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="can_handler.cpp" />
     <ClCompile Include="device.cpp" />
     <ClCompile Include="dmoc.cpp" />
     <ClCompile Include="fault_handler.cpp" />
@@ -88,10 +89,13 @@
     <ClCompile Include="timer.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="can_handler.h" />
+    <ClInclude Include="config.h" />
     <ClInclude Include="device.h" />
     <ClInclude Include="dmoc.h" />
     <ClInclude Include="eeprom_layout.h" />
     <ClInclude Include="fault_handler.h" />
+    <ClInclude Include="GEVCU.h" />
     <ClInclude Include="ichip_2128.h" />
     <ClInclude Include="mem_cache.h" />
     <ClInclude Include="motorctrl.h" />
