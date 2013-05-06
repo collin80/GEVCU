@@ -14,6 +14,12 @@ uint8_t adc[NUM_ANALOG][2] = {{1,0}, {2,3}, {4,5}, {7,6}}; //low, high
 uint8_t dig[] = {11, 9, 13, 12};
 uint8_t out[] = {55, 22, 48, 34};
 
+//the ADC values fluctuate a lot so smoothing is required.
+//we'll smooth the last 8 values into an average and use
+//rolling buffers. 
+uint16_t adc_buffer[NUM_ANALOG][8];
+uint8_t adc_pointer[NUM_ANALOG]; //pointer to next position to use
+
 extern PREFHANDLER sysPrefs;
 
 ADC_COMP adc_comp[NUM_ANALOG];
@@ -24,6 +30,8 @@ void setup_sys_io() {
   for (i = 0; i < NUM_ANALOG; i++) {
     sysPrefs.read(EESYS_ADC0_GAIN + 4*i, &adc_comp[i].gain);
     sysPrefs.read(EESYS_ADC0_OFFSET + 4*i, &adc_comp[i].offset);
+    for (int j = 0; j < 8; j++) adc_buffer[i][j] = 0;
+    adc_pointer[i] = 0;
     //adc_comp[i].gain = 1024;
     //adc_comp[i].offset = 0;
   }
@@ -39,35 +47,66 @@ void setup_sys_io() {
   
 }
 
-//get value of one of the 4 analog inputs
-//Probably handles scaling, bias, and differential input
-//but does nothing to smooth the output. Subsequent stages
-//must handle that.
-uint16_t getAnalog(uint8_t which) {
-	uint32_t low, high;
-	
-	//analogResolution(12);
-	
-	if (which >= NUM_ANALOG) which = 0;
-	
-	low = analogRead(adc[which][0]);
-	high = analogRead(adc[which][1]);
+uint16_t getDiffADC(uint8_t which) {
+  uint32_t low, high;
+  low = analogRead(adc[which][0]);
+  high = analogRead(adc[which][1]);
 
-        //first remove the bias to bring us back to where it rests at zero input volts
-        low -= adc_comp[which].offset;
-        high -= adc_comp[which].offset;
+  if (low < high) {
+
+    //first remove the bias to bring us back to where it rests at zero input volts
+    if (low >= adc_comp[which].offset) low -= adc_comp[which].offset;
+      else low = 0;
+    if (high >= adc_comp[which].offset) high -= adc_comp[which].offset;
+      else high = 0;
         
-        //gain multiplier is 1024 for 1 to 1 gain, less for lower gain, more for higher.
-        low *= adc_comp[which].gain;
-        low = low >> 10; //divide by 1024 again to correct for gain multiplier
-        high *= adc_comp[which].gain;
-        high = high >> 10;
+    //gain multiplier is 1024 for 1 to 1 gain, less for lower gain, more for higher.
+    low *= adc_comp[which].gain;
+    low = low >> 10; //divide by 1024 again to correct for gain multiplier
+    high *= adc_comp[which].gain;
+    high = high >> 10;
 	
-        //Lastly, the input scheme is basically differential so we have to subtract
-        //low from high to get the actual value
-	high = high - low;
+    //Lastly, the input scheme is basically differential so we have to subtract
+    //low from high to get the actual value
+    high = high - low;
+  }
+  else high = 0;
+        
+  if (high > 4096) high = 0; //if it somehow got wrapped anyway then set it back to zero
+  
+  return high;
+}
+
+void addNewADCVal(uint8_t which, uint16_t val) {
+  adc_buffer[which][adc_pointer[which]] = val;
+  adc_pointer[which] = (adc_pointer[which] + 1) % 8;
+}
+
+uint16_t getADCAvg(uint8_t which) {
+  uint32_t sum;
+  sum = 0;
+  for (int j = 0; j < 8; j++) sum += adc_buffer[which][j];
+  sum = sum >> 3; //divide by 8
+  return ((uint16_t)sum);
+}
+
+//get value of one of the 4 analog inputs
+//Properly handles scaling, bias, and differential input
+//Also tries to smooth the output a bit
+uint16_t getAnalog(uint8_t which) {
+    uint16_t val;
 	
-	return high;
+    //analogResolution(12);
+	
+    if (which >= NUM_ANALOG) which = 0;
+
+    val = getDiffADC(which);
+    addNewADCVal(which, val);
+    
+    val = getDiffADC(which);
+    addNewADCVal(which, val);
+    
+    return getADCAvg(which);
 }
 
 //get value of one of the 4 digital inputs
