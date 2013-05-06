@@ -244,6 +244,16 @@ void loop() {
     motorcontroller->handleFrame(message);
   }
 
+  //if the first digital input is high we'll enable drive so we can go!
+  if (getDigital(0)) {
+    ((DMOC *)motorcontroller)->setGear(DMOC::DRIVE);
+  }
+  
+  //but, if the second input is high we cancel the whole thing and disable the drive.
+  if (getDigital(1)) {
+    ((DMOC *)motorcontroller)->setOpState(DMOC::DISABLED);
+  }
+  
   if (SerialUSB.available()) serialEvent(); //due doesnt have int driven serial yet
   if (tickReady) {
     if (dotTick == 0) SerialUSB.print('.'); //print . every 256 ticks (2.56 seconds)
