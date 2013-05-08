@@ -331,9 +331,9 @@ void loop() {
     } 
     else { //use the installed throttle
 	  int throttlepos = accelerator->getThrottle();
-	  if (brake->getThrottle() != 0) { //if the brake has been pressed it overrides the accelerator.
-		  throttlepos = brake->getThrottle();
-	  }
+	  //if (brake->getThrottle() != 0) { //if the brake has been pressed it overrides the accelerator.
+		  //throttlepos = brake->getThrottle();
+	  //}
       motorcontroller->setThrottle(throttlepos);
       //Serial.println(throttle.getThrottle());  //just for debugging
     }
