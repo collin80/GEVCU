@@ -32,7 +32,7 @@
 #endif
 
 #ifdef __arm__ // Arduino Due specific implementation
-RTC_clock rtc_clock(XTAL); //init RTC with the external 32k crystal as a reference
+//RTC_clock rtc_clock(XTAL); //init RTC with the external 32k crystal as a reference
 #endif
 
 THROTTLE *accelerator; 
@@ -161,6 +161,9 @@ void setup() {
 
   canbus = new CANHandler();
   
+   motorcontroller = new DMOC(canbus); //instantiate a DMOC645 device controller as our motor controller      
+   motorcontroller->handleTick();
+  
 #ifdef __arm__ // Arduino Due specific implementation
     Wire.begin();
 
@@ -170,9 +173,10 @@ void setup() {
         initSysEEPROM();
     }
     
-    rtc_clock.init();
+    //rtc_clock.init();
     //Now, we have no idea what the real time is but the EEPROM should have stored a time in the past.
     //It's better than nothing while we try to figure out the proper time.
+    /*
     uint32_t temp;
     sysPrefs.read(EESYS_RTC_TIME, &temp);
     rtc_clock.change_time(temp);
@@ -180,8 +184,11 @@ void setup() {
     rtc_clock.change_date(temp);
 	 
     SerialUSB.println("RTC INIT OK");
+    */
 #endif
 
+    motorcontroller->setupDevice();
+   
     setup_sys_io(); //get calibration data for system IO
     SerialUSB.println("SYSIO INIT OK");
 
@@ -203,10 +210,6 @@ void setup() {
         
     //This could eventually be configurable.
     setupTimer(10000); //10ms / 10000us ticks / 100Hz
-
-    motorcontroller = new DMOC(canbus); //instantiate a DMOC645 device controller as our motor controller
-        
-    motorcontroller->setupDevice();
         
     //This will not be hard coded soon. It should be a list of every hardware support module
     //compiled into the ROM
