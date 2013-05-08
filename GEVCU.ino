@@ -152,6 +152,9 @@ void initSysEEPROM() {
 
 void setup() {
   
+  pinMode(BLINKLED, OUTPUT);
+  digitalWrite(BLINKLED, LOW);
+  
   SerialUSB.begin(115200);
 
   SerialUSB.println("GEVCU alpha 05-05-2013");
@@ -192,6 +195,7 @@ void setup() {
     //if max is less than min for a throttle then the pot goes high to low as pressed.
 
     accelerator = new POT_THROTTLE(0,1, true); //specify the shield ADC ports to use for throttle 255 = not used (valid only for second value)
+
     brake = new POT_THROTTLE(2, 255, false); //set up the brake input as the third ADC input from the shield.
   
     accelerator->setupDevice();
@@ -238,6 +242,7 @@ void loop() {
   static byte dotTick = 0;
   static byte throttleval = 0;
   static byte count = 0;
+  static bool LED = false;
   uint16_t adcval;
 
   if (canbus->readFrame(message)) {
@@ -256,7 +261,16 @@ void loop() {
   
   if (SerialUSB.available()) serialEvent(); //due doesnt have int driven serial yet
   if (tickReady) {
-    if (dotTick == 0) SerialUSB.print('.'); //print . every 256 ticks (2.56 seconds)
+    if (dotTick == 0) {
+      SerialUSB.print('.'); //print . every 256 ticks (2.56 seconds)
+      if (LED) {
+        digitalWrite(BLINKLED, HIGH);
+      }
+      else {
+        digitalWrite(BLINKLED, LOW);
+      }
+      LED = !LED;
+    }
     dotTick = dotTick + 1;
     tickReady = false;
     //do tick related stuff
@@ -299,6 +313,10 @@ void loop() {
          else SerialUSB.print(" D2: LOW");
        if (getDigital(3)) SerialUSB.print(" D3: HIGH");
          else SerialUSB.print(" D3: LOW");
+         
+       int throttlepos = accelerator->getThrottle();         
+       SerialUSB.print("  A:");
+       SerialUSB.print(throttlepos);
        SerialUSB.println("");
      }
    }

@@ -44,6 +44,8 @@
 #define CFG_LCD_MONITOR_ROWS 2 // specify the number of rows of the display
 
 
+#define CFG_THROTTLE_TOLERANCE  30 //the max that things can go over or under the min/max without fault
+
 /*
  * specify if the webserver should be included in the build
  */

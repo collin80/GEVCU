@@ -33,6 +33,7 @@ void setup();
 
 #define SYSTEM_MACCHINA   10
 #define SYSTEM_DUE        20
+#define BLINKLED          73 //13 is L, 73 is TX, 72 is RX
 
 void printMenu();
 void serialEvent();
