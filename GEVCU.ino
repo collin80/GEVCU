@@ -247,11 +247,14 @@ void loop() {
   //if the first digital input is high we'll enable drive so we can go!
   if (getDigital(0)) {
     ((DMOC *)motorcontroller)->setGear(DMOC::DRIVE);
+    runThrottle = true;
+    ((DMOC *)motorcontroller)->setPowerMode(DMOC::MODE_TORQUE);
   }
   
   //but, if the second input is high we cancel the whole thing and disable the drive.
   if (getDigital(1)) {
     ((DMOC *)motorcontroller)->setOpState(DMOC::DISABLED);
+    runThrottle = false;
   }
   
   if (SerialUSB.available()) serialEvent(); //due doesnt have int driven serial yet
