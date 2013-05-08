@@ -173,6 +173,7 @@ void setup() {
         initSysEEPROM();
     }
     
+    motorcontroller->handleTick();
     //rtc_clock.init();
     //Now, we have no idea what the real time is but the EEPROM should have stored a time in the past.
     //It's better than nothing while we try to figure out the proper time.
@@ -207,6 +208,8 @@ void setup() {
   
     accelerator->setupDevice();
     brake->setupDevice();
+    
+    motorcontroller->handleTick();
         
     //This could eventually be configurable.
     setupTimer(10000); //10ms / 10000us ticks / 100Hz
@@ -260,7 +263,7 @@ void loop() {
   }
   
   //but, if the second input is high we cancel the whole thing and disable the drive.
-  if (getDigital(1)) {
+  if (getDigital(1) || !getDigital(0)) {
     ((DMOC *)motorcontroller)->setOpState(DMOC::DISABLED);
     runThrottle = false;
   }
