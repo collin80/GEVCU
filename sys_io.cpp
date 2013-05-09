@@ -5,14 +5,24 @@
  *
  * Created: 03/14/2013
  *  Author: Collin Kidder
+ *
+ * Includes code credited as:
+ * Arduino Due ADC->DMA->USB 1MSPS
+ * by stimmer
  */ 
 
 #include "sys_io.h"
+
+#undef HID_ENABLED
 
 //pin definitions for system IO
 uint8_t adc[NUM_ANALOG][2] = {{1,0}, {2,3}, {4,5}, {7,6}}; //low, high
 uint8_t dig[] = {11, 9, 13, 12};
 uint8_t out[] = {55, 22, 48, 34};
+
+volatile int bufn,obufn;
+volatile uint16_t adc_buf[4][256];   // 4 buffers of 256 readings
+uint16_t adc_values[8];
 
 //the ADC values fluctuate a lot so smoothing is required.
 //we'll smooth the last 8 values into an average and use
@@ -26,6 +36,9 @@ ADC_COMP adc_comp[NUM_ANALOG];
 
 void setup_sys_io() {
   int i;
+  
+  setupFastADC();
+  
   //requires the value to be contiguous in memory
   for (i = 0; i < NUM_ANALOG; i++) {
     sysPrefs.read(EESYS_ADC0_GAIN + 4*i, &adc_comp[i].gain);
@@ -34,6 +47,7 @@ void setup_sys_io() {
     adc_pointer[i] = 0;
     //adc_comp[i].gain = 1024;
     //adc_comp[i].offset = 0;
+    adc_values[i] = 0;
   }
   pinMode(dig[0], INPUT);
   pinMode(dig[1], INPUT);
@@ -49,8 +63,11 @@ void setup_sys_io() {
 
 uint16_t getDiffADC(uint8_t which) {
   uint32_t low, high;
-  low = analogRead(adc[which][0]);
-  high = analogRead(adc[which][1]);
+  
+  low = adc_values[adc[which][0]];
+  high = adc_values[adc[which][1]];
+  //low = analogRead(adc[which][0]);
+  //high = analogRead(adc[which][1]);
 
   if (low < high) {
 
@@ -132,4 +149,66 @@ void setOutput(uint8_t which, boolean active) {
 boolean getOutput(uint8_t which) {
 	if (which >= NUM_OUTPUT) which = 0;
 	return digitalRead(out[which]);
+}
+
+void ADC_Handler(){     // move DMA pointers to next buffer
+  int f=ADC->ADC_ISR;
+  if (f & (1<<27)){ //receive counter end of buffer
+   bufn=(bufn+1)&3;
+   ADC->ADC_RNPR=(uint32_t)adc_buf[bufn];
+   ADC->ADC_RNCR=256;  
+  } 
+}
+
+//setup the ADC hardware to use DMA and run in the background at 1M samples per second. We won't really
+//get 1M because 8 channels are set up. We'll probably be lucky to get about 200K but thats still fast.
+void setupFastADC(){
+  pmc_enable_periph_clk(ID_ADC);
+  adc_init(ADC, SystemCoreClock, ADC_FREQ_MAX, ADC_STARTUP_FAST);
+  ADC->ADC_MR |=0x80; // free running
+
+  ADC->ADC_CHER=0xFF; //enable A0-A7
+
+  NVIC_EnableIRQ(ADC_IRQn);
+  ADC->ADC_IDR=~(1<<27); //dont disable the ADC interrupt for rx end
+  ADC->ADC_IER=1<<27; //do enable it
+  ADC->ADC_RPR=(uint32_t)adc_buf[0];   // DMA buffer
+  ADC->ADC_RCR=256; //# of samples to take
+  ADC->ADC_RNPR=(uint32_t)adc_buf[1]; // next DMA buffer
+  ADC->ADC_RNCR=256; //# of samples to take
+  bufn=obufn=1;
+  ADC->ADC_PTCR=1; //enable dma mode
+  ADC->ADC_CR=2; //start conversions
+}
+
+//polls for the end of an adc conversion event. Then processes the buffer to extract the averaged
+//value. It takes this value and averages it with the existing value in an 8 position buffer
+//which serves as a super fast place for other code to retrieve ADC values
+void sys_io_adc_poll() {
+  uint16_t tempbuff[8] = {0,0,0,0,0,0,0,0}; //make sure its zero'd
+  if (obufn != bufn) {
+    //the eight enabled adcs are interleaved in the buffer
+    //this is a somewhat unrolled for loop with no incrementer. it's odd but it works
+    for (int i = 0; i < 256;) {
+       tempbuff[0] += adc_buf[obufn][i++];
+       tempbuff[1] += adc_buf[obufn][i++];
+       tempbuff[2] += adc_buf[obufn][i++];
+       tempbuff[3] += adc_buf[obufn][i++];
+       tempbuff[4] += adc_buf[obufn][i++];
+       tempbuff[5] += adc_buf[obufn][i++];
+       tempbuff[6] += adc_buf[obufn][i++];
+       tempbuff[7] += adc_buf[obufn][i++];
+    
+    }
+ 
+    //now, all of the ADC values are summed over 32 readings. So, divide by 32 (shift by 5) to get the average
+    //then add that to the old value we had stored and divide by two to average those. Lots of averaging going on.
+    //the 8-j part is because Due adc ports are numbered backward of Due ADC pins, at least for the first 8. As such,
+    //we're got to reverse the order.
+    for (int j = 0; j < 8; j++) {
+      adc_values[8 - j] += tempbuff[j] >> 5;
+      adc_values[8 - j] = adc_values[j] >> 1;
+    }
+    obufn=(obufn+1)&3;    
+  }
 }

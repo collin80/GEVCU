@@ -111,7 +111,7 @@ void POT_THROTTLE::doAccel() {
   if (Throttle1Val > ThrottleMax1) {
     if (Throttle1Val > (ThrottleMax1 + CFG_THROTTLE_TOLERANCE)) {
       ThrottleStatus = ERR_HIGH_T1;
-      SerialUSB.print("T1H ");      
+      //SerialUSB.print("T1H ");      
     }
     clampedVal = ThrottleMax1;
   }
@@ -122,7 +122,7 @@ void POT_THROTTLE::doAccel() {
   if (Throttle1Val < ThrottleMin1) {
     if (Throttle1Val < tempLow) {
       ThrottleStatus = ERR_LOW_T1;
-      SerialUSB.print("T1L ");      
+      //SerialUSB.print("T1L ");      
     }
     clampedVal = ThrottleMin1;
   }
@@ -138,7 +138,7 @@ void POT_THROTTLE::doAccel() {
     if (Throttle2Val > ThrottleMax2) {
       if (Throttle2Val > (ThrottleMax2 + CFG_THROTTLE_TOLERANCE)) {
 	ThrottleStatus = ERR_HIGH_T2;
-        SerialUSB.print("T2H ");      
+        //SerialUSB.print("T2H ");      
       }
       clampedVal = ThrottleMax2;
     }
@@ -149,7 +149,7 @@ void POT_THROTTLE::doAccel() {
     if (Throttle2Val < ThrottleMin2) {
       if (Throttle2Val < tempLow) {
         ThrottleStatus = ERR_LOW_T2;
-        SerialUSB.print("T2L ");      
+        //SerialUSB.print("T2L ");      
       }
       clampedVal = ThrottleMin2;
     }
@@ -158,11 +158,11 @@ void POT_THROTTLE::doAccel() {
       
     if ((calcThrottle1 - ThrottleMaxErr) > calcThrottle2) { //then throttle1 is too large compared to 2
       ThrottleStatus = ERR_MISMATCH;
-      SerialUSB.print("MX1 ");      
+      //SerialUSB.print("MX1 ");      
     }
     if ((calcThrottle2 - ThrottleMaxErr) > calcThrottle1) { //then throttle2 is too large compared to 1
       ThrottleStatus = ERR_MISMATCH;
-      SerialUSB.print("MX2 ");      
+      //SerialUSB.print("MX2 ");      
     }
 
     calcThrottle1 = (calcThrottle1 + calcThrottle2) / 2; //temp now the average of the two

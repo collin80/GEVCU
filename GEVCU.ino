@@ -250,6 +250,8 @@ void loop() {
   static byte count = 0;
   static bool LED = false;
   uint16_t adcval;
+  
+  sys_io_adc_poll();
 
   if (canbus->readFrame(message)) {
     motorcontroller->handleFrame(message);
