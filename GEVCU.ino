@@ -202,7 +202,7 @@ void setup() {
     //if min is less than max for a throttle then the pot goes low to high as pressed.
     //if max is less than min for a throttle then the pot goes high to low as pressed.
 
-    accelerator = new POT_THROTTLE(0,1, true); //specify the shield ADC ports to use for throttle 255 = not used (valid only for second value)
+    accelerator = new POT_THROTTLE(0,255, true); //specify the shield ADC ports to use for throttle 255 = not used (valid only for second value)
 
     brake = new POT_THROTTLE(2, 255, false); //set up the brake input as the third ADC input from the shield.
   
@@ -325,7 +325,8 @@ void loop() {
        if (getDigital(3)) SerialUSB.print(" D3: HIGH");
          else SerialUSB.print(" D3: LOW");
          
-       int throttlepos = accelerator->getThrottle();         
+       int throttlepos = accelerator->getThrottle();
+       if (brake->getThrottle() != 0) throttlepos = brake->getThrottle();       
        SerialUSB.print("  A:");
        SerialUSB.print(throttlepos);
        SerialUSB.println("");
@@ -339,9 +340,9 @@ void loop() {
     } 
     else { //use the installed throttle
 	  int throttlepos = accelerator->getThrottle();
-	  //if (brake->getThrottle() != 0) { //if the brake has been pressed it overrides the accelerator.
-		  //throttlepos = brake->getThrottle();
-	  //}
+	  if (brake->getThrottle() != 0) { //if the brake has been pressed it overrides the accelerator.
+            throttlepos = brake->getThrottle();
+	  }
       motorcontroller->setThrottle(throttlepos);
       //Serial.println(throttle.getThrottle());  //just for debugging
     }

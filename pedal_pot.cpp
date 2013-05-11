@@ -20,7 +20,7 @@ POT_THROTTLE::POT_THROTTLE(uint8_t Throttle1, uint8_t Throttle2, bool isAccel = 
   ThrottleMaxErr = 75; //in tenths of a percent. So 25 = max 2.5% difference
   isAccelerator = isAccel;
 #ifdef __arm__ // Arduino Due specific implementation
-  analogReadResolution(12);
+  //analogReadResolution(12);
 #endif
 }
 
@@ -46,18 +46,18 @@ void POT_THROTTLE::setupDevice() {
   else { //checksum invalid. Reinitialize values and store to EEPROM
   */
     //these four values are ADC values
-    ThrottleMin1 = 175;
-    ThrottleMax1 = 893;
+    ThrottleMin1 = 8;
+    ThrottleMax1 = 450;
     ThrottleMin2 = 355;
     ThrottleMax2 = 1800;
     //The next three are tenths of a percent
     ThrottleRegen = 0;
     ThrottleFWD = 175;
     ThrottleMAP = 665;
-    ThrottleMaxRegen = 00; //mildly powerful regen for accel pedal
-    BrakeMaxRegen = 80; //pretty strong regen for brakes  
-    BrakeMin = 0;
-    BrakeMax = 0;
+    ThrottleMaxRegen = 00; //percentage of full power to use for regen at throttle
+    BrakeMaxRegen = 80; //percentage of full power to use for regen at brake pedal transducer
+    BrakeMin = 5;
+    BrakeMax = 500;
     prefs->write(EETH_MIN_ONE, ThrottleMin1);
     prefs->write(EETH_MAX_ONE, ThrottleMax1);
     prefs->write(EETH_MIN_TWO, ThrottleMin2);
@@ -225,14 +225,20 @@ void POT_THROTTLE::doBrake() {
 	static uint16_t ThrottleAvg = 0, ThrottleFeedback = 0; //used to create proportional control
 
     clampedVal = Throttle1Val;
+    
+    if (BrakeMax == 0) {//brake processing disabled if Max is 0
+       outputThrottle = 0; 
+       return; 
+    }    
 
 	//The below code now only faults if the value of the ADC is 15 outside of the range +/-
 	//otherwise we'll just clamp
 	if (Throttle1Val > BrakeMax) {
-		if (Throttle1Val > (BrakeMax + 15)) {
-			ThrottleStatus = ERR_HIGH_T1;
-		}
-		clampedVal = BrakeMax;
+	  if (Throttle1Val > (BrakeMax + 15)) {
+	    ThrottleStatus = ERR_HIGH_T1;
+            //SerialUSB.print("A");
+	  }
+	  clampedVal = BrakeMax;
 	}
 
 	tempLow = 0;
@@ -240,10 +246,11 @@ void POT_THROTTLE::doBrake() {
 		tempLow = BrakeMin - 15;
 	} 
 	if (Throttle1Val < BrakeMin) {
-		if (Throttle1Val < tempLow) {
-			ThrottleStatus = ERR_LOW_T1;
-		}
-		clampedVal = BrakeMin;
+	  if (Throttle1Val < tempLow) {
+	    ThrottleStatus = ERR_LOW_T1;
+            //SerialUSB.print("B");
+	  }
+	  clampedVal = BrakeMin;
 	}
 
 	if (! (ThrottleStatus == OK)) {
@@ -251,36 +258,38 @@ void POT_THROTTLE::doBrake() {
 		return;
 	}
 	calcThrottle1 = calcThrottle(clampedVal, BrakeMin, BrakeMax);
+        //SerialUSB.println(calcThrottle1);
    
 
     //Apparently all is well with the throttle input
     //so go ahead and calculate the proper throttle output
 
 
-	//still use this smoothing/easing code for the brake. It works quickly enough
+    //still use this smoothing/easing code for the brake. It works quickly enough
     ThrottleAvg += calcThrottle1;
     ThrottleAvg -= ThrottleFeedback;
     ThrottleFeedback = ThrottleAvg >> 4;
 
-	outputThrottle = 0; //by default we give zero throttle
+    outputThrottle = 0; //by default we give zero throttle
 
-	//I suppose I should explain. This prevents flutter in the ADC readings of the brake from slamming
-	//regen on intermittantly just because the value fluttered a couple of numbers. This makes sure
-	//that we're actually pushing the pedal. Without this even a small flutter at the brake will send
-	//ThrottleMaxRegen regen out and ignore the accelerator. That'd be unpleasant.
-	if (ThrottleFeedback < 15) {
-		outputThrottle = 0;
-		return;
-	}
+    //I suppose I should explain. This prevents flutter in the ADC readings of the brake from slamming
+    //regen on intermittantly just because the value fluttered a couple of numbers. This makes sure
+    //that we're actually pushing the pedal. Without this even a small flutter at the brake will send
+    //ThrottleMaxRegen regen out and ignore the accelerator. That'd be unpleasant.
+    if (ThrottleFeedback < 15) {
+      outputThrottle = 0;
+      return;
+    }
 
     if (BrakeMaxRegen != 0) { //is the brake regen even enabled?
-		int range = BrakeMaxRegen - ThrottleMaxRegen; //we start the brake at ThrottleMaxRegen so the range is reduced by that amount
-		if (range < 1) { //detect stupidity and abort
-			outputThrottle = 0;
-			return;
-		}
-		outputThrottle = (signed int)((signed int)-10 * range * ThrottleFeedback) / (signed int)1000;
-		outputThrottle -= -10 * ThrottleMaxRegen;    
+      int range = BrakeMaxRegen - ThrottleMaxRegen; //we start the brake at ThrottleMaxRegen so the range is reduced by that amount
+      if (range < 1) { //detect stupidity and abort
+        outputThrottle = 0;
+	return;
+      }
+      outputThrottle = (signed int)((signed int)-10 * range * ThrottleFeedback) / (signed int)1000;
+      outputThrottle -= -10 * ThrottleMaxRegen;    
+      //SerialUSB.println(outputThrottle);
     }
 
 }
@@ -344,3 +353,4 @@ void POT_THROTTLE::setMaxRegen(uint16_t regen) {
 DEVICE::DEVID POT_THROTTLE::getDeviceID() {
   return (DEVICE::POTACCELPEDAL);
 }
+
