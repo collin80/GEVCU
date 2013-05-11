@@ -44,6 +44,10 @@ CANHandler *canbus;
 LiquidCrystal lcd(CFG_LCD_MONITOR_PINS);
 #endif
 
+#ifdef CFG_WEBSERVER_ENABLED
+WebServer *webserver;
+#endif
+
 //Evil, global variables
 bool runRamp = false;
 bool runStatic = false;
@@ -53,9 +57,9 @@ byte i=0;
 
 void setup() {
   
-  SerialUSB.begin(115200);
+  SerialUSB.begin(CFG_SERIAL_SPEED);
 
-  SerialUSB.println("GEVCU alpha 04-21-2013");
+  SerialUSB.print(CFG_VERSION);
 
   canbus = new CANHandler();
   
@@ -105,6 +109,10 @@ void setup() {
   //compiled into the ROM
   //Serial.println("Installed devices: DMOC645");
 
+#ifdef CFG_WEBSERVER_ENABLED
+  webserver = new WebServer(motorcontroller);
+#endif
+
   SerialUSB.print("System Ready ");
   printMenu();
 
@@ -153,11 +161,6 @@ void loop() {
     MemCache.handleTick();
 #endif
 
-#ifdef CFG_LCD_MONITOR_ENABLED
-    lcd.setCursor(0, 1);
-    lcd.print(count);
-#endif
-
     throttle->handleTick(); //gets ADC values, calculates throttle position
     //Serial.println(Throttle.getThrottle());
    count++;
@@ -188,6 +191,10 @@ void loop() {
          else SerialUSB.print(" D3: LOW");
        SerialUSB.println("");
      }
+#ifdef CFG_LCD_MONITOR_ENABLED
+		lcd.setCursor(0, 1);
+		lcd.print(millis() / 1000);
+#endif
    }
    if (!runThrottle) { //ramping test      
       if (!runRamp) {
@@ -200,6 +207,9 @@ void loop() {
       //Serial.println(throttle.getThrottle());  //just for debugging
     }
     motorcontroller->handleTick(); //intentionally far down here so that the throttle is set before this is called
+#ifdef CFG_WEBSERVER_ENABLED
+    webserver->handleTick();
+#endif
   }
 }
 

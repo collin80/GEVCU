@@ -21,6 +21,9 @@
 #ifdef __arm__ // Arduino Due specific implementation
 #include "mem_cache.h"
 #endif
+#ifdef CFG_WEBSERVER_ENABLED
+#include "webserver.h"
+#endif
 
 #ifdef __cplusplus
 extern "C" {

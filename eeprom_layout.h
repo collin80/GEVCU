@@ -146,6 +146,8 @@ the end of the stardard data. The below numbers are offsets from the device's ee
 #define EESYS_WIFIX_IPADDR       535 //4 bytes - IP address to use if DHCP is off
 #define EESYS_WIFIX_KEY          539 //40 bytes - the security key (13 bytes for WEP, 8 - 83 for WPA but only up to 40 here
 
+#define EESYS_LOG_LEVEL          579 //1 byte - the log level
+
 /*
 AT+i commands:
 WWW - turn on WWW server (0 = turn off, 1-3 = allow that many port 80 accesses, 100 = allow one HTTPS connection

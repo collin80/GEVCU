@@ -17,6 +17,9 @@
 #ifndef CONFIG_H_
 #define CONFIG_H_
 
+#define CFG_VERSION "GEVCU alpha 05-12-2013"
+#define CFG_SERIAL_SPEED 115200
+
 #if defined(__arm__) // Arduino Due specific implementation
 
 #include <due_can.h>
@@ -38,15 +41,23 @@
 /*
  * configure the LCD monitor
  */
-//#define CFG_LCD_MONITOR_ENABLED // comment out if no LCD is desired
+#define CFG_LCD_MONITOR_ENABLED // comment out if no LCD is desired
 #define CFG_LCD_MONITOR_PINS 8, 9, 4, 5, 6, 7 // specify the pin sequence used for LiquidCrystal initialisation
 #define CFG_LCD_MONITOR_COLUMNS 16 // specify the number of columns of the display
 #define CFG_LCD_MONITOR_ROWS 2 // specify the number of rows of the display
 
 
 /*
- * specify if the webserver should be included in the build
+ * configure the webserver
  */
+#define CFG_NIC_TYPE_WIFI 1	// definition of wifi NIC
+#define CFG_NIC_TYPE_ETHERNET 2	// definition of ethernet NIC
+#define CFG_NIC_TYPE CFG_NIC_TYPE_ETHERNET // specify which NIC type to use (from one of the above defined)
+
 #define CFG_WEBSERVER_ENABLED // comment out if no webserver is desired
+#define CFG_WEBSERVER_MAC 0xDE, 0xAD, 0xBE, 0xEF, 0xFE, 0xED
+#define CFG_WEBSERVER_IP 169,254,53,77 // if used with a cross-over and self-assigned IP on windoze
+//#define CFG_WEBSERVER_IP 10,0,0, 111
+#define CFG_WEBSERVER_PORT 80
 
 #endif /* CONFIG_H_ */

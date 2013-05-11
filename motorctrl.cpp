@@ -12,6 +12,19 @@
 
 MOTORCTRL::MOTORCTRL(CANHandler *canbus) : DEVICE(canbus) {
   prefs = new PREFHANDLER(EE_MOTORCTL_START);
+  faulted = false;
+  running = false;
+  motorTemp = 0;
+  inverterTemp = 0;
+  requestedRPM = 0;
+  requestedThrottle = 0;
+  requestedTorque = 0;
+  actualTorque = 0;
+  actualRPM = 0;
+  MaxTorque = 0;
+  MaxRPM = 0;
+  GearSwitch = GS_FAULT;
+
 }
 
 DEVICE::DEVTYPE MOTORCTRL::getDeviceType() {
@@ -89,6 +102,43 @@ bool MOTORCTRL::isRunning() {
 bool MOTORCTRL::isFaulted() {
 	return (faulted);
 }
+
+uint16_t MOTORCTRL::getActualRpm() {
+	return actualRPM;
+}
+
+uint16_t MOTORCTRL::getActualTorque() {
+	return actualTorque;
+}
+
+MOTORCTRL::GEARSWITCH MOTORCTRL::getGearSwitch() {
+	return GearSwitch;
+}
+
+signed int MOTORCTRL::getInverterTemp() {
+	return inverterTemp;
+}
+
+uint16_t MOTORCTRL::getMaxRpm() {
+	return MaxRPM;
+}
+
+uint16_t MOTORCTRL::getMaxTorque() {
+	return MaxTorque;
+}
+
+signed int MOTORCTRL::getMotorTemp() {
+	return motorTemp;
+}
+
+uint16_t MOTORCTRL::getRequestedRpm() {
+	return requestedRPM;
+}
+
+uint16_t MOTORCTRL::getRequestedTorque() {
+	return requestedTorque;
+}
+
 
 DEVICE::DEVID MOTORCTRL::getDeviceID() {
   return DEVICE::INVALID;
