@@ -166,7 +166,7 @@ void setupFastADC(){
   pmc_enable_periph_clk(ID_ADC);
   adc_init(ADC, SystemCoreClock, ADC_FREQ_MAX, ADC_STARTUP_FAST);
   ADC->ADC_MR = (1 << 7) //free running
-              + (2 << 8) //4x prescaler MCK/4
+              + (1 << 8) //4x clock divider
               + (1 << 20) //extra settling time, 5 counts
               + (1 << 24) //2 adc periods tracking time
               + (1 << 28);//5 clocks transfer time
@@ -189,7 +189,7 @@ void setupFastADC(){
 //value. It takes this value and averages it with the existing value in an 8 position buffer
 //which serves as a super fast place for other code to retrieve ADC values
 void sys_io_adc_poll() {
-  uint16_t tempbuff[8] = {0,0,0,0,0,0,0,0}; //make sure its zero'd
+  uint32_t tempbuff[8] = {0,0,0,0,0,0,0,0}; //make sure its zero'd
   if (obufn != bufn) {
     //the eight enabled adcs are interleaved in the buffer
     //this is a somewhat unrolled for loop with no incrementer. it's odd but it works
@@ -202,15 +202,15 @@ void sys_io_adc_poll() {
        tempbuff[2] += adc_buf[obufn][i++];
        tempbuff[1] += adc_buf[obufn][i++];
        tempbuff[0] += adc_buf[obufn][i++];
-    
     }
  
     //now, all of the ADC values are summed over 32 readings. So, divide by 32 (shift by 5) to get the average
     //then add that to the old value we had stored and divide by two to average those. Lots of averaging going on.
     for (int j = 0; j < 8; j++) {
-      adc_values[j] += tempbuff[j] >> 5;
+      adc_values[j] += (tempbuff[j] >> 5);
       adc_values[j] = adc_values[j] >> 1;
     }
     obufn = bufn;    
   }
 }
+
