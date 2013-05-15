@@ -165,8 +165,12 @@ void ADC_Handler(){     // move DMA pointers to next buffer
 void setupFastADC(){
   pmc_enable_periph_clk(ID_ADC);
   adc_init(ADC, SystemCoreClock, ADC_FREQ_MAX, ADC_STARTUP_FAST);
-  ADC->ADC_MR |=0x80; // free running
-
+  ADC->ADC_MR = (1 << 7) //free running
+              + (1 << 8) //4x clock divider
+              + (1 << 20) //extra settling time, 5 counts
+              + (1 << 24) //2 adc periods tracking time
+              + (1 << 28);//5 clocks transfer time
+  
   ADC->ADC_CHER=0xFF; //enable A0-A7
 
   NVIC_EnableIRQ(ADC_IRQn);
@@ -181,34 +185,32 @@ void setupFastADC(){
   ADC->ADC_CR=2; //start conversions
 }
 
-//polls for the end of an adc conversion event. Then processes the buffer to extract the averaged
+//polls for the end of an adc conversion event. Then processe buffer to extract the averaged
 //value. It takes this value and averages it with the existing value in an 8 position buffer
 //which serves as a super fast place for other code to retrieve ADC values
 void sys_io_adc_poll() {
-  uint16_t tempbuff[8] = {0,0,0,0,0,0,0,0}; //make sure its zero'd
+  uint32_t tempbuff[8] = {0,0,0,0,0,0,0,0}; //make sure its zero'd
   if (obufn != bufn) {
     //the eight enabled adcs are interleaved in the buffer
     //this is a somewhat unrolled for loop with no incrementer. it's odd but it works
-    for (int i = 0; i < 256;) {
-       tempbuff[0] += adc_buf[obufn][i++];
-       tempbuff[1] += adc_buf[obufn][i++];
-       tempbuff[2] += adc_buf[obufn][i++];
-       tempbuff[3] += adc_buf[obufn][i++];
-       tempbuff[4] += adc_buf[obufn][i++];
-       tempbuff[5] += adc_buf[obufn][i++];
-       tempbuff[6] += adc_buf[obufn][i++];
+    for (int i = 0; i < 255;) {
        tempbuff[7] += adc_buf[obufn][i++];
-    
+       tempbuff[6] += adc_buf[obufn][i++];
+       tempbuff[5] += adc_buf[obufn][i++];
+       tempbuff[4] += adc_buf[obufn][i++];
+       tempbuff[3] += adc_buf[obufn][i++];
+       tempbuff[2] += adc_buf[obufn][i++];
+       tempbuff[1] += adc_buf[obufn][i++];
+       tempbuff[0] += adc_buf[obufn][i++];
     }
  
     //now, all of the ADC values are summed over 32 readings. So, divide by 32 (shift by 5) to get the average
     //then add that to the old value we had stored and divide by two to average those. Lots of averaging going on.
-    //the 8-j part is because Due adc ports are numbered backward of Due ADC pins, at least for the first 8. As such,
-    //we're got to reverse the order.
     for (int j = 0; j < 8; j++) {
-      adc_values[8 - j] += tempbuff[j] >> 5;
-      adc_values[8 - j] = adc_values[j] >> 1;
+      adc_values[j] += (tempbuff[j] >> 5);
+      adc_values[j] = adc_values[j] >> 1;
     }
-    obufn=(obufn+1)&3;    
+    obufn = bufn;    
   }
 }
+
