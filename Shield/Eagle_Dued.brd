@@ -1748,6 +1748,189 @@ Basic SMA packaged diode. Good for reverse polarization protection. Common part 
 <text x="-2.286" y="1.651" size="0.4064" layer="25">&gt;NAME</text>
 <text x="0.254" y="1.651" size="0.4064" layer="27">&gt;VALUE</text>
 </package>
+<package name="SOD-323">
+<wire x1="-0.9" y1="0.65" x2="-0.5" y2="0.65" width="0.2032" layer="21"/>
+<wire x1="-0.5" y1="0.65" x2="0.9" y2="0.65" width="0.2032" layer="21"/>
+<wire x1="-0.9" y1="-0.65" x2="-0.5" y2="-0.65" width="0.2032" layer="21"/>
+<wire x1="-0.5" y1="-0.65" x2="0.9" y2="-0.65" width="0.2032" layer="21"/>
+<wire x1="-0.5" y1="0.65" x2="-0.5" y2="-0.65" width="0.2032" layer="21"/>
+<smd name="1" x="-1.15" y="0" dx="0.63" dy="0.83" layer="1"/>
+<smd name="2" x="1.15" y="0" dx="0.63" dy="0.83" layer="1"/>
+<text x="-0.889" y="1.016" size="0.4064" layer="25">&gt;NAME</text>
+<text x="-1.016" y="-1.397" size="0.4064" layer="27">&gt;VALUE</text>
+</package>
+</packages>
+</library>
+<library name="ck_custom">
+<packages>
+<package name="SO8-WIDE">
+<wire x1="0.178" y1="0.737" x2="4.902" y2="0.737" width="0.1524" layer="51"/>
+<wire x1="4.902" y1="0.737" x2="4.902" y2="4.343" width="0.1524" layer="21"/>
+<wire x1="4.902" y1="4.343" x2="0.178" y2="4.343" width="0.1524" layer="51"/>
+<wire x1="0.178" y1="4.343" x2="0.178" y2="0.737" width="0.1524" layer="21"/>
+<circle x="0.7366" y="1.5494" radius="0.3556" width="0.0508" layer="21"/>
+<smd name="1" x="0.635" y="-1.0287" dx="0.6096" dy="2.2098" layer="1"/>
+<smd name="8" x="0.635" y="6.4262" dx="0.6096" dy="2.2098" layer="1"/>
+<smd name="2" x="1.905" y="-1.0287" dx="0.6096" dy="2.2098" layer="1"/>
+<smd name="3" x="3.175" y="-1.0287" dx="0.6096" dy="2.2098" layer="1"/>
+<smd name="7" x="1.905" y="6.4262" dx="0.6096" dy="2.2098" layer="1"/>
+<smd name="6" x="3.175" y="6.4262" dx="0.6096" dy="2.2098" layer="1"/>
+<smd name="4" x="4.445" y="-1.0287" dx="0.6096" dy="2.2098" layer="1"/>
+<smd name="5" x="4.445" y="6.4262" dx="0.6096" dy="2.2098" layer="1"/>
+<text x="6.5405" y="0.508" size="1.27" layer="27" ratio="10" rot="R90">&gt;VALUE</text>
+<text x="-0.1905" y="0.508" size="1.27" layer="25" ratio="10" rot="R90">&gt;NAME</text>
+<rectangle x1="0.4572" y1="-0.3302" x2="0.8128" y2="0.6858" layer="51"/>
+<rectangle x1="1.7272" y1="-0.3302" x2="2.0828" y2="0.6858" layer="51"/>
+<rectangle x1="2.9972" y1="-0.3302" x2="3.3528" y2="0.6858" layer="51"/>
+<rectangle x1="4.2672" y1="-0.3302" x2="4.6228" y2="0.6858" layer="51"/>
+<rectangle x1="0.4572" y1="4.3942" x2="0.8128" y2="5.4102" layer="51"/>
+<rectangle x1="1.7272" y1="4.3942" x2="2.0828" y2="5.4102" layer="51"/>
+<rectangle x1="2.9972" y1="4.3942" x2="3.3528" y2="5.4102" layer="51"/>
+<rectangle x1="4.2672" y1="4.3942" x2="4.6228" y2="5.4102" layer="51"/>
+</package>
+<package name="SOIC8">
+<description>SOIC8 package type.</description>
+<wire x1="0" y1="0" x2="5.08" y2="0" width="0.127" layer="21"/>
+<wire x1="5.08" y1="0" x2="5.08" y2="3.81" width="0.127" layer="21"/>
+<wire x1="5.08" y1="3.81" x2="0" y2="3.81" width="0.127" layer="21"/>
+<wire x1="0" y1="3.81" x2="0" y2="0" width="0.127" layer="21"/>
+<smd name="PIN8" x="0.635" y="4.445" dx="1.27" dy="0.635" layer="1" rot="R90"/>
+<smd name="PIN7" x="1.905" y="4.445" dx="1.27" dy="0.635" layer="1" rot="R90"/>
+<smd name="PIN6" x="3.175" y="4.445" dx="1.27" dy="0.635" layer="1" rot="R90"/>
+<smd name="PIN5" x="4.445" y="4.445" dx="1.27" dy="0.635" layer="1" rot="R90"/>
+<smd name="PIN1" x="0.635" y="-0.635" dx="1.27" dy="0.635" layer="1" rot="R90"/>
+<smd name="PIN2" x="1.905" y="-0.635" dx="1.27" dy="0.635" layer="1" rot="R90"/>
+<smd name="PIN3" x="3.175" y="-0.635" dx="1.27" dy="0.635" layer="1" rot="R90"/>
+<smd name="PIN4" x="4.445" y="-0.635" dx="1.27" dy="0.635" layer="1" rot="R90"/>
+<circle x="0.635" y="0.635" radius="0.3175" width="0.127" layer="21"/>
+<text x="0" y="5.715" size="1.27" layer="25">Name</text>
+<text x="0" y="-3.175" size="1.27" layer="27">Value</text>
+</package>
+</packages>
+</library>
+<library name="linear">
+<description>&lt;b&gt;Linear Devices&lt;/b&gt;&lt;p&gt;
+Operational amplifiers,  comparators, voltage regulators, ADCs, DACs, etc.&lt;p&gt;
+&lt;author&gt;Created by librarian@cadsoft.de&lt;/author&gt;</description>
+<packages>
+<package name="TO220V">
+<description>&lt;b&gt;TO 200 vertical&lt;/b&gt;</description>
+<wire x1="5.08" y1="-1.143" x2="4.953" y2="-4.064" width="0.127" layer="21"/>
+<wire x1="4.699" y1="-4.318" x2="4.953" y2="-4.064" width="0.127" layer="21"/>
+<wire x1="4.699" y1="-4.318" x2="-4.699" y2="-4.318" width="0.127" layer="21"/>
+<wire x1="-4.953" y1="-4.064" x2="-4.699" y2="-4.318" width="0.127" layer="21"/>
+<wire x1="-4.953" y1="-4.064" x2="-5.08" y2="-1.143" width="0.127" layer="21"/>
+<circle x="-4.4958" y="-3.7084" radius="0.254" width="0.127" layer="21"/>
+<pad name="1" x="-2.54" y="-2.54" drill="1.016" shape="long" rot="R90"/>
+<pad name="2" x="0" y="-2.54" drill="1.016" shape="long" rot="R90"/>
+<pad name="3" x="2.54" y="-2.54" drill="1.016" shape="long" rot="R90"/>
+<text x="-5.08" y="-6.0452" size="1.27" layer="25" ratio="10">&gt;NAME</text>
+<text x="-5.08" y="-7.62" size="1.27" layer="27" ratio="10">&gt;VALUE</text>
+<text x="-3.175" y="-3.175" size="1.27" layer="51" ratio="10">1</text>
+<text x="-0.635" y="-3.175" size="1.27" layer="51" ratio="10">2</text>
+<text x="1.905" y="-3.175" size="1.27" layer="51" ratio="10">3</text>
+<rectangle x1="-5.334" y1="-0.762" x2="5.334" y2="0" layer="21"/>
+<rectangle x1="-5.334" y1="-1.27" x2="-3.429" y2="-0.762" layer="21"/>
+<rectangle x1="-1.651" y1="-1.27" x2="-0.889" y2="-0.762" layer="21"/>
+<rectangle x1="-3.429" y1="-1.27" x2="-1.651" y2="-0.762" layer="51"/>
+<rectangle x1="0.889" y1="-1.27" x2="1.651" y2="-0.762" layer="21"/>
+<rectangle x1="3.429" y1="-1.27" x2="5.334" y2="-0.762" layer="21"/>
+<rectangle x1="-0.889" y1="-1.27" x2="0.889" y2="-0.762" layer="51"/>
+<rectangle x1="1.651" y1="-1.27" x2="3.429" y2="-0.762" layer="51"/>
+</package>
+<package name="SOT223">
+<description>&lt;b&gt;Small Outline Transistor&lt;/b&gt;</description>
+<wire x1="3.2766" y1="1.778" x2="3.2766" y2="-1.778" width="0.2032" layer="21"/>
+<wire x1="3.2766" y1="-1.778" x2="-3.2766" y2="-1.778" width="0.2032" layer="21"/>
+<wire x1="-3.2766" y1="-1.778" x2="-3.2766" y2="1.778" width="0.2032" layer="21"/>
+<wire x1="-3.2766" y1="1.778" x2="3.2766" y2="1.778" width="0.2032" layer="21"/>
+<smd name="1" x="-2.3114" y="-3.0988" dx="1.2192" dy="2.2352" layer="1"/>
+<smd name="2" x="0" y="-3.0988" dx="1.2192" dy="2.2352" layer="1"/>
+<smd name="3" x="2.3114" y="-3.0988" dx="1.2192" dy="2.2352" layer="1"/>
+<smd name="4" x="0" y="3.099" dx="3.6" dy="2.2" layer="1"/>
+<text x="1.0208" y="-4.318" size="0.8128" layer="21" ratio="12">3</text>
+<text x="1.905" y="2.54" size="0.8128" layer="21" ratio="12">4</text>
+<text x="-3.4526" y="-4.318" size="0.8128" layer="21" ratio="12">1</text>
+<text x="-1.2906" y="-4.3274" size="0.8128" layer="21" ratio="12">2</text>
+<text x="-2.54" y="0.0508" size="1.27" layer="25">&gt;NAME</text>
+<text x="-2.54" y="-1.3208" size="1.27" layer="27">&gt;VALUE</text>
+<rectangle x1="-1.6002" y1="1.8034" x2="1.6002" y2="3.6576" layer="51"/>
+<rectangle x1="-0.4318" y1="-3.6576" x2="0.4318" y2="-1.8034" layer="51"/>
+<rectangle x1="-2.7432" y1="-3.6576" x2="-1.8796" y2="-1.8034" layer="51"/>
+<rectangle x1="1.8796" y1="-3.6576" x2="2.7432" y2="-1.8034" layer="51"/>
+<rectangle x1="-1.6002" y1="1.8034" x2="1.6002" y2="3.6576" layer="51"/>
+<rectangle x1="-0.4318" y1="-3.6576" x2="0.4318" y2="-1.8034" layer="51"/>
+<rectangle x1="-2.7432" y1="-3.6576" x2="-1.8796" y2="-1.8034" layer="51"/>
+<rectangle x1="1.8796" y1="-3.6576" x2="2.7432" y2="-1.8034" layer="51"/>
+</package>
+</packages>
+</library>
+<library name="SparkFun-Passives">
+<description>&lt;h3&gt;SparkFun Electronics' preferred foot prints&lt;/h3&gt;
+In this library you'll find resistors, capacitors, inductors, test points, jumper pads, etc.&lt;br&gt;&lt;br&gt;
+We've spent an enormous amount of time creating and checking these footprints and parts, but it is the end user's responsibility to ensure correctness and suitablity for a given componet or application. If you enjoy using this library, please buy one of our products at www.sparkfun.com.
+&lt;br&gt;&lt;br&gt;
+&lt;b&gt;Licensing:&lt;/b&gt; CC v3.0 Share-Alike You are welcome to use this library for commercial purposes. For attribution, we ask that when you begin to sell your device using our footprint, you email us with a link to the product being sold. We want bragging rights that we helped (in a very small part) to create your 8th world wonder. We would like the opportunity to feature your device on our homepage.</description>
+<packages>
+<package name="INDUCTOR-1206">
+<wire x1="-1.778" y1="2.032" x2="-3.81" y2="2.032" width="0.127" layer="21"/>
+<wire x1="-3.81" y1="2.032" x2="-3.81" y2="-2.032" width="0.127" layer="21"/>
+<wire x1="-3.81" y1="-2.032" x2="-1.524" y2="-2.032" width="0.127" layer="21"/>
+<wire x1="1.524" y1="2.032" x2="3.81" y2="2.032" width="0.127" layer="21"/>
+<wire x1="3.81" y1="2.032" x2="3.81" y2="-2.032" width="0.127" layer="21"/>
+<wire x1="3.81" y1="-2.032" x2="1.524" y2="-2.032" width="0.127" layer="21"/>
+<smd name="P$1" x="-2.54" y="0" dx="3.556" dy="2.032" layer="1" rot="R90"/>
+<smd name="P$2" x="2.54" y="0" dx="3.556" dy="2.032" layer="1" rot="R90"/>
+<text x="-1.27" y="2.54" size="0.4064" layer="25">&gt;Name</text>
+<text x="-1.27" y="-2.54" size="0.4064" layer="27">&gt;Value</text>
+</package>
+</packages>
+</library>
+<library name="SparkFun-Connectors">
+<description>&lt;h3&gt;SparkFun Electronics' preferred foot prints&lt;/h3&gt;
+In this library you'll find connectors and sockets- basically anything that can be plugged into or onto.&lt;br&gt;&lt;br&gt;
+We've spent an enormous amount of time creating and checking these footprints and parts, but it is the end user's responsibility to ensure correctness and suitablity for a given componet or application. If you enjoy using this library, please buy one of our products at www.sparkfun.com.
+&lt;br&gt;&lt;br&gt;
+&lt;b&gt;Licensing:&lt;/b&gt; CC v3.0 Share-Alike You are welcome to use this library for commercial purposes. For attribution, we ask that when you begin to sell your device using our footprint, you email us with a link to the product being sold. We want bragging rights that we helped (in a very small part) to create your 8th world wonder. We would like the opportunity to feature your device on our homepage.</description>
+<packages>
+<package name="1X04">
+<wire x1="6.985" y1="1.27" x2="8.255" y2="1.27" width="0.2032" layer="21"/>
+<wire x1="8.255" y1="1.27" x2="8.89" y2="0.635" width="0.2032" layer="21"/>
+<wire x1="8.89" y1="-0.635" x2="8.255" y2="-1.27" width="0.2032" layer="21"/>
+<wire x1="3.81" y1="0.635" x2="4.445" y2="1.27" width="0.2032" layer="21"/>
+<wire x1="4.445" y1="1.27" x2="5.715" y2="1.27" width="0.2032" layer="21"/>
+<wire x1="5.715" y1="1.27" x2="6.35" y2="0.635" width="0.2032" layer="21"/>
+<wire x1="6.35" y1="-0.635" x2="5.715" y2="-1.27" width="0.2032" layer="21"/>
+<wire x1="5.715" y1="-1.27" x2="4.445" y2="-1.27" width="0.2032" layer="21"/>
+<wire x1="4.445" y1="-1.27" x2="3.81" y2="-0.635" width="0.2032" layer="21"/>
+<wire x1="6.985" y1="1.27" x2="6.35" y2="0.635" width="0.2032" layer="21"/>
+<wire x1="6.35" y1="-0.635" x2="6.985" y2="-1.27" width="0.2032" layer="21"/>
+<wire x1="8.255" y1="-1.27" x2="6.985" y2="-1.27" width="0.2032" layer="21"/>
+<wire x1="-0.635" y1="1.27" x2="0.635" y2="1.27" width="0.2032" layer="21"/>
+<wire x1="0.635" y1="1.27" x2="1.27" y2="0.635" width="0.2032" layer="21"/>
+<wire x1="1.27" y1="-0.635" x2="0.635" y2="-1.27" width="0.2032" layer="21"/>
+<wire x1="1.27" y1="0.635" x2="1.905" y2="1.27" width="0.2032" layer="21"/>
+<wire x1="1.905" y1="1.27" x2="3.175" y2="1.27" width="0.2032" layer="21"/>
+<wire x1="3.175" y1="1.27" x2="3.81" y2="0.635" width="0.2032" layer="21"/>
+<wire x1="3.81" y1="-0.635" x2="3.175" y2="-1.27" width="0.2032" layer="21"/>
+<wire x1="3.175" y1="-1.27" x2="1.905" y2="-1.27" width="0.2032" layer="21"/>
+<wire x1="1.905" y1="-1.27" x2="1.27" y2="-0.635" width="0.2032" layer="21"/>
+<wire x1="-1.27" y1="0.635" x2="-1.27" y2="-0.635" width="0.2032" layer="21"/>
+<wire x1="-0.635" y1="1.27" x2="-1.27" y2="0.635" width="0.2032" layer="21"/>
+<wire x1="-1.27" y1="-0.635" x2="-0.635" y2="-1.27" width="0.2032" layer="21"/>
+<wire x1="0.635" y1="-1.27" x2="-0.635" y2="-1.27" width="0.2032" layer="21"/>
+<wire x1="8.89" y1="0.635" x2="8.89" y2="-0.635" width="0.2032" layer="21"/>
+<pad name="1" x="0" y="0" drill="1.016" diameter="1.8796" shape="square" rot="R90"/>
+<pad name="2" x="2.54" y="0" drill="1.016" diameter="1.8796" rot="R90"/>
+<pad name="3" x="5.08" y="0" drill="1.016" diameter="1.8796" rot="R90"/>
+<pad name="4" x="7.62" y="0" drill="1.016" diameter="1.8796" rot="R90"/>
+<text x="-1.3462" y="1.8288" size="1.27" layer="25" ratio="10">&gt;NAME</text>
+<text x="-1.27" y="-3.175" size="1.27" layer="27">&gt;VALUE</text>
+<rectangle x1="7.366" y1="-0.254" x2="7.874" y2="0.254" layer="51"/>
+<rectangle x1="4.826" y1="-0.254" x2="5.334" y2="0.254" layer="51"/>
+<rectangle x1="2.286" y1="-0.254" x2="2.794" y2="0.254" layer="51"/>
+<rectangle x1="-0.254" y1="-0.254" x2="0.254" y2="0.254" layer="51"/>
+</package>
 </packages>
 </library>
 </libraries>
@@ -1963,57 +2146,69 @@ design rules under a new name.</description>
 <element name="XIO" library="SmartPrj" package="2X18" value="18x2F-H8.5" x="95.25" y="29.21" locked="yes" smashed="yes" rot="R270">
 <attribute name="VALUE" x="90.805" y="52.07" size="1.27" layer="27" rot="R270"/>
 </element>
-<element name="D1" library="diode" package="SOD123" value="MBR0520LT" x="2.54" y="-48.1584"/>
-<element name="D2" library="diode" package="SOD123" value="MBR0520LT" x="2.54" y="-53.7464"/>
-<element name="D3" library="diode" package="SOD123" value="MBR0520LT" x="2.54" y="-59.3344"/>
-<element name="D4" library="diode" package="SOD123" value="MBR0520LT" x="2.54" y="-64.9224"/>
-<element name="D5" library="diode" package="SOD123" value="MBR0520LT" x="2.54" y="-70.5104"/>
-<element name="D6" library="diode" package="SOD123" value="MBR0520LT" x="2.54" y="-76.0984"/>
-<element name="D7" library="diode" package="SOD123" value="MBR0520LT" x="2.54" y="-81.6864"/>
-<element name="T1" library="zetex" package="SOT223" value="" x="-5.08" y="-79.6544">
-<attribute name="OC_NEWARK" value="unknown" x="-5.08" y="-79.6544" size="1.778" layer="27" display="off"/>
-<attribute name="MPN" value="" x="-5.08" y="-79.6544" size="1.778" layer="27" display="off"/>
-<attribute name="MF" value="" x="-5.08" y="-79.6544" size="1.778" layer="27" display="off"/>
-<attribute name="OC_FARNELL" value="unknown" x="-5.08" y="-79.6544" size="1.778" layer="27" display="off"/>
+<element name="D1" library="diode" package="SOD123" value="MBR0520LT" x="86.9696" y="40.9448"/>
+<element name="D2" library="diode" package="SOD123" value="MBR0520LT" x="85.9536" y="36.4744"/>
+<element name="D3" library="diode" package="SOD123" value="MBR0520LT" x="85.5472" y="31.1912"/>
+<element name="D4" library="diode" package="SOD123" value="MBR0520LT" x="86.0552" y="25.908"/>
+<element name="D5" library="diode" package="SOD123" value="MBR0520LT" x="86.4616" y="20.7264"/>
+<element name="D6" library="diode" package="SOD123" value="MBR0520LT" x="86.6648" y="16.1544"/>
+<element name="D7" library="diode" package="SOD123" value="MBR0520LT" x="86.868" y="11.8872"/>
+<element name="T1" library="zetex" package="SOT223" value="" x="42.9768" y="39.0144">
+<attribute name="OC_NEWARK" value="unknown" x="42.9768" y="39.0144" size="1.778" layer="27" display="off"/>
+<attribute name="MPN" value="" x="42.9768" y="39.0144" size="1.778" layer="27" display="off"/>
+<attribute name="MF" value="" x="42.9768" y="39.0144" size="1.778" layer="27" display="off"/>
+<attribute name="OC_FARNELL" value="unknown" x="42.9768" y="39.0144" size="1.778" layer="27" display="off"/>
 </element>
-<element name="T2" library="zetex" package="SOT223" value="" x="-14.0208" y="-79.6544">
-<attribute name="OC_NEWARK" value="unknown" x="-14.0208" y="-79.6544" size="1.778" layer="27" display="off"/>
-<attribute name="MPN" value="" x="-14.0208" y="-79.6544" size="1.778" layer="27" display="off"/>
-<attribute name="MF" value="" x="-14.0208" y="-79.6544" size="1.778" layer="27" display="off"/>
-<attribute name="OC_FARNELL" value="unknown" x="-14.0208" y="-79.6544" size="1.778" layer="27" display="off"/>
+<element name="T2" library="zetex" package="SOT223" value="" x="34.036" y="39.0144">
+<attribute name="OC_NEWARK" value="unknown" x="34.036" y="39.0144" size="1.778" layer="27" display="off"/>
+<attribute name="MPN" value="" x="34.036" y="39.0144" size="1.778" layer="27" display="off"/>
+<attribute name="MF" value="" x="34.036" y="39.0144" size="1.778" layer="27" display="off"/>
+<attribute name="OC_FARNELL" value="unknown" x="34.036" y="39.0144" size="1.778" layer="27" display="off"/>
 </element>
-<element name="T3" library="zetex" package="SOT223" value="" x="-22.9616" y="-79.6544">
-<attribute name="OC_NEWARK" value="unknown" x="-22.9616" y="-79.6544" size="1.778" layer="27" display="off"/>
-<attribute name="MPN" value="" x="-22.9616" y="-79.6544" size="1.778" layer="27" display="off"/>
-<attribute name="MF" value="" x="-22.9616" y="-79.6544" size="1.778" layer="27" display="off"/>
-<attribute name="OC_FARNELL" value="unknown" x="-22.9616" y="-79.6544" size="1.778" layer="27" display="off"/>
+<element name="T3" library="zetex" package="SOT223" value="" x="24.1808" y="39.624">
+<attribute name="OC_NEWARK" value="unknown" x="24.1808" y="39.624" size="1.778" layer="27" display="off"/>
+<attribute name="MPN" value="" x="24.1808" y="39.624" size="1.778" layer="27" display="off"/>
+<attribute name="MF" value="" x="24.1808" y="39.624" size="1.778" layer="27" display="off"/>
+<attribute name="OC_FARNELL" value="unknown" x="24.1808" y="39.624" size="1.778" layer="27" display="off"/>
 </element>
-<element name="T4" library="zetex" package="SOT223" value="" x="-31.9024" y="-79.6544">
-<attribute name="OC_NEWARK" value="unknown" x="-31.9024" y="-79.6544" size="1.778" layer="27" display="off"/>
-<attribute name="MPN" value="" x="-31.9024" y="-79.6544" size="1.778" layer="27" display="off"/>
-<attribute name="MF" value="" x="-31.9024" y="-79.6544" size="1.778" layer="27" display="off"/>
-<attribute name="OC_FARNELL" value="unknown" x="-31.9024" y="-79.6544" size="1.778" layer="27" display="off"/>
+<element name="T4" library="zetex" package="SOT223" value="" x="13.8176" y="39.624">
+<attribute name="OC_NEWARK" value="unknown" x="13.8176" y="39.624" size="1.778" layer="27" display="off"/>
+<attribute name="MPN" value="" x="13.8176" y="39.624" size="1.778" layer="27" display="off"/>
+<attribute name="MF" value="" x="13.8176" y="39.624" size="1.778" layer="27" display="off"/>
+<attribute name="OC_FARNELL" value="unknown" x="13.8176" y="39.624" size="1.778" layer="27" display="off"/>
 </element>
-<element name="C1" library="rcl" package="E2,5-6" value="" x="-32.9184" y="-87.7824"/>
-<element name="C2" library="rcl" package="C1206" value="" x="-33.3248" y="-93.6752"/>
-<element name="C3" library="rcl" package="C1206" value="" x="-33.3248" y="-97.7392"/>
-<element name="C4" library="rcl" package="C0805" value="" x="-33.8328" y="-101.8032"/>
-<element name="C5" library="rcl" package="C1206" value="" x="-33.3248" y="-105.8672"/>
-<element name="C6" library="rcl" package="C0603" value="" x="-34.3408" y="-109.22"/>
-<element name="C7" library="rcl" package="C0603" value="" x="-34.3408" y="-112.5728"/>
-<element name="C8" library="rcl" package="C0603" value="" x="-34.3408" y="-115.9256"/>
-<element name="C9" library="rcl" package="C0603" value="" x="-34.3408" y="-119.2784"/>
-<element name="C10" library="rcl" package="C0603" value="" x="-34.3408" y="-122.6312"/>
-<element name="C11" library="rcl" package="C0603" value="" x="-34.3408" y="-125.984"/>
-<element name="C12" library="rcl" package="C0603" value="" x="-34.3408" y="-129.3368"/>
-<element name="C13" library="rcl" package="C0603" value="" x="-34.3408" y="-132.6896"/>
-<element name="C14" library="rcl" package="C0603" value="" x="-34.3408" y="-136.0424"/>
-<element name="C15" library="rcl" package="C0603" value="" x="-34.3408" y="-139.3952"/>
-<element name="C16" library="rcl" package="C0603" value="" x="-34.3408" y="-142.748"/>
-<element name="C17" library="rcl" package="C0603" value="" x="-34.3408" y="-146.1008"/>
-<element name="D8" library="SparkFun-DiscreteSemi" package="SMA-DIODE" value="MBRA140" x="-33.02" y="-149.352">
-<attribute name="PROD_ID" value="DIO-08053" x="-33.02" y="-149.352" size="1.778" layer="27" display="off"/>
+<element name="C1" library="rcl" package="E2,5-6" value="" x="45.4152" y="25.8064"/>
+<element name="C2" library="rcl" package="C1206" value="" x="45.0088" y="19.9136"/>
+<element name="C3" library="rcl" package="C1206" value="" x="45.0088" y="15.8496"/>
+<element name="C4" library="rcl" package="C0805" value="" x="44.5008" y="11.7856"/>
+<element name="C5" library="rcl" package="C1206" value="" x="45.0088" y="7.7216"/>
+<element name="C6" library="rcl" package="C0603" value="" x="52.6288" y="20.1168"/>
+<element name="C7" library="rcl" package="C0603" value="" x="52.7304" y="17.5768"/>
+<element name="C8" library="rcl" package="C0603" value="" x="56.6928" y="20.2184"/>
+<element name="C9" library="rcl" package="C0603" value="" x="56.6928" y="17.4752"/>
+<element name="C10" library="rcl" package="C0603" value="" x="4.2672" y="20.7264"/>
+<element name="C11" library="rcl" package="C0603" value="" x="4.2672" y="17.3736"/>
+<element name="C12" library="rcl" package="C0603" value="" x="4.2672" y="14.0208"/>
+<element name="C13" library="rcl" package="C0603" value="" x="4.2672" y="10.668"/>
+<element name="C14" library="rcl" package="C0603" value="" x="4.2672" y="7.3152"/>
+<element name="C15" library="rcl" package="C0603" value="" x="4.2672" y="3.9624"/>
+<element name="C16" library="rcl" package="C0603" value="" x="10.5664" y="7.4168"/>
+<element name="C17" library="rcl" package="C0603" value="" x="10.4648" y="11.0744"/>
+<element name="D8" library="SparkFun-DiscreteSemi" package="SMA-DIODE" value="MBRA140" x="11.0744" y="31.2928">
+<attribute name="PROD_ID" value="DIO-08053" x="11.0744" y="31.2928" size="1.778" layer="27" display="off"/>
 </element>
+<element name="U$1" library="ck_custom" package="SO8-WIDE" value="ACPL-C87A-000E" x="34.4424" y="22.352"/>
+<element name="U$2" library="ck_custom" package="SO8-WIDE" value="ACPL-C87A-000E" x="27.3304" y="22.4536"/>
+<element name="U$3" library="ck_custom" package="SO8-WIDE" value="ACPL-C87A-000E" x="20.7264" y="22.5552"/>
+<element name="U$4" library="ck_custom" package="SO8-WIDE" value="ACPL-C87A-000E" x="13.8176" y="21.844"/>
+<element name="U$5" library="ck_custom" package="SOIC8" value="M24M02-DRMN6TP" x="33.3248" y="9.8552"/>
+<element name="U$6" library="ck_custom" package="SOIC8" value="SN65HVD234" x="26.0096" y="10.16"/>
+<element name="U$7" library="ck_custom" package="SOIC8" value="SN65HVD234" x="18.9992" y="10.4648"/>
+<element name="IC1" library="linear" package="TO220V" value="7805TV" x="5.4864" y="-1.2192"/>
+<element name="IC2" library="linear" package="SOT223" value="LM340MP-05" x="-5.08" y="-4.4704"/>
+<element name="L1" library="SparkFun-Passives" package="INDUCTOR-1206" value="" x="-5.08" y="-12.4968"/>
+<element name="JP1" library="SparkFun-Connectors" package="1X04" value="" x="-7.112" y="-18.1864"/>
+<element name="U$8" library="SparkFun-DiscreteSemi" package="SOD-323" value="DIODE-ZENER-BZT52" x="-10.5664" y="-17.5768"/>
 </elements>
 <signals>
 <signal name="+5V">
@@ -2028,9 +2223,13 @@ design rules under a new name.</description>
 <contactref element="POWER" pad="6"/>
 <contactref element="XIO" pad="36"/>
 <contactref element="XIO" pad="35"/>
+<contactref element="L1" pad="P$2"/>
+<contactref element="U$8" pad="2"/>
 <wire x1="93.98" y1="7.62" x2="96.52" y2="7.62" width="0" layer="19" extent="1-1"/>
 <wire x1="43.18" y1="2.54" x2="93.98" y2="7.62" width="0" layer="19" extent="1-1"/>
 <wire x1="40.64" y1="2.54" x2="43.18" y2="2.54" width="0" layer="19" extent="1-1"/>
+<wire x1="-2.54" y1="-12.4968" x2="40.64" y2="2.54" width="0" layer="19" extent="1-1"/>
+<wire x1="-9.4164" y1="-17.5768" x2="-2.54" y2="-12.4968" width="0" layer="19" extent="1-1"/>
 </signal>
 <signal name="VIN">
 <contactref element="POWER" pad="8"/>
@@ -2222,6 +2421,21 @@ design rules under a new name.</description>
 </signal>
 <signal name="PIN23">
 <contactref element="XIO" pad="4"/>
+</signal>
+<signal name="N$1">
+<contactref element="JP1" pad="2"/>
+<contactref element="L1" pad="P$1"/>
+<wire x1="-7.62" y1="-12.4968" x2="-4.572" y2="-18.1864" width="0" layer="19" extent="1-1"/>
+</signal>
+<signal name="N$2">
+<contactref element="JP1" pad="1"/>
+<contactref element="D8" pad="A"/>
+<wire x1="-7.112" y1="-18.1864" x2="8.9244" y2="31.2928" width="0" layer="19" extent="1-1"/>
+</signal>
+<signal name="N$3">
+<contactref element="D8" pad="C"/>
+<contactref element="U$8" pad="1"/>
+<wire x1="-11.7164" y1="-17.5768" x2="13.2244" y2="31.2928" width="0" layer="19" extent="1-1"/>
 </signal>
 </signals>
 </board>
