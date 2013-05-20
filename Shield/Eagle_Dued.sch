@@ -18285,13 +18285,6 @@ Source: http://www.molex.com/pdm_docs/sd/877580616_sd.pdf</description>
 <wire x1="381" y1="-124.46" x2="383.54" y2="-124.46" width="0.1524" layer="91"/>
 </segment>
 </net>
-<net name="N$9" class="0">
-<segment>
-<pinref part="R4" gate="G$1" pin="2"/>
-<pinref part="C8" gate="G$1" pin="1"/>
-<wire x1="335.28" y1="-116.84" x2="335.28" y2="-124.46" width="0.1524" layer="91"/>
-</segment>
-</net>
 <net name="AIN4" class="0">
 <segment>
 <pinref part="J10" gate="G$1" pin="4"/>
@@ -18299,10 +18292,14 @@ Source: http://www.molex.com/pdm_docs/sd/877580616_sd.pdf</description>
 <label x="403.86" y="83.82" size="1.778" layer="95"/>
 </segment>
 <segment>
-<wire x1="434.34" y1="-175.26" x2="424.18" y2="-175.26" width="0.1524" layer="91"/>
 <pinref part="D12" gate="G$1" pin="C"/>
 <wire x1="424.18" y1="-175.26" x2="424.18" y2="-182.88" width="0.1524" layer="91"/>
 <label x="429.26" y="-172.72" size="1.778" layer="95" rot="R180"/>
+<pinref part="R16" gate="G$1" pin="2"/>
+<pinref part="C26" gate="G$1" pin="1"/>
+<wire x1="431.8" y1="-175.26" x2="431.8" y2="-182.88" width="0.1524" layer="91"/>
+<wire x1="424.18" y1="-175.26" x2="431.8" y2="-175.26" width="0.1524" layer="91"/>
+<junction x="431.8" y="-175.26"/>
 </segment>
 </net>
 <net name="AIN3" class="0">
@@ -18312,10 +18309,14 @@ Source: http://www.molex.com/pdm_docs/sd/877580616_sd.pdf</description>
 <label x="403.86" y="81.28" size="1.778" layer="95"/>
 </segment>
 <segment>
-<wire x1="335.28" y1="-175.26" x2="325.12" y2="-175.26" width="0.1524" layer="91"/>
 <pinref part="D11" gate="G$1" pin="C"/>
 <wire x1="325.12" y1="-175.26" x2="325.12" y2="-182.88" width="0.1524" layer="91"/>
 <label x="330.2" y="-172.72" size="1.778" layer="95" rot="R180"/>
+<pinref part="R12" gate="G$1" pin="2"/>
+<pinref part="C23" gate="G$1" pin="1"/>
+<wire x1="332.74" y1="-175.26" x2="332.74" y2="-182.88" width="0.1524" layer="91"/>
+<wire x1="325.12" y1="-175.26" x2="332.74" y2="-175.26" width="0.1524" layer="91"/>
+<junction x="332.74" y="-175.26"/>
 </segment>
 </net>
 <net name="AIN2" class="0">
@@ -18325,10 +18326,14 @@ Source: http://www.molex.com/pdm_docs/sd/877580616_sd.pdf</description>
 <label x="403.86" y="78.74" size="1.778" layer="95"/>
 </segment>
 <segment>
-<wire x1="434.34" y1="-116.84" x2="424.18" y2="-116.84" width="0.1524" layer="91"/>
 <pinref part="D10" gate="G$1" pin="C"/>
 <wire x1="424.18" y1="-116.84" x2="424.18" y2="-124.46" width="0.1524" layer="91"/>
 <label x="429.26" y="-114.3" size="1.778" layer="95" rot="R180"/>
+<pinref part="R8" gate="G$1" pin="2"/>
+<pinref part="C20" gate="G$1" pin="1"/>
+<wire x1="431.8" y1="-116.84" x2="431.8" y2="-124.46" width="0.1524" layer="91"/>
+<wire x1="424.18" y1="-116.84" x2="431.8" y2="-116.84" width="0.1524" layer="91"/>
+<junction x="431.8" y="-116.84"/>
 </segment>
 </net>
 <net name="AIN1" class="0">
@@ -18338,10 +18343,14 @@ Source: http://www.molex.com/pdm_docs/sd/877580616_sd.pdf</description>
 <label x="403.86" y="76.2" size="1.778" layer="95"/>
 </segment>
 <segment>
-<wire x1="337.82" y1="-116.84" x2="327.66" y2="-116.84" width="0.1524" layer="91"/>
 <pinref part="D9" gate="G$1" pin="C"/>
 <wire x1="327.66" y1="-116.84" x2="327.66" y2="-124.46" width="0.1524" layer="91"/>
 <label x="332.74" y="-114.3" size="1.778" layer="95" rot="R180"/>
+<pinref part="R4" gate="G$1" pin="2"/>
+<pinref part="C8" gate="G$1" pin="1"/>
+<wire x1="335.28" y1="-116.84" x2="335.28" y2="-124.46" width="0.1524" layer="91"/>
+<wire x1="327.66" y1="-116.84" x2="335.28" y2="-116.84" width="0.1524" layer="91"/>
+<junction x="335.28" y="-116.84"/>
 </segment>
 </net>
 <net name="N$11" class="0">
@@ -18369,13 +18378,6 @@ Source: http://www.molex.com/pdm_docs/sd/877580616_sd.pdf</description>
 <wire x1="477.52" y1="-124.46" x2="480.06" y2="-124.46" width="0.1524" layer="91"/>
 </segment>
 </net>
-<net name="N$14" class="0">
-<segment>
-<pinref part="R8" gate="G$1" pin="2"/>
-<pinref part="C20" gate="G$1" pin="1"/>
-<wire x1="431.8" y1="-116.84" x2="431.8" y2="-124.46" width="0.1524" layer="91"/>
-</segment>
-</net>
 <net name="N$15" class="0">
 <segment>
 <pinref part="U$11" gate="G$1" pin="VIN"/>
@@ -18401,13 +18403,6 @@ Source: http://www.molex.com/pdm_docs/sd/877580616_sd.pdf</description>
 <wire x1="378.46" y1="-182.88" x2="381" y2="-182.88" width="0.1524" layer="91"/>
 </segment>
 </net>
-<net name="N$18" class="0">
-<segment>
-<pinref part="R12" gate="G$1" pin="2"/>
-<pinref part="C23" gate="G$1" pin="1"/>
-<wire x1="332.74" y1="-175.26" x2="332.74" y2="-182.88" width="0.1524" layer="91"/>
-</segment>
-</net>
 <net name="N$19" class="0">
 <segment>
 <pinref part="U$12" gate="G$1" pin="VIN"/>
@@ -18431,13 +18426,6 @@ Source: http://www.molex.com/pdm_docs/sd/877580616_sd.pdf</description>
 <pinref part="R14" gate="G$1" pin="1"/>
 <wire x1="477.52" y1="-180.34" x2="477.52" y2="-182.88" width="0.1524" layer="91"/>
 <wire x1="477.52" y1="-182.88" x2="480.06" y2="-182.88" width="0.1524" layer="91"/>
-</segment>
-</net>
-<net name="N$22" class="0">
-<segment>
-<pinref part="R16" gate="G$1" pin="2"/>
-<pinref part="C26" gate="G$1" pin="1"/>
-<wire x1="431.8" y1="-175.26" x2="431.8" y2="-182.88" width="0.1524" layer="91"/>
 </segment>
 </net>
 <net name="N$23" class="0">
@@ -18816,73 +18804,6 @@ Source: http://www.molex.com/pdm_docs/sd/877580616_sd.pdf</description>
 </nets>
 </sheet>
 </sheets>
-<errors>
-<approved hash="101,1,454.66,86.36,RN5C,1,,,,"/>
-<approved hash="101,1,454.66,76.2,RN5C,2,,,,"/>
-<approved hash="101,1,449.58,86.36,RN5D,1,,,,"/>
-<approved hash="101,1,449.58,76.2,RN5D,2,,,,"/>
-<approved hash="104,1,33.02,-5.08,X2,1,GND,,,"/>
-<approved hash="104,1,43.18,-5.08,X2,2,VIN+,,,"/>
-<approved hash="104,1,53.34,5.08,X2,3,GND,,,"/>
-<approved hash="204,1,116.84,261.62,RESET,5-GND,,,,"/>
-<approved hash="104,1,421.64,40.64,IC1P,V+,+5V,,,"/>
-<approved hash="104,1,421.64,25.4,IC1P,V-,GND,,,"/>
-<approved hash="104,1,180.34,190.5,U1,VDDIN,+3V3,,,"/>
-<approved hash="104,1,185.42,190.5,U1,VDDIO2,+3V3,,,"/>
-<approved hash="104,1,251.46,180.34,U1,GND1,GND,,,"/>
-<approved hash="104,1,231.14,190.5,U1,GNDPLL,GND,,,"/>
-<approved hash="104,1,236.22,190.5,U1,GNDUTMI,GND,,,"/>
-<approved hash="104,1,182.88,190.5,U1,VDDIO1,+3V3,,,"/>
-<approved hash="104,1,251.46,177.8,U1,GND2,GND,,,"/>
-<approved hash="104,1,251.46,175.26,U1,GND3,GND,,,"/>
-<approved hash="104,1,175.26,190.5,U1,ADVREF,AVREF,,,"/>
-<approved hash="104,1,228.6,190.5,U1,GNDANA,GND,,,"/>
-<approved hash="104,1,187.96,190.5,U1,VDDIO3,+3V3,,,"/>
-<approved hash="104,1,251.46,172.72,U1,GND4,GND,,,"/>
-<approved hash="104,1,190.5,190.5,U1,VDDIO4,+3V3,,,"/>
-<approved hash="104,1,147.32,190.5,U1,VBUS,XUSB,,,"/>
-<approved hash="104,1,198.12,190.5,U1,VDDBU,+3V3,,,"/>
-<approved hash="104,1,233.68,190.5,U1,GNDBU,GND,,,"/>
-<approved hash="103,1,27.94,104.14,USB1,ID,UOTGID,,,"/>
-<approved hash="104,1,27.94,101.6,USB1,UGND,GND,,,"/>
-<approved hash="104,1,27.94,111.76,USB1,VUSB,XUSB,,,"/>
-<approved hash="104,1,33.02,-109.22,J3,VBUS,XVCC,,,"/>
-<approved hash="104,1,142.24,-119.38,IC6,AVCC,+5V,,,"/>
-<approved hash="104,1,142.24,-152.4,IC6,PAD,GND,,,"/>
-<approved hash="104,1,142.24,-147.32,IC6,UGND,GND,,,"/>
-<approved hash="104,1,142.24,-139.7,IC6,UVCC,USBVCCU2,,,"/>
-<approved hash="104,1,142.24,-127,IC6,VCC,+5V,,,"/>
-<approved hash="104,1,259.08,-200.66,IC10P,VCC,+3V3,,,"/>
-<approved hash="106,1,132.08,121.92,EEXTINT,,,,,"/>
-<approved hash="106,1,167.64,-10.16,EEXTINTA,,,,,"/>
-<approved hash="106,1,175.26,50.8,EMDC,,,,,"/>
-<approved hash="106,1,160.02,-10.16,EMDCA,,,,,"/>
-<approved hash="106,1,177.8,50.8,EMDIO,,,,,"/>
-<approved hash="106,1,162.56,-10.16,EMDIOA,,,,,"/>
-<approved hash="106,1,167.64,50.8,ERXD0,,,,,"/>
-<approved hash="106,1,165.1,0,ERXD0A,,,,,"/>
-<approved hash="106,1,170.18,50.8,ERXD1,,,,,"/>
-<approved hash="106,1,162.56,0,ERXD1A,,,,,"/>
-<approved hash="106,1,165.1,50.8,ERX_DV,,,,,"/>
-<approved hash="106,1,165.1,-10.16,ERX_DVA,,,,,"/>
-<approved hash="106,1,172.72,50.8,ERX_ER,,,,,"/>
-<approved hash="106,1,160.02,0,ERX_ERA,,,,,"/>
-<approved hash="106,1,160.02,50.8,ETXD0,,,,,"/>
-<approved hash="106,1,170.18,0,ETXD0A,,,,,"/>
-<approved hash="106,1,162.56,50.8,ETXD1,,,,,"/>
-<approved hash="106,1,167.64,0,ETXD1A,,,,,"/>
-<approved hash="106,1,154.94,50.8,ETX_CLK,,,,,"/>
-<approved hash="106,1,175.26,0,ETX_CLKA,,,,,"/>
-<approved hash="106,1,157.48,50.8,ETX_EN,,,,,"/>
-<approved hash="106,1,172.72,0,ETX_ENA,,,,,"/>
-<approved hash="106,1,172.72,-10.16,N$8,,,,,"/>
-<approved hash="106,1,170.18,-10.16,N$9,,,,,"/>
-<approved hash="106,1,175.26,-10.16,RESETA,,,,,"/>
-<approved hash="106,1,213.36,50.8,SS3,,,,,"/>
-<approved hash="115,1,264.16,53.5855,ERASE,,,,,"/>
-<approved hash="115,1,355.6,240.085,JTAG,,,,,"/>
-<approved hash="115,1,168.965,-5.08,MACB,,,,,"/>
-</errors>
 </schematic>
 </drawing>
 </eagle>
