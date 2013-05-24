@@ -1785,31 +1785,6 @@
 <text x="-1.27" y="-3.175" size="1.27" layer="27">&gt;VALUE</text>
 <rectangle x1="-0.254" y1="-0.254" x2="0.254" y2="0.254" layer="51"/>
 </package>
-<package name="0805-LARGE">
-<wire x1="-0.2032" y1="0.6" x2="0.2032" y2="0.6" width="0.1524" layer="21"/>
-<wire x1="-0.2032" y1="-0.6" x2="0.2032" y2="-0.6" width="0.1524" layer="21"/>
-<smd name="1" x="-1.016" y="0" dx="1.27" dy="1.27" layer="1"/>
-<smd name="2" x="1.016" y="0" dx="1.27" dy="1.27" layer="1"/>
-<text x="-0.762" y="0.8255" size="0.4064" layer="25">&gt;NAME</text>
-<text x="-1.016" y="-1.397" size="0.4064" layer="27">&gt;VALUE</text>
-</package>
-<package name="LED-0805-LARGE">
-<wire x1="-0.54" y1="0.9" x2="-1.9175" y2="0.9" width="0.2032" layer="21"/>
-<wire x1="-1.9175" y1="0.9" x2="-1.9175" y2="-0.9" width="0.2032" layer="21"/>
-<wire x1="-1.9175" y1="-0.9" x2="-0.5635" y2="-0.9" width="0.2032" layer="21"/>
-<wire x1="0.6905" y1="0.9" x2="1.9175" y2="0.9" width="0.2032" layer="21"/>
-<wire x1="1.9175" y1="0.9" x2="1.9175" y2="-0.9" width="0.2032" layer="21"/>
-<wire x1="1.9175" y1="-0.9" x2="0.6905" y2="-0.9" width="0.2032" layer="21"/>
-<wire x1="0.173" y1="0.8905" x2="0.173" y2="0" width="0.2032" layer="21"/>
-<wire x1="0.173" y1="0" x2="0.173" y2="-0.8905" width="0.2032" layer="21"/>
-<wire x1="0.173" y1="0" x2="-0.173" y2="0.6" width="0.2032" layer="21"/>
-<wire x1="-0.173" y1="0.6" x2="-0.173" y2="-0.6" width="0.2032" layer="21"/>
-<wire x1="-0.173" y1="-0.6" x2="0.173" y2="0" width="0.2032" layer="21"/>
-<smd name="A" x="-1.016" y="0" dx="1.27" dy="1.27" layer="1"/>
-<smd name="C" x="1.016" y="0" dx="1.27" dy="1.27" layer="1"/>
-<text x="-0.862" y="1.1955" size="0.4064" layer="25">&gt;NAME</text>
-<text x="-0.916" y="-1.567" size="0.4064" layer="27">&gt;VALUE</text>
-</package>
 <package name="1X02">
 <wire x1="-0.635" y1="1.27" x2="0.635" y2="1.27" width="0.2032" layer="21"/>
 <wire x1="0.635" y1="1.27" x2="1.27" y2="0.635" width="0.2032" layer="21"/>
@@ -3045,6 +3020,22 @@ We've spent an enormous amount of time creating and checking these footprints an
 <text x="-0.908" y="1.27" size="0.4064" layer="25">&gt;NAME</text>
 <text x="-0.908" y="-1.651" size="0.4064" layer="27">&gt;VALUE</text>
 </package>
+<package name="0603-CAP">
+<wire x1="-1.473" y1="0.983" x2="1.473" y2="0.983" width="0.0508" layer="39"/>
+<wire x1="1.473" y1="0.983" x2="1.473" y2="-0.983" width="0.0508" layer="39"/>
+<wire x1="1.473" y1="-0.983" x2="-1.473" y2="-0.983" width="0.0508" layer="39"/>
+<wire x1="-1.473" y1="-0.983" x2="-1.473" y2="0.983" width="0.0508" layer="39"/>
+<wire x1="-0.356" y1="0.432" x2="0.356" y2="0.432" width="0.1016" layer="51"/>
+<wire x1="-0.356" y1="-0.419" x2="0.356" y2="-0.419" width="0.1016" layer="51"/>
+<wire x1="0" y1="0.0305" x2="0" y2="-0.0305" width="0.5588" layer="21"/>
+<smd name="1" x="-0.85" y="0" dx="1.1" dy="1" layer="1"/>
+<smd name="2" x="0.85" y="0" dx="1.1" dy="1" layer="1"/>
+<text x="-0.889" y="0.762" size="0.4064" layer="25" font="vector">&gt;NAME</text>
+<text x="-1.016" y="-1.143" size="0.4064" layer="27" font="vector">&gt;VALUE</text>
+<rectangle x1="-0.8382" y1="-0.4699" x2="-0.3381" y2="0.4801" layer="51"/>
+<rectangle x1="0.3302" y1="-0.4699" x2="0.8303" y2="0.4801" layer="51"/>
+<rectangle x1="-0.1999" y1="-0.3" x2="0.1999" y2="0.3" layer="35"/>
+</package>
 </packages>
 </library>
 <library name="SparkFun-Connectors">
@@ -3287,6 +3278,25 @@ We've spent an enormous amount of time creating and checking these footprints an
 </package>
 </packages>
 </library>
+<library name="SparkFun-LED">
+<description>&lt;h3&gt;SparkFun Electronics' preferred foot prints&lt;/h3&gt;
+In this library you'll find discrete LEDs for illumination or indication, but no displays.&lt;br&gt;&lt;br&gt;
+We've spent an enormous amount of time creating and checking these footprints and parts, but it is the end user's responsibility to ensure correctness and suitablity for a given componet or application. If you enjoy using this library, please buy one of our products at www.sparkfun.com.
+&lt;br&gt;&lt;br&gt;
+&lt;b&gt;Licensing:&lt;/b&gt; CC v3.0 Share-Alike You are welcome to use this library for commercial purposes. For attribution, we ask that when you begin to sell your device using our footprint, you email us with a link to the product being sold. We want bragging rights that we helped (in a very small part) to create your 8th world wonder. We would like the opportunity to feature your device on our homepage.</description>
+<packages>
+<package name="LED-0603">
+<wire x1="0.46" y1="0.17" x2="0" y2="0.17" width="0.2032" layer="21"/>
+<wire x1="-0.46" y1="0.17" x2="0" y2="0.17" width="0.2032" layer="21"/>
+<wire x1="0" y1="0.17" x2="0.2338" y2="-0.14" width="0.2032" layer="21"/>
+<wire x1="-0.0254" y1="0.1546" x2="-0.2184" y2="-0.14" width="0.2032" layer="21"/>
+<smd name="C" x="0" y="0.75" dx="0.8" dy="0.8" layer="1"/>
+<smd name="A" x="0" y="-0.75" dx="0.8" dy="0.8" layer="1"/>
+<text x="-0.6985" y="-0.889" size="0.4064" layer="25" rot="R90">&gt;NAME</text>
+<text x="1.0795" y="-1.016" size="0.4064" layer="27" rot="R90">&gt;VALUE</text>
+</package>
+</packages>
+</library>
 </libraries>
 <attributes>
 </attributes>
@@ -3456,15 +3466,21 @@ design rules under a new name.</description>
 <element name="J3" library="SparkFun-Connectors" package="1X10" value="Digital_8_13" x="32.766" y="50.8" locked="yes" rot="R180"/>
 <element name="SL3" library="SparkFun-Connectors" package="1X10" value="Digital_8_13" x="32.766" y="45.72" locked="yes" rot="R180"/>
 <element name="SL1" library="SparkFun" package="1X08" value="Digital_0_7" x="54.61" y="45.72" locked="yes" rot="R180"/>
-<element name="C1" library="SparkFun" package="0805-LARGE" value="100nF 0805" x="21.59" y="4.191" smashed="yes" rot="R90">
+<element name="C1" library="SparkFun-Passives" package="0603-CAP" value="100nF" x="21.59" y="4.191" smashed="yes" rot="R90">
 <attribute name="NAME" x="20.7645" y="3.429" size="0.8128" layer="25" ratio="13" rot="R90"/>
 <attribute name="VALUE" x="22.987" y="3.175" size="0.4064" layer="27" rot="R90"/>
 </element>
-<element name="C2" library="SparkFun" package="0805-LARGE" value="100nF 0805" x="7.112" y="49.784" rot="R90"/>
-<element name="LED1" library="SparkFun" package="LED-0805-LARGE" value="RED 0805" x="12.7" y="4.191" rot="R90"/>
-<element name="LED2" library="SparkFun" package="LED-0805-LARGE" value="GREEN 0805" x="17.78" y="4.191" rot="R90"/>
-<element name="R1" library="SparkFun" package="0805-LARGE" value="1K 0805" x="10.16" y="4.191" rot="R90"/>
-<element name="R2" library="SparkFun" package="0805-LARGE" value="1K 0805" x="15.24" y="4.191" rot="R90"/>
+<element name="C2" library="SparkFun-Passives" package="0603-CAP" value="100nF" x="7.112" y="49.784" rot="R90"/>
+<element name="LED1" library="SparkFun-LED" package="LED-0603" value="RED" x="12.7635" y="5.08">
+<attribute name="PROD_ID" value="DIO-00819" x="12.7635" y="5.08" size="1.778" layer="27" display="off"/>
+<attribute name="VALUE" value="RED" x="12.7635" y="5.08" size="1.778" layer="27" display="off"/>
+</element>
+<element name="LED2" library="SparkFun-LED" package="LED-0603" value="GREEN" x="17.8435" y="5.08">
+<attribute name="PROD_ID" value="DIO-00821" x="17.8435" y="5.08" size="1.778" layer="27" display="off"/>
+<attribute name="VALUE" value="GREEN" x="17.8435" y="5.08" size="1.778" layer="27" display="off"/>
+</element>
+<element name="R1" library="rcl" package="R0603" value="1K" x="10.16" y="4.191" rot="R90"/>
+<element name="R2" library="rcl" package="R0603" value="1K" x="15.24" y="4.191" rot="R90"/>
 <element name="S1" library="SparkFun" package="TACTILE-PTH" value="RESET" x="5.842" y="5.715" rot="R90"/>
 <element name="RED" library="SparkFun" package="1X01" value="" x="12.7" y="7.62"/>
 <element name="GREEN" library="SparkFun" package="1X01" value="" x="17.78" y="7.62"/>
@@ -3601,8 +3617,8 @@ design rules under a new name.</description>
 <contactref element="JP36" pad="2"/>
 <contactref element="JP36" pad="1"/>
 <contactref element="JP36" pad="10"/>
-<wire x1="21.59" y1="5.207" x2="21.59" y2="7.239" width="0.4064" layer="1"/>
-<wire x1="7.112" y1="50.8" x2="7.123" y2="52.3985" width="0.508" layer="1"/>
+<wire x1="21.59" y1="5.041" x2="21.59" y2="7.239" width="0.4064" layer="1"/>
+<wire x1="7.112" y1="50.634" x2="7.123" y2="52.3985" width="0.508" layer="1"/>
 <wire x1="7.123" y1="52.3985" x2="11.938" y2="52.451" width="0.6096" layer="1"/>
 <wire x1="11.938" y1="52.451" x2="17.018" y2="52.451" width="0.6096" layer="1"/>
 <wire x1="17.018" y1="52.451" x2="17.526" y2="51.943" width="0.6096" layer="1"/>
@@ -4134,28 +4150,28 @@ design rules under a new name.</description>
 <signal name="N$1">
 <contactref element="R1" pad="2"/>
 <contactref element="LED1" pad="A"/>
-<wire x1="10.287" y1="5.207" x2="10.16" y2="5.207" width="0.3048" layer="1"/>
-<wire x1="12.192" y1="3.302" x2="10.287" y2="5.207" width="0.3048" layer="1"/>
-<wire x1="12.573" y1="3.302" x2="12.192" y2="3.302" width="0.3048" layer="1"/>
-<wire x1="12.573" y1="3.302" x2="12.7" y2="3.175" width="0.3048" layer="1"/>
+<wire x1="10.287" y1="5.207" x2="10.16" y2="5.041" width="0.3048" layer="1"/>
+<wire x1="11.8745" y1="4.2545" x2="10.287" y2="5.207" width="0.3048" layer="1"/>
+<wire x1="12.2555" y1="4.2545" x2="11.8745" y2="4.2545" width="0.3048" layer="1"/>
+<wire x1="12.2555" y1="4.2545" x2="12.7635" y2="4.33" width="0.3048" layer="1"/>
 </signal>
 <signal name="N$2">
 <contactref element="LED1" pad="C"/>
 <contactref element="RED" pad="1"/>
-<wire x1="12.7" y1="5.207" x2="12.7" y2="7.62" width="0.8128" layer="1"/>
+<wire x1="12.7635" y1="5.83" x2="12.7" y2="7.62" width="0.8128" layer="1"/>
 </signal>
 <signal name="N$3">
 <contactref element="R2" pad="2"/>
 <contactref element="LED2" pad="A"/>
-<wire x1="15.367" y1="5.207" x2="15.24" y2="5.207" width="0.3048" layer="1"/>
-<wire x1="17.272" y1="3.302" x2="15.367" y2="5.207" width="0.3048" layer="1"/>
-<wire x1="17.653" y1="3.302" x2="17.272" y2="3.302" width="0.3048" layer="1"/>
-<wire x1="17.653" y1="3.302" x2="17.78" y2="3.175" width="0.3048" layer="1"/>
+<wire x1="15.367" y1="5.207" x2="15.24" y2="5.041" width="0.3048" layer="1"/>
+<wire x1="16.9545" y1="4.2545" x2="15.367" y2="5.207" width="0.3048" layer="1"/>
+<wire x1="17.3355" y1="4.2545" x2="16.9545" y2="4.2545" width="0.3048" layer="1"/>
+<wire x1="17.3355" y1="4.2545" x2="17.8435" y2="4.33" width="0.3048" layer="1"/>
 </signal>
 <signal name="N$4">
 <contactref element="LED2" pad="C"/>
 <contactref element="GREEN" pad="1"/>
-<wire x1="17.78" y1="5.207" x2="17.78" y2="7.62" width="0.8128" layer="1"/>
+<wire x1="17.8435" y1="5.83" x2="17.78" y2="7.62" width="0.8128" layer="1"/>
 </signal>
 <signal name="A6">
 <contactref element="J2" pad="7"/>
@@ -4524,7 +4540,7 @@ design rules under a new name.</description>
 <contactref element="JP38" pad="13"/>
 <contactref element="JP38" pad="14"/>
 <contactref element="JP38" pad="15"/>
-<wire x1="15.24" y1="3.175" x2="15.24" y2="41.91" width="0" layer="19" extent="1-1"/>
+<wire x1="15.24" y1="3.341" x2="15.24" y2="41.91" width="0" layer="19" extent="1-1"/>
 </signal>
 <signal name="CAN0-EN">
 <contactref element="U$7" pad="PIN5"/>
