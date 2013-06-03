@@ -9611,14 +9611,6 @@ LILYPAD- DIO-09910&lt;br&gt;</description>
 <pinref part="SL2" gate="G$1" pin="6"/>
 </segment>
 </net>
-<net name="3V3" class="0">
-<segment>
-<wire x1="22.86" y1="83.82" x2="35.56" y2="83.82" width="0.1524" layer="91"/>
-<label x="25.4" y="83.82" size="1.778" layer="95"/>
-<pinref part="POWER" gate="G$1" pin="2"/>
-<pinref part="SLP" gate="G$1" pin="2"/>
-</segment>
-</net>
 <net name="5V" class="0">
 <segment>
 <wire x1="22.86" y1="81.28" x2="35.56" y2="81.28" width="0.1524" layer="91"/>
@@ -10542,6 +10534,12 @@ LILYPAD- DIO-09910&lt;br&gt;</description>
 <pinref part="JP38" gate="G$1" pin="13"/>
 <pinref part="JP38" gate="G$1" pin="14"/>
 <pinref part="JP38" gate="G$1" pin="15"/>
+</segment>
+<segment>
+<wire x1="22.86" y1="83.82" x2="35.56" y2="83.82" width="0.1524" layer="91"/>
+<label x="25.4" y="83.82" size="1.778" layer="95"/>
+<pinref part="POWER" gate="G$1" pin="2"/>
+<pinref part="SLP" gate="G$1" pin="2"/>
 </segment>
 </net>
 <net name="CAN0-EN" class="0">
