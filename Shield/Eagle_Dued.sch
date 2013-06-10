@@ -16168,6 +16168,7 @@ Standard 4-pin 0.1" header. Use with straight break away headers (SKU : PRT-0011
 <part name="D13" library="SparkFun-LED" deviceset="LED-GREEN" device="0603" value="GREEN"/>
 <part name="GND25" library="supply1" deviceset="GND" device=""/>
 <part name="JP1" library="SparkFun-Connectors" deviceset="M04" device="POLAR"/>
+<part name="JP3" library="jumper" deviceset="JP1E" device=""/>
 </parts>
 <sheets>
 <sheet>
@@ -16204,8 +16205,8 @@ Standard 4-pin 0.1" header. Use with straight break away headers (SKU : PRT-0011
 <attribute name="VALUE" x="298.45" y="165.1" size="1.778" layer="96" rot="MR180"/>
 </instance>
 <instance part="GND5" gate="1" x="429.26" y="170.18"/>
-<instance part="P+4" gate="1" x="429.26" y="200.66" smashed="yes">
-<attribute name="VALUE" x="431.165" y="203.2" size="1.778" layer="96" rot="R180"/>
+<instance part="P+4" gate="1" x="411.48" y="182.88" smashed="yes" rot="R90">
+<attribute name="VALUE" x="408.94" y="184.785" size="1.778" layer="96" rot="R270"/>
 </instance>
 <instance part="POWER" gate="A" x="452.12" y="182.88"/>
 <instance part="ADCL" gate="A" x="309.88" y="78.74" smashed="yes" rot="MR180">
@@ -16347,17 +16348,12 @@ Standard 4-pin 0.1" header. Use with straight break away headers (SKU : PRT-0011
 <instance part="D13" gate="G$1" x="495.3" y="88.9" rot="R90"/>
 <instance part="GND25" gate="1" x="510.54" y="88.9" rot="R90"/>
 <instance part="JP1" gate="G$1" x="449.58" y="137.16"/>
+<instance part="JP3" gate="A" x="424.18" y="180.34" rot="R180"/>
 </instances>
 <busses>
 </busses>
 <nets>
 <net name="+5V" class="0">
-<segment>
-<wire x1="449.58" y1="182.88" x2="429.26" y2="182.88" width="0.1524" layer="91"/>
-<wire x1="429.26" y1="182.88" x2="429.26" y2="198.12" width="0.1524" layer="91"/>
-<pinref part="P+4" gate="1" pin="+5V"/>
-<pinref part="POWER" gate="A" pin="5"/>
-</segment>
 <segment>
 <wire x1="360.68" y1="157.48" x2="353.06" y2="157.48" width="0.1524" layer="91"/>
 <wire x1="353.06" y1="157.48" x2="353.06" y2="152.4" width="0.1524" layer="91"/>
@@ -16413,6 +16409,11 @@ Standard 4-pin 0.1" header. Use with straight break away headers (SKU : PRT-0011
 <pinref part="U$3" gate="G$1" pin="8"/>
 <wire x1="543.56" y1="149.86" x2="525.78" y2="149.86" width="0.1524" layer="91"/>
 <label x="525.78" y="149.86" size="1.778" layer="95"/>
+</segment>
+<segment>
+<pinref part="JP3" gate="A" pin="2"/>
+<pinref part="P+4" gate="1" pin="+5V"/>
+<wire x1="421.64" y1="182.88" x2="414.02" y2="182.88" width="0.1524" layer="91"/>
 </segment>
 </net>
 <net name="GND" class="0">
@@ -17833,6 +17834,13 @@ Standard 4-pin 0.1" header. Use with straight break away headers (SKU : PRT-0011
 <pinref part="JP1" gate="G$1" pin="4"/>
 <wire x1="454.66" y1="142.24" x2="472.44" y2="142.24" width="0.1524" layer="91"/>
 <label x="467.36" y="142.24" size="1.778" layer="95"/>
+</segment>
+</net>
+<net name="N$1" class="0">
+<segment>
+<wire x1="449.58" y1="182.88" x2="424.18" y2="182.88" width="0.1524" layer="91"/>
+<pinref part="POWER" gate="A" pin="5"/>
+<pinref part="JP3" gate="A" pin="1"/>
 </segment>
 </net>
 </nets>

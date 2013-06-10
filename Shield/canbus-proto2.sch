@@ -7679,8 +7679,6 @@ Source: http://www.murata.com .. GRM43DR72E224KW01.pdf</description>
 <smd name="PIN3" x="3.175" y="-0.635" dx="1.27" dy="0.635" layer="1" rot="R90"/>
 <smd name="PIN4" x="4.445" y="-0.635" dx="1.27" dy="0.635" layer="1" rot="R90"/>
 <circle x="0.635" y="0.635" radius="0.3175" width="0.127" layer="21"/>
-<text x="0" y="5.715" size="1.27" layer="25">Name</text>
-<text x="0" y="-3.175" size="1.27" layer="27">Value</text>
 </package>
 </packages>
 <symbols>
