@@ -239,7 +239,6 @@
 <text x="90.17" y="9.525" size="1.4224" layer="21" ratio="15">52</text>
 <hole x="90.17" y="50.8" drill="3.2"/>
 <hole x="96.52" y="2.54" drill="3.2"/>
-<rectangle x1="0" y1="0" x2="101.6" y2="53.34" layer="16"/>
 </plain>
 <libraries>
 <library name="SparkFun">
@@ -1665,6 +1664,40 @@ chip</description>
 </package>
 </packages>
 </library>
+<library name="dc-dc-converter">
+<description>&lt;b&gt;DC-DC Converters&lt;/b&gt;&lt;p&gt;
+&lt;author&gt;Created by librarian@cadsoft.de&lt;/author&gt;</description>
+<packages>
+<package name="NMA">
+<description>&lt;b&gt;DC-DC CONVERTER&lt;/b&gt;</description>
+<wire x1="1.143" y1="8.763" x2="-4.953" y2="8.763" width="0.1524" layer="21"/>
+<wire x1="-4.953" y1="8.763" x2="-4.953" y2="-10.795" width="0.1524" layer="21"/>
+<wire x1="-4.953" y1="-10.795" x2="1.143" y2="-10.795" width="0.1524" layer="21"/>
+<wire x1="1.143" y1="-10.795" x2="1.143" y2="-7.112" width="0.1524" layer="21"/>
+<wire x1="1.143" y1="-4.572" x2="1.143" y2="-3.048" width="0.1524" layer="51"/>
+<wire x1="1.143" y1="7.112" x2="1.143" y2="8.763" width="0.1524" layer="21"/>
+<wire x1="1.143" y1="-2.032" x2="1.143" y2="-0.508" width="0.1524" layer="51"/>
+<wire x1="1.143" y1="-3.048" x2="1.143" y2="-2.032" width="0.1524" layer="21"/>
+<wire x1="1.143" y1="-0.508" x2="1.143" y2="3.048" width="0.1524" layer="21"/>
+<wire x1="1.143" y1="3.048" x2="1.143" y2="4.572" width="0.1524" layer="51"/>
+<wire x1="1.143" y1="4.572" x2="1.143" y2="5.588" width="0.1524" layer="21"/>
+<wire x1="1.143" y1="5.588" x2="1.143" y2="7.112" width="0.1524" layer="51"/>
+<wire x1="1.143" y1="-5.588" x2="1.143" y2="-4.572" width="0.1524" layer="21"/>
+<wire x1="1.143" y1="-7.112" x2="1.143" y2="-5.588" width="0.1524" layer="51"/>
+<pad name="1" x="0" y="6.35" drill="0.8128" shape="long"/>
+<pad name="2" x="0" y="3.81" drill="0.8128" shape="long"/>
+<pad name="4" x="0" y="-1.27" drill="0.8128" shape="long"/>
+<pad name="5" x="0" y="-3.81" drill="0.8128" shape="long"/>
+<pad name="6" x="0" y="-6.35" drill="0.8128" shape="long"/>
+<text x="-4.953" y="9.144" size="1.27" layer="25" ratio="10">&gt;NAME</text>
+<text x="-2.54" y="-3.937" size="1.27" layer="27" ratio="10" rot="R90">&gt;VALUE</text>
+<text x="-4.191" y="-10.16" size="1.016" layer="21" ratio="12">DC-DC</text>
+<text x="-2.54" y="5.842" size="1.016" layer="21" ratio="12">1</text>
+<text x="-2.54" y="-6.985" size="1.016" layer="21" ratio="12">6</text>
+<pad name="7" x="0" y="-8.89" drill="0.8" shape="long"/>
+</package>
+</packages>
+</library>
 <library name="SparkFun-Connectors">
 <description>&lt;h3&gt;SparkFun Electronics' preferred foot prints&lt;/h3&gt;
 In this library you'll find connectors and sockets- basically anything that can be plugged into or onto.&lt;br&gt;&lt;br&gt;
@@ -1709,40 +1742,6 @@ We've spent an enormous amount of time creating and checking these footprints an
 <rectangle x1="4.826" y1="-0.254" x2="5.334" y2="0.254" layer="51"/>
 <rectangle x1="2.286" y1="-0.254" x2="2.794" y2="0.254" layer="51"/>
 <rectangle x1="-0.254" y1="-0.254" x2="0.254" y2="0.254" layer="51"/>
-</package>
-</packages>
-</library>
-<library name="dc-dc-converter">
-<description>&lt;b&gt;DC-DC Converters&lt;/b&gt;&lt;p&gt;
-&lt;author&gt;Created by librarian@cadsoft.de&lt;/author&gt;</description>
-<packages>
-<package name="NMA">
-<description>&lt;b&gt;DC-DC CONVERTER&lt;/b&gt;</description>
-<wire x1="1.143" y1="8.763" x2="-4.953" y2="8.763" width="0.1524" layer="21"/>
-<wire x1="-4.953" y1="8.763" x2="-4.953" y2="-10.795" width="0.1524" layer="21"/>
-<wire x1="-4.953" y1="-10.795" x2="1.143" y2="-10.795" width="0.1524" layer="21"/>
-<wire x1="1.143" y1="-10.795" x2="1.143" y2="-7.112" width="0.1524" layer="21"/>
-<wire x1="1.143" y1="-4.572" x2="1.143" y2="-3.048" width="0.1524" layer="51"/>
-<wire x1="1.143" y1="7.112" x2="1.143" y2="8.763" width="0.1524" layer="21"/>
-<wire x1="1.143" y1="-2.032" x2="1.143" y2="-0.508" width="0.1524" layer="51"/>
-<wire x1="1.143" y1="-3.048" x2="1.143" y2="-2.032" width="0.1524" layer="21"/>
-<wire x1="1.143" y1="-0.508" x2="1.143" y2="3.048" width="0.1524" layer="21"/>
-<wire x1="1.143" y1="3.048" x2="1.143" y2="4.572" width="0.1524" layer="51"/>
-<wire x1="1.143" y1="4.572" x2="1.143" y2="5.588" width="0.1524" layer="21"/>
-<wire x1="1.143" y1="5.588" x2="1.143" y2="7.112" width="0.1524" layer="51"/>
-<wire x1="1.143" y1="-5.588" x2="1.143" y2="-4.572" width="0.1524" layer="21"/>
-<wire x1="1.143" y1="-7.112" x2="1.143" y2="-5.588" width="0.1524" layer="51"/>
-<pad name="1" x="0" y="6.35" drill="0.8128" shape="long"/>
-<pad name="2" x="0" y="3.81" drill="0.8128" shape="long"/>
-<pad name="4" x="0" y="-1.27" drill="0.8128" shape="long"/>
-<pad name="5" x="0" y="-3.81" drill="0.8128" shape="long"/>
-<pad name="6" x="0" y="-6.35" drill="0.8128" shape="long"/>
-<text x="-4.953" y="9.144" size="1.27" layer="25" ratio="10">&gt;NAME</text>
-<text x="-2.54" y="-3.937" size="1.27" layer="27" ratio="10" rot="R90">&gt;VALUE</text>
-<text x="-4.191" y="-10.16" size="1.016" layer="21" ratio="12">DC-DC</text>
-<text x="-2.54" y="5.842" size="1.016" layer="21" ratio="12">1</text>
-<text x="-2.54" y="-6.985" size="1.016" layer="21" ratio="12">6</text>
-<pad name="7" x="0" y="-8.89" drill="0.8" shape="long"/>
 </package>
 </packages>
 </library>
@@ -2005,10 +2004,10 @@ design rules under a new name.</description>
 <element name="R22" library="adafruit" package="R0603" value="10k 1%" x="72.39" y="21.59"/>
 <element name="R23" library="adafruit" package="R0603" value="10k 1%" x="81.28" y="21.59"/>
 <element name="R24" library="adafruit" package="R0603" value="10k 1%" x="63.5" y="15.24"/>
+<element name="DC1" library="dc-dc-converter" package="NMA" value="" x="52.07" y="40.64" rot="R90"/>
 <element name="JP1" library="SparkFun-Connectors" package="1X04_LOCK" value="" x="5.08" y="2.54"/>
 <element name="C19" library="rcl" package="C0603" value="100pf" x="49.53" y="21.59"/>
 <element name="C20" library="rcl" package="C0603" value="100pf" x="62.23" y="19.05"/>
-<element name="DC1" library="dc-dc-converter" package="NMA" value="" x="52.07" y="43.18" rot="R90"/>
 </elements>
 <signals>
 <signal name="RES">
@@ -2093,7 +2092,7 @@ design rules under a new name.</description>
 <contactref element="JP10" pad="6"/>
 <wire x1="45.72" y1="2.286" x2="45.72" y2="2.54" width="0.2032" layer="1"/>
 <contactref element="DC1" pad="1"/>
-<wire x1="45.72" y1="2.54" x2="45.72" y2="43.18" width="0" layer="19" extent="1-1"/>
+<wire x1="45.72" y1="2.54" x2="45.72" y2="40.64" width="0" layer="19" extent="1-1"/>
 </signal>
 <signal name="A0">
 <contactref element="JP7" pad="1"/>
@@ -2584,24 +2583,22 @@ design rules under a new name.</description>
 <wire x1="10.16" y1="2.667" x2="45.3" y2="15.24" width="0" layer="19" extent="1-1"/>
 </signal>
 <signal name="+VOUT">
+<contactref element="DC1" pad="5"/>
 <contactref element="IC6" pad="7"/>
 <contactref element="IC4" pad="7"/>
 <contactref element="IC8" pad="7"/>
 <contactref element="IC1" pad="7"/>
-<contactref element="DC1" pad="5"/>
-<wire x1="55.88" y1="43.18" x2="76.835" y2="33.0962" width="0" layer="19" extent="1-1"/>
-<wire x1="53.4162" y1="31.115" x2="55.88" y2="43.18" width="0" layer="19" extent="1-1"/>
+<wire x1="55.88" y1="40.64" x2="76.835" y2="33.0962" width="0" layer="19" extent="1-1"/>
+<wire x1="53.4162" y1="31.115" x2="55.88" y2="40.64" width="0" layer="19" extent="1-1"/>
 <wire x1="25.4762" y1="29.845" x2="53.4162" y2="31.115" width="0" layer="19" extent="1-1"/>
 <wire x1="22.7838" y1="40.005" x2="25.4762" y2="29.845" width="0" layer="19" extent="1-1"/>
 </signal>
 <signal name="-VOUT">
-<contactref element="IC6" pad="4"/>
 <contactref element="IC4" pad="4"/>
+<contactref element="IC6" pad="4"/>
 <contactref element="IC8" pad="4"/>
 <contactref element="IC1" pad="4"/>
-<contactref element="DC1" pad="7"/>
-<wire x1="60.96" y1="43.18" x2="79.375" y2="27.8638" width="0" layer="19" extent="1-1"/>
-<wire x1="48.1838" y1="28.575" x2="60.96" y2="43.18" width="0" layer="19" extent="1-1"/>
+<wire x1="48.1838" y1="28.575" x2="79.375" y2="27.8638" width="0" layer="19" extent="1-1"/>
 <wire x1="28.0162" y1="42.545" x2="48.1838" y2="28.575" width="0" layer="19" extent="1-1"/>
 <wire x1="20.2438" y1="27.305" x2="28.0162" y2="42.545" width="0" layer="19" extent="1-1"/>
 </signal>
