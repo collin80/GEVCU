@@ -6,7 +6,7 @@
  * Created: 03/14/2013
  *  Author: Collin Kidder
  *
- * Includes code credited as:
+ * some portions based on code credited as:
  * Arduino Due ADC->DMA->USB 1MSPS
  * by stimmer
  */ 
