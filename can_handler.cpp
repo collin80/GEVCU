@@ -66,9 +66,11 @@ void CANHandler::init() {
 }
 
 /*
- * If a message is available, read it and send it back in a generalized CAN frame.
+ * \brief If a message is available, read it and send it back in a generalized CAN frame.
  *
- * returns if a message was available and read
+ * \param message	the container to receive the data into
+ *
+ * \retval 	if a message was available and read
  */
 bool CANHandler::readFrame(CANFrame& message) {
 	if (CAN.rx_avail()) {

@@ -51,10 +51,12 @@ void MOTORCTRL::setupDevice() {
   //this is where common parameters for motor controllers should be loaded from EEPROM
   
   //first set up the appropriate digital pins. All are active low currently
+  /*
   pinMode(MOTORCTL_INPUT_DRIVE_EN, INPUT_PULLUP); //Drive Enable
   pinMode(MOTORCTL_INPUT_FORWARD, INPUT_PULLUP); //Forward gear
   pinMode(MOTORCTL_INPUT_REVERSE, INPUT_PULLUP); //Reverse Gear
   pinMode(MOTORCTL_INPUT_LIMP, INPUT_PULLUP); //Limp mode
+  */
   if (prefs->checksumValid()) { //checksum is good, read in the values stored in EEPROM
     prefs->read(EEMC_MAX_RPM, &MaxRPM);
     prefs->read(EEMC_MAX_TORQUE, &MaxTorque);

@@ -12,32 +12,34 @@ to the macchina, and monitor serial. It all works very nicely.
 
 The master branch of this project is now switched to support the Due. The older Macchina
 code has been moved to its own branch. ArduinoDue branch will be bleeding edge and pushed
-to the master branch when future revisions yield known good configurations. At this point there is no
-known good configuration. You have been warned.
+to the master branch when future revisions yield known good configurations. At this point the master
+branch does work for motor control without need for a PC.
 
 You will need the following to have any hope of compiling and running the firmware:
 - An Arduino Due. This should be obvious.
 - A canbus shield. You can make it or you can wait... sorry...
 - Arduino IDE 1.5.2 or newer
-- due_can library - I have a repo for it
+- due_can library - There is a repo for this under Collin80
 - due_rtc library - I have a repo for this too
 - due_wire library - once again, in my repos
 - DueTimer library - and again
 
-All libraries belong in (from your root Arduino IDE folder) -> /hardware/arduino/sam/libraries. Your
-libraries folder should have the following:
-Audio
-due_can
-due_rtc
-due_wire
-DueTimer
-Ethernet
-Scheduler
-Servo
-SPI
-USBHost
-WiFi
-Wire
+All libraries belong in (from your root Arduino IDE folder) -> /hardware/arduino/sam/libraries. You will need to
+remove -master or any other postfixes. Your library folders should be named as above. Below is what
+the folder contents look like on my machine (you don't need all of these libraries, just the ones above)
+
+Audio (not needed)
+due_can (needed)
+due_rtc (needed)
+due_wire (needed)
+DueTimer (needed)
+Ethernet (not needed)
+Scheduler (not needed)
+Servo (not needed)
+SPI (not needed)
+USBHost (not needed)
+WiFi (not needed)
+Wire (not needed)
 
 The canbus is supposed to be terminated on both ends of the bus. If you are testing with a DMOC 
 and Due then you've got two devices, each on opposing ends of the bus. So, both really should be

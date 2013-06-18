@@ -32,10 +32,11 @@
 #endif
 
 #ifdef __arm__ // Arduino Due specific implementation
-RTC_clock rtc_clock(XTAL); //init RTC with the external 32k crystal as a reference
+//RTC_clock rtc_clock(XTAL); //init RTC with the external 32k crystal as a reference
 #endif
 
-THROTTLE *throttle; 
+THROTTLE *accelerator; 
+THROTTLE *brake; 
 MOTORCTRL* motorcontroller; //generic motor controller - instantiate some derived class to fill this out
 PREFHANDLER sysPrefs(EE_SYSTEM_START);
 CANHandler *canbus;
@@ -55,67 +56,176 @@ bool runThrottle = false;
 bool throttleDebug = false;
 byte i=0;
 
+
+//initializes all the system EEPROM values. Chances are this should be broken out a bit but
+//there is only one checksum check for all of them so it's simple to do it all here.
+void initSysEEPROM() {
+  //three temporary storage places to make saving to EEPROM easy
+  uint8_t eight;
+  uint16_t sixteen;
+  uint32_t thirtytwo; 
+
+  eight = SYSTEM_DUE;
+  sysPrefs.write(EESYS_SYSTEM_TYPE, eight);
+  
+  sixteen = 1024; //no gain
+  sysPrefs.write(EESYS_ADC0_GAIN, sixteen);
+  sysPrefs.write(EESYS_ADC1_GAIN, sixteen);
+  sysPrefs.write(EESYS_ADC2_GAIN, sixteen);
+  sysPrefs.write(EESYS_ADC3_GAIN, sixteen);
+  
+  sixteen = 0; //no offset
+  sysPrefs.write(EESYS_ADC0_OFFSET, sixteen);
+  sysPrefs.write(EESYS_ADC1_OFFSET, sixteen);
+  sysPrefs.write(EESYS_ADC2_OFFSET, sixteen);
+  sysPrefs.write(EESYS_ADC3_OFFSET, sixteen);
+
+  sixteen = 500; //multiplied by 1000 so 500k baud
+  sysPrefs.write(EESYS_CAN0_BAUD, sixteen);
+  sysPrefs.write(EESYS_CAN1_BAUD, sixteen);
+  
+  sixteen = 11520; //multiplied by 10
+  sysPrefs.write(EESYS_SERUSB_BAUD, sixteen);
+  
+  sixteen = 100; //multiplied by 1000
+  sysPrefs.write(EESYS_TWI_BAUD, sixteen);
+
+  sixteen = 100; //number of ticks per second
+  sysPrefs.write(EESYS_TICK_RATE, sixteen);
+
+  thirtytwo = 0;
+  sysPrefs.write(EESYS_RTC_TIME, thirtytwo);
+  sysPrefs.write(EESYS_RTC_DATE, thirtytwo);
+  
+  eight = 5; //how many RX mailboxes
+  sysPrefs.write(EESYS_CAN_RX_COUNT, eight);
+  
+  thirtytwo = 0x7f0; //standard frame, ignore bottom 4 bits
+  sysPrefs.write(EESYS_CAN_MASK0, thirtytwo);
+  sysPrefs.write(EESYS_CAN_MASK1, thirtytwo);
+  sysPrefs.write(EESYS_CAN_MASK2, thirtytwo);
+  sysPrefs.write(EESYS_CAN_MASK3, thirtytwo);
+  sysPrefs.write(EESYS_CAN_MASK4, thirtytwo);
+  
+  thirtytwo = 0x230;
+  sysPrefs.write(EESYS_CAN_FILTER0, thirtytwo);
+  sysPrefs.write(EESYS_CAN_FILTER1, thirtytwo);
+  sysPrefs.write(EESYS_CAN_FILTER2, thirtytwo);
+  
+  thirtytwo = 0x650;
+  sysPrefs.write(EESYS_CAN_FILTER3, thirtytwo);
+  sysPrefs.write(EESYS_CAN_FILTER4, thirtytwo);
+  
+  thirtytwo = 0; //ok, not technically 32 bytes but the four zeros still shows it is unused.
+  sysPrefs.write(EESYS_WIFI0_SSID, thirtytwo);
+  sysPrefs.write(EESYS_WIFI1_SSID, thirtytwo);
+  sysPrefs.write(EESYS_WIFI2_SSID, thirtytwo);
+  sysPrefs.write(EESYS_WIFIX_SSID, thirtytwo);
+
+  eight = 0; //no channel, DHCP off, B mode
+  sysPrefs.write(EESYS_WIFI0_CHAN, eight);
+  sysPrefs.write(EESYS_WIFI0_DHCP, eight);
+  sysPrefs.write(EESYS_WIFI0_MODE, eight);
+
+  sysPrefs.write(EESYS_WIFI1_CHAN, eight);
+  sysPrefs.write(EESYS_WIFI1_DHCP, eight);
+  sysPrefs.write(EESYS_WIFI1_MODE, eight);
+
+  sysPrefs.write(EESYS_WIFI2_CHAN, eight);
+  sysPrefs.write(EESYS_WIFI2_DHCP, eight);
+  sysPrefs.write(EESYS_WIFI2_MODE, eight);
+
+  sysPrefs.write(EESYS_WIFIX_CHAN, eight);
+  sysPrefs.write(EESYS_WIFIX_DHCP, eight);
+  sysPrefs.write(EESYS_WIFIX_MODE, eight);
+  
+  thirtytwo = 0;
+  sysPrefs.write(EESYS_WIFI0_IPADDR, thirtytwo);
+  sysPrefs.write(EESYS_WIFI1_IPADDR, thirtytwo);
+  sysPrefs.write(EESYS_WIFI2_IPADDR, thirtytwo);
+  sysPrefs.write(EESYS_WIFIX_IPADDR, thirtytwo);
+
+  sysPrefs.write(EESYS_WIFI0_KEY, thirtytwo);
+  sysPrefs.write(EESYS_WIFI1_KEY, thirtytwo);
+  sysPrefs.write(EESYS_WIFI2_KEY, thirtytwo);
+  sysPrefs.write(EESYS_WIFIX_KEY, thirtytwo);
+  
+  sysPrefs.saveChecksum();
+}
+
+
 void setup() {
   
+  pinMode(BLINKLED, OUTPUT);
+  digitalWrite(BLINKLED, LOW);
+  
   SerialUSB.begin(CFG_SERIAL_SPEED);
-
   SerialUSB.print(CFG_VERSION);
 
   canbus = new CANHandler();
   
+   motorcontroller = new DMOC(canbus); //instantiate a DMOC645 device controller as our motor controller      
+   motorcontroller->handleTick();
+  
 #ifdef __arm__ // Arduino Due specific implementation
     Wire.begin();
 
-	SerialUSB.println("TWI INIT OK");
+    SerialUSB.println("TWI INIT OK");
 
-	rtc_clock.init();
-	//Now, we have no idea what the real time is but the EEPROM should have stored a time in the past.
-	//It's better than nothing while we try to figure out the proper time.
-	/*
-	 uint32_t temp;
-	 sysPrefs.Read(EESYS_RTC_TIME, &temp);
-	 rtc_clock.change_time(temp);
-	 sysPrefs.Read(EESYS_RTC_DATE, &temp);
-	 rtc_clock.change_date(temp);
-	 */
-	SerialUSB.println("RTC INIT OK");
+    if (!sysPrefs.checksumValid()) { //checksum is good, read in the values stored in EEPROM
+        initSysEEPROM();
+    }
+    
+    motorcontroller->handleTick();
+    //rtc_clock.init();
+    //Now, we have no idea what the real time is but the EEPROM should have stored a time in the past.
+    //It's better than nothing while we try to figure out the proper time.
+    /*
+    uint32_t temp;
+    sysPrefs.read(EESYS_RTC_TIME, &temp);
+    rtc_clock.change_time(temp);
+    sysPrefs.read(EESYS_RTC_DATE, &temp);
+    rtc_clock.change_date(temp);
+	 
+    SerialUSB.println("RTC INIT OK");
+    */
 #endif
 
-	setup_sys_io(); //get calibration data for system IO
-	SerialUSB.println("SYSIO INIT OK");
+    motorcontroller->setupDevice();
+   
+    setup_sys_io(); //get calibration data for system IO
+    SerialUSB.println("SYSIO INIT OK");
 
 #ifdef CFG_LCD_MONITOR_ENABLED
-    lcd.begin(CFG_LCD_MONITOR_COLUMNS, CFG_LCD_MONITOR_ROWS);
-  	lcd.print("GEVCU is running");
+      lcd.begin(CFG_LCD_MONITOR_COLUMNS, CFG_LCD_MONITOR_ROWS);
+      lcd.print("GEVCU is running");
 #endif
 
-  //The pedal I have has two pots and one should be twice the value of the other normally (within tolerance)
-  //if min is less than max for a throttle then the pot goes low to high as pressed.
-  //if max is less than min for a throttle then the pot goes high to low as pressed.
+    //The pedal I have has two pots and one should be twice the value of the other normally (within tolerance)
+    //if min is less than max for a throttle then the pot goes low to high as pressed.
+    //if max is less than min for a throttle then the pot goes high to low as pressed.
 
-  throttle = new POT_THROTTLE(0,1); //specify the shield ADC ports to use for throttle 255 = not used (valid only for second value)
-  POT_THROTTLE* pot = (POT_THROTTLE *)throttle;   //since throttle is of the generic base class type we have to cast to get access to
-                                                        //the special functions of a pedal pot. Of course this must not be done in production.
-  //throttle->setupDevice();
-        
-  //This could eventually be configurable.
-  setupTimer(10000); //10ms / 10000us ticks / 100Hz
+    accelerator = new POT_THROTTLE(0,255, true); //specify the shield ADC ports to use for throttle 255 = not used (valid only for second value)
 
-  motorcontroller = new DMOC(canbus); //instantiate a DMOC645 device controller as our motor controller
+    brake = new POT_THROTTLE(2, 255, false); //set up the brake input as the third ADC input from the shield.
+  
+    accelerator->setupDevice();
+    brake->setupDevice();
+    
+    motorcontroller->handleTick();
         
-  //motorcontroller->setupDevice();
+    //This could eventually be configurable.
+    setupTimer(10000); //10ms / 10000us ticks / 100Hz
         
-  //This will not be hard coded soon. It should be a list of every hardware support module
-  //compiled into the ROM
-  //Serial.println("Installed devices: DMOC645");
-
 #ifdef CFG_WEBSERVER_ENABLED
   webserver = new WebServer(motorcontroller);
 #endif
+    //This will not be hard coded soon. It should be a list of every hardware support module
+    //compiled into the ROM
+    //Serial.println("Installed devices: DMOC645");
 
-  SerialUSB.print("System Ready ");
-  printMenu();
-
+    SerialUSB.print("System Ready ");
+    printMenu();
 }
 
 void printMenu() {
@@ -144,15 +254,40 @@ void loop() {
   static byte dotTick = 0;
   static byte throttleval = 0;
   static byte count = 0;
+  static bool LED = false;
   uint16_t adcval;
+  
+  sys_io_adc_poll();
 
   if (canbus->readFrame(message)) {
     motorcontroller->handleFrame(message);
   }
 
+  //if the first digital input is high we'll enable drive so we can go!
+  if (getDigital(0)) {
+    ((DMOC *)motorcontroller)->setGear(DMOC::DRIVE);
+    runThrottle = true;
+    ((DMOC *)motorcontroller)->setPowerMode(DMOC::MODE_TORQUE);
+  }
+  
+  //but, if the second input is high we cancel the whole thing and disable the drive.
+  if (getDigital(1) || !getDigital(0)) {
+    ((DMOC *)motorcontroller)->setOpState(DMOC::DISABLED);
+    runThrottle = false;
+  }
+  
   if (SerialUSB.available()) serialEvent(); //due doesnt have int driven serial yet
   if (tickReady) {
-    if (dotTick == 0) SerialUSB.print('.'); //print . every 256 ticks (2.56 seconds)
+    if (dotTick == 0) {
+      SerialUSB.print('.'); //print . every 256 ticks (2.56 seconds)
+      if (LED) {
+        digitalWrite(BLINKLED, HIGH);
+      }
+      else {
+        digitalWrite(BLINKLED, LOW);
+      }
+      LED = !LED;
+    }
     dotTick = dotTick + 1;
     tickReady = false;
     //do tick related stuff
@@ -161,7 +296,13 @@ void loop() {
     MemCache.handleTick();
 #endif
 
-    throttle->handleTick(); //gets ADC values, calculates throttle position
+#ifdef CFG_LCD_MONITOR_ENABLED
+    lcd.setCursor(0, 1);
+    lcd.print(count);
+#endif
+
+    accelerator->handleTick(); //gets ADC values, calculates throttle position
+    brake->handleTick();
     //Serial.println(Throttle.getThrottle());
    count++;
    if (count > 50) {
@@ -189,12 +330,13 @@ void loop() {
          else SerialUSB.print(" D2: LOW");
        if (getDigital(3)) SerialUSB.print(" D3: HIGH");
          else SerialUSB.print(" D3: LOW");
+         
+       int throttlepos = accelerator->getThrottle();
+       if (brake->getThrottle() != 0) throttlepos = brake->getThrottle();       
+       SerialUSB.print("  A:");
+       SerialUSB.print(throttlepos);
        SerialUSB.println("");
      }
-#ifdef CFG_LCD_MONITOR_ENABLED
-		lcd.setCursor(0, 1);
-		lcd.print(millis() / 1000);
-#endif
    }
    if (!runThrottle) { //ramping test      
       if (!runRamp) {
@@ -203,7 +345,11 @@ void loop() {
       motorcontroller->setThrottle(throttleval * (int)12); //with throttle 0-80 this sets throttle to 0 - 960
     } 
     else { //use the installed throttle
-      motorcontroller->setThrottle(throttle->getThrottle());
+	  int throttlepos = accelerator->getThrottle();
+	  if (brake->getThrottle() != 0) { //if the brake has been pressed it overrides the accelerator.
+            throttlepos = brake->getThrottle();
+	  }
+      motorcontroller->setThrottle(throttlepos);
       //Serial.println(throttle.getThrottle());  //just for debugging
     }
     motorcontroller->handleTick(); //intentionally far down here so that the throttle is set before this is called
@@ -223,9 +369,11 @@ TODO: This all has to eventually go away.
 */
 void serialEvent() {
   int incoming;
+  static int state = 0;
   DMOC* dmoc = (DMOC*)motorcontroller;
   incoming = SerialUSB.read();
   if (incoming == -1) return;
+ if (state == 0) {
   switch (incoming) {
     case 'h':
     case '?':
@@ -325,13 +473,16 @@ void serialEvent() {
       setOutput(1, true);
       setOutput(2, true);
       setOutput(3, true);
+      SerialUSB.println("Setting all outputs ON");
       break;
     case 'J': //set the four outputs low
       setOutput(0, false);
       setOutput(1, false);
       setOutput(2, false);
       setOutput(3, false);    
+      SerialUSB.println("Setting all outputs OFF");      
       break;
   }
-
+ }
+ 
 }
