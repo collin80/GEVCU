@@ -16350,6 +16350,11 @@ Standard 4-pin 0.1" header. Use with straight break away headers (SKU : PRT-0011
 <label x="566.42" y="147.32" size="1.778" layer="95"/>
 <pinref part="U$3" gate="G$1" pin="27"/>
 </segment>
+<segment>
+<wire x1="551.18" y1="144.78" x2="571.5" y2="144.78" width="0.1524" layer="91"/>
+<label x="566.42" y="144.78" size="1.778" layer="95"/>
+<pinref part="U$3" gate="G$1" pin="28"/>
+</segment>
 </net>
 <net name="GND" class="0">
 <segment>
@@ -17776,13 +17781,6 @@ Standard 4-pin 0.1" header. Use with straight break away headers (SKU : PRT-0011
 <wire x1="449.58" y1="182.88" x2="426.72" y2="182.88" width="0.1524" layer="91"/>
 <pinref part="POWER" gate="A" pin="5"/>
 <pinref part="SJ6" gate="1" pin="1"/>
-</segment>
-</net>
-<net name="+5V\" class="0">
-<segment>
-<wire x1="551.18" y1="144.78" x2="571.5" y2="144.78" width="0.1524" layer="91"/>
-<label x="566.42" y="144.78" size="1.778" layer="95"/>
-<pinref part="U$3" gate="G$1" pin="28"/>
 </segment>
 </net>
 </nets>
