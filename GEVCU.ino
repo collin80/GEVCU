@@ -236,7 +236,7 @@ void printMenu() {
   SerialUSB.println("L = output raw input values (toggle)");
   SerialUSB.println("K = set all outputs high");
   SerialUSB.println("J = set all outputs low");
-  SerialUSB.println("Y,U,I = test EEPROM routines");
+  SerialUSB.println("U,I = test EEPROM routines");
   SerialUSB.println("");
 }
 
@@ -432,14 +432,6 @@ void serialEvent() {
       else SerialUSB.println("Cease raw throttle output");
       break;
 #ifdef __arm__ // Arduino Due specific implementation
-      case 'Y':
-      SerialUSB.println("Trying to save 0x45 to eeprom location 10");
-      uint8_t temp;
-      MemCache.Write(10, (uint8_t) 0x45);
-      MemCache.Read(10, &temp);
-      SerialUSB.print("Got back value of ");
-      SerialUSB.println(temp);      
-      break;
     case 'U':
       SerialUSB.println("Adding a sequence of values from 0 to 255 into eeprom");
       for (int i = 0; i<256; i++) MemCache.Write(1000+i,(uint8_t)i);
