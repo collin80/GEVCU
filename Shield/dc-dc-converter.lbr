@@ -310,6 +310,20 @@ Source: &lt;a href="http://www.mikrocontroller.net/attachment/150645/157764-da-0
 <text x="-5.08" y="2.54" size="1.27" layer="27">&gt;VALUE</text>
 <circle x="-5.08" y="-1.27" radius="0.406109375" width="0" layer="21"/>
 </package>
+<package name="CC3-E">
+<wire x1="0" y1="0" x2="22.86" y2="0" width="0.127" layer="21"/>
+<wire x1="22.86" y1="0" x2="22.86" y2="16" width="0.127" layer="21"/>
+<wire x1="22.86" y1="16" x2="0" y2="16" width="0.127" layer="21"/>
+<wire x1="0" y1="16" x2="0" y2="0" width="0.127" layer="21"/>
+<pad name="P$8" x="2.54" y="0" drill="1.5"/>
+<pad name="P$1" x="0" y="13.08" drill="1"/>
+<pad name="P$2" x="0" y="5.46" drill="1"/>
+<pad name="P$3" x="0" y="2.92" drill="1"/>
+<pad name="P$7" x="22.86" y="13.08" drill="1"/>
+<pad name="P$6" x="22.86" y="10.54" drill="1"/>
+<pad name="P$5" x="22.86" y="5.46" drill="1"/>
+<pad name="P$4" x="22.86" y="2.92" drill="1"/>
+</package>
 </packages>
 <symbols>
 <symbol name="DC+-">
@@ -474,6 +488,18 @@ Source: &lt;a href="http://www.mikrocontroller.net/attachment/150645/157764-da-0
 <pin name="VOUT" x="12.7" y="0" length="short" direction="pas" rot="R180"/>
 <pin name="GND" x="0" y="-7.62" visible="pad" length="short" direction="pas" rot="R90"/>
 <text x="-2.54" y="-3.81" size="1.524" layer="95">GND</text>
+</symbol>
+<symbol name="CC3-E">
+<wire x1="0" y1="0" x2="22.86" y2="0" width="0.254" layer="94"/>
+<wire x1="22.86" y1="0" x2="22.86" y2="15.24" width="0.254" layer="94"/>
+<wire x1="22.86" y1="15.24" x2="0" y2="15.24" width="0.254" layer="94"/>
+<wire x1="0" y1="15.24" x2="0" y2="0" width="0.254" layer="94"/>
+<pin name="VIN+" x="-5.08" y="2.54" length="middle"/>
+<pin name="RC" x="-5.08" y="7.62" length="middle"/>
+<pin name="VIN-" x="-5.08" y="12.7" length="middle"/>
+<pin name="VOUT-" x="27.94" y="2.54" length="middle" rot="R180"/>
+<pin name="TRM" x="27.94" y="7.62" length="middle" rot="R180"/>
+<pin name="VOUT+" x="27.94" y="12.7" length="middle" rot="R180"/>
 </symbol>
 </symbols>
 <devicesets>
@@ -1627,6 +1653,26 @@ Source: &lt;a href="http://www.mikrocontroller.net/attachment/150645/157764-da-0
 <technology name="3.3"/>
 <technology name="5.0"/>
 <technology name="9.0"/>
+</technologies>
+</device>
+</devices>
+</deviceset>
+<deviceset name="CC3-E">
+<gates>
+<gate name="G$1" symbol="CC3-E" x="0" y="0"/>
+</gates>
+<devices>
+<device name="" package="CC3-E">
+<connects>
+<connect gate="G$1" pin="RC" pad="P$2"/>
+<connect gate="G$1" pin="TRM" pad="P$6"/>
+<connect gate="G$1" pin="VIN+" pad="P$1"/>
+<connect gate="G$1" pin="VIN-" pad="P$3"/>
+<connect gate="G$1" pin="VOUT+" pad="P$7"/>
+<connect gate="G$1" pin="VOUT-" pad="P$5"/>
+</connects>
+<technologies>
+<technology name=""/>
 </technologies>
 </device>
 </devices>
