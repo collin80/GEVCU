@@ -17,6 +17,13 @@
 #include "nic_handler.h"
 #include "itoa.h"
 
+#define CFG_WEBSERVER_ENABLED // comment out if no webserver is desired
+#define CFG_WEBSERVER_MAC 0xDE, 0xAD, 0xBE, 0xEF, 0xFE, 0xED
+#define CFG_WEBSERVER_IP 169,254,53,77 // if used with a cross-over and self-assigned IP on windoze
+//#define CFG_WEBSERVER_IP 10,0,0, 111
+#define CFG_WEBSERVER_PORT 80
+
+
 class WebServer {
 
 public:
@@ -39,7 +46,7 @@ public:
 		uint32_t max;
 	};
 
-	WebServer(MOTORCTRL *);
+	WebServer(MotorController *);
 	void handleTick();
 
 private:

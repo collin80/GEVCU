@@ -9,24 +9,24 @@
  
 #include "throttle.h" 
  
-void THROTTLE::handleTick() {
+void Throttle::handleTick() {
 }
 
-DEVICE::DEVTYPE THROTTLE::getDeviceType() {
-	return DEVICE::DEVICE_THROTTLE;
+Device::DeviceType Throttle::getDeviceType() {
+	return Device::DEVICE_THROTTLE;
 }
 
-DEVICE::DEVID THROTTLE::getDeviceID() {
-	return DEVICE::INVALID;
+Device::DeviceId Throttle::getDeviceID() {
+	return Device::INVALID;
 }
 
-int THROTTLE::getThrottle() {
+int Throttle::getThrottle() {
 	return outputThrottle;
 }
 
-void THROTTLE::setupDevice() {
+void Throttle::setupDevice() {
 }
 
-THROTTLE::THROTTLE() : DEVICE(0) {
-  prefs = new PREFHANDLER(EE_THROTTLE_START);
+Throttle::Throttle() : Device(0) {
+  prefs = new PrefHandler(EE_THROTTLE_START);
 }

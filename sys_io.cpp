@@ -30,7 +30,7 @@ uint16_t adc_values[8];
 uint16_t adc_buffer[NUM_ANALOG][NUM_ADC_SAMPLES];
 uint8_t adc_pointer[NUM_ANALOG]; //pointer to next position to use
 
-extern PREFHANDLER sysPrefs;
+extern PrefHandler sysPrefs;
 
 ADC_COMP adc_comp[NUM_ANALOG];
 

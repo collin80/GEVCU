@@ -18,7 +18,7 @@
 #elif CFG_NIC_TYPE == CFG_NIC_TYPE_WIFI
 
 #else
-#error CFG_WEBSERVER_TYPE not supported, check config.h
+#error CFG_NIC_TYPE not supported, check config.h
 #endif
 
 class NICHandler {

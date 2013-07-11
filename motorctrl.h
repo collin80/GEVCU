@@ -19,18 +19,18 @@
 #define MOTORCTL_INPUT_REVERSE     5
 #define MOTORCTL_INPUT_LIMP        6
 
-class MOTORCTRL : public DEVICE {
+class MotorController : public Device {
 	
 	public:
-    enum GEARSWITCH {
+    enum GearSwitch {
         GS_NEUTRAL,
         GS_FORWARD,
         GS_REVERSE,
         GS_FAULT
     };
-    MOTORCTRL(CANHandler *canbus);
-	DEVICE::DEVTYPE getDeviceType();
-	virtual DEVICE::DEVID getDeviceID();
+    MotorController(CANHandler *canbus);
+	Device::DeviceType getDeviceType();
+	virtual Device::DeviceId getDeviceID();
     virtual void setupDevice();
     virtual void handleTick();
 	int getThrottle();
@@ -39,7 +39,7 @@ class MOTORCTRL : public DEVICE {
 	bool isFaulted();
 	uint16_t getActualRpm();
 	uint16_t getActualTorque();
-	GEARSWITCH getGearSwitch();
+	GearSwitch getGearSwitch();
 	signed int getInverterTemp();
 	uint16_t getMaxRpm();
 	uint16_t getMaxTorque();
@@ -57,9 +57,9 @@ class MOTORCTRL : public DEVICE {
     uint16_t requestedRPM; //in RPM
     uint16_t actualTorque; //in tenths Nm
     uint16_t actualRPM; //in RPM
-    uint16_t MaxTorque;	//maximum torque in 0.1 Nm
-    uint16_t MaxRPM; //in RPM
-    GEARSWITCH GearSwitch;
+    uint16_t maxTorque;	//maximum torque in 0.1 Nm
+    uint16_t maxRPM; //in RPM
+    GearSwitch gearSwitch;
 };
 
 #endif

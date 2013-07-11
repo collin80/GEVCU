@@ -10,21 +10,21 @@
 
 #if CFG_NIC_TYPE == CFG_NIC_TYPE_ETHERNET
 
-EthernetServer server(CFG_WEBSERVER_PORT);
+//EthernetServer server(CFG_WEBSERVER_PORT);
 EthernetClient client = NULL;
 
 void NICHandler::init() {
-	byte mac[] = { CFG_WEBSERVER_MAC };
-	IPAddress ip(CFG_WEBSERVER_IP);
-
-	Ethernet.begin(mac, ip);
-	server.begin();
-	SerialUSB.print("Webserver is at ");
-	SerialUSB.println(Ethernet.localIP());
+//	byte mac[] = { CFG_WEBSERVER_MAC };
+//	IPAddress ip(CFG_WEBSERVER_IP);
+//
+//	Ethernet.begin(mac, ip);
+//	server.begin();
+//	SerialUSB.print("Webserver is at ");
+//	SerialUSB.println(Ethernet.localIP());
 }
 
 bool NICHandler::serverAvailable() {
-	client = server.available();
+//	client = server.available();
 	return (client);
 }
 

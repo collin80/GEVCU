@@ -18,13 +18,7 @@
 #include "timer.h"
 #include "sys_io.h"
 #include "can_handler.h"
-#ifdef __arm__ // Arduino Due specific implementation
 #include "mem_cache.h"
-#endif
-#ifdef CFG_WEBSERVER_ENABLED
-#include "webserver.h"
-#endif
-
 
 #ifdef __cplusplus
 extern "C" {
@@ -35,7 +29,6 @@ void setup();
 } // extern "C"
 #endif
 
-#define SYSTEM_MACCHINA   10
 #define SYSTEM_DUE        20
 #define BLINKLED          73 //13 is L, 73 is TX, 72 is RX
 

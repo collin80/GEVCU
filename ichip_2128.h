@@ -57,8 +57,6 @@
 #include <Arduino.h>
 #include "config.h"
 
-#ifdef __arm__ // Arduino Due specific implementation
-
 class WIFI {
     private:
     USARTClass* serialInterface; //Allows for retargetting which serial port we use
@@ -75,5 +73,4 @@ class WIFI {
     WIFI(USARTClass *which);
 };
 
-#endif
 #endif

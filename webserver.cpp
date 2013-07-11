@@ -11,9 +11,9 @@
 
 #ifdef CFG_WEBSERVER_ENABLED
 
-MOTORCTRL *motorController;
+MotorController *motorController;
 NICHandler nic = NICHandler();
-PREFHANDLER prefs = PREFHANDLER();
+PrefHandler prefs = PrefHandler();
 
 // Http header token delimiters
 const char *spDelimiters = " \r\n";
@@ -99,7 +99,7 @@ WebServer::ConfigEntry configEntry[] = {
  *
  * \param motorController	The motor controller - required to query status information
  */
-WebServer::WebServer(MOTORCTRL *motor_controller) {
+WebServer::WebServer(MotorController *motor_controller) {
 	motorController = motor_controller;
 	nic.init();
 }
@@ -178,16 +178,16 @@ void WebServer::renderStatusPage() {
 	tableCell("Requested Throttle", motorController->getThrottle());
 	char *gearSwitch;
 	switch (motorController->getGearSwitch()) {
-	case MOTORCTRL::GS_NEUTRAL:
+	case MotorController::GS_NEUTRAL:
 		gearSwitch = "neutral";
 		break;
-	case MOTORCTRL::GS_FORWARD:
+	case MotorController::GS_FORWARD:
 		gearSwitch = "forward";
 		break;
-	case MOTORCTRL::GS_REVERSE:
+	case MotorController::GS_REVERSE:
 		gearSwitch = "reverse";
 		break;
-	case MOTORCTRL::GS_FAULT:
+	case MotorController::GS_FAULT:
 		gearSwitch = "fault";
 		break;
 	}

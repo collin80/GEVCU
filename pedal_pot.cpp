@@ -11,33 +11,31 @@
 #include "pedal_pot.h"
 
 //initialize by telling the code which two ADC channels to use (or set channel 2 to 255 to disable)
-POT_THROTTLE::POT_THROTTLE(uint8_t Throttle1, uint8_t Throttle2, bool isAccel = true) {
-  Throttle1ADC = Throttle1;
-  Throttle2ADC = Throttle2;
-  if (Throttle2 == 255) numThrottlePots = 1;
+PotThrottle::PotThrottle(uint8_t throttle1, uint8_t throttle2, bool isAccel = true) {
+  throttle1ADC = throttle1;
+  throttle2ADC = throttle2;
+  if (throttle2 == 255) numThrottlePots = 1;
     else numThrottlePots = 2;
-  ThrottleStatus = OK;
-  ThrottleMaxErr = 75; //in tenths of a percent. So 25 = max 2.5% difference
+  throttleStatus = OK;
+  throttleMaxErr = 75; //in tenths of a percent. So 25 = max 2.5% difference
   isAccelerator = isAccel;
-#ifdef __arm__ // Arduino Due specific implementation
   //analogReadResolution(12);
-#endif
 }
 
-void POT_THROTTLE::setupDevice() {
-  THROTTLE::setupDevice(); //call base class first
+void PotThrottle::setupDevice() {
+  Throttle::setupDevice(); //call base class first
   //set digital ports to inputs and pull them up
   //all inputs currently active low
   //pinMode(THROTTLE_INPUT_BRAKELIGHT, INPUT_PULLUP); //Brake light switch
   /*
   if (prefs->checksumValid()) { //checksum is good, read in the values stored in EEPROM
-    prefs->read(EETH_MIN_ONE, &ThrottleMin1);
-    prefs->read(EETH_MAX_ONE, &ThrottleMax1);
-    prefs->read(EETH_MIN_TWO, &ThrottleMin2);
-    prefs->read(EETH_MAX_TWO, &ThrottleMax2);
-    prefs->read(EETH_REGEN, &ThrottleRegen);
-    prefs->read(EETH_FWD, &ThrottleFWD);
-    prefs->read(EETH_MAP, &ThrottleMAP);
+    prefs->read(EETH_MIN_ONE, &throttleMin1);
+    prefs->read(EETH_MAX_ONE, &throttleMax1);
+    prefs->read(EETH_MIN_TWO, &throttleMin2);
+    prefs->read(EETH_MAX_TWO, &throttleMax2);
+    prefs->read(EETH_REGEN, &throttleRegen);
+    prefs->read(EETH_FWD, &throttleFwd);
+    prefs->read(EETH_MAP, &throttleMap);
     prefs->read(EETH_BRAKE_MIN, &BrakeMin);
     prefs->read(EETH_BRAKE_MAX, &BrakeMax);
     prefs->read(EETH_MAX_ACCEL_REGEN, &ThrottleMaxRegen);
@@ -46,42 +44,42 @@ void POT_THROTTLE::setupDevice() {
   else { //checksum invalid. Reinitialize values and store to EEPROM
   */
     //these four values are ADC values
-    ThrottleMin1 = 8;
-    ThrottleMax1 = 450;
-    ThrottleMin2 = 355;
-    ThrottleMax2 = 1800;
+    throttleMin1 = 8;
+    throttleMax1 = 450;
+    throttleMin2 = 355;
+    throttleMax2 = 1800;
     //The next three are tenths of a percent
-    ThrottleRegen = 0;
-    ThrottleFWD = 175;
-    ThrottleMAP = 665;
-    ThrottleMaxRegen = 00; //percentage of full power to use for regen at throttle
-    BrakeMaxRegen = 80; //percentage of full power to use for regen at brake pedal transducer
-    BrakeMin = 5;
-    BrakeMax = 500;
-    prefs->write(EETH_MIN_ONE, ThrottleMin1);
-    prefs->write(EETH_MAX_ONE, ThrottleMax1);
-    prefs->write(EETH_MIN_TWO, ThrottleMin2);
-    prefs->write(EETH_MAX_TWO, ThrottleMax2);
-    prefs->write(EETH_REGEN, ThrottleRegen);
-    prefs->write(EETH_FWD, ThrottleFWD);
-    prefs->write(EETH_MAP, ThrottleMAP);
-    prefs->write(EETH_BRAKE_MIN, BrakeMin);
-    prefs->write(EETH_BRAKE_MAX, BrakeMax);
-    prefs->write(EETH_MAX_ACCEL_REGEN, ThrottleMaxRegen);
-    prefs->write(EETH_MAX_BRAKE_REGEN, BrakeMaxRegen);
+    throttleRegen = 0;
+    throttleFwd = 175;
+    throttleMap = 665;
+    throttleMaxRegen = 00; //percentage of full power to use for regen at throttle
+    brakeMaxRegen = 80; //percentage of full power to use for regen at brake pedal transducer
+    brakeMin = 5;
+    brakeMax = 500;
+    prefs->write(EETH_MIN_ONE, throttleMin1);
+    prefs->write(EETH_MAX_ONE, throttleMax1);
+    prefs->write(EETH_MIN_TWO, throttleMin2);
+    prefs->write(EETH_MAX_TWO, throttleMax2);
+    prefs->write(EETH_REGEN, throttleRegen);
+    prefs->write(EETH_FWD, throttleFwd);
+    prefs->write(EETH_MAP, throttleMap);
+    prefs->write(EETH_BRAKE_MIN, brakeMin);
+    prefs->write(EETH_BRAKE_MAX, brakeMax);
+    prefs->write(EETH_MAX_ACCEL_REGEN, throttleMaxRegen);
+    prefs->write(EETH_MAX_BRAKE_REGEN, brakeMaxRegen);
     prefs->saveChecksum();
   //}
 }
 
-int POT_THROTTLE::getRawThrottle1() {
-	return Throttle1Val;
+int PotThrottle::getRawThrottle1() {
+	return throttle1Val;
 }
 
-int POT_THROTTLE::getRawThrottle2() {
-	return Throttle2Val;
+int PotThrottle::getRawThrottle2() {
+	return throttle2Val;
 }
 
-int POT_THROTTLE::calcThrottle(int clampedVal, int minVal, int maxVal) {
+int PotThrottle::calcThrottle(int clampedVal, int minVal, int maxVal) {
     int range, val, retVal;
 
     if (minVal < maxVal) { //low to high pot
@@ -99,76 +97,76 @@ int POT_THROTTLE::calcThrottle(int clampedVal, int minVal, int maxVal) {
     return retVal;
 }
 
-void POT_THROTTLE::doAccel() {
+void PotThrottle::doAccel() {
   signed int range;
   signed int calcThrottle1, calcThrottle2, clampedVal, tempLow, temp;
   static uint16_t ThrottleAvg = 0, ThrottleFeedback = 0; //used to create proportional control
   
-  clampedVal = Throttle1Val;
+  clampedVal = throttle1Val;
 
   //The below code now only faults if the value of the ADC is 15 outside of the range +/-
   //otherwise we'll just clamp
-  if (Throttle1Val > ThrottleMax1) {
-    if (Throttle1Val > (ThrottleMax1 + CFG_THROTTLE_TOLERANCE)) {
-      ThrottleStatus = ERR_HIGH_T1;
+  if (throttle1Val > throttleMax1) {
+    if (throttle1Val > (throttleMax1 + CFG_THROTTLE_TOLERANCE)) {
+      throttleStatus = ERR_HIGH_T1;
       //SerialUSB.print("T1H ");      
     }
-    clampedVal = ThrottleMax1;
+    clampedVal = throttleMax1;
   }
   tempLow = 0;
-  if (ThrottleMin1 > (CFG_THROTTLE_TOLERANCE - 1)) {
-    tempLow = ThrottleMin1 - CFG_THROTTLE_TOLERANCE;
+  if (throttleMin1 > (CFG_THROTTLE_TOLERANCE - 1)) {
+    tempLow = throttleMin1 - CFG_THROTTLE_TOLERANCE;
   } 
-  if (Throttle1Val < ThrottleMin1) {
-    if (Throttle1Val < tempLow) {
-      ThrottleStatus = ERR_LOW_T1;
+  if (throttle1Val < throttleMin1) {
+    if (throttle1Val < tempLow) {
+      throttleStatus = ERR_LOW_T1;
       //SerialUSB.print("T1L ");      
     }
-    clampedVal = ThrottleMin1;
+    clampedVal = throttleMin1;
   }
 
-  if (! (ThrottleStatus == OK)) {
+  if (! (throttleStatus == OK)) {
     outputThrottle = 0; //no throttle if there is a fault
     return;
   }
-  calcThrottle1 = calcThrottle(clampedVal, ThrottleMin1, ThrottleMax1);
+  calcThrottle1 = calcThrottle(clampedVal, throttleMin1, throttleMax1);
    
   if (numThrottlePots > 1) { //can only do these things if there are two or more pots
-    clampedVal = Throttle2Val;
-    if (Throttle2Val > ThrottleMax2) {
-      if (Throttle2Val > (ThrottleMax2 + CFG_THROTTLE_TOLERANCE)) {
-	ThrottleStatus = ERR_HIGH_T2;
+    clampedVal = throttle2Val;
+    if (throttle2Val > throttleMax2) {
+      if (throttle2Val > (throttleMax2 + CFG_THROTTLE_TOLERANCE)) {
+	throttleStatus = ERR_HIGH_T2;
         //SerialUSB.print("T2H ");      
       }
-      clampedVal = ThrottleMax2;
+      clampedVal = throttleMax2;
     }
     tempLow = 0;
-    if (ThrottleMin2 > (CFG_THROTTLE_TOLERANCE-1)) {
-      tempLow = ThrottleMin2 - CFG_THROTTLE_TOLERANCE;
+    if (throttleMin2 > (CFG_THROTTLE_TOLERANCE-1)) {
+      tempLow = throttleMin2 - CFG_THROTTLE_TOLERANCE;
     } 
-    if (Throttle2Val < ThrottleMin2) {
-      if (Throttle2Val < tempLow) {
-        ThrottleStatus = ERR_LOW_T2;
+    if (throttle2Val < throttleMin2) {
+      if (throttle2Val < tempLow) {
+        throttleStatus = ERR_LOW_T2;
         //SerialUSB.print("T2L ");      
       }
-      clampedVal = ThrottleMin2;
+      clampedVal = throttleMin2;
     }
 
-    calcThrottle2 = calcThrottle(clampedVal, ThrottleMin2, ThrottleMax2);
+    calcThrottle2 = calcThrottle(clampedVal, throttleMin2, throttleMax2);
       
-    if ((calcThrottle1 - ThrottleMaxErr) > calcThrottle2) { //then throttle1 is too large compared to 2
-      ThrottleStatus = ERR_MISMATCH;
+    if ((calcThrottle1 - throttleMaxErr) > calcThrottle2) { //then throttle1 is too large compared to 2
+      throttleStatus = ERR_MISMATCH;
       //SerialUSB.print("MX1 ");      
     }
-    if ((calcThrottle2 - ThrottleMaxErr) > calcThrottle1) { //then throttle2 is too large compared to 1
-      ThrottleStatus = ERR_MISMATCH;
+    if ((calcThrottle2 - throttleMaxErr) > calcThrottle1) { //then throttle2 is too large compared to 1
+      throttleStatus = ERR_MISMATCH;
       //SerialUSB.print("MX2 ");      
     }
 
     calcThrottle1 = (calcThrottle1 + calcThrottle2) / 2; //temp now the average of the two
   }
 
-  if (! (ThrottleStatus == OK)) {
+  if (! (throttleStatus == OK)) {
     outputThrottle = 0; //no throttle if there is a fault
     return;
   }
@@ -187,23 +185,23 @@ void POT_THROTTLE::doAccel() {
        positive or negative travel doesn't matter and is covered by the calcThrottle functions
     */
 
-    if (ThrottleRegen != 0) {
-        if (ThrottleFeedback <= ThrottleRegen) {
-            range = ThrottleRegen;
+    if (throttleRegen != 0) {
+        if (ThrottleFeedback <= throttleRegen) {
+            range = throttleRegen;
             temp = range - ThrottleFeedback;
-            outputThrottle = (signed long)((signed long)(-10) * ThrottleMaxRegen  * temp / range);
+            outputThrottle = (signed long)((signed long)(-10) * throttleMaxRegen  * temp / range);
         }
     }
 
-    if (ThrottleFeedback >= ThrottleFWD) {
-      if (ThrottleFeedback <= ThrottleMAP) { //bottom 50% forward
-        range = ThrottleMAP - ThrottleFWD;
-	temp = (ThrottleFeedback - ThrottleFWD);
+    if (ThrottleFeedback >= throttleFwd) {
+      if (ThrottleFeedback <= throttleMap) { //bottom 50% forward
+        range = throttleMap - throttleFwd;
+	temp = (ThrottleFeedback - throttleFwd);
 	outputThrottle = (signed long)((signed long)(500) * temp / range);
       }
-      else { //more than ThrottleMAP
-        range = 1000 - ThrottleMAP;
-	temp = (ThrottleFeedback - ThrottleMAP);
+      else { //more than throttleMap
+        range = 1000 - throttleMap;
+	temp = (ThrottleFeedback - throttleMap);
         outputThrottle = 500 + (signed int)((signed long)(500) * temp / range);
       }
     }
@@ -219,45 +217,45 @@ not be possible to go racing down the road with a stuck accelerator. As soon as 
 brake is pressed it overrides the accelerator signal. Sorry, no standing burn outs.
 
 */
-void POT_THROTTLE::doBrake() {
+void PotThrottle::doBrake() {
     signed int range;
     signed int calcThrottle1, calcThrottle2, clampedVal, tempLow, temp;
 	static uint16_t ThrottleAvg = 0, ThrottleFeedback = 0; //used to create proportional control
 
-    clampedVal = Throttle1Val;
+    clampedVal = throttle1Val;
     
-    if (BrakeMax == 0) {//brake processing disabled if Max is 0
+    if (brakeMax == 0) {//brake processing disabled if Max is 0
        outputThrottle = 0; 
        return; 
     }    
 
 	//The below code now only faults if the value of the ADC is 15 outside of the range +/-
 	//otherwise we'll just clamp
-	if (Throttle1Val > BrakeMax) {
-	  if (Throttle1Val > (BrakeMax + 15)) {
-	    ThrottleStatus = ERR_HIGH_T1;
+	if (throttle1Val > brakeMax) {
+	  if (throttle1Val > (brakeMax + 15)) {
+	    throttleStatus = ERR_HIGH_T1;
             //SerialUSB.print("A");
 	  }
-	  clampedVal = BrakeMax;
+	  clampedVal = brakeMax;
 	}
 
 	tempLow = 0;
-	if (BrakeMin > 14) {
-		tempLow = BrakeMin - 15;
+	if (brakeMin > 14) {
+		tempLow = brakeMin - 15;
 	} 
-	if (Throttle1Val < BrakeMin) {
-	  if (Throttle1Val < tempLow) {
-	    ThrottleStatus = ERR_LOW_T1;
+	if (throttle1Val < brakeMin) {
+	  if (throttle1Val < tempLow) {
+	    throttleStatus = ERR_LOW_T1;
             //SerialUSB.print("B");
 	  }
-	  clampedVal = BrakeMin;
+	  clampedVal = brakeMin;
 	}
 
-	if (! (ThrottleStatus == OK)) {
+	if (! (throttleStatus == OK)) {
 		outputThrottle = 0; //no throttle if there is a fault
 		return;
 	}
-	calcThrottle1 = calcThrottle(clampedVal, BrakeMin, BrakeMax);
+	calcThrottle1 = calcThrottle(clampedVal, brakeMin, brakeMax);
         //SerialUSB.println(calcThrottle1);
    
 
@@ -281,14 +279,14 @@ void POT_THROTTLE::doBrake() {
       return;
     }
 
-    if (BrakeMaxRegen != 0) { //is the brake regen even enabled?
-      int range = BrakeMaxRegen - ThrottleMaxRegen; //we start the brake at ThrottleMaxRegen so the range is reduced by that amount
+    if (brakeMaxRegen != 0) { //is the brake regen even enabled?
+      int range = brakeMaxRegen - throttleMaxRegen; //we start the brake at ThrottleMaxRegen so the range is reduced by that amount
       if (range < 1) { //detect stupidity and abort
         outputThrottle = 0;
 	return;
       }
       outputThrottle = (signed int)((signed int)-10 * range * ThrottleFeedback) / (signed int)1000;
-      outputThrottle -= -10 * ThrottleMaxRegen;    
+      outputThrottle -= -10 * throttleMaxRegen;
       //SerialUSB.println(outputThrottle);
     }
 
@@ -297,13 +295,13 @@ void POT_THROTTLE::doBrake() {
 
 //right now only the first throttle ADC port is used. Eventually the second one should be used to cross check so dumb things
 //don't happen. Also, right now values of ADC outside the proper range are just clamped to the proper range.
-void POT_THROTTLE::handleTick() {
-  Throttle1Val = getAnalog(Throttle1ADC);
+void PotThrottle::handleTick() {
+  throttle1Val = getAnalog(throttle1ADC);
   if (numThrottlePots > 1) {
-    Throttle2Val = getAnalog(Throttle2ADC);
+    throttle2Val = getAnalog(throttle2ADC);
   }
 
-  ThrottleStatus = OK;
+  throttleStatus = OK;
 
   if (isAccelerator) 
   {
@@ -315,42 +313,42 @@ void POT_THROTTLE::handleTick() {
   }
 }
 
-POT_THROTTLE::THROTTLESTATUS POT_THROTTLE::getStatus() {
-    return ThrottleStatus;
+PotThrottle::ThrottleStatus PotThrottle::getStatus() {
+    return throttleStatus;
 }
 
-void POT_THROTTLE::setT1Min(uint16_t min) {
-	ThrottleMin1 = min;
+void PotThrottle::setT1Min(uint16_t min) {
+	throttleMin1 = min;
 }
 
-void POT_THROTTLE::setT2Min(uint16_t min) {
-	ThrottleMin2 = min;
+void PotThrottle::setT2Min(uint16_t min) {
+	throttleMin2 = min;
 }
 
-void POT_THROTTLE::setT1Max(uint16_t max) {
-	ThrottleMax1 = max;
+void PotThrottle::setT1Max(uint16_t max) {
+	throttleMax1 = max;
 }
-void POT_THROTTLE::setT2Max(uint16_t max) {
-	ThrottleMax2 = max;
-}
-
-void POT_THROTTLE::setRegenEnd(uint16_t regen) {
-	ThrottleRegen = regen;
+void PotThrottle::setT2Max(uint16_t max) {
+	throttleMax2 = max;
 }
 
-void POT_THROTTLE::setFWDStart(uint16_t fwd) {
-	ThrottleFWD = fwd;
+void PotThrottle::setRegenEnd(uint16_t regen) {
+	throttleRegen = regen;
 }
 
-void POT_THROTTLE::setMAP(uint16_t map) {
-	ThrottleMAP = map;
+void PotThrottle::setFWDStart(uint16_t fwd) {
+	throttleFwd = fwd;
 }
 
-void POT_THROTTLE::setMaxRegen(uint16_t regen) {
-	ThrottleMaxRegen = regen;
+void PotThrottle::setMAP(uint16_t map) {
+	throttleMap = map;
 }
 
-DEVICE::DEVID POT_THROTTLE::getDeviceID() {
-  return (DEVICE::POTACCELPEDAL);
+void PotThrottle::setMaxRegen(uint16_t regen) {
+	throttleMaxRegen = regen;
+}
+
+Device::DeviceId PotThrottle::getDeviceID() {
+  return (Device::POTACCELPEDAL);
 }
 

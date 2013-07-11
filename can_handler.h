@@ -10,16 +10,12 @@
 
 #include <Arduino.h>
 #include "config.h"
-#if defined(__arm__) // Arduino Due specific implementation
 #include "due_can.h"
 #include <due_wire.h>
 #include "variant.h"
 #include <DueTimer.h>
 #include "sys_io.h"
-#elif defined(__AVR__) // Machina specific implementation
-#include "MCP2515.h"
-#include "SPI.h"
-#endif
+#include "logger.h"
 
 typedef struct
 {
@@ -33,14 +29,22 @@ typedef struct
 
 class CANHandler {
 
+private:
+	RX_CAN_FRAME rx_frame;
+	CANRaw *bus;
+	void logFrame(CANFrame&);
+
 protected:
-	void init();
+	void init(uint8_t, uint32_t);
+
 public:
-	CANHandler();
-	void setFilter();
+	CANHandler(uint32_t);
+	CANHandler(uint8_t, uint32_t);
+	void setFilter(uint8_t, uint32_t, uint32_t, bool);
 	bool readFrame(CANFrame&);
+	bool readFrame(uint8_t, CANFrame&);
 	bool sendFrame(CANFrame&);
-	bool sendFrame(int mailbox, CANFrame&);
+	bool sendFrame(uint8_t, CANFrame&);
 };
 
 #endif /* CAN_HANDLER_H_ */

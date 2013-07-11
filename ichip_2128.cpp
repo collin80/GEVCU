@@ -9,8 +9,6 @@
  
 #include "ichip_2128.h"
 
-#ifdef __arm__ // Arduino Due specific implementation
-
 //initialization of hardware and parameters
 void WIFI::init() {
 }
@@ -37,7 +35,7 @@ String WIFI::getParamById(String paramName) {
 }
 
 //set the given parameter with the given string
-String WIFI::setParam(String paramName, String valu) {
+String WIFI::setParam(String paramName, String value) {
 }
 
 WIFI::WIFI() {
@@ -47,5 +45,3 @@ WIFI::WIFI() {
 WIFI::WIFI(USARTClass *which) {
   serialInterface = which;
 }
-
-#endif

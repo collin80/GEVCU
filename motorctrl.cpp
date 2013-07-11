@@ -10,8 +10,8 @@
  #include "motorctrl.h"
  
 
-MOTORCTRL::MOTORCTRL(CANHandler *canbus) : DEVICE(canbus) {
-  prefs = new PREFHANDLER(EE_MOTORCTL_START);
+MotorController::MotorController(CANHandler *canbus) : Device(canbus) {
+  prefs = new PrefHandler(EE_MOTORCTL_START);
   faulted = false;
   running = false;
   motorTemp = 0;
@@ -21,17 +21,17 @@ MOTORCTRL::MOTORCTRL(CANHandler *canbus) : DEVICE(canbus) {
   requestedTorque = 0;
   actualTorque = 0;
   actualRPM = 0;
-  MaxTorque = 0;
-  MaxRPM = 0;
-  GearSwitch = GS_FAULT;
+  maxTorque = 0;
+  maxRPM = 0;
+  gearSwitch = GS_FAULT;
 
 }
 
-DEVICE::DEVTYPE MOTORCTRL::getDeviceType() {
-  return (DEVICE::DEVICE_MOTORCTRL);
+Device::DeviceType MotorController::getDeviceType() {
+  return (Device::DEVICE_MOTORCTRL);
 }
 
-void MOTORCTRL::handleTick() {
+void MotorController::handleTick() {
   uint8_t val, val2;
   if (digitalRead(MOTORCTL_INPUT_DRIVE_EN) == LOW) {
     running = true;
@@ -41,13 +41,13 @@ void MOTORCTRL::handleTick() {
   val = digitalRead(MOTORCTL_INPUT_FORWARD);
   val2 = digitalRead(MOTORCTL_INPUT_REVERSE);
   
-  GearSwitch = GS_FAULT;
-  if (val == LOW && val2 == HIGH) GearSwitch = GS_FORWARD;
-  if (val == HIGH && val2 == LOW) GearSwitch = GS_REVERSE;
+  gearSwitch = GS_FAULT;
+  if (val == LOW && val2 == HIGH) gearSwitch = GS_FORWARD;
+  if (val == HIGH && val2 == LOW) gearSwitch = GS_REVERSE;
  
 }
 
-void MOTORCTRL::setupDevice() {
+void MotorController::setupDevice() {
   //this is where common parameters for motor controllers should be loaded from EEPROM
   
   //first set up the appropriate digital pins. All are active low currently
@@ -58,14 +58,14 @@ void MOTORCTRL::setupDevice() {
   pinMode(MOTORCTL_INPUT_LIMP, INPUT_PULLUP); //Limp mode
   */
   if (prefs->checksumValid()) { //checksum is good, read in the values stored in EEPROM
-    prefs->read(EEMC_MAX_RPM, &MaxRPM);
-    prefs->read(EEMC_MAX_TORQUE, &MaxTorque);
+    prefs->read(EEMC_MAX_RPM, &maxRPM);
+    prefs->read(EEMC_MAX_TORQUE, &maxTorque);
   }
   else { //checksum invalid. Reinitialize values and store to EEPROM
-    MaxRPM = 5000;
-    MaxTorque = 500; //50Nm
-    prefs->write(EEMC_MAX_RPM, MaxRPM);
-    prefs->write(EEMC_MAX_TORQUE, MaxTorque);
+    maxRPM = 5000;
+    maxTorque = 500; //50Nm
+    prefs->write(EEMC_MAX_RPM, maxRPM);
+    prefs->write(EEMC_MAX_TORQUE, maxTorque);
     prefs->saveChecksum();
   }
 }
@@ -89,60 +89,60 @@ void MOTORCTRL::setupDevice() {
 */
 
 
-int MOTORCTRL::getThrottle() {
+int MotorController::getThrottle() {
 	return (requestedThrottle);
 }
 
-void MOTORCTRL::setThrottle(int newthrottle) {
+void MotorController::setThrottle(int newthrottle) {
 	requestedThrottle = newthrottle;
 }
 
-bool MOTORCTRL::isRunning() {
+bool MotorController::isRunning() {
 	return (running);
 }
 
-bool MOTORCTRL::isFaulted() {
+bool MotorController::isFaulted() {
 	return (faulted);
 }
 
-uint16_t MOTORCTRL::getActualRpm() {
+uint16_t MotorController::getActualRpm() {
 	return actualRPM;
 }
 
-uint16_t MOTORCTRL::getActualTorque() {
+uint16_t MotorController::getActualTorque() {
 	return actualTorque;
 }
 
-MOTORCTRL::GEARSWITCH MOTORCTRL::getGearSwitch() {
-	return GearSwitch;
+MotorController::GearSwitch MotorController::getGearSwitch() {
+	return gearSwitch;
 }
 
-signed int MOTORCTRL::getInverterTemp() {
+signed int MotorController::getInverterTemp() {
 	return inverterTemp;
 }
 
-uint16_t MOTORCTRL::getMaxRpm() {
-	return MaxRPM;
+uint16_t MotorController::getMaxRpm() {
+	return maxRPM;
 }
 
-uint16_t MOTORCTRL::getMaxTorque() {
-	return MaxTorque;
+uint16_t MotorController::getMaxTorque() {
+	return maxTorque;
 }
 
-signed int MOTORCTRL::getMotorTemp() {
+signed int MotorController::getMotorTemp() {
 	return motorTemp;
 }
 
-uint16_t MOTORCTRL::getRequestedRpm() {
+uint16_t MotorController::getRequestedRpm() {
 	return requestedRPM;
 }
 
-uint16_t MOTORCTRL::getRequestedTorque() {
+uint16_t MotorController::getRequestedTorque() {
 	return requestedTorque;
 }
 
 
-DEVICE::DEVID MOTORCTRL::getDeviceID() {
-  return DEVICE::INVALID;
+Device::DeviceId MotorController::getDeviceID() {
+  return Device::INVALID;
 }
 
