@@ -2,7 +2,7 @@
  * can.cpp
  *
  * Wrapper class to access different CAN devices.
- * Currrently the MCP2515 and Arduino Due are supported.
+ * Currrently the Arduino Due is supported.
  *
  *  Created: 4/21/2013
  *   Author: Michael Neuweiler, Collin Kidder
@@ -13,8 +13,6 @@
 CANHandler::CANHandler() {
 	init();
 }
-
-#if defined(__arm__) // Arduino Due specific implementation
 
 RX_CAN_FRAME rx_frame;
 
@@ -100,84 +98,3 @@ bool CANHandler::sendFrame(int mailbox, CANFrame& message) {
 
 	return true;
 }
-
-#elif defined(__AVR__) // Machina specific implementation
-
-Frame rx_frame;
-
-// Create CAN object with pins as defined
-MCP2515 CAN(CFG_MACHINA_CAN_PIN_CS, CFG_MACHINA_CAN_PIN_RESET, CFG_MACHINA_CAN_PIN_INT);
-
-/*
- * Initiallize the MCP2515 interrupt handler
- */
-void CANInterruptHandler() {
-	CAN.intHandler();
-}
-
-/*
- * Initialize the MCP2515 (Machina) CAN bus
- */
-void CANHandler::init() {
-	// Set up SPI Communication
-	// dataMode can be SPI_MODE0 or SPI_MODE3 only for MCP2515
-	SPI.setClockDivider(SPI_CLOCK_DIV2);
-	SPI.setDataMode(SPI_MODE0);
-	SPI.setBitOrder(MSBFIRST);
-	SPI.begin();
-
-	// Initialize MCP2515 CAN controller at the specified speed and clock frequency
-	// (Note:  This is the oscillator attached to the MCP2515, not the Arduino oscillator)
-	// clock in MHz
-	if(CAN.Init(CFG_MACHINA_CAN_SPEED, 16))
-	{
-		SerialUSB.println("MCP2515 Init OK ...");
-	} else {
-		SerialUSB.println("MCP2515 Init Failed ...");
-	}
-
-	attachInterrupt(6, CANInterruptHandler, FALLING);
-	CAN.InitFilters(false);
-
-	//Setup CANBUS comm to allow DMOC command and status messages through
-	CAN.SetRXMask(MASK0, 0x7F0, 0);//match all but bottom four bits, use standard frames
-	CAN.SetRXFilter(FILTER0, 0x230, 0);//allows 0x230 - 0x23F
-	CAN.SetRXFilter(FILTER1, 0x650, 0);//allows 0x650 - 0x65F
-}
-
-void CANHandler::setFilter() {
-
-}
-
-bool CANHandler::readFrame(CANFrame& message) {
-	bool messageReceived = CAN.GetRXFrame(rx_frame);
-
-	message.id = rx_frame.id;
-	message.fid = rx_frame.srr; //TODO: is this correct ?
-	message.rtr = rx_frame.rtr;
-	message.ide = rx_frame.ide;
-	message.dlc = rx_frame.dlc;
-	for (int i=0; i < 8; i++)
-	message.data[i] = rx_frame.data[i];
-
-	return messageReceived;
-}
-
-bool CANHandler::sendFrame(CANFrame& message) {
-	rx_frame.id = message.id;
-	rx_frame.srr = 0;
-	rx_frame.rtr = message.rtr;
-	rx_frame.ide = message.ide;
-	rx_frame.dlc = message.dlc;
-	for (int i=0; i < 8; i++)
-	rx_frame.data[i] = message.data[i];
-
-	CAN.EnqueueTX(rx_frame);
-	return true;
-}
-
-bool CANHandler::sendFrame(int mailbox, CANFrame& message) {
-	sendFrame(message);
-}
-
-#endif

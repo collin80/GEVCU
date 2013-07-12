@@ -5,8 +5,6 @@
  *  Author: Collin Kidder
  */
 
-#ifdef __arm__ // Arduino Due specific implementation
-
 #include "mem_cache.h"
 
 extern volatile uint8_t AgingTimer;
@@ -373,4 +371,3 @@ boolean CMEMCACHE::cache_writepage(uint8_t page)
 
 CMEMCACHE MemCache;
 
-#endif

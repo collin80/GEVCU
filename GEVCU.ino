@@ -11,39 +11,30 @@
 	is to be subclassed from the proper master parent class for that form of hardware. That is, a motor controller will derive
 	from the base motor controller class. This allows a standard interface, defined by that base class, to be used to access
 	any hardware of that category. 
+
+	New, new plan: Allow for an arbitrary # of devices that can have both tick and canbus handlers. These devices register themselves
+	into the handler framework and specify which sort of device they are. They can have custom tick intervals and custom can filters.
+	The system automatically manages when to call the tick handlers and automatically filters canbus and sends frames to the devices.
+	There is a facility to send data between devices by targetting a certain type of device. For instance, a motor controller
+	can ask for any throttles and then retrieve the current throttle position from them.
  */
 
 #include "GEVCU.h"
 
 // The following includes are required in the .ino file by the Arduino IDE in order to properly
 // identify the required libraries for the build.
-#ifdef __arm__ // Arduino Due specific implementation
 #include <due_rtc.h>
 #include <due_can.h>
 #include <due_wire.h>
 #include <DueTimer.h>
-#elif defined(__AVR__) // Machina specific implementation
-#include <EEPROM.h>
-#include <SPI.h>
-#include <MCP2515.h>
-#endif
-#ifdef CFG_LCD_MONITOR_ENABLED
-#include <LiquidCrystal.h>
-#endif
 
-#ifdef __arm__ // Arduino Due specific implementation
 //RTC_clock rtc_clock(XTAL); //init RTC with the external 32k crystal as a reference
-#endif
 
 THROTTLE *accelerator; 
 THROTTLE *brake; 
 MOTORCTRL* motorcontroller; //generic motor controller - instantiate some derived class to fill this out
 PREFHANDLER sysPrefs(EE_SYSTEM_START);
 CANHandler *canbus;
-
-#ifdef CFG_LCD_MONITOR_ENABLED
-LiquidCrystal lcd(CFG_LCD_MONITOR_PINS);
-#endif
 
 //Evil, global variables
 bool runRamp = false;
@@ -164,7 +155,7 @@ void setup() {
    motorcontroller = new DMOC(canbus); //instantiate a DMOC645 device controller as our motor controller      
    motorcontroller->handleTick();
   
-#ifdef __arm__ // Arduino Due specific implementation
+
     Wire.begin();
 
     SerialUSB.println("TWI INIT OK");
@@ -186,17 +177,11 @@ void setup() {
 	 
     SerialUSB.println("RTC INIT OK");
     */
-#endif
 
     motorcontroller->setupDevice();
    
     setup_sys_io(); //get calibration data for system IO
     SerialUSB.println("SYSIO INIT OK");
-
-#ifdef CFG_LCD_MONITOR_ENABLED
-      lcd.begin(CFG_LCD_MONITOR_COLUMNS, CFG_LCD_MONITOR_ROWS);
-      lcd.print("GEVCU is running");
-#endif
 
     //The pedal I have has two pots and one should be twice the value of the other normally (within tolerance)
     //if min is less than max for a throttle then the pot goes low to high as pressed.
@@ -286,14 +271,7 @@ void loop() {
     tickReady = false;
     //do tick related stuff
 
-#ifdef __arm__ // Arduino Due specific implementation
     MemCache.handleTick();
-#endif
-
-#ifdef CFG_LCD_MONITOR_ENABLED
-    lcd.setCursor(0, 1);
-    lcd.print(count);
-#endif
 
     accelerator->handleTick(); //gets ADC values, calculates throttle position
     brake->handleTick();
@@ -431,7 +409,6 @@ void serialEvent() {
       }
       else SerialUSB.println("Cease raw throttle output");
       break;
-#ifdef __arm__ // Arduino Due specific implementation
       case 'Y':
       SerialUSB.println("Trying to save 0x45 to eeprom location 10");
       uint8_t temp;
@@ -458,7 +435,6 @@ void serialEvent() {
       }
       SerialUSB.println("");
       break;
-#endif
     case 'K': //set all outputs high
       setOutput(0, true);
       setOutput(1, true);
@@ -474,6 +450,5 @@ void serialEvent() {
       SerialUSB.println("Setting all outputs OFF");      
       break;
   }
- }
- 
+ } 
 }

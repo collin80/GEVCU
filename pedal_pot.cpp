@@ -19,9 +19,7 @@ POT_THROTTLE::POT_THROTTLE(uint8_t Throttle1, uint8_t Throttle2, bool isAccel = 
   ThrottleStatus = OK;
   ThrottleMaxErr = 75; //in tenths of a percent. So 25 = max 2.5% difference
   isAccelerator = isAccel;
-#ifdef __arm__ // Arduino Due specific implementation
   //analogReadResolution(12);
-#endif
 }
 
 void POT_THROTTLE::setupDevice() {

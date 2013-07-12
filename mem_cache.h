@@ -14,8 +14,6 @@
 #include <Arduino.h>
 #include "config.h"
 
-#ifdef __arm__ // Arduino Due specific implementation
-
 #include <due_wire.h>
 
 //Total # of allowable pages to cache. Limits RAM usage
@@ -78,5 +76,4 @@ class CMEMCACHE
 
 extern CMEMCACHE MemCache;
 
-#endif
 #endif /* MEM_CACHE_H_ */

@@ -14,12 +14,9 @@
 #include <Arduino.h>
 #include "config.h"
 #include "eeprom_layout.h"
-#if defined (__arm__) // Arduino Due specific implementation
 #include "mem_cache.h"
-#elif defined(__AVR__) // Machina specific implementation
-#include <EEPROM.h>
-#endif
 
+//normal or Last Known Good configuration
 #define PREF_MODE_NORMAL  false
 #define PREF_MODE_LKG     true
 

@@ -10,16 +10,11 @@
 
 #include <Arduino.h>
 #include "config.h"
-#if defined(__arm__) // Arduino Due specific implementation
 #include "due_can.h"
 #include <due_wire.h>
 #include "variant.h"
 #include <DueTimer.h>
 #include "sys_io.h"
-#elif defined(__AVR__) // Machina specific implementation
-#include "MCP2515.h"
-#include "SPI.h"
-#endif
 
 typedef struct
 {
