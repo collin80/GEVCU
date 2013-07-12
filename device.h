@@ -44,6 +44,7 @@ class DEVICE {
 
   virtual void handleFrame(CANFrame& frame);
     virtual void handleTick();
+	virtual void handleMessage(uint32_t msgType, void* message);
     virtual void setupDevice();
     virtual DEVTYPE getDeviceType();
     virtual DEVID getDeviceID();

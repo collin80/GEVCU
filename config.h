@@ -23,6 +23,8 @@
 
 #define CFG_THROTTLE_TOLERANCE  30 //the max that things can go over or under the min/max without fault
 
+#define CFG_MAX_DEVICES	8
+
 /*
  * specify if the webserver should be included in the build
  */
