@@ -3,8 +3,9 @@
 
 #include "device.h"
 #include "config.h"
+#include "throttle.h"
+#include "motorctrl.h"
 
-#define MSG_THROTTLE_POS	0x1000; //send throttle position as tenths of a percent - message is signed 16bit int
 #define MSG_HARD_FAULT		0x2000; //something really bad happened. Shutdown to safe state IMMEDIATELY!
 #define MSG_SOFT_FAULT		0x2200; //something unpleasant happened. Try to shutdown gracefully.
 
@@ -17,11 +18,15 @@ protected:
 public:
 	void addDevice(DEVICE *newdevice);
 	void addTickHandler(DEVICE *newdevice, uint32_t freq);
-	void addCANHandler(DEVICE *newdevice, uint32_t mask, uint32_t id, bool ext);
+	void addCANHandler(DEVICE *newdevice, uint32_t mask, uint32_t id, bool ext, uint8_t canbus);
 	void sendMessage(DEVICE::DEVTYPE devType, DEVICE::DEVID devId, uint32_t msgType, void* message);
+	uint8_t getNumThrottles();
+	uint8_t getNumControllers();
+	uint8_t getNumBMS();
+	uint8_t getNumChargers();
+	uint8_t getNumDisplays();
+	THROTTLE getThrottle(uint8_t which);
+	MOTORCTRL getMotorCtrl(uint8_t which);
 };
-
-
-
 
 #endif

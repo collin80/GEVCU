@@ -29,8 +29,10 @@ void DEVICEMGR::addTickHandler(DEVICE *newdevice, uint32_t freq)
 
 /*Add a new filter that sends frames through to the device. There definitely has
 to be support for multiple filters per device right from the beginning.
+Mask, id, ext form the filter. canbus sets whether to attach to 
+CAN0 or CAN1.
 */
-void DEVICEMGR::addCANHandler(DEVICE *newdevice, uint32_t mask, uint32_t id, bool ext)
+void DEVICEMGR::addCANHandler(DEVICE *newdevice, uint32_t mask, uint32_t id, bool ext, uint8_t canbus)
 {
 }
 
