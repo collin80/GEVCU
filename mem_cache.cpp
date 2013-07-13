@@ -11,7 +11,7 @@ extern volatile uint8_t AgingTimer;
 
 //this function flushes the first dirty page it finds. It should try to wait until enough time as elapsed since
 //a previous page has been written.
-void CMEMCACHE::FlushSinglePage() 
+void CMemCache::FlushSinglePage() 
 {
   U8 c;
   for (c=0;c<NUM_CACHED_PAGES;c++) {
@@ -26,7 +26,7 @@ void CMEMCACHE::FlushSinglePage()
 
 //Flush every dirty page. It will block for 7ms per page so maybe things will be blocked for a long, long time
 //DO NOT USE THIS FUNCTION UNLESS YOU CAN ACCEPT THAT!
-void CMEMCACHE::FlushAllPages()
+void CMemCache::FlushAllPages()
 {
   U8 c;
   for (c = 0; c < NUM_CACHED_PAGES;c++) {
@@ -38,7 +38,7 @@ void CMEMCACHE::FlushAllPages()
   }
 }
 
-void CMEMCACHE::FlushPage(uint8_t page) {
+void CMemCache::FlushPage(uint8_t page) {
   if (pages[page].dirty) {
     cache_writepage(page);
     pages[page].dirty = false;
@@ -46,7 +46,7 @@ void CMEMCACHE::FlushPage(uint8_t page) {
   }	
 }
 
-void CMEMCACHE::handleTick()
+void CMemCache::handleTick()
 {
   U8 c;
   if (AgingTimer > AGING_PERIOD) 
@@ -62,7 +62,7 @@ void CMEMCACHE::handleTick()
   }
 }
 
-void CMEMCACHE::InvalidatePage(uint8_t page)
+void CMemCache::InvalidatePage(uint8_t page)
 {
   if (page > NUM_CACHED_PAGES - 1) return; //invalid page, buddy!
   if (pages[page].dirty) {
@@ -73,7 +73,7 @@ void CMEMCACHE::InvalidatePage(uint8_t page)
   pages[page].age = 0;
 }
 
-void CMEMCACHE::InvalidateAddress(uint32_t address)
+void CMemCache::InvalidateAddress(uint32_t address)
 {
   uint32_t addr;
   uint8_t c;
@@ -83,7 +83,7 @@ void CMEMCACHE::InvalidateAddress(uint32_t address)
   if (c != 0xFF) InvalidatePage(c);
 }
 
-void CMEMCACHE::InvalidateAll()
+void CMemCache::InvalidateAll()
 {
   uint8_t c;
   for (c=0;c<NUM_CACHED_PAGES;c++) {
@@ -91,14 +91,14 @@ void CMEMCACHE::InvalidateAll()
   }	
 }
 
-void CMEMCACHE::AgeFullyPage(uint8_t page)
+void CMemCache::AgeFullyPage(uint8_t page)
 {
   if (page < NUM_CACHED_PAGES) { //if we did indeed have that page in cache
     pages[page].age = MAX_AGE;
   }
 }
 
-void CMEMCACHE::AgeFullyAddress(uint32_t address)
+void CMemCache::AgeFullyAddress(uint32_t address)
 {
   uint8_t thisCache;
   uint32_t page_addr;
@@ -112,7 +112,7 @@ void CMEMCACHE::AgeFullyAddress(uint32_t address)
 }
 
 
-boolean CMEMCACHE::Write(uint32_t address, uint8_t valu)
+boolean CMemCache::Write(uint32_t address, uint8_t valu)
 {
   uint32_t addr;
   uint8_t c;
@@ -132,21 +132,21 @@ boolean CMEMCACHE::Write(uint32_t address, uint8_t valu)
   return false;
 }
 
-boolean CMEMCACHE::Write(uint32_t address, uint16_t valu)
+boolean CMemCache::Write(uint32_t address, uint16_t valu)
 {
   boolean result;
   result = Write(address, &valu, 2);
   return result;
 }
 
-boolean CMEMCACHE::Write(uint32_t address, uint32_t valu)
+boolean CMemCache::Write(uint32_t address, uint32_t valu)
 {
   boolean result;
   result = Write(address, &valu, 4);
   return result;
 }
 
-boolean CMEMCACHE::Write(uint32_t address, void* data, uint16_t len)
+boolean CMemCache::Write(uint32_t address, void* data, uint16_t len)
 {
   uint32_t addr;
   uint8_t c;
@@ -171,7 +171,7 @@ boolean CMEMCACHE::Write(uint32_t address, void* data, uint16_t len)
   return false;
 }
 
-boolean CMEMCACHE::Read(uint32_t address, uint8_t* valu)
+boolean CMemCache::Read(uint32_t address, uint8_t* valu)
 {
   uint32_t addr;
   uint8_t c;
@@ -193,21 +193,21 @@ boolean CMEMCACHE::Read(uint32_t address, uint8_t* valu)
   }	
 }
 
-boolean CMEMCACHE::Read(uint32_t address, uint16_t* valu)
+boolean CMemCache::Read(uint32_t address, uint16_t* valu)
 {
   boolean result;
   result = Read(address, valu, 2);
   return result;
 }
 
-boolean CMEMCACHE::Read(uint32_t address, uint32_t* valu)
+boolean CMemCache::Read(uint32_t address, uint32_t* valu)
 {
   boolean result;
   result = Read(address, valu, 4);
   return result;
 }
 
-boolean CMEMCACHE::Read(uint32_t address, void* data, uint16_t len)
+boolean CMemCache::Read(uint32_t address, void* data, uint16_t len)
 {
   uint32_t addr;
   uint8_t c;
@@ -230,7 +230,7 @@ boolean CMEMCACHE::Read(uint32_t address, void* data, uint16_t len)
   return false;
 }
 
-CMEMCACHE::CMEMCACHE()
+CMemCache::CMemCache()
 {
   U8 c;
   for (c = 0; c < NUM_CACHED_PAGES; c++) {
@@ -247,14 +247,14 @@ CMEMCACHE::CMEMCACHE()
 
 }
 
-boolean CMEMCACHE::isWriting()
+boolean CMemCache::isWriting()
 {
   //if (WriteTimer) return true;
   return false;
 
 }
 
-uint8_t CMEMCACHE::cache_hit(uint32_t address)
+uint8_t CMemCache::cache_hit(uint32_t address)
 {
   uint8_t c;
   for (c = 0; c < NUM_CACHED_PAGES; c++) {
@@ -265,7 +265,7 @@ uint8_t CMEMCACHE::cache_hit(uint32_t address)
   return 0xFF;
 }
 
-void CMEMCACHE::cache_age()
+void CMemCache::cache_age()
 {
   uint8_t c;
   for (c = 0; c < NUM_CACHED_PAGES; c++) {
@@ -276,7 +276,7 @@ void CMEMCACHE::cache_age()
 }
 
 //try to find an empty page or one that can be removed from cache
-uint8_t CMEMCACHE::cache_findpage()
+uint8_t CMemCache::cache_findpage()
 {
   uint8_t c;
   uint8_t old_c, old_v;
@@ -317,7 +317,7 @@ uint8_t CMEMCACHE::cache_findpage()
   return old_c;	
 }
 
-uint8_t CMEMCACHE::cache_readpage(uint32_t addr)
+uint8_t CMemCache::cache_readpage(uint32_t addr)
 {
   uint16_t c,d,e;
   uint32_t address = addr << 8;
@@ -350,7 +350,7 @@ uint8_t CMEMCACHE::cache_readpage(uint32_t addr)
   return c;
 }
 
-boolean CMEMCACHE::cache_writepage(uint8_t page)
+boolean CMemCache::cache_writepage(uint8_t page)
 {
   uint16_t d;
   uint32_t addr;
@@ -369,5 +369,4 @@ boolean CMEMCACHE::cache_writepage(uint8_t page)
   Wire.endTransmission(true);
 }
 
-CMEMCACHE MemCache;
-
+CMemCache MemCache;

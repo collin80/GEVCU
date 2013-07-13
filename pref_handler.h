@@ -20,15 +20,15 @@
 #define PREF_MODE_NORMAL  false
 #define PREF_MODE_LKG     true
 
-class PREFHANDLER {
+class PrefHandler {
   private:
   uint32_t base_address; //base address for the parent device
   uint32_t lkg_address;
   bool use_lkg; //use last known good config?
   
   public:
-  PREFHANDLER();
-  PREFHANDLER(uint32_t base);
+  PrefHandler();
+  PrefHandler(uint32_t base);
   void LKG_mode(bool mode);
   void write(uint16_t address, uint8_t val);
   void write(uint16_t address, uint16_t val);

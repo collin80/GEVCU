@@ -30,11 +30,11 @@
 
 //RTC_clock rtc_clock(XTAL); //init RTC with the external 32k crystal as a reference
 
-THROTTLE *accelerator; 
-THROTTLE *brake; 
-MOTORCTRL* motorcontroller; //generic motor controller - instantiate some derived class to fill this out
-PREFHANDLER sysPrefs(EE_SYSTEM_START);
-CANHandler *canbus;
+Throttle *accelerator; 
+Throttle *brake; 
+MotorController* motorController; //generic motor controller - instantiate some derived class to fill this out
+PrefHandler sysPrefs(EE_SYSTEM_START);
+CanHandler *canHandler;
 
 //Evil, global variables
 bool runRamp = false;
@@ -146,15 +146,13 @@ void setup() {
   pinMode(BLINKLED, OUTPUT);
   digitalWrite(BLINKLED, LOW);
   
-  SerialUSB.begin(115200);
+  SerialUSB.begin(CFG_SERIAL_SPEED);
+  SerialUSB.print(CFG_VERSION);
 
-  SerialUSB.println("GEVCU alpha 05-05-2013");
-
-  canbus = new CANHandler();
+  canHandler = new CanHandler(0);
   
-   motorcontroller = new DMOC(canbus); //instantiate a DMOC645 device controller as our motor controller      
-   motorcontroller->handleTick();
-  
+   motorController = new DMOC(canHandler); //instantiate a DMOC645 device controller as our motor controller      
+   motorController->handleTick();
 
     Wire.begin();
 
@@ -164,7 +162,7 @@ void setup() {
         initSysEEPROM();
     }
     
-    motorcontroller->handleTick();
+    motorController->handleTick();
     //rtc_clock.init();
     //Now, we have no idea what the real time is but the EEPROM should have stored a time in the past.
     //It's better than nothing while we try to figure out the proper time.
@@ -178,7 +176,7 @@ void setup() {
     SerialUSB.println("RTC INIT OK");
     */
 
-    motorcontroller->setupDevice();
+    motorController->setupDevice();
    
     setup_sys_io(); //get calibration data for system IO
     SerialUSB.println("SYSIO INIT OK");
@@ -187,18 +185,18 @@ void setup() {
     //if min is less than max for a throttle then the pot goes low to high as pressed.
     //if max is less than min for a throttle then the pot goes high to low as pressed.
 
-    accelerator = new POT_THROTTLE(0,255, true); //specify the shield ADC ports to use for throttle 255 = not used (valid only for second value)
+    accelerator = new PotThrottle(0,255, true); //specify the shield ADC ports to use for throttle 255 = not used (valid only for second value)
 
-    brake = new POT_THROTTLE(2, 255, false); //set up the brake input as the third ADC input from the shield.
+    brake = new PotThrottle(2, 255, false); //set up the brake input as the third ADC input from the shield.
   
     accelerator->setupDevice();
     brake->setupDevice();
     
-    motorcontroller->handleTick();
+    motorController->handleTick();
         
     //This could eventually be configurable.
     setupTimer(10000); //10ms / 10000us ticks / 100Hz
-        
+
     //This will not be hard coded soon. It should be a list of every hardware support module
     //compiled into the ROM
     //Serial.println("Installed devices: DMOC645");
@@ -238,20 +236,20 @@ void loop() {
   
   sys_io_adc_poll();
 
-  if (canbus->readFrame(message)) {
-    motorcontroller->handleFrame(message);
+  if (canHandler->readFrame(message)) {
+    motorController->handleFrame(message);
   }
 
   //if the first digital input is high we'll enable drive so we can go!
   if (getDigital(0)) {
-    ((DMOC *)motorcontroller)->setGear(DMOC::DRIVE);
+    ((DMOC *)motorController)->setGear(DMOC::DRIVE);
     runThrottle = true;
-    ((DMOC *)motorcontroller)->setPowerMode(DMOC::MODE_TORQUE);
+    ((DMOC *)motorController)->setPowerMode(DMOC::MODE_TORQUE);
   }
   
   //but, if the second input is high we cancel the whole thing and disable the drive.
   if (getDigital(1) || !getDigital(0)) {
-    ((DMOC *)motorcontroller)->setOpState(DMOC::DISABLED);
+    ((DMOC *)motorController)->setOpState(DMOC::DISABLED);
     runThrottle = false;
   }
   
@@ -314,17 +312,17 @@ void loop() {
       if (!runRamp) {
         throttleval = 0;
       }
-      motorcontroller->setThrottle(throttleval * (int)12); //with throttle 0-80 this sets throttle to 0 - 960
+      motorController->setThrottle(throttleval * (int)12); //with throttle 0-80 this sets throttle to 0 - 960
     } 
     else { //use the installed throttle
 	  int throttlepos = accelerator->getThrottle();
 	  if (brake->getThrottle() != 0) { //if the brake has been pressed it overrides the accelerator.
             throttlepos = brake->getThrottle();
 	  }
-      motorcontroller->setThrottle(throttlepos);
+      motorController->setThrottle(throttlepos);
       //Serial.println(throttle.getThrottle());  //just for debugging
     }
-    motorcontroller->handleTick(); //intentionally far down here so that the throttle is set before this is called
+    motorController->handleTick(); //intentionally far down here so that the throttle is set before this is called
   }
 }
 
@@ -339,7 +337,7 @@ TODO: This all has to eventually go away.
 void serialEvent() {
   int incoming;
   static int state = 0;
-  DMOC* dmoc = (DMOC*)motorcontroller;
+  DMOC* dmoc = (DMOC*)motorController;
   incoming = SerialUSB.read();
   if (incoming == -1) return;
  if (state == 0) {
@@ -450,5 +448,6 @@ void serialEvent() {
       SerialUSB.println("Setting all outputs OFF");      
       break;
   }
- } 
+ }
+ 
 }
