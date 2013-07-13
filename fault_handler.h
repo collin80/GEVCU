@@ -20,18 +20,18 @@
 //structure to use for storing and retrieving faults.
 //Stores the info a fault record will contain.
 typedef struct {
-  uint32_t timestamp; 
+  uint32_t timeStamp; 
   uint16_t device; //which device is generating this fault
-  uint16_t fault_code; //set by the device itself. This only has meaning to a device
-  uint8_t fault_desc[40]; //a short description of the problem in plain text
+  uint16_t faultCode; //set by the device itself. This only has meaning to a device
+  uint8_t faultDescription[40]; //a short description of the problem in plain text
   uint8_t ack; //whether this fault has been acknowledged or not 1 = ack'd
   uint8_t ongoing; //whether fault still seems to be happening currently 1 = still going on
 } FAULT; //50 bytes
 
 
-class FAULTHANDLER {
+class FaultHandler {
   public:
-  FAULTHANDLER(); //constructor
+  FaultHandler(); //constructor
   uint16_t raiseFault(uint16_t device, uint16_t code, uint8_t* msg); //raise a new fault. Returns the fault # where this was stored
   FAULT getNextFault(); //get the next un-ack'd fault. Will also get first fault if the first call and you forgot to call getFirstFault
   FAULT getFirstFault(); //get the first un-acknowledged fault
@@ -41,8 +41,8 @@ class FAULTHANDLER {
   uint16_t setFaultOngoing(uint16_t fault, bool ongoing); //set value of ongoing flag - returns fault # on success
   
   private:
-  uint16_t  fault_write_ptr; //fault # we're up to for writing. Location in EEPROM is start + (fault_ptr * sizeof(FAULT))
-  uint16_t  fault_read_ptr;  //fault # we're at when reading. 
+  uint16_t  faultWritePointer; //fault # we're up to for writing. Location in EEPROM is start + (fault_ptr * sizeof(FAULT))
+  uint16_t  faultReadPointer;  //fault # we're at when reading. 
 };
 
 
