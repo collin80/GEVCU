@@ -52,11 +52,6 @@
 			<locationURI>ArduinoHardwareLibPath/Ethernet</locationURI>
 		</link>
 		<link>
-			<name>Libraries/LiquidCrystal</name>
-			<type>2</type>
-			<locationURI>ArduinoLibPath/LiquidCrystal</locationURI>
-		</link>
-		<link>
 			<name>Libraries/SPI</name>
 			<type>2</type>
 			<locationURI>ArduinoHardwareLibPath/SPI</locationURI>

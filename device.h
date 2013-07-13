@@ -42,7 +42,7 @@ public:
 	Device();
 
 	virtual void handleFrame(CANFrame& frame);
-	virtual void handleTick();
+	virtual volatile void handleTick();
 	virtual void setupDevice();
 	virtual DeviceType getDeviceType();
 	virtual DeviceId getDeviceID();

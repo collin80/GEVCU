@@ -11,7 +11,7 @@
 
 #ifdef CFG_WEBSERVER_ENABLED
 
-MotorController *motorController;
+extern MotorController *motorController;
 NICHandler nic = NICHandler();
 PrefHandler prefs = PrefHandler();
 
@@ -108,7 +108,7 @@ WebServer::WebServer(MotorController *motor_controller) {
  * Handle a tick from the main loop. Verify if a request is pending and handle it.
  *
  */
-void WebServer::handleTick() {
+volatile void WebServer::handleTick() {
 	if (nic.serverAvailable()) {
 		PageIndex pageIndex;
 

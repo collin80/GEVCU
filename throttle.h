@@ -16,7 +16,7 @@
 
 class Throttle: public Device {
 public:
-	virtual void handleTick();
+	virtual volatile void handleTick();
 	virtual void setupDevice();
 	Device::DeviceType getDeviceType();
 	virtual Device::DeviceId getDeviceID();

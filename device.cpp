@@ -12,7 +12,7 @@ void Device::handleFrame(CANFrame& frame) {
 	
 }
 
-void Device::handleTick() {
+volatile void Device::handleTick() {
 	
 }
 

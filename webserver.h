@@ -47,7 +47,7 @@ public:
 	};
 
 	WebServer(MotorController *);
-	void handleTick();
+	volatile void handleTick();
 
 private:
 	void init();

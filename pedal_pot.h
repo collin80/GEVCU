@@ -44,7 +44,7 @@ private:
 	void doBrake();
 
 public:
-	void handleTick();
+	volatile void handleTick();
 	void setupDevice();
 	ThrottleStatus getStatus();
 	void setT1Min(uint16_t min);

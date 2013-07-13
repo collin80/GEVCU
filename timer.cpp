@@ -13,13 +13,12 @@ volatile int8_t AgingTimer;
 volatile void due_timer_interrupt();
 
 /*
-Make the timer0 interrupt every specified number of microseconds
+Make the timer interrupt every specified number of microseconds
 */
 void setupTimer(long microSeconds) {
-	//Setup timer 0 to operate
   //sam3x timer routine wants frequency instead of microseconds so a conversion is necessary
   uint32_t freq = 1000000ul / microSeconds;
-  startTimer3(freq, due_timer_interrupt);
+  startTimer9(freq, due_timer_interrupt);
 }
 
 volatile void due_timer_interrupt() {

@@ -9,7 +9,7 @@
  
 #include "throttle.h" 
  
-void Throttle::handleTick() {
+volatile void Throttle::handleTick() {
 }
 
 Device::DeviceType Throttle::getDeviceType() {

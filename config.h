@@ -21,7 +21,7 @@
 
 #define SerialUSB Serial // re-route serial-usb output to programming port ;) comment if output should go to std usb
 
-#define CFG_MAX_TICK_DEVICES 16 // the maximum number of supported tickable devices
+#define CFG_MAX_TICK_DEVICES 9 // the maximum number of supported tickable devices (limited by available timers)
 
 #define CFG_CAN0_SPEED CAN_BPS_500K // specify the speed of the CAN0 bus
 #define CFG_CAN1_SPEED CAN_BPS_500K // specify the speed of the CAN1 bus

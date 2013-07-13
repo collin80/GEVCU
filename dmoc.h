@@ -69,7 +69,7 @@ private:
 public:
 
   void handleFrame(CANFrame& frame);
-  void handleTick();	
+  volatile void handleTick();
   void setupDevice();
   void setOpState(OperationState op);
   void setGear(Gears gear);
