@@ -26,13 +26,13 @@ and I'll bet  other controllers do as well. The rest can feel free to ignore it.
 #include "dmoc.h"
 
 
-DMOC::DMOC(CANHandler *canhandler) : MOTORCTRL(canhandler) {
+DMOC::DMOC(CANHandler *canhandler) : MotorController(canhandler) {
 	step = SPEED_TORQUE;
 	selectedGear = NEUTRAL;
-	opstate = DISABLED;
-        actualstate = DISABLED;
-	MaxTorque = 500; //in tenths so 50Nm max torque. This is plenty for testing
-	MaxRPM = 6000; //also plenty for a bench test
+	operationState = DISABLED;
+        actualState = DISABLED;
+	maxTorque = 500; //in tenths so 50Nm max torque. This is plenty for testing
+	maxRPM = 6000; //also plenty for a bench test
         online = 0;
         powerMode = MODE_TORQUE; 
 }
@@ -69,33 +69,33 @@ void DMOC::handleFrame(CANFrame& frame) {
       break;
     case 0x23B: //speed and current operation status
       actualRPM = ((frame.data[0] * 256) + frame.data[1]) - 20000;
-      temp = (OPSTATE)(frame.data[6] >> 4);
+      temp = (OperationState)(frame.data[6] >> 4);
       //actually, the above is an operation status report which doesn't correspond
       //to the state enum so translate here.
       switch (temp) {
         case 0: //Initializing
-          actualstate = DISABLED;
+          actualState = DISABLED;
           break;
         case 1: //disabled 
-          actualstate = DISABLED;
+          actualState = DISABLED;
           break;
         case 2: //ready (standby)
-          actualstate = STANDBY;
+          actualState = STANDBY;
           break;
         case 3: //enabled
-          actualstate = ENABLE;
+          actualState = ENABLE;
           break;
         case 4: //Power Down
-          actualstate = POWERDOWN;
+          actualState = POWERDOWN;
           break;
         case 5: //Fault
-          actualstate = DISABLED;
+          actualState = DISABLED;
           break;        
         case 6: //Critical Fault
-          actualstate = DISABLED;
+          actualState = DISABLED;
           break;        
         case 7: //LOS
-          actualstate = DISABLED;
+          actualState = DISABLED;
           break;        
       }
 //      SerialUSB.println(temp);
@@ -107,15 +107,15 @@ void DMOC::handleFrame(CANFrame& frame) {
 }
 
 void DMOC::setupDevice() {
-  MOTORCTRL::setupDevice(); //first run the parent class version of this function
+  MotorController::setupDevice(); //first run the parent class version of this function
 }
 
 /*Do note that the DMOC expects all three command frames and it expect them to happen at least twice a second. So, probably it'd be ok to essentially
   rotate through all of them, one per tick. That gives us a time frame of 30ms for each command frame. That should be plenty fast.
 */
-void DMOC::handleTick() {
+volatile void DMOC::handleTick() {
   
-  MOTORCTRL::handleTick(); //kick the ball up to papa
+  MotorController::handleTick(); //kick the ball up to papa
   
   switch (step) {
   case SPEED_TORQUE:
@@ -137,15 +137,15 @@ void DMOC::handleTick() {
 //Commanded RPM plus state of key and gear selector
 void DMOC::sendCmd1() {
 	CANFrame output;
-    OPSTATE newstate;
+    OperationState newstate;
 	alive = (alive + 2) & 0x0F;
 	output.dlc = 8;
 	output.id = 0x232;
 	output.ide = 0; //standard frame
 	output.rtr = 0;
 
-	if (requestedThrottle > 0 && opstate == ENABLE && selectedGear != NEUTRAL && powerMode == MODE_RPM)
-		requestedRPM = 20000 + (((long)requestedThrottle * (long)MaxRPM) / 1000);
+	if (requestedThrottle > 0 && operationState == ENABLE && selectedGear != NEUTRAL && powerMode == MODE_RPM)
+		requestedRPM = 20000 + (((long)requestedThrottle * (long)maxRPM) / 1000);
 	else 
 		requestedRPM = 20000;
 	output.data[0] = (requestedRPM & 0xFF00) >> 8;
@@ -157,11 +157,11 @@ void DMOC::sendCmd1() {
 
         //handle proper state transitions
         newstate = DISABLED;
-        if (actualstate == DISABLED && (opstate == STANDBY || opstate == ENABLE)) newstate = STANDBY;
-        if ((actualstate == STANDBY || actualstate == ENABLE) && opstate == ENABLE) newstate = ENABLE;
-        if (opstate == POWERDOWN) newstate = POWERDOWN;
+        if (actualState == DISABLED && (operationState == STANDBY || operationState == ENABLE)) newstate = STANDBY;
+        if ((actualState == STANDBY || actualState == ENABLE) && operationState == ENABLE) newstate = ENABLE;
+        if (operationState == POWERDOWN) newstate = POWERDOWN;
         
-		if (actualstate == ENABLE) {
+		if (actualState == ENABLE) {
 			output.data[6] = alive + ((byte)selectedGear << 4) + ((byte)newstate << 6); //use new automatic state system.
 		}
 		else { //force neutral gear until the system is enabled.
@@ -171,7 +171,7 @@ void DMOC::sendCmd1() {
  
 	output.data[7] = calcChecksum(output);
 
-	canbus->sendFrame(5, output);
+	canHandler->sendFrame(5, output);
 }
 
 //Torque limits
@@ -189,9 +189,9 @@ void DMOC::sendCmd2() {
 
     requestedTorque = 30000; //set upper torque to zero if not drive enabled
     if (powerMode == MODE_TORQUE) {
-       if (actualstate == ENABLE) { //don't even try sending torque commands until the DMOC reports it is ready
-          if (selectedGear == DRIVE) requestedTorque = 30000L + (((long)requestedThrottle * (long)MaxTorque) / 1000L);
-          if (selectedGear == REVERSE) requestedTorque = 30000L - (((long)requestedThrottle * (long)MaxTorque) / 1000L);
+       if (actualState == ENABLE) { //don't even try sending torque commands until the DMOC reports it is ready
+          if (selectedGear == DRIVE) requestedTorque = 30000L + (((long)requestedThrottle * (long)maxTorque) / 1000L);
+          if (selectedGear == REVERSE) requestedTorque = 30000L - (((long)requestedThrottle * (long)maxTorque) / 1000L);
        }		
        output.data[0] = (requestedTorque & 0xFF00) >> 8;
        output.data[1] = (requestedTorque & 0x00FF);
@@ -199,8 +199,8 @@ void DMOC::sendCmd2() {
        output.data[3] = output.data[1];
     }
     else { //RPM mode so request max torque as upper limit and zero torque as lower limit
-       output.data[0] = ((30000L + MaxTorque) & 0xFF00) >> 8;
-       output.data[1] = ((30000L + MaxTorque) & 0x00FF);
+       output.data[0] = ((30000L + maxTorque) & 0xFF00) >> 8;
+       output.data[1] = ((30000L + maxTorque) & 0x00FF);
        output.data[2] = 0x75;
        output.data[3] = 0x30;
     }
@@ -211,7 +211,7 @@ void DMOC::sendCmd2() {
 	output.data[6] = alive;
 	output.data[7] = calcChecksum(output);
 
-	canbus->sendFrame(6, output);
+	canHandler->sendFrame(6, output);
 }
 
 //Power limits plus setting ambient temp and whether to cool power train or go into limp mode
@@ -230,7 +230,7 @@ void DMOC::sendCmd3() {
 	output.data[6] = alive;
 	output.data[7] = calcChecksum(output);
 
-	canbus->sendFrame(7, output);
+	canHandler->sendFrame(7, output);
 }
 
 //challenge/response frame 1 - Really doesn't contain anything we need I dont think
@@ -249,7 +249,7 @@ void DMOC::sendCmd4() {
 	output.data[6] = alive;
 	output.data[7] = calcChecksum(output);
 
-	canbus->sendFrame(5, output);
+	canHandler->sendFrame(5, output);
 }
 
 //Another C/R frame but this one also specifies which shifter position we're in
@@ -262,7 +262,7 @@ void DMOC::sendCmd5() {
 	output.data[0] = 2;
 	output.data[1] = 127;
 	output.data[2] = 0;
-	if (opstate == ENABLE && selectedGear != NEUTRAL)  {
+	if (operationState == ENABLE && selectedGear != NEUTRAL)  {
 		output.data[3] = 52;
 		output.data[4] = 26;
 		output.data[5] = 59; //drive
@@ -276,19 +276,19 @@ void DMOC::sendCmd5() {
 	output.data[6] = alive;
 	output.data[7] = calcChecksum(output);
 
-	canbus->sendFrame(6, output);
+	canHandler->sendFrame(6, output);
 }
 
-void DMOC::setOpState(OPSTATE op) {
-	opstate = op;
+void DMOC::setOpState(OperationState op) {
+	operationState = op;
 }
 
-void DMOC::setGear(GEARS gear) {
+void DMOC::setGear(Gears gear) {
 	selectedGear = gear;
 	//if the gear was just set to drive or reverse and the DMOC is not currently in enabled
 	//op state then ask for it by name
 	if (selectedGear != NEUTRAL) {
-		opstate = ENABLE;
+		operationState = ENABLE;
 	}
 	//should it be set to standby when selecting neutral? I don't know. Doing that prevents regen
 	//when in neutral and I don't think people will like that.
@@ -306,15 +306,15 @@ byte DMOC::calcChecksum(CANFrame thisFrame) {
 	return cs;
 }
 
-DEVICE::DEVID DMOC::getDeviceID() {
-  return (DEVICE::DMOC645);
+Device::DeviceId DMOC::getDeviceID() {
+  return (Device::DMOC645);
 }
 
-void DMOC::setPowerMode(POWERMODE mode) {
+void DMOC::setPowerMode(PowerMode mode) {
   powerMode = mode;
 }
 
-DMOC::POWERMODE DMOC::getPowerMode() {
+DMOC::PowerMode DMOC::getPowerMode() {
   return powerMode;
 }
 

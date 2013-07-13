@@ -16,33 +16,33 @@
 #include "config.h"
 #include "motorctrl.h"
 
-class DMOC : public MOTORCTRL {
+class DMOC : public MotorController {
 public:
-  enum GEARS {
+  enum Gears {
     NEUTRAL = 0,
     DRIVE = 1,
     REVERSE = 2,
     ERROR = 3
   };
 
-  enum STEP {
+  enum Step {
     SPEED_TORQUE,
     CHAL_RESP
   };
   
-  enum POWERMODE {
+  enum PowerMode {
     MODE_TORQUE,
     MODE_RPM
   };
 
-  enum KEYSTATE {
+  enum KeyState {
     OFF = 0,
     ON = 1,
     RESERVED = 2,
     NOACTION = 3
   };
 
-  enum OPSTATE {
+  enum OperationState {
     DISABLED = 0,
     STANDBY = 1,
     ENABLE = 2,
@@ -50,14 +50,14 @@ public:
   };
 
 private:
-  GEARS selectedGear;
-  GEARS actualgear;
-  OPSTATE opstate; //the op state we want
-  OPSTATE actualstate; //what the controller is reporting it is
+  Gears selectedGear;
+  Gears actualGear;
+  OperationState operationState; //the op state we want
+  OperationState actualState; //what the controller is reporting it is
   int step;
   byte online; //counter for whether DMOC appears to be operating
   byte alive;
-  POWERMODE powerMode;
+  PowerMode powerMode;
 
   void sendCmd1();
   void sendCmd2();
@@ -69,15 +69,15 @@ private:
 public:
 
   void handleFrame(CANFrame& frame);
-  void handleTick();	
+  volatile void handleTick();
   void setupDevice();
-  void setOpState(OPSTATE op);
-  void setGear(GEARS gear);
+  void setOpState(OperationState op);
+  void setGear(Gears gear);
 
   DMOC(CANHandler *canbus);
-  DEVICE::DEVID getDeviceID();
-  void setPowerMode(POWERMODE mode);
-  POWERMODE getPowerMode();
+  Device::DeviceId getDeviceID();
+  void setPowerMode(PowerMode mode);
+  PowerMode getPowerMode();
 };
 
 #endif /* DMOC_H_ */

@@ -7,7 +7,7 @@
  *  Author: Collin Kidder
  */ 
  
- #ifndef MOTORCTRL_H_
+#ifndef MOTORCTRL_H_
 #define MOTORCTRL_H_
 
 #include <Arduino.h>
@@ -19,40 +19,47 @@
 #define MOTORCTL_INPUT_REVERSE     5
 #define MOTORCTL_INPUT_LIMP        6
 
-class MOTORCTRL : public DEVICE {
+class MotorController : public Device {
 	
 	public:
-	DEVICE::DEVTYPE getDeviceType();
-	virtual DEVICE::DEVID getDeviceID();
-        virtual void setupDevice();
-       	virtual void handleTick();
+    enum GearSwitch {
+        GS_NEUTRAL,
+        GS_FORWARD,
+        GS_REVERSE,
+        GS_FAULT
+    };
+    MotorController(CANHandler *canbus);
+	Device::DeviceType getDeviceType();
+	virtual Device::DeviceId getDeviceID();
+    virtual void setupDevice();
+    virtual volatile void handleTick();
 	int getThrottle();
 	void setThrottle(int newthrottle);
 	bool isRunning();
 	bool isFaulted();
+	uint16_t getActualRpm();
+	uint16_t getActualTorque();
+	GearSwitch getGearSwitch();
+	signed int getInverterTemp();
+	uint16_t getMaxRpm();
+	uint16_t getMaxTorque();
+	signed int getMotorTemp();
+	uint16_t getRequestedRpm();
+	uint16_t getRequestedTorque();
 
-        enum GEARSWITCH {
-            GS_NEUTRAL,
-            GS_FORWARD,
-            GS_REVERSE,
-            GS_FAULT
-        };
-        
-        MOTORCTRL(CANHandler *canbus);
-	
 	protected:
 	int requestedThrottle;
 	bool running;
-        bool faulted;
-        signed int motorTemp; //temperature of motor in tenths of degree C
-        signed int inverterTemp; //temperature of inverter in tenths deg C
-        uint16_t requestedTorque; //in tenths of Nm
-        uint16_t requestedRPM; //in RPM
-        uint16_t actualTorque; //in tenths Nm
-        uint16_t actualRPM; //in RPM
-        uint16_t MaxTorque;	//maximum torque in 0.1 Nm
-        uint16_t MaxRPM; //in RPM
-        GEARSWITCH GearSwitch;
+    bool faulted;
+    signed int motorTemp; //temperature of motor in tenths of degree C
+    signed int inverterTemp; //temperature of inverter in tenths deg C
+    uint16_t requestedTorque; //in tenths of Nm
+    uint16_t requestedRPM; //in RPM
+    uint16_t actualTorque; //in tenths Nm
+    uint16_t actualRPM; //in RPM
+    uint16_t maxTorque;	//maximum torque in 0.1 Nm
+    uint16_t maxRPM; //in RPM
+    GearSwitch gearSwitch;
 };
 
 #endif
