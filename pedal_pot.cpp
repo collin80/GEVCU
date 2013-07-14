@@ -109,7 +109,7 @@ void PotThrottle::doAccel() {
   if (throttle1Val > throttleMax1) {
     if (throttle1Val > (throttleMax1 + CFG_THROTTLE_TOLERANCE)) {
       throttleStatus = ERR_HIGH_T1;
-      //SerialUSB.print("T1H ");      
+      //Logger::debug("T1H ");
     }
     clampedVal = throttleMax1;
   }
@@ -120,7 +120,7 @@ void PotThrottle::doAccel() {
   if (throttle1Val < throttleMin1) {
     if (throttle1Val < tempLow) {
       throttleStatus = ERR_LOW_T1;
-      //SerialUSB.print("T1L ");      
+      //Logger::debug("T1L ");
     }
     clampedVal = throttleMin1;
   }
@@ -136,7 +136,7 @@ void PotThrottle::doAccel() {
     if (throttle2Val > throttleMax2) {
       if (throttle2Val > (throttleMax2 + CFG_THROTTLE_TOLERANCE)) {
 	throttleStatus = ERR_HIGH_T2;
-        //SerialUSB.print("T2H ");      
+        //Logger::debug("T2H ");
       }
       clampedVal = throttleMax2;
     }
@@ -147,7 +147,7 @@ void PotThrottle::doAccel() {
     if (throttle2Val < throttleMin2) {
       if (throttle2Val < tempLow) {
         throttleStatus = ERR_LOW_T2;
-        //SerialUSB.print("T2L ");      
+        //Logger::debug("T2L ");
       }
       clampedVal = throttleMin2;
     }
@@ -156,11 +156,11 @@ void PotThrottle::doAccel() {
       
     if ((calcThrottle1 - throttleMaxErr) > calcThrottle2) { //then throttle1 is too large compared to 2
       throttleStatus = ERR_MISMATCH;
-      //SerialUSB.print("MX1 ");      
+      //Logger::debug("MX1 ");
     }
     if ((calcThrottle2 - throttleMaxErr) > calcThrottle1) { //then throttle2 is too large compared to 1
       throttleStatus = ERR_MISMATCH;
-      //SerialUSB.print("MX2 ");      
+      //Logger::debug("MX2 ");
     }
 
     calcThrottle1 = (calcThrottle1 + calcThrottle2) / 2; //temp now the average of the two
@@ -234,7 +234,7 @@ void PotThrottle::doBrake() {
 	if (throttle1Val > brakeMax) {
 	  if (throttle1Val > (brakeMax + 15)) {
 	    throttleStatus = ERR_HIGH_T1;
-            //SerialUSB.print("A");
+            //Logger::debug("A");
 	  }
 	  clampedVal = brakeMax;
 	}
@@ -246,7 +246,7 @@ void PotThrottle::doBrake() {
 	if (throttle1Val < brakeMin) {
 	  if (throttle1Val < tempLow) {
 	    throttleStatus = ERR_LOW_T1;
-            //SerialUSB.print("B");
+            //Logger::debug("B");
 	  }
 	  clampedVal = brakeMin;
 	}
@@ -256,7 +256,7 @@ void PotThrottle::doBrake() {
 		return;
 	}
 	calcThrottle1 = calcThrottle(clampedVal, brakeMin, brakeMax);
-        //SerialUSB.println(calcThrottle1);
+        //Logger::debug("calcThrottle: %d", calcThrottle1);
    
 
     //Apparently all is well with the throttle input
@@ -287,7 +287,7 @@ void PotThrottle::doBrake() {
       }
       outputThrottle = (signed int)((signed int)-10 * range * ThrottleFeedback) / (signed int)1000;
       outputThrottle -= -10 * throttleMaxRegen;
-      //SerialUSB.println(outputThrottle);
+      //Logger::debug("outputThrottle: %d", outputThrottle);
     }
 
 }

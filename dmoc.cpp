@@ -98,7 +98,7 @@ void DMOC::handleFrame(CANFrame& frame) {
           actualState = DISABLED;
           break;        
       }
-//      SerialUSB.println(temp);
+//      Logger::debug("OpState: %d", temp);
       break;
     case 0x23E: //electrical status
       //gives volts and amps for D and Q but does the firmware really care?

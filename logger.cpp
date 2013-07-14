@@ -84,6 +84,10 @@ void Logger::log(LogLevel level, char *format, va_list args) {
 					SerialUSB.print(va_arg( args, int ), DEC);
 					continue;
 				}
+				if (*format == 'f') {
+					SerialUSB.print(va_arg( args, float ), DEC);
+					continue;
+				}
 				if (*format == 'x') {
 					SerialUSB.print(va_arg( args, int ), HEX);
 					continue;

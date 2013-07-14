@@ -157,7 +157,7 @@ void setup() {
 
     Wire.begin();
 
-    SerialUSB.println("TWI INIT OK");
+    Logger::info("TWI init ok");
 
     if (!sysPrefs.checksumValid()) { //checksum is good, read in the values stored in EEPROM
         initSysEEPROM();
@@ -174,13 +174,13 @@ void setup() {
     sysPrefs.read(EESYS_RTC_DATE, &temp);
     rtc_clock.change_date(temp);
 	 
-    SerialUSB.println("RTC INIT OK");
+    Logger::info("RTC init ok");
     */
 
     motorController->setupDevice();
    
     setup_sys_io(); //get calibration data for system IO
-    SerialUSB.println("SYSIO INIT OK");
+    Logger::info("SYSIO init ok");
 
     //The pedal I have has two pots and one should be twice the value of the other normally (within tolerance)
     //if min is less than max for a throttle then the pot goes low to high as pressed.
@@ -200,9 +200,9 @@ void setup() {
 
     //This will not be hard coded soon. It should be a list of every hardware support module
     //compiled into the ROM
-    //Serial.println("Installed devices: DMOC645");
+    //Logger::info("Installed devices: DMOC645");
 
-    SerialUSB.print("System Ready ");
+    Logger::info("System Ready");
     printMenu();
 }
 
@@ -252,7 +252,8 @@ void loop() {
     runThrottle = false;
   }
   
-  if (SerialUSB.available()) serialEvent(); //due doesnt have int driven serial yet
+  if (SerialUSB.available())
+	  serialEvent(); //due doesnt have int driven serial yet
   if (tickReady) {
     tickReady = false;
 
@@ -260,39 +261,17 @@ void loop() {
 
     accelerator->handleTick(); //gets ADC values, calculates throttle position
     brake->handleTick();
-    //Serial.println(Throttle.getThrottle());
+    //Logger::debug("Throttle: %d", Throttle.getThrottle());
    count++;
    if (count > 50) {
      count = 0;
      if (!runStatic) throttleval++;
      if (throttleval > 80) throttleval = 0;
      if (throttleDebug) {
-       adcval = getAnalog(0);
-       SerialUSB.print("A0: ");
-       SerialUSB.print(adcval);
-       adcval = getAnalog(1);
-       SerialUSB.print(" A1: ");
-       SerialUSB.print(adcval);
-       adcval = getAnalog(2);
-       SerialUSB.print(" A2: ");
-       SerialUSB.print(adcval);
-       adcval = getAnalog(3);
-       SerialUSB.print(" A3: ");
-       SerialUSB.print(adcval);
-       if (getDigital(0)) SerialUSB.print(" D0: HIGH");
-         else SerialUSB.print(" D0: LOW");
-       if (getDigital(1)) SerialUSB.print(" D1: HIGH");
-         else SerialUSB.print(" D1: LOW");
-       if (getDigital(2)) SerialUSB.print(" D2: HIGH");
-         else SerialUSB.print(" D2: LOW");
-       if (getDigital(3)) SerialUSB.print(" D3: HIGH");
-         else SerialUSB.print(" D3: LOW");
-         
-       int throttlepos = accelerator->getThrottle();
-       if (brake->getThrottle() != 0) throttlepos = brake->getThrottle();       
-       SerialUSB.print("  A:");
-       SerialUSB.print(throttlepos);
-       SerialUSB.println("");
+       Logger::debug("A0: %d, A1: %d, A2: %d, A3: %d", getAnalog(0), getAnalog(1), getAnalog(2), getAnalog(3));
+       Logger::debug("D0: %d, D1: %d, D2: %d, D3: %d", getDigital(0), getDigital(1), getDigital(2), getDigital(3));
+       Logger::debug("Throttle: %d", accelerator->getThrottle());
+       Logger::debug("Brake   : %d", brake->getThrottle());
      }
    }
    if (!runThrottle) { //ramping test      
@@ -307,7 +286,7 @@ void loop() {
             throttlepos = brake->getThrottle();
 	  }
       motorController->setThrottle(throttlepos);
-      //Serial.println(throttle.getThrottle());  //just for debugging
+      //Logger::debug("Throttle: %d", throttle.getThrottle());
     }
     motorController->handleTick(); //intentionally far down here so that the throttle is set before this is called
   }
@@ -337,102 +316,99 @@ void serialEvent() {
     case ' ':
       runRamp = !runRamp;
         if (runRamp) {
-	  SerialUSB.println("Start Ramp Test");
+	  Logger::info("Start Ramp Test");
           dmoc->setPowerMode(DMOC::MODE_RPM);
         }
 	else {
-          SerialUSB.println("End Ramp Test");
+          Logger::info("End Ramp Test");
           dmoc->setPowerMode(DMOC::MODE_TORQUE);
         }
 	break;
     case 'd':
       dmoc->setGear(DMOC::DRIVE);
-      SerialUSB.println("forward");
+      Logger::info("forward");
       break;
     case 'n':
       dmoc->setGear(DMOC::NEUTRAL);
-      SerialUSB.println("neutral");
+      Logger::info("neutral");
       break;
     case 'r':
       dmoc->setGear(DMOC::REVERSE);
-      SerialUSB.println("reverse");
+      Logger::info("reverse");
       break;
     case 'D':
       dmoc->setOpState(DMOC::DISABLED);
-      SerialUSB.println("disabled");
+      Logger::info("disabled");
       break;
     case 'S':
       dmoc->setOpState(DMOC::STANDBY);
-      SerialUSB.println("standby");
+      Logger::info("standby");
       break;
     case 'E':
       dmoc->setOpState(DMOC::ENABLE);
-      SerialUSB.println("enabled");
+      Logger::info("enabled");
       break;
     case 'x':
       runStatic = !runStatic;
       if (runStatic) {
-        SerialUSB.println("Lock RPM rate");
+        Logger::info("Lock RPM rate");
       }
-      else SerialUSB.println("Unlock RPM rate");
+      else Logger::info("Unlock RPM rate");
       break;
     case 't':
       runThrottle = !runThrottle;
       if (runThrottle) {
-        SerialUSB.println("Use Throttle Pedal");
+        Logger::info("Use Throttle Pedal");
         dmoc->setPowerMode(DMOC::MODE_TORQUE);
       }
       else {
-        SerialUSB.println("Ignore throttle pedal");
+        Logger::info("Ignore throttle pedal");
         dmoc->setPowerMode(DMOC::MODE_RPM);
       }
       break;
     case 'L':
       throttleDebug = !throttleDebug;
       if (throttleDebug) {
-        SerialUSB.println("Output raw throttle");
+        Logger::info("Output raw throttle");
       }
-      else SerialUSB.println("Cease raw throttle output");
+      else Logger::info("Cease raw throttle output");
       break;
       case 'Y':
-      SerialUSB.println("Trying to save 0x45 to eeprom location 10");
+      Logger::info("Trying to save 0x45 to eeprom location 10");
       uint8_t temp;
       MemCache.Write(10, (uint8_t) 0x45);
       MemCache.Read(10, &temp);
-      SerialUSB.print("Got back value of ");
-      SerialUSB.println(temp);      
+      Logger::info("Got back value of %d", temp);
       break;
     case 'U':
-      SerialUSB.println("Adding a sequence of values from 0 to 255 into eeprom");
+      Logger::info("Adding a sequence of values from 0 to 255 into eeprom");
       for (int i = 0; i<256; i++) MemCache.Write(1000+i,(uint8_t)i);
-      SerialUSB.println("Flushing cache");
+      Logger::info("Flushing cache");
       MemCache.FlushAllPages(); //write everything to eeprom
       MemCache.InvalidateAll(); //remove all data from cache
-      SerialUSB.println("Operation complete.");
+      Logger::info("Operation complete.");
       break;
     case 'I':
-      SerialUSB.println("Retrieving data previously saved");
+      Logger::info("Retrieving data previously saved");
       uint8_t val;
       for (int i = 0; i < 256; i++) {
         MemCache.Read(1000 + i, &val);
-        SerialUSB.print(val);
-        SerialUSB.print(" ");
+        Logger::info("%d: %d", i, val);
       }
-      SerialUSB.println("");
       break;
     case 'K': //set all outputs high
       setOutput(0, true);
       setOutput(1, true);
       setOutput(2, true);
       setOutput(3, true);
-      SerialUSB.println("Setting all outputs ON");
+      Logger::info("all outputs: ON");
       break;
     case 'J': //set the four outputs low
       setOutput(0, false);
       setOutput(1, false);
       setOutput(2, false);
       setOutput(3, false);    
-      SerialUSB.println("Setting all outputs OFF");      
+      Logger::info("all outputs: OFF");
       break;
   }
  }

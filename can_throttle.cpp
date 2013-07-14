@@ -51,9 +51,8 @@ int CanThrottle::getThrottle()
 }
 
 /*
- * Handle the response of the ECU. Log the data on the serial port
- * and convert the response value to a percentage to display on
- * the LCD.
+ * Handle the response of the ECU. Log the data and convert the response
+ * value to a percentage to display on the LCD.
  *
  * Trace log of Vida: [0x00, 0x00, 0x07, 0xe8, 0x62, 0xee, 0xcb, 0x14]
  * Trace log of CANMonitor: dlc=0x08 fid=0x7e8 id=0x7e8 ide=0x00 rtr=0x00 data=0x04,0x62,0xEE,0xCB,0x14,0x00,0x00,0x00
@@ -64,9 +63,7 @@ int CanThrottle::getThrottle()
  */
 void handleResponse(CANFrame& message) {
 	if (message.id == CAN_THROTTLE_RESPONSE_ID) {
-		SerialUSB.print("CAN Throttle: ");
-		SerialUSB.print((float) message.data[CAN_THROTTLE_DATA_BYTE] * 100.0 / 255.0);
-		SerialUSB.println("%");
+		Logger::info("CAN Throttle: %f%%", (float) message.data[CAN_THROTTLE_DATA_BYTE] * 100.0 / 255.0);
 	}
 }
 
