@@ -14,19 +14,25 @@
 #include "device.h"
 #include "config.h"
 
-class TickHandler {
+#define NUM_TIMERS 9
 
-private:
-	static Device *tickDevice[CFG_MAX_TICK_DEVICES]; // array which holds the registered TickDevices
-	static int findTimer(Device *);
+class TickHandler {
+public:
+	static void initialize();
+	static void registerDevice(Device *device, uint32_t interval);
+	static void unregisterDevice(Device *device);
+	static void handleInterrupt(int timerNumber); // must be public when from the non-class functions
 
 protected:
 
-public:
-	TickHandler();
-	static void registerDevice(Device *, uint32_t);
-	static void unregisterDevice(Device *);
-	static void handleInterrupt(int);
+private:
+	struct TimerEntry {
+		long interval; // interval of timer
+		Device *device[CFG_MAX_DEVICES]; // array of pointers to devices with this interval
+	};
+	static TimerEntry timerEntry[NUM_TIMERS]; // array of timer entries (9 as there are 9 timers)
+	static int findTimer(long interval);
+	static int findDevice(int timerNumber, Device *device);
 };
 
 void timer0Interrupt();

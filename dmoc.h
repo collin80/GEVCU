@@ -49,6 +49,18 @@ public:
     POWERDOWN = 3
   };
 
+public:
+  void handleFrame(CANFrame& frame);
+  void handleTick();
+  void setupDevice();
+  void setOpState(OperationState op);
+  void setGear(Gears gear);
+
+  DMOC(CanHandler *canbus);
+  Device::DeviceId getDeviceID();
+  void setPowerMode(PowerMode mode);
+  PowerMode getPowerMode();
+
 private:
   Gears selectedGear;
   Gears actualGear;
@@ -66,18 +78,6 @@ private:
   void sendCmd5();
   byte calcChecksum(CANFrame thisFrame);
 
-public:
-
-  void handleFrame(CANFrame& frame);
-  volatile void handleTick();
-  void setupDevice();
-  void setOpState(OperationState op);
-  void setGear(Gears gear);
-
-  DMOC(CanHandler *canbus);
-  Device::DeviceId getDeviceID();
-  void setPowerMode(PowerMode mode);
-  PowerMode getPowerMode();
 };
 
 #endif /* DMOC_H_ */

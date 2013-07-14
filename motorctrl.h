@@ -32,7 +32,7 @@ class MotorController : public Device {
 	Device::DeviceType getDeviceType();
 	virtual Device::DeviceId getDeviceID();
     virtual void setupDevice();
-    virtual volatile void handleTick();
+    void handleTick();
 	int getThrottle();
 	void setThrottle(int newthrottle);
 	bool isRunning();

@@ -27,6 +27,22 @@ public:
 		ERR_MISC
 	};
 
+	void handleTick();
+	void setupDevice();
+	ThrottleStatus getStatus();
+	void setT1Min(uint16_t min);
+	void setT2Min(uint16_t min);
+	void setT1Max(uint16_t max);
+	void setT2Max(uint16_t max);
+	void setRegenEnd(uint16_t regen);
+	void setFWDStart(uint16_t fwd);
+	void setMAP(uint16_t map);
+	void setMaxRegen(uint16_t regen);
+	int getRawThrottle1();
+	int getRawThrottle2();
+	PotThrottle(uint8_t throttle1, uint8_t throttle2, bool isAccel);
+	Device::DeviceId getDeviceID();
+
 private:
 	uint16_t throttleMin1, throttleMax1, throttleMin2, throttleMax2; //Values for when the pedal is at its min and max for each throttle input
 	uint16_t brakeMin, brakeMax;
@@ -42,23 +58,6 @@ private:
 	int calcThrottle(int, int, int);
 	void doAccel();
 	void doBrake();
-
-public:
-	volatile void handleTick();
-	void setupDevice();
-	ThrottleStatus getStatus();
-	void setT1Min(uint16_t min);
-	void setT2Min(uint16_t min);
-	void setT1Max(uint16_t max);
-	void setT2Max(uint16_t max);
-	void setRegenEnd(uint16_t regen);
-	void setFWDStart(uint16_t fwd);
-	void setMAP(uint16_t map);
-	void setMaxRegen(uint16_t regen);
-	int getRawThrottle1();
-	int getRawThrottle2();
-	PotThrottle(uint8_t throttle1, uint8_t throttle2, bool isAccel);
-	Device::DeviceId getDeviceID();
 };
 
 #endif /* PEDAL_POT_H_ */

@@ -142,13 +142,14 @@ void initSysEEPROM() {
 
 
 void setup() {
+  SerialUSB.begin(CFG_SERIAL_SPEED);
+  SerialUSB.println(CFG_VERSION);
+
+  TickHandler::initialize(); // initialize the TickHandler
   
   pinMode(BLINKLED, OUTPUT);
   digitalWrite(BLINKLED, LOW);
   
-  SerialUSB.begin(CFG_SERIAL_SPEED);
-  SerialUSB.print(CFG_VERSION);
-
   canHandler = new CanHandler(0);
   
    motorController = new DMOC(canHandler); //instantiate a DMOC645 device controller as our motor controller      
@@ -195,7 +196,7 @@ void setup() {
     motorController->handleTick();
         
     //This could eventually be configurable.
-    setupTimer(10000); //10ms / 10000us ticks / 100Hz
+    HeartbeatDevice *heartbeat = new HeartbeatDevice(10000);
 
     //This will not be hard coded soon. It should be a list of every hardware support module
     //compiled into the ROM
@@ -228,10 +229,8 @@ void printMenu() {
 //the loop to be generic while still supporting a variety of hardware. Let's try to keep it this way.
 void loop() {
   static CANFrame message;
-  static byte dotTick = 0;
   static byte throttleval = 0;
   static byte count = 0;
-  static bool LED = false;
   uint16_t adcval;
   
   sys_io_adc_poll();
@@ -255,19 +254,7 @@ void loop() {
   
   if (SerialUSB.available()) serialEvent(); //due doesnt have int driven serial yet
   if (tickReady) {
-    if (dotTick == 0) {
-      SerialUSB.print('.'); //print . every 256 ticks (2.56 seconds)
-      if (LED) {
-        digitalWrite(BLINKLED, HIGH);
-      }
-      else {
-        digitalWrite(BLINKLED, LOW);
-      }
-      LED = !LED;
-    }
-    dotTick = dotTick + 1;
     tickReady = false;
-    //do tick related stuff
 
     MemCache.handleTick();
 

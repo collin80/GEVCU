@@ -11,7 +11,7 @@
 
 class DeviceManager {
 private:
-	Device *devices[CFG_MAX_TICK_DEVICES];
+	Device *devices[CFG_MAX_DEVICES];
 
 protected:
 
