@@ -7,7 +7,7 @@
 
 #include "mem_cache.h"
 
-extern volatile uint8_t AgingTimer;
+extern volatile uint8_t agingTimer;
 
 //this function flushes the first dirty page it finds. It should try to wait until enough time as elapsed since
 //a previous page has been written.
@@ -49,9 +49,9 @@ void CMemCache::FlushPage(uint8_t page) {
 void CMemCache::handleTick()
 {
   U8 c;
-  if (AgingTimer > AGING_PERIOD) 
+  if (agingTimer > AGING_PERIOD) 
   {
-    AgingTimer -= AGING_PERIOD;
+    agingTimer -= AGING_PERIOD;
     cache_age();
     for (c=0;c<NUM_CACHED_PAGES;c++) {
       if ((pages[c].age == MAX_AGE) && (pages[c].dirty)) {
@@ -239,7 +239,7 @@ CMemCache::CMemCache()
     pages[c].dirty = false;
   }		
   //WriteTimer = 0;
-  AgingTimer = 0;
+  agingTimer = 0;
   
   //digital pin 19 is connected to the write protect function of the EEPROM. It is active high so set it low to enable writes
   pinMode(19, OUTPUT);
