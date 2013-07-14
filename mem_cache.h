@@ -13,7 +13,6 @@
 
 #include <Arduino.h>
 #include "config.h"
-
 #include <due_wire.h>
 
 //Total # of allowable pages to cache. Limits RAM usage
@@ -36,9 +35,9 @@ typedef struct {
   uint32_t address; //address of start of page
   uint8_t age; //
   boolean dirty;
-} PAGECACHE;
+} PageCache;
 
-class CMEMCACHE
+class CMemCache
 {
   public:
   void FlushSinglePage();
@@ -62,10 +61,10 @@ class CMEMCACHE
   boolean Read(uint32_t address, uint32_t* valu);
   boolean Read(uint32_t address, void* data, uint16_t len);
   
-  CMEMCACHE();
+  CMemCache();
   
   private:
-  PAGECACHE pages[NUM_CACHED_PAGES];
+  PageCache pages[NUM_CACHED_PAGES];
   boolean isWriting();
   uint8_t cache_hit(U32 address);
   void cache_age();
@@ -74,6 +73,6 @@ class CMEMCACHE
   boolean cache_writepage(uint8_t page);
 };
 
-extern CMEMCACHE MemCache;
+extern CMemCache MemCache;
 
 #endif /* MEM_CACHE_H_ */

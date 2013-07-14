@@ -14,7 +14,7 @@ expose a way to register them with the system.
 #include "DeviceManager.h"
 
 //Add the specified device to the list of registered devices
-void DEVICEMGR::addDevice(DEVICE *newdevice) 
+void DeviceManager::addDevice(Device *newdevice)
 {
 }
 
@@ -23,7 +23,7 @@ void DEVICEMGR::addDevice(DEVICE *newdevice)
 //and be called for all of them but support for that is not
 //immediately necessary
 */
-void DEVICEMGR::addTickHandler(DEVICE *newdevice, uint32_t freq)
+void DeviceManager::addTickHandler(Device *newdevice, uint32_t freq)
 {
 }
 
@@ -32,7 +32,7 @@ to be support for multiple filters per device right from the beginning.
 Mask, id, ext form the filter. canbus sets whether to attach to 
 CAN0 or CAN1.
 */
-void DEVICEMGR::addCANHandler(DEVICE *newdevice, uint32_t mask, uint32_t id, bool ext, uint8_t canbus)
+void DeviceManager::addCANHandler(Device *newdevice, uint32_t mask, uint32_t id, bool ext, uint8_t canbus)
 {
 }
 
@@ -45,7 +45,7 @@ DeviceManager.h has a list of standard message types but you're allowed to send
 whatever you want. The standard message types are to enforce standard messages for easy
 intercommunication. 
 */
-void DEVICEMGR::sendMessage(DEVICE::DEVTYPE devType, DEVICE::DEVID devId, uint32_t msgType, void* message)
+void DeviceManager::sendMessage(Device::DeviceType devType, Device::DeviceId devId, uint32_t msgType, void* message)
 {
 }
 

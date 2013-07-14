@@ -35,7 +35,7 @@ String WIFI::getParamById(String paramName) {
 }
 
 //set the given parameter with the given string
-String WIFI::setParam(String paramName, String valu) {
+String WIFI::setParam(String paramName, String value) {
 }
 
 WIFI::WIFI() {
@@ -45,4 +45,3 @@ WIFI::WIFI() {
 WIFI::WIFI(USARTClass *which) {
   serialInterface = which;
 }
-

@@ -10,46 +10,46 @@
 
 #include "pref_handler.h"
 
-PREFHANDLER::PREFHANDLER() {
+PrefHandler::PrefHandler() {
   lkg_address = EE_MAIN_OFFSET; //default to normal mode
   base_address = 0;
 }
 
-PREFHANDLER::PREFHANDLER(uint32_t base) {
+PrefHandler::PrefHandler(uint32_t base) {
   base_address = base;
   lkg_address = 0;
 }
 
-void PREFHANDLER::LKG_mode(bool mode) {
+void PrefHandler::LKG_mode(bool mode) {
   if (mode) lkg_address = EE_LKG_OFFSET;
   else lkg_address = EE_MAIN_OFFSET;
 }
 
-void PREFHANDLER::write(uint16_t address, uint8_t val) {
+void PrefHandler::write(uint16_t address, uint8_t val) {
   MemCache.Write((uint32_t)address + base_address + lkg_address, val);
 }
 
-void PREFHANDLER::write(uint16_t address, uint16_t val) {
+void PrefHandler::write(uint16_t address, uint16_t val) {
   MemCache.Write((uint32_t)address + base_address + lkg_address, val);
 }
 
-void PREFHANDLER::write(uint16_t address, uint32_t val) {
+void PrefHandler::write(uint16_t address, uint32_t val) {
   MemCache.Write((uint32_t)address + base_address + lkg_address, val);
 }
 
-void PREFHANDLER::read(uint16_t address, uint8_t *val) {
+void PrefHandler::read(uint16_t address, uint8_t *val) {
   MemCache.Read((uint32_t)address + base_address + lkg_address, val);
 }
 
-void PREFHANDLER::read(uint16_t address, uint16_t *val) {
+void PrefHandler::read(uint16_t address, uint16_t *val) {
   MemCache.Read((uint32_t)address + base_address + lkg_address, val);  
 }
 
-void PREFHANDLER::read(uint16_t address, uint32_t *val) {
+void PrefHandler::read(uint16_t address, uint32_t *val) {
   MemCache.Read((uint32_t)address + base_address + lkg_address, val);
 }
 
-uint8_t PREFHANDLER::calcChecksum() {
+uint8_t PrefHandler::calcChecksum() {
   uint16_t counter;
   uint8_t accum = 0;
   uint8_t temp;
@@ -61,13 +61,13 @@ uint8_t PREFHANDLER::calcChecksum() {
 } 
 
 //calculate the current checksum and save it to the proper place
-void PREFHANDLER::saveChecksum() {
+void PrefHandler::saveChecksum() {
   uint8_t csum;
   csum = calcChecksum();
   MemCache.Write(EE_CHECKSUM + base_address + lkg_address, csum);
 }
 
-bool PREFHANDLER::checksumValid() {
+bool PrefHandler::checksumValid() {
   //get checksum from EEPROM and calculate the current checksum to see if they match
   uint8_t stored_chk, calc_chk;
   
@@ -76,5 +76,3 @@ bool PREFHANDLER::checksumValid() {
   
   return (stored_chk == calc_chk);
 }
-
-

@@ -1,34 +1,42 @@
+/*
+ * TickHandler.h
+ *
+ * Observer class where devices can register to be triggered
+ * on a certain interval.
+ *
+ *  Created: 7/11/2013
+ *   Author: Michael Neuweiler
+ */
+
 #ifndef TICKHANDLER_H_
 #define TICKHANDLER_H_
-
-//By: Michael Neuweiler
 
 #include "device.h"
 #include "config.h"
 
 class TickHandler {
 
-    typedef struct {
-        DEVICE *device; // pointer to device which should be ticked
-        uint32_t tickInterval; // interval at which the device should be ticked (in microseconds)
-        uint32_t lastTick; // time stamp at which the device was last ticked
-    } TickDevice;
-
 private:
-    static bool running;
-    static TickDevice tickDevice[CFG_MAX_TICK_DEVICES]; // array which holds the registered TickDevices
-    void tickDevices(); // tick all devices which are due
-	int findTimer(DEVICE *device);
-	void handleInterrupt(int device);
+	static Device *tickDevice[CFG_MAX_TICK_DEVICES]; // array which holds the registered TickDevices
+	static int findTimer(Device *);
 
 protected:
 
 public:
-    TickHandler();
-    static void registerDevice(DEVICE *, uint32_t);
-    static void unregisterDevice(DEVICE *);
-    static void start();
-    static void stop();
+	TickHandler();
+	static void registerDevice(Device *, uint32_t);
+	static void unregisterDevice(Device *);
+	static void handleInterrupt(int);
 };
 
-#endif
+void timer0Interrupt();
+void timer1Interrupt();
+void timer2Interrupt();
+void timer3Interrupt();
+void timer4Interrupt();
+void timer5Interrupt();
+void timer6Interrupt();
+void timer7Interrupt();
+void timer8Interrupt();
+
+#endif /* TICKHANDLER_H_ */

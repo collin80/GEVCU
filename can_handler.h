@@ -1,5 +1,5 @@
 /*
- * can.h
+ * can_handler.h
  *
  *  Created: 4/21/2013
  *   Author: Michael Neuweiler
@@ -15,6 +15,7 @@
 #include "variant.h"
 #include <DueTimer.h>
 #include "sys_io.h"
+#include "logger.h"
 
 typedef struct
 {
@@ -26,16 +27,24 @@ typedef struct
 	uint8_t data[8];	// Data bytes
 } CANFrame;
 
-class CANHandler {
+class CanHandler {
+
+private:
+	RX_CAN_FRAME rx_frame;
+	CANRaw *bus;
+	void logFrame(CANFrame&);
 
 protected:
-	void init();
+	void init(uint8_t, uint32_t);
+
 public:
-	CANHandler();
-	void setFilter();
+	CanHandler(uint32_t);
+	CanHandler(uint8_t, uint32_t);
+	void setFilter(uint8_t, uint32_t, uint32_t, bool);
 	bool readFrame(CANFrame&);
+	bool readFrame(uint8_t, CANFrame&);
 	bool sendFrame(CANFrame&);
-	bool sendFrame(int mailbox, CANFrame&);
+	bool sendFrame(uint8_t, CANFrame&);
 };
 
 #endif /* CAN_HANDLER_H_ */

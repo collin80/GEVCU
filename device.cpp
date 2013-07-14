@@ -8,29 +8,29 @@
 #include "device.h"
 
 //Empty functions to handle these two callbacks if the derived classes don't
-void DEVICE::handleFrame(CANFrame& frame) {
+void Device::handleFrame(CANFrame& frame) {
 	
 }
 
-void DEVICE::handleTick() {
+volatile void Device::handleTick() {
 	
 }
 
-void DEVICE::setupDevice() {
+void Device::setupDevice() {
 }
 
-DEVICE::DEVTYPE DEVICE::getDeviceType() {
+Device::DeviceType Device::getDeviceType() {
   return DEVICE_NONE;
 }
 
-DEVICE::DEVID DEVICE::getDeviceID() {
+Device::DeviceId Device::getDeviceID() {
   return INVALID;
 }
 
-DEVICE::DEVICE() {
+Device::Device() {
 }
 
 
-DEVICE::DEVICE(CANHandler* canhandler) {
-  canbus = canhandler;
+Device::Device(CanHandler* canHandler) {
+  this->canHandler = canHandler;
 }
