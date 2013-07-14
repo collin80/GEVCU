@@ -105,7 +105,7 @@ void TickHandler::unregisterDevice(Device* device) {
  */
 int TickHandler::findTimer(long interval) {
 	for (int timerNumber = 0; timerNumber < NUM_TIMERS; timerNumber++) {
-Logger::debug("findtimer: timer=%d, interval=%d , device[0]=%d", timerNumber, timerEntry[timerNumber].interval, timerEntry[timerNumber].device[0]);
+//Logger::debug("findtimer: timer=%d, interval=%d , device[0]=%d", timerNumber, timerEntry[timerNumber].interval, timerEntry[timerNumber].device[0]);
 		if (timerEntry[timerNumber].interval == interval)
 			return timerNumber;
 	}
@@ -117,7 +117,7 @@ Logger::debug("findtimer: timer=%d, interval=%d , device[0]=%d", timerNumber, ti
  */
 int TickHandler::findDevice(int timerNumber, Device *device) {
 	for (int deviceNumber = 0; deviceNumber < CFG_MAX_DEVICES; deviceNumber++) {
-Logger::debug("findDevice: device=%d , device[%d]=%d", device, deviceNumber, timerEntry[timerNumber].device[deviceNumber]);
+//Logger::debug("findDevice: device=%d , device[%d]=%d", device, deviceNumber, timerEntry[timerNumber].device[deviceNumber]);
 		if (timerEntry[timerNumber].device[deviceNumber] == device)
 			return deviceNumber;
 	}

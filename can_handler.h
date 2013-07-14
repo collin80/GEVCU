@@ -14,7 +14,6 @@
 #include <due_wire.h>
 #include "variant.h"
 #include <DueTimer.h>
-#include "sys_io.h"
 #include "logger.h"
 
 typedef struct

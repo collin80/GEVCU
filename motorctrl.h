@@ -28,9 +28,8 @@ class MotorController : public Device {
         GS_REVERSE,
         GS_FAULT
     };
-    MotorController(CanHandler *canbus);
+    MotorController(CanHandler *canHandler);
 	Device::DeviceType getDeviceType();
-	virtual Device::DeviceId getDeviceID();
     virtual void setupDevice();
     void handleTick();
 	int getThrottle();

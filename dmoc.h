@@ -15,6 +15,8 @@
 #include <Arduino.h>
 #include "config.h"
 #include "motorctrl.h"
+#include "sys_io.h"
+#include "TickHandler.h"
 
 class DMOC : public MotorController {
 public:
@@ -50,7 +52,7 @@ public:
   };
 
 public:
-  void handleFrame(CANFrame& frame);
+  void handleCanFrame(CANFrame& frame);
   void handleTick();
   void setupDevice();
   void setOpState(OperationState op);

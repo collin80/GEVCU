@@ -16,16 +16,13 @@
 
 class Throttle: public Device {
 public:
-	virtual void handleTick();
-	virtual void setupDevice();
-	Device::DeviceType getDeviceType();
-	virtual Device::DeviceId getDeviceID();
-	virtual int getThrottle();
 	Throttle();
+	Throttle(CanHandler *canHandler);
+	Device::DeviceType getDeviceType();
+	virtual int getThrottle();
 
 protected:
 	signed int outputThrottle; //the final signed throttle. [-1000, 1000] in tenths of a percent of maximum
 };
 
 #endif
-

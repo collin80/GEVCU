@@ -11,12 +11,12 @@
 #include "config.h"
 #include "TickHandler.h"
 
-#define BLINKLED          73 //13 is L, 73 is TX, 72 is RX
 extern volatile int8_t tickReady; // TODO: remove once all devices use DeviceManager to register ticks
 
 class HeartbeatDevice: public Device {
 public:
-	HeartbeatDevice(long microSeconds);
+	HeartbeatDevice();
+	void setupDevice();
 	void handleTick();
 	Device::DeviceType getDeviceType();
 	Device::DeviceId getDeviceID();
@@ -24,7 +24,6 @@ public:
 protected:
 
 private:
-	byte dotTick;
 	bool led;
 };
 

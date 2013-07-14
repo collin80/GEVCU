@@ -12,6 +12,7 @@
 #include "config.h"
 #include "throttle.h"
 #include "sys_io.h"
+#include "TickHandler.h"
 
 #define THROTTLE_INPUT_BRAKELIGHT  2
 

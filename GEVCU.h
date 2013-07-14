@@ -12,6 +12,7 @@
 #include "config.h"
 #include "throttle.h"
 #include "pedal_pot.h"
+#include "can_throttle.h"
 #include "device.h"
 #include "motorctrl.h"
 #include "dmoc.h"

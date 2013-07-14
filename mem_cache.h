@@ -7,7 +7,6 @@
  *  Author: Collin Kidder
  */ 
 
-
 #ifndef MEM_CACHE_H_
 #define MEM_CACHE_H_
 
@@ -71,6 +70,7 @@ class CMemCache
   uint8_t cache_findpage();
   uint8_t cache_readpage(uint32_t addr);
   boolean cache_writepage(uint8_t page);
+  uint8_t agingTimer;
 };
 
 extern CMemCache MemCache;

@@ -27,27 +27,28 @@ public:
 		DEVICE_NONE
 	};
 	enum DeviceId { //unique device ID for every piece of hardware possible
+		HEARTBEAT = 0x0001,
 		DMOC645 = 0x1000,
 		BRUSACHARGE = 0x1010,
 		TCCHCHARGE = 0x1020,
 		POTACCELPEDAL = 0x1030,
+		CANACCELPEDAL = 0x1031,
 		INVALID = 0xFFFF
 	};
+	Device();
+	Device(CanHandler *canHandler);
+	virtual void setupDevice();
+	virtual void handleTick();
+	virtual void handleCanFrame(CANFrame& frame);
+	virtual void handleMessage(uint32_t msgType, void* message);
+	virtual DeviceType getDeviceType();
+	virtual DeviceId getDeviceID();
 
 protected:
 	CanHandler *canHandler;
 	PrefHandler *prefs;
 
-public:
-	Device();
-
-	virtual void handleFrame(CANFrame& frame);
-	virtual void handleTick();
-	virtual void handleMessage(uint32_t msgType, void* message);
-	virtual void setupDevice();
-	virtual DeviceType getDeviceType();
-	virtual DeviceId getDeviceID();
-	Device(CanHandler *canbus);
+private:
 };
 
 #endif /* DEVICE_H_ */

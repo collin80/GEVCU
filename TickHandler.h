@@ -11,8 +11,8 @@
 #ifndef TICKHANDLER_H_
 #define TICKHANDLER_H_
 
-#include "device.h"
 #include "config.h"
+#include "device.h"
 
 #define NUM_TIMERS 9
 

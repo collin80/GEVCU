@@ -7,8 +7,6 @@
 
 #include "mem_cache.h"
 
-extern volatile uint8_t agingTimer;
-
 //this function flushes the first dirty page it finds. It should try to wait until enough time as elapsed since
 //a previous page has been written.
 void CMemCache::FlushSinglePage() 
@@ -49,13 +47,13 @@ void CMemCache::FlushPage(uint8_t page) {
 void CMemCache::handleTick()
 {
   U8 c;
-  if (agingTimer > AGING_PERIOD) 
+  if (agingTimer++ > AGING_PERIOD)
   {
     agingTimer -= AGING_PERIOD;
     cache_age();
     for (c=0;c<NUM_CACHED_PAGES;c++) {
       if ((pages[c].age == MAX_AGE) && (pages[c].dirty)) {
-        FlushPage(c);				
+        FlushPage(c);
         return;
       }
     }
