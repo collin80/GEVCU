@@ -35,7 +35,7 @@ void CanThrottle::setupDevice()
  * Trace log of CANMonitor: dlc=0x08 fid=0x7e0 id=0x7e0 ide=0x00 rtr=0x00 data=0x03,0x22,0xEE,0xCB,0x00,0x00,0x00,0x00
  *
  */
-volatile void CanThrottle::handleTick()
+void CanThrottle::handleTick()
 {
 	Logger::debug("sending CAN throttle request to ECU");
 	CAN.mailbox_set_id(1, CAN_THROTTLE_REQUEST_ID, false);

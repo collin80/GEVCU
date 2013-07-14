@@ -31,7 +31,7 @@ Device::DeviceType MotorController::getDeviceType() {
   return (Device::DEVICE_MOTORCTRL);
 }
 
-volatile void MotorController::handleTick() {
+void MotorController::handleTick() {
   uint8_t val, val2;
   if (digitalRead(MOTORCTL_INPUT_DRIVE_EN) == LOW) {
     running = true;

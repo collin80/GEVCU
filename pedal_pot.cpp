@@ -295,7 +295,7 @@ void PotThrottle::doBrake() {
 
 //right now only the first throttle ADC port is used. Eventually the second one should be used to cross check so dumb things
 //don't happen. Also, right now values of ADC outside the proper range are just clamped to the proper range.
-volatile void PotThrottle::handleTick() {
+void PotThrottle::handleTick() {
   throttle1Val = getAnalog(throttle1ADC);
   if (numThrottlePots > 1) {
     throttle2Val = getAnalog(throttle2ADC);

@@ -113,7 +113,7 @@ void DMOC::setupDevice() {
 /*Do note that the DMOC expects all three command frames and it expect them to happen at least twice a second. So, probably it'd be ok to essentially
   rotate through all of them, one per tick. That gives us a time frame of 30ms for each command frame. That should be plenty fast.
 */
-volatile void DMOC::handleTick() {
+void DMOC::handleTick() {
   
   MotorController::handleTick(); //kick the ball up to papa
   

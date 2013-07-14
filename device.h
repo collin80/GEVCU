@@ -41,10 +41,10 @@ protected:
 public:
 	Device();
 
-  virtual void handleFrame(CANFrame& frame);
-	virtual volatile void handleTick();
+	virtual void handleFrame(CANFrame& frame);
+	virtual void handleTick();
 	virtual void handleMessage(uint32_t msgType, void* message);
-    virtual void setupDevice();
+	virtual void setupDevice();
 	virtual DeviceType getDeviceType();
 	virtual DeviceId getDeviceID();
 	Device(CanHandler *canbus);

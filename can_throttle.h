@@ -19,12 +19,7 @@
 
 class CanThrottle: public Throttle {
 public:
-
-private:
-	uint32_t lastRequestTime;
-
-public:
-	volatile void handleTick();
+	void handleTick();
 	void setupDevice();
 	Device::DeviceType getDeviceType();
 	Device::DeviceId getDeviceID();
@@ -33,6 +28,9 @@ public:
 
 protected:
 	signed int outputThrottle; //the final signed throttle. [-1000, 1000] in tenths of a percent of maximum
+
+private:
+	uint32_t lastRequestTime;
 };
 
 #endif /* CAN_THROTTLE_H_ */
