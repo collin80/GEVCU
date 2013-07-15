@@ -11,8 +11,8 @@
 #include <Arduino.h>
 #include "config.h"
 #include "eeprom_layout.h"
-#include "can_handler.h"
-#include "pref_handler.h"
+#include "CanHandler.h"
+#include "PrefHandler.h"
 
 class Device {
 public:

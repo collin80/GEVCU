@@ -7,7 +7,7 @@
  *  Author: Collin Kidder
  */ 
  
- #include "motorctrl.h"
+ #include "MotorController.h"
  
 
 MotorController::MotorController(CanHandler *canbus) : Device(canbus) {

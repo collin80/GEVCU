@@ -5,7 +5,7 @@
  *      Author: Michael Neuweiler
  */
 
-#include "can_throttle.h"
+#include "CanThrottle.h"
 
 CanThrottle::CanThrottle()
 {

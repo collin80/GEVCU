@@ -152,7 +152,7 @@ void setup() {
   
   canHandler = new CanHandler(0);
   
-   motorController = new DMOC(canHandler); //instantiate a DMOC645 device controller as our motor controller      
+   motorController = new DmocMotorController(canHandler); //instantiate a DMOC645 device controller as our motor controller      
    motorController->handleTick();
 
     Wire.begin();
@@ -241,14 +241,14 @@ void loop() {
 
   //if the first digital input is high we'll enable drive so we can go!
   if (getDigital(0)) {
-    ((DMOC *)motorController)->setGear(DMOC::DRIVE);
+    ((DmocMotorController *)motorController)->setGear(DmocMotorController::DRIVE);
     runThrottle = true;
-    ((DMOC *)motorController)->setPowerMode(DMOC::MODE_TORQUE);
+    ((DmocMotorController *)motorController)->setPowerMode(DmocMotorController::MODE_TORQUE);
   }
   
   //but, if the second input is high we cancel the whole thing and disable the drive.
   if (getDigital(1) || !getDigital(0)) {
-    ((DMOC *)motorController)->setOpState(DMOC::DISABLED);
+    ((DmocMotorController *)motorController)->setOpState(DmocMotorController::DISABLED);
     runThrottle = false;
   }
   
@@ -256,7 +256,7 @@ void loop() {
   if (tickReady) {
     tickReady = false;
 
-    MemCache.handleTick();
+    memCache.handleTick();
 
     accelerator->handleTick(); //gets ADC values, calculates throttle position
     brake->handleTick();
@@ -324,7 +324,7 @@ TODO: This all has to eventually go away.
 void serialEvent() {
   int incoming;
   static int state = 0;
-  DMOC* dmoc = (DMOC*)motorController;
+  DmocMotorController* dmoc = (DmocMotorController*)motorController;
   incoming = SerialUSB.read();
   if (incoming == -1) return;
  if (state == 0) {
@@ -338,35 +338,35 @@ void serialEvent() {
       runRamp = !runRamp;
         if (runRamp) {
 	  SerialUSB.println("Start Ramp Test");
-          dmoc->setPowerMode(DMOC::MODE_RPM);
+          dmoc->setPowerMode(DmocMotorController::MODE_RPM);
         }
 	else {
           SerialUSB.println("End Ramp Test");
-          dmoc->setPowerMode(DMOC::MODE_TORQUE);
+          dmoc->setPowerMode(DmocMotorController::MODE_TORQUE);
         }
 	break;
     case 'd':
-      dmoc->setGear(DMOC::DRIVE);
+      dmoc->setGear(DmocMotorController::DRIVE);
       SerialUSB.println("forward");
       break;
     case 'n':
-      dmoc->setGear(DMOC::NEUTRAL);
+      dmoc->setGear(DmocMotorController::NEUTRAL);
       SerialUSB.println("neutral");
       break;
     case 'r':
-      dmoc->setGear(DMOC::REVERSE);
+      dmoc->setGear(DmocMotorController::REVERSE);
       SerialUSB.println("reverse");
       break;
     case 'D':
-      dmoc->setOpState(DMOC::DISABLED);
+      dmoc->setOpState(DmocMotorController::DISABLED);
       SerialUSB.println("disabled");
       break;
     case 'S':
-      dmoc->setOpState(DMOC::STANDBY);
+      dmoc->setOpState(DmocMotorController::STANDBY);
       SerialUSB.println("standby");
       break;
     case 'E':
-      dmoc->setOpState(DMOC::ENABLE);
+      dmoc->setOpState(DmocMotorController::ENABLE);
       SerialUSB.println("enabled");
       break;
     case 'x':
@@ -380,11 +380,11 @@ void serialEvent() {
       runThrottle = !runThrottle;
       if (runThrottle) {
         SerialUSB.println("Use Throttle Pedal");
-        dmoc->setPowerMode(DMOC::MODE_TORQUE);
+        dmoc->setPowerMode(DmocMotorController::MODE_TORQUE);
       }
       else {
         SerialUSB.println("Ignore throttle pedal");
-        dmoc->setPowerMode(DMOC::MODE_RPM);
+        dmoc->setPowerMode(DmocMotorController::MODE_RPM);
       }
       break;
     case 'L':
@@ -397,24 +397,24 @@ void serialEvent() {
       case 'Y':
       SerialUSB.println("Trying to save 0x45 to eeprom location 10");
       uint8_t temp;
-      MemCache.Write(10, (uint8_t) 0x45);
-      MemCache.Read(10, &temp);
+      memCache.Write(10, (uint8_t) 0x45);
+      memCache.Read(10, &temp);
       SerialUSB.print("Got back value of ");
       SerialUSB.println(temp);      
       break;
     case 'U':
       SerialUSB.println("Adding a sequence of values from 0 to 255 into eeprom");
-      for (int i = 0; i<256; i++) MemCache.Write(1000+i,(uint8_t)i);
+      for (int i = 0; i<256; i++) memCache.Write(1000+i,(uint8_t)i);
       SerialUSB.println("Flushing cache");
-      MemCache.FlushAllPages(); //write everything to eeprom
-      MemCache.InvalidateAll(); //remove all data from cache
+      memCache.FlushAllPages(); //write everything to eeprom
+      memCache.InvalidateAll(); //remove all data from cache
       SerialUSB.println("Operation complete.");
       break;
     case 'I':
       SerialUSB.println("Retrieving data previously saved");
       uint8_t val;
       for (int i = 0; i < 256; i++) {
-        MemCache.Read(1000 + i, &val);
+        memCache.Read(1000 + i, &val);
         SerialUSB.print(val);
         SerialUSB.print(" ");
       }

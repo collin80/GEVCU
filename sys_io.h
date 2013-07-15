@@ -14,7 +14,7 @@
 #include <Arduino.h>
 #include "config.h"
 #include "eeprom_layout.h"
-#include "pref_handler.h"
+#include "PrefHandler.h"
 
 #define NUM_ANALOG	4
 #define NUM_DIGITAL	4

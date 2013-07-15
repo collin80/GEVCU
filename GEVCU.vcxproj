@@ -43,12 +43,15 @@
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <ClCompile>
-      <PreprocessorDefinitions>WIN32;_DEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>__SAM3X8E__;USB_PID=0x003e;USB_VID=0x2341;USBCON;ARDUINO=152;ARDUINO_MAIN;printf=iprintf;__SAM__;F_CPU=84000000L;__cplusplus;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <RuntimeLibrary>MultiThreadedDebugDLL</RuntimeLibrary>
       <WarningLevel>Level3</WarningLevel>
       <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
       <Optimization>Disabled</Optimization>
       <BrowseInformation>true</BrowseInformation>
+      <AdditionalIncludeDirectories>c:\users\collin\desktop\arduino-1.5.2\hardware\arduino\sam\cores\arduino;c:\users\collin\desktop\arduino-1.5.2\hardware\arduino\sam\variants\arduino_due_x;c:\users\collin\desktop\arduino-1.5.2\hardware\tools\g++_arm_none_eabi\arm-none-eabi\include;c:\users\collin\desktop\arduino-1.5.2\hardware\tools\g++_arm_none_eabi\arm_none_eabi\include;c:\users\collin\desktop\arduino-1.5.2\hardware\tools\g++_arm_none_eabi\lib\gcc\arm-none-eabi\4.4.1\include;c:\users\collin\desktop\arduino-1.5.2\hardware\tools\g++_arm_none_eabi\lib\gcc\arm-none-eabi\4.4.1\include\;c:\users\collin\desktop\arduino-1.5.2\hardware\arduino\sam\system\CMSIS\CMSIS\Include\;c:\users\collin\desktop\arduino-1.5.2\hardware\arduino\sam\system\CMSIS\Device\ATMEL\;c:\users\collin\desktop\arduino-1.5.2\hardware\arduino\sam\system\libsam;c:\users\collin\desktop\arduino-1.5.2\hardware\arduino\sam\system\libsam\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <ForcedIncludeFiles>C:\Users\Collin\Desktop\GEVCU\Visual Micro\.GEVCU.vsarduino.h;%(ForcedIncludeFiles)</ForcedIncludeFiles>
+      <IgnoreStandardIncludePath>true</IgnoreStandardIncludePath>
     </ClCompile>
     <Link>
       <TargetMachine>MachineX86</TargetMachine>
@@ -75,40 +78,56 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClCompile Include="can_handler.cpp" />
-    <ClCompile Include="device.cpp" />
-    <ClCompile Include="dmoc.cpp" />
-    <ClCompile Include="fault_handler.cpp" />
-    <ClCompile Include="ichip_2128.cpp" />
-    <ClCompile Include="mem_cache.cpp" />
-    <ClCompile Include="motorctrl.cpp" />
-    <ClCompile Include="pedal_pot.cpp" />
-    <ClCompile Include="pref_handler.cpp" />
-    <ClCompile Include="sys_io.cpp" />
-    <ClCompile Include="throttle.cpp" />
-    <ClCompile Include="timer.cpp" />
-  </ItemGroup>
-  <ItemGroup>
-    <ClInclude Include="can_handler.h" />
+    <ClInclude Include="CanHandler.h" />
+    <ClInclude Include="CanThrottle.h" />
     <ClInclude Include="config.h" />
-    <ClInclude Include="device.h" />
-    <ClInclude Include="dmoc.h" />
+    <ClInclude Include="Device.h" />
+    <ClInclude Include="DeviceManager.h" />
+    <ClInclude Include="DmocMotorController.h" />
     <ClInclude Include="eeprom_layout.h" />
-    <ClInclude Include="fault_handler.h" />
+    <ClInclude Include="FaultHandler.h" />
     <ClInclude Include="GEVCU.h" />
+    <ClInclude Include="HeartbeatDevice.h" />
     <ClInclude Include="ichip_2128.h" />
-    <ClInclude Include="mem_cache.h" />
-    <ClInclude Include="motorctrl.h" />
-    <ClInclude Include="pedal_pot.h" />
-    <ClInclude Include="pref_handler.h" />
+    <ClInclude Include="Logger.h" />
+    <ClInclude Include="MemCache.h" />
+    <ClInclude Include="MotorController.h" />
+    <ClInclude Include="PotThrottle.h" />
+    <ClInclude Include="PrefHandler.h" />
     <ClInclude Include="sys_io.h" />
-    <ClInclude Include="throttle.h" />
-    <ClInclude Include="timer.h" />
+    <ClInclude Include="Throttle.h" />
+    <ClInclude Include="TickHandler.h" />
+    <ClInclude Include="Visual Micro\.GEVCU.vsarduino.h" />
   </ItemGroup>
   <ItemGroup>
-    <Text Include="GEVCU.ino" />
+    <Text Include="GEVCU.ino">
+      <FileType>CppCode</FileType>
+    </Text>
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="CanHandler.cpp" />
+    <ClCompile Include="CanThrottle.cpp" />
+    <ClCompile Include="Device.cpp" />
+    <ClCompile Include="DeviceManager.cpp" />
+    <ClCompile Include="DmocMotorController.cpp" />
+    <ClCompile Include="FaultHandler.cpp" />
+    <ClCompile Include="HeartbeatDevice.cpp" />
+    <ClCompile Include="ichip_2128.cpp" />
+    <ClCompile Include="Logger.cpp" />
+    <ClCompile Include="MemCache.cpp" />
+    <ClCompile Include="MotorController.cpp" />
+    <ClCompile Include="PotThrottle.cpp" />
+    <ClCompile Include="PrefHandler.cpp" />
+    <ClCompile Include="sys_io.cpp" />
+    <ClCompile Include="Throttle.cpp" />
+    <ClCompile Include="TickHandler.cpp" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
   </ImportGroup>
+  <ProjectExtensions>
+    <VisualStudio>
+      <UserProperties arduino.board.name="arduino_due_x_dbg" arduino.board.desc="Arduino Due (Programming Port)" arduino.board.property_bag="name=Arduino Due (Programming Port)&#xD;&#xA;upload.tool=bossac&#xD;&#xA;upload.protocol=sam-ba&#xD;&#xA;upload.maximum_size=524288&#xD;&#xA;upload.use_1200bps_touch=true&#xD;&#xA;upload.wait_for_upload_port=false&#xD;&#xA;upload.native_usb=false&#xD;&#xA;build.mcu=cortex-m3&#xD;&#xA;build.f_cpu=84000000L&#xD;&#xA;build.core=arduino&#xD;&#xA;build.extra_flags=-D__SAM3X8E__ -mthumb -DUSB_PID={build.pid} -DUSB_VID={build.vid} -DUSBCON&#xD;&#xA;build.ldscript=linker_scripts/gcc/flash.ld&#xD;&#xA;build.variant=arduino_due_x&#xD;&#xA;build.variant_system_lib=libsam_sam3x8e_gcc_rel.a&#xD;&#xA;build.vid=0x2341&#xD;&#xA;build.pid=0x003e&#xD;&#xA;runtime.ide.path=c:\users\collin\desktop\arduino-1.5.2&#xD;&#xA;build.system.path=c:\users\collin\desktop\arduino-1.5.2\hardware\arduino\sam\system&#xD;&#xA;software=ARDUINO&#xD;&#xA;runtime.ide.version=152&#xD;&#xA;compiler.path={runtime.ide.path}/hardware/tools/g++_arm_none_eabi/bin/&#xD;&#xA;compiler.c.cmd=arm-none-eabi-gcc&#xD;&#xA;compiler.c.flags=-c -g -Os -w -ffunction-sections -fdata-sections -nostdlib --param max-inline-insns-single=500 -Dprintf=iprintf&#xD;&#xA;compiler.c.elf.cmd=arm-none-eabi-g++&#xD;&#xA;compiler.c.elf.flags=-Os -Wl,--gc-sections&#xD;&#xA;compiler.S.flags=-c -g -assembler-with-cpp&#xD;&#xA;compiler.cpp.cmd=arm-none-eabi-g++&#xD;&#xA;compiler.cpp.flags=-c -g -Os -w -ffunction-sections -fdata-sections -nostdlib --param max-inline-insns-single=500 -fno-rtti -fno-exceptions -Dprintf=iprintf&#xD;&#xA;compiler.ar.cmd=arm-none-eabi-ar&#xD;&#xA;compiler.ar.flags=rcs&#xD;&#xA;compiler.objcopy.cmd=arm-none-eabi-objcopy&#xD;&#xA;compiler.objcopy.eep.flags=-O ihex -j .eeprom --set-section-flags=.eeprom=alloc,load --no-change-warnings --change-section-lma .eeprom=0&#xD;&#xA;compiler.elf2hex.flags=-O binary&#xD;&#xA;compiler.elf2hex.cmd=arm-none-eabi-objcopy&#xD;&#xA;compiler.ldflags=&#xD;&#xA;compiler.size.cmd=arm-none-eabi-size&#xD;&#xA;compiler.define=-DARDUINO=&#xD;&#xA;compiler.libsam.c.flags=&quot;-I{build.system.path}/libsam&quot; &quot;-I{build.system.path}/CMSIS/CMSIS/Include/&quot; &quot;-I{build.system.path}/CMSIS/Device/ATMEL/&quot;&#xD;&#xA;recipe.c.o.pattern=&quot;{compiler.path}{compiler.c.cmd}&quot; {compiler.c.flags} -mcpu={build.mcu} -DF_CPU={build.f_cpu} -D{software}={runtime.ide.version} {build.extra_flags} {compiler.libsam.c.flags} {includes} &quot;{source_file}&quot; -o &quot;{object_file}&quot;&#xD;&#xA;recipe.cpp.o.pattern=&quot;{compiler.path}{compiler.cpp.cmd}&quot; {compiler.cpp.flags} -mcpu={build.mcu} -DF_CPU={build.f_cpu} -D{software}={runtime.ide.version} {build.extra_flags} {compiler.libsam.c.flags} {includes} &quot;{source_file}&quot; -o &quot;{object_file}&quot;&#xD;&#xA;recipe.ar.pattern=&quot;{compiler.path}{compiler.ar.cmd}&quot; {compiler.ar.flags} &quot;{build.path}/{archive_file}&quot; &quot;{object_file}&quot;&#xD;&#xA;recipe.c.combine.pattern=&quot;{compiler.path}{compiler.c.elf.cmd}&quot; {compiler.c.elf.flags} -mcpu={build.mcu} &quot;-T{build.variant.path}/{build.ldscript}&quot; &quot;-Wl,-Map,{build.path}/{build.project_name}.map&quot; -o &quot;{build.path}/{build.project_name}.elf&quot; &quot;-L{build.path}&quot; -lm -lgcc -mthumb -Wl,--cref -Wl,--check-sections -Wl,--gc-sections -Wl,--entry=Reset_Handler -Wl,--unresolved-symbols=report-all -Wl,--warn-common -Wl,--warn-section-align -Wl,--warn-unresolved-symbols -Wl,--start-group &quot;{build.path}/syscalls_sam3.c.o&quot; {object_files} &quot;{build.variant.path}/{build.variant_system_lib}&quot; &quot;{build.path}/{archive_file}&quot; -Wl,--end-group&#xD;&#xA;recipe.objcopy.eep.pattern=&#xD;&#xA;recipe.objcopy.hex.pattern=&quot;{compiler.path}{compiler.elf2hex.cmd}&quot; {compiler.elf2hex.flags} &quot;{build.path}/{build.project_name}.elf&quot; &quot;{build.path}/{build.project_name}.bin&quot;&#xD;&#xA;recipe.size.pattern=&quot;{compiler.path}{compiler.size.cmd}&quot; -A &quot;{build.path}/{build.project_name}.elf&quot;&#xD;&#xA;recipe.size.regex=\.text\s+([0-9]+).*&#xD;&#xA;tools.bossac.cmd=bossac.exe&#xD;&#xA;tools.bossac.cmd.windows=bossac.exe&#xD;&#xA;tools.bossac.path={runtime.ide.path}/hardware/tools&#xD;&#xA;tools.bossac.upload.params.verbose=-i -d&#xD;&#xA;tools.bossac.upload.params.quiet=&#xD;&#xA;tools.bossac.upload.pattern=&quot;{path}/{cmd}&quot; {upload.verbose} --port={serial.port.file} -U {upload.native_usb} -e -w -v -b &quot;{build.path}/{build.project_name}.bin&quot; -R&#xD;&#xA;vm.core.include=arduino.h&#xD;&#xA;vm.boardsource.path=c:\users\collin\desktop\arduino-1.5.2\hardware\arduino\sam&#xD;&#xA;vm.boardsource.name=boards.txt&#xD;&#xA;vm.platformname.name=sam&#xD;&#xA;" arduino.build.mcu="cortex-m3" arduino.build.f_cpu="84000000L" arduino.build.core="arduino" arduino.upload.protocol="sam-ba" arduino.upload.speed="" arduino.upload.maximum_size="524288" />
+    </VisualStudio>
+  </ProjectExtensions>
 </Project>

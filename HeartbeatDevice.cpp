@@ -5,7 +5,7 @@
  *  Author: Collin Kidder
  */
 
-#include "timer.h"
+#include "HeartbeatDevice.h"
 
 volatile int8_t tickReady;
 volatile int8_t agingTimer;
@@ -34,4 +34,12 @@ void HeartbeatDevice::handleTick() {
 		led = !led;
 	}
 	dotTick = dotTick + 1;
+}
+
+Device::DeviceType HeartbeatDevice::getDeviceType() 
+{
+}
+
+Device::DeviceId HeartbeatDevice::getDeviceID()
+{
 }

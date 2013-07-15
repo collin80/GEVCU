@@ -7,7 +7,7 @@
  *  Author: Collin Kidder
  */ 
  
-#include "throttle.h" 
+#include "Throttle.h" 
  
 void Throttle::handleTick() {
 }

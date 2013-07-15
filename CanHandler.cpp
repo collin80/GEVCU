@@ -8,7 +8,7 @@
  *   Author: Michael Neuweiler, Collin Kidder
  */
 
-#include "can_handler.h"
+#include "CanHandler.h"
 
 CanHandler::CanHandler(uint32_t baudRate) {
 	init(0, baudRate);

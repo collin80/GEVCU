@@ -5,12 +5,17 @@
  *  Author: Collin Kidder
  */ 
 
-#include "device.h"
+#include "Device.h"
 
 //Empty functions to handle these two callbacks if the derived classes don't
 void Device::handleFrame(CANFrame& frame) {
 	
 }
+
+void Device::handleMessage(uint32_t msgType, void* message) 
+{
+}
+
 
 void Device::handleTick() {
 	
