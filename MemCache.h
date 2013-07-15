@@ -36,7 +36,7 @@ typedef struct {
   boolean dirty;
 } PageCache;
 
-class CMemCache
+class MemCache
 {
   public:
   void FlushSinglePage();
@@ -60,7 +60,7 @@ class CMemCache
   boolean Read(uint32_t address, uint32_t* valu);
   boolean Read(uint32_t address, void* data, uint16_t len);
   
-  CMemCache();
+  MemCache();
   
   private:
   PageCache pages[NUM_CACHED_PAGES];
@@ -73,6 +73,6 @@ class CMemCache
   uint8_t agingTimer;
 };
 
-extern CMemCache MemCache;
+extern MemCache memCache;
 
 #endif /* MEM_CACHE_H_ */

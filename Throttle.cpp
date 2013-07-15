@@ -1,14 +1,14 @@
 /*
- * throttle.cpp
+ * Throttle.cpp
  *
  * Parent class for all throttle controllers
  *
  * Created: 02/05/2013
  *  Author: Collin Kidder
- */
-
-#include "throttle.h" 
-
+ */ 
+ 
+#include "Throttle.h" 
+ 
 Throttle::Throttle() : Device() {
 	prefs = new PrefHandler(EE_THROTTLE_START);
 }

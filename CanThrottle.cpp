@@ -7,7 +7,7 @@
 
 #include "config.h"
 #if defined(CFG_ENABLE_DEVICE_CAN_THROTTLE_ACCEL) || defined(CFG_ENABLE_DEVICE_CAN_THROTTLE_BRAKE)
-#include "can_throttle.h"
+#include "CanThrottle.h"
 
 CanThrottle::CanThrottle(CanHandler *canHandler) : Throttle(canHandler) {
 	//Initialize mailbox 0 to receive messages from the ECU Id

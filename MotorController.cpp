@@ -5,10 +5,10 @@
  *
  * Created: 02/04/2013
  *  Author: Collin Kidder
- */
-
-#include "motorctrl.h"
-
+ */ 
+ 
+ #include "MotorController.h"
+ 
 MotorController::MotorController(CanHandler *canbus) : Device(canbus) {
 	prefs = new PrefHandler(EE_MOTORCTL_START);
 	faulted = false;

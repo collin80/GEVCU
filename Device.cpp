@@ -5,7 +5,7 @@
  *  Author: Collin Kidder
  */
 
-#include "device.h"
+#include "Device.h"
 
 Device::Device() {
 	this->canHandler = NULL;

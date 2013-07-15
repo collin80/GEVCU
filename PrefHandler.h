@@ -14,7 +14,7 @@
 #include <Arduino.h>
 #include "config.h"
 #include "eeprom_layout.h"
-#include "mem_cache.h"
+#include "MemCache.h"
 
 //normal or Last Known Good configuration
 #define PREF_MODE_NORMAL  false

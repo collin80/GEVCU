@@ -24,11 +24,11 @@
 
 #include "config.h"
 #ifdef CFG_ENABLE_DEVICE_MOTORCTRL_DMOC_645
-#include "dmoc.h"
+#include "DmocMotorController.h"
 
 extern bool runThrottle; //TODO: remove use of global variables !
 
-DMOC::DMOC(CanHandler *canhandler) : MotorController(canhandler) {
+DmocMotorController::DmocMotorController(CanHandler *canhandler) : MotorController(canhandler) {
 	step = SPEED_TORQUE;
 	selectedGear = NEUTRAL;
 	operationState = DISABLED;
@@ -40,14 +40,14 @@ DMOC::DMOC(CanHandler *canhandler) : MotorController(canhandler) {
 }
 
 /*
- Finally, the firmware actually processes some of the status messages from the DMOC
+ Finally, the firmware actually processes some of the status messages from the DmocMotorController
  However, currently the alive and checksum bytes aren't checked for validity.
  To be valid a frame has to have a different alive value than the last value we saw
  and also the checksum must match the one we calculate. Right now we'll just assume
  everything has gone according to plan.
  */
 
-void DMOC::handleCanFrame(CANFrame& frame) {
+void DmocMotorController::handleCanFrame(CANFrame& frame) {
 	int RotorTemp, invTemp, StatorTemp;
 	int temp;
 	online = 1; //if a frame got to here then it passed the filter and must have been from the DMOC
@@ -107,7 +107,7 @@ void DMOC::handleCanFrame(CANFrame& frame) {
 	}
 }
 
-void DMOC::setupDevice() {
+void DmocMotorController::setupDevice() {
 	TickHandler::unregisterDevice(this);
 	MotorController::setupDevice(); // run the parent class version of this function
 
@@ -116,8 +116,8 @@ void DMOC::setupDevice() {
 
 /*Do note that the DMOC expects all three command frames and it expect them to happen at least twice a second. So, probably it'd be ok to essentially
  rotate through all of them, one per tick. That gives us a time frame of 30ms for each command frame. That should be plenty fast.
- */
-void DMOC::handleTick() {
+*/
+void DmocMotorController::handleTick() {
 	MotorController::handleTick(); //kick the ball up to papa
 
 	//if the first digital input is high we'll enable drive so we can go!
@@ -151,7 +151,7 @@ void DMOC::handleTick() {
 }
 
 //Commanded RPM plus state of key and gear selector
-void DMOC::sendCmd1() {
+void DmocMotorController::sendCmd1() {
 	CANFrame output;
 	OperationState newstate;
 	alive = (alive + 2) & 0x0F;
@@ -193,7 +193,7 @@ void DMOC::sendCmd1() {
 }
 
 //Torque limits
-void DMOC::sendCmd2() {
+void DmocMotorController::sendCmd2() {
 	CANFrame output;
 	output.dlc = 8;
 	output.id = 0x233;
@@ -235,7 +235,7 @@ void DMOC::sendCmd2() {
 }
 
 //Power limits plus setting ambient temp and whether to cool power train or go into limp mode
-void DMOC::sendCmd3() {
+void DmocMotorController::sendCmd3() {
 	CANFrame output;
 	output.dlc = 8;
 	output.id = 0x234;
@@ -254,7 +254,7 @@ void DMOC::sendCmd3() {
 }
 
 //challenge/response frame 1 - Really doesn't contain anything we need I dont think
-void DMOC::sendCmd4() {
+void DmocMotorController::sendCmd4() {
 	CANFrame output;
 	output.dlc = 8;
 	output.id = 0x235;
@@ -273,7 +273,7 @@ void DMOC::sendCmd4() {
 }
 
 //Another C/R frame but this one also specifies which shifter position we're in
-void DMOC::sendCmd5() {
+void DmocMotorController::sendCmd5() {
 	CANFrame output;
 	output.dlc = 8;
 	output.id = 0x236;
@@ -299,11 +299,11 @@ void DMOC::sendCmd5() {
 	canHandler->sendFrame(6, output);
 }
 
-void DMOC::setOpState(OperationState op) {
+void DmocMotorController::setOpState(OperationState op) {
 	operationState = op;
 }
 
-void DMOC::setGear(Gears gear) {
+void DmocMotorController::setGear(Gears gear) {
 	selectedGear = gear;
 	//if the gear was just set to drive or reverse and the DMOC is not currently in enabled
 	//op state then ask for it by name
@@ -316,7 +316,7 @@ void DMOC::setGear(Gears gear) {
 
 //this might look stupid. You might not believe this is real. It is. This is how you
 //calculate the checksum for the DMOC frames.
-byte DMOC::calcChecksum(CANFrame thisFrame) {
+byte DmocMotorController::calcChecksum(CANFrame thisFrame) {
 	byte cs;
 	byte i;
 	cs = thisFrame.id;
@@ -327,15 +327,15 @@ byte DMOC::calcChecksum(CANFrame thisFrame) {
 	return cs;
 }
 
-Device::DeviceId DMOC::getDeviceID() {
+Device::DeviceId DmocMotorController::getDeviceID() {
 	return (Device::DMOC645);
 }
 
-void DMOC::setPowerMode(PowerMode mode) {
+void DmocMotorController::setPowerMode(PowerMode mode) {
 	powerMode = mode;
 }
 
-DMOC::PowerMode DMOC::getPowerMode() {
+DmocMotorController::PowerMode DmocMotorController::getPowerMode() {
 	return powerMode;
 }
 

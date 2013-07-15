@@ -170,7 +170,7 @@ void initializeDevices() {
 	brake->setupDevice();
 #endif
 #ifdef CFG_ENABLE_DEVICE_MOTORCTRL_DMOC_645
-	motorController = new DMOC(canHandler0); //instantiate a DMOC645 device controller as our motor controller
+	motorController = new DmocMotorController(canHandler0); //instantiate a DMOC645 device controller as our motor controller
 	Logger::info("add device: DMOC 645");
 	motorController->setupDevice();
 #endif
@@ -256,7 +256,7 @@ void loop() {
 		tickReady = false;
 
 		//TODO: has to be moved to memcache.. but it's not a device, need additional class (e.g. tickable ?)
-		MemCache.handleTick();
+		memCache.handleTick();
 
 		if (!runStatic)
 			throttleval++;
@@ -294,7 +294,7 @@ void loop() {
 void serialEvent() {
 	int incoming;
 	static int state = 0;
-	DMOC* dmoc = (DMOC*) motorController; //TODO: direct reference to dmoc must be removed
+	DmocMotorController* dmoc = (DmocMotorController*) motorController; //TODO: direct reference to dmoc must be removed
 	incoming = SerialUSB.read();
 	if (incoming == -1)
 		return;
@@ -309,35 +309,35 @@ void serialEvent() {
 			runRamp = !runRamp;
 			if (runRamp) {
 				Logger::info("Start Ramp Test");
-				dmoc->setPowerMode(DMOC::MODE_RPM);
+				dmoc->setPowerMode(DmocMotorController::MODE_RPM);
 			}
 			else {
 				Logger::info("End Ramp Test");
-				dmoc->setPowerMode(DMOC::MODE_TORQUE); //TODO: direct reference to dmoc must be removed
+				dmoc->setPowerMode(DmocMotorController::MODE_TORQUE); //TODO: direct reference to dmoc must be removed
 			}
 			break;
 		case 'd':
-			dmoc->setGear(DMOC::DRIVE); //TODO: direct reference to dmoc must be removed
+			dmoc->setGear(DmocMotorController::DRIVE); //TODO: direct reference to dmoc must be removed
 			Logger::info("forward");
 			break;
 		case 'n':
-			dmoc->setGear(DMOC::NEUTRAL); //TODO: direct reference to dmoc must be removed
+			dmoc->setGear(DmocMotorController::NEUTRAL); //TODO: direct reference to dmoc must be removed
 			Logger::info("neutral");
 			break;
 		case 'r':
-			dmoc->setGear(DMOC::REVERSE); //TODO: direct reference to dmoc must be removed
+			dmoc->setGear(DmocMotorController::REVERSE); //TODO: direct reference to dmoc must be removed
 			Logger::info("reverse");
 			break;
 		case 'D':
-			dmoc->setOpState(DMOC::DISABLED); //TODO: direct reference to dmoc must be removed
+			dmoc->setOpState(DmocMotorController::DISABLED); //TODO: direct reference to dmoc must be removed
 			Logger::info("disabled");
 			break;
 		case 'S':
-			dmoc->setOpState(DMOC::STANDBY); //TODO: direct reference to dmoc must be removed
+			dmoc->setOpState(DmocMotorController::STANDBY); //TODO: direct reference to dmoc must be removed
 			Logger::info("standby");
 			break;
 		case 'E':
-			dmoc->setOpState(DMOC::ENABLE); //TODO: direct reference to dmoc must be removed
+			dmoc->setOpState(DmocMotorController::ENABLE); //TODO: direct reference to dmoc must be removed
 			Logger::info("enabled");
 			break;
 		case 'x':
@@ -352,11 +352,11 @@ void serialEvent() {
 			runThrottle = !runThrottle;
 			if (runThrottle) {
 				Logger::info("Use Throttle Pedal");
-				dmoc->setPowerMode(DMOC::MODE_TORQUE);
+				dmoc->setPowerMode(DmocMotorController::MODE_TORQUE); //TODO: direct reference to dmoc must be removed
 			}
 			else {
 				Logger::info("Ignore throttle pedal");
-				dmoc->setPowerMode(DMOC::MODE_RPM);
+				dmoc->setPowerMode(DmocMotorController::MODE_RPM); //TODO: direct reference to dmoc must be removed
 			}
 			break;
 		case 'L':
@@ -370,24 +370,24 @@ void serialEvent() {
 		case 'Y':
 			Logger::info("Trying to save 0x45 to eeprom location 10");
 			uint8_t temp;
-			MemCache.Write(10, (uint8_t) 0x45);
-			MemCache.Read(10, &temp);
+			memCache.Write(10, (uint8_t) 0x45);
+			memCache.Read(10, &temp);
 			Logger::info("Got back value of %d", temp);
 			break;
 		case 'U':
 			Logger::info("Adding a sequence of values from 0 to 255 into eeprom");
 			for (int i = 0; i < 256; i++)
-				MemCache.Write(1000 + i, (uint8_t) i);
+				memCache.Write(1000 + i, (uint8_t) i);
 			Logger::info("Flushing cache");
-			MemCache.FlushAllPages(); //write everything to eeprom
-			MemCache.InvalidateAll(); //remove all data from cache
+			memCache.FlushAllPages(); //write everything to eeprom
+			memCache.InvalidateAll(); //remove all data from cache
 			Logger::info("Operation complete.");
 			break;
 		case 'I':
 			Logger::info("Retrieving data previously saved");
 			uint8_t val;
 			for (int i = 0; i < 256; i++) {
-				MemCache.Read(1000 + i, &val);
+				memCache.Read(1000 + i, &val);
 				Logger::info("%d: %d", i, val);
 			}
 			break;

@@ -5,7 +5,7 @@
  *      Author: Michael Neuweiler
  */
 
-#include "logger.h"
+#include "Logger.h"
 
 Logger::LogLevel logLevel = Logger::Debug;
 

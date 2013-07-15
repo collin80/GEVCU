@@ -10,7 +10,7 @@
 
 #include "config.h"
 #if defined(CFG_ENABLE_DEVICE_POT_THROTTLE_ACCEL) || defined(CFG_ENABLE_DEVICE_POT_THROTTLE_BRAKE)
-#include "pedal_pot.h"
+#include "PotThrottle.h"
 
 //initialize by telling the code which two ADC channels to use (or set channel 2 to 255 to disable)
 PotThrottle::PotThrottle(uint8_t throttle1, uint8_t throttle2, bool isAccel = true) : Throttle() {

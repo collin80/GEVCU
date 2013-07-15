@@ -7,7 +7,7 @@
 
 #include "config.h"
 #ifdef CFG_ENABLE_DEVICE_HEARTBEAT
-#include "timer.h"
+#include "HeartbeatDevice.h"
 
 volatile int8_t tickReady;
 

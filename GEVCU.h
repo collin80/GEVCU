@@ -10,16 +10,16 @@
 
 #include <Arduino.h>
 #include "config.h"
-#include "throttle.h"
-#include "pedal_pot.h"
-#include "can_throttle.h"
-#include "device.h"
-#include "motorctrl.h"
-#include "dmoc.h"
-#include "timer.h"
+#include "Throttle.h"
+#include "CanThrottle.h"
+#include "PotThrottle.h"
+#include "Device.h"
+#include "MotorController.h"
+#include "DmocMotorController.h"
+#include "HeartbeatDevice.h"
 #include "sys_io.h"
-#include "can_handler.h"
-#include "mem_cache.h"
+#include "CanHandler.h"
+#include "MemCache.h"
 
 
 #ifdef __cplusplus

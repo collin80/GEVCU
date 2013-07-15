@@ -4,7 +4,7 @@
 #include "device.h"
 #include "config.h"
 #include "throttle.h"
-#include "motorctrl.h"
+#include "MotorController.h"
 
 #define MSG_HARD_FAULT		0x2000; //something really bad happened. Shutdown to safe state IMMEDIATELY!
 #define MSG_SOFT_FAULT		0x2200; //something unpleasant happened. Try to shutdown gracefully.

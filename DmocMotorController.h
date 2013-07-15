@@ -14,11 +14,11 @@
 
 #include <Arduino.h>
 #include "config.h"
-#include "motorctrl.h"
+#include "MotorController.h"
 #include "sys_io.h"
 #include "TickHandler.h"
 
-class DMOC : public MotorController {
+class DmocMotorController : public MotorController {
 public:
   enum Gears {
     NEUTRAL = 0,
@@ -58,7 +58,7 @@ public:
   void setOpState(OperationState op);
   void setGear(Gears gear);
 
-  DMOC(CanHandler *canbus);
+  DmocMotorController(CanHandler *canbus);
   Device::DeviceId getDeviceID();
   void setPowerMode(PowerMode mode);
   PowerMode getPowerMode();
