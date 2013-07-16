@@ -27,9 +27,11 @@
 #include <due_can.h>
 #include <due_wire.h>
 #include <DueTimer.h>
+#include "ThrottleDetector.h"
 
 //RTC_clock rtc_clock(XTAL); //init RTC with the external 32k crystal as a reference
 
+ThrottleDetector *throttleDetector;
 Throttle *accelerator; 
 Throttle *brake; 
 MotorController* motorController; //generic motor controller - instantiate some derived class to fill this out
@@ -188,6 +190,9 @@ void setup() {
 
     accelerator = new PotThrottle(0,255, true); //specify the shield ADC ports to use for throttle 255 = not used (valid only for second value)
 
+    // Detect/calibrate the throttle. Give it both throttle pins and it can tell if it's a single or double pot
+    throttleDetector = new ThrottleDetector(0,1);
+
     brake = new PotThrottle(2, 255, false); //set up the brake input as the third ADC input from the shield.
   
     accelerator->setupDevice();
@@ -208,6 +213,7 @@ void setup() {
 
 void printMenu() {
   SerialUSB.println("System Menu:");
+  SerialUSB.println("h = help (displays this message)");
   SerialUSB.println("D = disabled op state");
   SerialUSB.println("S = standby op state");
   SerialUSB.println("E = enabled op state");
@@ -221,6 +227,8 @@ void printMenu() {
   SerialUSB.println("K = set all outputs high");
   SerialUSB.println("J = set all outputs low");
   SerialUSB.println("Y,U,I = test EEPROM routines");
+  SerialUSB.println("z = detect throttle min/max");
+  SerialUSB.println("Z = save detected throttle values");
   SerialUSB.println("");
 }
 
@@ -336,14 +344,13 @@ void serialEvent() {
       break;
     case ' ':
       runRamp = !runRamp;
-        if (runRamp) {
-	  SerialUSB.println("Start Ramp Test");
+      if (runRamp) {
+	      SerialUSB.println("Start Ramp Test");
           dmoc->setPowerMode(DMOC::MODE_RPM);
-        }
-	else {
+      } else {
           SerialUSB.println("End Ramp Test");
           dmoc->setPowerMode(DMOC::MODE_TORQUE);
-        }
+      }
 	break;
     case 'd':
       dmoc->setGear(DMOC::DRIVE);
@@ -373,16 +380,16 @@ void serialEvent() {
       runStatic = !runStatic;
       if (runStatic) {
         SerialUSB.println("Lock RPM rate");
+      } else {
+        SerialUSB.println("Unlock RPM rate");
       }
-      else SerialUSB.println("Unlock RPM rate");
       break;
     case 't':
       runThrottle = !runThrottle;
       if (runThrottle) {
         SerialUSB.println("Use Throttle Pedal");
         dmoc->setPowerMode(DMOC::MODE_TORQUE);
-      }
-      else {
+      } else {
         SerialUSB.println("Ignore throttle pedal");
         dmoc->setPowerMode(DMOC::MODE_RPM);
       }
@@ -391,8 +398,9 @@ void serialEvent() {
       throttleDebug = !throttleDebug;
       if (throttleDebug) {
         SerialUSB.println("Output raw throttle");
+      } else {
+        SerialUSB.println("Cease raw throttle output");
       }
-      else SerialUSB.println("Cease raw throttle output");
       break;
       case 'Y':
       SerialUSB.println("Trying to save 0x45 to eeprom location 10");
@@ -433,6 +441,23 @@ void serialEvent() {
       setOutput(2, false);
       setOutput(3, false);    
       SerialUSB.println("Setting all outputs OFF");      
+      break;
+    case 'z': // detect throttle min/max
+      throttleDetector->detect();
+      break;
+    case 'Z': // detect throttle min/max
+      SerialUSB.println("Saving throttle min/max");
+      /*
+      // TODO:
+      // need to get the throttle prefs of change the offset to EE_THROTTLE_START
+      sysPrefs->write(EETH_MIN_ONE, throttleDetector->getThrottle1Min());
+      sysPrefs->write(EETH_MAX_ONE, throttleDetector->getThrottle1Max());
+      if ( throttleDetector->getPotentiometerCount() > 1 ) {
+        sysPrefs->write(EETH_MIN_TWO, throttleDetector->getThrottle2Min());
+        sysPrefs->write(EETH_MAX_TWO, throttleDetector->getThrottle2Max());
+      }
+      sysPrefs->saveChecksum();
+      */
       break;
   }
  }
