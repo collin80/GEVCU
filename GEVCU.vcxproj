@@ -49,7 +49,7 @@
       <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
       <Optimization>Disabled</Optimization>
       <BrowseInformation>true</BrowseInformation>
-      <AdditionalIncludeDirectories>c:\users\collin\desktop\arduino-1.5.2\hardware\arduino\sam\cores\arduino;c:\users\collin\desktop\arduino-1.5.2\hardware\arduino\sam\variants\arduino_due_x;c:\users\collin\desktop\arduino-1.5.2\hardware\tools\g++_arm_none_eabi\arm-none-eabi\include;c:\users\collin\desktop\arduino-1.5.2\hardware\tools\g++_arm_none_eabi\arm_none_eabi\include;c:\users\collin\desktop\arduino-1.5.2\hardware\tools\g++_arm_none_eabi\lib\gcc\arm-none-eabi\4.4.1\include;c:\users\collin\desktop\arduino-1.5.2\hardware\tools\g++_arm_none_eabi\lib\gcc\arm-none-eabi\4.4.1\include\;c:\users\collin\desktop\arduino-1.5.2\hardware\arduino\sam\system\CMSIS\CMSIS\Include\;c:\users\collin\desktop\arduino-1.5.2\hardware\arduino\sam\system\CMSIS\Device\ATMEL\;c:\users\collin\desktop\arduino-1.5.2\hardware\arduino\sam\system\libsam;c:\users\collin\desktop\arduino-1.5.2\hardware\arduino\sam\system\libsam\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>c:\users\collin\desktop\Arduino-1.5.2\hardware\arduino\sam\cores\arduino;c:\users\collin\desktop\Arduino-1.5.2\hardware\arduino\sam\variants\arduino_due_x;c:\users\collin\desktop\Arduino-1.5.2\hardware\arduino\sam\system\CMSIS\CMSIS\Include\;c:\users\collin\desktop\Arduino-1.5.2\hardware\arduino\sam\system\CMSIS\Device\ATMEL\;c:\users\collin\desktop\Arduino-1.5.2\hardware\arduino\sam\system\libsam;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <ForcedIncludeFiles>C:\Users\Collin\Desktop\GEVCU\Visual Micro\.GEVCU.vsarduino.h;%(ForcedIncludeFiles)</ForcedIncludeFiles>
       <IgnoreStandardIncludePath>true</IgnoreStandardIncludePath>
     </ClCompile>
@@ -96,6 +96,9 @@
     <ClInclude Include="PrefHandler.h" />
     <ClInclude Include="sys_io.h" />
     <ClInclude Include="Throttle.h" />
+    <ClInclude Include="ThrottleDetector.h">
+      <FileType>CppCode</FileType>
+    </ClInclude>
     <ClInclude Include="TickHandler.h" />
     <ClInclude Include="Visual Micro\.GEVCU.vsarduino.h" />
   </ItemGroup>
@@ -120,6 +123,7 @@
     <ClCompile Include="PrefHandler.cpp" />
     <ClCompile Include="sys_io.cpp" />
     <ClCompile Include="Throttle.cpp" />
+    <ClCompile Include="ThrottleDetector.cpp" />
     <ClCompile Include="TickHandler.cpp" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />

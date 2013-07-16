@@ -75,6 +75,9 @@
     <ClInclude Include="TickHandler.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="ThrottleDetector.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <Text Include="GEVCU.ino" />
@@ -126,6 +129,9 @@
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="TickHandler.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="ThrottleDetector.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>

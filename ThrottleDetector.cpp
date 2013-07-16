@@ -242,10 +242,10 @@ void ThrottleDetector::resetValues()
  */
 void ThrottleDetector::readThrottleValues(bool discardValues = false)
 {
-    throttle1Value = getAnalog(throttle1);
+    throttle1Value = getDiffADC(throttle1);
     if ( throttle2Provided() ) 
     {
-      throttle2Value = getAnalog(throttle2);
+      throttle2Value = getDiffADC(throttle2);
     }
     
     if ( discardValues ) 

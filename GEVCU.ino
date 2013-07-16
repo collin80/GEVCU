@@ -162,6 +162,7 @@ void setup() {
     SerialUSB.println("TWI INIT OK");
 
     if (!sysPrefs.checksumValid()) { //checksum is good, read in the values stored in EEPROM
+		SerialUSB.println("Initializing EEPROM");
         initSysEEPROM();
     }
     
@@ -188,7 +189,7 @@ void setup() {
     //if min is less than max for a throttle then the pot goes low to high as pressed.
     //if max is less than min for a throttle then the pot goes high to low as pressed.
 
-    accelerator = new PotThrottle(0,255, true); //specify the shield ADC ports to use for throttle 255 = not used (valid only for second value)
+    accelerator = new PotThrottle(0,1, true); //specify the shield ADC ports to use for throttle 255 = not used (valid only for second value)
 
     // Detect/calibrate the throttle. Give it both throttle pins and it can tell if it's a single or double pot
     throttleDetector = new ThrottleDetector(0,1);
@@ -275,16 +276,16 @@ void loop() {
      if (!runStatic) throttleval++;
      if (throttleval > 80) throttleval = 0;
      if (throttleDebug) {
-       adcval = getAnalog(0);
+       adcval = getDiffADC(0);
        SerialUSB.print("A0: ");
        SerialUSB.print(adcval);
-       adcval = getAnalog(1);
+       adcval = getDiffADC(1);
        SerialUSB.print(" A1: ");
        SerialUSB.print(adcval);
-       adcval = getAnalog(2);
+       adcval = getDiffADC(2);
        SerialUSB.print(" A2: ");
        SerialUSB.print(adcval);
-       adcval = getAnalog(3);
+       adcval = getDiffADC(3);
        SerialUSB.print(" A3: ");
        SerialUSB.print(adcval);
        if (getDigital(0)) SerialUSB.print(" D0: HIGH");
