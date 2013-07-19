@@ -152,7 +152,7 @@ void setup() {
   pinMode(BLINKLED, OUTPUT);
   digitalWrite(BLINKLED, LOW);
   
-  canHandler = new CanHandler(0);
+  canHandler = new CanHandler(0,500); //use CAN0 and set it to 500k baud
   
    motorController = new DmocMotorController(canHandler); //instantiate a DMOC645 device controller as our motor controller      
    motorController->handleTick();
