@@ -32,7 +32,7 @@ typedef struct {
 class FaultHandler {
   public:
   FaultHandler(); //constructor
-  uint16_t raiseFault(uint16_t device, uint16_t code, uint8_t* msg); //raise a new fault. Returns the fault # where this was stored
+  uint16_t raiseFault(uint16_t device, uint16_t code, char* msg); //raise a new fault. Returns the fault # where this was stored
   FAULT getNextFault(); //get the next un-ack'd fault. Will also get first fault if the first call and you forgot to call getFirstFault
   FAULT getFirstFault(); //get the first un-acknowledged fault
   FAULT getFault(uint16_t fault);
@@ -45,5 +45,6 @@ class FaultHandler {
   uint16_t  faultReadPointer;  //fault # we're at when reading. 
 };
 
+extern FaultHandler faultHandler;
 
 #endif /* FAULT_H_ */

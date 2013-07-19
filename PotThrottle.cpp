@@ -10,6 +10,12 @@
 
 #include "PotThrottle.h"
 
+char *t1TooHigh = "Throttle 1 Value Too High!";
+char *t1TooLow = "Throttle 1 Value Too Low!";
+char *t2TooHigh = "Throttle 2 Value Too High!";
+char *t2TooLow = "Throttle 2 Value Too Low!";
+char *tMismatch = "Throttle Value Mismatch";
+
 //initialize by telling the code which two ADC channels to use (or set channel 2 to 255 to disable)
 PotThrottle::PotThrottle(uint8_t throttle1, uint8_t throttle2, bool isAccel = true) {
   throttle1ADC = throttle1;
@@ -44,10 +50,10 @@ void PotThrottle::setupDevice() {
   else { //checksum invalid. Reinitialize values and store to EEPROM
   */
     //these four values are ADC values
-    throttleMin1 = 8;
-    throttleMax1 = 450;
-    throttleMin2 = 355;
-    throttleMax2 = 1800;
+    throttleMin1 = 180;
+    throttleMax1 = 935;
+    throttleMin2 = 360;
+    throttleMax2 = 1900;
     //The next three are tenths of a percent
     throttleRegen = 0;
     throttleFwd = 175;
@@ -101,6 +107,7 @@ void PotThrottle::doAccel() {
   signed int range;
   signed int calcThrottle1, calcThrottle2, clampedVal, tempLow, temp;
   static uint16_t ThrottleAvg = 0, ThrottleFeedback = 0; //used to create proportional control
+  char *errorMsg;
   
   clampedVal = throttle1Val;
 
@@ -109,6 +116,7 @@ void PotThrottle::doAccel() {
   if (throttle1Val > throttleMax1) {
     if (throttle1Val > (throttleMax1 + CFG_THROTTLE_TOLERANCE)) {
       throttleStatus = ERR_HIGH_T1;
+	  errorMsg = t1TooHigh;
       //SerialUSB.print("T1H ");      
     }
     clampedVal = throttleMax1;
@@ -120,6 +128,7 @@ void PotThrottle::doAccel() {
   if (throttle1Val < throttleMin1) {
     if (throttle1Val < tempLow) {
       throttleStatus = ERR_LOW_T1;
+	  errorMsg = t1TooLow;
       //SerialUSB.print("T1L ");      
     }
     clampedVal = throttleMin1;
@@ -127,6 +136,7 @@ void PotThrottle::doAccel() {
 
   if (! (throttleStatus == OK)) {
     outputThrottle = 0; //no throttle if there is a fault
+	faultHandler.raiseFault(getDeviceID(), throttleStatus, errorMsg);
     return;
   }
   calcThrottle1 = calcThrottle(clampedVal, throttleMin1, throttleMax1);
@@ -135,7 +145,8 @@ void PotThrottle::doAccel() {
     clampedVal = throttle2Val;
     if (throttle2Val > throttleMax2) {
       if (throttle2Val > (throttleMax2 + CFG_THROTTLE_TOLERANCE)) {
-	throttleStatus = ERR_HIGH_T2;
+		throttleStatus = ERR_HIGH_T2;
+		errorMsg = t2TooHigh;
         //SerialUSB.print("T2H ");      
       }
       clampedVal = throttleMax2;
@@ -147,6 +158,7 @@ void PotThrottle::doAccel() {
     if (throttle2Val < throttleMin2) {
       if (throttle2Val < tempLow) {
         throttleStatus = ERR_LOW_T2;
+		errorMsg = t2TooLow;
         //SerialUSB.print("T2L ");      
       }
       clampedVal = throttleMin2;
@@ -156,10 +168,12 @@ void PotThrottle::doAccel() {
       
     if ((calcThrottle1 - throttleMaxErr) > calcThrottle2) { //then throttle1 is too large compared to 2
       throttleStatus = ERR_MISMATCH;
+	  errorMsg = tMismatch;
       //SerialUSB.print("MX1 ");      
     }
     if ((calcThrottle2 - throttleMaxErr) > calcThrottle1) { //then throttle2 is too large compared to 1
       throttleStatus = ERR_MISMATCH;
+	  errorMsg = tMismatch;
       //SerialUSB.print("MX2 ");      
     }
 
@@ -168,6 +182,7 @@ void PotThrottle::doAccel() {
 
   if (! (throttleStatus == OK)) {
     outputThrottle = 0; //no throttle if there is a fault
+	faultHandler.raiseFault(getDeviceID(), throttleStatus, errorMsg);
     return;
   }
 	
