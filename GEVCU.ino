@@ -152,7 +152,7 @@ void setup() {
   pinMode(BLINKLED, OUTPUT);
   digitalWrite(BLINKLED, LOW);
   
-  canHandler = new CanHandler(0,500); //use CAN0 and set it to 500k baud
+  canHandler = new CanHandler(0,CFG_CAN0_SPEED); //use CAN0 and set it to speed defined in config.h
   
    motorController = new DmocMotorController(canHandler); //instantiate a DMOC645 device controller as our motor controller      
    motorController->handleTick();
@@ -165,8 +165,21 @@ void setup() {
 		SerialUSB.println("Initializing EEPROM");
         initSysEEPROM();
     }
+	else 
+	{
+		SerialUSB.println("Using existing EEPROM values");
+	}
     
+	/*
+	* call this here to immediately send out frames.
+	* The DMOC needs to get frames very quickly on start up.
+	* Other controllers might as well. In actuality we should
+	* automatically call the tick handler on every device
+	* when we initialize it.
+	*/
+
     motorController->handleTick();
+
     //rtc_clock.init();
     //Now, we have no idea what the real time is but the EEPROM should have stored a time in the past.
     //It's better than nothing while we try to figure out the proper time.
@@ -180,6 +193,8 @@ void setup() {
     SerialUSB.println("RTC INIT OK");
     */
 
+	//Umm, shouldn't this have been before the handleTick above?!?
+	//it works this way though.
     motorController->setupDevice();
    
     setup_sys_io(); //get calibration data for system IO
@@ -189,7 +204,9 @@ void setup() {
     //if min is less than max for a throttle then the pot goes low to high as pressed.
     //if max is less than min for a throttle then the pot goes high to low as pressed.
 
-    accelerator = new PotThrottle(0,1, true); //specify the shield ADC ports to use for throttle 255 = not used (valid only for second value)
+	//specify the shield ADC ports to use for throttle 255 = not used (valid only for second value)
+	//the third parameter is true for accelerators and false for brake transducers.
+    accelerator = new PotThrottle(0,1, true); 
 
     // Detect/calibrate the throttle. Give it both throttle pins and it can tell if it's a single or double pot
     throttleDetector = new ThrottleDetector(0,1);
@@ -201,12 +218,10 @@ void setup() {
     
     motorController->handleTick();
         
-    //This could eventually be configurable.
+    //Specify how many microseconds between heartbeats. The heartbeat handler
+	//can do actual work too so put things in there which are system related
+	//and should periodically be done.
     HeartbeatDevice *heartbeat = new HeartbeatDevice(10000);
-
-    //This will not be hard coded soon. It should be a list of every hardware support module
-    //compiled into the ROM
-    //Serial.println("Installed devices: DMOC645");
 
     SerialUSB.print("System Ready ");
     printMenu();
@@ -234,8 +249,8 @@ void printMenu() {
 }
 
 
-//Note that the loop uses the motorcontroller object which is of the MOTORCTRL class. This allows
-//the loop to be generic while still supporting a variety of hardware. Let's try to keep it this way.
+//a mess of code that has to be fixed. It's nowhere near generic enough and constantly references
+//the DMOC class. 
 void loop() {
   static CANFrame message;
   static byte throttleval = 0;
@@ -244,11 +259,14 @@ void loop() {
   
   sys_io_adc_poll();
 
+  //this should be handled generically. The device manager will eventually register canbus handlers that will
+  //pump frames to the proper devices automatically rendering this code moot.
   if (canHandler->readFrame(message)) {
     motorController->handleFrame(message);
   }
 
   //if the first digital input is high we'll enable drive so we can go!
+  //This really belongs in the DMOC tickHandler
   if (getDigital(0)) {
     ((DmocMotorController *)motorController)->setGear(DmocMotorController::DRIVE);
     runThrottle = true;
@@ -260,8 +278,11 @@ void loop() {
     ((DmocMotorController *)motorController)->setOpState(DmocMotorController::DISABLED);
     runThrottle = false;
   }
-  
+
+
   if (SerialUSB.available()) serialEvent(); //due doesnt have int driven serial yet
+
+  //and this belongs in the heartbeat handler
   if (tickReady) {
     tickReady = false;
 
@@ -276,16 +297,16 @@ void loop() {
      if (!runStatic) throttleval++;
      if (throttleval > 80) throttleval = 0;
      if (throttleDebug) {
-       adcval = getDiffADC(0);
+       adcval = getAnalog(0);
        SerialUSB.print("A0: ");
        SerialUSB.print(adcval);
-       adcval = getDiffADC(1);
+       adcval = getAnalog(1);
        SerialUSB.print(" A1: ");
        SerialUSB.print(adcval);
-       adcval = getDiffADC(2);
+       adcval = getAnalog(2);
        SerialUSB.print(" A2: ");
        SerialUSB.print(adcval);
-       adcval = getDiffADC(3);
+       adcval = getAnalog(3);
        SerialUSB.print(" A3: ");
        SerialUSB.print(adcval);
        if (getDigital(0)) SerialUSB.print(" D0: HIGH");
