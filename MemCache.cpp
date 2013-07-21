@@ -7,6 +7,38 @@
 
 #include "MemCache.h"
 
+MemCache::MemCache()
+{
+	setup();
+}
+
+void MemCache::setup() {
+	TickHandler::remove(this);
+	for (U8 c = 0; c < NUM_CACHED_PAGES; c++) {
+		pages[c].address = 0xFFFFFF; //maximum number. This is way over what our chip will actually support so it signals unused
+		pages[c].age = 0;
+		pages[c].dirty = false;
+	}
+	//WriteTimer = 0;
+
+	//digital pin 19 is connected to the write protect function of the EEPROM. It is active high so set it low to enable writes
+	pinMode(19, OUTPUT);
+	digitalWrite(19, LOW);
+	TickHandler::add(this, CFG_TICK_INTERVAL_MEM_CACHE);
+}
+
+void MemCache::handleTick()
+{
+  U8 c;
+  cache_age();
+  for (c=0;c<NUM_CACHED_PAGES;c++) {
+    if ((pages[c].age == MAX_AGE) && (pages[c].dirty)) {
+      FlushPage(c);
+      return;
+    }
+  }
+}
+
 //this function flushes the first dirty page it finds. It should try to wait until enough time as elapsed since
 //a previous page has been written.
 void MemCache::FlushSinglePage() 
@@ -42,22 +74,6 @@ void MemCache::FlushPage(uint8_t page) {
     pages[page].dirty = false;
     pages[page].age = 0; //freshly flushed!
   }	
-}
-
-void MemCache::handleTick()
-{
-  U8 c;
-  if (agingTimer++ > AGING_PERIOD)
-  {
-    agingTimer -= AGING_PERIOD;
-    cache_age();
-    for (c=0;c<NUM_CACHED_PAGES;c++) {
-      if ((pages[c].age == MAX_AGE) && (pages[c].dirty)) {
-        FlushPage(c);
-        return;
-      }
-    }
-  }
 }
 
 void MemCache::InvalidatePage(uint8_t page)
@@ -226,23 +242,6 @@ boolean MemCache::Read(uint32_t address, void* data, uint16_t len)
 
   if (c != 0xFF) return true; //all ok!
   return false;
-}
-
-MemCache::MemCache()
-{
-  U8 c;
-  for (c = 0; c < NUM_CACHED_PAGES; c++) {
-    pages[c].address = 0xFFFFFF; //maximum number. This is way over what our chip will actually support so it signals unused
-    pages[c].age = 0;
-    pages[c].dirty = false;
-  }		
-  //WriteTimer = 0;
-  agingTimer = 0;
-  
-  //digital pin 19 is connected to the write protect function of the EEPROM. It is active high so set it low to enable writes
-  pinMode(19, OUTPUT);
-  digitalWrite(19, LOW);
-
 }
 
 boolean MemCache::isWriting()

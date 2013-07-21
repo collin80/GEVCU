@@ -18,7 +18,7 @@ class Throttle: public Device {
 public:
 	Throttle();
 	Throttle(CanHandler *canHandler);
-	Device::DeviceType getDeviceType();
+	Device::DeviceType getType();
 	virtual int getThrottle();
 
 protected:

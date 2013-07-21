@@ -9,8 +9,8 @@
  
  #include "MotorController.h"
  
-MotorController::MotorController(CanHandler *canbus) : Device(canbus) {
-	prefs = new PrefHandler(EE_MOTORCTL_START);
+MotorController::MotorController(CanHandler *canbus, Throttle *accelerator, Throttle *brake) : Device(canbus) {
+	prefsHandler = new PrefHandler(EE_MOTORCTL_START);
 	faulted = false;
 	running = false;
 	motorTemp = 0;
@@ -23,31 +23,40 @@ MotorController::MotorController(CanHandler *canbus) : Device(canbus) {
 	maxTorque = 0;
 	maxRPM = 0;
 	gearSwitch = GS_FAULT;
+	this->accelerator = accelerator;
+	this->brake = brake;
 }
 
-Device::DeviceType MotorController::getDeviceType() {
+Device::DeviceType MotorController::getType() {
 	return (Device::DEVICE_MOTORCTRL);
 }
 
 void MotorController::handleTick() {
-	uint8_t val, val2;
+	uint8_t forwardSwitch, reverseSwitch;
 	if (digitalRead(MOTORCTL_INPUT_DRIVE_EN) == LOW)
 		running = true;
 	else
 		running = false;
 
-	val = digitalRead(MOTORCTL_INPUT_FORWARD);
-	val2 = digitalRead(MOTORCTL_INPUT_REVERSE);
+	forwardSwitch = digitalRead(MOTORCTL_INPUT_FORWARD);
+	reverseSwitch = digitalRead(MOTORCTL_INPUT_REVERSE);
 
 	gearSwitch = GS_FAULT;
-	if (val == LOW && val2 == HIGH)
+	if (forwardSwitch == LOW && reverseSwitch == HIGH)
 		gearSwitch = GS_FORWARD;
-	if (val == HIGH && val2 == LOW)
+	if (forwardSwitch == HIGH && reverseSwitch == LOW)
 		gearSwitch = GS_REVERSE;
+
+	if (accelerator)
+		requestedThrottle = accelerator->getThrottle();
+	if (brake && brake->getThrottle() != 0) //if the brake has been pressed it overrides the accelerator.
+		requestedThrottle = brake->getThrottle();
+
+	//Logger::debug("Throttle: %d", requestedThrottle);
 
 }
 
-void MotorController::setupDevice() {
+void MotorController::setup() {
 	//this is where common parameters for motor controllers should be loaded from EEPROM
 
 	//first set up the appropriate digital pins. All are active low currently
@@ -57,16 +66,16 @@ void MotorController::setupDevice() {
 	 pinMode(MOTORCTL_INPUT_REVERSE, INPUT_PULLUP); //Reverse Gear
 	 pinMode(MOTORCTL_INPUT_LIMP, INPUT_PULLUP); //Limp mode
 	 */
-	if (prefs->checksumValid()) { //checksum is good, read in the values stored in EEPROM
-		prefs->read(EEMC_MAX_RPM, &maxRPM);
-		prefs->read(EEMC_MAX_TORQUE, &maxTorque);
+	if (prefsHandler->checksumValid()) { //checksum is good, read in the values stored in EEPROM
+		prefsHandler->read(EEMC_MAX_RPM, &maxRPM);
+		prefsHandler->read(EEMC_MAX_TORQUE, &maxTorque);
 	}
 	else { //checksum invalid. Reinitialize values and store to EEPROM
 		maxRPM = 5000;
 		maxTorque = 500; //50Nm
-		prefs->write(EEMC_MAX_RPM, maxRPM);
-		prefs->write(EEMC_MAX_TORQUE, maxTorque);
-		prefs->saveChecksum();
+		prefsHandler->write(EEMC_MAX_RPM, maxRPM);
+		prefsHandler->write(EEMC_MAX_TORQUE, maxTorque);
+		prefsHandler->saveChecksum();
 	}
 }
 /*
@@ -90,10 +99,6 @@ void MotorController::setupDevice() {
 
 int MotorController::getThrottle() {
 	return (requestedThrottle);
-}
-
-void MotorController::setThrottle(int newthrottle) {
-	requestedThrottle = newthrottle;
 }
 
 bool MotorController::isRunning() {

@@ -21,9 +21,9 @@
 class CanThrottle: public Throttle {
 public:
 	CanThrottle(CanHandler *canHandler);
-	void setupDevice();
+	void setup();
 	void handleTick();
-	Device::DeviceId getDeviceID();
+	Device::DeviceId getId();
 	int getThrottle();
 
 protected:

@@ -12,6 +12,8 @@
 
 #include <Arduino.h>
 #include "config.h"
+#include "Tickable.h"
+#include "TickHandler.h"
 #include <due_wire.h>
 
 //Total # of allowable pages to cache. Limits RAM usage
@@ -29,20 +31,13 @@
 */
 #define AGING_PERIOD       200
 
-typedef struct {
-  uint8_t data[256];
-  uint32_t address; //address of start of page
-  uint8_t age; //
-  boolean dirty;
-} PageCache;
-
-class MemCache
-{
+class MemCache: public Tickable {
   public:
+  void setup();
+  void handleTick();
   void FlushSinglePage();
   void FlushAllPages();
   void FlushPage(uint8_t page);
-  void handleTick();
   void InvalidatePage(uint8_t page);
   void InvalidateAddress(uint32_t address);
   void InvalidateAll();
@@ -63,6 +58,13 @@ class MemCache
   MemCache();
   
   private:
+  typedef struct {
+    uint8_t data[256];
+    uint32_t address; //address of start of page
+    uint8_t age; //
+    boolean dirty;
+  } PageCache;
+
   PageCache pages[NUM_CACHED_PAGES];
   boolean isWriting();
   uint8_t cache_hit(U32 address);

@@ -29,7 +29,7 @@ public:
 	};
 
 	void handleTick();
-	void setupDevice();
+	void setup();
 	ThrottleStatus getStatus();
 	void setT1Min(uint16_t min);
 	void setT2Min(uint16_t min);
@@ -42,7 +42,7 @@ public:
 	int getRawThrottle1();
 	int getRawThrottle2();
 	PotThrottle(uint8_t throttle1, uint8_t throttle2, bool isAccel);
-	Device::DeviceId getDeviceID();
+	Device::DeviceId getId();
 
 private:
 	uint16_t throttleMin1, throttleMax1, throttleMin2, throttleMax2; //Values for when the pedal is at its min and max for each throttle input

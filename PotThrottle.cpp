@@ -26,9 +26,9 @@ PotThrottle::PotThrottle(uint8_t throttle1, uint8_t throttle2, bool isAccel = tr
 	//analogReadResolution(12);
 }
 
-void PotThrottle::setupDevice() {
-	TickHandler::unregisterDevice(this); // unregister from TickHandler first
-	Throttle::setupDevice(); //call base class
+void PotThrottle::setup() {
+	TickHandler::remove(this); // unregister from TickHandler first
+	Throttle::setup(); //call base class
 	//set digital ports to inputs and pull them up
 	//all inputs currently active low
 	//pinMode(THROTTLE_INPUT_BRAKELIGHT, INPUT_PULLUP); //Brake light switch
@@ -61,20 +61,20 @@ void PotThrottle::setupDevice() {
 	brakeMaxRegen = 80; //percentage of full power to use for regen at brake pedal transducer
 	brakeMin = 5;
 	brakeMax = 500;
-	prefs->write(EETH_MIN_ONE, throttleMin1);
-	prefs->write(EETH_MAX_ONE, throttleMax1);
-	prefs->write(EETH_MIN_TWO, throttleMin2);
-	prefs->write(EETH_MAX_TWO, throttleMax2);
-	prefs->write(EETH_REGEN, throttleRegen);
-	prefs->write(EETH_FWD, throttleFwd);
-	prefs->write(EETH_MAP, throttleMap);
-	prefs->write(EETH_BRAKE_MIN, brakeMin);
-	prefs->write(EETH_BRAKE_MAX, brakeMax);
-	prefs->write(EETH_MAX_ACCEL_REGEN, throttleMaxRegen);
-	prefs->write(EETH_MAX_BRAKE_REGEN, brakeMaxRegen);
-	prefs->saveChecksum();
+	prefsHandler->write(EETH_MIN_ONE, throttleMin1);
+	prefsHandler->write(EETH_MAX_ONE, throttleMax1);
+	prefsHandler->write(EETH_MIN_TWO, throttleMin2);
+	prefsHandler->write(EETH_MAX_TWO, throttleMax2);
+	prefsHandler->write(EETH_REGEN, throttleRegen);
+	prefsHandler->write(EETH_FWD, throttleFwd);
+	prefsHandler->write(EETH_MAP, throttleMap);
+	prefsHandler->write(EETH_BRAKE_MIN, brakeMin);
+	prefsHandler->write(EETH_BRAKE_MAX, brakeMax);
+	prefsHandler->write(EETH_MAX_ACCEL_REGEN, throttleMaxRegen);
+	prefsHandler->write(EETH_MAX_BRAKE_REGEN, brakeMaxRegen);
+	prefsHandler->saveChecksum();
 	//}
-	TickHandler::registerDevice(this, CFG_TICK_INTERVAL_POT_THROTTLE);
+	TickHandler::add(this, CFG_TICK_INTERVAL_POT_THROTTLE);
 }
 
 int PotThrottle::getRawThrottle1() {
@@ -298,6 +298,8 @@ void PotThrottle::doBrake() {
 //right now only the first throttle ADC port is used. Eventually the second one should be used to cross check so dumb things
 //don't happen. Also, right now values of ADC outside the proper range are just clamped to the proper range.
 void PotThrottle::handleTick() {
+	sys_io_adc_poll();
+
 	throttle1Val = getAnalog(throttle1ADC);
 	if (numThrottlePots > 1) {
 		throttle2Val = getAnalog(throttle2ADC);
@@ -346,7 +348,7 @@ void PotThrottle::setMaxRegen(uint16_t regen) {
 	throttleMaxRegen = regen;
 }
 
-Device::DeviceId PotThrottle::getDeviceID() {
+Device::DeviceId PotThrottle::getId() {
 	return (Device::POTACCELPEDAL);
 }
 

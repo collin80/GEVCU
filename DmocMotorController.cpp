@@ -28,7 +28,7 @@
 
 extern bool runThrottle; //TODO: remove use of global variables !
 
-DmocMotorController::DmocMotorController(CanHandler *canhandler) : MotorController(canhandler) {
+DmocMotorController::DmocMotorController(CanHandler *canHandler, Throttle *accelerator, Throttle *brake) : MotorController(canHandler, accelerator, brake) {
 	step = SPEED_TORQUE;
 	selectedGear = NEUTRAL;
 	operationState = DISABLED;
@@ -107,11 +107,11 @@ void DmocMotorController::handleCanFrame(CANFrame& frame) {
 	}
 }
 
-void DmocMotorController::setupDevice() {
-	TickHandler::unregisterDevice(this);
-	MotorController::setupDevice(); // run the parent class version of this function
+void DmocMotorController::setup() {
+	TickHandler::remove(this);
+	MotorController::setup(); // run the parent class version of this function
 
-	TickHandler::registerDevice(this, CFG_TICK_INTERVAL_MOTOR_CONTROLLER);
+	TickHandler::add(this, CFG_TICK_INTERVAL_MOTOR_CONTROLLER);
 }
 
 /*Do note that the DMOC expects all three command frames and it expect them to happen at least twice a second. So, probably it'd be ok to essentially
@@ -120,6 +120,7 @@ void DmocMotorController::setupDevice() {
 void DmocMotorController::handleTick() {
 	MotorController::handleTick(); //kick the ball up to papa
 
+	//TODO: this check somehow duplicates functionality in MotorController !
 	//if the first digital input is high we'll enable drive so we can go!
 	if (getDigital(0)) {
 		setGear(DRIVE);
@@ -327,7 +328,7 @@ byte DmocMotorController::calcChecksum(CANFrame thisFrame) {
 	return cs;
 }
 
-Device::DeviceId DmocMotorController::getDeviceID() {
+Device::DeviceId DmocMotorController::getId() {
 	return (Device::DMOC645);
 }
 

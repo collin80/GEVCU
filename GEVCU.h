@@ -16,7 +16,7 @@
 #include "Device.h"
 #include "MotorController.h"
 #include "DmocMotorController.h"
-#include "HeartbeatDevice.h"
+#include "Heartbeat.h"
 #include "sys_io.h"
 #include "CanHandler.h"
 #include "MemCache.h"

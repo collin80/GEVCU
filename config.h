@@ -21,7 +21,11 @@
 
 #define SerialUSB Serial // re-route serial-usb output to programming port ;) comment if output should go to std usb
 
-#define CFG_MAX_DEVICES 9 // the maximum number of supported tickable devices (limited by available timers)
+#define CFG_MAX_TICKABLES 9 // the maximum number of supported tickables per timer
+
+// Define the devices which are to be used (and compiled) via the following lines. It is advisable
+// to define only one of any device type (e.g. only DMOC or Brusa not both, only one throttle type for
+// accelerator)
 
 #define CFG_ENABLE_DEVICE_HEARTBEAT
 #define CFG_ENABLE_DEVICE_POT_THROTTLE_ACCEL
@@ -29,6 +33,10 @@
 #define CFG_ENABLE_DEVICE_POT_THROTTLE_BRAKE
 #define CFG_ENABLE_DEVICE_MOTORCTRL_DMOC_645
 //#define CFG_ENABLE_DEVICE_MOTORCTRL_BRUSA_DMC5
+
+// specify the intervals (microseconds) at which each device type should be "ticked"
+// try to use the same numbers for several devices because then they will share
+// the same timer (out of a limited number of 9 timers).
 
 #define CFG_TICK_INTERVAL_HEARTBEAT 2000000
 #define CFG_TICK_INTERVAL_POT_THROTTLE 10000

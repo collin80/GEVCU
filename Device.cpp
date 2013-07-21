@@ -17,7 +17,7 @@ Device::Device(CanHandler* canHandler) {
 
 //Empty functions to handle these callbacks if the derived classes don't
 
-void Device::setupDevice() {
+void Device::setup() {
 
 }
 
@@ -33,10 +33,10 @@ void Device::handleMessage(uint32_t msgType, void* message) {
 
 }
 
-Device::DeviceType Device::getDeviceType() {
+Device::DeviceType Device::getType() {
 	return DEVICE_NONE;
 }
 
-Device::DeviceId Device::getDeviceID() {
+Device::DeviceId Device::getId() {
 	return INVALID;
 }

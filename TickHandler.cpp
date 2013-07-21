@@ -1,12 +1,12 @@
 /*
  * TickHandler.cpp
  *
- * Observer class to which devices can register to be triggered
+ * Observer class to which tickables can register to be triggered
  * on a certain interval.
- * Devices with the same interval are grouped to the same timer
+ * Tickables with the same interval are grouped to the same timer
  * and triggered in sequence per timer interrupt.
  *
- * NOTE: The initialize() method must be called before a device is registered !
+ * NOTE: The initialize() method must be called before a tickable is registered !
  *
  *  Created: 7/11/2013
  *   Author: Michael Neuweiler
@@ -17,28 +17,28 @@
 TickHandler::TimerEntry TickHandler::timerEntry[NUM_TIMERS] = {};
 
 /**
- * Initializes all TimerEntries and their device lists.
- * This method must be called before any device is registered !
+ * Initializes all TimerEntries and their tickable lists.
+ * This method must be called before any tickable is registered !
  */
 void TickHandler::initialize() {
 	for (int timerNumber = 0; timerNumber < NUM_TIMERS; timerNumber++) {
 		timerEntry[timerNumber].interval = 0;
-		for (int deviceNumber = 0; deviceNumber < CFG_MAX_DEVICES; deviceNumber++) {
-			timerEntry[timerNumber].device[deviceNumber] = NULL;
+		for (int tickableNumber = 0; tickableNumber < CFG_MAX_TICKABLES; tickableNumber++) {
+			timerEntry[timerNumber].tickable[tickableNumber] = NULL;
 		}
 	}
 }
 
 /**
- * Register a device to be ticked in a certain interval.
- * Devices with the same interval are grouped to one timer device to save timers.
- * A device may be registered multiple times with different intervals.
+ * Register a tickable to be ticked in a certain interval.
+ * Tickables with the same interval are grouped to one timer to save timers.
+ * A tickable may be registered multiple times with different intervals.
  *
  * First a timer with the same interval is looked up. If none found, a free one is
- * used. Then a free device slot (of max CFG_MAX_DEVICES) is looked up. If all went
+ * used. Then a free tickable slot (of max CFG_MAX_TICKABLES) is looked up. If all went
  * well, the timer is configured and (re)started.
  */
-void TickHandler::registerDevice(Device* device, uint32_t interval) {
+void TickHandler::add(Tickable* tickable, uint32_t interval) {
 	int timerNumber = findTimer(interval);
 	if (timerNumber == -1) {
 		timerNumber = findTimer(0);	// no timer with given tick interval exsist -> look for unused (interval == 0)
@@ -49,13 +49,13 @@ void TickHandler::registerDevice(Device* device, uint32_t interval) {
 		timerEntry[timerNumber].interval = interval;
 	}
 
-	int deviceNumber = findDevice(timerNumber, 0);
-	if (deviceNumber == -1) {
-		Logger::error("No free device slot for timer %d with interval %d", timerNumber, timerEntry[timerNumber].interval);
+	int tickableNumber = findTickable(timerNumber, 0);
+	if (tickableNumber == -1) {
+		Logger::error("No free tickable slot for timer %d with interval %d", timerNumber, timerEntry[timerNumber].interval);
 		return;
 	}
-	timerEntry[timerNumber].device[deviceNumber] = device;
-	Logger::debug("register device %d as number %d to timer %d, %dus interval", device, deviceNumber, timerNumber, interval);
+	timerEntry[timerNumber].tickable[tickableNumber] = tickable;
+	Logger::debug("register tickable %d as number %d to timer %d, %dus interval", tickable, tickableNumber, timerNumber, interval);
 
 	switch (timerNumber) { // restarting a timer which would already be running is no problem (see DueTimer.cpp)
 	case 0:
@@ -89,13 +89,13 @@ void TickHandler::registerDevice(Device* device, uint32_t interval) {
 }
 
 /**
- * Remove a device from all timers where it was registered.
+ * Remove a tickable from all timers where it was registered.
  */
-void TickHandler::unregisterDevice(Device* device) {
+void TickHandler::remove(Tickable* tickable) {
 	for (int timerNumber = 0; timerNumber < NUM_TIMERS; timerNumber++) {
-		for (int deviceNumber = 0; deviceNumber < CFG_MAX_DEVICES; deviceNumber++) {
-			if (timerEntry[timerNumber].device[deviceNumber] == device)
-				timerEntry[timerNumber].device[deviceNumber] = NULL;
+		for (int tickableNumber = 0; tickableNumber < CFG_MAX_TICKABLES; tickableNumber++) {
+			if (timerEntry[timerNumber].tickable[tickableNumber] == tickable)
+				timerEntry[timerNumber].tickable[tickableNumber] = NULL;
 		}
 	}
 }
@@ -105,7 +105,7 @@ void TickHandler::unregisterDevice(Device* device) {
  */
 int TickHandler::findTimer(long interval) {
 	for (int timerNumber = 0; timerNumber < NUM_TIMERS; timerNumber++) {
-//Logger::debug("findtimer: timer=%d, interval=%d , device[0]=%d", timerNumber, timerEntry[timerNumber].interval, timerEntry[timerNumber].device[0]);
+//Logger::debug("findtimer: timer=%d, interval=%d , tickable[0]=%d", timerNumber, timerEntry[timerNumber].interval, timerEntry[timerNumber].tickable[0]);
 		if (timerEntry[timerNumber].interval == interval)
 			return timerNumber;
 	}
@@ -113,25 +113,25 @@ int TickHandler::findTimer(long interval) {
 }
 
 /*
- * Find a device in the list of a specific timer.
+ * Find a tickable in the list of a specific timer.
  */
-int TickHandler::findDevice(int timerNumber, Device *device) {
-	for (int deviceNumber = 0; deviceNumber < CFG_MAX_DEVICES; deviceNumber++) {
-//Logger::debug("findDevice: device=%d , device[%d]=%d", device, deviceNumber, timerEntry[timerNumber].device[deviceNumber]);
-		if (timerEntry[timerNumber].device[deviceNumber] == device)
-			return deviceNumber;
+int TickHandler::findTickable(int timerNumber, Tickable *tickable) {
+	for (int tickableNumber = 0; tickableNumber < CFG_MAX_TICKABLES; tickableNumber++) {
+//Logger::debug("findTickable: tickable=%d , tickable[%d]=%d", tickable, tickableNumber, timerEntry[timerNumber].tickable[tickableNumber]);
+		if (timerEntry[timerNumber].tickable[tickableNumber] == tickable)
+			return tickableNumber;
 	}
 	return -1;
 }
 
 /*
  * Handle the interrupt of any timer.
- * All the registered devices of the timer are called.
+ * All the registered tickables of the timer are called.
  */
 void TickHandler::handleInterrupt(int timerNumber) {
-	for (int deviceNumber = 0; deviceNumber < CFG_MAX_DEVICES; deviceNumber++) {
-		if (timerEntry[timerNumber].device[deviceNumber] != NULL) {
-			timerEntry[timerNumber].device[deviceNumber]->handleTick();
+	for (int tickableNumber = 0; tickableNumber < CFG_MAX_TICKABLES; tickableNumber++) {
+		if (timerEntry[timerNumber].tickable[tickableNumber] != NULL) {
+			timerEntry[timerNumber].tickable[tickableNumber]->handleTick();
 		}
 	}
 }

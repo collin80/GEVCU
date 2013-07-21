@@ -10,11 +10,12 @@
 
 #include <Arduino.h>
 #include "config.h"
+#include "Tickable.h"
 #include "eeprom_layout.h"
 #include "CanHandler.h"
 #include "PrefHandler.h"
 
-class Device {
+class Device: public Tickable {
 public:
 	enum DeviceType {
 		DEVICE_ANY,
@@ -27,7 +28,6 @@ public:
 		DEVICE_NONE
 	};
 	enum DeviceId { //unique device ID for every piece of hardware possible
-		HEARTBEAT = 0x0001,
 		DMOC645 = 0x1000,
 		BRUSACHARGE = 0x1010,
 		TCCHCHARGE = 0x1020,
@@ -37,16 +37,16 @@ public:
 	};
 	Device();
 	Device(CanHandler *canHandler);
-	virtual void setupDevice();
+	virtual void setup();
 	virtual void handleTick();
 	virtual void handleCanFrame(CANFrame& frame);
 	virtual void handleMessage(uint32_t msgType, void* message);
-	virtual DeviceType getDeviceType();
-	virtual DeviceId getDeviceID();
+	virtual DeviceType getType();
+	virtual DeviceId getId();
 
 protected:
 	CanHandler *canHandler;
-	PrefHandler *prefs;
+	PrefHandler *prefsHandler;
 
 private:
 };

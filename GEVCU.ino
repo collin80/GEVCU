@@ -35,7 +35,7 @@ Throttle *brake;
 MotorController* motorController; //generic motor controller - instantiate some derived class to fill this out
 PrefHandler sysPrefs(EE_SYSTEM_START);
 CanHandler *canHandler0, *canHandler1;
-HeartbeatDevice *heartbeat;
+Heartbeat *heartbeat;
 
 //Evil, global variables
 bool runRamp = false;
@@ -142,9 +142,9 @@ void initSysEEPROM() {
 
 void initializeDevices() {
 #ifdef CFG_ENABLE_DEVICE_HEARTBEAT
-	heartbeat = new HeartbeatDevice();
+	heartbeat = new Heartbeat();
 	Logger::info("add device: Heartbeat");
-	heartbeat->setupDevice();
+	heartbeat->setup();
 #endif
 #ifdef CFG_ENABLE_DEVICE_POT_THROTTLE_ACCEL
 	//The pedal I have has two pots and one should be twice the value of the other normally (within tolerance)
@@ -152,27 +152,27 @@ void initializeDevices() {
 	//if max is less than min for a throttle then the pot goes high to low as pressed.
 	accelerator = new PotThrottle(0, 255, true);//specify the shield ADC ports to use for throttle 255 = not used (valid only for second value)
 	Logger::info("add device: PotThrottle accelerator");
-	accelerator->setupDevice();
+	accelerator->setup();
 #endif
 #ifdef CFG_ENABLE_DEVICE_CAN_THROTTLE_ACCEL
 	accelerator = new CanThrottle(canHandler1);
 	Logger::info("add device: CanThrottle accelerator");
-	accelerator->setupDevice();
+	accelerator->setup();
 #endif
 #ifdef CFG_ENABLE_DEVICE_POT_THROTTLE_BRAKE
 	brake = new PotThrottle(2, 255, false); //set up the brake input as the third ADC input from the shield.
 	Logger::info("add device: PotThrottle brake");
-	brake->setupDevice();
+	brake->setup();
 #endif
 #ifdef CFG_ENABLE_DEVICE_CAN_THROTTLE_BRAKE
 	brake = new CanThrottle();
 	Logger::info("add device: CanThrottle brake");
-	brake->setupDevice();
+	brake->setup();
 #endif
 #ifdef CFG_ENABLE_DEVICE_MOTORCTRL_DMOC_645
-	motorController = new DmocMotorController(canHandler0); //instantiate a DMOC645 device controller as our motor controller
+	motorController = new DmocMotorController(canHandler0, accelerator, brake); //instantiate a DMOC645 device controller as our motor controller
 	Logger::info("add device: DMOC 645");
-	motorController->setupDevice();
+	motorController->setup();
 #endif
 #ifdef CFG_ENABLE_DEVICE_MOTORCTRL_BRUSA_DMC5
 	Logger::info("add device: Brusa DMC5");
@@ -239,9 +239,6 @@ void printMenu() {
 
 void loop() {
 	static CANFrame message;
-	static byte throttleval = 0;
-
-	sys_io_adc_poll(); //TODO: what to do with this ?
 
 	//TODO: Canhandlers should use interupts -> once they do, this can be removed
 	if (canHandler0->readFrame(message)) {
@@ -249,43 +246,7 @@ void loop() {
 	}
 
 	if (SerialUSB.available())
-		serialEvent(); //due doesnt have int driven serial yet
-
-	//TODO: everything below here should be moved into device classes
-	if (tickReady) {
-		tickReady = false;
-
-		//TODO: has to be moved to memcache.. but it's not a device, need additional class (e.g. tickable ?)
-		memCache.handleTick();
-
-		if (!runStatic)
-			throttleval++;
-		if (throttleval > 80)
-			throttleval = 0;
-		if (throttleDebug) {
-			Logger::debug("A0: %d, A1: %d, A2: %d, A3: %d", getAnalog(0), getAnalog(1), getAnalog(2), getAnalog(3));
-			Logger::debug("D0: %d, D1: %d, D2: %d, D3: %d", getDigital(0), getDigital(1), getDigital(2), getDigital(3));
-			Logger::debug("Throttle: %d", accelerator->getThrottle());
-			Logger::debug("Brake   : %d", brake->getThrottle());
-		}
-
-		//TODO: heartbeat is too slow now, need to move the following to the throttle class. motorctrl must get value from Throttle class
-
-		if (!runThrottle) { //ramping test
-			if (!runRamp) {
-				throttleval = 0;
-			}
-			motorController->setThrottle(throttleval * (int) 12); //with throttle 0-80 this sets throttle to 0 - 960
-		}
-		else { //use the installed throttle
-			int throttlepos = accelerator->getThrottle();
-			if (brake->getThrottle() != 0) { //if the brake has been pressed it overrides the accelerator.
-				throttlepos = brake->getThrottle();
-			}
-			motorController->setThrottle(throttlepos);
-			//Logger::debug("Throttle: %d", throttle.getThrottle());
-		}
-	}
+		serialEvent(); //due doesnt have interrupt driven serial yet
 }
 
 /*Single character interpreter of commands over

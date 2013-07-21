@@ -1,7 +1,7 @@
 /*
  * TickHandler.h
  *
- * Observer class where devices can register to be triggered
+ * Observer class where tickables can register to be triggered
  * on a certain interval.
  *
  *  Created: 7/11/2013
@@ -12,15 +12,17 @@
 #define TICKHANDLER_H_
 
 #include "config.h"
-#include "device.h"
+#include "Tickable.h"
+#include <DueTimer.h>
+#include "Logger.h"
 
 #define NUM_TIMERS 9
 
 class TickHandler {
 public:
 	static void initialize();
-	static void registerDevice(Device *device, uint32_t interval);
-	static void unregisterDevice(Device *device);
+	static void add(Tickable *tickable, uint32_t interval);
+	static void remove(Tickable *tickable);
 	static void handleInterrupt(int timerNumber); // must be public when from the non-class functions
 
 protected:
@@ -28,11 +30,11 @@ protected:
 private:
 	struct TimerEntry {
 		long interval; // interval of timer
-		Device *device[CFG_MAX_DEVICES]; // array of pointers to devices with this interval
+		Tickable *tickable[CFG_MAX_TICKABLES]; // array of pointers to tickables with this interval
 	};
 	static TimerEntry timerEntry[NUM_TIMERS]; // array of timer entries (9 as there are 9 timers)
 	static int findTimer(long interval);
-	static int findDevice(int timerNumber, Device *device);
+	static int findTickable(int timerNumber, Tickable *tickable);
 };
 
 void timer0Interrupt();
