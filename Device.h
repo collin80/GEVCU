@@ -10,12 +10,11 @@
 
 #include <Arduino.h>
 #include "config.h"
-#include "Tickable.h"
 #include "eeprom_layout.h"
 #include "CanHandler.h"
 #include "PrefHandler.h"
 
-class Device: public Tickable {
+class Device {
 public:
 	enum DeviceType {
 		DEVICE_ANY,
@@ -32,23 +31,23 @@ public:
 		BRUSACHARGE = 0x1010,
 		TCCHCHARGE = 0x1020,
 		POTACCELPEDAL = 0x1030,
-		CANACCELPEDAL = 0x1031,
 		INVALID = 0xFFFF
 	};
-	Device();
-	Device(CanHandler *canHandler);
-	virtual void setup();
-	virtual void handleTick();
-	virtual void handleCanFrame(CANFrame& frame);
-	virtual void handleMessage(uint32_t msgType, void* message);
-	virtual DeviceType getType();
-	virtual DeviceId getId();
 
 protected:
 	CanHandler *canHandler;
-	PrefHandler *prefsHandler;
+	PrefHandler *prefs;
 
-private:
+public:
+	Device();
+
+	virtual void handleFrame(CANFrame& frame);
+	virtual void handleTick();
+	virtual void handleMessage(uint32_t msgType, void* message);
+	virtual void setupDevice();
+	virtual DeviceType getDeviceType();
+	virtual DeviceId getDeviceID();
+	Device(CanHandler *canbus);
 };
 
 #endif /* DEVICE_H_ */

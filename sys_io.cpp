@@ -6,7 +6,7 @@
  * Created: 03/14/2013
  *  Author: Collin Kidder
  *
- * Includes code credited as:
+ * some portions based on code credited as:
  * Arduino Due ADC->DMA->USB 1MSPS
  * by stimmer
  */ 
@@ -37,7 +37,9 @@ ADC_COMP adc_comp[NUM_ANALOG];
 void setup_sys_io() {
   int i;
   
+#ifndef RAWADC
   setupFastADC();
+#endif
   
   //requires the value to be contiguous in memory
   for (i = 0; i < NUM_ANALOG; i++) {
@@ -122,6 +124,7 @@ uint16_t getAnalog(uint8_t which) {
 	
     if (which >= NUM_ANALOG) which = 0;
 
+#ifndef RAWADC
     val = getDiffADC(which);
     addNewADCVal(which, val);
     
@@ -129,6 +132,9 @@ uint16_t getAnalog(uint8_t which) {
     addNewADCVal(which, val);
     
     return getADCAvg(which);
+#else
+	return analogRead(which);
+#endif
 }
 
 //get value of one of the 4 digital inputs
@@ -190,6 +196,7 @@ void setupFastADC(){
 //which serves as a super fast place for other code to retrieve ADC values
 void sys_io_adc_poll() {
   uint32_t tempbuff[8] = {0,0,0,0,0,0,0,0}; //make sure its zero'd
+#ifndef RAWADC
   if (obufn != bufn) {
     //the eight enabled adcs are interleaved in the buffer
     //this is a somewhat unrolled for loop with no incrementer. it's odd but it works
@@ -212,5 +219,6 @@ void sys_io_adc_poll() {
     }
     obufn = bufn;    
   }
+#endif
 }
 

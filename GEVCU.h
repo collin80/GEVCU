@@ -10,15 +10,18 @@
 
 #include <Arduino.h>
 #include "config.h"
-#include "throttle.h"
-#include "pedal_pot.h"
-#include "device.h"
-#include "motorctrl.h"
-#include "dmoc.h"
-#include "timer.h"
+#include "Throttle.h"
+#include "CanThrottle.h"
+#include "PotThrottle.h"
+#include "Device.h"
+#include "MotorController.h"
+#include "DmocMotorController.h"
+#include "Heartbeat.h"
 #include "sys_io.h"
-#include "can_handler.h"
-#include "mem_cache.h"
+#include "CanHandler.h"
+#include "MemCache.h"
+#include "ThrottleDetector.h"
+
 
 #ifdef __cplusplus
 extern "C" {
@@ -30,7 +33,6 @@ void setup();
 #endif
 
 #define SYSTEM_DUE        20
-#define BLINKLED          73 //13 is L, 73 is TX, 72 is RX
 
 void printMenu();
 void serialEvent();
