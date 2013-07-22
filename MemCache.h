@@ -75,6 +75,4 @@ class MemCache: public Tickable {
   uint8_t agingTimer;
 };
 
-extern MemCache memCache;
-
 #endif /* MEM_CACHE_H_ */

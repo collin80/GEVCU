@@ -30,12 +30,14 @@
 
 //RTC_clock rtc_clock(XTAL); //init RTC with the external 32k crystal as a reference
 
+ThrottleDetector *throttleDetector;
 Throttle *accelerator;
 Throttle *brake;
 MotorController* motorController; //generic motor controller - instantiate some derived class to fill this out
-PrefHandler sysPrefs(EE_SYSTEM_START);
+PrefHandler *sysPrefs;
 CanHandler *canHandler0, *canHandler1;
 Heartbeat *heartbeat;
+MemCache *memCache;
 
 //Evil, global variables
 bool runRamp = false;
@@ -53,106 +55,108 @@ void initSysEEPROM() {
 	uint32_t thirtytwo;
 
 	eight = SYSTEM_DUE;
-	sysPrefs.write(EESYS_SYSTEM_TYPE, eight);
+	sysPrefs->write(EESYS_SYSTEM_TYPE, eight);
 
 	sixteen = 1024; //no gain
-	sysPrefs.write(EESYS_ADC0_GAIN, sixteen);
-	sysPrefs.write(EESYS_ADC1_GAIN, sixteen);
-	sysPrefs.write(EESYS_ADC2_GAIN, sixteen);
-	sysPrefs.write(EESYS_ADC3_GAIN, sixteen);
+	sysPrefs->write(EESYS_ADC0_GAIN, sixteen);
+	sysPrefs->write(EESYS_ADC1_GAIN, sixteen);
+	sysPrefs->write(EESYS_ADC2_GAIN, sixteen);
+	sysPrefs->write(EESYS_ADC3_GAIN, sixteen);
 
 	sixteen = 0; //no offset
-	sysPrefs.write(EESYS_ADC0_OFFSET, sixteen);
-	sysPrefs.write(EESYS_ADC1_OFFSET, sixteen);
-	sysPrefs.write(EESYS_ADC2_OFFSET, sixteen);
-	sysPrefs.write(EESYS_ADC3_OFFSET, sixteen);
+	sysPrefs->write(EESYS_ADC0_OFFSET, sixteen);
+	sysPrefs->write(EESYS_ADC1_OFFSET, sixteen);
+	sysPrefs->write(EESYS_ADC2_OFFSET, sixteen);
+	sysPrefs->write(EESYS_ADC3_OFFSET, sixteen);
 
 	sixteen = 500; //multiplied by 1000 so 500k baud
-	sysPrefs.write(EESYS_CAN0_BAUD, sixteen);
-	sysPrefs.write(EESYS_CAN1_BAUD, sixteen);
+	sysPrefs->write(EESYS_CAN0_BAUD, sixteen);
+	sysPrefs->write(EESYS_CAN1_BAUD, sixteen);
 
 	sixteen = 11520; //multiplied by 10
-	sysPrefs.write(EESYS_SERUSB_BAUD, sixteen);
+	sysPrefs->write(EESYS_SERUSB_BAUD, sixteen);
 
 	sixteen = 100; //multiplied by 1000
-	sysPrefs.write(EESYS_TWI_BAUD, sixteen);
+	sysPrefs->write(EESYS_TWI_BAUD, sixteen);
 
 	sixteen = 100; //number of ticks per second
-	sysPrefs.write(EESYS_TICK_RATE, sixteen);
+	sysPrefs->write(EESYS_TICK_RATE, sixteen);
 
 	thirtytwo = 0;
-	sysPrefs.write(EESYS_RTC_TIME, thirtytwo);
-	sysPrefs.write(EESYS_RTC_DATE, thirtytwo);
+	sysPrefs->write(EESYS_RTC_TIME, thirtytwo);
+	sysPrefs->write(EESYS_RTC_DATE, thirtytwo);
 
 	eight = 5; //how many RX mailboxes
-	sysPrefs.write(EESYS_CAN_RX_COUNT, eight);
+	sysPrefs->write(EESYS_CAN_RX_COUNT, eight);
 
 	thirtytwo = 0x7f0; //standard frame, ignore bottom 4 bits
-	sysPrefs.write(EESYS_CAN_MASK0, thirtytwo);
-	sysPrefs.write(EESYS_CAN_MASK1, thirtytwo);
-	sysPrefs.write(EESYS_CAN_MASK2, thirtytwo);
-	sysPrefs.write(EESYS_CAN_MASK3, thirtytwo);
-	sysPrefs.write(EESYS_CAN_MASK4, thirtytwo);
+	sysPrefs->write(EESYS_CAN_MASK0, thirtytwo);
+	sysPrefs->write(EESYS_CAN_MASK1, thirtytwo);
+	sysPrefs->write(EESYS_CAN_MASK2, thirtytwo);
+	sysPrefs->write(EESYS_CAN_MASK3, thirtytwo);
+	sysPrefs->write(EESYS_CAN_MASK4, thirtytwo);
 
 	thirtytwo = 0x230;
-	sysPrefs.write(EESYS_CAN_FILTER0, thirtytwo);
-	sysPrefs.write(EESYS_CAN_FILTER1, thirtytwo);
-	sysPrefs.write(EESYS_CAN_FILTER2, thirtytwo);
+	sysPrefs->write(EESYS_CAN_FILTER0, thirtytwo);
+	sysPrefs->write(EESYS_CAN_FILTER1, thirtytwo);
+	sysPrefs->write(EESYS_CAN_FILTER2, thirtytwo);
 
 	thirtytwo = 0x650;
-	sysPrefs.write(EESYS_CAN_FILTER3, thirtytwo);
-	sysPrefs.write(EESYS_CAN_FILTER4, thirtytwo);
+	sysPrefs->write(EESYS_CAN_FILTER3, thirtytwo);
+	sysPrefs->write(EESYS_CAN_FILTER4, thirtytwo);
 
 	thirtytwo = 0; //ok, not technically 32 bytes but the four zeros still shows it is unused.
-	sysPrefs.write(EESYS_WIFI0_SSID, thirtytwo);
-	sysPrefs.write(EESYS_WIFI1_SSID, thirtytwo);
-	sysPrefs.write(EESYS_WIFI2_SSID, thirtytwo);
-	sysPrefs.write(EESYS_WIFIX_SSID, thirtytwo);
+	sysPrefs->write(EESYS_WIFI0_SSID, thirtytwo);
+	sysPrefs->write(EESYS_WIFI1_SSID, thirtytwo);
+	sysPrefs->write(EESYS_WIFI2_SSID, thirtytwo);
+	sysPrefs->write(EESYS_WIFIX_SSID, thirtytwo);
 
 	eight = 0; //no channel, DHCP off, B mode
-	sysPrefs.write(EESYS_WIFI0_CHAN, eight);
-	sysPrefs.write(EESYS_WIFI0_DHCP, eight);
-	sysPrefs.write(EESYS_WIFI0_MODE, eight);
+	sysPrefs->write(EESYS_WIFI0_CHAN, eight);
+	sysPrefs->write(EESYS_WIFI0_DHCP, eight);
+	sysPrefs->write(EESYS_WIFI0_MODE, eight);
 
-	sysPrefs.write(EESYS_WIFI1_CHAN, eight);
-	sysPrefs.write(EESYS_WIFI1_DHCP, eight);
-	sysPrefs.write(EESYS_WIFI1_MODE, eight);
+	sysPrefs->write(EESYS_WIFI1_CHAN, eight);
+	sysPrefs->write(EESYS_WIFI1_DHCP, eight);
+	sysPrefs->write(EESYS_WIFI1_MODE, eight);
 
-	sysPrefs.write(EESYS_WIFI2_CHAN, eight);
-	sysPrefs.write(EESYS_WIFI2_DHCP, eight);
-	sysPrefs.write(EESYS_WIFI2_MODE, eight);
+	sysPrefs->write(EESYS_WIFI2_CHAN, eight);
+	sysPrefs->write(EESYS_WIFI2_DHCP, eight);
+	sysPrefs->write(EESYS_WIFI2_MODE, eight);
 
-	sysPrefs.write(EESYS_WIFIX_CHAN, eight);
-	sysPrefs.write(EESYS_WIFIX_DHCP, eight);
-	sysPrefs.write(EESYS_WIFIX_MODE, eight);
+	sysPrefs->write(EESYS_WIFIX_CHAN, eight);
+	sysPrefs->write(EESYS_WIFIX_DHCP, eight);
+	sysPrefs->write(EESYS_WIFIX_MODE, eight);
 
 	thirtytwo = 0;
-	sysPrefs.write(EESYS_WIFI0_IPADDR, thirtytwo);
-	sysPrefs.write(EESYS_WIFI1_IPADDR, thirtytwo);
-	sysPrefs.write(EESYS_WIFI2_IPADDR, thirtytwo);
-	sysPrefs.write(EESYS_WIFIX_IPADDR, thirtytwo);
+	sysPrefs->write(EESYS_WIFI0_IPADDR, thirtytwo);
+	sysPrefs->write(EESYS_WIFI1_IPADDR, thirtytwo);
+	sysPrefs->write(EESYS_WIFI2_IPADDR, thirtytwo);
+	sysPrefs->write(EESYS_WIFIX_IPADDR, thirtytwo);
 
-	sysPrefs.write(EESYS_WIFI0_KEY, thirtytwo);
-	sysPrefs.write(EESYS_WIFI1_KEY, thirtytwo);
-	sysPrefs.write(EESYS_WIFI2_KEY, thirtytwo);
-	sysPrefs.write(EESYS_WIFIX_KEY, thirtytwo);
+	sysPrefs->write(EESYS_WIFI0_KEY, thirtytwo);
+	sysPrefs->write(EESYS_WIFI1_KEY, thirtytwo);
+	sysPrefs->write(EESYS_WIFI2_KEY, thirtytwo);
+	sysPrefs->write(EESYS_WIFIX_KEY, thirtytwo);
 
-	sysPrefs.saveChecksum();
+	sysPrefs->saveChecksum();
 }
 
 void initializeDevices() {
 #ifdef CFG_ENABLE_DEVICE_HEARTBEAT
 	heartbeat = new Heartbeat();
-	Logger::info("add device: Heartbeat");
+	Logger::info("add: Heartbeat");
 	heartbeat->setup();
 #endif
 #ifdef CFG_ENABLE_DEVICE_POT_THROTTLE_ACCEL
 	//The pedal I have has two pots and one should be twice the value of the other normally (within tolerance)
 	//if min is less than max for a throttle then the pot goes low to high as pressed.
 	//if max is less than min for a throttle then the pot goes high to low as pressed.
-	accelerator = new PotThrottle(0, 255, true);//specify the shield ADC ports to use for throttle 255 = not used (valid only for second value)
+	accelerator = new PotThrottle(0, 1, true);//specify the shield ADC ports to use for throttle 255 = not used (valid only for second value)
 	Logger::info("add device: PotThrottle accelerator");
 	accelerator->setup();
+	// Detect/calibrate the throttle. Give it both throttle pins and it can tell if it's a single or double pot
+	throttleDetector = new ThrottleDetector(0, 1);
 #endif
 #ifdef CFG_ENABLE_DEVICE_CAN_THROTTLE_ACCEL
 	accelerator = new CanThrottle(canHandler1);
@@ -194,8 +198,14 @@ void setup() {
 	Wire.begin();
 	Logger::info("TWI init ok");
 
-	if (!sysPrefs.checksumValid()) { //checksum is good, read in the values stored in EEPROM
+	memCache = new MemCache();
+	memCache->setup();
+	sysPrefs = new PrefHandler(EE_SYSTEM_START);
+	if (!sysPrefs->checksumValid()) {
+		Logger::info("Initializing EEPROM");
 		initSysEEPROM();
+	} else {  //checksum is good, read in the values stored in EEPROM
+		Logger::info("Using existing EEPROM values");
 	}
 
 	//rtc_clock.init();
@@ -203,9 +213,9 @@ void setup() {
 	//It's better than nothing while we try to figure out the proper time.
 	/*
 	 uint32_t temp;
-	 sysPrefs.read(EESYS_RTC_TIME, &temp);
+	 sysPrefs->read(EESYS_RTC_TIME, &temp);
 	 rtc_clock.change_time(temp);
-	 sysPrefs.read(EESYS_RTC_DATE, &temp);
+	 sysPrefs->read(EESYS_RTC_DATE, &temp);
 	 rtc_clock.change_date(temp);
 	 
 	 Logger::info("RTC init ok");
@@ -221,6 +231,7 @@ void setup() {
 
 void printMenu() {
 	SerialUSB.println("System Menu:");
+	SerialUSB.println("h = help (displays this message)");
 	SerialUSB.println("D = disabled op state");
 	SerialUSB.println("S = standby op state");
 	SerialUSB.println("E = enabled op state");
@@ -234,6 +245,8 @@ void printMenu() {
 	SerialUSB.println("K = set all outputs high");
 	SerialUSB.println("J = set all outputs low");
 	SerialUSB.println("Y,U,I = test EEPROM routines");
+	SerialUSB.println("z = detect throttle min/max");
+	SerialUSB.println("Z = save detected throttle values");
 	SerialUSB.println("");
 }
 
@@ -331,24 +344,24 @@ void serialEvent() {
 		case 'Y':
 			Logger::info("Trying to save 0x45 to eeprom location 10");
 			uint8_t temp;
-			memCache.Write(10, (uint8_t) 0x45);
-			memCache.Read(10, &temp);
+			memCache->Write(10, (uint8_t) 0x45);
+			memCache->Read(10, &temp);
 			Logger::info("Got back value of %d", temp);
 			break;
 		case 'U':
 			Logger::info("Adding a sequence of values from 0 to 255 into eeprom");
 			for (int i = 0; i < 256; i++)
-				memCache.Write(1000 + i, (uint8_t) i);
+				memCache->Write(1000 + i, (uint8_t) i);
 			Logger::info("Flushing cache");
-			memCache.FlushAllPages(); //write everything to eeprom
-			memCache.InvalidateAll(); //remove all data from cache
+			memCache->FlushAllPages(); //write everything to eeprom
+			memCache->InvalidateAll(); //remove all data from cache
 			Logger::info("Operation complete.");
 			break;
 		case 'I':
 			Logger::info("Retrieving data previously saved");
 			uint8_t val;
 			for (int i = 0; i < 256; i++) {
-				memCache.Read(1000 + i, &val);
+				memCache->Read(1000 + i, &val);
 				Logger::info("%d: %d", i, val);
 			}
 			break;
@@ -366,7 +379,23 @@ void serialEvent() {
 			setOutput(3, false);
 			Logger::info("all outputs: OFF");
 			break;
+		case 'z': // detect throttle min/max
+			throttleDetector->detect();
+			break;
+		case 'Z': // detect throttle min/max
+			Logger::info("Saving throttle min/max");
+			/*
+			 // TODO:
+			 // need to get the throttle prefs of change the offset to EE_THROTTLE_START
+			 sysPrefs->write(EETH_MIN_ONE, throttleDetector->getThrottle1Min());
+			 sysPrefs->write(EETH_MAX_ONE, throttleDetector->getThrottle1Max());
+			 if ( throttleDetector->getPotentiometerCount() > 1 ) {
+			 sysPrefs->write(EETH_MIN_TWO, throttleDetector->getThrottle2Min());
+			 sysPrefs->write(EETH_MAX_TWO, throttleDetector->getThrottle2Max());
+			 }
+			 sysPrefs->saveChecksum();
+			 */
+			break;
 		}
 	}
-
 }

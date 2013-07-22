@@ -20,6 +20,7 @@
 #include "sys_io.h"
 #include "CanHandler.h"
 #include "MemCache.h"
+#include "ThrottleDetector.h"
 
 
 #ifdef __cplusplus

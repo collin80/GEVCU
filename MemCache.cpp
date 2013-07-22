@@ -365,5 +365,3 @@ boolean MemCache::cache_writepage(uint8_t page)
   Wire.write(buffer, 258);
   Wire.endTransmission(true);
 }
-
-MemCache memCache;
