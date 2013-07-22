@@ -1,5 +1,5 @@
 /*
- * throttle.cpp
+ * Throttle.cpp
  *
  * Parent class for all throttle controllers
  *
@@ -9,24 +9,34 @@
  
 #include "Throttle.h" 
  
-void Throttle::handleTick() {
+Throttle::Throttle() : Device() {
+	prefsHandler = new PrefHandler(EE_THROTTLE_START);
 }
 
-Device::DeviceType Throttle::getDeviceType() {
+Throttle::Throttle(CanHandler *canHandler) : Device(canHandler) {
+	prefsHandler = new PrefHandler(EE_THROTTLE_START);
+}
+
+Device::DeviceType Throttle::getType() {
 	return Device::DEVICE_THROTTLE;
-}
-
-Device::DeviceId Throttle::getDeviceID() {
-	return Device::INVALID;
 }
 
 int Throttle::getThrottle() {
 	return outputThrottle;
 }
 
-void Throttle::setupDevice() {
-}
+//TODO: need to plant this in here somehow..
 
-Throttle::Throttle() : Device(0) {
-  prefs = new PrefHandler(EE_THROTTLE_START);
-}
+//if (!runStatic)
+//	throttleval++;
+//if (throttleval > 80)
+//	throttleval = 0;
+//if (!runThrottle) { //ramping test
+//	if (!runRamp) {
+//		throttleval = 0;
+//	}
+//	motorController->setThrottle(throttleval * (int) 12); //with throttle 0-80 this sets throttle to 0 - 960
+//}
+//else { //use the installed throttle
+//}
+
