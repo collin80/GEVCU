@@ -79,9 +79,7 @@ void CanHandler::init(uint8_t busNumber, uint32_t baudRate) {
 
 	NVIC_EnableIRQ(busIrq); //tell the nested interrupt controller to turn on our interrupt
 
-	SerialUSB.print("CAN");
-	SerialUSB.print(busNumber);
-	SerialUSB.println(" INIT OK");
+	Logger::info("CAN%d init ok", busNumber);
 }
 
 void CanHandler::setFilter(uint8_t mailbox, uint32_t acceptMask, uint32_t id, bool extended) {

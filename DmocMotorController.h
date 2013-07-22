@@ -15,6 +15,8 @@
 #include <Arduino.h>
 #include "config.h"
 #include "MotorController.h"
+#include "sys_io.h"
+#include "TickHandler.h"
 
 class DmocMotorController : public MotorController {
 public:
@@ -50,14 +52,14 @@ public:
   };
 
 public:
-  void handleFrame(CANFrame& frame);
+  void handleCanFrame(CANFrame& frame);
   void handleTick();
-  void setupDevice();
+  void setup();
   void setOpState(OperationState op);
   void setGear(Gears gear);
 
-  DmocMotorController(CanHandler *canbus);
-  Device::DeviceId getDeviceID();
+  DmocMotorController(CanHandler *canHandler, Throttle *accelerator, Throttle *brake);
+  Device::DeviceId getId();
   void setPowerMode(PowerMode mode);
   PowerMode getPowerMode();
 

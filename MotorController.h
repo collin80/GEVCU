@@ -13,6 +13,7 @@
 #include <Arduino.h>
 #include "config.h"
 #include "device.h"
+#include "Throttle.h"
 
 #define MOTORCTL_INPUT_DRIVE_EN    3
 #define MOTORCTL_INPUT_FORWARD     4
@@ -28,10 +29,9 @@ class MotorController : public Device {
         GS_REVERSE,
         GS_FAULT
     };
-    MotorController(CanHandler *canbus);
-	Device::DeviceType getDeviceType();
-	virtual Device::DeviceId getDeviceID();
-    virtual void setupDevice();
+    MotorController(CanHandler *canHandler, Throttle *accelerator, Throttle *brake);
+	Device::DeviceType getType();
+    virtual void setup();
     void handleTick();
 	int getThrottle();
 	void setThrottle(int newthrottle);
@@ -60,6 +60,8 @@ class MotorController : public Device {
     uint16_t maxTorque;	//maximum torque in 0.1 Nm
     uint16_t maxRPM; //in RPM
     GearSwitch gearSwitch;
+    Throttle *accelerator;
+    Throttle *brake;
 };
 
 #endif

@@ -11,6 +11,7 @@
 #include <Arduino.h>
 #include "config.h"
 #include "throttle.h"
+#include "TickHandler.h"
 
 #define CAN_THROTTLE_REQUEST_ID 0x7e0  // the can bus id of the throttle level request
 #define CAN_THROTTLE_RESPONSE_ID 0x7e8 // the can bus id of the throttle level response
@@ -19,12 +20,11 @@
 
 class CanThrottle: public Throttle {
 public:
+	CanThrottle(CanHandler *canHandler);
+	void setup();
 	void handleTick();
-	void setupDevice();
-	Device::DeviceType getDeviceType();
-	Device::DeviceId getDeviceID();
+	Device::DeviceId getId();
 	int getThrottle();
-	CanThrottle();
 
 protected:
 	signed int outputThrottle; //the final signed throttle. [-1000, 1000] in tenths of a percent of maximum
