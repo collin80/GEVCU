@@ -1,5 +1,5 @@
 /*
- * pref_handler.cpp
+ * PrefHandler.cpp
  *
  * Abstracts away the particulars of how preferences are stored.
  * Transparently supports main and "last known good" storage and retrieval

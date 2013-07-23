@@ -1,5 +1,5 @@
 /*
- * logger.cpp
+ * Logger.cpp
  *
  *  Created on: 10.05.2013
  *      Author: Michael Neuweiler

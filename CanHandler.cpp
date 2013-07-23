@@ -1,5 +1,5 @@
 /*
- * can_handler.cpp
+ * CanHandler.cpp
  *
  * Devices may register to this handler in order to receive CAN frames (publish/subscribe)
  * and they can also use this class to send messages.

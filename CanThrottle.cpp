@@ -1,5 +1,5 @@
 /*
- * can_throttle.cpp
+ * CanThrottle.cpp
  *
  *  Created on: 18.06.2013
  *      Author: Michael Neuweiler
