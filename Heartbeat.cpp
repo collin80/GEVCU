@@ -8,6 +8,9 @@
 #include "config.h"
 #ifdef CFG_ENABLE_DEVICE_HEARTBEAT
 #include "Heartbeat.h"
+#include "sys_io.h"
+
+extern bool throttleDebug;
 
 Heartbeat::Heartbeat() {
 	led = false;
@@ -28,12 +31,12 @@ void Heartbeat::handleTick() {
 	}
 	led = !led;
 
-//	if (throttleDebug) {
-//		Logger::debug("A0: %d, A1: %d, A2: %d, A3: %d", getAnalog(0), getAnalog(1), getAnalog(2), getAnalog(3));
-//		Logger::debug("D0: %d, D1: %d, D2: %d, D3: %d", getDigital(0), getDigital(1), getDigital(2), getDigital(3));
-//		Logger::debug("Throttle: %d", accelerator->getThrottle());
-//		Logger::debug("Brake   : %d", brake->getThrottle());
-//	}
+	if (throttleDebug) {
+		Logger::debug("A0: %d, A1: %d, A2: %d, A3: %d", getAnalog(0), getAnalog(1), getAnalog(2), getAnalog(3));
+		Logger::debug("D0: %d, D1: %d, D2: %d, D3: %d", getDigital(0), getDigital(1), getDigital(2), getDigital(3));
+		//Logger::debug("Throttle: %d", accelerator->getThrottle());
+		//Logger::debug("Brake   : %d", brake->getThrottle());
+	}
 }
 
 #endif //CFG_ENABLE_DEVICE_HEART_BEAT
