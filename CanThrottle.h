@@ -1,5 +1,5 @@
 /*
- * can_throttle.h
+ * CanThrottle.h
  *
  *  Created on: 18.06.2013
  *      Author: Michael Neuweiler
@@ -10,7 +10,7 @@
 
 #include <Arduino.h>
 #include "config.h"
-#include "throttle.h"
+#include "Throttle.h"
 #include "TickHandler.h"
 
 #define CAN_THROTTLE_REQUEST_ID 0x7e0  // the can bus id of the throttle level request

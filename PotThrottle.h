@@ -1,5 +1,5 @@
 /*
- * pedal_pot.h
+ * PotThrottle.h
  *
  * Created: 1/13/2013 7:08:12 PM
  *  Author: Collin Kidder
@@ -10,7 +10,7 @@
 
 #include <Arduino.h>
 #include "config.h"
-#include "throttle.h"
+#include "Throttle.h"
 #include "sys_io.h"
 #include "TickHandler.h"
 

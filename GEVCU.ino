@@ -264,9 +264,7 @@ void loop() {
 		serialEvent(); //While serial is interrupt driven this function is not automatically called but must be called.
 
 	//this should still be here. It checks for a flag set during an interrupt
-#ifndef RAWADC
 	sys_io_adc_poll();
-#endif
 }
 
 /*Single character interpreter of commands over

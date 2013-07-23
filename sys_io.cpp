@@ -226,7 +226,9 @@ void setupFastADC(){
 //polls for the end of an adc conversion event. Then processe buffer to extract the averaged
 //value. It takes this value and averages it with the existing value in an 8 position buffer
 //which serves as a super fast place for other code to retrieve ADC values
+// This is only used when RAWADC is not defined
 void sys_io_adc_poll() {
+#ifndef RAWADC
   uint32_t tempbuff[8] = {0,0,0,0,0,0,0,0}; //make sure its zero'd
   if (obufn != bufn) {
     //the eight enabled adcs are interleaved in the buffer
@@ -253,5 +255,6 @@ void sys_io_adc_poll() {
     }
     obufn = bufn;    
   }
+#endif
 }
 

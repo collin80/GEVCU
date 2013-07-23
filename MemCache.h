@@ -1,5 +1,5 @@
 /*
- * mem_cache.h
+ * MemCache.h
  *
  * Handles caching of EEPROM pages to RAM
  *

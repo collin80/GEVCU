@@ -20,6 +20,9 @@ PrefHandler::PrefHandler(uint32_t base) {
   lkg_address = EE_MAIN_OFFSET;
 }
 
+PrefHandler::~PrefHandler() {
+}
+
 void PrefHandler::LKG_mode(bool mode) {
   if (mode) lkg_address = EE_LKG_OFFSET;
   else lkg_address = EE_MAIN_OFFSET;

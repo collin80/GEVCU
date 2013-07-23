@@ -1,5 +1,5 @@
 /*
- * fault_handler.h
+ * FaultHandler.h
  *
  * Creates a universal fault handling system that stores faults in EEPROM and can create, return, and clear
  * fault data. Could be the basis for an OBDII compliant fault database or could be used on its own

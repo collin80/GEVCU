@@ -1,5 +1,5 @@
 /*
- * motorctrl.h
+ * MotorController.h
   *
  * Parent class for all motor controllers.
  *
@@ -12,7 +12,7 @@
 
 #include <Arduino.h>
 #include "config.h"
-#include "device.h"
+#include "Device.h"
 #include "Throttle.h"
 
 #define MOTORCTL_INPUT_DRIVE_EN    3
