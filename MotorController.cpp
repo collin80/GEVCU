@@ -1,5 +1,5 @@
 /*
- * motorctrl.cpp
+ * MotorController.cpp
  *
  * Parent class for all motor controllers.
  *

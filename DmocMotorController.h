@@ -1,5 +1,5 @@
 /*
- * dmoc.h
+ * DmocMotorController.h
  *
  * Note that the dmoc needs to have some form of input for gear selector (drive/neutral/reverse)
  *

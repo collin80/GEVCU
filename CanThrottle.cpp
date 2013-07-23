@@ -1,5 +1,5 @@
 /*
- * can_throttle.cpp
+ * CanThrottle.cpp
  *
  *  Created on: 18.06.2013
  *      Author: Michael Neuweiler
@@ -9,7 +9,7 @@
 #if defined(CFG_ENABLE_DEVICE_CAN_THROTTLE_ACCEL) || defined(CFG_ENABLE_DEVICE_CAN_THROTTLE_BRAKE)
 #include "CanThrottle.h"
 
-CanThrottle::CanThrottle(CanHandler *canHandler) : Throttle(canHandler) {
+CanThrottle::CanThrottle(CanHandler *canHandler) : Throttle() {
 	//Initialize mailbox 0 to receive messages from the ECU Id
 //	CAN.mailbox_init(0);
 //	CAN.mailbox_set_mode(0, CAN_MB_RX_MODE);

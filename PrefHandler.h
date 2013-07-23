@@ -1,5 +1,5 @@
 /*
- * pref_handler.h
+ * PrefHandler.h
  *
  * header for preference handler
  *
@@ -25,6 +25,7 @@ class PrefHandler {
 public:
 	PrefHandler();
 	PrefHandler(uint32_t base);
+        ~PrefHandler();
 	void LKG_mode(bool mode);
 	void write(uint16_t address, uint8_t val);
 	void write(uint16_t address, uint16_t val);

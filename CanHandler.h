@@ -1,5 +1,5 @@
 /*
- * can_handler.h
+ * CanHandler.h
  *
  *  Created: 4/21/2013
  *   Author: Michael Neuweiler
@@ -14,7 +14,7 @@
 #include <due_wire.h>
 #include "variant.h"
 #include <DueTimer.h>
-#include "logger.h"
+#include "Logger.h"
 
 typedef struct
 {

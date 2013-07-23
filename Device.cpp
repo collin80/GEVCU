@@ -1,5 +1,5 @@
 /*
- * device.cpp
+ * Device.cpp
  *
  * Created: 1/20/2013 10:14:36 PM
  *  Author: Collin Kidder

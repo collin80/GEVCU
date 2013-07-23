@@ -1,5 +1,5 @@
 /*
- * pref_handler.cpp
+ * PrefHandler.cpp
  *
  * Abstracts away the particulars of how preferences are stored.
  * Transparently supports main and "last known good" storage and retrieval
@@ -18,6 +18,9 @@ PrefHandler::PrefHandler() {
 PrefHandler::PrefHandler(uint32_t base) {
   base_address = base;
   lkg_address = EE_MAIN_OFFSET;
+}
+
+PrefHandler::~PrefHandler() {
 }
 
 void PrefHandler::LKG_mode(bool mode) {
