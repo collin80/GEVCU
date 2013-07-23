@@ -17,7 +17,7 @@ PrefHandler::PrefHandler() {
 
 PrefHandler::PrefHandler(uint32_t base) {
   base_address = base;
-  lkg_address = 0;
+  lkg_address = EE_MAIN_OFFSET;
 }
 
 void PrefHandler::LKG_mode(bool mode) {
@@ -73,6 +73,7 @@ bool PrefHandler::checksumValid() {
   
   memCache->Read(EE_CHECKSUM + base_address + lkg_address, &stored_chk);
   calc_chk = calcChecksum();
+  Logger::debug("Stored Checksum: %i Calc: %i", stored_chk, calc_chk);
   
   return (stored_chk == calc_chk);
 }

@@ -12,6 +12,7 @@
  */ 
 
 #include "sys_io.h"
+#include "eeprom_layout.h"
 
 #undef HID_ENABLED
 
@@ -30,7 +31,7 @@ uint16_t adc_values[8];
 uint16_t adc_buffer[NUM_ANALOG][NUM_ADC_SAMPLES];
 uint8_t adc_pointer[NUM_ANALOG]; //pointer to next position to use
 
-extern PrefHandler sysPrefs;
+extern PrefHandler *sysPrefs;
 
 ADC_COMP adc_comp[NUM_ANALOG];
 
@@ -39,12 +40,15 @@ void setup_sys_io() {
   
 #ifndef RAWADC
   setupFastADC();
+#else
+  analogReadResolution(12);
 #endif
   
   //requires the value to be contiguous in memory
   for (i = 0; i < NUM_ANALOG; i++) {
-    sysPrefs.read(EESYS_ADC0_GAIN + 4*i, &adc_comp[i].gain);
-    sysPrefs.read(EESYS_ADC0_OFFSET + 4*i, &adc_comp[i].offset);
+    sysPrefs->read(EESYS_ADC0_GAIN + 4*i, &adc_comp[i].gain);
+    sysPrefs->read(EESYS_ADC0_OFFSET + 4*i, &adc_comp[i].offset);
+	//Logger::debug("ADC:%d GAIN: %d Offset: %d", i, adc_comp[i].gain, adc_comp[i].offset);
     for (int j = 0; j < NUM_ADC_SAMPLES; j++) adc_buffer[i][j] = 0;
     adc_pointer[i] = 0;
     //adc_comp[i].gain = 1024;
@@ -120,8 +124,6 @@ uint16_t getADCAvg(uint8_t which) {
 uint16_t getAnalog(uint8_t which) {
     uint16_t val;
 	
-    //analogResolution(12);
-	
     if (which >= NUM_ANALOG) which = 0;
 
 #ifndef RAWADC
@@ -157,6 +159,13 @@ boolean getOutput(uint8_t which) {
 	return digitalRead(out[which]);
 }
 
+/*
+When the ADC reads in the programmed # of readings it will do two things:
+1. It loads the next buffer and buffer size into current buffer and size
+2. It sends this interrupt
+This interrupt then loads the "next" fields with th proper values. This is 
+done with a four position buffer. In this way the ADC is constantly sampling
+*/
 void ADC_Handler(){     // move DMA pointers to next buffer
   int f=ADC->ADC_ISR;
   if (f & (1<<27)){ //receive counter end of buffer
@@ -189,6 +198,8 @@ void setupFastADC(){
   bufn=obufn=1;
   ADC->ADC_PTCR=1; //enable dma mode
   ADC->ADC_CR=2; //start conversions
+
+  Logger::debug("Fast ADC Mode Enabled");
 }
 
 //polls for the end of an adc conversion event. Then processe buffer to extract the averaged
@@ -196,7 +207,6 @@ void setupFastADC(){
 //which serves as a super fast place for other code to retrieve ADC values
 void sys_io_adc_poll() {
   uint32_t tempbuff[8] = {0,0,0,0,0,0,0,0}; //make sure its zero'd
-#ifndef RAWADC
   if (obufn != bufn) {
     //the eight enabled adcs are interleaved in the buffer
     //this is a somewhat unrolled for loop with no incrementer. it's odd but it works
@@ -210,15 +220,15 @@ void sys_io_adc_poll() {
        tempbuff[1] += adc_buf[obufn][i++];
        tempbuff[0] += adc_buf[obufn][i++];
     }
- 
+
     //now, all of the ADC values are summed over 32 readings. So, divide by 32 (shift by 5) to get the average
     //then add that to the old value we had stored and divide by two to average those. Lots of averaging going on.
     for (int j = 0; j < 8; j++) {
       adc_values[j] += (tempbuff[j] >> 5);
       adc_values[j] = adc_values[j] >> 1;
+	  //Logger::debug("A%i: %i", j, adc_values[j]);
     }
     obufn = bufn;    
   }
-#endif
 }
 

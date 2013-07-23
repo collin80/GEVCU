@@ -16,7 +16,7 @@
 
 #include <due_can.h>
 
-#define CFG_VERSION "GEVCU alpha 2013-07-14"
+#define CFG_VERSION "GEVCU alpha 2013-07-23"
 #define CFG_SERIAL_SPEED 115200
 
 #define SerialUSB Serial // re-route serial-usb output to programming port ;) comment if output should go to std usb

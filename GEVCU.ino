@@ -244,7 +244,9 @@ void printMenu() {
 	SerialUSB.println("L = output raw input values (toggle)");
 	SerialUSB.println("K = set all outputs high");
 	SerialUSB.println("J = set all outputs low");
-	SerialUSB.println("Y,U,I = test EEPROM routines");
+	SerialUSB.println("U,I = test EEPROM routines");
+	SerialUSB.println("A = dump system eeprom values");
+	SerialUSB.println("B = dump dmoc eeprom values");
 	SerialUSB.println("z = detect throttle min/max");
 	SerialUSB.println("Z = save detected throttle values");
 	SerialUSB.println("");
@@ -259,7 +261,12 @@ void loop() {
 	}
 
 	if (SerialUSB.available())
-		serialEvent(); //due doesnt have interrupt driven serial yet
+		serialEvent(); //While serial is interrupt driven this function is not automatically called but must be called.
+
+	//this should still be here. It checks for a flag set during an interrupt
+#ifndef RAWADC
+	sys_io_adc_poll();
+#endif
 }
 
 /*Single character interpreter of commands over
@@ -267,6 +274,7 @@ void loop() {
  */
 void serialEvent() {
 	int incoming;
+	uint8_t val;
 	static int state = 0;
 	DmocMotorController* dmoc = (DmocMotorController*) motorController; //TODO: direct reference to dmoc must be removed
 	incoming = SerialUSB.read();
@@ -341,13 +349,6 @@ void serialEvent() {
 			else
 				Logger::info("Cease raw throttle output");
 			break;
-		case 'Y':
-			Logger::info("Trying to save 0x45 to eeprom location 10");
-			uint8_t temp;
-			memCache->Write(10, (uint8_t) 0x45);
-			memCache->Read(10, &temp);
-			Logger::info("Got back value of %d", temp);
-			break;
 		case 'U':
 			Logger::info("Adding a sequence of values from 0 to 255 into eeprom");
 			for (int i = 0; i < 256; i++)
@@ -359,12 +360,26 @@ void serialEvent() {
 			break;
 		case 'I':
 			Logger::info("Retrieving data previously saved");
-			uint8_t val;
 			for (int i = 0; i < 256; i++) {
 				memCache->Read(1000 + i, &val);
 				Logger::info("%d: %d", i, val);
 			}
 			break;
+		case 'A':
+			Logger::info("Retrieving System EEPROM values");
+			for (int i = 0; i < 256; i++) {
+				memCache->Read(EE_SYSTEM_START + i, &val);
+				Logger::info("%d: %d", i, val);
+			}
+			break;
+		case 'B':
+			Logger::info("Retrieving DMOC EEPROM values");
+			for (int i = 0; i < 256; i++) {
+				memCache->Read(EE_MOTORCTL_START + i, &val);
+				Logger::info("%d: %d", i, val);
+			}
+			break;
+
 		case 'K': //set all outputs high
 			setOutput(0, true);
 			setOutput(1, true);
