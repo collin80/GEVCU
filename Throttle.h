@@ -21,9 +21,20 @@ public:
         ~Throttle();
 	Device::DeviceType getType();
 	virtual int getThrottle();
+	virtual int getRawThrottle1();
+	virtual int getRawThrottle2();
+	void mapThrottle(signed int);
+	void setRegenEnd(uint16_t regen);
+	void setFWDStart(uint16_t fwd);
+	void setMAP(uint16_t map);
+	void setMaxRegen(uint16_t regen);
+
 
 protected:
 	signed int outputThrottle; //the final signed throttle. [-1000, 1000] in tenths of a percent of maximum
+	uint16_t throttleRegen, throttleFwd, throttleMap; //Value at which regen finishes, forward motion starts, and the mid point of throttle
+	uint16_t throttleMaxRegen; //Percentage of max torque allowable for regen
+	uint16_t brakeMaxRegen; //percentage of max torque allowable for regen at brake pedal
 };
 
 #endif

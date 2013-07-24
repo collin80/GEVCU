@@ -49,10 +49,10 @@ void PotThrottle::setup() {
 	 else { //checksum invalid. Reinitialize values and store to EEPROM
 	 */
 	//these four values are ADC values
-	throttleMin1 = 8;
-	throttleMax1 = 450;
-	throttleMin2 = 355;
-	throttleMax2 = 1800;
+	throttleMin1 = 180;
+	throttleMax1 = 930;
+	throttleMin2 = 360;
+	throttleMax2 = 1900;
 	//The next three are tenths of a percent
 	throttleRegen = 0;
 	throttleFwd = 175;
@@ -190,26 +190,7 @@ void PotThrottle::doAccel() {
 	 positive or negative travel doesn't matter and is covered by the calcThrottle functions
 	 */
 
-	if (throttleRegen != 0) {
-		if (ThrottleFeedback <= throttleRegen) {
-			range = throttleRegen;
-			temp = range - ThrottleFeedback;
-			outputThrottle = (signed long) ((signed long) (-10) * throttleMaxRegen * temp / range);
-		}
-	}
-
-	if (ThrottleFeedback >= throttleFwd) {
-		if (ThrottleFeedback <= throttleMap) { //bottom 50% forward
-			range = throttleMap - throttleFwd;
-			temp = (ThrottleFeedback - throttleFwd);
-			outputThrottle = (signed long) ((signed long) (500) * temp / range);
-		}
-		else { //more than throttleMap
-			range = 1000 - throttleMap;
-			temp = (ThrottleFeedback - throttleMap);
-			outputThrottle = 500 + (signed int) ((signed long) (500) * temp / range);
-		}
-	}
+	mapThrottle(ThrottleFeedback);
 }
 
 /*
@@ -282,22 +263,16 @@ void PotThrottle::doBrake() {
 		return;
 	}
 
-	if (brakeMaxRegen != 0) { //is the brake regen even enabled?
-		int range = brakeMaxRegen - throttleMaxRegen; //we start the brake at ThrottleMaxRegen so the range is reduced by that amount
-		if (range < 1) { //detect stupidity and abort
-			outputThrottle = 0;
-			return;
-		}
-		outputThrottle = (signed int) ((signed int) -10 * range * ThrottleFeedback) / (signed int) 1000;
-		outputThrottle -= -10 * throttleMaxRegen;
-		//Logger::debug("outputThrottle: %d", outputThrottle);
-	}
+	mapThrottle(-ThrottleFeedback);
 
 }
 
 //right now only the first throttle ADC port is used. Eventually the second one should be used to cross check so dumb things
 //don't happen. Also, right now values of ADC outside the proper range are just clamped to the proper range.
 void PotThrottle::handleTick() {
+
+	//Logger::debug("Pot Throttle HandleTick");
+
 	sys_io_adc_poll();
 
 	throttle1Val = getAnalog(throttle1ADC);
@@ -330,22 +305,6 @@ void PotThrottle::setT1Max(uint16_t max) {
 }
 void PotThrottle::setT2Max(uint16_t max) {
 	throttleMax2 = max;
-}
-
-void PotThrottle::setRegenEnd(uint16_t regen) {
-	throttleRegen = regen;
-}
-
-void PotThrottle::setFWDStart(uint16_t fwd) {
-	throttleFwd = fwd;
-}
-
-void PotThrottle::setMAP(uint16_t map) {
-	throttleMap = map;
-}
-
-void PotThrottle::setMaxRegen(uint16_t regen) {
-	throttleMaxRegen = regen;
 }
 
 Device::DeviceId PotThrottle::getId() {
