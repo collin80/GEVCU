@@ -38,7 +38,7 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #define CFG_VERSION "GEVCU alpha 2013-07-23"
 #define CFG_SERIAL_SPEED 115200
 
-#define SerialUSB Serial // re-route serial-usb output to programming port ;) comment if output should go to std usb
+//#define SerialUSB Serial // re-route serial-usb output to programming port ;) comment if output should go to std usb
 
 #define CFG_MAX_TICKABLES 9 // the maximum number of supported tickables per timer
 
@@ -72,6 +72,6 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 //if this is defined then the ADC code will use raw readings from the actual ADC port of that number.
 //In other words, no DMA, no differential input, just the ADC. If you ask for ADC0 you will get a raw
 //reading from ADC0.
-//#define RAWADC
+#define RAWADC
 
 #endif /* CONFIG_H_ */
