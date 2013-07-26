@@ -21,7 +21,7 @@ Device::DeviceType Throttle::getType() {
 	return Device::DEVICE_THROTTLE;
 }
 
-int Throttle::getThrottle() {
+int Throttle::getLevel() {
 	return outputThrottle;
 }
 

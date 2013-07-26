@@ -9,7 +9,7 @@
  
  #include "MotorController.h"
  
-MotorController::MotorController(CanHandler *canbus, Throttle *accelerator, Throttle *brake) : Device(canbus) {
+MotorController::MotorController(CanHandler *canbus) : Device(canbus) {
 	prefsHandler = new PrefHandler(EE_MOTORCTL_START);
 	faulted = false;
 	running = false;
@@ -23,8 +23,6 @@ MotorController::MotorController(CanHandler *canbus, Throttle *accelerator, Thro
 	maxTorque = 0;
 	maxRPM = 0;
 	gearSwitch = GS_FAULT;
-	this->accelerator = accelerator;
-	this->brake = brake;
 }
 
 Device::DeviceType MotorController::getType() {
@@ -47,10 +45,12 @@ void MotorController::handleTick() {
 	if (forwardSwitch == HIGH && reverseSwitch == LOW)
 		gearSwitch = GS_REVERSE;
 
+	Throttle *accelerator = DeviceManager::getInstance()->getAccelerator();
+	Throttle *brake = DeviceManager::getInstance()->getBrake();
 	if (accelerator)
-		requestedThrottle = accelerator->getThrottle();
-	if (brake && brake->getThrottle() != 0) //if the brake has been pressed it overrides the accelerator.
-		requestedThrottle = brake->getThrottle();
+		requestedThrottle = accelerator->getLevel();
+	if (brake && brake->getLevel() != 0) //if the brake has been pressed it overrides the accelerator.
+		requestedThrottle = brake->getLevel();
 
 	//Logger::debug("Throttle: %d", requestedThrottle);
 

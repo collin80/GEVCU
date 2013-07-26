@@ -20,12 +20,12 @@ CanHandler::CanHandler(uint8_t busNumber, uint32_t baudRate) {
 	init(busNumber, baudRate);
 }
 
-void CanHandler::logFrame(CANFrame& message) {
+void CanHandler::logFrame(CANFrame& frame) {
 	if (Logger::getLogLevel() == Logger::Debug) {
 		Logger::debug("CAN: dlc=%X fid=%X id=%X ide=%X rtr=%X data=%X,%X,%X,%X,%X,%X,%X,%X",
-				message.dlc, message.fid, message.id, message.ide, message.rtr,
-				message.data[0], message.data[1], message.data[2], message.data[3],
-				message.data[4], message.data[5], message.data[6], message.data[7]);
+				frame.dlc, frame.fid, frame.id, frame.ide, frame.rtr,
+				frame.data[0], frame.data[1], frame.data[2], frame.data[3],
+				frame.data[4], frame.data[5], frame.data[6], frame.data[7]);
 	}
 }
 
@@ -92,16 +92,16 @@ void CanHandler::setFilter(uint8_t mailbox, uint32_t acceptMask, uint32_t id, bo
  *
  * \retval 	if a message was available and read
  */
-bool CanHandler::readFrame(CANFrame& message) {
+bool CanHandler::readFrame(CANFrame& frame) {
 	if (bus->rx_avail()) {
 		bus->get_rx_buff(&rx_frame);
 
-		message.id = rx_frame.id;
-		message.fid = rx_frame.fid;
-		message.rtr = rx_frame.rtr;
-		message.ide = rx_frame.ide;
-		message.dlc = rx_frame.dlc;
-		memcpy(message.data, rx_frame.data, 8 * sizeof(uint8_t));
+		frame.id = rx_frame.id;
+		frame.fid = rx_frame.fid;
+		frame.rtr = rx_frame.rtr;
+		frame.ide = rx_frame.ide;
+		frame.dlc = rx_frame.dlc;
+		memcpy(frame.data, rx_frame.data, 8 * sizeof(uint8_t));
 
 		return true;
 	}
@@ -111,16 +111,16 @@ bool CanHandler::readFrame(CANFrame& message) {
 bool CanHandler::readFrame(uint8_t mailbox, CANFrame& frame) {
 }
 
-bool CanHandler::sendFrame(uint8_t mailbox, CANFrame& message) {
-	bus->mailbox_set_id(mailbox, message.id, false);
-	bus->mailbox_set_datalen(mailbox, message.dlc);
+bool CanHandler::sendFrame(uint8_t mailbox, CANFrame& frame) {
+	bus->mailbox_set_id(mailbox, frame.id, false);
+	bus->mailbox_set_datalen(mailbox, frame.dlc);
 	for (uint8_t cnt = 0; cnt < 8; cnt++)
-		bus->mailbox_set_databyte(mailbox, cnt, message.data[cnt]);
+		bus->mailbox_set_databyte(mailbox, cnt, frame.data[cnt]);
 	bus->global_send_transfer_cmd((0x1u << mailbox));
 
 	return true;
 }
 
-bool CanHandler::sendFrame(CANFrame& message) {
-	sendFrame(5, message);
+bool CanHandler::sendFrame(CANFrame& frame) {
+	sendFrame(5, frame);
 }

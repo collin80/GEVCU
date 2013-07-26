@@ -23,7 +23,7 @@ TickHandler::TimerEntry TickHandler::timerEntry[NUM_TIMERS] = {};
 void TickHandler::initialize() {
 	for (int timerNumber = 0; timerNumber < NUM_TIMERS; timerNumber++) {
 		timerEntry[timerNumber].interval = 0;
-		for (int tickableNumber = 0; tickableNumber < CFG_MAX_TICKABLES; tickableNumber++) {
+		for (int tickableNumber = 0; tickableNumber < CFG_TIMER_MAX_TICKABLES; tickableNumber++) {
 			timerEntry[timerNumber].tickable[tickableNumber] = NULL;
 		}
 	}
@@ -93,7 +93,7 @@ void TickHandler::add(Tickable* tickable, uint32_t interval) {
  */
 void TickHandler::remove(Tickable* tickable) {
 	for (int timerNumber = 0; timerNumber < NUM_TIMERS; timerNumber++) {
-		for (int tickableNumber = 0; tickableNumber < CFG_MAX_TICKABLES; tickableNumber++) {
+		for (int tickableNumber = 0; tickableNumber < CFG_TIMER_MAX_TICKABLES; tickableNumber++) {
 			if (timerEntry[timerNumber].tickable[tickableNumber] == tickable)
 				timerEntry[timerNumber].tickable[tickableNumber] = NULL;
 		}
@@ -116,7 +116,7 @@ int TickHandler::findTimer(long interval) {
  * Find a tickable in the list of a specific timer.
  */
 int TickHandler::findTickable(int timerNumber, Tickable *tickable) {
-	for (int tickableNumber = 0; tickableNumber < CFG_MAX_TICKABLES; tickableNumber++) {
+	for (int tickableNumber = 0; tickableNumber < CFG_TIMER_MAX_TICKABLES; tickableNumber++) {
 //Logger::debug("findTickable: tickable=%d , tickable[%d]=%d", tickable, tickableNumber, timerEntry[timerNumber].tickable[tickableNumber]);
 		if (timerEntry[timerNumber].tickable[tickableNumber] == tickable)
 			return tickableNumber;
@@ -129,7 +129,7 @@ int TickHandler::findTickable(int timerNumber, Tickable *tickable) {
  * All the registered tickables of the timer are called.
  */
 void TickHandler::handleInterrupt(int timerNumber) {
-	for (int tickableNumber = 0; tickableNumber < CFG_MAX_TICKABLES; tickableNumber++) {
+	for (int tickableNumber = 0; tickableNumber < CFG_TIMER_MAX_TICKABLES; tickableNumber++) {
 		if (timerEntry[timerNumber].tickable[tickableNumber] != NULL) {
 			timerEntry[timerNumber].tickable[tickableNumber]->handleTick();
 		}
