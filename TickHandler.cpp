@@ -113,8 +113,10 @@ void TickHandler::add(Tickable* tickable, uint32_t interval) {
 void TickHandler::remove(Tickable* tickable) {
 	for (int timerNumber = 0; timerNumber < NUM_TIMERS; timerNumber++) {
 		for (int tickableNumber = 0; tickableNumber < CFG_MAX_TICKABLES; tickableNumber++) {
-			if (timerEntry[timerNumber].tickable[tickableNumber] == tickable)
+			if (timerEntry[timerNumber].tickable[tickableNumber] == tickable) {
+                                Logger::debug("removing tickable %d as number %d from timer %d", tickable, tickableNumber, timerNumber);
 				timerEntry[timerNumber].tickable[tickableNumber] = NULL;
+                        }
 		}
 	}
 }
