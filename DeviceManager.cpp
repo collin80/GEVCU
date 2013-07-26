@@ -52,6 +52,9 @@ void DeviceManager::addDevice(Device *device) {
 	case Device::DEVICE_THROTTLE:
 		throttle = (Throttle *) device;
 		break;
+	case Device::DEVICE_BRAKE:
+		brake = (Throttle *) device;
+		break;
 	case Device::DEVICE_MOTORCTRL:
 		motorController = (MotorController *) device;
 		break;
@@ -68,6 +71,9 @@ void DeviceManager::removeDevice(Device *device) {
 	switch (device->getType()) {
 	case Device::DEVICE_THROTTLE:
 		throttle = NULL;
+		break;
+	case Device::DEVICE_BRAKE:
+		brake = NULL;
 		break;
 	case Device::DEVICE_MOTORCTRL:
 		motorController = NULL;
