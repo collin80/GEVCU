@@ -21,6 +21,7 @@
 #include "CanHandler.h"
 #include "MemCache.h"
 #include "ThrottleDetector.h"
+#include "DeviceManager.h"
 
 
 #ifdef __cplusplus

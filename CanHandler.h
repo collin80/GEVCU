@@ -26,6 +26,8 @@ typedef struct
 	uint8_t data[8];	// Data bytes
 } CANFrame;
 
+class Device;
+
 class CanHandler {
 public:
 	CanHandler(uint32_t baudRate);

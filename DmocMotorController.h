@@ -58,7 +58,7 @@ public:
   void setOpState(OperationState op);
   void setGear(Gears gear);
 
-  DmocMotorController(CanHandler *canHandler, Throttle *accelerator, Throttle *brake);
+  DmocMotorController(CanHandler *canHandler);
   Device::DeviceId getId();
   void setPowerMode(PowerMode mode);
   PowerMode getPowerMode();

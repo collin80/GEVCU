@@ -21,7 +21,8 @@
 
 #define SerialUSB Serial // re-route serial-usb output to programming port ;) comment if output should go to std usb
 
-#define CFG_MAX_TICKABLES 9 // the maximum number of supported tickables per timer
+#define CFG_TIMER_MAX_TICKABLES 9 // the maximum number of supported tickables per timer
+#define CFG_DEV_MGR_MAX_DEVICES 9 // the maximum number of devices supported by the DeviceManager
 
 // Define the devices which are to be used (and compiled) via the following lines. It is advisable
 // to define only one of any device type (e.g. only DMOC or Brusa not both, only one throttle type for

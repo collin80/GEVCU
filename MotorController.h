@@ -14,6 +14,7 @@
 #include "config.h"
 #include "device.h"
 #include "Throttle.h"
+#include "DeviceManager.h"
 
 #define MOTORCTL_INPUT_DRIVE_EN    3
 #define MOTORCTL_INPUT_FORWARD     4
@@ -29,7 +30,7 @@ class MotorController : public Device {
         GS_REVERSE,
         GS_FAULT
     };
-    MotorController(CanHandler *canHandler, Throttle *accelerator, Throttle *brake);
+    MotorController(CanHandler *canHandler);
 	Device::DeviceType getType();
     virtual void setup();
     void handleTick();
@@ -60,8 +61,6 @@ class MotorController : public Device {
     uint16_t maxTorque;	//maximum torque in 0.1 Nm
     uint16_t maxRPM; //in RPM
     GearSwitch gearSwitch;
-    Throttle *accelerator;
-    Throttle *brake;
 };
 
 #endif

@@ -19,7 +19,7 @@ public:
 	Throttle();
 	Throttle(CanHandler *canHandler);
 	Device::DeviceType getType();
-	virtual int getThrottle();
+	virtual int getLevel();
 
 protected:
 	signed int outputThrottle; //the final signed throttle. [-1000, 1000] in tenths of a percent of maximum
