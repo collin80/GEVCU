@@ -41,6 +41,7 @@ public:
 	static void error(char *, ...);
 	static void setLoglevel(LogLevel);
 	static LogLevel getLogLevel();
+        static unsigned long getLastLogTime();
 private:
 	static void log(LogLevel, char[], va_list);
 };

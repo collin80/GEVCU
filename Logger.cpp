@@ -27,6 +27,7 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include "Logger.h"
 
 Logger::LogLevel logLevel = Logger::Debug;
+unsigned long lastLogTime = 0;
 
 void Logger::debug(char *message, ...) {
 	va_list args;
@@ -64,9 +65,14 @@ Logger::LogLevel Logger::getLogLevel() {
 	return logLevel;
 }
 
+unsigned long Logger::getLastLogTime() {
+       return lastLogTime;
+}
+
 void Logger::log(LogLevel level, char *format, va_list args) {
 	if (logLevel <= level) {
-		SerialUSB.print(millis());
+                lastLogTime = millis();
+		SerialUSB.print(lastLogTime);
 		SerialUSB.print(" - ");
 
 		switch (level) {
