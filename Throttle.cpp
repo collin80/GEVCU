@@ -22,7 +22,7 @@ Device::DeviceType Throttle::getType() {
 }
 
 int Throttle::getLevel() {
-	return outputThrottle;
+	return level;
 }
 
 //TODO: need to plant this in here somehow..

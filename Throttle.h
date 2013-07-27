@@ -22,7 +22,7 @@ public:
 	virtual int getLevel();
 
 protected:
-	signed int outputThrottle; //the final signed throttle. [-1000, 1000] in tenths of a percent of maximum
+	signed int level; //the final signed throttle level. [-1000, 1000] in tenths of a percent of maximum
 };
 
 #endif

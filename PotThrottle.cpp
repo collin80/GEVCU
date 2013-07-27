@@ -9,11 +9,11 @@
  */
 
 #include "config.h"
-#if defined(CFG_ENABLE_DEVICE_POT_THROTTLE_ACCEL) || defined(CFG_ENABLE_DEVICE_POT_THROTTLE_BRAKE)
+#ifdef CFG_ENABLE_DEVICE_POT_THROTTLE_ACCEL
 #include "PotThrottle.h"
 
 //initialize by telling the code which two ADC channels to use (or set channel 2 to 255 to disable)
-PotThrottle::PotThrottle(uint8_t throttle1, uint8_t throttle2, bool isAccel = true) : Throttle() {
+PotThrottle::PotThrottle(uint8_t throttle1, uint8_t throttle2) : Throttle() {
 	throttle1ADC = throttle1;
 	throttle2ADC = throttle2;
 	if (throttle2 == 255)
@@ -22,7 +22,6 @@ PotThrottle::PotThrottle(uint8_t throttle1, uint8_t throttle2, bool isAccel = tr
 		numThrottlePots = 2;
 	throttleStatus = OK;
 	throttleMaxErr = 75; //in tenths of a percent. So 25 = max 2.5% difference
-	isAccelerator = isAccel;
 	//analogReadResolution(12);
 }
 
@@ -41,10 +40,7 @@ void PotThrottle::setup() {
 	 prefs->read(EETH_REGEN, &throttleRegen);
 	 prefs->read(EETH_FWD, &throttleFwd);
 	 prefs->read(EETH_MAP, &throttleMap);
-	 prefs->read(EETH_BRAKE_MIN, &BrakeMin);
-	 prefs->read(EETH_BRAKE_MAX, &BrakeMax);
 	 prefs->read(EETH_MAX_ACCEL_REGEN, &ThrottleMaxRegen);
-	 prefs->read(EETH_MAX_BRAKE_REGEN, &BrakeMaxRegen);
 	 }
 	 else { //checksum invalid. Reinitialize values and store to EEPROM
 	 */
@@ -58,9 +54,6 @@ void PotThrottle::setup() {
 	throttleFwd = 175;
 	throttleMap = 665;
 	throttleMaxRegen = 00; //percentage of full power to use for regen at throttle
-	brakeMaxRegen = 80; //percentage of full power to use for regen at brake pedal transducer
-	brakeMin = 5;
-	brakeMax = 500;
 	prefsHandler->write(EETH_MIN_ONE, throttleMin1);
 	prefsHandler->write(EETH_MAX_ONE, throttleMax1);
 	prefsHandler->write(EETH_MIN_TWO, throttleMin2);
@@ -68,10 +61,7 @@ void PotThrottle::setup() {
 	prefsHandler->write(EETH_REGEN, throttleRegen);
 	prefsHandler->write(EETH_FWD, throttleFwd);
 	prefsHandler->write(EETH_MAP, throttleMap);
-	prefsHandler->write(EETH_BRAKE_MIN, brakeMin);
-	prefsHandler->write(EETH_BRAKE_MAX, brakeMax);
 	prefsHandler->write(EETH_MAX_ACCEL_REGEN, throttleMaxRegen);
-	prefsHandler->write(EETH_MAX_BRAKE_REGEN, brakeMaxRegen);
 	prefsHandler->saveChecksum();
 	//}
 	TickHandler::add(this, CFG_TICK_INTERVAL_POT_THROTTLE);
@@ -132,7 +122,7 @@ void PotThrottle::doAccel() {
 	}
 
 	if (!(throttleStatus == OK)) {
-		outputThrottle = 0; //no throttle if there is a fault
+		level = 0; //no throttle if there is a fault
 		return;
 	}
 	calcThrottle1 = calcThrottle(clampedVal, throttleMin1, throttleMax1);
@@ -173,7 +163,7 @@ void PotThrottle::doAccel() {
 	}
 
 	if (!(throttleStatus == OK)) {
-		outputThrottle = 0; //no throttle if there is a fault
+		level = 0; //no throttle if there is a fault
 		return;
 	}
 
@@ -184,7 +174,7 @@ void PotThrottle::doAccel() {
 	ThrottleAvg -= ThrottleFeedback;
 	ThrottleFeedback = ThrottleAvg >> 4;
 
-	outputThrottle = 0; //by default we give zero throttle
+	level = 0; //by default we give zero throttle
 
 	/* Since this code is now based on tenths of a percent of throttle push it is now agnostic to how that happens
 	 positive or negative travel doesn't matter and is covered by the calcThrottle functions
@@ -194,7 +184,7 @@ void PotThrottle::doAccel() {
 		if (ThrottleFeedback <= throttleRegen) {
 			range = throttleRegen;
 			temp = range - ThrottleFeedback;
-			outputThrottle = (signed long) ((signed long) (-10) * throttleMaxRegen * temp / range);
+			level = (signed long) ((signed long) (-10) * throttleMaxRegen * temp / range);
 		}
 	}
 
@@ -202,97 +192,14 @@ void PotThrottle::doAccel() {
 		if (ThrottleFeedback <= throttleMap) { //bottom 50% forward
 			range = throttleMap - throttleFwd;
 			temp = (ThrottleFeedback - throttleFwd);
-			outputThrottle = (signed long) ((signed long) (500) * temp / range);
+			level = (signed long) ((signed long) (500) * temp / range);
 		}
 		else { //more than throttleMap
 			range = 1000 - throttleMap;
 			temp = (ThrottleFeedback - throttleMap);
-			outputThrottle = 500 + (signed int) ((signed long) (500) * temp / range);
+			level = 500 + (signed int) ((signed long) (500) * temp / range);
 		}
 	}
-}
-
-/*
- the brake only really uses one variable input and uses different parameters
-
- story time: this code will start at ThrottleMaxRegen when applying the brake. It
- will do this even if you're currently flooring it. The accelerator pedal is ignored
- if there is any pressure detected on the brake. This is a sort of failsafe. It should
- not be possible to go racing down the road with a stuck accelerator. As soon as the
- brake is pressed it overrides the accelerator signal. Sorry, no standing burn outs.
-
- */
-void PotThrottle::doBrake() {
-	signed int range;
-	signed int calcThrottle1, calcThrottle2, clampedVal, tempLow, temp;
-	static uint16_t ThrottleAvg = 0, ThrottleFeedback = 0; //used to create proportional control
-
-	clampedVal = throttle1Val;
-
-	if (brakeMax == 0) { //brake processing disabled if Max is 0
-		outputThrottle = 0;
-		return;
-	}
-
-	//The below code now only faults if the value of the ADC is 15 outside of the range +/-
-	//otherwise we'll just clamp
-	if (throttle1Val > brakeMax) {
-		if (throttle1Val > (brakeMax + 15)) {
-			throttleStatus = ERR_HIGH_T1;
-			//Logger::debug("A");
-		}
-		clampedVal = brakeMax;
-	}
-
-	tempLow = 0;
-	if (brakeMin > 14) {
-		tempLow = brakeMin - 15;
-	}
-	if (throttle1Val < brakeMin) {
-		if (throttle1Val < tempLow) {
-			throttleStatus = ERR_LOW_T1;
-			//Logger::debug("B");
-		}
-		clampedVal = brakeMin;
-	}
-
-	if (!(throttleStatus == OK)) {
-		outputThrottle = 0; //no throttle if there is a fault
-		return;
-	}
-	calcThrottle1 = calcThrottle(clampedVal, brakeMin, brakeMax);
-	//Logger::debug("calcThrottle: %d", calcThrottle1);
-
-	//Apparently all is well with the throttle input
-	//so go ahead and calculate the proper throttle output
-
-	//still use this smoothing/easing code for the brake. It works quickly enough
-	ThrottleAvg += calcThrottle1;
-	ThrottleAvg -= ThrottleFeedback;
-	ThrottleFeedback = ThrottleAvg >> 4;
-
-	outputThrottle = 0; //by default we give zero throttle
-
-	//I suppose I should explain. This prevents flutter in the ADC readings of the brake from slamming
-	//regen on intermittantly just because the value fluttered a couple of numbers. This makes sure
-	//that we're actually pushing the pedal. Without this even a small flutter at the brake will send
-	//ThrottleMaxRegen regen out and ignore the accelerator. That'd be unpleasant.
-	if (ThrottleFeedback < 15) {
-		outputThrottle = 0;
-		return;
-	}
-
-	if (brakeMaxRegen != 0) { //is the brake regen even enabled?
-		int range = brakeMaxRegen - throttleMaxRegen; //we start the brake at ThrottleMaxRegen so the range is reduced by that amount
-		if (range < 1) { //detect stupidity and abort
-			outputThrottle = 0;
-			return;
-		}
-		outputThrottle = (signed int) ((signed int) -10 * range * ThrottleFeedback) / (signed int) 1000;
-		outputThrottle -= -10 * throttleMaxRegen;
-		//Logger::debug("outputThrottle: %d", outputThrottle);
-	}
-
 }
 
 //right now only the first throttle ADC port is used. Eventually the second one should be used to cross check so dumb things
@@ -306,11 +213,7 @@ void PotThrottle::handleTick() {
 	}
 
 	throttleStatus = OK;
-
-	if (isAccelerator)
-		doAccel();
-	else
-		doBrake();
+	doAccel();
 }
 
 PotThrottle::ThrottleStatus PotThrottle::getStatus() {
@@ -349,12 +252,8 @@ void PotThrottle::setMaxRegen(uint16_t regen) {
 }
 
 Device::DeviceId PotThrottle::getId() {
-	return (isAccelerator ? POTACCELPEDAL : POTBRAKEPEDAL);
-}
-
-Device::DeviceType PotThrottle::getType() {
-	return (isAccelerator ? DEVICE_THROTTLE : DEVICE_BRAKE);
+	return (POTACCELPEDAL);
 }
 
 
-#endif //CFG_ENABLE_DEVICE_POT_THROTTLE_ACCEL || CFG_ENABLE_DEVICE_POT_THROTTLE_BRAKE
+#endif //CFG_ENABLE_DEVICE_POT_THROTTLE_ACCEL
