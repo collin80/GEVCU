@@ -58,6 +58,7 @@ public:
 	int getRawThrottle2();
 	PotThrottle(uint8_t throttle1, uint8_t throttle2, bool isAccel);
 	Device::DeviceId getId();
+	Device::DeviceType getType();
 
 private:
 	uint16_t throttleMin1, throttleMax1, throttleMin2, throttleMax2; //Values for when the pedal is at its min and max for each throttle input

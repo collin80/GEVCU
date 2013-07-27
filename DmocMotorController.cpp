@@ -47,7 +47,7 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 extern bool runThrottle; //TODO: remove use of global variables !
 
-DmocMotorController::DmocMotorController(CanHandler *canHandler, Throttle *accelerator, Throttle *brake) : MotorController(canHandler, accelerator, brake) {
+DmocMotorController::DmocMotorController(CanHandler *canHandler) : MotorController(canHandler) {
 	step = SPEED_TORQUE;
 	selectedGear = NEUTRAL;
 	operationState = DISABLED;

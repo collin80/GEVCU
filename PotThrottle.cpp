@@ -327,7 +327,12 @@ void PotThrottle::setT2Max(uint16_t max) {
 }
 
 Device::DeviceId PotThrottle::getId() {
-	return (Device::POTACCELPEDAL);
+	return (isAccelerator ? POTACCELPEDAL : POTBRAKEPEDAL);
 }
+
+Device::DeviceType PotThrottle::getType() {
+	return (isAccelerator ? DEVICE_THROTTLE : DEVICE_BRAKE);
+}
+
 
 #endif //CFG_ENABLE_DEVICE_POT_THROTTLE_ACCEL || CFG_ENABLE_DEVICE_POT_THROTTLE_BRAKE

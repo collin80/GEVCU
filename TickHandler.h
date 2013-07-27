@@ -49,7 +49,7 @@ protected:
 private:
 	struct TimerEntry {
 		long interval; // interval of timer
-		Tickable *tickable[CFG_MAX_TICKABLES]; // array of pointers to tickables with this interval
+		Tickable *tickable[CFG_TIMER_MAX_TICKABLES]; // array of pointers to tickables with this interval
 	};
 	static TimerEntry timerEntry[NUM_TIMERS]; // array of timer entries (9 as there are 9 timers)
 	static int findTimer(long interval);
