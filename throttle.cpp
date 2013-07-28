@@ -60,7 +60,7 @@ void Throttle::mapThrottle(signed int inVal)
 			if (inVal <= throttleRegen) {
 				range = throttleRegen;
 				temp = range - inVal;
-				outputThrottle = (signed long) ((signed long) (-10) * throttleMaxRegen * temp / range);
+				level = (signed long) ((signed long) (-10) * throttleMaxRegen * temp / range);
 			}
 		}
 
@@ -68,12 +68,12 @@ void Throttle::mapThrottle(signed int inVal)
 			if (inVal <= throttleMap) { //bottom 50% forward
 				range = throttleMap - throttleFwd;
 				temp = (inVal - throttleFwd);
-				outputThrottle = (signed long) ((signed long) (500) * temp / range);
+				level = (signed long) ((signed long) (500) * temp / range);
 			}
 			else { //more than throttleMap
 				range = 1000 - throttleMap;
 				temp = (inVal - throttleMap);
-				outputThrottle = 500 + (signed int) ((signed long) (500) * temp / range);
+				level = 500 + (signed int) ((signed long) (500) * temp / range);
 			}
 		}
 	}
@@ -81,11 +81,11 @@ void Throttle::mapThrottle(signed int inVal)
 		if (brakeMaxRegen != 0) { //is the brake regen even enabled?
 			int range = brakeMaxRegen - throttleMaxRegen; //we start the brake at ThrottleMaxRegen so the range is reduced by that amount
 			if (range < 1) { //detect stupidity and abort
-				outputThrottle = 0;
+				level = 0;
 				return;
 			}
-			outputThrottle = (signed int) ((signed int) 10 * range * inVal) / (signed int) 1000;
-			outputThrottle -= -10 * throttleMaxRegen;
+			level = (signed int) ((signed int) 10 * range * inVal) / (signed int) 1000;
+			level -= -10 * throttleMaxRegen;
 		}
 	}
 	//Logger::debug("outputThrottle: %d", outputThrottle);
