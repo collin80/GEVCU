@@ -33,6 +33,8 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include "config.h"
 #include "Device.h"
 
+class ThrottleDetector; // avoid circular dependency by declaring it here
+
 class Throttle: public Device {
 public:
 	Throttle();
@@ -41,6 +43,10 @@ public:
 	virtual int getLevel();
 	virtual int getRawThrottle1();
 	virtual int getRawThrottle2();
+        void detectThrottle();
+        void detectThrottleMin();
+        void detectThrottleMax();
+        void saveConfiguration();
 	void mapThrottle(signed int);
 	void setRegenEnd(uint16_t regen);
 	void setFWDStart(uint16_t fwd);
@@ -53,6 +59,9 @@ protected:
 	uint16_t throttleRegen, throttleFwd, throttleMap; //Value at which regen finishes, forward motion starts, and the mid point of throttle
 	uint16_t throttleMaxRegen; //Percentage of max torque allowable for regen
 	uint16_t brakeMaxRegen; //percentage of max torque allowable for regen at brake pedal
+
+private:
+        ThrottleDetector *throttleDetector;
 };
 
 #endif

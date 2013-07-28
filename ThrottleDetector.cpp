@@ -30,23 +30,16 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 #include "ThrottleDetector.h"
 #include "sys_io.h"
-//#include "logger.h"
+#include "Logger.h"
 
 /*
- * Two throttles can be provided. A value of 255 for throttle2 means no throttle
+ * The constructor takes a pointer to a throttle
  */
-ThrottleDetector::ThrottleDetector(uint8_t throttle1, uint8_t throttle2 = 255)
+ThrottleDetector::ThrottleDetector(Throttle *throttle)
 {
-    setThrottle1(throttle1);
-    setThrottle2(throttle2);
-    void resetValues();
-
-    potentiometerCount = 1;
-    throttle1HighLow = false;
-    throttle2HighLow = false;
-    throttle2Inverse = false;
-   
-    //Logger::debug("ThrottleDetector ctor with throttles: %d and %d", throttle1, throttle2);
+    this->throttle = throttle;
+    Logger::debug("ThrottleDetector constructed with throttle %d", throttle);
+    resetValues();
 }
 
 /*
@@ -57,27 +50,12 @@ ThrottleDetector::~ThrottleDetector()
 }
 
 /*
- * Set the first throttle
+ * Run the complete throttle detection.
  */
-void ThrottleDetector::setThrottle1(uint8_t throttle)
-{
-  throttle1 = throttle;
-}
-
-/*
- * Set the second throttle
- */
-void ThrottleDetector::setThrottle2(uint8_t throttle)
-{
-  throttle2 = throttle;
-}
-
-/*
- * Run the throttle detection.  This currenty uses SerialUSB to instruct the user
- */       
-void ThrottleDetector::detect()
-{
+void ThrottleDetector::detect() {
   SerialUSB.println("Throttle detection starting. Do NOT press the pedal until instructed.");
+  
+  resetValues();
   
   // pause to give them a chance to get off the throttle (if for some reason they were pressing it)
   delay(3000);
@@ -167,6 +145,123 @@ void ThrottleDetector::detect()
 }
 
 /*
+ * Run the MIN throttle detection.
+ */  
+void ThrottleDetector::detectMin()
+{
+  SerialUSB.println("Throttle MIN detection starting. Do NOT press the pedal.");
+  
+  resetValues();
+  
+  // pause to give them a chance to get off the throttle (if for some reason they were pressing it)
+  delay(3000);
+  
+  // drop initial readings as they seem to be invalid
+  readThrottleValues(true);
+  
+  // Measure values at rest (MIN throttle) to be able to
+  // determine if they are HIGH-LOW pots
+  calibrate(true);
+  
+  if ( throttle2Provided() ) 
+  {
+    // Detect grounded pin (always zero) or floating values which indicate no potentiometer provided
+    // If the values deviate by more than 10% we assume floating
+    int restDiff = abs(throttle2Max-throttle2Min)*100/throttle2Max;
+    if ( ( throttle2Min == 0 && throttle2Max == 0) || restDiff > 10 )
+    {
+      potentiometerCount = 1;
+    } else {
+      potentiometerCount = 2;
+    }
+  }
+  
+  SerialUSB.println("");
+  SerialUSB.println("=======================================");
+  SerialUSB.println("MIN Detection complete");
+  SerialUSB.print("Num potentiometers found: ");
+  SerialUSB.println(getPotentiometerCount());
+  SerialUSB.print("T1: ");
+  SerialUSB.print(getThrottle1Min(), DEC);
+  SerialUSB.print(" to ");
+  SerialUSB.print(getThrottle1Max(), DEC);
+  SerialUSB.print(", using MIN: ");
+  SerialUSB.println(getThrottle1Min(), DEC);
+  
+  if ( getPotentiometerCount() > 1) 
+  {
+    SerialUSB.print("T2: ");
+    SerialUSB.print(getThrottle2Min(), DEC);
+    SerialUSB.print(" to ");
+    SerialUSB.print(getThrottle2Max(), DEC);
+    SerialUSB.print(", using MIN: ");
+    SerialUSB.println(getThrottle2Min(), DEC);
+  }
+
+  SerialUSB.println("========================================");
+  
+  // give the user time to see this
+  delay (3000);
+}
+
+
+/*
+ * Run the MAX throttle detection.
+ */  
+void ThrottleDetector::detectMax() {
+  SerialUSB.println("Throttle MAX detection starting. Fully depress and hold the pedal until complete.");
+  
+  resetValues();
+  
+  // pause to give them a chance to press the throttle
+  delay(3000);
+  
+  // Now measure when fully pressed
+  calibrate(false);
+  
+  if ( throttle2Provided() ) 
+  {
+    // Detect grounded pin (always zero) or floating values which indicate no potentiometer provided
+    // If the values deviate by more than 10% we assume floating
+    int maxDiff = abs(throttle2Max-throttle2Min)*100/throttle2Max;
+    if ( ( throttle2Min == 0 && throttle2Max == 0) || maxDiff > 10 )
+    {
+      potentiometerCount = 1;
+    } else {
+      potentiometerCount = 2;
+    }
+
+  }
+  
+  SerialUSB.println("");
+  SerialUSB.println("=======================================");
+  SerialUSB.println("MAX Detection complete");
+  SerialUSB.print("Num potentiometers found: ");
+  SerialUSB.println(getPotentiometerCount());
+  SerialUSB.print("T1: ");
+  SerialUSB.print(getThrottle1Min(), DEC);
+  SerialUSB.print(" to ");
+  SerialUSB.print(getThrottle1Max(), DEC);
+  SerialUSB.print(", using MAX: ");
+  SerialUSB.println(getThrottle1Max(), DEC);
+  
+  if ( getPotentiometerCount() > 1) 
+  {
+    SerialUSB.print("T2: ");
+    SerialUSB.print(getThrottle2Min(), DEC);
+    SerialUSB.print(" to ");
+    SerialUSB.print(getThrottle2Max(), DEC);
+    SerialUSB.print(", using MAX: ");
+    SerialUSB.println(getThrottle2Max(), DEC);
+  }
+
+  SerialUSB.println("========================================");
+  
+  // give the user time to see this
+  delay (3000);
+}
+
+/*
  * Returns the number of potentiometers detected
  */
 int ThrottleDetector::getPotentiometerCount() 
@@ -239,7 +334,7 @@ bool ThrottleDetector::isThrottle2Inverse()
  */
 bool ThrottleDetector::throttle2Provided()
 {
-  return throttle2 != 255;
+  return true;
 }
 
 /*
@@ -253,6 +348,11 @@ void ThrottleDetector::resetValues()
     throttle2Value = 0;
     throttle2Min = INT16_MAX;
     throttle2Max = 0;
+    
+    potentiometerCount = 1;
+    throttle1HighLow = false;
+    throttle2HighLow = false;
+    throttle2Inverse = false;
 }
 
 /*
@@ -261,10 +361,10 @@ void ThrottleDetector::resetValues()
  */
 void ThrottleDetector::readThrottleValues(bool discardValues = false)
 {
-    throttle1Value = getAnalog(throttle1);
+    throttle1Value = throttle->getRawThrottle1();
     if ( throttle2Provided() ) 
     {
-      throttle2Value = getAnalog(throttle2);
+      throttle2Value = throttle->getRawThrottle2();
     }
 
     if ( discardValues ) 
@@ -307,12 +407,11 @@ void ThrottleDetector::calibrate(bool minPedal)
   unsigned long time = millis();
   int count = 0;
   while ((millis() - time) < 3000) {
-	sys_io_adc_poll();
     readThrottleValues();
     
     // show progress
     if ( count++ >= 100 ) {
-      SerialUSB.print(".");
+      //SerialUSB.print(".");
       count= 0;
     }
     delay(10);
