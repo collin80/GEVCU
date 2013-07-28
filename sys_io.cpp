@@ -3,15 +3,35 @@
  *
  * Handles the low level details of system I/O
  *
- * Created: 03/14/2013
- *  Author: Collin Kidder
- *
- * some portions based on code credited as:
- * Arduino Due ADC->DMA->USB 1MSPS
- * by stimmer
- */ 
+Copyright (c) 2013 Collin Kidder, Michael Neuweiler, Charles Galpin
+
+Permission is hereby granted, free of charge, to any person obtaining
+a copy of this software and associated documentation files (the
+"Software"), to deal in the Software without restriction, including
+without limitation the rights to use, copy, modify, merge, publish,
+distribute, sublicense, and/or sell copies of the Software, and to
+permit persons to whom the Software is furnished to do so, subject to
+the following conditions:
+
+The above copyright notice and this permission notice shall be included
+in all copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
+MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.
+IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY
+CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT,
+TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
+SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+
+some portions based on code credited as:
+Arduino Due ADC->DMA->USB 1MSPS
+by stimmer
+
+*/ 
 
 #include "sys_io.h"
+#include "eeprom_layout.h"
 
 #undef HID_ENABLED
 
@@ -30,7 +50,7 @@ uint16_t adc_values[8];
 uint16_t adc_buffer[NUM_ANALOG][NUM_ADC_SAMPLES];
 uint8_t adc_pointer[NUM_ANALOG]; //pointer to next position to use
 
-extern PrefHandler sysPrefs;
+extern PrefHandler *sysPrefs;
 
 ADC_COMP adc_comp[NUM_ANALOG];
 
@@ -39,12 +59,15 @@ void setup_sys_io() {
   
 #ifndef RAWADC
   setupFastADC();
+#else
+  analogReadResolution(12);
 #endif
   
   //requires the value to be contiguous in memory
   for (i = 0; i < NUM_ANALOG; i++) {
-    sysPrefs.read(EESYS_ADC0_GAIN + 4*i, &adc_comp[i].gain);
-    sysPrefs.read(EESYS_ADC0_OFFSET + 4*i, &adc_comp[i].offset);
+    sysPrefs->read(EESYS_ADC0_GAIN + 4*i, &adc_comp[i].gain);
+    sysPrefs->read(EESYS_ADC0_OFFSET + 4*i, &adc_comp[i].offset);
+	//Logger::debug("ADC:%d GAIN: %d Offset: %d", i, adc_comp[i].gain, adc_comp[i].offset);
     for (int j = 0; j < NUM_ADC_SAMPLES; j++) adc_buffer[i][j] = 0;
     adc_pointer[i] = 0;
     //adc_comp[i].gain = 1024;
@@ -120,8 +143,6 @@ uint16_t getADCAvg(uint8_t which) {
 uint16_t getAnalog(uint8_t which) {
     uint16_t val;
 	
-    //analogResolution(12);
-	
     if (which >= NUM_ANALOG) which = 0;
 
 #ifndef RAWADC
@@ -157,12 +178,40 @@ boolean getOutput(uint8_t which) {
 	return digitalRead(out[which]);
 }
 
+/*
+When the ADC reads in the programmed # of readings it will do two things:
+1. It loads the next buffer and buffer size into current buffer and size
+2. It sends this interrupt
+This interrupt then loads the "next" fields with th proper values. This is 
+done with a four position buffer. In this way the ADC is constantly sampling
+*/
 void ADC_Handler(){     // move DMA pointers to next buffer
   int f=ADC->ADC_ISR;
   if (f & (1<<27)){ //receive counter end of buffer
-   bufn=(bufn+1)&3;
-   ADC->ADC_RNPR=(uint32_t)adc_buf[bufn];
-   ADC->ADC_RNCR=256;  
+    bufn=(bufn+1)&3;
+    adc_init(ADC, SystemCoreClock, ADC_FREQ_MAX, ADC_STARTUP_FAST);
+    ADC->ADC_MR = (1 << 7) //free running
+              + (1 << 8) //4x clock divider
+              + (1 << 20) //extra settling time, 5 counts
+              + (1 << 24) //2 adc periods tracking time
+              + (1 << 28);//5 clocks transfer time
+  
+    ADC->ADC_CHER=0xFF; //enable A0-A7
+
+    NVIC_EnableIRQ(ADC_IRQn);
+    ADC->ADC_IDR=~(1<<27); //dont disable the ADC interrupt for rx end
+    ADC->ADC_IER=1<<27; //do enable it
+    ADC->ADC_RPR=(uint32_t)adc_buf[bufn];   // DMA buffer
+    ADC->ADC_RCR=256; //# of samples to take
+    ADC->ADC_RNPR=(uint32_t)adc_buf[(bufn + 1) & 3]; // next DMA buffer
+    ADC->ADC_RNCR=256; //# of samples to take
+    ADC->ADC_PTCR=1; //enable dma mode
+    ADC->ADC_CR=2; //start conversions
+
+   //bufn=(bufn+1)&3;
+   //ADC->ADC_RNPR=(uint32_t)adc_buf[bufn];
+   //ADC->ADC_RNCR=256;  
+   
   } 
 }
 
@@ -186,21 +235,24 @@ void setupFastADC(){
   ADC->ADC_RCR=256; //# of samples to take
   ADC->ADC_RNPR=(uint32_t)adc_buf[1]; // next DMA buffer
   ADC->ADC_RNCR=256; //# of samples to take
-  bufn=obufn=1;
+  bufn=obufn=0;
   ADC->ADC_PTCR=1; //enable dma mode
   ADC->ADC_CR=2; //start conversions
+
+  Logger::debug("Fast ADC Mode Enabled");
 }
 
 //polls for the end of an adc conversion event. Then processe buffer to extract the averaged
 //value. It takes this value and averages it with the existing value in an 8 position buffer
 //which serves as a super fast place for other code to retrieve ADC values
+// This is only used when RAWADC is not defined
 void sys_io_adc_poll() {
-  uint32_t tempbuff[8] = {0,0,0,0,0,0,0,0}; //make sure its zero'd
 #ifndef RAWADC
+  uint32_t tempbuff[8] = {0,0,0,0,0,0,0,0}; //make sure its zero'd
   if (obufn != bufn) {
     //the eight enabled adcs are interleaved in the buffer
     //this is a somewhat unrolled for loop with no incrementer. it's odd but it works
-    for (int i = 0; i < 255;) {
+    for (int i = 0; i < 256;) {	   
        tempbuff[7] += adc_buf[obufn][i++];
        tempbuff[6] += adc_buf[obufn][i++];
        tempbuff[5] += adc_buf[obufn][i++];
@@ -209,13 +261,16 @@ void sys_io_adc_poll() {
        tempbuff[2] += adc_buf[obufn][i++];
        tempbuff[1] += adc_buf[obufn][i++];
        tempbuff[0] += adc_buf[obufn][i++];
-    }
- 
+    }	
+
+	//for (int i = 0; i < 256;i++) Logger::debug("%i - %i", i, adc_buf[obufn][i]);
+
     //now, all of the ADC values are summed over 32 readings. So, divide by 32 (shift by 5) to get the average
     //then add that to the old value we had stored and divide by two to average those. Lots of averaging going on.
     for (int j = 0; j < 8; j++) {
       adc_values[j] += (tempbuff[j] >> 5);
       adc_values[j] = adc_values[j] >> 1;
+	  //Logger::debug("A%i: %i", j, adc_values[j]);
     }
     obufn = bufn;    
   }

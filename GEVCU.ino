@@ -17,6 +17,28 @@
  The system automatically manages when to call the tick handlers and automatically filters canbus and sends frames to the devices.
  There is a facility to send data between devices by targetting a certain type of device. For instance, a motor controller
  can ask for any throttles and then retrieve the current throttle position from them.
+
+Copyright (c) 2013 Collin Kidder, Michael Neuweiler, Charles Galpin
+
+Permission is hereby granted, free of charge, to any person obtaining
+a copy of this software and associated documentation files (the
+"Software"), to deal in the Software without restriction, including
+without limitation the rights to use, copy, modify, merge, publish,
+distribute, sublicense, and/or sell copies of the Software, and to
+permit persons to whom the Software is furnished to do so, subject to
+the following conditions:
+
+The above copyright notice and this permission notice shall be included
+in all copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
+MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.
+IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY
+CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT,
+TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
+SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+
  */
 
 #include "GEVCU.h"
@@ -250,7 +272,9 @@ void printMenu() {
 	SerialUSB.println("L = output raw input values (toggle)");
 	SerialUSB.println("K = set all outputs high");
 	SerialUSB.println("J = set all outputs low");
-	SerialUSB.println("Y,U,I = test EEPROM routines");
+	SerialUSB.println("U,I = test EEPROM routines");
+	SerialUSB.println("A = dump system eeprom values");
+	SerialUSB.println("B = dump dmoc eeprom values");
 	SerialUSB.println("z = detect throttle min/max");
 	SerialUSB.println("Z = save detected throttle values");
 	SerialUSB.println("");
@@ -262,7 +286,10 @@ void loop() {
 	canHandlerCar->processInput();
 
 	if (SerialUSB.available())
-		serialEvent(); //due doesnt have interrupt driven serial yet
+		serialEvent(); //While serial is interrupt driven this function is not automatically called but must be called.
+
+	//this should still be here. It checks for a flag set during an interrupt
+	sys_io_adc_poll();
 }
 
 /*Single character interpreter of commands over
@@ -270,6 +297,7 @@ void loop() {
  */
 void serialEvent() {
 	int incoming;
+	uint8_t val;
 	static int state = 0;
 	DmocMotorController* dmoc = (DmocMotorController*) DeviceManager::getInstance()->getMotorController(); //TODO: direct reference to dmoc must be removed
 	incoming = SerialUSB.read();
@@ -344,13 +372,6 @@ void serialEvent() {
 			else
 				Logger::info("Cease raw throttle output");
 			break;
-		case 'Y':
-			Logger::info("Trying to save 0x45 to eeprom location 10");
-			uint8_t temp;
-			memCache->Write(10, (uint8_t) 0x45);
-			memCache->Read(10, &temp);
-			Logger::info("Got back value of %d", temp);
-			break;
 		case 'U':
 			Logger::info("Adding a sequence of values from 0 to 255 into eeprom");
 			for (int i = 0; i < 256; i++)
@@ -362,12 +383,26 @@ void serialEvent() {
 			break;
 		case 'I':
 			Logger::info("Retrieving data previously saved");
-			uint8_t val;
 			for (int i = 0; i < 256; i++) {
 				memCache->Read(1000 + i, &val);
 				Logger::info("%d: %d", i, val);
 			}
 			break;
+		case 'A':
+			Logger::info("Retrieving System EEPROM values");
+			for (int i = 0; i < 256; i++) {
+				memCache->Read(EE_SYSTEM_START + i, &val);
+				Logger::info("%d: %d", i, val);
+			}
+			break;
+		case 'B':
+			Logger::info("Retrieving DMOC EEPROM values");
+			for (int i = 0; i < 256; i++) {
+				memCache->Read(EE_MOTORCTL_START + i, &val);
+				Logger::info("%d: %d", i, val);
+			}
+			break;
+
 		case 'K': //set all outputs high
 			setOutput(0, true);
 			setOutput(1, true);

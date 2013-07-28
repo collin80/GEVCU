@@ -1,11 +1,30 @@
 /*
- * pref_handler.cpp
+ * PrefHandler.cpp
  *
  * Abstracts away the particulars of how preferences are stored.
  * Transparently supports main and "last known good" storage and retrieval
  *
- * Created: 03/24/2013
- *  Author: Collin Kidder
+Copyright (c) 2013 Collin Kidder, Michael Neuweiler, Charles Galpin
+
+Permission is hereby granted, free of charge, to any person obtaining
+a copy of this software and associated documentation files (the
+"Software"), to deal in the Software without restriction, including
+without limitation the rights to use, copy, modify, merge, publish,
+distribute, sublicense, and/or sell copies of the Software, and to
+permit persons to whom the Software is furnished to do so, subject to
+the following conditions:
+
+The above copyright notice and this permission notice shall be included
+in all copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
+MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.
+IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY
+CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT,
+TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
+SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+
  */ 
 
 #include "PrefHandler.h"
@@ -17,7 +36,10 @@ PrefHandler::PrefHandler() {
 
 PrefHandler::PrefHandler(uint32_t base) {
   base_address = base;
-  lkg_address = 0;
+  lkg_address = EE_MAIN_OFFSET;
+}
+
+PrefHandler::~PrefHandler() {
 }
 
 void PrefHandler::LKG_mode(bool mode) {
@@ -73,6 +95,7 @@ bool PrefHandler::checksumValid() {
   
   memCache->Read(EE_CHECKSUM + base_address + lkg_address, &stored_chk);
   calc_chk = calcChecksum();
+  Logger::debug("Stored Checksum: %i Calc: %i", stored_chk, calc_chk);
   
   return (stored_chk == calc_chk);
 }

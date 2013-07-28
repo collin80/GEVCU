@@ -4,8 +4,27 @@
  * Turn raw ADC readings into [-1000|1000] throttle output. Smooths throttle output
  * and properly handles both positive and negative travel pots
  *
- * Created: 1/13/2013 6:10:24 PM
- *  Author: Collin Kidder
+Copyright (c) 2013 Collin Kidder, Michael Neuweiler, Charles Galpin
+
+Permission is hereby granted, free of charge, to any person obtaining
+a copy of this software and associated documentation files (the
+"Software"), to deal in the Software without restriction, including
+without limitation the rights to use, copy, modify, merge, publish,
+distribute, sublicense, and/or sell copies of the Software, and to
+permit persons to whom the Software is furnished to do so, subject to
+the following conditions:
+
+The above copyright notice and this permission notice shall be included
+in all copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
+MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.
+IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY
+CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT,
+TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
+SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+
  */
 
 #include "config.h"
@@ -45,10 +64,10 @@ void PotThrottle::setup() {
 	 else { //checksum invalid. Reinitialize values and store to EEPROM
 	 */
 	//these four values are ADC values
-	throttleMin1 = 8;
-	throttleMax1 = 450;
-	throttleMin2 = 355;
-	throttleMax2 = 1800;
+	throttleMin1 = 180;
+	throttleMax1 = 930;
+	throttleMin2 = 360;
+	throttleMax2 = 1900;
 	//The next three are tenths of a percent
 	throttleRegen = 0;
 	throttleFwd = 175;
@@ -180,31 +199,15 @@ void PotThrottle::doAccel() {
 	 positive or negative travel doesn't matter and is covered by the calcThrottle functions
 	 */
 
-	if (throttleRegen != 0) {
-		if (ThrottleFeedback <= throttleRegen) {
-			range = throttleRegen;
-			temp = range - ThrottleFeedback;
-			level = (signed long) ((signed long) (-10) * throttleMaxRegen * temp / range);
-		}
-	}
-
-	if (ThrottleFeedback >= throttleFwd) {
-		if (ThrottleFeedback <= throttleMap) { //bottom 50% forward
-			range = throttleMap - throttleFwd;
-			temp = (ThrottleFeedback - throttleFwd);
-			level = (signed long) ((signed long) (500) * temp / range);
-		}
-		else { //more than throttleMap
-			range = 1000 - throttleMap;
-			temp = (ThrottleFeedback - throttleMap);
-			level = 500 + (signed int) ((signed long) (500) * temp / range);
-		}
-	}
+	mapThrottle(ThrottleFeedback);
 }
 
 //right now only the first throttle ADC port is used. Eventually the second one should be used to cross check so dumb things
 //don't happen. Also, right now values of ADC outside the proper range are just clamped to the proper range.
 void PotThrottle::handleTick() {
+
+	//Logger::debug("Pot Throttle HandleTick");
+
 	sys_io_adc_poll();
 
 	throttle1Val = getAnalog(throttle1ADC);
@@ -233,22 +236,6 @@ void PotThrottle::setT1Max(uint16_t max) {
 }
 void PotThrottle::setT2Max(uint16_t max) {
 	throttleMax2 = max;
-}
-
-void PotThrottle::setRegenEnd(uint16_t regen) {
-	throttleRegen = regen;
-}
-
-void PotThrottle::setFWDStart(uint16_t fwd) {
-	throttleFwd = fwd;
-}
-
-void PotThrottle::setMAP(uint16_t map) {
-	throttleMap = map;
-}
-
-void PotThrottle::setMaxRegen(uint16_t regen) {
-	throttleMaxRegen = regen;
 }
 
 Device::DeviceId PotThrottle::getId() {
