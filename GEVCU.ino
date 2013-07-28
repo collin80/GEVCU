@@ -176,6 +176,7 @@ void initializeDevices() {
 	Logger::info("add device: PotThrottle accelerator");
 	Throttle *accelerator = new PotThrottle(0, 1, true);//specify the shield ADC ports to use for throttle 255 = not used (valid only for second value)
 	accelerator->setup();
+        deviceManager->addDevice(accelerator);
 #endif
 #ifdef CFG_ENABLE_DEVICE_CAN_THROTTLE_ACCEL
 	Logger::info("add device: CanThrottle accelerator");
@@ -418,16 +419,16 @@ void serialEvent() {
 			Logger::info("all outputs: OFF");
 			break;
                 case 'y': // detect throttle min
-			accelerator->detectThrottleMin();
+			DeviceManager::getInstance()->getAccelerator()->detectThrottleMin();
 			break;
                 case 'Y': // detect throttle max
-			accelerator->detectThrottleMax();
+			DeviceManager::getInstance()->getAccelerator()->detectThrottleMax();
 			break;
 		case 'z': // detect throttle min/max & other details
-			accelerator->detectThrottle();
+			DeviceManager::getInstance()->getAccelerator()->detectThrottle();
 			break;
 		case 'Z': // save throttle settings
-                        accelerator->saveConfiguration();
+                        DeviceManager::getInstance()->getAccelerator()->saveConfiguration();
 			break;
 		}
 	}
