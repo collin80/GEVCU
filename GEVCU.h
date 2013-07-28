@@ -40,6 +40,7 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include "CanHandler.h"
 #include "MemCache.h"
 #include "ThrottleDetector.h"
+#include "DeviceManager.h"
 
 
 #ifdef __cplusplus

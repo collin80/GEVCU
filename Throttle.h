@@ -41,7 +41,7 @@ public:
 	Throttle(CanHandler *canHandler);
         ~Throttle();
 	Device::DeviceType getType();
-	virtual int getThrottle();
+	virtual int getLevel();
 	virtual int getRawThrottle1();
 	virtual int getRawThrottle2();
         void detectThrottle();

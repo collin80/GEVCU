@@ -52,15 +52,13 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 //RTC_clock rtc_clock(XTAL); //init RTC with the external 32k crystal as a reference
 
-Throttle *accelerator;
-Throttle *brake;
-MotorController* motorController; //generic motor controller - instantiate some derived class to fill this out
+//Evil, global variables
+ThrottleDetector *throttleDetector;
 PrefHandler *sysPrefs;
 CanHandler *canHandler0, *canHandler1;
 Heartbeat *heartbeat;
 MemCache *memCache;
 
-//Evil, global variables
 bool runRamp = false;
 bool runStatic = false;
 bool runThrottle = false;
@@ -164,38 +162,44 @@ void initSysEEPROM() {
 }
 
 void initializeDevices() {
+	DeviceManager *deviceManager = DeviceManager::getInstance();
+
 #ifdef CFG_ENABLE_DEVICE_HEARTBEAT
-	heartbeat = new Heartbeat();
 	Logger::info("add: Heartbeat");
+	heartbeat = new Heartbeat();
 	heartbeat->setup();
 #endif
 #ifdef CFG_ENABLE_DEVICE_POT_THROTTLE_ACCEL
 	//The pedal I have has two pots and one should be twice the value of the other normally (within tolerance)
 	//if min is less than max for a throttle then the pot goes low to high as pressed.
 	//if max is less than min for a throttle then the pot goes high to low as pressed.
-	accelerator = new PotThrottle(0, 1, true);//specify the shield ADC ports to use for throttle 255 = not used (valid only for second value)
 	Logger::info("add device: PotThrottle accelerator");
+	Throttle *accelerator = new PotThrottle(0, 1, true);//specify the shield ADC ports to use for throttle 255 = not used (valid only for second value)
 	accelerator->setup();
 #endif
 #ifdef CFG_ENABLE_DEVICE_CAN_THROTTLE_ACCEL
-	accelerator = new CanThrottle(canHandler1);
 	Logger::info("add device: CanThrottle accelerator");
+	Throttle *accelerator = new CanThrottle(canHandler1);
 	accelerator->setup();
+	deviceManager->addDevice(accelerator);
 #endif
 #ifdef CFG_ENABLE_DEVICE_POT_THROTTLE_BRAKE
-	brake = new PotThrottle(2, 255, false); //set up the brake input as the third ADC input from the shield.
 	Logger::info("add device: PotThrottle brake");
+	Throttle *brake = new PotThrottle(2, 255, false); //set up the brake input as the third ADC input from the shield.
 	brake->setup();
+	deviceManager->addDevice(brake);
 #endif
 #ifdef CFG_ENABLE_DEVICE_CAN_THROTTLE_BRAKE
-	brake = new CanThrottle();
 	Logger::info("add device: CanThrottle brake");
+	Throtle *brake = new CanThrottle();
 	brake->setup();
+	deviceManager->addDevice(brake);
 #endif
 #ifdef CFG_ENABLE_DEVICE_MOTORCTRL_DMOC_645
-	motorController = new DmocMotorController(canHandler0, accelerator, brake); //instantiate a DMOC645 device controller as our motor controller
 	Logger::info("add device: DMOC 645");
+	MotorController *motorController = new DmocMotorController(canHandler0); //instantiate a DMOC645 device controller as our motor controller
 	motorController->setup();
+	deviceManager->addDevice(motorController);
 #endif
 #ifdef CFG_ENABLE_DEVICE_MOTORCTRL_BRUSA_DMC5
 	Logger::info("add device: Brusa DMC5");
@@ -278,7 +282,7 @@ void loop() {
 
 	//TODO: Canhandlers should use interupts -> once they do, this can be removed
 	if (canHandler0->readFrame(message)) {
-		motorController->handleCanFrame(message);
+		DeviceManager::getInstance()->getMotorController()->handleCanFrame(message);
 	}
 
 	if (SerialUSB.available())
@@ -295,7 +299,7 @@ void serialEvent() {
 	int incoming;
 	uint8_t val;
 	static int state = 0;
-	DmocMotorController* dmoc = (DmocMotorController*) motorController; //TODO: direct reference to dmoc must be removed
+	DmocMotorController* dmoc = (DmocMotorController*) DeviceManager::getInstance()->getMotorController(); //TODO: direct reference to dmoc must be removed
 	incoming = SerialUSB.read();
 	if (incoming == -1)
 		return;
