@@ -30,7 +30,7 @@ class MotorController : public Device {
         GS_REVERSE,
         GS_FAULT
     };
-    MotorController(CanHandler *canHandler);
+    MotorController();
 	Device::DeviceType getType();
     virtual void setup();
     void handleTick();

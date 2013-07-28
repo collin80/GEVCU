@@ -1,9 +1,9 @@
 #ifndef DEVICEMGR_H_
 #define DEVICEMGR_H_
 
-#include "device.h"
+#include "Device.h"
 #include "config.h"
-#include "throttle.h"
+#include "Throttle.h"
 #include "MotorController.h"
 
 #define MSG_HARD_FAULT		0x2000; //something really bad happened. Shutdown to safe state IMMEDIATELY!
@@ -39,7 +39,7 @@ private:
 	Throttle *brake;
 	MotorController *motorController;
 
-	uint8_t findDevice(Device *device);
+	int8_t findDevice(Device *device);
 	uint8_t countDeviceType(Device::DeviceType deviceType);
 };
 

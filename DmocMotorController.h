@@ -17,6 +17,7 @@
 #include "MotorController.h"
 #include "sys_io.h"
 #include "TickHandler.h"
+#include "CanHandler.h"
 
 class DmocMotorController : public MotorController {
 public:
@@ -52,13 +53,13 @@ public:
   };
 
 public:
-  void handleCanFrame(CANFrame& frame);
+  void handleCanFrame(RX_CAN_FRAME& frame);
   void handleTick();
   void setup();
   void setOpState(OperationState op);
   void setGear(Gears gear);
 
-  DmocMotorController(CanHandler *canHandler);
+  DmocMotorController();
   Device::DeviceId getId();
   void setPowerMode(PowerMode mode);
   PowerMode getPowerMode();
@@ -78,7 +79,7 @@ private:
   void sendCmd3();
   void sendCmd4();
   void sendCmd5();
-  byte calcChecksum(CANFrame thisFrame);
+  byte calcChecksum(TX_CAN_FRAME thisFrame);
 
 };
 

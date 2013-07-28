@@ -32,9 +32,9 @@
 
 //Evil, global variables
 ThrottleDetector *throttleDetector;
+CanHandler *canHandlerEV;
+CanHandler *canHandlerCar;
 PrefHandler *sysPrefs;
-CanHandler *canHandler0, *canHandler1;
-Heartbeat *heartbeat;
 MemCache *memCache;
 
 bool runRamp = false;
@@ -144,7 +144,7 @@ void initializeDevices() {
 
 #ifdef CFG_ENABLE_DEVICE_HEARTBEAT
 	Logger::info("add: Heartbeat");
-	heartbeat = new Heartbeat();
+	Heartbeat *heartbeat = new Heartbeat();
 	heartbeat->setup();
 #endif
 #ifdef CFG_ENABLE_DEVICE_POT_THROTTLE_ACCEL
@@ -178,7 +178,7 @@ void initializeDevices() {
 #endif
 #ifdef CFG_ENABLE_DEVICE_MOTORCTRL_DMOC_645
 	Logger::info("add device: DMOC 645");
-	MotorController *motorController = new DmocMotorController(canHandler0); //instantiate a DMOC645 device controller as our motor controller
+	MotorController *motorController = new DmocMotorController(); //instantiate a DMOC645 device controller as our motor controller
 	motorController->setup();
 	deviceManager->addDevice(motorController);
 #endif
@@ -196,8 +196,10 @@ void setup() {
 	pinMode(BLINK_LED, OUTPUT);
 	digitalWrite(BLINK_LED, LOW);
 
-	canHandler0 = new CanHandler(0, CFG_CAN0_SPEED);
-	canHandler1 = new CanHandler(1, CFG_CAN1_SPEED);
+	canHandlerEV = CanHandler::getInstanceEV();
+	canHandlerCar = CanHandler::getInstanceCar();
+	canHandlerEV->initialize();
+	canHandlerCar->initialize();
 
 	Wire.begin();
 	Logger::info("TWI init ok");
@@ -255,12 +257,9 @@ void printMenu() {
 }
 
 void loop() {
-	static CANFrame message;
-
-	//TODO: Canhandlers should use interupts -> once they do, this can be removed
-	if (canHandler0->readFrame(message)) {
-		DeviceManager::getInstance()->getMotorController()->handleCanFrame(message);
-	}
+	// check if incoming frames are available in the can buffer and process them
+	canHandlerEV->processInput();
+	canHandlerCar->processInput();
 
 	if (SerialUSB.available())
 		serialEvent(); //due doesnt have interrupt driven serial yet

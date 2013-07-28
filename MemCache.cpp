@@ -9,7 +9,6 @@
 
 MemCache::MemCache()
 {
-	setup();
 }
 
 void MemCache::setup() {

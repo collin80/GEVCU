@@ -28,7 +28,7 @@
 
 extern bool runThrottle; //TODO: remove use of global variables !
 
-DmocMotorController::DmocMotorController(CanHandler *canHandler) : MotorController(canHandler) {
+DmocMotorController::DmocMotorController() : MotorController() {
 	step = SPEED_TORQUE;
 	selectedGear = NEUTRAL;
 	operationState = DISABLED;
@@ -47,7 +47,7 @@ DmocMotorController::DmocMotorController(CanHandler *canHandler) : MotorControll
  everything has gone according to plan.
  */
 
-void DmocMotorController::handleCanFrame(CANFrame& frame) {
+void DmocMotorController::handleCanFrame(RX_CAN_FRAME& frame) {
 	int RotorTemp, invTemp, StatorTemp;
 	int temp;
 	online = 1; //if a frame got to here then it passed the filter and must have been from the DMOC
@@ -153,7 +153,7 @@ void DmocMotorController::handleTick() {
 
 //Commanded RPM plus state of key and gear selector
 void DmocMotorController::sendCmd1() {
-	CANFrame output;
+	TX_CAN_FRAME output;
 	OperationState newstate;
 	alive = (alive + 2) & 0x0F;
 	output.dlc = 8;
@@ -190,12 +190,12 @@ void DmocMotorController::sendCmd1() {
 
 	output.data[7] = calcChecksum(output);
 
-	canHandler->sendFrame(5, output);
+	CanHandler::getInstanceEV()->sendFrame(5, output);
 }
 
 //Torque limits
 void DmocMotorController::sendCmd2() {
-	CANFrame output;
+	TX_CAN_FRAME output;
 	output.dlc = 8;
 	output.id = 0x233;
 	output.ide = 0; //standard frame
@@ -232,12 +232,12 @@ void DmocMotorController::sendCmd2() {
 	output.data[6] = alive;
 	output.data[7] = calcChecksum(output);
 
-	canHandler->sendFrame(6, output);
+	CanHandler::getInstanceEV()->sendFrame(6, output);
 }
 
 //Power limits plus setting ambient temp and whether to cool power train or go into limp mode
 void DmocMotorController::sendCmd3() {
-	CANFrame output;
+	TX_CAN_FRAME output;
 	output.dlc = 8;
 	output.id = 0x234;
 	output.ide = 0; //standard frame
@@ -251,12 +251,12 @@ void DmocMotorController::sendCmd3() {
 	output.data[6] = alive;
 	output.data[7] = calcChecksum(output);
 
-	canHandler->sendFrame(7, output);
+	CanHandler::getInstanceEV()->sendFrame(7, output);
 }
 
 //challenge/response frame 1 - Really doesn't contain anything we need I dont think
 void DmocMotorController::sendCmd4() {
-	CANFrame output;
+	TX_CAN_FRAME output;
 	output.dlc = 8;
 	output.id = 0x235;
 	output.ide = 0; //standard frame
@@ -270,12 +270,12 @@ void DmocMotorController::sendCmd4() {
 	output.data[6] = alive;
 	output.data[7] = calcChecksum(output);
 
-	canHandler->sendFrame(5, output);
+	CanHandler::getInstanceEV()->sendFrame(5, output);
 }
 
 //Another C/R frame but this one also specifies which shifter position we're in
 void DmocMotorController::sendCmd5() {
-	CANFrame output;
+	TX_CAN_FRAME output;
 	output.dlc = 8;
 	output.id = 0x236;
 	output.ide = 0; //standard frame
@@ -297,7 +297,7 @@ void DmocMotorController::sendCmd5() {
 	output.data[6] = alive;
 	output.data[7] = calcChecksum(output);
 
-	canHandler->sendFrame(6, output);
+	CanHandler::getInstanceEV()->sendFrame(6, output);
 }
 
 void DmocMotorController::setOpState(OperationState op) {
@@ -317,7 +317,7 @@ void DmocMotorController::setGear(Gears gear) {
 
 //this might look stupid. You might not believe this is real. It is. This is how you
 //calculate the checksum for the DMOC frames.
-byte DmocMotorController::calcChecksum(CANFrame thisFrame) {
+byte DmocMotorController::calcChecksum(TX_CAN_FRAME thisFrame) {
 	byte cs;
 	byte i;
 	cs = thisFrame.id;

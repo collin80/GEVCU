@@ -9,7 +9,7 @@
  
  #include "MotorController.h"
  
-MotorController::MotorController(CanHandler *canbus) : Device(canbus) {
+MotorController::MotorController() : Device() {
 	prefsHandler = new PrefHandler(EE_MOTORCTL_START);
 	faulted = false;
 	running = false;

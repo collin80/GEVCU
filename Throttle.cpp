@@ -13,10 +13,6 @@ Throttle::Throttle() : Device() {
 	prefsHandler = new PrefHandler(EE_THROTTLE_START);
 }
 
-Throttle::Throttle(CanHandler *canHandler) : Device(canHandler) {
-	prefsHandler = new PrefHandler(EE_THROTTLE_START);
-}
-
 Device::DeviceType Throttle::getType() {
 	return Device::DEVICE_THROTTLE;
 }

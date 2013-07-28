@@ -12,7 +12,6 @@
 #include "config.h"
 #include "Tickable.h"
 #include "eeprom_layout.h"
-#include "CanHandler.h"
 #include "PrefHandler.h"
 
 class Device: public Tickable {
@@ -38,16 +37,14 @@ public:
 		INVALID = 0xFFFF
 	};
 	Device();
-	Device(CanHandler *canHandler);
 	virtual void setup();
 	virtual void handleTick();
-	virtual void handleCanFrame(CANFrame& frame);
+	virtual void handleCanFrame(RX_CAN_FRAME& frame);
 	virtual void handleMessage(uint32_t msgType, void* message);
 	virtual DeviceType getType();
 	virtual DeviceId getId();
 
 protected:
-	CanHandler *canHandler;
 	PrefHandler *prefsHandler;
 
 private:

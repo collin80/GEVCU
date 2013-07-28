@@ -12,12 +12,11 @@
 
 #include <Arduino.h>
 #include "config.h"
-#include "device.h"
+#include "Device.h"
 
 class Throttle: public Device {
 public:
 	Throttle();
-	Throttle(CanHandler *canHandler);
 	Device::DeviceType getType();
 	virtual int getLevel();
 
