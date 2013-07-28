@@ -63,7 +63,7 @@ DeviceManager *DeviceManager::getInstance() {
  */
 void DeviceManager::addDevice(Device *device) {
 	if (findDevice(device) == -1) {
-		uint8_t i = findDevice(NULL);
+		int8_t i = findDevice(NULL);
 		if (i != -1) {
 			devices[i] = device;
 		} else {
@@ -87,7 +87,7 @@ void DeviceManager::addDevice(Device *device) {
  * Remove the specified device from the list of registered devices
  */
 void DeviceManager::removeDevice(Device *device) {
-	uint8_t i = findDevice(NULL);
+	int8_t i = findDevice(NULL);
 	if (i != -1)
 		devices[i] = NULL;
 	switch (device->getType()) {
@@ -170,7 +170,7 @@ MotorController *DeviceManager::getMotorController() {
  * Find the position of a device in the devices array
  * /retval the position of the device or -1 if not found.
  */
-uint8_t DeviceManager::findDevice(Device *device) {
+int8_t DeviceManager::findDevice(Device *device) {
 	for (int i = 0; i < CFG_DEV_MGR_MAX_DEVICES; i++) {
 		if (device == devices[i])
 			return i;

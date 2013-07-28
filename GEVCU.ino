@@ -54,9 +54,9 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 //Evil, global variables
 ThrottleDetector *throttleDetector;
+CanHandler *canHandlerEV;
+CanHandler *canHandlerCar;
 PrefHandler *sysPrefs;
-CanHandler *canHandler0, *canHandler1;
-Heartbeat *heartbeat;
 MemCache *memCache;
 
 bool runRamp = false;
@@ -166,7 +166,7 @@ void initializeDevices() {
 
 #ifdef CFG_ENABLE_DEVICE_HEARTBEAT
 	Logger::info("add: Heartbeat");
-	heartbeat = new Heartbeat();
+	Heartbeat *heartbeat = new Heartbeat();
 	heartbeat->setup();
 #endif
 #ifdef CFG_ENABLE_DEVICE_POT_THROTTLE_ACCEL
@@ -174,7 +174,7 @@ void initializeDevices() {
 	//if min is less than max for a throttle then the pot goes low to high as pressed.
 	//if max is less than min for a throttle then the pot goes high to low as pressed.
 	Logger::info("add device: PotThrottle accelerator");
-	Throttle *accelerator = new PotThrottle(0, 1, true);//specify the shield ADC ports to use for throttle 255 = not used (valid only for second value)
+	Throttle *accelerator = new PotThrottle(0, 1);//specify the shield ADC ports to use for throttle 255 = not used (valid only for second value)
 	accelerator->setup();
 	deviceManager->addDevice(accelerator);
 	// Detect/calibrate the throttle. Give it both throttle pins and it can tell if it's a single or double pot
@@ -188,7 +188,7 @@ void initializeDevices() {
 #endif
 #ifdef CFG_ENABLE_DEVICE_POT_THROTTLE_BRAKE
 	Logger::info("add device: PotThrottle brake");
-	Throttle *brake = new PotThrottle(2, 255, false); //set up the brake input as the third ADC input from the shield.
+	Throttle *brake = new PotBrake(2, 255); //set up the brake input as the third ADC input from the shield.
 	brake->setup();
 	deviceManager->addDevice(brake);
 #endif
@@ -200,7 +200,7 @@ void initializeDevices() {
 #endif
 #ifdef CFG_ENABLE_DEVICE_MOTORCTRL_DMOC_645
 	Logger::info("add device: DMOC 645");
-	MotorController *motorController = new DmocMotorController(canHandler0); //instantiate a DMOC645 device controller as our motor controller
+	MotorController *motorController = new DmocMotorController(); //instantiate a DMOC645 device controller as our motor controller
 	motorController->setup();
 	deviceManager->addDevice(motorController);
 #endif
@@ -218,8 +218,10 @@ void setup() {
 	pinMode(BLINK_LED, OUTPUT);
 	digitalWrite(BLINK_LED, LOW);
 
-	canHandler0 = new CanHandler(0, CFG_CAN0_SPEED);
-	canHandler1 = new CanHandler(1, CFG_CAN1_SPEED);
+	canHandlerEV = CanHandler::getInstanceEV();
+	canHandlerCar = CanHandler::getInstanceCar();
+	canHandlerEV->initialize();
+	canHandlerCar->initialize();
 
 	Wire.begin();
 	Logger::info("TWI init ok");
@@ -279,12 +281,9 @@ void printMenu() {
 }
 
 void loop() {
-	static CANFrame message;
-
-	//TODO: Canhandlers should use interupts -> once they do, this can be removed
-	if (canHandler0->readFrame(message)) {
-		DeviceManager::getInstance()->getMotorController()->handleCanFrame(message);
-	}
+	// check if incoming frames are available in the can buffer and process them
+	canHandlerEV->processInput();
+	canHandlerCar->processInput();
 
 	if (SerialUSB.available())
 		serialEvent(); //While serial is interrupt driven this function is not automatically called but must be called.

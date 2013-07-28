@@ -62,7 +62,7 @@ private:
 	Throttle *brake;
 	MotorController *motorController;
 
-	uint8_t findDevice(Device *device);
+	int8_t findDevice(Device *device);
 	uint8_t countDeviceType(Device::DeviceType deviceType);
 };
 

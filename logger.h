@@ -1,5 +1,5 @@
 /*
- * GEVCU.h
+ * Logger.h
  *
 Copyright (c) 2013 Collin Kidder, Michael Neuweiler, Charles Galpin
 
@@ -24,38 +24,25 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
  */
 
-#ifndef GEVCU_H_
-#define GEVCU_H_
+#ifndef LOGGER_H_
+#define LOGGER_H_
 
 #include <Arduino.h>
 #include "config.h"
-#include "Throttle.h"
-#include "CanThrottle.h"
-#include "PotThrottle.h"
-#include "PotBrake.h"
-#include "Device.h"
-#include "MotorController.h"
-#include "DmocMotorController.h"
-#include "Heartbeat.h"
-#include "sys_io.h"
-#include "CanHandler.h"
-#include "MemCache.h"
-#include "ThrottleDetector.h"
-#include "DeviceManager.h"
 
+class Logger {
+public:
+	enum LogLevel {
+		Debug, Info, Warn, Error
+	};
+	static void debug(char *, ...);
+	static void info(char *, ...);
+	static void warn(char *, ...);
+	static void error(char *, ...);
+	static void setLoglevel(LogLevel);
+	static LogLevel getLogLevel();
+private:
+	static void log(LogLevel, char[], va_list);
+};
 
-#ifdef __cplusplus
-extern "C" {
-#endif
-void loop();
-void setup();
-#ifdef __cplusplus
-} // extern "C"
-#endif
-
-#define SYSTEM_DUE        20
-
-void printMenu();
-void serialEvent();
-
-#endif /* GEVCU_H_ */
+#endif /* LOGGER_H_ */
