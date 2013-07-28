@@ -56,22 +56,18 @@ public:
 	void setT2Max(uint16_t max);
 	int getRawThrottle1();
 	int getRawThrottle2();
-	PotThrottle(uint8_t throttle1, uint8_t throttle2, bool isAccel);
+	PotThrottle(uint8_t throttle1, uint8_t throttle2);
 	Device::DeviceId getId();
-	Device::DeviceType getType();
 
 private:
 	uint16_t throttleMin1, throttleMax1, throttleMin2, throttleMax2; //Values for when the pedal is at its min and max for each throttle input
-	uint16_t brakeMin, brakeMax;
 	uint16_t throttle1Val, throttle2Val;
 	uint8_t throttle1ADC, throttle2ADC; //which ADC pin each are on
 	int numThrottlePots; //whether there are one or two pots. Should support three as well since some pedals really do have that many
 	byte throttleMaxErr;
-	bool isAccelerator; //is this throttle for an accelerator or a brake? defaults to accelerator
 	ThrottleStatus throttleStatus;
 	int calcThrottle(int, int, int);
 	void doAccel();
-	void doBrake();
 };
 
-#endif /* PEDAL_POT_H_ */
+#endif /* POT_THROTTLE_H_ */

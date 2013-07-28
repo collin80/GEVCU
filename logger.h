@@ -1,5 +1,5 @@
 /*
- * Device.cpp
+ * Logger.h
  *
 Copyright (c) 2013 Collin Kidder, Michael Neuweiler, Charles Galpin
 
@@ -24,33 +24,25 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
  */
 
-#include "Device.h"
+#ifndef LOGGER_H_
+#define LOGGER_H_
 
-Device::Device() {
-}
+#include <Arduino.h>
+#include "config.h"
 
-//Empty functions to handle these callbacks if the derived classes don't
+class Logger {
+public:
+	enum LogLevel {
+		Debug, Info, Warn, Error
+	};
+	static void debug(char *, ...);
+	static void info(char *, ...);
+	static void warn(char *, ...);
+	static void error(char *, ...);
+	static void setLoglevel(LogLevel);
+	static LogLevel getLogLevel();
+private:
+	static void log(LogLevel, char[], va_list);
+};
 
-void Device::setup() {
-
-}
-
-void Device::handleTick() {
-
-}
-
-void Device::handleCanFrame(RX_CAN_FRAME& frame) {
-
-}
-
-void Device::handleMessage(uint32_t msgType, void* message) {
-
-}
-
-Device::DeviceType Device::getType() {
-	return DEVICE_NONE;
-}
-
-Device::DeviceId Device::getId() {
-	return INVALID;
-}
+#endif /* LOGGER_H_ */

@@ -31,10 +31,6 @@ Throttle::Throttle() : Device() {
 	prefsHandler = new PrefHandler(EE_THROTTLE_START);
 }
 
-Throttle::Throttle(CanHandler *canHandler) : Device(canHandler) {
-	prefsHandler = new PrefHandler(EE_THROTTLE_START);
-}
-
 Throttle::~Throttle() {
 }
 
@@ -43,7 +39,7 @@ Device::DeviceType Throttle::getType() {
 }
 
 int Throttle::getLevel() {
-	return outputThrottle;
+	return level;
 }
 
 //Give default versions that return 0. Override in a child class if you implement the throttle
