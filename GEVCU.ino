@@ -177,8 +177,8 @@ void initializeDevices() {
 	Throttle *accelerator = new PotThrottle(0, 1, true);//specify the shield ADC ports to use for throttle 255 = not used (valid only for second value)
 	accelerator->setup();
 	deviceManager->addDevice(accelerator);
-	// Detect/calibrate the throttle. Give it both throttle pins and it can tell if it's a single or double pot
-	throttleDetector = new ThrottleDetector(0, 1);
+	// Detect/calibrate the throttle. 
+	throttleDetector = new ThrottleDetector(accelerator);
 #endif
 #ifdef CFG_ENABLE_DEVICE_CAN_THROTTLE_ACCEL
 	Logger::info("add device: CanThrottle accelerator");
@@ -303,6 +303,7 @@ void serialEvent() {
 	uint8_t val;
 	static int state = 0;
 	DmocMotorController* dmoc = (DmocMotorController*) DeviceManager::getInstance()->getMotorController(); //TODO: direct reference to dmoc must be removed
+	PotThrottle* accelerator = (PotThrottle*) DeviceManager::getInstance()->getAccelerator();
 	incoming = SerialUSB.read();
 	if (incoming == -1)
 		return;
