@@ -32,14 +32,15 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #define THROTTLE_DETECTOR_H_
 
 #include <Arduino.h>
+#include "Throttle.h"
 
 class ThrottleDetector {
 
     public:
-        ThrottleDetector(uint8_t throttle1, uint8_t throttle2);
-        void setThrottle1(uint8_t throttle);
-        void setThrottle2(uint8_t throttle);
+        ThrottleDetector(Throttle *throttle);
         void detect();
+        void detectMin();
+        void detectMax();
         int getPotentiometerCount();
         bool isThrottle1HighLow();
         bool isThrottle2HighLow();
@@ -55,9 +56,8 @@ class ThrottleDetector {
         void readThrottleValues(bool discardValues);
         void calibrate(bool minPedal);
         bool throttle2Provided();
+        Throttle *throttle;
         int potentiometerCount;
-        uint8_t throttle1;
-        uint8_t throttle2;
         uint16_t throttle1Value;
         uint16_t throttle1Min;
         uint16_t throttle1Max;

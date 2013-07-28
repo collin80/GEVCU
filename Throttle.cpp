@@ -26,16 +26,23 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */ 
  
 #include "Throttle.h" 
+#include "ThrottleDetector.h"
  
 Throttle::Throttle() : Device() {
 	prefsHandler = new PrefHandler(EE_THROTTLE_START);
+        throttleDetector = NULL;
 }
 
 Throttle::Throttle(CanHandler *canHandler) : Device(canHandler) {
 	prefsHandler = new PrefHandler(EE_THROTTLE_START);
+        throttleDetector = NULL;
 }
 
 Throttle::~Throttle() {
+  if ( throttleDetector != NULL ) {
+    delete throttleDetector;
+    throttleDetector = NULL;
+  }
 }
 
 Device::DeviceType Throttle::getType() {
@@ -109,6 +116,46 @@ void Throttle::setMAP(uint16_t map) {
 
 void Throttle::setMaxRegen(uint16_t regen) {
 	throttleMaxRegen = regen;
+}
+
+void Throttle::detectThrottle() {
+  //TickHandler::remove(this); // unregister from TickHandler first
+  if ( throttleDetector == NULL ) {
+    throttleDetector = new ThrottleDetector(this);
+  }
+  throttleDetector->detect();
+  //TickHandler::add(this, CFG_TICK_INTERVAL_POT_THROTTLE);
+}
+
+void Throttle::detectThrottleMin() {
+  //TickHandler::remove(this); // unregister from TickHandler first
+  if ( throttleDetector == NULL ) {
+    throttleDetector = new ThrottleDetector(this);
+  }
+  throttleDetector->detectMin();
+  //TickHandler::add(this, CFG_TICK_INTERVAL_POT_THROTTLE);
+}
+
+void Throttle::detectThrottleMax() {
+  //TickHandler::remove(this); // unregister from TickHandler first
+  if ( throttleDetector == NULL ) {
+    throttleDetector = new ThrottleDetector(this);
+  }
+  throttleDetector->detectMax();
+  //TickHandler::add(this, CFG_TICK_INTERVAL_POT_THROTTLE);
+}
+
+void Throttle::saveConfiguration() {
+  Logger::info("Saving throttle settings");
+  TickHandler::remove(this); // unregister from TickHandler first
+  prefsHandler->write(EETH_MIN_ONE, throttleDetector->getThrottle1Min());
+  prefsHandler->write(EETH_MAX_ONE, throttleDetector->getThrottle1Max());
+  if ( throttleDetector->getPotentiometerCount() > 1 ) {
+	prefsHandler->write(EETH_MIN_TWO, throttleDetector->getThrottle2Min());
+	prefsHandler->write(EETH_MAX_TWO, throttleDetector->getThrottle2Max());
+  }
+  prefsHandler->saveChecksum();
+  TickHandler::add(this, CFG_TICK_INTERVAL_POT_THROTTLE);
 }
 
 //TODO: need to plant this in here somehow..

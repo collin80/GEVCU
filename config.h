@@ -35,7 +35,7 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 #include <due_can.h>
 
-#define CFG_VERSION "GEVCU alpha 2013-07-23"
+#define CFG_VERSION "GEVCU alpha 2013-07-26"
 #define CFG_SERIAL_SPEED 115200
 
 #define SerialUSB Serial // re-route serial-usb output to programming port ;) comment if output should go to std usb

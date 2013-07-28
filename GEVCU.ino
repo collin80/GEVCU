@@ -273,7 +273,9 @@ void printMenu() {
 	SerialUSB.println("U,I = test EEPROM routines");
 	SerialUSB.println("A = dump system eeprom values");
 	SerialUSB.println("B = dump dmoc eeprom values");
-	SerialUSB.println("z = detect throttle min/max");
+	SerialUSB.println("y = detect throttle min");
+        SerialUSB.println("Y = detect throttle max");
+        SerialUSB.println("z = detect throttle min/max  and other values");
 	SerialUSB.println("Z = save detected throttle values");
 	SerialUSB.println("");
 }
@@ -418,22 +420,17 @@ void serialEvent() {
 			setOutput(3, false);
 			Logger::info("all outputs: OFF");
 			break;
-		case 'z': // detect throttle min/max
-			throttleDetector->detect();
+                case 'y': // detect throttle min
+			accelerator->detectThrottleMin();
 			break;
-		case 'Z': // detect throttle min/max
-			Logger::info("Saving throttle min/max");
-			/*
-			 // TODO:
-			 // need to get the throttle prefs of change the offset to EE_THROTTLE_START
-			 sysPrefs->write(EETH_MIN_ONE, throttleDetector->getThrottle1Min());
-			 sysPrefs->write(EETH_MAX_ONE, throttleDetector->getThrottle1Max());
-			 if ( throttleDetector->getPotentiometerCount() > 1 ) {
-			 sysPrefs->write(EETH_MIN_TWO, throttleDetector->getThrottle2Min());
-			 sysPrefs->write(EETH_MAX_TWO, throttleDetector->getThrottle2Max());
-			 }
-			 sysPrefs->saveChecksum();
-			 */
+                case 'Y': // detect throttle max
+			accelerator->detectThrottleMax();
+			break;
+		case 'z': // detect throttle min/max & other details
+			accelerator->detectThrottle();
+			break;
+		case 'Z': // save throttle settings
+                        accelerator->saveConfiguration();
 			break;
 		}
 	}
