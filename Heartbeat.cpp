@@ -42,7 +42,12 @@ void Heartbeat::setup() {
 }
 
 void Heartbeat::handleTick() {
-	SerialUSB.print('.');
+        // Print a dot if no other output has been made since the last tick
+        if ( Logger::getLastLogTime() < lastTickTime ) {
+	        SerialUSB.print('.');
+        }
+        lastTickTime = millis();
+        
 	if (led) {
 		digitalWrite(BLINK_LED, HIGH);
 	} else {

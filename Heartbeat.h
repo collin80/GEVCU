@@ -40,6 +40,7 @@ protected:
 
 private:
 	bool led;
+        unsigned long lastTickTime;
 };
 
 #endif /* HEARTBEAT_H_ */
