@@ -109,7 +109,7 @@ void DeviceManager::removeDevice(Device *device) {
  //immediately necessary
  */
 void DeviceManager::addTickHandler(Device *newdevice, uint32_t freq)
-		{
+{
 }
 
 /*Add a new filter that sends frames through to the device. There definitely has
@@ -118,7 +118,7 @@ void DeviceManager::addTickHandler(Device *newdevice, uint32_t freq)
  CAN0 or CAN1.
  */
 void DeviceManager::addCanHandler(Device *newdevice, uint32_t mask, uint32_t id, bool ext, uint8_t canbus)
-		{
+{
 }
 
 /*

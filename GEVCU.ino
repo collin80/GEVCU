@@ -4,14 +4,6 @@
  Created: 1/4/2013 1:34:14 PM
  Author: Collin Kidder
  
- New plan of attack:
- For ease of development and to keep the code simple, devices supported are broken into categories (motor controller,
- bms, charger, display, misc). The number of supported devices is hard coded. That is, there can be one motor controller. It can
- be any motor controller but there is no support for two. The exception is misc which can have three devices. All hardware
- is to be subclassed from the proper master parent class for that form of hardware. That is, a motor controller will derive
- from the base motor controller class. This allows a standard interface, defined by that base class, to be used to access
- any hardware of that category.
-
  New, new plan: Allow for an arbitrary # of devices that can have both tick and canbus handlers. These devices register themselves
  into the handler framework and specify which sort of device they are. They can have custom tick intervals and custom can filters.
  The system automatically manages when to call the tick handlers and automatically filters canbus and sends frames to the devices.

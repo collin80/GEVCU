@@ -209,7 +209,7 @@ void DmocMotorController::sendCmd1() {
 
 	output.data[7] = calcChecksum(output);
 
-	CanHandler::getInstanceEV()->sendFrame(5, output);
+	CanHandler::getInstanceEV()->sendFrame(output);
 }
 
 //Torque limits
@@ -251,7 +251,7 @@ void DmocMotorController::sendCmd2() {
 	output.data[6] = alive;
 	output.data[7] = calcChecksum(output);
 
-	CanHandler::getInstanceEV()->sendFrame(6, output);
+	CanHandler::getInstanceEV()->sendFrame(output);
 }
 
 //Power limits plus setting ambient temp and whether to cool power train or go into limp mode
@@ -270,7 +270,7 @@ void DmocMotorController::sendCmd3() {
 	output.data[6] = alive;
 	output.data[7] = calcChecksum(output);
 
-	CanHandler::getInstanceEV()->sendFrame(7, output);
+	CanHandler::getInstanceEV()->sendFrame(output);
 }
 
 //challenge/response frame 1 - Really doesn't contain anything we need I dont think
@@ -289,7 +289,7 @@ void DmocMotorController::sendCmd4() {
 	output.data[6] = alive;
 	output.data[7] = calcChecksum(output);
 
-	CanHandler::getInstanceEV()->sendFrame(5, output);
+	CanHandler::getInstanceEV()->sendFrame(output);
 }
 
 //Another C/R frame but this one also specifies which shifter position we're in
@@ -316,7 +316,7 @@ void DmocMotorController::sendCmd5() {
 	output.data[6] = alive;
 	output.data[7] = calcChecksum(output);
 
-	CanHandler::getInstanceEV()->sendFrame(6, output);
+	CanHandler::getInstanceEV()->sendFrame(output);
 }
 
 void DmocMotorController::setOpState(OperationState op) {
