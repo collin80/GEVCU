@@ -1,5 +1,5 @@
 /*
- * HeartbeatDevice.c
+ * Heartbeat.c
  *
 Copyright (c) 2013 Collin Kidder, Michael Neuweiler, Charles Galpin
 

@@ -1,5 +1,5 @@
 /*
- * dmoc.c
+ * DmocMotorController.cpp
  *
  * Interface to the DMOC - Handles sending of commands and reception of status frames
  *

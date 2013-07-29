@@ -1,4 +1,6 @@
 /*
+ * DeviceManager.h
+ *
 Copyright (c) 2013 Collin Kidder, Michael Neuweiler, Charles Galpin
 
 Permission is hereby granted, free of charge, to any person obtaining

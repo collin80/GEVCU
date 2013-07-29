@@ -1,4 +1,6 @@
 /*
+ * DeviceManager.cpp
+ *
  The device manager keeps a list of all devices which are installed into the system.
  Anything that needs either a tick handler, a canbus handler, or to communicate to other
  devices on the system must be registered with the manager. The manager then handles

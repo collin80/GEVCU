@@ -88,4 +88,4 @@ Device::DeviceId CanThrottle::getDeviceID() {
 	return CANACCELPEDAL;
 }
 
-#endif //CFG_ENABLE_DEVICE_CAN_THROTTLE
+#endif // CFG_ENABLE_DEVICE_CAN_THROTTLE_ACCEL

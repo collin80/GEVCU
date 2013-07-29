@@ -138,5 +138,5 @@ bool CanHandler::sendFrame(uint8_t mailbox, TX_CAN_FRAME& frame) {
 }
 
 bool CanHandler::sendFrame(TX_CAN_FRAME& frame) {
-	sendFrame(5, frame);
+	return sendFrame(5, frame);
 }
