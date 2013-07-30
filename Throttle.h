@@ -38,8 +38,7 @@ class ThrottleDetector; // avoid circular dependency by declaring it here
 class Throttle: public Device {
 public:
 	Throttle();
-	Throttle(CanHandler *canHandler);
-        ~Throttle();
+	~Throttle();
 	Device::DeviceType getType();
 	virtual int getLevel();
 	virtual int getRawThrottle1();
@@ -56,7 +55,7 @@ public:
 
 
 protected:
-	signed int outputThrottle; //the final signed throttle. [-1000, 1000] in tenths of a percent of maximum
+	signed int level; //the final signed throttle level. [-1000, 1000] in tenths of a percent of maximum
 	uint16_t throttleRegen, throttleFwd, throttleMap; //Value at which regen finishes, forward motion starts, and the mid point of throttle
 	uint16_t throttleMaxRegen; //Percentage of max torque allowable for regen
 	uint16_t brakeMaxRegen; //percentage of max torque allowable for regen at brake pedal

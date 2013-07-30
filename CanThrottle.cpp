@@ -25,10 +25,10 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
 #include "config.h"
-#if defined(CFG_ENABLE_DEVICE_CAN_THROTTLE_ACCEL) || defined(CFG_ENABLE_DEVICE_CAN_THROTTLE_BRAKE)
+#ifdef CFG_ENABLE_DEVICE_CAN_THROTTLE_ACCEL
 #include "CanThrottle.h"
 
-CanThrottle::CanThrottle(CanHandler *canHandler) : Throttle() {
+CanThrottle::CanThrottle() : Throttle() {
 	//Initialize mailbox 0 to receive messages from the ECU Id
 //	CAN.mailbox_init(0);
 //	CAN.mailbox_set_mode(0, CAN_MB_RX_MODE);
@@ -67,11 +67,6 @@ void CanThrottle::handleTick()
 //	CAN.global_send_transfer_cmd(CAN_TCR_MB1);
 }
 
-int CanThrottle::getThrottle()
-{
-	return 0; //TODO:
-}
-
 /*
  * Handle the response of the ECU. Log the data and convert the response
  * value to a percentage to display on the LCD.
@@ -89,8 +84,7 @@ int CanThrottle::getThrottle()
 //	}
 //}
 
-Device::DeviceId CanThrottle::getDeviceID()
-{
+Device::DeviceId CanThrottle::getDeviceID() {
 	return CANACCELPEDAL;
 }
 

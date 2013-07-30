@@ -32,6 +32,7 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include "Throttle.h"
 #include "CanThrottle.h"
 #include "PotThrottle.h"
+#include "PotBrake.h"
 #include "Device.h"
 #include "MotorController.h"
 #include "DmocMotorController.h"

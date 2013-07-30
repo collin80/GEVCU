@@ -28,7 +28,6 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 MemCache::MemCache()
 {
-	setup();
 }
 
 void MemCache::setup() {

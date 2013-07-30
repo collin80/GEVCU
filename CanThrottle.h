@@ -39,14 +39,12 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 class CanThrottle: public Throttle {
 public:
-	CanThrottle(CanHandler *canHandler);
+	CanThrottle();
 	void setup();
 	void handleTick();
 	Device::DeviceId getId();
-	int getLevel();
 
 protected:
-	signed int outputThrottle; //the final signed throttle. [-1000, 1000] in tenths of a percent of maximum
 
 private:
 	uint32_t lastRequestTime;

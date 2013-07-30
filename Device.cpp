@@ -27,11 +27,6 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include "Device.h"
 
 Device::Device() {
-	this->canHandler = NULL;
-}
-
-Device::Device(CanHandler* canHandler) {
-	this->canHandler = canHandler;
 }
 
 //Empty functions to handle these callbacks if the derived classes don't
@@ -44,7 +39,7 @@ void Device::handleTick() {
 
 }
 
-void Device::handleCanFrame(CANFrame& frame) {
+void Device::handleCanFrame(RX_CAN_FRAME& frame) {
 
 }
 
