@@ -40,6 +40,9 @@ CanHandler::CanHandler(CanBusNode canBusNode) {
 		bus = &CAN2;
 	else
 		bus = &CAN;
+
+	for (int i; i < CFG_CAN_NUM_OBSERVERS; i++)
+		observers[i] = NULL;
 }
 
 CanHandler* CanHandler::getInstanceEV()
