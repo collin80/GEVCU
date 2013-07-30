@@ -39,10 +39,6 @@ void Device::handleTick() {
 
 }
 
-void Device::handleCanFrame(RX_CAN_FRAME& frame) {
-
-}
-
 void Device::handleMessage(uint32_t msgType, void* message) {
 
 }

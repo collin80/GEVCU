@@ -56,8 +56,6 @@ public:
 	void sendFrame(TX_CAN_FRAME& frame);
 	static CanHandler *getInstanceCar();
 	static CanHandler *getInstanceEV();
-
-	void setFilter(uint8_t mailbox, uint32_t acceptMask, uint32_t id, bool extended);
 protected:
 
 private:

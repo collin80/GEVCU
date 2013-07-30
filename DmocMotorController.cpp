@@ -66,15 +66,15 @@ DmocMotorController::DmocMotorController() : MotorController() {
  everything has gone according to plan.
  */
 
-void DmocMotorController::handleCanFrame(RX_CAN_FRAME& frame) {
+void DmocMotorController::handleCanFrame(RX_CAN_FRAME *frame) {
 	int RotorTemp, invTemp, StatorTemp;
 	int temp;
 	online = 1; //if a frame got to here then it passed the filter and must have been from the DMOC
-	switch (frame.id) {
+	switch (frame->id) {
 	case 0x651: //Temperature status
-		RotorTemp = frame.data[0];
-		invTemp = frame.data[1];
-		StatorTemp = frame.data[2];
+		RotorTemp = frame->data[0];
+		invTemp = frame->data[1];
+		StatorTemp = frame->data[2];
 		inverterTemp = invTemp * 10;
 		//now pick highest of motor temps and report it
 		if (RotorTemp > StatorTemp) {
@@ -85,11 +85,11 @@ void DmocMotorController::handleCanFrame(RX_CAN_FRAME& frame) {
 		}
 		break;
 	case 0x23A: //torque report
-		actualTorque = ((frame.data[0] * 256) + frame.data[1]) - 30000;
+		actualTorque = ((frame->data[0] * 256) + frame->data[1]) - 30000;
 		break;
 	case 0x23B: //speed and current operation status
-		actualRPM = ((frame.data[0] * 256) + frame.data[1]) - 20000;
-		temp = (OperationState) (frame.data[6] >> 4);
+		actualRPM = ((frame->data[0] * 256) + frame->data[1]) - 20000;
+		temp = (OperationState) (frame->data[6] >> 4);
 		//actually, the above is an operation status report which doesn't correspond
 		//to the state enum so translate here.
 		switch (temp) {
@@ -127,14 +127,14 @@ void DmocMotorController::handleCanFrame(RX_CAN_FRAME& frame) {
 }
 
 void DmocMotorController::setup() {
-	TickHandler::remove(this);
+	TickHandler::getInstance()->detach(this);
 	MotorController::setup(); // run the parent class version of this function
 
 	// register ourselves as observer of 0x23x and 0x65x can frames
 	CanHandler::getInstanceEV()->attach(this, 0x230, 0x7ff, false);
 	CanHandler::getInstanceEV()->attach(this, 0x650, 0x7ff, false);
 
-	TickHandler::add(this, CFG_TICK_INTERVAL_MOTOR_CONTROLLER);
+	TickHandler::getInstance()->attach(this, CFG_TICK_INTERVAL_MOTOR_CONTROLLER);
 }
 
 /*Do note that the DMOC expects all three command frames and it expect them to happen at least twice a second. So, probably it'd be ok to essentially

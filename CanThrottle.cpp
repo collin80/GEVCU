@@ -25,7 +25,7 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
 #include "config.h"
-#ifdef CFG_ENABLE_DEVICE_CAN_THROTTLE_ACCEL
+#ifdef CFG_ENABLE_DEVICE_CAN_THROTTLE
 #include "CanThrottle.h"
 
 CanThrottle::CanThrottle() : Throttle() {
@@ -88,4 +88,4 @@ Device::DeviceId CanThrottle::getDeviceID() {
 	return CANACCELPEDAL;
 }
 
-#endif // CFG_ENABLE_DEVICE_CAN_THROTTLE_ACCEL
+#endif // CFG_ENABLE_DEVICE_CAN_THROTTLE

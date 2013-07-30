@@ -31,17 +31,19 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include "config.h"
 #include "Throttle.h"
 #include "TickHandler.h"
+#include "CanHandler.h"
 
 #define CAN_THROTTLE_REQUEST_ID 0x7e0  // the can bus id of the throttle level request
 #define CAN_THROTTLE_RESPONSE_ID 0x7e8 // the can bus id of the throttle level response
 #define CAN_THROTTLE_DATA_BYTE 4 // the number of the data byte containing the throttle level
 #define CAN_THROTTLE_REQUEST_DELAY 200 // milliseconds to wait between sending throttle requests
 
-class CanThrottle: public Throttle {
+class CanThrottle: public Throttle, CanObserver {
 public:
 	CanThrottle();
 	void setup();
 	void handleTick();
+	void handleCanFrame(RX_CAN_FRAME *frame);
 	Device::DeviceId getId();
 
 protected:

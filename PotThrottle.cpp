@@ -25,7 +25,7 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
 #include "config.h"
-#ifdef CFG_ENABLE_DEVICE_POT_THROTTLE_ACCEL
+#ifdef CFG_ENABLE_DEVICE_POT_THROTTLE
 #include "PotThrottle.h"
 #include "Logger.h"
 
@@ -43,7 +43,7 @@ PotThrottle::PotThrottle(uint8_t throttle1, uint8_t throttle2) : Throttle() {
 }
 
 void PotThrottle::setup() {
-	TickHandler::remove(this); // unregister from TickHandler first
+	TickHandler::getInstance()->detach(this); // unregister from TickHandler first
 	Throttle::setup(); //call base class
 	//set digital ports to inputs and pull them up
 	//all inputs currently active low
@@ -81,7 +81,7 @@ void PotThrottle::setup() {
 	prefsHandler->write(EETH_MAX_ACCEL_REGEN, throttleMaxRegen);
 	prefsHandler->saveChecksum();
 	//}
-	TickHandler::add(this, CFG_TICK_INTERVAL_POT_THROTTLE);
+	TickHandler::getInstance()->attach(this, CFG_TICK_INTERVAL_POT_THROTTLE);
 }
 
 int PotThrottle::getRawThrottle1() {
@@ -241,4 +241,4 @@ Device::DeviceId PotThrottle::getId() {
 }
 
 
-#endif //CFG_ENABLE_DEVICE_POT_THROTTLE_ACCEL
+#endif //CFG_ENABLE_DEVICE_POT_THROTTLE

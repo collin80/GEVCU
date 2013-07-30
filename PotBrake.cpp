@@ -25,7 +25,7 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
 #include "config.h"
-#ifdef CFG_ENABLE_DEVICE_POT_THROTTLE_BRAKE
+#ifdef CFG_ENABLE_DEVICE_POT_BRAKE
 #include "PotBrake.h"
 
 //initialize by telling the code which two ADC channels to use (or set channel 2 to 255 to disable)
@@ -43,7 +43,7 @@ PotBrake::PotBrake(uint8_t brake1, uint8_t brake2) :
 }
 
 void PotBrake::setup() {
-	TickHandler::remove(this); // unregister from TickHandler first
+	TickHandler::getInstance()->detach(this); // unregister from TickHandler first
 	Throttle::setup(); //call base class
 	//set digital ports to inputs and pull them up
 	//all inputs currently active low
@@ -69,7 +69,7 @@ void PotBrake::setup() {
 	prefsHandler->write(EETH_MAX_BRAKE_REGEN, brakeMaxRegen);
 	prefsHandler->saveChecksum();
 	//}
-	TickHandler::add(this, CFG_TICK_INTERVAL_POT_THROTTLE);
+	TickHandler::getInstance()->attach(this, CFG_TICK_INTERVAL_POT_THROTTLE);
 }
 
 int PotBrake::getRawBrake1() {
@@ -207,4 +207,4 @@ Device::DeviceType PotBrake::getType() {
 	return (DEVICE_BRAKE);
 }
 
-#endif // CFG_ENABLE_DEVICE_POT_THROTTLE_BRAKE
+#endif // CFG_ENABLE_DEVICE_POT_BRAKE

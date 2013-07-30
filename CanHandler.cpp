@@ -33,7 +33,7 @@ CanHandler *CanHandler::canHandlerEV = NULL;
 CanHandler *CanHandler::canHandlerCar = NULL;
 
 /*
- * Private consrtuctor of the can handler
+ * Private constructor of the can handler
  */
 CanHandler::CanHandler(CanBusNode canBusNode) {
 	this->canBusNode = canBusNode;
@@ -132,7 +132,7 @@ void CanHandler::attach(CanObserver* observer, uint32_t id, uint32_t mask, bool 
 	uint32_t mailboxIer = getMailboxIer(mailbox);
 	bus->enable_interrupt(bus->get_interrupt_mask() | mailboxIer);
 
-	Logger::info("attached CanObserver %d for id=%X, mask=%X, mailbox=%d", observer, id, mask, mailbox);
+	Logger::debug("attached CanObserver %d for id=%X, mask=%X, mailbox=%d", observer, id, mask, mailbox);
 }
 
 /*
@@ -252,6 +252,10 @@ void CanHandler::sendFrame(TX_CAN_FRAME& frame) {
 	bus->sendFrame(frame);
 }
 
+/*
+ * Default implementation of the CanObserver method. Must be overwritten
+ * by every sub-class.
+ */
 void CanObserver::handleCanFrame(RX_CAN_FRAME *frame) {
 	Logger::error("CanObserver does not implement handleCanFrame(), frame.id=%d", frame->id);
 }

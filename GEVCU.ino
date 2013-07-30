@@ -157,42 +157,36 @@ void initializeDevices() {
 	DeviceManager *deviceManager = DeviceManager::getInstance();
 
 #ifdef CFG_ENABLE_DEVICE_HEARTBEAT
-	Logger::info("add: Heartbeat");
 	Heartbeat *heartbeat = new Heartbeat();
+	Logger::info("add: Heartbeat (%d)", heartbeat);
 	heartbeat->setup();
 #endif
-#ifdef CFG_ENABLE_DEVICE_POT_THROTTLE_ACCEL
+#ifdef CFG_ENABLE_DEVICE_POT_THROTTLE
 	//The pedal I have has two pots and one should be twice the value of the other normally (within tolerance)
 	//if min is less than max for a throttle then the pot goes low to high as pressed.
 	//if max is less than min for a throttle then the pot goes high to low as pressed.
-	Logger::info("add device: PotThrottle accelerator");
 	Throttle *accelerator = new PotThrottle(0, 1);//specify the shield ADC ports to use for throttle 255 = not used (valid only for second value)
+	Logger::info("add device: PotThrottle (%d)", accelerator);
 	accelerator->setup();
 	deviceManager->addDevice(accelerator);
 	// Detect/calibrate the throttle. 
 	throttleDetector = new ThrottleDetector(accelerator);
 #endif
-#ifdef CFG_ENABLE_DEVICE_CAN_THROTTLE_ACCEL
-	Logger::info("add device: CanThrottle accelerator");
+#ifdef CFG_ENABLE_DEVICE_CAN_THROTTLE
 	Throttle *accelerator = new CanThrottle(canHandler1);
+	Logger::info("add device: CanThrottle (%d)", accelerator);
 	accelerator->setup();
 	deviceManager->addDevice(accelerator);
 #endif
-#ifdef CFG_ENABLE_DEVICE_POT_THROTTLE_BRAKE
-	Logger::info("add device: PotThrottle brake");
+#ifdef CFG_ENABLE_DEVICE_POT_BRAKE
 	Throttle *brake = new PotBrake(2, 255); //set up the brake input as the third ADC input from the shield.
-	brake->setup();
-	deviceManager->addDevice(brake);
-#endif
-#ifdef CFG_ENABLE_DEVICE_CAN_THROTTLE_BRAKE
-	Logger::info("add device: CanThrottle brake");
-	Throtle *brake = new CanThrottle();
+	Logger::info("add device: PotBrake (%d)", brake);
 	brake->setup();
 	deviceManager->addDevice(brake);
 #endif
 #ifdef CFG_ENABLE_DEVICE_MOTORCTRL_DMOC_645
-	Logger::info("add device: DMOC 645");
 	MotorController *motorController = new DmocMotorController(); //instantiate a DMOC645 device controller as our motor controller
+	Logger::info("add device: DMOC645 (%d)", motorController);
 	motorController->setup();
 	deviceManager->addDevice(motorController);
 #endif
@@ -204,8 +198,6 @@ void initializeDevices() {
 void setup() {
 	SerialUSB.begin(CFG_SERIAL_SPEED);
 	SerialUSB.println(CFG_VERSION);
-
-	TickHandler::initialize(); // initialize the TickHandler
 
 	pinMode(BLINK_LED, OUTPUT);
 	digitalWrite(BLINK_LED, LOW);

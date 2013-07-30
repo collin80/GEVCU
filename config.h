@@ -40,17 +40,18 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 #define SerialUSB Serial // re-route serial-usb output to programming port ;) comment if output should go to std usb
 
-#define CFG_TIMER_MAX_TICKABLES 9 // the maximum number of supported tickables per timer
 #define CFG_DEV_MGR_MAX_DEVICES 9 // the maximum number of devices supported by the DeviceManager
+#define CFG_TIMER_NUM_OBSERVERS 9 // the maximum number of supported observers per timer
+#define CFG_CAN_NUM_OBSERVERS 10 // maximum number of device subscriptions per CAN bus
 
 // Define the devices which are to be used (and compiled) via the following lines. It is advisable
 // to define only one of any device type (e.g. only DMOC or Brusa not both, only one throttle type for
 // accelerator)
 
 #define CFG_ENABLE_DEVICE_HEARTBEAT
-#define CFG_ENABLE_DEVICE_POT_THROTTLE_ACCEL
-//#define CFG_ENABLE_DEVICE_CAN_THROTTLE_ACCEL
-#define CFG_ENABLE_DEVICE_POT_THROTTLE_BRAKE
+#define CFG_ENABLE_DEVICE_POT_THROTTLE
+//#define CFG_ENABLE_DEVICE_CAN_THROTTLE
+#define CFG_ENABLE_DEVICE_POT_BRAKE
 #define CFG_ENABLE_DEVICE_MOTORCTRL_DMOC_645
 //#define CFG_ENABLE_DEVICE_MOTORCTRL_BRUSA_DMC5
 
@@ -68,7 +69,6 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #define CFG_CAN1_SPEED CAN_BPS_500K // specify the speed of the CAN1 bus (Car)
 #define CFG_CAN0_NUM_RX_MAILBOXES 7 // amount of CAN bus receive mailboxes for CAN0
 #define CFG_CAN1_NUM_RX_MAILBOXES 7 // amount of CAN bus receive mailboxes for CAN1
-#define CFG_CAN_NUM_OBSERVERS 10 // maximum number of device subscriptions per CAN bus
 
 #define CFG_THROTTLE_TOLERANCE  30 //the max that things can go over or under the min/max without fault
 #define BLINK_LED          73 //13 is L, 73 is TX, 72 is RX

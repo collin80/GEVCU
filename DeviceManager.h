@@ -42,8 +42,8 @@ public:
 	static DeviceManager *getInstance();
 	void addDevice(Device *device);
 	void removeDevice(Device *device);
-//	void addTickListener(Tickable *device, uint32_t frequency);
-//	void addCanListener(Device *device, uint32_t id, uint32_t mask, bool extended, CanHandler::CanBusNode canBus);
+//	void addTickObserver(TickObserver *observer, uint32_t frequency);
+//	void addCanObserver(CanObserver *observer, uint32_t id, uint32_t mask, bool extended, CanHandler::CanBusNode canBus);
 	void sendMessage(Device::DeviceType deviceType, Device::DeviceId deviceId, uint32_t msgType, void* message);
 	uint8_t getNumThrottles();
 	uint8_t getNumControllers();

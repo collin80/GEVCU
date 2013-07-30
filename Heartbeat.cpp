@@ -36,9 +36,9 @@ Heartbeat::Heartbeat() {
 }
 
 void Heartbeat::setup() {
-	TickHandler::remove(this);
+	TickHandler::getInstance()->detach(this);
 
-	TickHandler::add(this, CFG_TICK_INTERVAL_HEARTBEAT);
+	TickHandler::getInstance()->attach(this, CFG_TICK_INTERVAL_HEARTBEAT);
 }
 
 void Heartbeat::handleTick() {
