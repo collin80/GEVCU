@@ -276,8 +276,8 @@ void printMenu() {
 
 void loop() {
 	// check if incoming frames are available in the can buffer and process them
-	canHandlerEV->processInput();
-	canHandlerCar->processInput();
+	canHandlerEV->process();
+	canHandlerCar->process();
 
 	if (SerialUSB.available())
 		serialEvent(); //While serial is interrupt driven this function is not automatically called but must be called.

@@ -32,6 +32,9 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 CanHandler *CanHandler::canHandlerEV = NULL;
 CanHandler *CanHandler::canHandlerCar = NULL;
 
+/*
+ * Private consrtuctor of the can handler
+ */
 CanHandler::CanHandler(CanBusNode canBusNode) {
 	this->canBusNode = canBusNode;
 
@@ -40,8 +43,17 @@ CanHandler::CanHandler(CanBusNode canBusNode) {
 		bus = &CAN2;
 	else
 		bus = &CAN;
+
+	for (int i; i < CFG_CAN_NUM_OBSERVERS; i++)
+		observerData[i].observer = NULL;
 }
 
+/*
+ * Retrieve the singleton instance of the CanHandler which is responsible
+ * for the EV can bus (CAN0)
+ *
+ * \retval the CanHandler instance for the EV can bus
+ */
 CanHandler* CanHandler::getInstanceEV()
 {
 	if (canHandlerEV == NULL)
@@ -49,6 +61,12 @@ CanHandler* CanHandler::getInstanceEV()
 	return canHandlerEV;
 }
 
+/*
+ * Retrieve the singleton instance of the CanHandler which is responsible
+ * for the car can bus (CAN1)
+ *
+ * \retval the CanHandler instance for the car can bus
+ */
 CanHandler* CanHandler::getInstanceCar()
 {
 	if (canHandlerCar == NULL)
@@ -65,41 +83,80 @@ void CanHandler::initialize() {
 
 	// Disable all CAN0 & CAN1 interrupts
 	bus->disable_interrupt(CAN_DISABLE_ALL_INTERRUPT_MASK);
-
 	bus->reset_all_mailbox();
 
-	//Now, the canbus device has 8 mailboxes which can freely be assigned to either RX or TX.
-	//The firmware does a lot of both so 5 boxes are for RX, 3 for TX.
-	for (uint8_t count = 0; count < 7; count++) {
-		bus->mailbox_init(count);
-		bus->mailbox_set_mode(count, CAN_MB_RX_MODE);
-		bus->mailbox_set_accept_mask(count, 0x7F0, false); //pay attention to everything but the last hex digit
-	}
+	// prepare the last mailbox for transmission
+	bus->mailbox_init(7);
+	bus->mailbox_set_mode(7, CAN_MB_TX_MODE);
+	bus->mailbox_set_priority(7, 10);
+	bus->mailbox_set_accept_mask(7, 0x7FF, false);
 
-	//First three mailboxes listen for 0x23x frames, last two listen for 0x65x frames
-	//TODO: These should not be hard coded.
-	bus->mailbox_set_id(0, 0x230, false);
-	bus->mailbox_set_id(1, 0x230, false);
-	bus->mailbox_set_id(2, 0x230, false);
-	bus->mailbox_set_id(3, 0x650, false);
-	bus->mailbox_set_id(4, 0x650, false);
-	bus->mailbox_set_id(5, 0x230, false);
-	bus->mailbox_set_id(6, 0x650, false);
-
-	//for (uint8_t count = 5; count < 8; count++) {
-		bus->mailbox_init(7);
-		bus->mailbox_set_mode(7, CAN_MB_TX_MODE);
-		bus->mailbox_set_priority(7, 10);
-		bus->mailbox_set_accept_mask(7, 0x7FF, false);
-	//}
-
-	//Enable interrupts for RX boxes. TX interrupts are enabled later
-	bus->enable_interrupt(CAN_IER_MB0 | CAN_IER_MB1 | CAN_IER_MB2 | CAN_IER_MB3 | CAN_IER_MB4 | CAN_IER_MB5 | CAN_IER_MB6);
 	NVIC_EnableIRQ(canBusNode == CAN_BUS_EV ? CAN0_IRQn : CAN1_IRQn); //tell the nested interrupt controller to turn on our interrupt
 
 	Logger::info("CAN%d init ok", (canBusNode == CAN_BUS_EV ? 0 : 1));
 }
 
+/*
+ * Attach a CanObserver. Can frames which match the id/mask will be forwarded to the observer
+ * via the method handleCanFrame(RX_CAN_FRAME).
+ * Sets up a can bus mailbox if necessary.
+ *
+ *  \param observer - the observer object to register (must implement CanObserver class)
+ *  \param id - the id of the can frame to listen to
+ *  \param mask - the mask to be applied to the frames
+ *  \param extended - set if extended frames must be supported
+ */
+void CanHandler::attach(CanObserver* observer, uint32_t id, uint32_t mask, bool extended) {
+	int8_t pos = findFreeObserverData();
+	if (pos == -1) {
+		Logger::error("no free space in CanHandler::observerData, increase its size via CFG_CAN_NUM_OBSERVERS");
+		return;
+	}
+
+	int8_t mailbox = findFreeMailbox();
+	if (mailbox == -1) {
+		Logger::error("no free CAN mailbox on bus %d", canBusNode);
+		return;
+	}
+
+	observerData[pos].id = id;
+	observerData[pos].mask = mask;
+	observerData[pos].extended = extended;
+	observerData[pos].mailbox = mailbox;
+	observerData[pos].observer = observer;
+
+	bus->mailbox_set_mode(mailbox, CAN_MB_RX_MODE);
+	bus->mailbox_set_accept_mask(mailbox, mask, extended);
+	bus->mailbox_set_id(mailbox, id, extended);
+
+	uint32_t mailboxIer = getMailboxIer(mailbox);
+	bus->enable_interrupt(bus->get_interrupt_mask() | mailboxIer);
+
+	Logger::info("attached CanObserver %d for id=%X, mask=%X, mailbox=%d", observer, id, mask, mailbox);
+}
+
+/*
+ * Detaches a previously attached observer from this handler.
+ *
+ * \param observer - observer object to detach
+ * \param id - id of the observer to detach (required as one CanObserver may register itself several times)
+ * \param mask - mask of the observer to detach (dito)
+ */
+void CanHandler::detach(CanObserver* observer, uint32_t id, uint32_t mask) {
+	for (int i = 0; i < CFG_CAN_NUM_OBSERVERS; i++) {
+		if (observerData[i].observer == observer &&
+				observerData[i].id == id &&
+				observerData[i].mask == mask) {
+			observerData[i].observer = NULL;
+
+			//TODO: if no more observers on same mailbox, disable its interrupt, reset mailbox
+		}
+	}
+}
+
+/*
+ * Logs the content of a received can frame
+ */
 void CanHandler::logFrame(RX_CAN_FRAME& frame) {
 	if (Logger::getLogLevel() == Logger::Debug) {
 		Logger::debug("CAN: dlc=%X fid=%X id=%X ide=%X rtr=%X data=%X,%X,%X,%X,%X,%X,%X,%X",
@@ -109,39 +166,92 @@ void CanHandler::logFrame(RX_CAN_FRAME& frame) {
 	}
 }
 
-void CanHandler::setFilter(uint8_t mailbox, uint32_t acceptMask, uint32_t id, bool extended) {
+/*
+ * Find a observerData entry which is not in use.
+ *
+ * \retval array index of the next unused entry in observerData[]
+ */
+int8_t CanHandler::findFreeObserverData() {
+	for (int i = 0; i < CFG_CAN_NUM_OBSERVERS; i++) {
+		if (observerData[i].observer == NULL)
+			return i;
+	}
+	return -1;
 }
 
 /*
- * \brief If a message is available, read it and forward it to registered devices.
+ * Find a unused can mailbox according to entries in observerData[].
  *
- * \param frame	the container to receive the data into
+ * \retval the mailbox index of the next unused mailbox
  */
-void CanHandler::processInput() {
+int8_t CanHandler::findFreeMailbox() {
+	uint8_t numRxMailboxes = (canBusNode == CAN_BUS_EV ? CFG_CAN0_NUM_RX_MAILBOXES : CFG_CAN1_NUM_RX_MAILBOXES);
+	for (uint8_t i = 0; i < numRxMailboxes; i++) {
+		bool used = false;
+		for (uint8_t j = 0; j < CFG_CAN_NUM_OBSERVERS; j++) {
+			if (observerData[j].observer != NULL && observerData[j].mailbox == i)
+				used = true;
+		}
+		if (!used)
+			return i;
+	}
+	return -1;
+}
+
+/*
+ * Get the IER (interrupt mask) for the specified mailbox index.
+ *
+ * \param mailbox - the index of the mailbox to get the IER for
+ * \retval the IER of the specified mailbox
+ */
+uint32_t CanHandler::getMailboxIer(int8_t mailbox) {
+	switch (mailbox) {
+	case 0:
+		return CAN_IER_MB0;
+	case 1:
+		return CAN_IER_MB1;
+	case 2:
+		return CAN_IER_MB2;
+	case 3:
+		return CAN_IER_MB3;
+	case 4:
+		return CAN_IER_MB4;
+	case 5:
+		return CAN_IER_MB5;
+	case 6:
+		return CAN_IER_MB6;
+	case 7:
+		return CAN_IER_MB7;
+	}
+	return 0;
+}
+
+/*
+ * If a message is available, read it and forward it to registered observers.
+ */
+void CanHandler::process() {
 	static RX_CAN_FRAME frame;
 
 	if (bus->rx_avail()) {
 		bus->get_rx_buff(&frame);
 //		logFrame(frame);
 
-		//TODO: properly call all devices which are registered
-		DeviceManager::getInstance()->getMotorController()->handleCanFrame(frame);
+		for (int i = 0; i < CFG_CAN_NUM_OBSERVERS; i++) {
+			if ((observerData[i].observer != NULL) &&
+					(observerData[i].id & frame.id) && //TODO: is this correct ?!?
+					(observerData[i].mask & frame.id)) { //TODO: is this correct ?!?
+				observerData[i].observer->handleCanFrame(&frame);
+			}
+		}
 	}
-}
-
-//force trying to send on the given mailbox. Don't do this. Please, I beg you.
-bool CanHandler::sendFrame(uint8_t mailbox, TX_CAN_FRAME& frame) {
-	bus->mailbox_set_id(mailbox, frame.id, false);
-	bus->mailbox_set_datalen(mailbox, frame.dlc);
-	for (uint8_t cnt = 0; cnt < 8; cnt++)
-		bus->mailbox_set_databyte(mailbox, cnt, frame.data[cnt]);
-	bus->global_send_transfer_cmd((0x1u << mailbox));
-
-	return true;
 }
 
 //Allow the canbus driver to figure out the proper mailbox to use 
 //(whatever happens to be open) or queue it to send (if nothing is open)
-bool CanHandler::sendFrame(TX_CAN_FRAME& frame) {
+void CanHandler::sendFrame(TX_CAN_FRAME& frame) {
 	bus->sendFrame(frame);
+}
+
+void CanObserver::handleCanFrame(RX_CAN_FRAME *frame) {
+	Logger::error("CanObserver does not implement handleCanFrame(), frame.id=%d", frame->id);
 }

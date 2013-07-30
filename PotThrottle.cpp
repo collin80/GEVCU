@@ -1,8 +1,5 @@
 /*
- * pedal_pot.c
- *
- * Turn raw ADC readings into [-1000|1000] throttle output. Smooths throttle output
- * and properly handles both positive and negative travel pots
+ * PotThrottle.cpp
  *
 Copyright (c) 2013 Collin Kidder, Michael Neuweiler, Charles Galpin
 

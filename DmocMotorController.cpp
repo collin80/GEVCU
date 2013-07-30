@@ -1,5 +1,5 @@
 /*
- * dmoc.c
+ * DmocMotorController.cpp
  *
  * Interface to the DMOC - Handles sending of commands and reception of status frames
  *
@@ -129,6 +129,10 @@ void DmocMotorController::handleCanFrame(RX_CAN_FRAME& frame) {
 void DmocMotorController::setup() {
 	TickHandler::remove(this);
 	MotorController::setup(); // run the parent class version of this function
+
+	// register ourselves as observer of 0x23x and 0x65x can frames
+	CanHandler::getInstanceEV()->attach(this, 0x230, 0x7ff, false);
+	CanHandler::getInstanceEV()->attach(this, 0x650, 0x7ff, false);
 
 	TickHandler::add(this, CFG_TICK_INTERVAL_MOTOR_CONTROLLER);
 }
