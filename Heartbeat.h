@@ -43,6 +43,7 @@ protected:
 private:
 	bool led;
         bool throttleDebug;
+        int dotCount;
         unsigned long lastTickTime;
 };
 
