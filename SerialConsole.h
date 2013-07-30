@@ -1,5 +1,5 @@
 /*
- * Heartbeat.h
+ * SerialConsole.h
  *
 Copyright (c) 2013 Collin Kidder, Michael Neuweiler, Charles Galpin
 
@@ -22,28 +22,37 @@ CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT,
 TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
 SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
- */
+*/
 
-#ifndef HEARTBEAT_H_
-#define HEARTBEAT_H_
+#ifndef SERIALCONSOLE_H_
+#define SERIALCONSOLE_H_
 
 #include "config.h"
-#include "TickHandler.h"
+#include "Heartbeat.h"
+#include "MemCache.h"
 
-class Heartbeat: public Tickable {
+class SerialConsole {
 public:
-	Heartbeat();
-	void setup();
-	void handleTick();
-        void setThrottleDebug(bool debug);
-        bool getThrottleDebug();
+        SerialConsole(MemCache* memCache);
+	SerialConsole(MemCache* memCache, Heartbeat* heartbeat);
+	void loop();
+	void printMenu();
 
 protected:
 
 private:
-	bool led;
-        bool throttleDebug;
-        unsigned long lastTickTime;
+    Heartbeat* heartbeat;
+    MemCache* memCache;
+    bool handlingEvent;
+    
+    // temp
+    bool runRamp;
+    bool runStatic;
+    bool runThrottle;
+
+    void init();
+    void serialEvent();
+    
 };
 
-#endif /* HEARTBEAT_H_ */
+#endif /* SERIALCONSOLE_H_ */

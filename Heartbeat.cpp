@@ -29,16 +29,23 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include "Heartbeat.h"
 #include "sys_io.h"
 
-extern bool throttleDebug;
-
 Heartbeat::Heartbeat() {
 	led = false;
+        throttleDebug = false;
 }
 
 void Heartbeat::setup() {
 	TickHandler::remove(this);
 
 	TickHandler::add(this, CFG_TICK_INTERVAL_HEARTBEAT);
+}
+
+void Heartbeat::setThrottleDebug(bool debug) {
+        throttleDebug = debug;
+}
+
+bool Heartbeat::getThrottleDebug() {
+        return throttleDebug; 
 }
 
 void Heartbeat::handleTick() {
