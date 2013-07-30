@@ -42,7 +42,7 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include "MemCache.h"
 #include "ThrottleDetector.h"
 #include "DeviceManager.h"
-
+#include "SerialConsole.h"
 
 #ifdef __cplusplus
 extern "C" {
@@ -54,8 +54,5 @@ void setup();
 #endif
 
 #define SYSTEM_DUE        20
-
-void printMenu();
-void serialEvent();
 
 #endif /* GEVCU_H_ */
