@@ -37,7 +37,7 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include "TickHandler.h"
 #include "CanHandler.h"
 
-class DmocMotorController : public MotorController {
+class DmocMotorController : public MotorController, CanObserver {
 public:
   enum Gears {
     NEUTRAL = 0,

@@ -66,10 +66,8 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 #define CFG_CAN0_SPEED CAN_BPS_500K // specify the speed of the CAN0 bus (EV)
 #define CFG_CAN1_SPEED CAN_BPS_500K // specify the speed of the CAN1 bus (Car)
-//#define CFG_CAN0_NUM_RX_MAILBOXES 5 // amount of CAN bus receive mailboxes for CAN0
-//#define CFG_CAN1_NUM_RX_MAILBOXES 6 // amount of CAN bus receive mailboxes for CAN1
-//#define CFG_CAN0_NUM_TX_MAILBOXES 3 // amount of CAN bus transmit mailboxes for CAN0
-//#define CFG_CAN1_NUM_TX_MAILBOXES 2 // amount of CAN bus transmit mailboxes for CAN1
+#define CFG_CAN0_NUM_RX_MAILBOXES 7 // amount of CAN bus receive mailboxes for CAN0
+#define CFG_CAN1_NUM_RX_MAILBOXES 7 // amount of CAN bus receive mailboxes for CAN1
 #define CFG_CAN_NUM_OBSERVERS 10 // maximum number of device subscriptions per CAN bus
 
 #define CFG_THROTTLE_TOLERANCE  30 //the max that things can go over or under the min/max without fault

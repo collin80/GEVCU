@@ -37,9 +37,9 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 class Device;
 
-class CanListener {
+class CanObserver {
 public:
-	void handleCanFrame(RX_CAN_FRAME frame);
+	virtual void handleCanFrame(RX_CAN_FRAME *frame);
 };
 
 class CanHandler {
@@ -50,10 +50,10 @@ public:
 	};
 
 	void initialize();
-	void addListener(CanListener *listener, uint32_t id, uint32_t mask, bool extended);
-	void processInput();
-	bool sendFrame(TX_CAN_FRAME& frame);
-	bool sendFrame(uint8_t mailbox, TX_CAN_FRAME& frame);
+	void attach(CanObserver *observer, uint32_t id, uint32_t mask, bool extended);
+	void detach(CanObserver *observer, uint32_t id, uint32_t mask);
+	void process();
+	void sendFrame(TX_CAN_FRAME& frame);
 	static CanHandler *getInstanceCar();
 	static CanHandler *getInstanceEV();
 
@@ -61,23 +61,25 @@ public:
 protected:
 
 private:
-	struct CanObserver {
+	struct CanObserverData {
 		uint32_t id;	// what id to listen to
 		uint32_t mask;	// the CAN frame mask to listen to
 		bool extended;	// are extended frames expected
-		uint8_t mailbox;	// which mailbox is this listener assigned to
-		CanListener *listener;	// the listener object (e.g. a device)
+		uint8_t mailbox;	// which mailbox is this observer assigned to
+		CanObserver *observer;	// the observer object (e.g. a device)
 	};
 	static CanHandler *canHandlerEV;	// singleton reference to the EV instance (CAN0)
 	static CanHandler *canHandlerCar;	// singleton reference to the car instance (CAN1)
 
 	CanBusNode canBusNode;	// indicator to which can bus this instance is assigned to
 	CANRaw *bus;	// the can bus instance which this CanHandler instance is assigned to
-	CanObserver observers[CFG_CAN_NUM_OBSERVERS];	// Can observers
+	CanObserverData observerData[CFG_CAN_NUM_OBSERVERS];	// Can observers
 
 	CanHandler(CanBusNode busNumber);
-//	int findMailbox(uint32_t id, uint32_t mask);
 	void logFrame(RX_CAN_FRAME& frame);
+	int8_t findFreeObserverData();
+	int8_t findFreeMailbox();
+	uint32_t getMailboxIer(int8_t mailbox);
 };
 
 #endif /* CAN_HANDLER_H_ */
