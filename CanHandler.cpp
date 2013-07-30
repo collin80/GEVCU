@@ -42,7 +42,7 @@ CanHandler::CanHandler(CanBusNode canBusNode) {
 		bus = &CAN;
 
 	for (int i; i < CFG_CAN_NUM_OBSERVERS; i++)
-		observers[i] = NULL;
+		observers[i].listener = NULL;
 }
 
 CanHandler* CanHandler::getInstanceEV()
@@ -73,29 +73,31 @@ void CanHandler::initialize() {
 
 	//Now, the canbus device has 8 mailboxes which can freely be assigned to either RX or TX.
 	//The firmware does a lot of both so 5 boxes are for RX, 3 for TX.
-	for (uint8_t count = 0; count < 5; count++) {
+	for (uint8_t count = 0; count < 7; count++) {
 		bus->mailbox_init(count);
 		bus->mailbox_set_mode(count, CAN_MB_RX_MODE);
 		bus->mailbox_set_accept_mask(count, 0x7F0, false); //pay attention to everything but the last hex digit
 	}
 
 	//First three mailboxes listen for 0x23x frames, last two listen for 0x65x frames
+	//TODO: These should not be hard coded.
 	bus->mailbox_set_id(0, 0x230, false);
 	bus->mailbox_set_id(1, 0x230, false);
 	bus->mailbox_set_id(2, 0x230, false);
 	bus->mailbox_set_id(3, 0x650, false);
 	bus->mailbox_set_id(4, 0x650, false);
+	bus->mailbox_set_id(5, 0x230, false);
+	bus->mailbox_set_id(6, 0x650, false);
 
-	for (uint8_t count = 5; count < 8; count++) {
-		bus->mailbox_init(count);
-		bus->mailbox_set_mode(count, CAN_MB_TX_MODE);
-		bus->mailbox_set_priority(count, 10);
-		bus->mailbox_set_accept_mask(count, 0x7FF, false);
-	}
+	//for (uint8_t count = 5; count < 8; count++) {
+		bus->mailbox_init(7);
+		bus->mailbox_set_mode(7, CAN_MB_TX_MODE);
+		bus->mailbox_set_priority(7, 10);
+		bus->mailbox_set_accept_mask(7, 0x7FF, false);
+	//}
 
-	//Enable interrupts for the RX boxes. TX interrupts aren't wired up yet
-	bus->enable_interrupt(CAN_IER_MB0 | CAN_IER_MB1 | CAN_IER_MB2 | CAN_IER_MB3 | CAN_IER_MB4);
-
+	//Enable interrupts for RX boxes. TX interrupts are enabled later
+	bus->enable_interrupt(CAN_IER_MB0 | CAN_IER_MB1 | CAN_IER_MB2 | CAN_IER_MB3 | CAN_IER_MB4 | CAN_IER_MB5 | CAN_IER_MB6);
 	NVIC_EnableIRQ(canBusNode == CAN_BUS_EV ? CAN0_IRQn : CAN1_IRQn); //tell the nested interrupt controller to turn on our interrupt
 
 	Logger::info("CAN%d init ok", (canBusNode == CAN_BUS_EV ? 0 : 1));
@@ -130,6 +132,7 @@ void CanHandler::processInput() {
 	}
 }
 
+//force trying to send on the given mailbox. Don't do this. Please, I beg you.
 bool CanHandler::sendFrame(uint8_t mailbox, TX_CAN_FRAME& frame) {
 	bus->mailbox_set_id(mailbox, frame.id, false);
 	bus->mailbox_set_datalen(mailbox, frame.dlc);
@@ -140,6 +143,8 @@ bool CanHandler::sendFrame(uint8_t mailbox, TX_CAN_FRAME& frame) {
 	return true;
 }
 
+//Allow the canbus driver to figure out the proper mailbox to use 
+//(whatever happens to be open) or queue it to send (if nothing is open)
 bool CanHandler::sendFrame(TX_CAN_FRAME& frame) {
-	return sendFrame(5, frame);
+	bus->sendFrame(frame);
 }

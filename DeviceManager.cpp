@@ -110,7 +110,8 @@ void DeviceManager::removeDevice(Device *device) {
  //and be called for all of them but support for that is not
  //immediately necessary
  */
-//void DeviceManager::addTickListener(Tickable *tickable, uint32_t freq) {
+//void DeviceManager::addTickHandler(Device *newdevice, uint32_t freq)
+//{
 //}
 
 /*Add a new filter that sends frames through to the device. There definitely has
@@ -119,7 +120,6 @@ void DeviceManager::removeDevice(Device *device) {
  CAN0 or CAN1.
  */
 //void DeviceManager::addCanListener(Device *device, uint32_t id, uint32_t mask, bool extended, CanHandler::CanBusNode canBus) {
-//
 //}
 
 /*
