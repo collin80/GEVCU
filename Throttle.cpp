@@ -52,6 +52,12 @@ int Throttle::getLevel() {
 int Throttle::getRawThrottle1() {return 0;}
 int Throttle::getRawThrottle2() {return 0;}
 
+// Return the tick interval for this throttle. Override in a child class
+// if you use a different tick interval
+uint32_t Throttle::getTickInterval() {
+	return CFG_TICK_INTERVAL_POT_THROTTLE;
+}
+
 //a common function to all throttles that takes as input the throttle position percentage
 //and outputs an output throttle percentage which is calculated based on the throttle and
 //brake mapping parameters. 
@@ -114,30 +120,24 @@ void Throttle::setMaxRegen(uint16_t regen) {
 }
 
 void Throttle::detectThrottle() {
-  //TickHandler::remove(this); // unregister from TickHandler first
   if ( throttleDetector == NULL ) {
     throttleDetector = new ThrottleDetector(this);
   }
   throttleDetector->detect();
-  //TickHandler::add(this, CFG_TICK_INTERVAL_POT_THROTTLE);
 }
 
 void Throttle::detectThrottleMin() {
-  //TickHandler::remove(this); // unregister from TickHandler first
   if ( throttleDetector == NULL ) {
     throttleDetector = new ThrottleDetector(this);
   }
   throttleDetector->detectMin();
-  //TickHandler::add(this, CFG_TICK_INTERVAL_POT_THROTTLE);
 }
 
 void Throttle::detectThrottleMax() {
-  //TickHandler::remove(this); // unregister from TickHandler first
   if ( throttleDetector == NULL ) {
     throttleDetector = new ThrottleDetector(this);
   }
   throttleDetector->detectMax();
-  //TickHandler::add(this, CFG_TICK_INTERVAL_POT_THROTTLE);
 }
 
 void Throttle::saveConfiguration() {
@@ -150,7 +150,7 @@ void Throttle::saveConfiguration() {
 	prefsHandler->write(EETH_MAX_TWO, throttleDetector->getThrottle2Max());
   }
   prefsHandler->saveChecksum();
-  TickHandler::add(this, CFG_TICK_INTERVAL_POT_THROTTLE);
+  TickHandler::add(this, getTickInterval());
 }
 
 //TODO: need to plant this in here somehow..
