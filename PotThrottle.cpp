@@ -226,20 +226,6 @@ PotThrottle::ThrottleStatus PotThrottle::getStatus() {
 	return throttleStatus;
 }
 
-void PotThrottle::setT1Min(uint16_t min) {
-	throttleMin1 = min;
-}
-
-void PotThrottle::setT2Min(uint16_t min) {
-	throttleMin2 = min;
-}
-
-void PotThrottle::setT1Max(uint16_t max) {
-	throttleMax1 = max;
-}
-void PotThrottle::setT2Max(uint16_t max) {
-	throttleMax2 = max;
-}
 
 Device::DeviceId PotThrottle::getId() {
 	return (POTACCELPEDAL);
