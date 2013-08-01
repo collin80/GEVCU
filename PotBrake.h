@@ -9,7 +9,7 @@
 
 #include <Arduino.h>
 #include "config.h"
-#include "throttle.h"
+#include "Throttle.h"
 #include "sys_io.h"
 #include "TickHandler.h"
 
