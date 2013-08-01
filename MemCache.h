@@ -31,7 +31,6 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 #include <Arduino.h>
 #include "config.h"
-#include "Tickable.h"
 #include "TickHandler.h"
 #include <due_wire.h>
 
@@ -50,7 +49,7 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 */
 #define AGING_PERIOD       200
 
-class MemCache: public Tickable {
+class MemCache: public TickObserver {
   public:
   void setup();
   void handleTick();

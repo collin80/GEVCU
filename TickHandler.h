@@ -1,7 +1,7 @@
 /*
  * TickHandler.h
  *
- * Observer class where tickables can register to be triggered
+ * Class where TickObservers can register to be triggered
  * on a certain interval.
  *
 Copyright (c) 2013 Collin Kidder, Michael Neuweiler, Charles Galpin
@@ -31,29 +31,45 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #define TICKHANDLER_H_
 
 #include "config.h"
-#include "Tickable.h"
 #include <DueTimer.h>
 #include "Logger.h"
 
 #define NUM_TIMERS 9
 
+class TickObserver {
+public:
+	virtual void handleTick();
+};
+
+
 class TickHandler {
 public:
-	static void initialize();
-	static void add(Tickable *tickable, uint32_t interval);
-	static void remove(Tickable *tickable);
-	static void handleInterrupt(int timerNumber); // must be public when from the non-class functions
+	static TickHandler *getInstance();
+	void attach(TickObserver *observer, uint32_t interval);
+	void detach(TickObserver *observer);
+	void handleInterrupt(int timerNumber); // must be public when from the non-class functions
+#ifdef CFG_TIMER_USE_QUEUING
+	void cleanBuffer();
+	void process();
+#endif
 
 protected:
 
 private:
 	struct TimerEntry {
 		long interval; // interval of timer
-		Tickable *tickable[CFG_TIMER_MAX_TICKABLES]; // array of pointers to tickables with this interval
+		TickObserver *observer[CFG_TIMER_NUM_OBSERVERS]; // array of pointers to observers with this interval
 	};
-	static TimerEntry timerEntry[NUM_TIMERS]; // array of timer entries (9 as there are 9 timers)
-	static int findTimer(long interval);
-	static int findTickable(int timerNumber, Tickable *tickable);
+	TimerEntry timerEntry[NUM_TIMERS]; // array of timer entries (9 as there are 9 timers)
+	static TickHandler *tickHandler;
+#ifdef CFG_TIMER_USE_QUEUING
+	TickObserver *tickBuffer[CFG_TIMER_BUFFER_SIZE];
+	uint16_t bufferHead, bufferTail;
+#endif
+
+	TickHandler();
+	int findTimer(long interval);
+	int findObserver(int timerNumber, TickObserver *observer);
 };
 
 void timer0Interrupt();
