@@ -1,4 +1,6 @@
 /*
+ * DeviceManager.cpp
+ *
  The device manager keeps a list of all devices which are installed into the system.
  Anything that needs either a tick handler, a canbus handler, or to communicate to other
  devices on the system must be registered with the manager. The manager then handles
@@ -6,32 +8,32 @@
  and that a device can send information to other devices by either type (BMS, motor ctrl, etc)
  or by device ID.
 
-The device class itself has the handlers defined so the tick and canbus handling code
-need only call these existing functions but the manager interface needs to
-expose a way to register them with the system.
+ The device class itself has the handlers defined so the tick and canbus handling code
+ need only call these existing functions but the manager interface needs to
+ expose a way to register them with the system.
 
-Copyright (c) 2013 Collin Kidder, Michael Neuweiler, Charles Galpin
+ Copyright (c) 2013 Collin Kidder, Michael Neuweiler, Charles Galpin
 
-Permission is hereby granted, free of charge, to any person obtaining
-a copy of this software and associated documentation files (the
-"Software"), to deal in the Software without restriction, including
-without limitation the rights to use, copy, modify, merge, publish,
-distribute, sublicense, and/or sell copies of the Software, and to
-permit persons to whom the Software is furnished to do so, subject to
-the following conditions:
+ Permission is hereby granted, free of charge, to any person obtaining
+ a copy of this software and associated documentation files (the
+ "Software"), to deal in the Software without restriction, including
+ without limitation the rights to use, copy, modify, merge, publish,
+ distribute, sublicense, and/or sell copies of the Software, and to
+ permit persons to whom the Software is furnished to do so, subject to
+ the following conditions:
 
-The above copyright notice and this permission notice shall be included
-in all copies or substantial portions of the Software.
+ The above copyright notice and this permission notice shall be included
+ in all copies or substantial portions of the Software.
 
-THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
-EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
-MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.
-IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY
-CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT,
-TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
-SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+ EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
+ MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.
+ IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY
+ CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT,
+ TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
+ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
-*/
+ */
 
 #include "DeviceManager.h"
 
@@ -108,18 +110,16 @@ void DeviceManager::removeDevice(Device *device) {
  //and be called for all of them but support for that is not
  //immediately necessary
  */
-void DeviceManager::addTickHandler(Device *newdevice, uint32_t freq)
-{
-}
+//void DeviceManager::addTickObserver(TickObserver *observer, uint32_t frequency) {
+//}
 
 /*Add a new filter that sends frames through to the device. There definitely has
  to be support for multiple filters per device right from the beginning.
  Mask, id, ext form the filter. canbus sets whether to attach to
  CAN0 or CAN1.
  */
-void DeviceManager::addCanHandler(Device *newdevice, uint32_t mask, uint32_t id, bool ext, uint8_t canbus)
-{
-}
+//void addCanObserver(CanObserver *observer, uint32_t id, uint32_t mask, bool extended, CanHandler::CanBusNode canBus) {
+//}
 
 /*
  Send an inter-device message. Devtype has to be filled out but could be DEVICE_ANY.

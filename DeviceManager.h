@@ -1,4 +1,6 @@
 /*
+ * DeviceManager.h
+ *
 Copyright (c) 2013 Collin Kidder, Michael Neuweiler, Charles Galpin
 
 Permission is hereby granted, free of charge, to any person obtaining
@@ -28,6 +30,7 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include "config.h"
 #include "Throttle.h"
 #include "MotorController.h"
+#include "CanHandler.h"
 
 #define MSG_HARD_FAULT		0x2000; //something really bad happened. Shutdown to safe state IMMEDIATELY!
 #define MSG_SOFT_FAULT		0x2200; //something unpleasant happened. Try to shutdown gracefully.
@@ -39,8 +42,8 @@ public:
 	static DeviceManager *getInstance();
 	void addDevice(Device *device);
 	void removeDevice(Device *device);
-	void addTickHandler(Device *device, uint32_t frequency);
-	void addCanHandler(Device *device, uint32_t mask, uint32_t id, bool extended, uint8_t busNumber);
+//	void addTickObserver(TickObserver *observer, uint32_t frequency);
+//	void addCanObserver(CanObserver *observer, uint32_t id, uint32_t mask, bool extended, CanHandler::CanBusNode canBus);
 	void sendMessage(Device::DeviceType deviceType, Device::DeviceId deviceId, uint32_t msgType, void* message);
 	uint8_t getNumThrottles();
 	uint8_t getNumControllers();

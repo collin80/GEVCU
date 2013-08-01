@@ -71,7 +71,7 @@ unsigned long Logger::getLastLogTime() {
 
 void Logger::log(LogLevel level, char *format, va_list args) {
 	if (logLevel <= level) {
-                lastLogTime = millis();
+		lastLogTime = millis();
 		SerialUSB.print(lastLogTime);
 		SerialUSB.print(" - ");
 

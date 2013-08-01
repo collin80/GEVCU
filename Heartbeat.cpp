@@ -1,5 +1,5 @@
 /*
- * HeartbeatDevice.c
+ * Heartbeat.c
  *
 Copyright (c) 2013 Collin Kidder, Michael Neuweiler, Charles Galpin
 
@@ -36,9 +36,9 @@ Heartbeat::Heartbeat() {
 }
 
 void Heartbeat::setup() {
-	TickHandler::remove(this);
+	TickHandler::getInstance()->detach(this);
 
-	TickHandler::add(this, CFG_TICK_INTERVAL_HEARTBEAT);
+	TickHandler::getInstance()->attach(this, CFG_TICK_INTERVAL_HEARTBEAT);
 }
 
 void Heartbeat::handleTick() {

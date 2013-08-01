@@ -29,11 +29,10 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 #include <Arduino.h>
 #include "config.h"
-#include "Tickable.h"
 #include "eeprom_layout.h"
 #include "PrefHandler.h"
 
-class Device: public Tickable {
+class Device : public TickObserver {
 public:
 	enum DeviceType {
 		DEVICE_ANY,
@@ -58,7 +57,6 @@ public:
 	Device();
 	virtual void setup();
 	virtual void handleTick();
-	virtual void handleCanFrame(RX_CAN_FRAME& frame);
 	virtual void handleMessage(uint32_t msgType, void* message);
 	virtual DeviceType getType();
 	virtual DeviceId getId();
