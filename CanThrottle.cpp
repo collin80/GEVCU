@@ -29,24 +29,14 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include "CanThrottle.h"
 
 CanThrottle::CanThrottle() : Throttle() {
-	//Initialize mailbox 0 to receive messages from the ECU Id
-//	CAN.mailbox_init(0);
-//	CAN.mailbox_set_mode(0, CAN_MB_RX_MODE);
-//	CAN.mailbox_set_accept_mask(0, CAN_THROTTLE_RESPONSE_ID, false);
-//	CAN.mailbox_set_id(0, CAN_THROTTLE_RESPONSE_ID, false);
-//
-	// Initialize mailbox 1 to send data to the ECU.
-//	CAN.mailbox_init(1);
-//	CAN.mailbox_set_mode(1, CAN_MB_TX_MODE);
-//	CAN.mailbox_set_priority(1, 10);
-//	CAN.mailbox_set_accept_mask(1, 0x7FF, false);
-
 }
 
-void CanThrottle::setupDevice() {
-	TickHandler::unregisterDevice(this);
+void CanThrottle::setup() {
+	TickHandler::getInstance()->detach(this);
 
-	TickHandler::registerDevice(this, CFG_TICK_INTERVAL_CAN_THROTTLE);
+	CanHandler::getInstanceCar()->attach(this, CAN_THROTTLE_RESPONSE_ID, CAN_THROTTLE_RESPONSE_MASK, false);
+
+	TickHandler::getInstance()->attach(this, CFG_TICK_INTERVAL_CAN_THROTTLE);
 }
 
 /*
@@ -58,13 +48,11 @@ void CanThrottle::setupDevice() {
  */
 void CanThrottle::handleTick()
 {
-	Logger::debug("sending CAN throttle request to ECU");
-//	CAN.mailbox_set_id(1, CAN_THROTTLE_REQUEST_ID, false);
-//	CAN.mailbox_set_datalen(1, 8);
-//	CAN.mailbox_set_datal(1, 0xcbee2203);
-//	CAN.mailbox_set_datah(1, 0x00000000);
-//
-//	CAN.global_send_transfer_cmd(CAN_TCR_MB1);
+	static TX_CAN_FRAME frame;
+	frame.id = CAN_THROTTLE_REQUEST_ID;
+	frame.dlc = 8;
+	memcpy(frame.data, requestFrame, 8);
+	CanHandler::getInstanceCar()->sendFrame(frame);
 }
 
 /*
@@ -78,13 +66,13 @@ void CanThrottle::handleTick()
  * 0x07, 0xe8) and how it ommits the first data byte which represents
  * the number of remaining bytes in the frame.
  */
-//void CanThrottle::handleResponse(CANFrame& message) {
-//	if (message.id == CAN_THROTTLE_RESPONSE_ID) {
-//		Logger::info("CAN Throttle response: %f%%", (float) message.data[CAN_THROTTLE_DATA_BYTE] * 100.0 / 255.0);
-//	}
-//}
+void CanThrottle::handleCanFrame(RX_CAN_FRAME *frame) {
+	if (frame->id == CAN_THROTTLE_RESPONSE_ID) {
+		Logger::info("CAN Throttle response: %f%%", (float) frame->data[CAN_THROTTLE_DATA_BYTE] * 100.0 / 255.0);
+	}
+}
 
-Device::DeviceId CanThrottle::getDeviceID() {
+Device::DeviceId CanThrottle::getId() {
 	return CANACCELPEDAL;
 }
 

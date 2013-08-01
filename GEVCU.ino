@@ -174,7 +174,7 @@ void initializeDevices() {
 	throttleDetector = new ThrottleDetector(accelerator);
 #endif
 #ifdef CFG_ENABLE_DEVICE_CAN_THROTTLE
-	Throttle *accelerator = new CanThrottle(canHandler1);
+	Throttle *accelerator = new CanThrottle();
 	Logger::info("add device: CanThrottle (%d)", accelerator);
 	accelerator->setup();
 	deviceManager->addDevice(accelerator);

@@ -35,8 +35,10 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 #define CAN_THROTTLE_REQUEST_ID 0x7e0  // the can bus id of the throttle level request
 #define CAN_THROTTLE_RESPONSE_ID 0x7e8 // the can bus id of the throttle level response
+#define CAN_THROTTLE_RESPONSE_MASK 0x7e0  // the mask for the can bus id of the response
 #define CAN_THROTTLE_DATA_BYTE 4 // the number of the data byte containing the throttle level
-#define CAN_THROTTLE_REQUEST_DELAY 200 // milliseconds to wait between sending throttle requests
+
+static const uint8_t requestFrame[8] = { 0x03, 0x22, 0xee, 0xcb, 0x0, 0x0, 0x0, 0x0 };
 
 class CanThrottle: public Throttle, CanObserver {
 public:
@@ -49,7 +51,7 @@ public:
 protected:
 
 private:
-	uint32_t lastRequestTime;
+
 };
 
 #endif /* CAN_THROTTLE_H_ */
