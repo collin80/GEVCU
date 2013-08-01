@@ -1,5 +1,5 @@
 /*
- * PotBrake.h
+ * SerialConsole.h
  *
 Copyright (c) 2013 Collin Kidder, Michael Neuweiler, Charles Galpin
 
@@ -22,51 +22,37 @@ CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT,
 TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
 SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
- */
+*/
 
-#ifndef POT_BRAKE_H_
-#define POT_BRAKE_H_
+#ifndef SERIALCONSOLE_H_
+#define SERIALCONSOLE_H_
 
-#include <Arduino.h>
 #include "config.h"
-#include "Throttle.h"
-#include "sys_io.h"
-#include "TickHandler.h"
+#include "Heartbeat.h"
+#include "MemCache.h"
 
-#define THROTTLE_INPUT_BRAKELIGHT  2
-
-class PotBrake: public Throttle {
+class SerialConsole {
 public:
-	enum BrakeStatus {
-		OK,
-		ERR_LOW_T1,
-		ERR_LOW_T2,
-		ERR_HIGH_T1,
-		ERR_HIGH_T2,
-		ERR_MISMATCH,
-		ERR_MISC
-	};
+        SerialConsole(MemCache* memCache);
+	SerialConsole(MemCache* memCache, Heartbeat* heartbeat);
+	void loop();
+	void printMenu();
 
-	PotBrake(uint8_t throttle1, uint8_t throttle2);
-	void setup();
-	void handleTick();
-	BrakeStatus getStatus();
-	int getRawBrake1();
-	int getRawBrake2();
-	Device::DeviceId getId();
-	Device::DeviceType getType();
+protected:
 
 private:
-	uint16_t brakeMin, brakeMax;
-	uint16_t brake1Val, brake2Val;
-	uint8_t brake1ADC, brake2ADC; //which ADC pin each are on
-	int numBrakePots; //whether there are one or two pots. Should support three as well since some pedals really do have that many
-	uint16_t throttleMaxRegen; //TODO: should not be used in here anymore - maybe outside ?
-	uint16_t brakeMaxRegen; //percentage of max torque allowable for regen at brake pedal
-	byte brakeMaxErr;
-	BrakeStatus brakeStatus;
-	int calcBrake(int, int, int);
-	void doBrake();
+    Heartbeat* heartbeat;
+    MemCache* memCache;
+    bool handlingEvent;
+    
+    // temp
+    bool runRamp;
+    bool runStatic;
+    bool runThrottle;
+
+    void init();
+    void serialEvent();
+    
 };
 
-#endif /* POT_BRAKE_H_ */
+#endif /* SERIALCONSOLE_H_ */

@@ -59,6 +59,7 @@ protected:
 	uint16_t throttleRegen, throttleFwd, throttleMap; //Value at which regen finishes, forward motion starts, and the mid point of throttle
 	uint16_t throttleMaxRegen; //Percentage of max torque allowable for regen
 	uint16_t brakeMaxRegen; //percentage of max torque allowable for regen at brake pedal
+	uint32_t getTickInterval();
 
 private:
 	ThrottleDetector *throttleDetector;

@@ -35,11 +35,15 @@ public:
 	Heartbeat();
 	void setup();
 	void handleTick();
+        void setThrottleDebug(bool debug);
+        bool getThrottleDebug();
 
 protected:
 
 private:
 	bool led;
+        bool throttleDebug;
+        int dotCount;
         unsigned long lastTickTime;
 };
 

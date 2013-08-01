@@ -29,10 +29,9 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include "Heartbeat.h"
 #include "sys_io.h"
 
-extern bool throttleDebug;
-
 Heartbeat::Heartbeat() {
 	led = false;
+        throttleDebug = false;
 }
 
 void Heartbeat::setup() {
@@ -41,10 +40,21 @@ void Heartbeat::setup() {
 	TickHandler::getInstance()->attach(this, CFG_TICK_INTERVAL_HEARTBEAT);
 }
 
+void Heartbeat::setThrottleDebug(bool debug) {
+        throttleDebug = debug;
+}
+
+bool Heartbeat::getThrottleDebug() {
+        return throttleDebug; 
+}
+
 void Heartbeat::handleTick() {
         // Print a dot if no other output has been made since the last tick
         if ( Logger::getLastLogTime() < lastTickTime ) {
 	        SerialUSB.print('.');
+                if ( (++dotCount % 80) == 0 ) {
+                    SerialUSB.println();
+                }
         }
         lastTickTime = millis();
         
