@@ -99,3 +99,9 @@ bool PrefHandler::checksumValid() {
   
   return (stored_chk == calc_chk);
 }
+
+void PrefHandler::forceCacheWrite()
+{
+  memCache->FlushAllPages();
+}
+

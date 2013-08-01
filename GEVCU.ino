@@ -249,12 +249,13 @@ void setup() {
 }
 
 void loop() {
-	// check if incoming frames are available in the can buffer and process them
-	canHandlerEV->processInput();
-	canHandlerCar->processInput();
+  // check if incoming frames are available in the can buffer and process them
+  canHandlerEV->processInput();
+  canHandlerCar->processInput();
 
-	serialConsole->loop();
+  serialConsole->loop();
 
-	//this should still be here. It checks for a flag set during an interrupt
-	sys_io_adc_poll();
+  //this should still be here. It checks for a flag set during an interrupt
+  sys_io_adc_poll();
 }
+

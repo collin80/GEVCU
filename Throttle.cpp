@@ -150,6 +150,7 @@ void Throttle::saveConfiguration() {
 	prefsHandler->write(EETH_MAX_TWO, throttleDetector->getThrottle2Max());
   }
   prefsHandler->saveChecksum();
+  prefsHandler->forceCacheWrite(); // make sure it writes to EEPROM immediately.
   TickHandler::add(this, getTickInterval());
 }
 
@@ -167,5 +168,6 @@ void Throttle::saveConfiguration() {
 //}
 //else { //use the installed throttle
 //}
+
 
 
