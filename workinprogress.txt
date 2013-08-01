@@ -1,38 +1,17 @@
 A textfile with various notes to whoever else is interested 
 in what's coming down the pike and possibly what they could do:
 
-- The #1 order of business right now is to make sure that it is not necessary
-to have a serial connection to the Due in order to function. This should now
-be the case. If digital input 0 is set high then everything will go enabled.
-If D1 is set high, everything will disable.
+Much of what was in here has been done or rendered moot. Instead here is the current
+lay of the land:
 
--I think that handleTick should be of configurable timing. Perhaps
-have the system tick be actually 1ms or 2ms; something fast. And then
-each device configures a timeout of between 1 and 255 ticks (a single
-byte) and once that # of system ticks has happened the device will get
-its handleTick callback. This allows some devices to tick rapidly and some
-to tick slowly. For instance, the DMOC needs to send frames around
-every 20ms but the pedal could probably be called less frequently.
+-There are observers for ticks and canbus but canbus is not yet done. So, one thing
+on the agenda is to complete canbus observer
 
--Much of the spec document pre-assumes there are certain inputs
-and outputs. Such things as gear selection, drive enable, etc. A
-standard needs to be constructed for hardware - what pins to use for
-what. Along these lines, some form of hardward is needed for I/O. This is
-true whether the Macchina or Due is used. Both have the same form factor
-so ideally an Arduino compatible I/O shield is needed that works with both
-5 and 3.3v
-
--Inputs:
-Throttle Inputs:AI0, AI1
-Brake Pressure Input: AI2
-Drive Enable: D0
-Drive Disable: D1
-
--Outputs:
-Precharge contactor: D8
-Main Contactor: D9
-Cooling Contactor: D10
-
+-The new board has wifi but we're not using it. A big problem currently is that
+we have no good way to set parameter so, while EEPROM is working, it is worthless
+because the only way to set it is to change code. So, why use it? For this reason
+we don't really read much of anything from EEPROM right now. Suitable code and
+webpages need to be constructed to make this all work.
 
 Allow Wifi to remote control all sorts of stuff, connect to internet and send
 notifications, etc.
