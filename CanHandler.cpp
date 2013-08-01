@@ -129,8 +129,7 @@ void CanHandler::attach(CanObserver* observer, uint32_t id, uint32_t mask, bool 
 	bus->mailbox_set_accept_mask(mailbox, mask, extended);
 	bus->mailbox_set_id(mailbox, id, extended);
 
-	uint32_t mailboxIer = getMailboxIer(mailbox);
-	bus->enable_interrupt(bus->get_interrupt_mask() | mailboxIer);
+	bus->enable_interrupt(getMailboxIer(mailbox));
 
 	Logger::debug("attached CanObserver %d for id=%X, mask=%X, mailbox=%d", observer, id, mask, mailbox);
 }
@@ -156,6 +155,8 @@ void CanHandler::detach(CanObserver* observer, uint32_t id, uint32_t mask) {
 
 /*
  * Logs the content of a received can frame
+ *
+ * \param frame - the received can frame to log
  */
 void CanHandler::logFrame(RX_CAN_FRAME& frame) {
 	if (Logger::getLogLevel() == Logger::Debug) {
@@ -237,10 +238,10 @@ void CanHandler::process() {
 //		logFrame(frame);
 
 		for (int i = 0; i < CFG_CAN_NUM_OBSERVERS; i++) {
-			if ((observerData[i].observer != NULL) &&
-					(observerData[i].id & frame.id) && //TODO: is this correct ?!?
-					(observerData[i].mask & frame.id)) { //TODO: is this correct ?!?
-				observerData[i].observer->handleCanFrame(&frame);
+			if (observerData[i].observer != NULL) {
+				// Apply mask to frame.id and observer.id. If they match, forward the frame to the observer
+				if ((frame.id & observerData[i].mask) == (observerData[i].id & observerData[i].mask))
+					observerData[i].observer->handleCanFrame(&frame);
 			}
 		}
 	}

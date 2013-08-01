@@ -48,6 +48,7 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 ThrottleDetector *throttleDetector;
 CanHandler *canHandlerEV;
 CanHandler *canHandlerCar;
+TickHandler *tickHandler;
 PrefHandler *sysPrefs;
 MemCache *memCache;
 
@@ -202,6 +203,8 @@ void setup() {
 	pinMode(BLINK_LED, OUTPUT);
 	digitalWrite(BLINK_LED, LOW);
 
+	tickHandler = TickHandler::getInstance();
+
 	canHandlerEV = CanHandler::getInstanceEV();
 	canHandlerCar = CanHandler::getInstanceCar();
 	canHandlerEV->initialize();
@@ -239,6 +242,8 @@ void setup() {
 	initializeDevices();
 	Logger::info("System Ready");
 	printMenu();
+
+	tickHandler->cleanBuffer(); // remove buffered tick events which clogged up already (might not be necessary)
 }
 
 void printMenu() {
@@ -260,13 +265,18 @@ void printMenu() {
 	SerialUSB.println("A = dump system eeprom values");
 	SerialUSB.println("B = dump dmoc eeprom values");
 	SerialUSB.println("y = detect throttle min");
-        SerialUSB.println("Y = detect throttle max");
-        SerialUSB.println("z = detect throttle min/max  and other values");
+	SerialUSB.println("Y = detect throttle max");
+	SerialUSB.println("z = detect throttle min/max  and other values");
 	SerialUSB.println("Z = save detected throttle values");
 	SerialUSB.println("");
 }
 
 void loop() {
+
+#ifdef CFG_TIMER_USE_QUEUING
+	tickHandler->process();
+#endif
+
 	// check if incoming frames are available in the can buffer and process them
 	canHandlerEV->process();
 	canHandlerCar->process();

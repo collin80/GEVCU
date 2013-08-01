@@ -41,8 +41,10 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #define SerialUSB Serial // re-route serial-usb output to programming port ;) comment if output should go to std usb
 
 #define CFG_DEV_MGR_MAX_DEVICES 9 // the maximum number of devices supported by the DeviceManager
-#define CFG_TIMER_NUM_OBSERVERS 9 // the maximum number of supported observers per timer
 #define CFG_CAN_NUM_OBSERVERS 10 // maximum number of device subscriptions per CAN bus
+#define CFG_TIMER_NUM_OBSERVERS 9 // the maximum number of supported observers per timer
+#define CFG_TIMER_USE_QUEUING // if defined, TickHandler uses a queuing buffer instead of direct calls from interrupts
+#define CFG_TIMER_BUFFER_SIZE 100 // the size of the queuing buffer for TickHandler
 
 // Define the devices which are to be used (and compiled) via the following lines. It is advisable
 // to define only one of any device type (e.g. only DMOC or Brusa not both, only one throttle type for
