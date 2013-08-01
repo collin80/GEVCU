@@ -37,7 +37,7 @@ by stimmer
 
 //pin definitions for system IO
 uint8_t adc[NUM_ANALOG][2] = {{1,0}, {2,3}, {4,5}, {7,6}}; //low, high
-uint8_t dig[] = {11, 9, 13, 12};
+uint8_t dig[] = {9, 11, 12, 13};
 uint8_t out[] = {55, 22, 48, 34};
 
 volatile int bufn,obufn;
