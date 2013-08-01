@@ -36,10 +36,13 @@ by stimmer
 #undef HID_ENABLED
 
 //pin definitions for system IO
-uint8_t adc[NUM_ANALOG][2] = {{1,0}, {2,3}, {4,5}, {7,6}}; //low, high
+
+
 #ifdef DUED
 uint8_t dig[] = {9, 11, 12, 13};
+uint8_t adc[NUM_ANALOG][2] = {{1,0}, {3,2}, {5,4}, {7,6}}; //low, high
 #else
+uint8_t adc[NUM_ANALOG][2] = {{1,0}, {2,3}, {4,5}, {7,6}}; //low, high
 uint8_t dig[] = {11, 9, 13, 12};
 #endif
 
@@ -94,10 +97,15 @@ void setup_sys_io() {
 uint16_t getDiffADC(uint8_t which) {
   uint32_t low, high;
   
+#ifdef RAWDIFF
+  low = analogRead(adc[which][0]);
+  high = analogRead(adc[which][1]);
+  high = high - low;
+  return high;
+#else
   low = adc_values[adc[which][0]];
   high = adc_values[adc[which][1]];
-  //low = analogRead(adc[which][0]);
-  //high = analogRead(adc[which][1]);
+#endif
 
   if (low < high) {
 
@@ -159,7 +167,12 @@ uint16_t getAnalog(uint8_t which) {
     
     return getADCAvg(which);
 #else
+  #ifdef RAWDIFF
+    val = getDiffADC(which);
+    return val;    
+  #else
 	return analogRead(which);
+  #endif
 #endif
 }
 
