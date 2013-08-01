@@ -144,15 +144,15 @@ void Throttle::saveConfiguration() {
   Logger::info("Saving throttle settings");
   TickHandler::remove(this); // unregister from TickHandler first
   setT1Min(throttleDetector->getThrottle1Min());
-  prefsHandler->write(EETH_MIN_ONE, throttleDetector->getThrottle1Min());
+  prefsHandler->write(EETH_MIN_ONE, throttleMin1);
   setT1Max(throttleDetector->getThrottle1Max());
-  prefsHandler->write(EETH_MAX_ONE, throttleDetector->getThrottle1Max());
+  prefsHandler->write(EETH_MAX_ONE, throttleMax1);
   numThrottlePots = throttleDetector->getPotentiometerCount();
   if ( numThrottlePots > 1 ) {
         setT2Min(throttleDetector->getThrottle2Min());
-	prefsHandler->write(EETH_MIN_TWO, throttleDetector->getThrottle2Min());
+	prefsHandler->write(EETH_MIN_TWO, throttleMin2);
         setT2Max(throttleDetector->getThrottle2Max());
-	prefsHandler->write(EETH_MAX_TWO, throttleDetector->getThrottle2Max());
+	prefsHandler->write(EETH_MAX_TWO, throttleMax2);
   }
   prefsHandler->saveChecksum();
   TickHandler::add(this, getTickInterval());
