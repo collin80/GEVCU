@@ -45,16 +45,13 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 //RTC_clock rtc_clock(XTAL); //init RTC with the external 32k crystal as a reference
 
 //Evil, global variables
-ThrottleDetector *throttleDetector;
 CanHandler *canHandlerEV;
 CanHandler *canHandlerCar;
 PrefHandler *sysPrefs;
 MemCache *memCache;
+Heartbeat *heartbeat;
+SerialConsole * serialConsole;
 
-bool runRamp = false;
-bool runStatic = false;
-bool runThrottle = false;
-bool throttleDebug = false;
 byte i = 0;
 
 //initializes all the system EEPROM values. Chances are this should be broken out a bit but
@@ -158,7 +155,7 @@ void initializeDevices() {
 
 #ifdef CFG_ENABLE_DEVICE_HEARTBEAT
 	Logger::info("add: Heartbeat");
-	Heartbeat *heartbeat = new Heartbeat();
+	heartbeat = new Heartbeat();
 	heartbeat->setup();
 #endif
 #ifdef CFG_ENABLE_DEVICE_POT_THROTTLE_ACCEL
@@ -169,8 +166,6 @@ void initializeDevices() {
 	Throttle *accelerator = new PotThrottle(0, 1);//specify the shield ADC ports to use for throttle 255 = not used (valid only for second value)
 	accelerator->setup();
 	deviceManager->addDevice(accelerator);
-	// Detect/calibrate the throttle. 
-	throttleDetector = new ThrottleDetector(accelerator);
 #endif
 #ifdef CFG_ENABLE_DEVICE_CAN_THROTTLE_ACCEL
 	Logger::info("add device: CanThrottle accelerator");
@@ -245,33 +240,12 @@ void setup() {
 	Logger::info("SYSIO init ok");
 
 	initializeDevices();
-	Logger::info("System Ready");
-	printMenu();
-}
 
-void printMenu() {
-	SerialUSB.println("System Menu:");
-	SerialUSB.println("h = help (displays this message)");
-	SerialUSB.println("D = disabled op state");
-	SerialUSB.println("S = standby op state");
-	SerialUSB.println("E = enabled op state");
-	SerialUSB.println("n = neutral gear");
-	SerialUSB.println("d = DRIVE gear");
-	SerialUSB.println("r = reverse gear");
-	SerialUSB.println("<space> = start/stop ramp test");
-	SerialUSB.println("x = lock ramp at current value (toggle)");
-	SerialUSB.println("t = Use accelerator pedal? (toggle)");
-	SerialUSB.println("L = output raw input values (toggle)");
-	SerialUSB.println("K = set all outputs high");
-	SerialUSB.println("J = set all outputs low");
-	SerialUSB.println("U,I = test EEPROM routines");
-	SerialUSB.println("A = dump system eeprom values");
-	SerialUSB.println("B = dump dmoc eeprom values");
-	SerialUSB.println("y = detect throttle min");
-        SerialUSB.println("Y = detect throttle max");
-        SerialUSB.println("z = detect throttle min/max  and other values");
-	SerialUSB.println("Z = save detected throttle values");
-	SerialUSB.println("");
+        serialConsole = new SerialConsole(memCache, heartbeat);
+        Logger::info("Serial console Ready");
+        
+	Logger::info("System Ready");
+	serialConsole->printMenu();
 }
 
 void loop() {
@@ -279,151 +253,8 @@ void loop() {
 	canHandlerEV->processInput();
 	canHandlerCar->processInput();
 
-	if (SerialUSB.available())
-		serialEvent(); //While serial is interrupt driven this function is not automatically called but must be called.
+	serialConsole->loop();
 
 	//this should still be here. It checks for a flag set during an interrupt
 	sys_io_adc_poll();
-}
-
-/*Single character interpreter of commands over
- serial connection. There is a help menu (press H or h or ?)
- */
-void serialEvent() {
-	int incoming;
-	uint8_t val;
-	static int state = 0;
-	DmocMotorController* dmoc = (DmocMotorController*) DeviceManager::getInstance()->getMotorController(); //TODO: direct reference to dmoc must be removed
-	PotThrottle* accelerator = (PotThrottle*) DeviceManager::getInstance()->getAccelerator();
-	incoming = SerialUSB.read();
-	if (incoming == -1)
-		return;
-	if (state == 0) {
-		switch (incoming) {
-		case 'h':
-			case '?':
-			case 'H':
-			printMenu();
-			break;
-		case ' ':
-			runRamp = !runRamp;
-			if (runRamp) {
-				Logger::info("Start Ramp Test");
-				dmoc->setPowerMode(DmocMotorController::MODE_RPM);
-			}
-			else {
-				Logger::info("End Ramp Test");
-				dmoc->setPowerMode(DmocMotorController::MODE_TORQUE); //TODO: direct reference to dmoc must be removed
-			}
-			break;
-		case 'd':
-			dmoc->setGear(DmocMotorController::DRIVE); //TODO: direct reference to dmoc must be removed
-			Logger::info("forward");
-			break;
-		case 'n':
-			dmoc->setGear(DmocMotorController::NEUTRAL); //TODO: direct reference to dmoc must be removed
-			Logger::info("neutral");
-			break;
-		case 'r':
-			dmoc->setGear(DmocMotorController::REVERSE); //TODO: direct reference to dmoc must be removed
-			Logger::info("reverse");
-			break;
-		case 'D':
-			dmoc->setOpState(DmocMotorController::DISABLED); //TODO: direct reference to dmoc must be removed
-			Logger::info("disabled");
-			break;
-		case 'S':
-			dmoc->setOpState(DmocMotorController::STANDBY); //TODO: direct reference to dmoc must be removed
-			Logger::info("standby");
-			break;
-		case 'E':
-			dmoc->setOpState(DmocMotorController::ENABLE); //TODO: direct reference to dmoc must be removed
-			Logger::info("enabled");
-			break;
-		case 'x':
-			runStatic = !runStatic;
-			if (runStatic) {
-				Logger::info("Lock RPM rate");
-			}
-			else
-				Logger::info("Unlock RPM rate");
-			break;
-		case 't':
-			runThrottle = !runThrottle;
-			if (runThrottle) {
-				Logger::info("Use Throttle Pedal");
-				dmoc->setPowerMode(DmocMotorController::MODE_TORQUE); //TODO: direct reference to dmoc must be removed
-			}
-			else {
-				Logger::info("Ignore throttle pedal");
-				dmoc->setPowerMode(DmocMotorController::MODE_RPM); //TODO: direct reference to dmoc must be removed
-			}
-			break;
-		case 'L':
-			throttleDebug = !throttleDebug;
-			if (throttleDebug) {
-				Logger::info("Output raw throttle");
-			}
-			else
-				Logger::info("Cease raw throttle output");
-			break;
-		case 'U':
-			Logger::info("Adding a sequence of values from 0 to 255 into eeprom");
-			for (int i = 0; i < 256; i++)
-				memCache->Write(1000 + i, (uint8_t) i);
-			Logger::info("Flushing cache");
-			memCache->FlushAllPages(); //write everything to eeprom
-			memCache->InvalidateAll(); //remove all data from cache
-			Logger::info("Operation complete.");
-			break;
-		case 'I':
-			Logger::info("Retrieving data previously saved");
-			for (int i = 0; i < 256; i++) {
-				memCache->Read(1000 + i, &val);
-				Logger::info("%d: %d", i, val);
-			}
-			break;
-		case 'A':
-			Logger::info("Retrieving System EEPROM values");
-			for (int i = 0; i < 256; i++) {
-				memCache->Read(EE_SYSTEM_START + i, &val);
-				Logger::info("%d: %d", i, val);
-			}
-			break;
-		case 'B':
-			Logger::info("Retrieving DMOC EEPROM values");
-			for (int i = 0; i < 256; i++) {
-				memCache->Read(EE_MOTORCTL_START + i, &val);
-				Logger::info("%d: %d", i, val);
-			}
-			break;
-
-		case 'K': //set all outputs high
-			setOutput(0, true);
-			setOutput(1, true);
-			setOutput(2, true);
-			setOutput(3, true);
-			Logger::info("all outputs: ON");
-			break;
-		case 'J': //set the four outputs low
-			setOutput(0, false);
-			setOutput(1, false);
-			setOutput(2, false);
-			setOutput(3, false);
-			Logger::info("all outputs: OFF");
-			break;
-                case 'y': // detect throttle min
-			accelerator->detectThrottleMin();
-			break;
-                case 'Y': // detect throttle max
-			accelerator->detectThrottleMax();
-			break;
-		case 'z': // detect throttle min/max & other details
-			accelerator->detectThrottle();
-			break;
-		case 'Z': // save throttle settings
-                        accelerator->saveConfiguration();
-			break;
-		}
-	}
 }
