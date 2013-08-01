@@ -131,8 +131,8 @@ void DmocMotorController::setup() {
 	MotorController::setup(); // run the parent class version of this function
 
 	// register ourselves as observer of 0x23x and 0x65x can frames
-	CanHandler::getInstanceEV()->attach(this, 0x230, 0x7ff, false);
-	CanHandler::getInstanceEV()->attach(this, 0x650, 0x7ff, false);
+	CanHandler::getInstanceEV()->attach(this, 0x230, 0x7f0, false);
+	CanHandler::getInstanceEV()->attach(this, 0x650, 0x7f0, false);
 
 	TickHandler::getInstance()->attach(this, CFG_TICK_INTERVAL_MOTOR_CONTROLLER);
 }

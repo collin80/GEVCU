@@ -241,8 +241,9 @@ void setup() {
         
 	Logger::info("System Ready");
 	serialConsole->printMenu();
-
+#ifdef CFG_TIMER_USE_QUEUING
 	tickHandler->cleanBuffer(); // remove buffered tick events which clogged up already (might not be necessary)
+#endif
 }
 
 void loop() {

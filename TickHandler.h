@@ -64,7 +64,7 @@ private:
 	static TickHandler *tickHandler;
 #ifdef CFG_TIMER_USE_QUEUING
 	TickObserver *tickBuffer[CFG_TIMER_BUFFER_SIZE];
-	uint16_t bufferHead, bufferTail;
+	volatile uint16_t bufferHead, bufferTail;
 #endif
 
 	TickHandler();
