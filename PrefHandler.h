@@ -55,6 +55,7 @@ public:
 	uint8_t calcChecksum();
 	void saveChecksum();
 	bool checksumValid();
+        void forceCacheWrite();
 
 private:
 	uint32_t base_address; //base address for the parent device
@@ -63,3 +64,4 @@ private:
 };
 
 #endif
+

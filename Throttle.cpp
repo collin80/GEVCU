@@ -143,14 +143,35 @@ void Throttle::detectThrottleMax() {
 void Throttle::saveConfiguration() {
   Logger::info("Saving throttle settings");
   TickHandler::getInstance()->detach(this); // unregister from TickHandler first
-  prefsHandler->write(EETH_MIN_ONE, throttleDetector->getThrottle1Min());
-  prefsHandler->write(EETH_MAX_ONE, throttleDetector->getThrottle1Max());
-  if ( throttleDetector->getPotentiometerCount() > 1 ) {
-	prefsHandler->write(EETH_MIN_TWO, throttleDetector->getThrottle2Min());
-	prefsHandler->write(EETH_MAX_TWO, throttleDetector->getThrottle2Max());
+  setT1Min(throttleDetector->getThrottle1Min());
+  prefsHandler->write(EETH_MIN_ONE, throttleMin1);
+  setT1Max(throttleDetector->getThrottle1Max());
+  prefsHandler->write(EETH_MAX_ONE, throttleMax1);
+  numThrottlePots = throttleDetector->getPotentiometerCount();
+  if ( numThrottlePots > 1 ) {
+        setT2Min(throttleDetector->getThrottle2Min());
+	prefsHandler->write(EETH_MIN_TWO, throttleMin2);
+        setT2Max(throttleDetector->getThrottle2Max());
+	prefsHandler->write(EETH_MAX_TWO, throttleMax2);
   }
   prefsHandler->saveChecksum();
-  TickHandler::getInstance()->attach(this, CFG_TICK_INTERVAL_POT_THROTTLE);
+  prefsHandler->forceCacheWrite(); // make sure it writes to EEPROM immediately.
+  TickHandler::add(this, getTickInterval());
+}
+
+void Throttle::setT1Min(uint16_t min) {
+	throttleMin1 = min;
+}
+
+void Throttle::setT2Min(uint16_t min) {
+	throttleMin2 = min;
+}
+
+void Throttle::setT1Max(uint16_t max) {
+	throttleMax1 = max;
+}
+void Throttle::setT2Max(uint16_t max) {
+	throttleMax2 = max;
 }
 
 //TODO: need to plant this in here somehow..
@@ -167,5 +188,6 @@ void Throttle::saveConfiguration() {
 //}
 //else { //use the installed throttle
 //}
+
 
 

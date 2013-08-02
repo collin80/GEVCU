@@ -180,6 +180,12 @@ void initializeDevices() {
 	brake->setup();
 	deviceManager->addDevice(brake);
 #endif
+#ifdef CFG_ENABLE_DEVICE_CAN_THROTTLE_BRAKE
+	Logger::info("add device: CanThrottle brake");
+	Throtle *brake = new CanThrottle();
+	brake->setup();
+	deviceManager->addDevice(brake);
+#endif
 #ifdef CFG_ENABLE_DEVICE_MOTORCTRL_DMOC_645
 	MotorController *motorController = new DmocMotorController(); //instantiate a DMOC645 device controller as our motor controller
 	Logger::info("add device: DMOC645 (%d)", motorController);
@@ -189,11 +195,19 @@ void initializeDevices() {
 #ifdef CFG_ENABLE_DEVICE_MOTORCTRL_BRUSA_DMC5
 	Logger::info("add device: Brusa DMC5");
 #endif
+#ifdef CFG_ENABLE_DEVICE_ICHIP2128_WIFI
+	Logger::info("add device: iChip 2128 WiFi");
+	WIFI *iChip = new WIFI();
+	iChip->init();
+	deviceManager->addDevice(iChip);
+#endif
 }
 
 void setup() {
 	SerialUSB.begin(CFG_SERIAL_SPEED);
 	SerialUSB.println(CFG_VERSION);
+
+	TickHandler::initialize(); // initialize the TickHandler
 
 	pinMode(BLINK_LED, OUTPUT);
 	digitalWrite(BLINK_LED, LOW);
@@ -261,3 +275,4 @@ void loop() {
 	//this should still be here. It checks for a flag set during an interrupt
 	sys_io_adc_poll();
 }
+

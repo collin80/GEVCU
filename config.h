@@ -61,23 +61,29 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 // try to use the same numbers for several devices because then they will share
 // the same timer (out of a limited number of 9 timers).
 
+//Switched pot throttle, motor controller, and memcache to 40ms ticks
+//That's still quite fast (25 times per second). This times the cache out
+//in around 4-5 seconds and still is plenty fast to keep the DMOC happy
 #define CFG_TICK_INTERVAL_HEARTBEAT 2000000
-#define CFG_TICK_INTERVAL_POT_THROTTLE 10000
+#define CFG_TICK_INTERVAL_POT_THROTTLE 40000 
 #define CFG_TICK_INTERVAL_CAN_THROTTLE 50000
-#define CFG_TICK_INTERVAL_MOTOR_CONTROLLER 10000
-#define CFG_TICK_INTERVAL_MEM_CACHE 10000
+#define CFG_TICK_INTERVAL_MOTOR_CONTROLLER 40000
+#define CFG_TICK_INTERVAL_MEM_CACHE 40000
 
 #define CFG_CAN0_SPEED CAN_BPS_500K // specify the speed of the CAN0 bus (EV)
 #define CFG_CAN1_SPEED CAN_BPS_500K // specify the speed of the CAN1 bus (Car)
 #define CFG_CAN0_NUM_RX_MAILBOXES 7 // amount of CAN bus receive mailboxes for CAN0
 #define CFG_CAN1_NUM_RX_MAILBOXES 7 // amount of CAN bus receive mailboxes for CAN1
 
-#define CFG_THROTTLE_TOLERANCE  30 //the max that things can go over or under the min/max without fault
+#define CFG_THROTTLE_TOLERANCE  30 //the max that things can go over or under the min/max without fault - 1/10% each #
 #define BLINK_LED          73 //13 is L, 73 is TX, 72 is RX
 
 //if this is defined then the ADC code will use raw readings from the actual ADC port of that number.
 //In other words, no DMA, no differential input, just the ADC. If you ask for ADC0 you will get a raw
 //reading from ADC0.
 //#define RAWADC
+
+//define this if using the new DUED boards. These have ampseal connectors
+//#define DUED
 
 #endif /* CONFIG_H_ */
