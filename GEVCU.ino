@@ -163,7 +163,7 @@ void initializeDevices() {
 	//if min is less than max for a throttle then the pot goes low to high as pressed.
 	//if max is less than min for a throttle then the pot goes high to low as pressed.
 	Logger::info("add device: PotThrottle accelerator");
-	Throttle *accelerator = new PotThrottle(0, 1);//specify the shield ADC ports to use for throttle 255 = not used (valid only for second value)
+	Throttle *accelerator = new PotThrottle(0, 255);//specify the shield ADC ports to use for throttle 255 = not used (valid only for second value)
 	accelerator->setup();
 	deviceManager->addDevice(accelerator);
 #endif

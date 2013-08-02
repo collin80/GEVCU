@@ -44,6 +44,7 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include "config.h"
 #ifdef CFG_ENABLE_DEVICE_MOTORCTRL_DMOC_645
 #include "DmocMotorController.h"
+#include "Params.h"
 
 extern bool runThrottle; //TODO: remove use of global variables !
 
@@ -52,8 +53,8 @@ DmocMotorController::DmocMotorController() : MotorController() {
 	selectedGear = NEUTRAL;
 	operationState = DISABLED;
 	actualState = DISABLED;
-	maxTorque = 500; //in tenths so 50Nm max torque. This is plenty for testing
-	maxRPM = 6000; //also plenty for a bench test
+	maxTorque = MaxTorqueValue; //in tenths so 50Nm max torque. This is plenty for testing
+	maxRPM = MaxRPMValue; //also plenty for a bench test
 	online = 0;
 	powerMode = MODE_TORQUE;
 }
@@ -261,10 +262,13 @@ void DmocMotorController::sendCmd3() {
 	output.id = 0x234;
 	output.ide = 0; //standard frame
 	output.rtr = 0;
-	output.data[0] = 0xD0; //msb of regen watt limit
-	output.data[1] = 0x84; //lsb
-	output.data[2] = 0x6C; //msb of acceleration limit
-	output.data[3] = 0x66; //lsb
+
+	int regenCalc = 65000 - (MaxRegenWatts / 4);
+	int accelCalc = (MaxAccelWatts / 4);
+	output.data[0] = ((regenCalc & 0xFF00) >> 8); //msb of regen watt limit
+	output.data[1] = (regenCalc & 0xFF); //lsb
+	output.data[2] = ((accelCalc & 0xFF00) >> 8); //msb of acceleration limit
+	output.data[3] = (accelCalc & 0xFF); //lsb
 	output.data[4] = 0; //not used
 	output.data[5] = 60; //20 degrees celsius
 	output.data[6] = alive;
