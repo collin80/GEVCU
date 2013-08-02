@@ -35,7 +35,7 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 #include <due_can.h>
 
-#define CFG_VERSION "GEVCU alpha 2013-07-26"
+#define CFG_VERSION "GEVCU alpha 2013-08-01"
 #define CFG_SERIAL_SPEED 115200
 
 #define SerialUSB Serial // re-route serial-usb output to programming port ;) comment if output should go to std usb
@@ -43,7 +43,7 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #define CFG_DEV_MGR_MAX_DEVICES 9 // the maximum number of devices supported by the DeviceManager
 #define CFG_CAN_NUM_OBSERVERS 10 // maximum number of device subscriptions per CAN bus
 #define CFG_TIMER_NUM_OBSERVERS 9 // the maximum number of supported observers per timer
-#define CFG_TIMER_USE_QUEUING // if defined, TickHandler uses a queuing buffer instead of direct calls from interrupts
+//#define CFG_TIMER_USE_QUEUING // if defined, TickHandler uses a queuing buffer instead of direct calls from interrupts
 #define CFG_TIMER_BUFFER_SIZE 100 // the size of the queuing buffer for TickHandler
 
 // Define the devices which are to be used (and compiled) via the following lines. It is advisable

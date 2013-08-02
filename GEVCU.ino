@@ -241,8 +241,6 @@ void setup() {
         
 	Logger::info("System Ready");
 	serialConsole->printMenu();
-
-	tickHandler->cleanBuffer(); // remove buffered tick events which clogged up already (might not be necessary)
 }
 
 void loop() {
