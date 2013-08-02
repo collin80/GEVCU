@@ -44,6 +44,7 @@ public:
 		DEVICE_THROTTLE,
 		DEVICE_BRAKE,
 		DEVICE_MISC,
+		DEVICE_WIFI,
 		DEVICE_NONE
 	};
 	enum DeviceId { //unique device ID for every piece of hardware possible
@@ -53,6 +54,7 @@ public:
 		POTACCELPEDAL = 0x1030,
 		POTBRAKEPEDAL = 0x1031,
 		CANACCELPEDAL = 0x1032,
+		ICHIP2128 = 0x1040,
 		INVALID = 0xFFFF
 	};
 	Device();

@@ -5,7 +5,8 @@ Much of what was in here has been done or rendered moot. Instead here is the cur
 lay of the land:
 
 -There are observers for ticks and canbus but canbus is not yet done. So, one thing
-on the agenda is to complete canbus observer
+on the agenda is to complete canbus observer (This has now been submitted but
+is being held back from master until after EVCCON.)
 
 -The new board has wifi but we're not using it. A big problem currently is that
 we have no good way to set parameter so, while EEPROM is working, it is worthless

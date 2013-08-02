@@ -27,25 +27,38 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
  
 #include "ichip_2128.h"
+#include "config.h"
 
 //initialization of hardware and parameters
 void WIFI::init() {
 }
 
+void WIFI::sendCmd(String cmd) 
+{
+  serialInterface->write("AT+i");
+  serialInterface->print(cmd);
+  serialInterface->write(0x13);
+}
+
 //periodic processes
 void WIFI::handleTick() {
+  
 }
 
 //turn on the web server
 void WIFI::enableServer() {
+  sendCmd("WRFU"); //enable WIFI if not already enabled
+  sendCmd("WWW"); //turn on web server
 }
 
 //turn off the web server
 void WIFI::disableServer() {
+  
 }
 
 //Determine if a parameter has changed, which one, and the new value
 String WIFI::getNextParam() {
+  sendCmd("WNXT"); //send command to get next changed parameter
 }
 
 //try to retrieve the value of the given parameter
@@ -63,4 +76,29 @@ WIFI::WIFI() {
 
 WIFI::WIFI(USARTClass *which) {
   serialInterface = which;
+}
+
+//called in the main loop (hopefully) in order to process serial input waiting for us
+//from the wifi module. It should always terminate its answers with 0x13 so buffer
+//until we get 0x13 (CR) and then process it.
+//But, for now just echo stuff to our serial port for debugging
+void WIFI::loop() 
+{
+  int incoming;
+  while (serialInterface->available()) {
+    incoming = serialInterface->read();
+    if (incoming != -1) { //and there is no reason it should be -1
+      serialInterface->write(incoming);
+    }
+  }
+}
+
+Device::DeviceType WIFI::getType() 
+{
+  return Device::DEVICE_WIFI;
+}
+
+Device::DeviceId WIFI::getId() 
+{
+  return (Device::ICHIP2128);
 }

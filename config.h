@@ -35,7 +35,7 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 #include <due_can.h>
 
-#define CFG_VERSION "GEVCU alpha 2013-07-26"
+#define CFG_VERSION "GEVCU alpha 2013-08-01"
 #define CFG_SERIAL_SPEED 115200
 
 #define SerialUSB Serial // re-route serial-usb output to programming port ;) comment if output should go to std usb
@@ -54,15 +54,14 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #define CFG_ENABLE_DEVICE_MOTORCTRL_DMOC_645
 //#define CFG_ENABLE_DEVICE_MOTORCTRL_BRUSA_DMC5
 
-// specify the intervals (microseconds) at which each device type should be "ticked"
-// try to use the same numbers for several devices because then they will share
-// the same timer (out of a limited number of 9 timers).
-
+//Switched pot throttle, motor controller, and memcache to 40ms ticks
+//That's still quite fast (25 times per second). This times the cache out
+//in around 4-5 seconds and still is plenty fast to keep the DMOC happy
 #define CFG_TICK_INTERVAL_HEARTBEAT 2000000
-#define CFG_TICK_INTERVAL_POT_THROTTLE 10000
+#define CFG_TICK_INTERVAL_POT_THROTTLE 40000 
 #define CFG_TICK_INTERVAL_CAN_THROTTLE 200000 // tick CanThrottle every 200ms
-#define CFG_TICK_INTERVAL_MOTOR_CONTROLLER 10000
-#define CFG_TICK_INTERVAL_MEM_CACHE 10000
+#define CFG_TICK_INTERVAL_MOTOR_CONTROLLER 40000
+#define CFG_TICK_INTERVAL_MEM_CACHE 40000
 
 #define CFG_CAN0_SPEED CAN_BPS_500K // specify the speed of the CAN0 bus (EV)
 #define CFG_CAN1_SPEED CAN_BPS_500K // specify the speed of the CAN1 bus (Car)
@@ -72,7 +71,7 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #define CFG_CAN1_NUM_TX_MAILBOXES 2 // amount of CAN bus transmit mailboxes for CAN1
 #define CFG_CAN_MAX_DEVICES_PER_MAILBOX 8 // maximum number of devices per CAN mailbox
 
-#define CFG_THROTTLE_TOLERANCE  30 //the max that things can go over or under the min/max without fault
+#define CFG_THROTTLE_TOLERANCE  30 //the max that things can go over or under the min/max without fault - 1/10% each #
 #define BLINK_LED          73 //13 is L, 73 is TX, 72 is RX
 
 //if this is defined then the ADC code will use raw readings from the actual ADC port of that number.

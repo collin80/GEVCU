@@ -194,6 +194,12 @@ void initializeDevices() {
 #ifdef CFG_ENABLE_DEVICE_MOTORCTRL_BRUSA_DMC5
 	Logger::info("add device: Brusa DMC5");
 #endif
+#ifdef CFG_ENABLE_DEVICE_ICHIP2128_WIFI
+	Logger::info("add device: iChip 2128 WiFi");
+	WIFI *iChip = new WIFI();
+	iChip->init();
+	deviceManager->addDevice(iChip);
+#endif
 }
 
 void setup() {
