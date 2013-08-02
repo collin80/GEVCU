@@ -83,6 +83,8 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 class WIFI : public Device {
     private:
     USARTClass* serialInterface; //Allows for retargetting which serial port we use
+    char incomingBuffer[128]; //storage for one incoming line
+    int ibWritePtr;
     
     public:
     void init(); //initialization on start up
