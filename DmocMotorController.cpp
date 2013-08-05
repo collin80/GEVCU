@@ -154,21 +154,16 @@ void DmocMotorController::handleTick() {
 		//runThrottle = false;
 	}
 
-	switch (step) {
-	case SPEED_TORQUE:
-		//if (online == 1) { //only send out commands if the controller is really there.
-		step = CHAL_RESP;
-		sendCmd1();
-		sendCmd2();
-		sendCmd3();
-		//sendCmd4();
-		//sendCmd5();
-		//}
-		break;
-	case CHAL_RESP:
-		step = SPEED_TORQUE;
-		break;
-	}
+	//if (online == 1) { //only send out commands if the controller is really there.
+	step = CHAL_RESP;
+	sendCmd1();
+	sendCmd2();
+	sendCmd3();
+	//sendCmd4();
+	//sendCmd5();
+	//}
+	
+	
 }
 
 //Commanded RPM plus state of key and gear selector

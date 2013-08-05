@@ -104,26 +104,31 @@ WIFI::WIFI(USARTClass *which) {
 
 //called in the main loop (hopefully) in order to process serial input waiting for us
 //from the wifi module. It should always terminate its answers with 0x13 so buffer
-//until we get 0x13 (CR) and then process it.
+//until we get 13 (CR) and then process it.
 //But, for now just echo stuff to our serial port for debugging
 void WIFI::loop() 
 {
-  int incoming;
-  while (serialInterface->available()) {
-    incoming = serialInterface->read();
-    if (incoming != -1) { //and there is no reason it should be -1
-      serialInterface->write(incoming);
-      if (incoming != 0x13) { //add to the line
-	incomingBuffer[ibWritePtr++] = (char)incoming;
-      }
-      else { //that's the end of the line. Try to figure out what it said.
-	incomingBuffer[ibWritePtr] = 0; //null terminate the string
-	ibWritePtr = 0; //reset the write pointer
-	if (strcmp(incomingBuffer, "I/ERROR") == 0) { //got an error back!
+	int incoming;
+	while (serialInterface->available()) 
+	{
+		incoming = serialInterface->read();
+		if (incoming != -1) 
+		{ //and there is no reason it should be -1
+			serialInterface->write(incoming);
+			if (incoming != 0x13) 
+			{ //add to the line
+				incomingBuffer[ibWritePtr++] = (char)incoming;
+			}
+			else 
+			{ //that's the end of the line. Try to figure out what it said.
+				incomingBuffer[ibWritePtr] = 0; //null terminate the string
+				ibWritePtr = 0; //reset the write pointer
+				if (strcmp(incomingBuffer, "I/ERROR") == 0) { //got an error back!
+				}
+			}
+		}
+		else return;
 	}
-      }
-    }
-  }
 }
 
 Device::DeviceType WIFI::getType() 
