@@ -45,9 +45,6 @@
     <ClInclude Include="GEVCU.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="HeartbeatDevice.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="ichip_2128.h">
       <Filter>Header Files</Filter>
     </ClInclude>
@@ -78,6 +75,21 @@
     <ClInclude Include="ThrottleDetector.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="Heartbeat.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="PotBrake.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="SerialConsole.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Tickable.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Params.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <Text Include="GEVCU.ino" />
@@ -99,9 +111,6 @@
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="FaultHandler.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="HeartbeatDevice.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="ichip_2128.cpp">
@@ -132,6 +141,15 @@
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="ThrottleDetector.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="Heartbeat.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="PotBrake.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="SerialConsole.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>

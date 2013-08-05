@@ -80,6 +80,6 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 //#define RAWADC
 
 //define this if using the new DUED boards. These have ampseal connectors
-//#define DUED
+#define DUED
 
 #endif /* CONFIG_H_ */

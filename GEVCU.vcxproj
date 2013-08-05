@@ -43,7 +43,7 @@
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <ClCompile>
-      <PreprocessorDefinitions>__SAM3X8E__;USB_PID=0x003e;USB_VID=0x2341;USBCON;ARDUINO=152;ARDUINO_MAIN;printf=iprintf;__SAM__;F_CPU=84000000L;__cplusplus;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>__SAM3X8E__;USB_PID=0x003e;USB_VID=0x2341;USBCON;ARDUINO=152;printf=iprintf;__SAM__;F_CPU=84000000L;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <RuntimeLibrary>MultiThreadedDebugDLL</RuntimeLibrary>
       <WarningLevel>Level3</WarningLevel>
       <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
@@ -87,16 +87,28 @@
     <ClInclude Include="eeprom_layout.h" />
     <ClInclude Include="FaultHandler.h" />
     <ClInclude Include="GEVCU.h" />
-    <ClInclude Include="HeartbeatDevice.h" />
+    <ClInclude Include="Heartbeat.h">
+      <FileType>CppCode</FileType>
+    </ClInclude>
     <ClInclude Include="ichip_2128.h" />
     <ClInclude Include="Logger.h" />
     <ClInclude Include="MemCache.h" />
     <ClInclude Include="MotorController.h" />
+    <ClInclude Include="Params.h" />
+    <ClInclude Include="PotBrake.h">
+      <FileType>CppCode</FileType>
+    </ClInclude>
     <ClInclude Include="PotThrottle.h" />
     <ClInclude Include="PrefHandler.h" />
+    <ClInclude Include="SerialConsole.h">
+      <FileType>CppCode</FileType>
+    </ClInclude>
     <ClInclude Include="sys_io.h" />
     <ClInclude Include="Throttle.h" />
     <ClInclude Include="ThrottleDetector.h">
+      <FileType>CppCode</FileType>
+    </ClInclude>
+    <ClInclude Include="Tickable.h">
       <FileType>CppCode</FileType>
     </ClInclude>
     <ClInclude Include="TickHandler.h" />
@@ -114,13 +126,15 @@
     <ClCompile Include="DeviceManager.cpp" />
     <ClCompile Include="DmocMotorController.cpp" />
     <ClCompile Include="FaultHandler.cpp" />
-    <ClCompile Include="HeartbeatDevice.cpp" />
+    <ClCompile Include="Heartbeat.cpp" />
     <ClCompile Include="ichip_2128.cpp" />
     <ClCompile Include="Logger.cpp" />
     <ClCompile Include="MemCache.cpp" />
     <ClCompile Include="MotorController.cpp" />
+    <ClCompile Include="PotBrake.cpp" />
     <ClCompile Include="PotThrottle.cpp" />
     <ClCompile Include="PrefHandler.cpp" />
+    <ClCompile Include="SerialConsole.cpp" />
     <ClCompile Include="sys_io.cpp" />
     <ClCompile Include="Throttle.cpp" />
     <ClCompile Include="ThrottleDetector.cpp" />
