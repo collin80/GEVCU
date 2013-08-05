@@ -31,6 +31,7 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #ifdef CFG_ENABLE_DEVICE_POT_THROTTLE_ACCEL
 #include "PotThrottle.h"
 #include "Logger.h"
+#include "Params.h"
 
 //initialize by telling the code which two ADC channels to use (or set channel 2 to 255 to disable)
 PotThrottle::PotThrottle(uint8_t throttle1, uint8_t throttle2) : Throttle() {
@@ -41,7 +42,7 @@ PotThrottle::PotThrottle(uint8_t throttle1, uint8_t throttle2) : Throttle() {
 	else
 		numThrottlePots = 2;
 	throttleStatus = OK;
-	throttleMaxErr = 75; //in tenths of a percent. So 25 = max 2.5% difference
+	throttleMaxErr = ThrottleMaxErrValue; //in tenths of a percent. So 25 = max 2.5% difference
 	//analogReadResolution(12);
 }
 
@@ -72,10 +73,10 @@ void PotThrottle::setup() {
 	throttleMax2 = 1900;
 */
 	//The next three are tenths of a percent
-	throttleRegen = 0;
-	throttleFwd = 175;
-	throttleMap = 665;
-	throttleMaxRegen = 00; //percentage of full power to use for regen at throttle
+	throttleRegen = ThrottleRegenValue;
+	throttleFwd = ThrottleFwdValue;
+	throttleMap = ThrottleMapValue;
+	throttleMaxRegen = ThrottleMaxRegenValue; //percentage of full power to use for regen at throttle
 	//prefsHandler->write(EETH_MIN_ONE, throttleMin1);
 //	prefsHandler->write(EETH_MAX_ONE, throttleMax1);
 //	prefsHandler->write(EETH_MIN_TWO, throttleMin2);
