@@ -81,13 +81,13 @@
     <ClInclude Include="PotBrake.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="SerialConsole.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
     <ClInclude Include="Tickable.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="Params.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="SerialConsole.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

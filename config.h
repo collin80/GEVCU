@@ -53,6 +53,7 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #define CFG_ENABLE_DEVICE_POT_THROTTLE_BRAKE
 #define CFG_ENABLE_DEVICE_MOTORCTRL_DMOC_645
 //#define CFG_ENABLE_DEVICE_MOTORCTRL_BRUSA_DMC5
+//#define CFG_ENABLE_DEVICE_ICHIP2128_WIFI
 
 //Switched pot throttle, motor controller, and memcache to 40ms ticks
 //That's still quite fast (25 times per second). This times the cache out
@@ -80,6 +81,6 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 //#define RAWADC
 
 //define this if using the new DUED boards. These have ampseal connectors
-//#define DUED
+#define DUED
 
 #endif /* CONFIG_H_ */
