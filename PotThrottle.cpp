@@ -119,7 +119,7 @@ int PotThrottle::calcThrottle(int clampedVal, int minVal, int maxVal) {
 void PotThrottle::doAccel() {
 	signed int range;
 	signed int calcThrottle1, calcThrottle2, clampedVal, tempLow, temp;
-	static uint16_t ThrottleAvg = 0, ThrottleFeedback = 0; //used to create proportional control
+	static int ThrottleAvg = 0, ThrottleFeedback = 0; //used to create proportional control
 
 	clampedVal = throttle1Val;
 
