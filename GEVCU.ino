@@ -47,6 +47,7 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 //Evil, global variables
 CanHandler *canHandlerEV;
 CanHandler *canHandlerCar;
+TickHandler *tickHandler;
 PrefHandler *sysPrefs;
 MemCache *memCache;
 Heartbeat *heartbeat;
@@ -154,28 +155,28 @@ void initializeDevices() {
 	DeviceManager *deviceManager = DeviceManager::getInstance();
 
 #ifdef CFG_ENABLE_DEVICE_HEARTBEAT
-	Logger::info("add: Heartbeat");
 	heartbeat = new Heartbeat();
+	Logger::info("add: Heartbeat (%d)", heartbeat);
 	heartbeat->setup();
 #endif
-#ifdef CFG_ENABLE_DEVICE_POT_THROTTLE_ACCEL
+#ifdef CFG_ENABLE_DEVICE_POT_THROTTLE
 	//The pedal I have has two pots and one should be twice the value of the other normally (within tolerance)
 	//if min is less than max for a throttle then the pot goes low to high as pressed.
 	//if max is less than min for a throttle then the pot goes high to low as pressed.
-	Logger::info("add device: PotThrottle accelerator");
 	Throttle *accelerator = new PotThrottle(0, 255);//specify the shield ADC ports to use for throttle 255 = not used (valid only for second value)
+	Logger::info("add device: PotThrottle (%d)", accelerator);
 	accelerator->setup();
 	deviceManager->addDevice(accelerator);
 #endif
-#ifdef CFG_ENABLE_DEVICE_CAN_THROTTLE_ACCEL
-	Logger::info("add device: CanThrottle accelerator");
-	Throttle *accelerator = new CanThrottle(canHandler1);
+#ifdef CFG_ENABLE_DEVICE_CAN_THROTTLE
+	Throttle *accelerator = new CanThrottle();
+	Logger::info("add device: CanThrottle (%d)", accelerator);
 	accelerator->setup();
 	deviceManager->addDevice(accelerator);
 #endif
-#ifdef CFG_ENABLE_DEVICE_POT_THROTTLE_BRAKE
-	Logger::info("add device: PotThrottle brake");
+#ifdef CFG_ENABLE_DEVICE_POT_BRAKE
 	Throttle *brake = new PotBrake(2, 255); //set up the brake input as the third ADC input from the shield.
+	Logger::info("add device: PotBrake (%d)", brake);
 	brake->setup();
 	deviceManager->addDevice(brake);
 #endif
@@ -186,8 +187,8 @@ void initializeDevices() {
 	deviceManager->addDevice(brake);
 #endif
 #ifdef CFG_ENABLE_DEVICE_MOTORCTRL_DMOC_645
-	Logger::info("add device: DMOC 645");
 	MotorController *motorController = new DmocMotorController(); //instantiate a DMOC645 device controller as our motor controller
+	Logger::info("add device: DMOC645 (%d)", motorController);
 	motorController->setup();
 	deviceManager->addDevice(motorController);
 #endif
@@ -210,6 +211,8 @@ void setup() {
 
 	pinMode(BLINK_LED, OUTPUT);
 	digitalWrite(BLINK_LED, LOW);
+
+	tickHandler = TickHandler::getInstance();
 
 	canHandlerEV = CanHandler::getInstanceEV();
 	canHandlerCar = CanHandler::getInstanceCar();
@@ -252,16 +255,24 @@ void setup() {
         
 	Logger::info("System Ready");
 	serialConsole->printMenu();
+#ifdef CFG_TIMER_USE_QUEUING
+	tickHandler->cleanBuffer(); // remove buffered tick events which clogged up already (might not be necessary)
+#endif
 }
 
 void loop() {
-  // check if incoming frames are available in the can buffer and process them
-  canHandlerEV->processInput();
-  canHandlerCar->processInput();
 
-  serialConsole->loop();
+#ifdef CFG_TIMER_USE_QUEUING
+	tickHandler->process();
+#endif
 
-  //this should still be here. It checks for a flag set during an interrupt
-  sys_io_adc_poll();
+	// check if incoming frames are available in the can buffer and process them
+	canHandlerEV->process();
+	canHandlerCar->process();
+
+	serialConsole->loop();
+
+	//this should still be here. It checks for a flag set during an interrupt
+	sys_io_adc_poll();
 }
 

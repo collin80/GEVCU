@@ -30,7 +30,7 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include "config.h"
 #include "TickHandler.h"
 
-class Heartbeat: public Tickable {
+class Heartbeat: public TickObserver {
 public:
 	Heartbeat();
 	void setup();

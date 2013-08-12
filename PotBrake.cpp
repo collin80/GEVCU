@@ -1,11 +1,31 @@
 /*
  * PotBrake.cpp
  *
- *  Author: Collin Kidder
+Copyright (c) 2013 Collin Kidder, Michael Neuweiler, Charles Galpin
+
+Permission is hereby granted, free of charge, to any person obtaining
+a copy of this software and associated documentation files (the
+"Software"), to deal in the Software without restriction, including
+without limitation the rights to use, copy, modify, merge, publish,
+distribute, sublicense, and/or sell copies of the Software, and to
+permit persons to whom the Software is furnished to do so, subject to
+the following conditions:
+
+The above copyright notice and this permission notice shall be included
+in all copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
+MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.
+IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY
+CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT,
+TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
+SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+
  */
 
 #include "config.h"
-#ifdef CFG_ENABLE_DEVICE_POT_THROTTLE_BRAKE
+#ifdef CFG_ENABLE_DEVICE_POT_BRAKE
 #include "PotBrake.h"
 
 //initialize by telling the code which two ADC channels to use (or set channel 2 to 255 to disable)
@@ -23,7 +43,7 @@ PotBrake::PotBrake(uint8_t brake1, uint8_t brake2) :
 }
 
 void PotBrake::setup() {
-	TickHandler::remove(this); // unregister from TickHandler first
+	TickHandler::getInstance()->detach(this); // unregister from TickHandler first
 	Throttle::setup(); //call base class
 	//set digital ports to inputs and pull them up
 	//all inputs currently active low
@@ -49,7 +69,7 @@ void PotBrake::setup() {
 	prefsHandler->write(EETH_MAX_BRAKE_REGEN, brakeMaxRegen);
 	prefsHandler->saveChecksum();
 	//}
-	TickHandler::add(this, CFG_TICK_INTERVAL_POT_THROTTLE);
+	TickHandler::getInstance()->attach(this, CFG_TICK_INTERVAL_POT_THROTTLE);
 }
 
 int PotBrake::getRawBrake1() {
@@ -187,4 +207,4 @@ Device::DeviceType PotBrake::getType() {
 	return (DEVICE_BRAKE);
 }
 
-#endif // CFG_ENABLE_DEVICE_POT_THROTTLE_BRAKE
+#endif // CFG_ENABLE_DEVICE_POT_BRAKE

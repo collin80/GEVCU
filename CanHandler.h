@@ -37,6 +37,11 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 class Device;
 
+class CanObserver {
+public:
+	virtual void handleCanFrame(RX_CAN_FRAME *frame);
+};
+
 class CanHandler {
 public:
 	enum CanBusNode {
@@ -45,32 +50,34 @@ public:
 	};
 
 	void initialize();
-	void setFilter(uint8_t mailbox, uint32_t acceptMask, uint32_t id, bool extended);
-	void processInput();
-	bool sendFrame(TX_CAN_FRAME& frame);
-	bool sendFrame(uint8_t mailbox, TX_CAN_FRAME& frame);
+	void attach(CanObserver *observer, uint32_t id, uint32_t mask, bool extended);
+	void detach(CanObserver *observer, uint32_t id, uint32_t mask);
+	void process();
+	void sendFrame(TX_CAN_FRAME& frame);
 	static CanHandler *getInstanceCar();
 	static CanHandler *getInstanceEV();
-
 protected:
 
 private:
-	struct MailboxEntry {
-		uint32_t id;
-		uint32_t mask;
-		Device *device[CFG_CAN_MAX_DEVICES_PER_MAILBOX]; // array of pointers to devices with this id/mask set
+	struct CanObserverData {
+		uint32_t id;	// what id to listen to
+		uint32_t mask;	// the CAN frame mask to listen to
+		bool extended;	// are extended frames expected
+		uint8_t mailbox;	// which mailbox is this observer assigned to
+		CanObserver *observer;	// the observer object (e.g. a device)
 	};
-	static CanHandler *canHandlerEV;
-	static CanHandler *canHandlerCar;
+	static CanHandler *canHandlerEV;	// singleton reference to the EV instance (CAN0)
+	static CanHandler *canHandlerCar;	// singleton reference to the car instance (CAN1)
 
-	CanBusNode canBusNode;
-	CANRaw *bus;
-	MailboxEntry mailboxEntry[CFG_CAN0_NUM_RX_MAILBOXES]; // array of mailbox entries (8 as there are 8 timers)
+	CanBusNode canBusNode;	// indicator to which can bus this instance is assigned to
+	CANRaw *bus;	// the can bus instance which this CanHandler instance is assigned to
+	CanObserverData observerData[CFG_CAN_NUM_OBSERVERS];	// Can observers
 
 	CanHandler(CanBusNode busNumber);
-	int findMailbox(uint32_t id, uint32_t mask);
-	int findDevice(int mailboxNumber, Device *device);
 	void logFrame(RX_CAN_FRAME& frame);
+	int8_t findFreeObserverData();
+	int8_t findFreeMailbox();
+	uint32_t getMailboxIer(int8_t mailbox);
 };
 
 #endif /* CAN_HANDLER_H_ */

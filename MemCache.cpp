@@ -31,7 +31,7 @@ MemCache::MemCache()
 }
 
 void MemCache::setup() {
-	TickHandler::remove(this);
+	TickHandler::getInstance()->detach(this);
 	for (U8 c = 0; c < NUM_CACHED_PAGES; c++) {
 		pages[c].address = 0xFFFFFF; //maximum number. This is way over what our chip will actually support so it signals unused
 		pages[c].age = 0;
@@ -42,7 +42,7 @@ void MemCache::setup() {
 	//digital pin 19 is connected to the write protect function of the EEPROM. It is active high so set it low to enable writes
 	pinMode(19, OUTPUT);
 	digitalWrite(19, LOW);
-	TickHandler::add(this, CFG_TICK_INTERVAL_MEM_CACHE);
+	TickHandler::getInstance()->attach(this, CFG_TICK_INTERVAL_MEM_CACHE);
 }
 
 void MemCache::handleTick()

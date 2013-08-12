@@ -142,7 +142,7 @@ void Throttle::detectThrottleMax() {
 
 void Throttle::saveConfiguration() {
   Logger::info("Saving throttle settings");
-  TickHandler::remove(this); // unregister from TickHandler first
+  TickHandler::getInstance()->detach(this); // unregister from TickHandler first
   setT1Min(throttleDetector->getThrottle1Min());
   prefsHandler->write(EETH_MIN_ONE, throttleMin1);
   setT1Max(throttleDetector->getThrottle1Max());
