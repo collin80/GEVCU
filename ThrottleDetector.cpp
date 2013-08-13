@@ -31,6 +31,9 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include "ThrottleDetector.h"
 #include "sys_io.h"
 #include "Logger.h"
+#include "TickHandler.h"
+
+extern TickHandler *tickHandler;
 
 /*
  * The constructor takes a pointer to a throttle
@@ -414,6 +417,12 @@ void ThrottleDetector::calibrate(bool minPedal)
       //SerialUSB.print(".");
       count= 0;
     }
+
+#ifdef CFG_TIMER_USE_QUEUING
+	tickHandler->process();
+#endif
+	sys_io_adc_poll();
+
     delay(10);
   }
   
