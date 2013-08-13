@@ -50,40 +50,51 @@ void PotThrottle::setup() {
 	//all inputs currently active low
 	//pinMode(THROTTLE_INPUT_BRAKELIGHT, INPUT_PULLUP); //Brake light switch
 	
-	 if (prefsHandler->checksumValid()) { //checksum is good, read in the values stored in EEPROM
-	 prefsHandler->read(EETH_MIN_ONE, &throttleMin1);
-	 prefsHandler->read(EETH_MAX_ONE, &throttleMax1);
-	 prefsHandler->read(EETH_MIN_TWO, &throttleMin2);
-	 prefsHandler->read(EETH_MAX_TWO, &throttleMax2);
-	 prefsHandler->read(EETH_REGEN, &throttleRegen);
-	 prefsHandler->read(EETH_FWD, &throttleFwd);
-	 prefsHandler->read(EETH_MAP, &throttleMap);
-	 prefsHandler->read(EETH_MAX_ACCEL_REGEN, &throttleMaxRegen);
-          Logger::debug("T1 MIN: %i MAX: %i      T2 MIN: %i MAX: %i", throttleMin1, throttleMax1, throttleMin2, throttleMax2);
-        }
-	 //else { //checksum invalid. Reinitialize values and store to EEPROM
-	/*
-	//these four values are ADC values
-	throttleMin1 = 180;
-	throttleMax1 = 930;
-	throttleMin2 = 360;
-	throttleMax2 = 1900;
-*/
-	//The next three are tenths of a percent
+#ifndef USE_HARD_CODED
+	if (prefsHandler->checksumValid()) { //checksum is good, read in the values stored in EEPROM
+		prefsHandler->read(EETH_MIN_ONE, &throttleMin1);
+		prefsHandler->read(EETH_MAX_ONE, &throttleMax1);
+		prefsHandler->read(EETH_MIN_TWO, &throttleMin2);
+		prefsHandler->read(EETH_MAX_TWO, &throttleMax2);
+		prefsHandler->read(EETH_REGEN, &throttleRegen);
+		prefsHandler->read(EETH_FWD, &throttleFwd);
+		prefsHandler->read(EETH_MAP, &throttleMap);
+		prefsHandler->read(EETH_MAX_ACCEL_REGEN, &throttleMaxRegen);
+		Logger::debug("T1 MIN: %i MAX: %i      T2 MIN: %i MAX: %i", throttleMin1, throttleMax1, throttleMin2, throttleMax2);
+	}
+	else { //checksum invalid. Reinitialize values and store to EEPROM
+
+		 //The next three are tenths of a percent
+		throttleRegen = ThrottleRegenValue;
+		throttleFwd = ThrottleFwdValue;
+		throttleMap = ThrottleMapValue;
+		throttleMaxRegen = ThrottleMaxRegenValue; //percentage of full power to use for regen at throttle
+		throttleMin1 = Throttle1MinValue;
+		throttleMax1 = Throttle1MaxValue;
+		throttleMin2 = Throttle2MinValue;
+		throttleMax2 = Throttle2MaxValue;
+
+		prefsHandler->write(EETH_MIN_ONE, throttleMin1);
+		prefsHandler->write(EETH_MAX_ONE, throttleMax1);
+		prefsHandler->write(EETH_MIN_TWO, throttleMin2);
+		prefsHandler->write(EETH_MAX_TWO, throttleMax2);
+		prefsHandler->write(EETH_REGEN, throttleRegen);
+		prefsHandler->write(EETH_FWD, throttleFwd);
+		prefsHandler->write(EETH_MAP, throttleMap);
+		prefsHandler->write(EETH_MAX_ACCEL_REGEN, throttleMaxRegen);
+		prefsHandler->saveChecksum();
+	}
+#else
 	throttleRegen = ThrottleRegenValue;
 	throttleFwd = ThrottleFwdValue;
 	throttleMap = ThrottleMapValue;
 	throttleMaxRegen = ThrottleMaxRegenValue; //percentage of full power to use for regen at throttle
-	//prefsHandler->write(EETH_MIN_ONE, throttleMin1);
-//	prefsHandler->write(EETH_MAX_ONE, throttleMax1);
-//	prefsHandler->write(EETH_MIN_TWO, throttleMin2);
-//	prefsHandler->write(EETH_MAX_TWO, throttleMax2);
-	prefsHandler->write(EETH_REGEN, throttleRegen);
-	prefsHandler->write(EETH_FWD, throttleFwd);
-	prefsHandler->write(EETH_MAP, throttleMap);
-	prefsHandler->write(EETH_MAX_ACCEL_REGEN, throttleMaxRegen);
-	prefsHandler->saveChecksum();
-//	}
+	throttleMin1 = Throttle1MinValue;
+	throttleMax1 = Throttle1MaxValue;
+	throttleMin2 = Throttle2MinValue;
+	throttleMax2 = Throttle2MaxValue;
+#endif
+
 	TickHandler::getInstance()->attach(this, CFG_TICK_INTERVAL_POT_THROTTLE);
 }
 

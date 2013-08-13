@@ -162,7 +162,7 @@ void Throttle::saveConfiguration() {
   }
   prefsHandler->saveChecksum();
 //  prefsHandler->forceCacheWrite(); // make sure it writes to EEPROM immediately.
-  TickHandler::add(this, getTickInterval());
+  TickHandler::getInstance()->attach(this, getTickInterval());
 }
 
 void Throttle::setT1Min(uint16_t min) {

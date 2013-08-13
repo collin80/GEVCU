@@ -53,8 +53,6 @@ DmocMotorController::DmocMotorController() : MotorController() {
 	selectedGear = NEUTRAL;
 	operationState = DISABLED;
 	actualState = DISABLED;
-	maxTorque = MaxTorqueValue; //in tenths so 50Nm max torque. This is plenty for testing
-	maxRPM = MaxRPMValue; //also plenty for a bench test
 	online = 0;
 	powerMode = MODE_TORQUE;
 }

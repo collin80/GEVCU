@@ -26,7 +26,8 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
  */ 
  
- #include "MotorController.h"
+#include "MotorController.h"
+#include "Params.h"
  
 MotorController::MotorController() : Device() {
 	prefsHandler = new PrefHandler(EE_MOTORCTL_START);
@@ -85,17 +86,22 @@ void MotorController::setup() {
 	 pinMode(MOTORCTL_INPUT_REVERSE, INPUT_PULLUP); //Reverse Gear
 	 pinMode(MOTORCTL_INPUT_LIMP, INPUT_PULLUP); //Limp mode
 	 */
+#ifndef USE_HARD_CODED
 	if (prefsHandler->checksumValid()) { //checksum is good, read in the values stored in EEPROM
 		prefsHandler->read(EEMC_MAX_RPM, &maxRPM);
 		prefsHandler->read(EEMC_MAX_TORQUE, &maxTorque);
 	}
 	else { //checksum invalid. Reinitialize values and store to EEPROM
-		maxRPM = 5000;
-		maxTorque = 500; //50Nm
+		maxRPM = MaxRPMValue;
+		maxTorque = MaxTorqueValue;
 		prefsHandler->write(EEMC_MAX_RPM, maxRPM);
 		prefsHandler->write(EEMC_MAX_TORQUE, maxTorque);
 		prefsHandler->saveChecksum();
 	}
+#else
+	maxRPM = MaxRPMValue;
+	maxTorque = MaxTorqueValue;
+#endif
 }
 /*
  #define EEMC_ACTIVE_HIGH		24  //1 byte - bitfield - each bit corresponds to whether a given signal is active high (1) or low (0)
