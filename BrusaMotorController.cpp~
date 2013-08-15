@@ -1,5 +1,6 @@
 /*
- * Device.h
+ * BrusaMotorController.cpp
+ *
  *
 Copyright (c) 2013 Collin Kidder, Michael Neuweiler, Charles Galpin
 
@@ -22,52 +23,10 @@ CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT,
 TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
 SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
- */
+*/
 
-#ifndef DEVICE_H_
-#define DEVICE_H_
-
-#include <Arduino.h>
 #include "config.h"
-#include "eeprom_layout.h"
-#include "PrefHandler.h"
+#ifdef CFG_ENABLE_DEVICE_MOTORCTRL_BRUSA_DMC5
+#include "BrusaMotorController.h"
 
-class Device : public TickObserver {
-public:
-	enum DeviceType {
-		DEVICE_ANY,
-		DEVICE_MOTORCTRL,
-		DEVICE_BMS,
-		DEVICE_CHARGER,
-		DEVICE_DISPLAY,
-		DEVICE_THROTTLE,
-		DEVICE_BRAKE,
-		DEVICE_MISC,
-		DEVICE_WIFI,
-		DEVICE_NONE
-	};
-	enum DeviceId { //unique device ID for every piece of hardware possible
-		DMOC645 = 0x1000,
-		BRUSA_DMC5 = 0x1001,
-		BRUSACHARGE = 0x1010,
-		TCCHCHARGE = 0x1020,
-		POTACCELPEDAL = 0x1030,
-		POTBRAKEPEDAL = 0x1031,
-		CANACCELPEDAL = 0x1032,
-		ICHIP2128 = 0x1040,
-		INVALID = 0xFFFF
-	};
-	Device();
-	virtual void setup();
-	virtual void handleTick();
-	virtual void handleMessage(uint32_t msgType, void* message);
-	virtual DeviceType getType();
-	virtual DeviceId getId();
 
-protected:
-	PrefHandler *prefsHandler;
-
-private:
-};
-
-#endif /* DEVICE_H_ */
