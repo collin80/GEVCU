@@ -207,8 +207,6 @@ void setup() {
 	SerialUSB.begin(CFG_SERIAL_SPEED);
 	SerialUSB.println(CFG_VERSION);
 
-	//TickHandler::initialize(); // initialize the TickHandler
-
 	pinMode(BLINK_LED, OUTPUT);
 	digitalWrite(BLINK_LED, LOW);
 
