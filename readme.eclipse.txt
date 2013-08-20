@@ -1,7 +1,7 @@
 How to get the Eclipse IDE running with GEVCU:
 
-* Install 32-bit version of "Eclipse IDE for C/C++ Developers Eclipse IDE for C/C++ Developers"
-* Start eclipse with a new workspace
+* Install 32-bit version of Java JRE/JDK and "Eclipse IDE for C/C++ Developers Eclipse IDE for C/C++ Developers"
+* Start eclipse with a new workspace and 32-bit JDK ("eclipse -vm <path to 32-bit jre>/bin")
 * Install Arduino plug-in from http://www.baeyens.it/eclipse/V2 (Important: un-check "Group items by category" to see the plugin)
 * Restart eclipse if asked
 * Window -> Preferences -> C/C++ -> File Types -> New -> Pattern: *.ino  Type: C++ Source File
@@ -12,11 +12,24 @@ How to get the Eclipse IDE running with GEVCU:
 * Right click the imported project -> Properties -> Arduino -> Change board and port (if necessary) -> OK
   This will cause the absolute paths to be corrected in the .project file
 * Exit eclipse now !! This will write the necessary changes to .project file (absolute paths) 
-* Start eclipse, select the project and c
+* Start eclipse, select the project and click on "Verify". The project should compile.
 
 
-Note: Creating a new Arduino Project does not work yet with this plugin in Eclipse Kelper.
-      You must import the existing project or stick with Eclipse Juno
+Note 1: Creating a new Arduino Project does not work yet with this plugin in Eclipse Kelper.
+        You must import the existing project or stick with Eclipse Juno
 
 Note 2: We're currently working together with the author of the plug-in to remove the absolute paths in the
         .project file and make the above installation much easier.
+
+Note 3: In case you want to re-compile the entire souce tree, just delete the entire "Release" directory.
+        It will be recreated automatically.
+        
+Note 4: To upload a project under Linux, currently a manual erase of the flash and reset is required before
+        uploading the project. Looking for a solution with the developer
+        
+Note 5: Linux: If the kernel assigns something like ttyACM0 for the Arduino board, the device can be entered
+        manually in the project properties. But the integrated serial monitor in eclipse doesn't work yet.
+        Looking for a solution with developer. As a workaround use a terminal program like GtkTerm.
+
+Note 6: If the editor shows some errors in the code which should not be or if code completion doesn't
+        complete as desired, right click the project -> Index -> Rebuild.
