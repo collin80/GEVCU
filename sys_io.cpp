@@ -46,7 +46,7 @@ uint8_t adc[NUM_ANALOG][2] = {{1,0}, {2,3}, {4,5}, {7,6}}; //low, high
 uint8_t dig[] = {11, 9, 13, 12};
 #endif
 
-uint8_t out[] = {55, 22, 48, 34};
+uint8_t out[] = {52, 22, 48, 32};
 
 volatile int bufn,obufn;
 volatile uint16_t adc_buf[4][256];   // 4 buffers of 256 readings

@@ -66,6 +66,8 @@ void SerialConsole::loop() {
 void SerialConsole::printMenu() {
 	SerialUSB.println("System Menu:");
 	SerialUSB.println("h = help (displays this message)");
+//These commented out lines really can't be used any more so there is no point in advertising them right now.
+/*
 	SerialUSB.println("D = disabled op state");
 	SerialUSB.println("S = standby op state");
 	SerialUSB.println("E = enabled op state");
@@ -75,6 +77,7 @@ void SerialConsole::printMenu() {
 	SerialUSB.println("<space> = start/stop ramp test");
 	SerialUSB.println("x = lock ramp at current value (toggle)");
 	SerialUSB.println("t = Use accelerator pedal? (toggle)");
+*/
         if ( heartbeat != NULL ) {
 	  SerialUSB.println("L = output raw input values (toggle)");
         }
