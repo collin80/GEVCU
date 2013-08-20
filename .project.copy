@@ -27,24 +27,9 @@
 	</natures>
 	<linkedResources>
 		<link>
-			<name>Libraries/DueCAN</name>
-			<type>2</type>
-			<locationURI>ArduinoHardwareLibPath/DueCAN</locationURI>
-		</link>
-		<link>
-			<name>Libraries/DueRTCLibrary</name>
-			<type>2</type>
-			<locationURI>ArduinoHardwareLibPath/DueRTCLibrary</locationURI>
-		</link>
-		<link>
 			<name>Libraries/DueTimer</name>
 			<type>2</type>
 			<locationURI>ArduinoHardwareLibPath/DueTimer</locationURI>
-		</link>
-		<link>
-			<name>Libraries/DueWire</name>
-			<type>2</type>
-			<locationURI>ArduinoHardwareLibPath/DueWire</locationURI>
 		</link>
 		<link>
 			<name>Libraries/Ethernet</name>
@@ -55,6 +40,21 @@
 			<name>Libraries/SPI</name>
 			<type>2</type>
 			<locationURI>ArduinoHardwareLibPath/SPI</locationURI>
+		</link>
+		<link>
+			<name>Libraries/due_can</name>
+			<type>2</type>
+			<locationURI>ArduinoHardwareLibPath/due_can</locationURI>
+		</link>
+		<link>
+			<name>Libraries/due_rtc</name>
+			<type>2</type>
+			<locationURI>ArduinoHardwareLibPath/due_rtc</locationURI>
+		</link>
+		<link>
+			<name>Libraries/due_wire</name>
+			<type>2</type>
+			<locationURI>ArduinoHardwareLibPath/due_wire</locationURI>
 		</link>
 		<link>
 			<name>arduino/core</name>
