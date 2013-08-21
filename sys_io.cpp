@@ -290,6 +290,10 @@ void sys_io_adc_poll() {
       adc_values[j] = adc_values[j] >> 1;
 	  //Logger::debug("A%i: %i", j, adc_values[j]);
     }
+    getAnalog(0);
+    getAnalog(1);
+    getAnalog(2);
+    getAnalog(3);
     obufn = bufn;    
   }
 #endif
