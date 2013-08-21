@@ -49,8 +49,9 @@ uint8_t dig[] = {11, 9, 13, 12};
 uint8_t out[] = {52, 22, 48, 32};
 
 volatile int bufn,obufn;
-volatile uint16_t adc_buf[4][256];   // 4 buffers of 256 readings
-uint16_t adc_values[8];
+volatile uint16_t adc_buf[NUM_ANALOG][256];   // 4 buffers of 256 readings
+uint16_t adc_values[NUM_ANALOG * 2];
+uint16_t adc_out_vals[NUM_ANALOG];
 
 //the ADC values fluctuate a lot so smoothing is required.
 //we'll smooth the last 8 values into an average and use
@@ -81,17 +82,12 @@ void setup_sys_io() {
     //adc_comp[i].gain = 1024;
     //adc_comp[i].offset = 0;
     adc_values[i] = 0;
+	adc_out_vals[i] = 0;
   }
-  pinMode(dig[0], INPUT);
-  pinMode(dig[1], INPUT);
-  pinMode(dig[2], INPUT);
-  pinMode(dig[3], INPUT);
-  
-  pinMode(out[0], OUTPUT);
-  pinMode(out[1], OUTPUT);
-  pinMode(out[2], OUTPUT);
-  pinMode(out[3], OUTPUT);
-  
+
+  for (i = 0; i < NUM_DIGITAL; i++) pinMode(dig[i], INPUT);
+  for (i = 0; i < NUM_OUTPUT; i++) pinMode(out[i], OUTPUT);
+
 }
 
 uint16_t getDiffADC(uint8_t which) {
@@ -159,13 +155,7 @@ uint16_t getAnalog(uint8_t which) {
     if (which >= NUM_ANALOG) which = 0;
 
 #ifndef RAWADC
-    val = getDiffADC(which);
-    addNewADCVal(which, val);
-    
-    val = getDiffADC(which);
-    addNewADCVal(which, val);
-    
-    return getADCAvg(which);
+	return adc_out_vals[which]; //return precalculated ADC reading
 #else
   #ifdef RAWDIFF
     val = getDiffADC(which);
@@ -290,8 +280,16 @@ void sys_io_adc_poll() {
       adc_values[j] = adc_values[j] >> 1;
 	  //Logger::debug("A%i: %i", j, adc_values[j]);
     }
-    obufn = bufn;    
+    
+	for (int i = 0; i < NUM_ANALOG; i++) {
+		int val = getDiffADC(i);
+		addNewADCVal(i, val);
+        adc_out_vals[i] = getADCAvg(i);
+	}
+
+	obufn = bufn;    
   }
 #endif
 }
+
 
