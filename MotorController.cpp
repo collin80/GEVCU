@@ -90,6 +90,7 @@ void MotorController::setup() {
 	if (prefsHandler->checksumValid()) { //checksum is good, read in the values stored in EEPROM
 		prefsHandler->read(EEMC_MAX_RPM, &maxRPM);
 		prefsHandler->read(EEMC_MAX_TORQUE, &maxTorque);
+		Logger::debug("MaxTorque: %i MaxRPM: %i", maxTorque, maxRPM);
 	}
 	else { //checksum invalid. Reinitialize values and store to EEPROM
 		maxRPM = MaxRPMValue;
@@ -169,3 +170,21 @@ uint16_t MotorController::getRequestedRpm() {
 uint16_t MotorController::getRequestedTorque() {
 	return requestedTorque;
 }
+
+void MotorController::setMaxRpm(uint16_t maxRPM) 
+{
+	this->maxRPM = maxRPM;
+}
+
+void MotorController::setMaxTorque(uint16_t maxTorque) 
+{
+	this->maxTorque = maxTorque;
+}
+
+void MotorController::saveEEPROM()
+{
+	prefsHandler->write(EEMC_MAX_RPM, maxRPM);
+	prefsHandler->write(EEMC_MAX_TORQUE, maxTorque);
+	prefsHandler->saveChecksum();
+}
+

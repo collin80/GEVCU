@@ -33,17 +33,24 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 class SerialConsole {
 public:
-        SerialConsole(MemCache* memCache);
+    SerialConsole(MemCache* memCache);
 	SerialConsole(MemCache* memCache, Heartbeat* heartbeat);
 	void loop();
 	void printMenu();
 
 protected:
+	enum CONSOLE_STATE
+	{
+		STATE_ROOT_MENU
+	};
 
 private:
     Heartbeat* heartbeat;
     MemCache* memCache;
     bool handlingEvent;
+	char cmdBuffer[80];
+	int ptrBuffer;
+	int state;
     
     // temp
     bool runRamp;
@@ -52,7 +59,9 @@ private:
 
     void init();
     void serialEvent();
-    
+	void handleConsoleCmd();
+	void handleShortCmd();
+    void handleConfigCmd();
 };
 
 #endif /* SERIALCONSOLE_H_ */

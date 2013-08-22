@@ -61,6 +61,7 @@ void PotThrottle::setup() {
 		prefsHandler->read(EETH_MAP, &throttleMap);
 		prefsHandler->read(EETH_MAX_ACCEL_REGEN, &throttleMaxRegen);
 		Logger::debug("T1 MIN: %i MAX: %i      T2 MIN: %i MAX: %i", throttleMin1, throttleMax1, throttleMin2, throttleMax2);
+		Logger::debug("Regen: %i Fwd: %i Map: %i MaxRegen: %i", throttleRegen, throttleFwd, throttleMap, throttleMaxRegen);
 	}
 	else { //checksum invalid. Reinitialize values and store to EEPROM
 
