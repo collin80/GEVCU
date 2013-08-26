@@ -165,6 +165,18 @@ void Throttle::saveConfiguration() {
   TickHandler::getInstance()->attach(this, getTickInterval());
 }
 
+void Throttle::saveEEPROM() {
+	prefsHandler->write(EETH_MIN_ONE, throttleMin1);
+	prefsHandler->write(EETH_MAX_ONE, throttleMax1);
+	prefsHandler->write(EETH_MIN_TWO, throttleMin2);
+	prefsHandler->write(EETH_MAX_TWO, throttleMax2);
+	prefsHandler->write(EETH_REGEN, throttleRegen);
+	prefsHandler->write(EETH_FWD, throttleFwd);
+	prefsHandler->write(EETH_MAP, throttleMap);
+	prefsHandler->write(EETH_MAX_ACCEL_REGEN, throttleMaxRegen);
+	prefsHandler->saveChecksum();
+}
+
 void Throttle::setT1Min(uint16_t min) {
 	throttleMin1 = min;
 }

@@ -133,7 +133,7 @@ void DmocMotorController::setup() {
 	CanHandler::getInstanceEV()->attach(this, 0x230, 0x7f0, false);
 	CanHandler::getInstanceEV()->attach(this, 0x650, 0x7f0, false);
 
-	TickHandler::getInstance()->attach(this, CFG_TICK_INTERVAL_MOTOR_CONTROLLER);
+	TickHandler::getInstance()->attach(this, CFG_TICK_INTERVAL_MOTOR_CONTROLLER_DMOC);
 }
 
 /*Do note that the DMOC expects all three command frames and it expect them to happen at least twice a second. So, probably it'd be ok to essentially

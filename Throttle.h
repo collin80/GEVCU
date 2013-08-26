@@ -57,6 +57,7 @@ public:
 	void setT2Min(uint16_t min);
 	void setT1Max(uint16_t max);
 	void setT2Max(uint16_t max);
+	void saveEEPROM();
 
 protected:
 	signed int level; //the final signed throttle level. [-1000, 1000] in tenths of a percent of maximum

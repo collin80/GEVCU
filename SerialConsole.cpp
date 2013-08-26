@@ -46,12 +46,16 @@ SerialConsole::SerialConsole(MemCache* memCache, Heartbeat* heartbeat)
 }
 
 void SerialConsole::init() {
-        handlingEvent = false;
+    handlingEvent = false;
         
-        // temp
-        runRamp = false;
+    // temp
+    runRamp = false;
 	runStatic = false;
 	runThrottle = false;
+
+	//State variables for serial console
+	ptrBuffer = 0;
+	state = STATE_ROOT_MENU;
 }
 
 void SerialConsole::loop() {
@@ -65,7 +69,11 @@ void SerialConsole::loop() {
 
 void SerialConsole::printMenu() {
 	SerialUSB.println("System Menu:");
+	SerialUSB.println();
+	SerialUSB.println("Short Commands:");
 	SerialUSB.println("h = help (displays this message)");
+//These commented out lines really can't be used any more so there is no point in advertising them right now.
+/*
 	SerialUSB.println("D = disabled op state");
 	SerialUSB.println("S = standby op state");
 	SerialUSB.println("E = enabled op state");
@@ -75,9 +83,10 @@ void SerialConsole::printMenu() {
 	SerialUSB.println("<space> = start/stop ramp test");
 	SerialUSB.println("x = lock ramp at current value (toggle)");
 	SerialUSB.println("t = Use accelerator pedal? (toggle)");
-        if ( heartbeat != NULL ) {
-	  SerialUSB.println("L = output raw input values (toggle)");
-        }
+*/
+	if ( heartbeat != NULL ) {
+		SerialUSB.println("L = output raw input values (toggle)");
+	}
 	SerialUSB.println("K = set all outputs high");
 	SerialUSB.println("J = set all outputs low");
 	SerialUSB.println("U,I = test EEPROM routines");
@@ -88,30 +97,144 @@ void SerialConsole::printMenu() {
         SerialUSB.println("z = detect throttle min/max  and other values");
 	SerialUSB.println("Z = save detected throttle values");
 	SerialUSB.println();
+	SerialUSB.println("Config Commands (enter command=newvalue):");
+	SerialUSB.println("TORQ = Set torque upper limit (tenths of a Nm)");
+	SerialUSB.println("RPMS = Set maximum RPMs");
+	SerialUSB.println("T1MN = Set throttle 1 min value");
+	SerialUSB.println("T1MX = Set throttle 1 max value");
+	SerialUSB.println("T2MN = Set throttle 2 min value");
+	SerialUSB.println("T2MX = Set throttle 2 max value");
+	SerialUSB.println("TRGN = Tenths of a percent of pedal where regen ends");
+	SerialUSB.println("TFWD = Tenths of a percent of pedal where forward motion starts");
+	SerialUSB.println("TMAP = Tenths of a percent of pedal where 50% throttle will be");
+	SerialUSB.println("TMRN = Percent of full regen to do with throttle");
 }
 
-/* Single character interpreter of commands over
-   serial connection. There is a help menu (press H or h or ?)
+/*	There is a help menu (press H or h or ?)
+
+	This is no longer going to be a simple single character console.
+	Now the system can handle up to 80 input characters. Commands are submitted
+	by sending line ending (LF, CR, or both)
 */
 void SerialConsole::serialEvent() 
 {
-        handlingEvent = true;
 	int incoming;
-	uint8_t val;
-	static int state = 0;
-	DmocMotorController* dmoc = (DmocMotorController*) DeviceManager::getInstance()->getMotorController(); //TODO: direct reference to dmoc must be removed
-	
 	incoming = SerialUSB.read();
-	if (incoming == -1) {
-            handlingEvent = false;
+	if (incoming == -1) { //false alarm....
 	    return;
 	}
-	
-	if (state == 0) {
-		switch (incoming) {
+
+	if (incoming == 10 || incoming == 13) { //command done. Parse it.
+		handleConsoleCmd();
+		ptrBuffer = 0; //reset line counter once the line has been processed
+	}
+	else {
+		cmdBuffer[ptrBuffer++] = (unsigned char) incoming;
+		if (ptrBuffer > 79) ptrBuffer = 79;
+	}
+}
+
+void SerialConsole::handleConsoleCmd() 
+{
+	handlingEvent = true;
+		
+	if (state == STATE_ROOT_MENU) {
+		if (ptrBuffer == 1) { //command is a single ascii character
+			handleShortCmd();
+		}
+		else { //if cmd over 1 char then assume (for now) that it is a config line
+			handleConfigCmd();
+		}
+	}
+    handlingEvent = false;
+}
+
+/*For simplicity the configuration setting code uses four characters for each configuration choice. This makes things easier for
+comparison purposes.
+*/
+void SerialConsole::handleConfigCmd()
+{
+	int newValue;
+	//Logger::debug("Cmd size: %i", ptrBuffer);
+	if (ptrBuffer < 6) return; //4 digit command, =, value is at least 6 characters
+	cmdBuffer[ptrBuffer] = 0; //make sure to null terminate
+	String cmdString = String();
+	cmdString.concat(String(cmdBuffer[0]));
+	cmdString.concat(String(cmdBuffer[1]));
+	cmdString.concat(String(cmdBuffer[2]));
+	cmdString.concat(String(cmdBuffer[3]));
+	cmdString.toUpperCase();
+	if (cmdString == String("TORQ")) {
+		newValue = atoi((char *)(cmdBuffer + 5));
+		Logger::debug("Setting Torque Limit to %i", newValue);
+		DeviceManager::getInstance()->getMotorController()->setMaxTorque(newValue);
+		DeviceManager::getInstance()->getMotorController()->saveEEPROM();
+	}
+	if (cmdString == String("RPMS")) {
+		newValue = atoi((char *)(cmdBuffer + 5));
+		Logger::debug("Setting RPM Limit to %i", newValue);
+		DeviceManager::getInstance()->getMotorController()->setMaxRpm(newValue);
+		DeviceManager::getInstance()->getMotorController()->saveEEPROM();
+	}
+	if (cmdString == String("T1MN")) {
+		newValue = atoi((char *)(cmdBuffer + 5));
+		Logger::debug("Setting Throttle1 Min to %i", newValue);
+		DeviceManager::getInstance()->getAccelerator()->setT1Min(newValue);
+		DeviceManager::getInstance()->getAccelerator()->saveEEPROM();
+	}
+	if (cmdString == String("T1MX")) {
+		newValue = atoi((char *)(cmdBuffer + 5));
+		Logger::debug("Setting Throttle1 Max to %i", newValue);
+		DeviceManager::getInstance()->getAccelerator()->setT1Max(newValue);
+		DeviceManager::getInstance()->getAccelerator()->saveEEPROM();
+	}
+	if (cmdString == String("T2MN")) {
+		newValue = atoi((char *)(cmdBuffer + 5));
+		Logger::debug("Setting Throttle2 Min to %i", newValue);
+		DeviceManager::getInstance()->getAccelerator()->setT2Min(newValue);
+		DeviceManager::getInstance()->getAccelerator()->saveEEPROM();
+	}
+	if (cmdString == String("T2MX")) {
+		newValue = atoi((char *)(cmdBuffer + 5));
+		Logger::debug("Setting Throttle2 Max to %i", newValue);
+		DeviceManager::getInstance()->getAccelerator()->setT2Max(newValue);
+		DeviceManager::getInstance()->getAccelerator()->saveEEPROM();
+	}
+	if (cmdString == String("TRGN")) {
+		newValue = atoi((char *)(cmdBuffer + 5));
+		Logger::debug("Setting Throttle Regen End to %i", newValue);
+		DeviceManager::getInstance()->getAccelerator()->setRegenEnd(newValue);
+		DeviceManager::getInstance()->getAccelerator()->saveEEPROM();
+	}
+	if (cmdString == String("TFWD")) {
+		newValue = atoi((char *)(cmdBuffer + 5));
+		Logger::debug("Setting Throttle Forward Start to %i", newValue);
+		DeviceManager::getInstance()->getAccelerator()->setFWDStart(newValue);
+		DeviceManager::getInstance()->getAccelerator()->saveEEPROM();
+	}
+	if (cmdString == String("TMAP")) {
+		newValue = atoi((char *)(cmdBuffer + 5));
+		Logger::debug("Setting Throttle MAP Point to %i", newValue);
+		DeviceManager::getInstance()->getAccelerator()->setMAP(newValue);
+		DeviceManager::getInstance()->getAccelerator()->saveEEPROM();
+	}
+	if (cmdString == String("TMRN")) {
+		newValue = atoi((char *)(cmdBuffer + 5));
+		Logger::debug("Setting Throttle Regen Strength to %i", newValue);
+		DeviceManager::getInstance()->getAccelerator()->setMaxRegen(newValue);
+		DeviceManager::getInstance()->getAccelerator()->saveEEPROM();
+	}
+}
+
+void SerialConsole::handleShortCmd() 
+{
+	uint8_t val;
+	DmocMotorController* dmoc = (DmocMotorController*) DeviceManager::getInstance()->getMotorController(); //TODO: direct reference to dmoc must be removed
+
+	switch (cmdBuffer[0]) {
 		case 'h':
-			case '?':
-			case 'H':
+		case '?':
+		case 'H':
 			printMenu();
 			break;
 		case ' ':
@@ -169,14 +292,15 @@ void SerialConsole::serialEvent()
 			}
 			break;
 		case 'L':
-                        if ( heartbeat != NULL ) {
-                            heartbeat->setThrottleDebug(!heartbeat->getThrottleDebug());
-    			    if (heartbeat->getThrottleDebug()) {
+			if ( heartbeat != NULL ) {
+				heartbeat->setThrottleDebug(!heartbeat->getThrottleDebug());
+				if (heartbeat->getThrottleDebug()) {
     				Logger::info("Output raw throttle");
-    			    } else {
-    				Logger::info("Cease raw throttle output");
-    			    }
-                        }
+				} 
+				else {	
+					Logger::info("Cease raw throttle output");
+    			}
+			}
 			break;
 		case 'U':
 			Logger::info("Adding a sequence of values from 0 to 255 into eeprom");
@@ -234,10 +358,7 @@ void SerialConsole::serialEvent()
 			DeviceManager::getInstance()->getAccelerator()->detectThrottle();
 			break;
 		case 'Z': // save throttle settings
-                        DeviceManager::getInstance()->getAccelerator()->saveConfiguration();
+			DeviceManager::getInstance()->getAccelerator()->saveConfiguration();
 			break;
-		}
 	}
-
-        handlingEvent = false;
 }
