@@ -49,7 +49,7 @@
       <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
       <Optimization>Disabled</Optimization>
       <BrowseInformation>true</BrowseInformation>
-      <AdditionalIncludeDirectories>c:\users\collin\desktop\arduino-1.5.2\hardware\arduino\sam\cores\arduino;c:\users\collin\desktop\arduino-1.5.2\hardware\arduino\sam\variants\arduino_due_x;c:\users\collin\desktop\arduino-1.5.2\hardware\arduino\sam\libraries\due_rtc;c:\users\collin\desktop\arduino-1.5.2\hardware\arduino\sam\libraries\due_rtc\utility;c:\users\collin\desktop\arduino-1.5.2\hardware\arduino\sam\libraries\due_can;c:\users\collin\desktop\arduino-1.5.2\hardware\arduino\sam\libraries\due_can\utility;c:\users\collin\desktop\arduino-1.5.2\hardware\arduino\sam\libraries\due_wire;c:\users\collin\desktop\arduino-1.5.2\hardware\arduino\sam\libraries\due_wire\utility;c:\users\collin\desktop\arduino-1.5.2\hardware\arduino\sam\libraries\DueTimer;c:\users\collin\desktop\arduino-1.5.2\hardware\arduino\sam\libraries\DueTimer\utility;c:\users\collin\desktop\arduino-1.5.2\hardware\arduino\sam\system\CMSIS\CMSIS\Include\;c:\users\collin\desktop\arduino-1.5.2\hardware\arduino\sam\system\CMSIS\Device\ATMEL\;c:\users\collin\desktop\arduino-1.5.2\hardware\arduino\sam\system\libsam;c:\users\collin\desktop\arduino-1.5.2\hardware\arduino\sam\system\libsam\include;c:\users\collin\desktop\arduino-1.5.2/hardware/tools/g++_arm_none_eabi\arm-none-eabi\include;c:\users\collin\desktop\arduino-1.5.2/hardware/tools/g++_arm_none_eabi\arm_none_eabi\include\;c:\users\collin\desktop\arduino-1.5.2/hardware/tools/g++_arm_none_eabi\lib\gcc\arm-none-eabi\4.4.1\include;c:\users\collin\desktop\arduino-1.5.2/hardware/tools/g++_arm_none_eabi\lib\gcc\arm-none-eabi\4.4.1\include\;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>c:\users\collin\desktop\Arduino-1.5.2\hardware\arduino\sam\cores\arduino;c:\users\collin\desktop\Arduino-1.5.2\hardware\arduino\sam\variants\arduino_due_x;c:\users\collin\desktop\Arduino-1.5.2\hardware\arduino\sam\system\CMSIS\CMSIS\Include\;c:\users\collin\desktop\Arduino-1.5.2\hardware\arduino\sam\system\CMSIS\Device\ATMEL\;c:\users\collin\desktop\Arduino-1.5.2\hardware\arduino\sam\system\libsam;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <ForcedIncludeFiles>C:\Users\Collin\Desktop\GEVCU\Visual Micro\.GEVCU.vsarduino.h;%(ForcedIncludeFiles)</ForcedIncludeFiles>
       <IgnoreStandardIncludePath>true</IgnoreStandardIncludePath>
     </ClCompile>
@@ -78,6 +78,10 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClInclude Include="BatteryManager.h" />
+    <ClInclude Include="BrusaMotorController.h">
+      <FileType>CppCode</FileType>
+    </ClInclude>
     <ClInclude Include="CanHandler.h" />
     <ClInclude Include="CanThrottle.h" />
     <ClInclude Include="config.h" />
@@ -104,11 +108,9 @@
       <FileType>CppCode</FileType>
     </ClInclude>
     <ClInclude Include="sys_io.h" />
+    <ClInclude Include="ThinkBatteryManager.h" />
     <ClInclude Include="Throttle.h" />
     <ClInclude Include="ThrottleDetector.h">
-      <FileType>CppCode</FileType>
-    </ClInclude>
-    <ClInclude Include="Tickable.h">
       <FileType>CppCode</FileType>
     </ClInclude>
     <ClInclude Include="TickHandler.h" />
@@ -120,6 +122,8 @@
     </Text>
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="BatteryManager.cpp" />
+    <ClCompile Include="BrusaMotorController.cpp" />
     <ClCompile Include="CanHandler.cpp" />
     <ClCompile Include="CanThrottle.cpp" />
     <ClCompile Include="Device.cpp" />
@@ -136,6 +140,7 @@
     <ClCompile Include="PrefHandler.cpp" />
     <ClCompile Include="SerialConsole.cpp" />
     <ClCompile Include="sys_io.cpp" />
+    <ClCompile Include="ThinkBatteryManager.cpp" />
     <ClCompile Include="Throttle.cpp" />
     <ClCompile Include="ThrottleDetector.cpp" />
     <ClCompile Include="TickHandler.cpp" />
