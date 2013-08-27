@@ -54,5 +54,6 @@ void setOutput(uint8_t which, boolean active); //set output high or not
 boolean getOutput(uint8_t which); //get current value of output state (high?)
 void setupFastADC();
 void sys_io_adc_poll();
+void sys_early_setup();
 
 #endif
