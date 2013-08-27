@@ -43,7 +43,7 @@
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <ClCompile>
-      <PreprocessorDefinitions>__SAM3X8E__;USB_PID=0x003e;USB_VID=0x2341;USBCON;ARDUINO=152;printf=iprintf;__SAM__;F_CPU=84000000L;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>__SAM3X8E__;USB_PID=0x003e;USB_VID=0x2341;USBCON;ARDUINO=152;ARDUINO_MAIN;printf=iprintf;__SAM__;F_CPU=84000000L;__cplusplus;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <RuntimeLibrary>MultiThreadedDebugDLL</RuntimeLibrary>
       <WarningLevel>Level3</WarningLevel>
       <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
@@ -78,6 +78,9 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClInclude Include="BrusaMotorController.h">
+      <FileType>CppCode</FileType>
+    </ClInclude>
     <ClInclude Include="CanHandler.h" />
     <ClInclude Include="CanThrottle.h" />
     <ClInclude Include="config.h" />
@@ -108,9 +111,6 @@
     <ClInclude Include="ThrottleDetector.h">
       <FileType>CppCode</FileType>
     </ClInclude>
-    <ClInclude Include="Tickable.h">
-      <FileType>CppCode</FileType>
-    </ClInclude>
     <ClInclude Include="TickHandler.h" />
     <ClInclude Include="Visual Micro\.GEVCU.vsarduino.h" />
   </ItemGroup>
@@ -120,6 +120,7 @@
     </Text>
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="BrusaMotorController.cpp" />
     <ClCompile Include="CanHandler.cpp" />
     <ClCompile Include="CanThrottle.cpp" />
     <ClCompile Include="Device.cpp" />
