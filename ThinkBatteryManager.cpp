@@ -35,6 +35,19 @@ ThinkBatteryManager::ThinkBatteryManager() : BatteryManager() {
 
 void ThinkBatteryManager::handleCanFrame(RX_CAN_FRAME *frame) {
 	switch (frame->id) {
+	case 0x300: //Start up message
+	case 0x301: //System Data 0
+	case 0x302: //System Data 1
+	case 0x303: //System Data 2
+	case 0x304: //System Data 3
+	case 0x305: //System Data 4
+	case 0x306: //System Data 5
+	case 0x307: //System Data 6
+	case 0x308: //System Data 7
+	case 0x309: //System Data 8
+	case 0x30A: //System Data 9
+	case 0x30E: //Serial # part 1
+	case 0x30B: //Serial # part 2
 	}
 }
 
@@ -42,9 +55,8 @@ void ThinkBatteryManager::setup() {
 	TickHandler::getInstance()->detach(this);
 	BatteryManager::setup(); // run the parent class version of this function
 
-	// register ourselves as observer of 0x23x and 0x65x can frames
-	CanHandler::getInstanceEV()->attach(this, 0x230, 0x7f0, false);
-	CanHandler::getInstanceEV()->attach(this, 0x650, 0x7f0, false);
+	//Relevant BMS messages are 0x300 - 0x30F
+	CanHandler::getInstanceEV()->attach(this, 0x300, 0x7f0, false);	
 
 	TickHandler::getInstance()->attach(this, CFG_TICK_INTERVAL_BMS_THINK);
 }
@@ -56,6 +68,7 @@ void ThinkBatteryManager::handleTick() {
 	
 }
 
+//Contactors in pack will close if we sent these two frames with all zeros. 
 void ThinkBatteryManager::sendKeepAlive() 
 {
 	TX_CAN_FRAME output;
