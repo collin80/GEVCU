@@ -26,6 +26,7 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 #include "config.h"
 #ifdef CFG_ENABLE_DEVICE_POT_THROTTLE
+#include "ThrottleDetector.h"
 #include "PotThrottle.h"
 #include "Logger.h"
 #include "Params.h"
@@ -239,6 +240,37 @@ PotThrottle::ThrottleStatus PotThrottle::getStatus() {
 
 Device::DeviceId PotThrottle::getId() {
 	return (POTACCELPEDAL);
+}
+
+void PotThrottle::saveEEPROM() {
+	prefsHandler->write(EETH_MIN_ONE, throttleMin1);
+	prefsHandler->write(EETH_MAX_ONE, throttleMax1);
+	prefsHandler->write(EETH_MIN_TWO, throttleMin2);
+	prefsHandler->write(EETH_MAX_TWO, throttleMax2);
+	prefsHandler->write(EETH_REGEN, throttleRegen);
+	prefsHandler->write(EETH_FWD, throttleFwd);
+	prefsHandler->write(EETH_MAP, throttleMap);
+	prefsHandler->write(EETH_MAX_ACCEL_REGEN, throttleMaxRegen);
+	prefsHandler->saveChecksum();
+}
+
+void PotThrottle::saveConfiguration() {
+  Logger::info("Saving throttle settings");
+  TickHandler::getInstance()->detach(this); // unregister from TickHandler first
+  setT1Min(throttleDetector->getThrottle1Min());
+  setT1Max(throttleDetector->getThrottle1Max());
+  numThrottlePots = throttleDetector->getPotentiometerCount();
+  if ( numThrottlePots > 1 ) {
+	setT2Min(throttleDetector->getThrottle2Min());
+	setT2Max(throttleDetector->getThrottle2Max());
+  }
+  else {
+    setT2Min(0);
+    setT2Max(0);
+  }
+  saveEEPROM();
+  
+  TickHandler::getInstance()->attach(this, getTickInterval());
 }
 
 

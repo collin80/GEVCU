@@ -26,7 +26,10 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 #include "config.h"
 #ifdef CFG_ENABLE_DEVICE_POT_BRAKE
+#include "ThrottleDetector.h"
 #include "PotBrake.h"
+#include "Logger.h"
+#include "Params.h"
 
 //initialize by telling the code which two ADC channels to use (or set channel 2 to 255 to disable)
 PotBrake::PotBrake(uint8_t brake1, uint8_t brake2) :
@@ -48,27 +51,34 @@ void PotBrake::setup() {
 	//set digital ports to inputs and pull them up
 	//all inputs currently active low
 	//pinMode(THROTTLE_INPUT_BRAKELIGHT, INPUT_PULLUP); //Brake light switch
-	/*
-	 if (prefs->checksumValid()) { //checksum is good, read in the values stored in EEPROM
-	 prefs->read(EETH_BRAKE_MIN, &BrakeMin);
-	 prefs->read(EETH_BRAKE_MAX, &BrakeMax);
-	 prefs->read(EETH_MAX_ACCEL_REGEN, &ThrottleMaxRegen);
-	 prefs->read(EETH_MAX_BRAKE_REGEN, &BrakeMaxRegen);
+#ifndef USE_HARD_CODED	
+	 if (prefsHandler->checksumValid()) { //checksum is good, read in the values stored in EEPROM
+		prefsHandler->read(EETH_BRAKE_MIN, &brakeMin);
+		prefsHandler->read(EETH_BRAKE_MAX, &brakeMax);
+		prefsHandler->read(EETH_MAX_ACCEL_REGEN, &throttleMaxRegen);
+		prefsHandler->read(EETH_MAX_BRAKE_REGEN, &brakeMaxRegen);
+		Logger::debug("BRAKE T1 MIN: %i MAX: %i", brakeMin, brakeMax);
+		Logger::debug("MaxRegen: %i", brakeMaxRegen);
 	 }
 	 else { //checksum invalid. Reinitialize values and store to EEPROM
-	 */
-	//these four values are ADC values
-	//The next three are tenths of a percent
-	throttleMaxRegen = 00; //percentage of full power to use for regen at throttle
-	brakeMaxRegen = 80; //percentage of full power to use for regen at brake pedal transducer
-	brakeMin = 5;
-	brakeMax = 500;
-	prefsHandler->write(EETH_BRAKE_MIN, brakeMin);
-	prefsHandler->write(EETH_BRAKE_MAX, brakeMax);
-//	prefsHandler->write(EETH_MAX_ACCEL_REGEN, throttleMaxRegen);
-	prefsHandler->write(EETH_MAX_BRAKE_REGEN, brakeMaxRegen);
-	prefsHandler->saveChecksum();
-	//}
+	 
+		//these four values are ADC values
+		//The next three are tenths of a percent
+		throttleMaxRegen = 00; //percentage of full power to use for regen at throttle
+		brakeMaxRegen = 80; //percentage of full power to use for regen at brake pedal transducer
+		brakeMin = 5;
+		brakeMax = 500;
+		prefsHandler->write(EETH_BRAKE_MIN, brakeMin);
+		prefsHandler->write(EETH_BRAKE_MAX, brakeMax);
+		prefsHandler->write(EETH_MAX_BRAKE_REGEN, brakeMaxRegen);
+		prefsHandler->saveChecksum();
+	}
+#else
+		throttleMaxRegen = ThrottleMaxRegenValue;
+		brakeMaxRegen = BrakeMaxRegenValue;
+		brakeMin = BrakeMinValue;
+		brakeMax = BrakeMaxValue;
+#endif
 	TickHandler::getInstance()->attach(this, CFG_TICK_INTERVAL_POT_THROTTLE);
 }
 
@@ -79,6 +89,15 @@ int PotBrake::getRawBrake1() {
 int PotBrake::getRawBrake2() {
 	return brake2Val;
 }
+
+int PotBrake::getRawThrottle1() {
+	return brake1Val;
+}
+
+int PotBrake::getRawThrottle2() {
+	return brake2Val;
+}
+
 
 int PotBrake::calcBrake(int clampedVal, int minVal, int maxVal) {
 	int range, val, retVal;
@@ -147,7 +166,7 @@ void PotBrake::doBrake() {
 		return;
 	}
 	calcBrake1 = calcBrake(clampedVal, brakeMin, brakeMax);
-	//Logger::debug("calcThrottle: %d", calcThrottle1);
+	//Logger::debug("calcBrake: %d", calcBrake1);
 
 	//Apparently all is well with the throttle input
 	//so go ahead and calculate the proper throttle output
@@ -170,13 +189,15 @@ void PotBrake::doBrake() {
 
 	if (brakeMaxRegen != 0) { //is the brake regen even enabled?
 		int range = brakeMaxRegen - throttleMaxRegen; //we start the brake at ThrottleMaxRegen so the range is reduced by that amount
+		Logger::debug("range: %d", range);
+		Logger::debug("brakeFeedback: %d", brakeFeedback);
 		if (range < 1) { //detect stupidity and abort
 			level = 0;
 			return;
 		}
 		level = (signed int) ((signed int) -10 * range * brakeFeedback) / (signed int) 1000;
 		level -= -10 * throttleMaxRegen;
-		//Logger::debug("level: %d", outputThrottle);
+		Logger::debug("level: %d", level);
 	}
 
 }
@@ -206,5 +227,32 @@ Device::DeviceId PotBrake::getId() {
 Device::DeviceType PotBrake::getType() {
 	return (DEVICE_BRAKE);
 }
+
+void PotBrake::saveEEPROM() {
+	prefsHandler->write(EETH_BRAKE_MIN, brakeMin);
+	prefsHandler->write(EETH_BRAKE_MAX, brakeMax);
+	prefsHandler->write(EETH_MAX_BRAKE_REGEN, brakeMaxRegen);
+	prefsHandler->saveChecksum();
+}
+
+void PotBrake::saveConfiguration() {
+  Logger::info("Saving brake settings");
+  TickHandler::getInstance()->detach(this); // unregister from TickHandler first
+  setMin(throttleDetector->getThrottle1Min());
+  setMax(throttleDetector->getThrottle1Max());
+  saveEEPROM();  
+  TickHandler::getInstance()->attach(this, getTickInterval());
+}
+
+void PotBrake::setMin(int minVal) 
+{
+	brakeMin = minVal;
+}
+
+void PotBrake::setMax(int maxVal) 
+{
+	brakeMax = maxVal;
+}
+
 
 #endif // CFG_ENABLE_DEVICE_POT_BRAKE

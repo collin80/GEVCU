@@ -63,6 +63,16 @@ extern PrefHandler *sysPrefs;
 
 ADC_COMP adc_comp[NUM_ANALOG];
 
+//forces the digital I/O ports to a safe state. This is called very early in initialization.
+void sys_early_setup() {
+  int i;
+  for (i = 0; i < NUM_DIGITAL; i++) pinMode(dig[i], INPUT);
+  for (i = 0; i < NUM_OUTPUT; i++) {
+	  pinMode(out[i], OUTPUT);
+	  digitalWrite(out[i], LOW);
+  }
+}
+
 void setup_sys_io() {
   int i;
   
@@ -84,9 +94,6 @@ void setup_sys_io() {
     adc_values[i] = 0;
 	adc_out_vals[i] = 0;
   }
-
-  for (i = 0; i < NUM_DIGITAL; i++) pinMode(dig[i], INPUT);
-  for (i = 0; i < NUM_OUTPUT; i++) pinMode(out[i], OUTPUT);
 
 }
 
@@ -287,7 +294,7 @@ void sys_io_adc_poll() {
         adc_out_vals[i] = getADCAvg(i);
 	}
 
-	obufn = bufn;    
+    obufn = bufn;    
   }
 #endif
 }

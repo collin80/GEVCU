@@ -70,6 +70,8 @@ void SerialConsole::loop() {
 void SerialConsole::printMenu() {
 	SerialUSB.println("System Menu:");
 	SerialUSB.println();
+	SerialUSB.println("Enable line endings of some sort (LF, CR, CRLF)");
+	SerialUSB.println();
 	SerialUSB.println("Short Commands:");
 	SerialUSB.println("h = help (displays this message)");
 //These commented out lines really can't be used any more so there is no point in advertising them right now.
@@ -91,11 +93,12 @@ void SerialConsole::printMenu() {
 	SerialUSB.println("J = set all outputs low");
 	SerialUSB.println("U,I = test EEPROM routines");
 	SerialUSB.println("A = dump system eeprom values");
-	SerialUSB.println("B = dump dmoc eeprom values");
 	SerialUSB.println("y = detect throttle min");
         SerialUSB.println("Y = detect throttle max");
         SerialUSB.println("z = detect throttle min/max  and other values");
 	SerialUSB.println("Z = save detected throttle values");
+	SerialUSB.println("b = detect brake min/max");
+	SerialUSB.println("B = Save detected brake values");
 	SerialUSB.println();
 	SerialUSB.println("Config Commands (enter command=newvalue):");
 	SerialUSB.println("TORQ = Set torque upper limit (tenths of a Nm)");
@@ -326,14 +329,6 @@ void SerialConsole::handleShortCmd()
 				Logger::info("%d: %d", i, val);
 			}
 			break;
-		case 'B':
-			Logger::info("Retrieving DMOC EEPROM values");
-			for (int i = 0; i < 256; i++) {
-				memCache->Read(EE_MOTORCTL_START + i, &val);
-				Logger::info("%d: %d", i, val);
-			}
-			break;
-
 		case 'K': //set all outputs high
 			setOutput(0, true);
 			setOutput(1, true);
@@ -356,6 +351,11 @@ void SerialConsole::handleShortCmd()
 			break;
 		case 'z': // detect throttle min/max & other details
 			DeviceManager::getInstance()->getAccelerator()->detectThrottle();
+			break;
+		case 'b':
+			DeviceManager::getInstance()->getBrake()->detectThrottle();
+		case 'B':
+			DeviceManager::getInstance()->getBrake()->saveConfiguration();
 			break;
 		case 'Z': // save throttle settings
 			DeviceManager::getInstance()->getAccelerator()->saveConfiguration();

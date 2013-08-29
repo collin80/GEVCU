@@ -204,6 +204,9 @@ void initializeDevices() {
 }
 
 void setup() {
+
+	sys_early_setup();
+
 	SerialUSB.begin(CFG_SERIAL_SPEED);
 	SerialUSB.println(CFG_VERSION);
         

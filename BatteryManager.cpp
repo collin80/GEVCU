@@ -1,5 +1,7 @@
 /*
- * Device.h
+ * BatteryManager.cpp
+ *
+ * Parent class for all battery management/monitoring systems
  *
 Copyright (c) 2013 Collin Kidder, Michael Neuweiler, Charles Galpin
 
@@ -22,53 +24,31 @@ CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT,
 TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
 SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
- */
+ */ 
 
-#ifndef DEVICE_H_
-#define DEVICE_H_
+#include "BatteryManager.h"
+#include "Params.h"
+ 
+BatteryManager::BatteryManager() : Device() {
+	prefsHandler = new PrefHandler(EE_BMS_START);
+	packVoltage = 0;
+	packCurrent = 0;
+}
 
-#include <Arduino.h>
-#include "config.h"
-#include "eeprom_layout.h"
-#include "PrefHandler.h"
+Device::DeviceType BatteryManager::getType() {
+	return (Device::DEVICE_BMS);
+}
 
-class Device : public TickObserver {
-public:
-	enum DeviceType {
-		DEVICE_ANY,
-		DEVICE_MOTORCTRL,
-		DEVICE_BMS,
-		DEVICE_CHARGER,
-		DEVICE_DISPLAY,
-		DEVICE_THROTTLE,
-		DEVICE_BRAKE,
-		DEVICE_MISC,
-		DEVICE_WIFI,
-		DEVICE_NONE
-	};
-	enum DeviceId { //unique device ID for every piece of hardware possible
-		DMOC645 = 0x1000,
-		BRUSA_DMC5 = 0x1001,
-		BRUSACHARGE = 0x1010,
-		TCCHCHARGE = 0x1020,
-		POTACCELPEDAL = 0x1030,
-		POTBRAKEPEDAL = 0x1031,
-		CANACCELPEDAL = 0x1032,
-		ICHIP2128 = 0x1040,
-		THINKBMS = 0x2000,
-		INVALID = 0xFFFF
-	};
-	Device();
-	virtual void setup();
-	virtual void handleTick();
-	virtual void handleMessage(uint32_t msgType, void* message);
-	virtual DeviceType getType();
-	virtual DeviceId getId();
+void BatteryManager::handleTick() {
+}
 
-protected:
-	PrefHandler *prefsHandler;
-
-private:
-};
-
-#endif /* DEVICE_H_ */
+void BatteryManager::setup() {
+#ifndef USE_HARD_CODED
+	if (prefsHandler->checksumValid()) { //checksum is good, read in the values stored in EEPROM
+	}
+	else { //checksum invalid. Reinitialize values and store to EEPROM
+		//prefsHandler->saveChecksum();
+	}
+#else
+#endif
+}
