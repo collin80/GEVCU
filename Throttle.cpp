@@ -30,7 +30,7 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  
 Throttle::Throttle() : Device() {
 	prefsHandler = new PrefHandler(EE_THROTTLE_START);
-        throttleDetector = NULL;
+    throttleDetector = NULL;
 }
 
 Throttle::~Throttle() {
@@ -38,6 +38,13 @@ Throttle::~Throttle() {
     delete throttleDetector;
     throttleDetector = NULL;
   }
+}
+
+void Throttle::handleTick() {
+	Device::handleTick();
+	if ( throttleDetector != NULL ) {
+	    throttleDetector->handleTick();
+	  }
 }
 
 Device::DeviceType Throttle::getType() {
