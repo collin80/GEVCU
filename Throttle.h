@@ -40,6 +40,7 @@ class Throttle: public Device {
 public:
 	Throttle();
 	~Throttle();
+	void handleTick();
 	Device::DeviceType getType();
 	virtual int getLevel();
 	virtual int getRawThrottle1();
@@ -53,7 +54,7 @@ public:
 	void setFWDStart(uint16_t fwd);
 	void setMAP(uint16_t map);
 	void setMaxRegen(uint16_t regen);
-        void setT1Min(uint16_t min);
+    void setT1Min(uint16_t min);
 	void setT2Min(uint16_t min);
 	void setT1Max(uint16_t max);
 	void setT2Max(uint16_t max);
@@ -64,7 +65,7 @@ protected:
 	uint16_t throttleRegen, throttleFwd, throttleMap; //Value at which regen finishes, forward motion starts, and the mid point of throttle
 	uint16_t throttleMaxRegen; //Percentage of max torque allowable for regen
 	uint16_t brakeMaxRegen; //percentage of max torque allowable for regen at brake pedal
-        uint16_t throttleMin1, throttleMax1, throttleMin2, throttleMax2; //Values for when the pedal is at its min and max for each throttle input
+    uint16_t throttleMin1, throttleMax1, throttleMin2, throttleMax2; //Values for when the pedal is at its min and max for each throttle input
 	uint16_t throttle1Val, throttle2Val;
 	int numThrottlePots; //whether there are one or two pots. Should support three as well since some pedals really do have that many
 	uint32_t getTickInterval();
