@@ -5,6 +5,8 @@ bin-release/
 
 # Other files and folders
 .settings/
+arduino
+Libraries
 Release
 .project
 
