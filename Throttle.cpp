@@ -65,7 +65,7 @@ void Throttle::mapThrottle(signed int inVal)
 {
 	signed int range, temp;
 
-	//Logger::debug("Entering mapThrottle: %i", inVal);
+	Logger::debug("Entering mapThrottle: %i", inVal);
 
 	if (inVal > 0) {
 		if (throttleRegen != 0) {
@@ -103,22 +103,6 @@ void Throttle::mapThrottle(signed int inVal)
 	//Logger::debug("level: %d", level);
 }
 
-void Throttle::setRegenEnd(uint16_t regen) {
-	throttleRegen = regen;
-}
-
-void Throttle::setFWDStart(uint16_t fwd) {
-	throttleFwd = fwd;
-}
-
-void Throttle::setMAP(uint16_t map) {
-	throttleMap = map;
-}
-
-void Throttle::setMaxRegen(uint16_t regen) {
-	throttleMaxRegen = regen;
-}
-
 void Throttle::detectThrottle() {
   if ( throttleDetector == NULL ) {
     throttleDetector = new ThrottleDetector(this);
@@ -140,31 +124,6 @@ void Throttle::detectThrottleMax() {
   throttleDetector->detectMax();
 }
 
-void Throttle::saveConfiguration() {
-  Logger::info("Saving throttle settings");
-  TickHandler::getInstance()->detach(this); // unregister from TickHandler first
-  setT1Min(throttleDetector->getThrottle1Min());
-  prefsHandler->write(EETH_MIN_ONE, throttleMin1);
-  setT1Max(throttleDetector->getThrottle1Max());
-  prefsHandler->write(EETH_MAX_ONE, throttleMax1);
-  numThrottlePots = throttleDetector->getPotentiometerCount();
-  if ( numThrottlePots > 1 ) {
-        setT2Min(throttleDetector->getThrottle2Min());
-	prefsHandler->write(EETH_MIN_TWO, throttleMin2);
-        setT2Max(throttleDetector->getThrottle2Max());
-	prefsHandler->write(EETH_MAX_TWO, throttleMax2);
-  }
-  else {
-        setT2Min(0);
-	prefsHandler->write(EETH_MIN_TWO, throttleMin2);
-        setT2Max(0);
-	prefsHandler->write(EETH_MAX_TWO, throttleMax2);
-  }
-  prefsHandler->saveChecksum();
-//  prefsHandler->forceCacheWrite(); // make sure it writes to EEPROM immediately.
-  TickHandler::getInstance()->attach(this, getTickInterval());
-}
-
 void Throttle::setT1Min(uint16_t min) {
 	throttleMin1 = min;
 }
@@ -179,6 +138,31 @@ void Throttle::setT1Max(uint16_t max) {
 void Throttle::setT2Max(uint16_t max) {
 	throttleMax2 = max;
 }
+
+void Throttle::setRegenEnd(uint16_t regen) {
+	throttleRegen = regen;
+}
+
+void Throttle::setFWDStart(uint16_t fwd) {
+	throttleFwd = fwd;
+}
+
+void Throttle::setMAP(uint16_t map) {
+	throttleMap = map;
+}
+
+void Throttle::setMaxRegen(uint16_t regen) {
+	throttleMaxRegen = regen;
+}
+
+void Throttle::saveConfiguration()
+{
+}
+
+void Throttle::saveEEPROM()
+{
+}
+
 
 //TODO: need to plant this in here somehow..
 

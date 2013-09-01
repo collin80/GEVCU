@@ -52,6 +52,9 @@ public:
 	ThrottleStatus getStatus();
 	int getRawThrottle1();
 	int getRawThrottle2();
+	void saveEEPROM();
+	void saveConfiguration();
+
 	PotThrottle(uint8_t throttle1, uint8_t throttle2);
 	Device::DeviceId getId();
 
@@ -59,6 +62,7 @@ private:
 	uint8_t throttle1ADC, throttle2ADC; //which ADC pin each are on
 	byte throttleMaxErr;
 	ThrottleStatus throttleStatus;
+
 	int calcThrottle(int, int, int);
 	void doAccel();
 };

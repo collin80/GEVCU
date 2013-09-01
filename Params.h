@@ -7,7 +7,7 @@ here and then get to fixing it so that nothing is hard coded anymore.
    in place of trying to read values from EEPROM. This is probably
    what you want during testing.
 */
-#define USE_HARD_CODED
+//#define USE_HARD_CODED
 
 #define ThrottleRegenValue		0		//where does Regen stop (1/10 of percent)
 #define	ThrottleFwdValue		175		//where does forward motion start
@@ -18,6 +18,9 @@ here and then get to fixing it so that nothing is hard coded anymore.
 #define Throttle1MaxValue		930		//Value ADC reads when pedal fully depressed
 #define Throttle2MinValue		360		//Value ADC reads when pedal is up
 #define Throttle2MaxValue		1900	//Value ADC reads when pedal fully depressed
+#define BrakeMinValue			100		//Value ADC reads when brake is not pressed
+#define BrakeMaxValue			500		//Value ADC reads when brake is pushed all of the way down
+#define BrakeMaxRegenValue		40		//percent of full power to use for brake regen (max)
 	
 #define	MaxTorqueValue	2000; //in tenths of a Nm
 #define	MaxRPMValue		6000; //DMOC will ignore this but we can use it ourselves for limiting

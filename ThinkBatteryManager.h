@@ -1,5 +1,7 @@
 /*
- * SerialConsole.h
+ * BatteryManager.h
+ *
+ * Parent class for battery management / monitoring systems
  *
 Copyright (c) 2013 Collin Kidder, Michael Neuweiler, Charles Galpin
 
@@ -22,46 +24,32 @@ CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT,
 TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
 SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
-*/
+ */ 
+ 
+#ifndef THINKBATT_H_
+#define THINKBATT_H_
 
-#ifndef SERIALCONSOLE_H_
-#define SERIALCONSOLE_H_
-
+#include <Arduino.h>
 #include "config.h"
-#include "Heartbeat.h"
-#include "MemCache.h"
+#include "Device.h"
+#include "DeviceManager.h"
+#include "BatteryManager.h"
+#include "CanHandler.h"
 
-class SerialConsole {
+class ThinkBatteryManager : public BatteryManager, CanObserver
+{
 public:
-    SerialConsole(MemCache* memCache);
-	SerialConsole(MemCache* memCache, Heartbeat* heartbeat);
-	void loop();
-	void printMenu();
-
+	virtual void setup();
+	virtual void handleTick();
+	virtual DeviceType getType();
+	virtual DeviceId getId();
+	void handleCanFrame(RX_CAN_FRAME *frame);
 protected:
-	enum CONSOLE_STATE
-	{
-		STATE_ROOT_MENU
-	};
-
 private:
-    Heartbeat* heartbeat;
-    MemCache* memCache;
-    bool handlingEvent;
-	char cmdBuffer[80];
-	int ptrBuffer;
-	int state;
-    
-    // temp
-    bool runRamp;
-    bool runStatic;
-    bool runThrottle;
-
-    void init();
-    void serialEvent();
-	void handleConsoleCmd();
-	void handleShortCmd();
-    void handleConfigCmd();
+	void sendKeepAlive();
 };
 
-#endif /* SERIALCONSOLE_H_ */
+
+
+
+#endif

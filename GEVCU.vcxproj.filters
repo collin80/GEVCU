@@ -84,10 +84,16 @@
     <ClInclude Include="SerialConsole.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="Tickable.h">
+    <ClInclude Include="Params.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="Params.h">
+    <ClInclude Include="BrusaMotorController.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="BatteryManager.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="ThinkBatteryManager.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
@@ -150,6 +156,15 @@
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="SerialConsole.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="BrusaMotorController.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="BatteryManager.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="ThinkBatteryManager.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>

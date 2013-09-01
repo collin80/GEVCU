@@ -1,5 +1,7 @@
 /*
- * SerialConsole.h
+ * BatteryManager.h
+ *
+ * Parent class for battery management / monitoring systems
  *
 Copyright (c) 2013 Collin Kidder, Michael Neuweiler, Charles Galpin
 
@@ -22,46 +24,30 @@ CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT,
 TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
 SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
-*/
+ */ 
+ 
+#ifndef BATTMANAGE_H_
+#define BATTMANAGE_H_
 
-#ifndef SERIALCONSOLE_H_
-#define SERIALCONSOLE_H_
-
+#include <Arduino.h>
 #include "config.h"
-#include "Heartbeat.h"
-#include "MemCache.h"
+#include "Device.h"
+#include "DeviceManager.h"
 
-class SerialConsole {
+class BatteryManager : public Device {
 public:
-    SerialConsole(MemCache* memCache);
-	SerialConsole(MemCache* memCache, Heartbeat* heartbeat);
-	void loop();
-	void printMenu();
-
+	BatteryManager();
+	int getPackVoltage(); //in tenths of a volt
+	int getPackCurrent(); //in tenths of an amp
+	bool allowCharging();
+	bool allowDischarging();
+	virtual Device::DeviceType getType();
+    virtual void setup();
+    virtual void handleTick();
 protected:
-	enum CONSOLE_STATE
-	{
-		STATE_ROOT_MENU
-	};
-
 private:
-    Heartbeat* heartbeat;
-    MemCache* memCache;
-    bool handlingEvent;
-	char cmdBuffer[80];
-	int ptrBuffer;
-	int state;
-    
-    // temp
-    bool runRamp;
-    bool runStatic;
-    bool runThrottle;
-
-    void init();
-    void serialEvent();
-	void handleConsoleCmd();
-	void handleShortCmd();
-    void handleConfigCmd();
+	int packVoltage;
+	int packCurrent;
 };
 
-#endif /* SERIALCONSOLE_H_ */
+#endif

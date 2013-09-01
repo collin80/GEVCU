@@ -53,8 +53,15 @@ public:
 	BrakeStatus getStatus();
 	int getRawBrake1();
 	int getRawBrake2();
+	int getRawThrottle1();
+	int getRawThrottle2();
 	Device::DeviceId getId();
 	Device::DeviceType getType();
+	void saveConfiguration();
+	void saveEEPROM(); 
+	void setMin(int minVal);
+	void setMax(int maxVal);
+
 
 private:
 	uint16_t brakeMin, brakeMax;

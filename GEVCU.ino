@@ -204,9 +204,12 @@ void initializeDevices() {
 }
 
 void setup() {
+
+	sys_early_setup();
+
 	SerialUSB.begin(CFG_SERIAL_SPEED);
 	SerialUSB.println(CFG_VERSION);
-
+        
 	pinMode(BLINK_LED, OUTPUT);
 	digitalWrite(BLINK_LED, LOW);
 
@@ -254,7 +257,7 @@ void setup() {
 	Logger::info("System Ready");
 	serialConsole->printMenu();
 #ifdef CFG_TIMER_USE_QUEUING
-	tickHandler->cleanBuffer(); // remove buffered tick events which clogged up already (might not be necessary)
+	//tickHandler->cleanBuffer(); // remove buffered tick events which clogged up already (might not be necessary)
 #endif
 }
 
@@ -273,4 +276,5 @@ void loop() {
 	//this should still be here. It checks for a flag set during an interrupt
 	sys_io_adc_poll();
 }
+
 

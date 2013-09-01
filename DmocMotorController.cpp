@@ -55,6 +55,7 @@ DmocMotorController::DmocMotorController() : MotorController() {
 	actualState = DISABLED;
 	online = 0;
 	powerMode = MODE_TORQUE;
+//	maxTorque = 2000;
 }
 
 /*
@@ -227,7 +228,8 @@ void DmocMotorController::sendCmd2() {
 	if (powerMode == MODE_TORQUE) {
 		if (actualState == ENABLE) { //don't even try sending torque commands until the DMOC reports it is ready
 			if (selectedGear == DRIVE)
-				requestedTorque = 30000L + (((long) requestedThrottle * (long) maxTorque) / 1000L);
+				//Logger::debug("Drive - ENABLED - Torque Mode - Go!");
+                requestedTorque = 30000L + (((long) requestedThrottle * (long) maxTorque) / 1000L);
 			if (selectedGear == REVERSE)
 				requestedTorque = 30000L - (((long) requestedThrottle * (long) maxTorque) / 1000L);
 		}
@@ -248,6 +250,10 @@ void DmocMotorController::sendCmd2() {
 	output.data[5] = 0x30; //lsb
 	output.data[6] = alive;
 	output.data[7] = calcChecksum(output);
+
+    //Logger::debug("max torque: %i", maxTorque);
+        
+    //Logger::debug("requested torque: %i",(((long) requestedThrottle * (long) maxTorque) / 1000L));
 
 	CanHandler::getInstanceEV()->sendFrame(output);
 }
@@ -361,3 +367,4 @@ DmocMotorController::PowerMode DmocMotorController::getPowerMode() {
 }
 
 #endif //CFG_ENABLE_DEVICE_MOTORCTRL_DMOC_645
+

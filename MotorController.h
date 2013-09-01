@@ -63,9 +63,12 @@ class MotorController : public Device {
 	signed int getInverterTemp();
 	uint16_t getMaxRpm();
 	uint16_t getMaxTorque();
+	void setMaxRpm(uint16_t maxRPM);
+	void setMaxTorque(uint16_t maxTorque);
 	signed int getMotorTemp();
 	uint16_t getRequestedRpm();
 	uint16_t getRequestedTorque();
+	void saveEEPROM();
 
 	protected:
 	int requestedThrottle;

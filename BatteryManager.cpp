@@ -1,5 +1,7 @@
 /*
- * SerialConsole.h
+ * BatteryManager.cpp
+ *
+ * Parent class for all battery management/monitoring systems
  *
 Copyright (c) 2013 Collin Kidder, Michael Neuweiler, Charles Galpin
 
@@ -22,46 +24,31 @@ CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT,
 TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
 SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
-*/
+ */ 
 
-#ifndef SERIALCONSOLE_H_
-#define SERIALCONSOLE_H_
+#include "BatteryManager.h"
+#include "Params.h"
+ 
+BatteryManager::BatteryManager() : Device() {
+	prefsHandler = new PrefHandler(EE_BMS_START);
+	packVoltage = 0;
+	packCurrent = 0;
+}
 
-#include "config.h"
-#include "Heartbeat.h"
-#include "MemCache.h"
+Device::DeviceType BatteryManager::getType() {
+	return (Device::DEVICE_BMS);
+}
 
-class SerialConsole {
-public:
-    SerialConsole(MemCache* memCache);
-	SerialConsole(MemCache* memCache, Heartbeat* heartbeat);
-	void loop();
-	void printMenu();
+void BatteryManager::handleTick() {
+}
 
-protected:
-	enum CONSOLE_STATE
-	{
-		STATE_ROOT_MENU
-	};
-
-private:
-    Heartbeat* heartbeat;
-    MemCache* memCache;
-    bool handlingEvent;
-	char cmdBuffer[80];
-	int ptrBuffer;
-	int state;
-    
-    // temp
-    bool runRamp;
-    bool runStatic;
-    bool runThrottle;
-
-    void init();
-    void serialEvent();
-	void handleConsoleCmd();
-	void handleShortCmd();
-    void handleConfigCmd();
-};
-
-#endif /* SERIALCONSOLE_H_ */
+void BatteryManager::setup() {
+#ifndef USE_HARD_CODED
+	if (prefsHandler->checksumValid()) { //checksum is good, read in the values stored in EEPROM
+	}
+	else { //checksum invalid. Reinitialize values and store to EEPROM
+		//prefsHandler->saveChecksum();
+	}
+#else
+#endif
+}

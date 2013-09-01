@@ -35,7 +35,7 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 #include <due_can.h>
 
-#define CFG_VERSION "GEVCU alpha 2013-08-01"
+#define CFG_VERSION "GEVCU alpha 2013-08-18"
 #define CFG_SERIAL_SPEED 115200
 
 #define SerialUSB Serial // re-route serial-usb output to programming port ;) comment if output should go to std usb
@@ -43,7 +43,7 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #define CFG_DEV_MGR_MAX_DEVICES 9 // the maximum number of devices supported by the DeviceManager
 #define CFG_CAN_NUM_OBSERVERS 10 // maximum number of device subscriptions per CAN bus
 #define CFG_TIMER_NUM_OBSERVERS 9 // the maximum number of supported observers per timer
-#define CFG_TIMER_USE_QUEUING // if defined, TickHandler uses a queuing buffer instead of direct calls from interrupts
+//#define CFG_TIMER_USE_QUEUING // if defined, TickHandler uses a queuing buffer instead of direct calls from interrupts
 #define CFG_TIMER_BUFFER_SIZE 100 // the size of the queuing buffer for TickHandler
 
 // Define the devices which are to be used (and compiled) via the following lines. It is advisable
@@ -57,6 +57,7 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #define CFG_ENABLE_DEVICE_MOTORCTRL_DMOC_645
 //#define CFG_ENABLE_DEVICE_MOTORCTRL_BRUSA_DMC5
 //#define CFG_ENABLE_DEVICE_ICHIP2128_WIFI
+#define CFG_ENABLE_DEVICE_BMS_THINK
 
 // specify the intervals (microseconds) at which each device type should be "ticked"
 // try to use the same numbers for several devices because then they will share
@@ -71,6 +72,7 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #define CFG_TICK_INTERVAL_MOTOR_CONTROLLER_DMOC 40000
 #define CFG_TICK_INTERVAL_MOTOR_CONTROLLER_BRUSA 20000
 #define CFG_TICK_INTERVAL_MEM_CACHE 40000
+#define CFG_TICK_INTERVAL_BMS_THINK	500000
 
 #define CFG_CAN0_SPEED CAN_BPS_500K // specify the speed of the CAN0 bus (EV)
 #define CFG_CAN1_SPEED CAN_BPS_500K // specify the speed of the CAN1 bus (Car)

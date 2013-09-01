@@ -2,7 +2,10 @@
  * Throttle.h
  *
  * Parent class for all throttle controllers, be they canbus or pot or hall effect, etc
- * Though, actually right now it can't be canbus. There are no plans to support canbus throttles at the moment
+ * This class is virtually totally virtual. The derived classes redefine most everything
+ * about this class. It might even be a good idea to make the class totally abstract.
+
+
  Copyright (c) 2013 Collin Kidder, Michael Neuweiler, Charles Galpin
 
  Permission is hereby granted, free of charge, to any person obtaining
@@ -40,36 +43,43 @@ class Throttle: public Device {
 public:
 	Throttle();
 	~Throttle();
-	Device::DeviceType getType();
+
+	virtual Device::DeviceType getType();
+
 	virtual int getLevel();
 	virtual int getRawThrottle1();
 	virtual int getRawThrottle2();
+
 	void detectThrottle();
 	void detectThrottleMin();
 	void detectThrottleMax();
-	void saveConfiguration();
-	void mapThrottle(signed int);
-	void setRegenEnd(uint16_t regen);
-	void setFWDStart(uint16_t fwd);
-	void setMAP(uint16_t map);
-	void setMaxRegen(uint16_t regen);
-        void setT1Min(uint16_t min);
-	void setT2Min(uint16_t min);
-	void setT1Max(uint16_t max);
-	void setT2Max(uint16_t max);
+
+	virtual void mapThrottle(signed int);
+	virtual void setRegenEnd(uint16_t regen);
+	virtual void setFWDStart(uint16_t fwd);
+	virtual void setMAP(uint16_t map);
+	virtual void setMaxRegen(uint16_t regen);
+    virtual void setT1Min(uint16_t min);
+	virtual void setT2Min(uint16_t min);
+	virtual void setT1Max(uint16_t max);
+	virtual void setT2Max(uint16_t max);
+
+	virtual void saveConfiguration();
+	virtual void saveEEPROM(); 
 
 protected:
 	signed int level; //the final signed throttle level. [-1000, 1000] in tenths of a percent of maximum
 	uint16_t throttleRegen, throttleFwd, throttleMap; //Value at which regen finishes, forward motion starts, and the mid point of throttle
 	uint16_t throttleMaxRegen; //Percentage of max torque allowable for regen
 	uint16_t brakeMaxRegen; //percentage of max torque allowable for regen at brake pedal
-        uint16_t throttleMin1, throttleMax1, throttleMin2, throttleMax2; //Values for when the pedal is at its min and max for each throttle input
+    uint16_t throttleMin1, throttleMax1, throttleMin2, throttleMax2; //Values for when the pedal is at its min and max for each throttle input
 	uint16_t throttle1Val, throttle2Val;
 	int numThrottlePots; //whether there are one or two pots. Should support three as well since some pedals really do have that many
 	uint32_t getTickInterval();
+	ThrottleDetector *throttleDetector;
 
 private:
-	ThrottleDetector *throttleDetector;
+	
 };
 
 #endif
