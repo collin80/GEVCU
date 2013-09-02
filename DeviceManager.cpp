@@ -155,14 +155,28 @@ uint8_t DeviceManager::getNumDisplays() {
 }
 
 Throttle *DeviceManager::getAccelerator() {
+	//if there is no throttle then instantiate a dummy throttle
+	//so down range code doesn't puke
+	if (!throttle) 
+	{ 
+		throttle = new Throttle();
+	}
 	return throttle;
 }
 
 Throttle *DeviceManager::getBrake() {
+	if (!brake) 
+	{
+		brake = new Throttle();
+	}
 	return brake;
 }
 
 MotorController *DeviceManager::getMotorController() {
+	if (!motorController) 
+	{
+		motorController = new MotorController();
+	}
 	return motorController;
 }
 
