@@ -98,6 +98,13 @@ int PotBrake::getRawThrottle2() {
 	return brake2Val;
 }
 
+void PotBrake::setMaxRegen(uint16_t regen) 
+{
+	brakeMaxRegen = regen;
+}
+
+
+
 
 int PotBrake::calcBrake(int clampedVal, int minVal, int maxVal) {
 	int range, val, retVal;
@@ -189,15 +196,15 @@ void PotBrake::doBrake() {
 
 	if (brakeMaxRegen != 0) { //is the brake regen even enabled?
 		int range = brakeMaxRegen - throttleMaxRegen; //we start the brake at ThrottleMaxRegen so the range is reduced by that amount
-		Logger::debug("range: %d", range);
-		Logger::debug("brakeFeedback: %d", brakeFeedback);
+		//Logger::debug("range: %d", range);
+		//Logger::debug("brakeFeedback: %d", brakeFeedback);
 		if (range < 1) { //detect stupidity and abort
 			level = 0;
 			return;
 		}
 		level = (signed int) ((signed int) -10 * range * brakeFeedback) / (signed int) 1000;
-		level -= -10 * throttleMaxRegen;
-		Logger::debug("level: %d", level);
+		level -= 10 * throttleMaxRegen;
+		//Logger::debug("level: %d", level);
 	}
 
 }
@@ -238,18 +245,18 @@ void PotBrake::saveEEPROM() {
 void PotBrake::saveConfiguration() {
   Logger::info("Saving brake settings");
   TickHandler::getInstance()->detach(this); // unregister from TickHandler first
-  setMin(throttleDetector->getThrottle1Min());
-  setMax(throttleDetector->getThrottle1Max());
+  setT1Min(throttleDetector->getThrottle1Min());
+  setT1Max(throttleDetector->getThrottle1Max());
   saveEEPROM();  
   TickHandler::getInstance()->attach(this, getTickInterval());
 }
 
-void PotBrake::setMin(int minVal) 
+void PotBrake::setT1Min(uint16_t minVal) 
 {
 	brakeMin = minVal;
 }
 
-void PotBrake::setMax(int maxVal) 
+void PotBrake::setT1Max(uint16_t maxVal) 
 {
 	brakeMax = maxVal;
 }

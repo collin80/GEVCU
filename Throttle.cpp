@@ -30,7 +30,8 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  
 Throttle::Throttle() : Device() {
 	prefsHandler = new PrefHandler(EE_THROTTLE_START);
-        throttleDetector = NULL;
+    throttleDetector = NULL;
+	level = 0;
 }
 
 Throttle::~Throttle() {
@@ -65,7 +66,7 @@ void Throttle::mapThrottle(signed int inVal)
 {
 	signed int range, temp;
 
-	Logger::debug("Entering mapThrottle: %i", inVal);
+	//Logger::debug("Entering mapThrottle: %i", inVal);
 
 	if (inVal > 0) {
 		if (throttleRegen != 0) {

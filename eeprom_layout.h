@@ -90,8 +90,8 @@ the end of the stardard data. The below numbers are offsets from the device's ee
 #define EETH_MAP			32 //2 bytes - unsigned int - tenths of a percent (0-1000) of pedal position where forward motion is at 50% throttle
 #define EETH_BRAKE_MIN			34 //2 bytes - ADC value of minimum value for brake input
 #define EETH_BRAKE_MAX			36 //2 bytes - ADC value of max value for brake input
-#define EETH_MAX_ACCEL_REGEN            38 //1 byte - maximum percentage of throttle to command on accel pedal regen
-#define EETH_MAX_BRAKE_REGEN            39 //1 byte - maximum percentage of throttle to command for braking regen. Starts at max accel regen and works up to here.
+#define EETH_MAX_ACCEL_REGEN            38 //2 byte - maximum percentage of throttle to command on accel pedal regen
+#define EETH_MAX_BRAKE_REGEN            40 //2 byte - maximum percentage of throttle to command for braking regen. Starts at max accel regen and works up to here.
 
 
 //System Data

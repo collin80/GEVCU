@@ -58,9 +58,11 @@ public:
 	Device::DeviceId getId();
 	Device::DeviceType getType();
 	void saveConfiguration();
-	void saveEEPROM(); 
-	void setMin(int minVal);
-	void setMax(int maxVal);
+	void saveEEPROM();
+	void setT1Min(uint16_t min);
+	void setT1Max(uint16_t max);
+	void setMaxRegen(uint16_t regen);
+
 
 
 private:
