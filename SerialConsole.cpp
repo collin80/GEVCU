@@ -378,6 +378,7 @@ void SerialConsole::handleShortCmd()
 			break;
 		case 'b':
 			DeviceManager::getInstance()->getBrake()->detectThrottle();
+			break;
 		case 'B':
 			DeviceManager::getInstance()->getBrake()->saveConfiguration();
 			break;
