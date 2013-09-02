@@ -219,6 +219,9 @@ void PotBrake::handleTick() {
 		brake2Val = getAnalog(brake2ADC);
 	}
 
+	// Call parent handleTick
+	Throttle::handleTick();
+
 	brakeStatus = OK;
 	doBrake();
 }
