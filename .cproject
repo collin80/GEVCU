@@ -1,7 +1,5 @@
 <?xml version="1.0" encoding="UTF-8" standalone="no"?>
-<?fileVersion 4.0.0?>
-
-<cproject storage_type_id="org.eclipse.cdt.core.XmlProjectDescriptionStorage">
+<?fileVersion 4.0.0?><cproject storage_type_id="org.eclipse.cdt.core.XmlProjectDescriptionStorage">
 	<storageModule moduleId="org.eclipse.cdt.core.settings">
 		<cconfiguration id="it.baeyens.arduino.core.toolChain.release.686383860">
 			<storageModule buildSystemId="org.eclipse.cdt.managedbuilder.core.configurationDataProvider" id="it.baeyens.arduino.core.toolChain.release.686383860" moduleId="org.eclipse.cdt.core.settings" name="Release">
@@ -21,23 +19,29 @@
 							<builder buildPath="${workspace_loc:/GEVCU}/Release" id="it.baeyens.arduino.sketch.builder.1443488479" keepEnvironmentInBuildfile="false" managedBuildOn="true" name="Arduino sketch builder" superClass="it.baeyens.arduino.sketch.builder"/>
 							<tool id="it.baeyens.arduino.tool.sketch.compiler.cpp.617097869" name="Arduino C++ Compiler" superClass="it.baeyens.arduino.tool.sketch.compiler.cpp">
 								<option id="it.baeyens.arduino.compiler.cpp.sketch.option.incpath.647762845" name="Include Paths (-I)" superClass="it.baeyens.arduino.compiler.cpp.sketch.option.incpath" valueType="includePath">
-									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/${ProjName}/arduino/core}&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/${ProjName}/arduino/variant}&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/${ProjName}/Libraries/due_can}&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/${ProjName}/Libraries/due_rtc}&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/${ProjName}/Libraries/due_wire}&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/${ProjName}/Libraries/DueTimer}&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/GEVCU/arduino/core}&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/GEVCU/arduino/variant}&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/GEVCU/Libraries/due_can}&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/GEVCU/Libraries/due_rtc}&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/GEVCU/Libraries/due_wire}&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/GEVCU/Libraries/DueTimer}&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/GEVCU/Libraries/Ethernet}&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/GEVCU/Libraries/Ethernet/utility}&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/GEVCU/Libraries/SPI}&quot;"/>
 								</option>
 								<inputType id="it.baeyens.arduino.compiler.cpp.sketch.input.1752728858" name="CPP source files" superClass="it.baeyens.arduino.compiler.cpp.sketch.input"/>
 							</tool>
 							<tool id="it.baeyens.arduino.tool.compiler.c.252675023" name="Arduino C Compiler" superClass="it.baeyens.arduino.tool.compiler.c">
 								<option id="it.baeyens.arduino.compiler.c.sketch.option.incpath.1237971842" name="Include Paths (-I)" superClass="it.baeyens.arduino.compiler.c.sketch.option.incpath" valueType="includePath">
-									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/${ProjName}/arduino/core}&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/${ProjName}/arduino/variant}&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/GEVCU/arduino/core}&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/GEVCU/arduino/variant}&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/GEVCU/Libraries/due_can}&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/GEVCU/Libraries/due_rtc}&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/GEVCU/Libraries/due_wire}&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/GEVCU/Libraries/DueTimer}&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/GEVCU/Libraries/Ethernet}&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/GEVCU/Libraries/Ethernet/utility}&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/GEVCU/Libraries/SPI}&quot;"/>
 								</option>
 								<inputType id="it.baeyens.arduino.compiler.c.sketch.input.95460254" name="C Source Files" superClass="it.baeyens.arduino.compiler.c.sketch.input"/>
 							</tool>
@@ -63,10 +67,4 @@
 		<autodiscovery enabled="true" problemReportingEnabled="true" selectedProfileId=""/>
 	</storageModule>
 	<storageModule moduleId="org.eclipse.cdt.core.LanguageSettingsProviders"/>
-	<storageModule moduleId="refreshScope" versionNumber="2">
-		<configuration configurationName="Release">
-			<resource resourceType="PROJECT" workspacePath="/GEVCU"/>
-		</configuration>
-	</storageModule>
-	<storageModule moduleId="org.eclipse.cdt.internal.ui.text.commentOwnerProjectMappings"/>
 </cproject>
