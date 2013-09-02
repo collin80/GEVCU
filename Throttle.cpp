@@ -41,6 +41,13 @@ Throttle::~Throttle() {
   }
 }
 
+void Throttle::handleTick() {
+	Device::handleTick();
+	if ( throttleDetector != NULL ) {
+	    throttleDetector->handleTick();
+	  }
+}
+
 Device::DeviceType Throttle::getType() {
 	return Device::DEVICE_THROTTLE;
 }

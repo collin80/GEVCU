@@ -229,6 +229,9 @@ void PotThrottle::handleTick() {
 		throttle2Val = getAnalog(throttle2ADC);
 	}
 
+	// Call parent handleTick
+	Throttle::handleTick();
+
 	throttleStatus = OK;
 	doAccel();
 }

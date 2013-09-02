@@ -71,6 +71,9 @@ void CanThrottle::setup() {
  *
  */
 void CanThrottle::handleTick() {
+	// Call parent handleTick
+	Throttle::handleTick();
+
 	CanHandler::getInstanceCar()->sendFrame(txFrame);
 }
 
