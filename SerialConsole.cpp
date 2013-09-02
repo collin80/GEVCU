@@ -110,7 +110,11 @@ void SerialConsole::printMenu() {
 	SerialUSB.println("TRGN = Tenths of a percent of pedal where regen ends");
 	SerialUSB.println("TFWD = Tenths of a percent of pedal where forward motion starts");
 	SerialUSB.println("TMAP = Tenths of a percent of pedal where 50% throttle will be");
-	SerialUSB.println("TMRN = Percent of full regen to do with throttle");
+	SerialUSB.println("TMRN = Percent of full torque to use for throttle regen");
+	SerialUSB.println("B1MN = Set brake min value");
+	SerialUSB.println("B1MX = Set brake max value");
+	SerialUSB.println("BMRN = Percent of full torque to use for brake regen");
+
 }
 
 /*	There is a help menu (press H or h or ?)
@@ -226,6 +230,26 @@ void SerialConsole::handleConfigCmd()
 		Logger::debug("Setting Throttle Regen Strength to %i", newValue);
 		DeviceManager::getInstance()->getAccelerator()->setMaxRegen(newValue);
 		DeviceManager::getInstance()->getAccelerator()->saveEEPROM();
+	}
+
+	if (cmdString == String("BMRN")) {
+		newValue = atoi((char *)(cmdBuffer + 5));
+		Logger::debug("Setting Brake Regen Strength to %i", newValue);
+		DeviceManager::getInstance()->getBrake()->setMaxRegen(newValue);
+		DeviceManager::getInstance()->getBrake()->saveEEPROM();
+	}
+
+	if (cmdString == String("B1MX")) {
+		newValue = atoi((char *)(cmdBuffer + 5));
+		Logger::debug("Setting Brake Max to %i", newValue);
+		DeviceManager::getInstance()->getBrake()->setT1Max(newValue);
+		DeviceManager::getInstance()->getBrake()->saveEEPROM();
+	}
+	if (cmdString == String("B1MN")) {
+		newValue = atoi((char *)(cmdBuffer + 5));
+		Logger::debug("Setting Brake Min to %i", newValue);
+		DeviceManager::getInstance()->getBrake()->setT1Min(newValue);
+		DeviceManager::getInstance()->getBrake()->saveEEPROM();
 	}
 }
 
