@@ -53,7 +53,7 @@ void WIFI::sendCmd(String cmd)
 {
   serialInterface->write("AT+i");
   serialInterface->print(cmd);
-  serialInterface->write(0x13);
+  serialInterface->write(13);
 }
 
 //periodic processes
@@ -82,7 +82,7 @@ String WIFI::getParamById(String paramName) {
   serialInterface->write("AT+i");
   serialInterface->print(paramName);
   serialInterface->print("?");
-  serialInterface->write(0x13);
+  serialInterface->write(13);
 }
 
 //set the given parameter with the given string
@@ -91,7 +91,7 @@ String WIFI::setParam(String paramName, String value) {
   serialInterface->print(paramName);
   serialInterface->print("=");
   serialInterface->print(value);
-  serialInterface->write(0x13);
+  serialInterface->write(13);
 }
 
 WIFI::WIFI() {
@@ -115,7 +115,7 @@ void WIFI::loop()
 		if (incoming != -1) 
 		{ //and there is no reason it should be -1
 			serialInterface->write(incoming);
-			if (incoming != 0x13) 
+			if (incoming != 13) 
 			{ //add to the line
 				incomingBuffer[ibWritePtr++] = (char)incoming;
 			}
