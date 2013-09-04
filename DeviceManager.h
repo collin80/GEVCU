@@ -53,6 +53,8 @@ public:
 	Throttle *getAccelerator();
 	Throttle *getBrake();
 	MotorController *getMotorController();
+	Device *getDeviceByID(Device::DeviceId);
+	Device *getDeviceByType(Device::DeviceType);
 
 protected:
 

@@ -181,6 +181,33 @@ MotorController *DeviceManager::getMotorController() {
 }
 
 /*
+Allows one to request a reference to a device with the given ID. This lets code specifically request a certain
+device. Normally this would be a bad idea because it sort of breaks the OOP design philosophy of polymorphism
+but sometimes you can't help it. 
+*/
+Device *DeviceManager::getDeviceByID(Device::DeviceId id)
+{
+	for (int i = 0; i < CFG_DEV_MGR_MAX_DEVICES; i++)
+	{
+		if (devices[i]->getId() == id) return devices[i];
+	}
+	return 0;
+}
+
+/*
+The more object oriented version of the above function. Allows one to find the first device that matches
+a given type.
+*/
+Device *DeviceManager::getDeviceByType(Device::DeviceType type)
+{
+	for (int i = 0; i < CFG_DEV_MGR_MAX_DEVICES; i++)
+	{
+		if (devices[i]->getType() == type) return devices[i];
+	}
+	return 0;
+}
+
+/*
  * Find the position of a device in the devices array
  * /retval the position of the device or -1 if not found.
  */
