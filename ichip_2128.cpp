@@ -33,6 +33,7 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 void WIFI::init() {
   
   ibWritePtr = 0;
+  serialInterface->begin(9600);
   
   //for now force a specific ad-hoc network to be set up
   //I think I've got to wait between these which will be interesting

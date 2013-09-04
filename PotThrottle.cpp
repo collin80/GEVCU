@@ -61,6 +61,9 @@ void PotThrottle::setup() {
 		prefsHandler->read(EETH_FWD, &throttleFwd);
 		prefsHandler->read(EETH_MAP, &throttleMap);
 		prefsHandler->read(EETH_MAX_ACCEL_REGEN, &throttleMaxRegen);
+		prefsHandler->read(EETH_NUM_THROTTLES, &numThrottlePots);
+		prefsHandler->read(EETH_THROTTLE_TYPE, &throttleSubType);
+		Logger::debug("# of pots: %i       subtype: %i", numThrottlePots, throttleSubType);
 		Logger::debug("T1 MIN: %i MAX: %i      T2 MIN: %i MAX: %i", throttleMin1, throttleMax1, throttleMin2, throttleMax2);
 		Logger::debug("Regen: %i Fwd: %i Map: %i MaxRegen: %i", throttleRegen, throttleFwd, throttleMap, throttleMaxRegen);
 	}
@@ -75,6 +78,8 @@ void PotThrottle::setup() {
 		throttleMax1 = Throttle1MaxValue;
 		throttleMin2 = Throttle2MinValue;
 		throttleMax2 = Throttle2MaxValue;
+		numThrottlePots = ThrottleNumPots;
+		throttleSubType = ThrottleSubtype;
 
 		prefsHandler->write(EETH_MIN_ONE, throttleMin1);
 		prefsHandler->write(EETH_MAX_ONE, throttleMax1);
@@ -84,6 +89,8 @@ void PotThrottle::setup() {
 		prefsHandler->write(EETH_FWD, throttleFwd);
 		prefsHandler->write(EETH_MAP, throttleMap);
 		prefsHandler->write(EETH_MAX_ACCEL_REGEN, throttleMaxRegen);
+		prefsHandler->write(EETH_NUM_THROTTLES, numThrottlePots);
+		prefsHandler->write(EETH_THROTTLE_TYPE, throttleSubType);
 		prefsHandler->saveChecksum();
 	}
 #else

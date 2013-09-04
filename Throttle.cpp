@@ -28,33 +28,64 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include "Throttle.h" 
 #include "ThrottleDetector.h"
  
-Throttle::Throttle() : Device() {
+Throttle::Throttle() : Device() 
+{
 	prefsHandler = new PrefHandler(EE_THROTTLE_START);
     throttleDetector = NULL;
 	level = 0;
 }
 
-Throttle::~Throttle() {
-  if ( throttleDetector != NULL ) {
+Throttle::~Throttle() 
+{
+  if ( throttleDetector != NULL ) 
+  {
     delete throttleDetector;
     throttleDetector = NULL;
   }
 }
 
-void Throttle::handleTick() {
+void Throttle::handleTick() 
+{
 	Device::handleTick();
-	if ( throttleDetector != NULL ) {
+	if ( throttleDetector != NULL ) 
+	{
 	    throttleDetector->handleTick();
-	  }
+	}
 }
 
-Device::DeviceType Throttle::getType() {
+Device::DeviceType Throttle::getType() 
+{
 	return Device::DEVICE_THROTTLE;
 }
 
-int Throttle::getLevel() {
+int Throttle::getLevel() 
+{
 	return level;
 }
+
+void Throttle::setNumThrottlePots(uint8_t num) 
+{
+	if (num < 1) num = 1;
+	if (num > 2) num = 2;
+
+	numThrottlePots = num;
+}
+
+uint8_t Throttle::getNumThrottlePots() 
+{
+	return numThrottlePots;
+}
+
+void Throttle::setSubtype(uint8_t num)
+{
+	throttleSubType = num;
+}
+
+uint8_t Throttle::getSubtype()
+{
+	return throttleSubType;
+}
+
 
 //Give default versions that return 0. Override in a child class if you implement the throttle
 int Throttle::getRawThrottle1() {return 0;}
@@ -62,7 +93,8 @@ int Throttle::getRawThrottle2() {return 0;}
 
 // Return the tick interval for this throttle. Override in a child class
 // if you use a different tick interval
-uint32_t Throttle::getTickInterval() {
+uint32_t Throttle::getTickInterval() 
+{
 	return CFG_TICK_INTERVAL_POT_THROTTLE;
 }
 

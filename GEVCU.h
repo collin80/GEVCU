@@ -43,6 +43,7 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include "ThrottleDetector.h"
 #include "DeviceManager.h"
 #include "SerialConsole.h"
+#include "ichip_2128.h"
 
 #ifdef __cplusplus
 extern "C" {

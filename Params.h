@@ -9,6 +9,8 @@ here and then get to fixing it so that nothing is hard coded anymore.
 */
 //#define USE_HARD_CODED
 
+#define ThrottleNumPots			1		//# of pots to use by default
+#define ThrottleSubtype			1		//subtype 1 is a standard linear pot throttle
 #define ThrottleRegenValue		0		//where does Regen stop (1/10 of percent)
 #define	ThrottleFwdValue		175		//where does forward motion start
 #define	ThrottleMapValue		665		//Where is the 1/2 way point for throttle
