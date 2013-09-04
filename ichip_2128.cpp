@@ -28,9 +28,10 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  
 #include "ichip_2128.h"
 #include "config.h"
+#include "Logger.h"
 
 //initialization of hardware and parameters
-void WIFI::init() {
+void ICHIPWIFI::setup() {
   
   ibWritePtr = 0;
   
@@ -47,9 +48,12 @@ void WIFI::init() {
   sendCmd("DOWN"); //cause a reset to allow it to come up with the settings
   enableServer();
   */
+
+	TickHandler::getInstance()->detach(this);
+	TickHandler::getInstance()->attach(this, CFG_TICK_INTERVAL_WIFI);
 }
 
-void WIFI::sendCmd(String cmd) 
+void ICHIPWIFI::sendCmd(String cmd) 
 {
   serialInterface->write("AT+i");
   serialInterface->print(cmd);
@@ -57,28 +61,28 @@ void WIFI::sendCmd(String cmd)
 }
 
 //periodic processes
-void WIFI::handleTick() {
+void ICHIPWIFI::handleTick() {
   
 }
 
 //turn on the web server
-void WIFI::enableServer() {
+void ICHIPWIFI::enableServer() {
   sendCmd("WRFU"); //enable WIFI if not already enabled
   sendCmd("WWW=3"); //turn on web server for three clients
 }
 
 //turn off the web server
-void WIFI::disableServer() {
+void ICHIPWIFI::disableServer() {
   sendCmd("WWW=0"); //turn off web server
 }
 
 //Determine if a parameter has changed, which one, and the new value
-String WIFI::getNextParam() {
+String ICHIPWIFI::getNextParam() {
   sendCmd("WNXT"); //send command to get next changed parameter
 }
 
 //try to retrieve the value of the given parameter
-String WIFI::getParamById(String paramName) {
+String ICHIPWIFI::getParamById(String paramName) {
   serialInterface->write("AT+i");
   serialInterface->print(paramName);
   serialInterface->print("?");
@@ -86,7 +90,7 @@ String WIFI::getParamById(String paramName) {
 }
 
 //set the given parameter with the given string
-String WIFI::setParam(String paramName, String value) {
+String ICHIPWIFI::setParam(String paramName, String value) {
   serialInterface->write("AT+i");
   serialInterface->print(paramName);
   serialInterface->print("=");
@@ -94,19 +98,19 @@ String WIFI::setParam(String paramName, String value) {
   serialInterface->write(13);
 }
 
-WIFI::WIFI() {
+ICHIPWIFI::ICHIPWIFI() {
   serialInterface = &Serial3; //default is serial 3 because that should be what our shield really uses
 }
 
-WIFI::WIFI(USARTClass *which) {
+ICHIPWIFI::ICHIPWIFI(USARTClass *which) {
   serialInterface = which;
 }
 
 //called in the main loop (hopefully) in order to process serial input waiting for us
-//from the wifi module. It should always terminate its answers with 0x13 so buffer
+//from the wifi module. It should always terminate its answers with 13 so buffer
 //until we get 13 (CR) and then process it.
 //But, for now just echo stuff to our serial port for debugging
-void WIFI::loop() 
+void ICHIPWIFI::loop() 
 {
 	int incoming;
 	while (serialInterface->available()) 
@@ -125,18 +129,19 @@ void WIFI::loop()
 				ibWritePtr = 0; //reset the write pointer
 				if (strcmp(incomingBuffer, "I/ERROR") == 0) { //got an error back!
 				}
+				Logger::debug("Msg from wifi: %s", incomingBuffer);
 			}
 		}
 		else return;
 	}
 }
 
-Device::DeviceType WIFI::getType() 
+Device::DeviceType ICHIPWIFI::getType() 
 {
   return Device::DEVICE_WIFI;
 }
 
-Device::DeviceId WIFI::getId() 
+Device::DeviceId ICHIPWIFI::getId() 
 {
   return (Device::ICHIP2128);
 }

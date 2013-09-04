@@ -198,7 +198,7 @@ void initializeDevices() {
 #ifdef CFG_ENABLE_DEVICE_ICHIP2128_WIFI
 	Logger::info("add device: iChip 2128 WiFi");
 	WIFI *iChip = new WIFI();
-	iChip->init();
+	iChip->setup();
 	deviceManager->addDevice(iChip);
 #endif
 }
@@ -263,6 +263,10 @@ void setup() {
 
 void loop() {
 
+	//Evilness... Find a better way to reference the wifi stuff
+	Device *tempDevice;
+	tempDevice = DeviceManager::getInstance()->getDeviceByID(Device::ICHIP2128);
+
 #ifdef CFG_TIMER_USE_QUEUING
 	tickHandler->process();
 #endif
@@ -272,6 +276,11 @@ void loop() {
 	canHandlerCar->process();
 
 	serialConsole->loop();
+
+//#ifdef CFG_ENABLE_DEVICE_ICHIP2128_WIFI	
+	((ICHIPWIFI*)tempDevice)->loop();
+//#endif
+
 
 	//this should still be here. It checks for a flag set during an interrupt
 	sys_io_adc_poll();

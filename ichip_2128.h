@@ -80,14 +80,14 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include "config.h"
 #include "Device.h"
 
-class WIFI : public Device {
+class ICHIPWIFI : public Device {
     private:
     USARTClass* serialInterface; //Allows for retargetting which serial port we use
     char incomingBuffer[128]; //storage for one incoming line
     int ibWritePtr;
     
     public:
-    void init(); //initialization on start up
+    void setup(); //initialization on start up
     Device::DeviceType getType();
     Device::DeviceId getId();
     void loop();
@@ -98,9 +98,9 @@ class WIFI : public Device {
     String getParamById(String paramName); //try to retrieve the value of the given parameter
     String setParam(String paramName, String valu); //set the given parameter with the given string
     void sendCmd(String cmd);
-    WIFI();
-    ~WIFI();
-    WIFI(USARTClass *which);
+    ICHIPWIFI();
+    ~ICHIPWIFI();
+    ICHIPWIFI(USARTClass *which);
 };
 
 #endif
