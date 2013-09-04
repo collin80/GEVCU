@@ -51,4 +51,8 @@ void BatteryManager::setup() {
 	}
 #else
 #endif
+
+//TickHandler::getInstance()->detach(this);
+//TickHandler::getInstance()->attach(this, CFG_TICK_INTERVAL_MOTOR_CONTROLLER_DMOC);
+
 }

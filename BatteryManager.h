@@ -38,7 +38,7 @@ class BatteryManager : public Device {
 public:
 	BatteryManager();
 	int getPackVoltage(); //in tenths of a volt
-	int getPackCurrent(); //in tenths of an amp
+	signed int getPackCurrent(); //in tenths of an amp
 	bool allowCharging();
 	bool allowDischarging();
 	virtual Device::DeviceType getType();
@@ -47,7 +47,8 @@ public:
 protected:
 private:
 	int packVoltage;
-	int packCurrent;
+	signed int packCurrent;
+	bool allowCharge, allowDischarge;
 };
 
 #endif
