@@ -32,9 +32,6 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include "MotorController.h"
 #include "CanHandler.h"
 
-#define MSG_HARD_FAULT		0x2000; //something really bad happened. Shutdown to safe state IMMEDIATELY!
-#define MSG_SOFT_FAULT		0x2200; //something unpleasant happened. Try to shutdown gracefully.
-
 class MotorController; // cyclic reference between MotorController and DeviceManager
 
 class DeviceManager {
@@ -55,6 +52,14 @@ public:
 	MotorController *getMotorController();
 	Device *getDeviceByID(Device::DeviceId);
 	Device *getDeviceByType(Device::DeviceType);
+
+	enum SystemMessage {
+		MSG_STARTUP = 0x3000,
+		MSG_SOFT_FAULT = 0x3100,
+		MSG_HARD_FAULT = 0x3150,
+		MSG_DISABLE = 0x3200,
+		MSG_ENABLE = 0x3300
+	};
 
 protected:
 

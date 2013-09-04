@@ -33,6 +33,33 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
  */
 
+/*
+Random comments on things that should be coded up soon:
+1. Wifi code needs to be finished. It should read in settings from EEPROM, etc. And start up a webserver. Then
+the code should scan for changed parameters occassionally and set them in eeprom
+2. Serial console needs to be able to set the wifi stuff
+3. A new module needs to be coded that implements precharging. There are two basic types of precharge:
+	- If a BMS exists we can grab the pack voltage from there. Otherwise use a set nominal voltage
+	- If a motor controller reports voltage then ask it what it sees as we're precharging to see where we are
+	- Otherwise wait for 3-5 RC (resistance * capacitance) time constant. Note that the DMOC has about 11,000uf
+		capacitance so default to that for C. We have no idea what the user will use for R.
+	- Set whether there is a precharge relay and/or main contactor relay and control them.
+	- On fault open both if they exist.
+4. So, obviously the serial console needs to allow setting R,C,how many RC to wait, whether to ask BMS, motor ctrl
+	as well as precharge and main contactor details. 
+5. It wouldn't be a bad idea to finish the code for message passing. There are certain messages that all devices
+	should support. For one, setup could be done automatically by sending each device a system starting up message.
+	Also, in case of fault there should be a way to send a universal "system faulted" message so that each device
+	can render its hardware safe. I'm sure there are other messages that should be implemented. Maybe disable/enable a device.
+6. It is a possibility that there should be support for actually controlling the power to some of the devices.
+	For instance, power could be controlled to the +12V connection at the DMOC so that it can be power cycled
+	in software. But, that uses up an input and people can just cycle the key (though that resets the GEVCU too)
+7. Support has been added for saving how many throttle pots there are and which throttle type. Make the throttle
+	code respect these parameters and use them. Quite hard coding so much stuff.
+8. Some people (like me, Collin) have a terrible habit of mixing several coding styles. It would be beneficial to
+	continue to harmonize the source code.
+*/
+
 #include "GEVCU.h"
 
 // The following includes are required in the .ino file by the Arduino IDE in order to properly
