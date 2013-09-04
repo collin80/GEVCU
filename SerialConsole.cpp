@@ -99,10 +99,13 @@ void SerialConsole::printMenu() {
 	SerialUSB.println("Z = save detected throttle values");
 	SerialUSB.println("b = detect brake min/max");
 	SerialUSB.println("B = Save detected brake values");
+	SerialUSB.println("p = enable wifi passthrough (reboot required to resume normal operation)");
 	SerialUSB.println();
 	SerialUSB.println("Config Commands (enter command=newvalue):");
 	SerialUSB.println("TORQ = Set torque upper limit (tenths of a Nm)");
 	SerialUSB.println("RPMS = Set maximum RPMs");
+	SerialUSB.println("TPOT = Number of pots to use (1 or 2)");
+	SerialUSB.println("TTYPE = Subtype of pedal");
 	SerialUSB.println("T1MN = Set throttle 1 min value");
 	SerialUSB.println("T1MX = Set throttle 1 max value");
 	SerialUSB.println("T2MN = Set throttle 2 min value");
@@ -187,6 +190,21 @@ void SerialConsole::handleConfigCmd()
 		DeviceManager::getInstance()->getMotorController()->setMaxRpm(newValue);
 		DeviceManager::getInstance()->getMotorController()->saveEEPROM();
 	}
+
+	else if (cmdString == String("TPOT")) {
+		newValue = atoi((char *)(cmdBuffer + i));
+		Logger::debug("Setting # of Throttle Pots to %i", newValue);
+		DeviceManager::getInstance()->getAccelerator()->setNumThrottlePots(newValue);
+		DeviceManager::getInstance()->getAccelerator()->saveEEPROM();
+	}
+
+	else if (cmdString == String("TTYPE")) {
+		newValue = atoi((char *)(cmdBuffer + i));
+		Logger::debug("Setting Throttle Subtype to %i", newValue);
+		DeviceManager::getInstance()->getAccelerator()->setSubtype(newValue);
+		DeviceManager::getInstance()->getAccelerator()->saveEEPROM();
+	}
+
 	else if (cmdString == String("T1MN")) {
 		newValue = atoi((char *)(cmdBuffer + i));
 		Logger::debug("Setting Throttle1 Min to %i", newValue);
@@ -388,6 +406,23 @@ void SerialConsole::handleShortCmd()
 			break;
 		case 'Z': // save throttle settings
 			DeviceManager::getInstance()->getAccelerator()->saveConfiguration();
+			break;
+		case 'p':
+			Logger::info("PASSTHROUGH MODE - All traffic Serial3 <-> SerialUSB");
+			//this never stops so basically everything dies. you will have to reboot.
+			int inSerialUSB, inSerial3;
+			while (1==1) {
+				inSerialUSB = SerialUSB.read();
+				inSerial3 = Serial3.read();
+				if (inSerialUSB > -1) 
+				{
+					Serial3.write((char)inSerialUSB);
+				}
+				if (inSerial3 > -1) 
+				{
+					SerialUSB.write((char)inSerial3);
+				}
+			}
 			break;
 	}
 }

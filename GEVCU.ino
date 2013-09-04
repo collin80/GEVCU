@@ -262,7 +262,6 @@ void setup() {
 }
 
 void loop() {
-
 	//Evilness... Find a better way to reference the wifi stuff
 	Device *tempDevice;
 	tempDevice = DeviceManager::getInstance()->getDeviceByID(Device::ICHIP2128);

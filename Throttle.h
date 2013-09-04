@@ -64,6 +64,11 @@ public:
 	virtual void setT2Min(uint16_t min);
 	virtual void setT1Max(uint16_t max);
 	virtual void setT2Max(uint16_t max);
+	void setNumThrottlePots(uint8_t num);
+	uint8_t getNumThrottlePots();
+	void setSubtype(uint8_t num);
+	uint8_t getSubtype();
+
 
 	virtual void saveConfiguration();
 	virtual void saveEEPROM(); 
@@ -75,7 +80,8 @@ protected:
 	uint16_t brakeMaxRegen; //percentage of max torque allowable for regen at brake pedal
     uint16_t throttleMin1, throttleMax1, throttleMin2, throttleMax2; //Values for when the pedal is at its min and max for each throttle input
 	uint16_t throttle1Val, throttle2Val;
-	int numThrottlePots; //whether there are one or two pots. Should support three as well since some pedals really do have that many
+	uint8_t numThrottlePots; //whether there are one or two pots. Should support three as well since some pedals really do have that many
+	uint8_t throttleSubType; //allows subclasses to have sub types for their pedal type
 	uint32_t getTickInterval();
 	ThrottleDetector *throttleDetector;
 

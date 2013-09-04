@@ -157,10 +157,10 @@ int TickHandler::findObserver(int timer, TickObserver *observer) {
  * Check if a tick is available, forward it to registered observers.
  */
 void TickHandler::process() {
-//Logger::debug("process, bufferHead=%d bufferTail=%d", bufferHead, bufferTail);
 	while (bufferHead != bufferTail) {
 		tickBuffer[bufferTail]->handleTick();
 		bufferTail = (bufferTail + 1) % CFG_TIMER_BUFFER_SIZE;
+		//Logger::debug("process, bufferHead=%d bufferTail=%d", bufferHead, bufferTail);
 	}
 }
 
