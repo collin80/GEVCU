@@ -261,6 +261,8 @@ void PotThrottle::saveEEPROM() {
 	prefsHandler->write(EETH_FWD, throttleFwd);
 	prefsHandler->write(EETH_MAP, throttleMap);
 	prefsHandler->write(EETH_MAX_ACCEL_REGEN, throttleMaxRegen);
+	prefsHandler->write(EETH_NUM_THROTTLES, numThrottlePots);
+	prefsHandler->write(EETH_THROTTLE_TYPE, throttleSubType);
 	prefsHandler->saveChecksum();
 }
 
