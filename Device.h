@@ -58,6 +58,7 @@ public:
 		THINKBMS = 0x2000,
 		INVALID = 0xFFFF
 	};
+
 	Device();
 	virtual void setup();
 	virtual void handleTick();

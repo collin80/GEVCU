@@ -93,7 +93,7 @@ the end of the stardard data. The below numbers are offsets from the device's ee
 #define EETH_MAX_ACCEL_REGEN	38 //2 bytes - maximum percentage of throttle to command on accel pedal regen
 #define EETH_MAX_BRAKE_REGEN	40 //2 bytes - maximum percentage of throttle to command for braking regen. Starts at max accel regen and works up to here.
 #define EETH_NUM_THROTTLES		42 //1 byte - How many throttle inputs should we use? (1 or 2)
-#define EETH_THROTTLE_TYPE		43 //1 byte - Allow for different throttle types. For now 1 = Linear pots 2 = Whatever Charles has
+#define EETH_THROTTLE_TYPE		43 //1 byte - Allow for different throttle types. For now 1 = Linear pots, 2 = Inverse relationship between pots. See Throttle.h
 
 
 //System Data

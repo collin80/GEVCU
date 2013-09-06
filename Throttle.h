@@ -81,7 +81,13 @@ protected:
     uint16_t throttleMin1, throttleMax1, throttleMin2, throttleMax2; //Values for when the pedal is at its min and max for each throttle input
 	uint16_t throttle1Val, throttle2Val;
 	uint8_t numThrottlePots; //whether there are one or two pots. Should support three as well since some pedals really do have that many
-	uint8_t throttleSubType; //allows subclasses to have sub types for their pedal type
+	/*
+	 * Allows subclasses to have sub types for their pedal type
+	 * 0 - unknown type (prefs will return 0 if never set)
+	 * 1 - standard linear potentiometer (low-high). If 2 pots, both are low-high and the 2nd mirrors the 1st.
+	 * 2 - inverse potentiometer (high-low). If 2 pots, then 1st is low-high and 2nd is high-low)
+	 */
+	uint8_t throttleSubType;
 	uint32_t getTickInterval();
 	ThrottleDetector *throttleDetector;
 

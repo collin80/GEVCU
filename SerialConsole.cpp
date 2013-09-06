@@ -93,9 +93,7 @@ void SerialConsole::printMenu() {
 	SerialUSB.println("J = set all outputs low");
 	SerialUSB.println("U,I = test EEPROM routines");
 	SerialUSB.println("A = dump system eeprom values");
-	SerialUSB.println("y = detect throttle min");
-	SerialUSB.println("Y = detect throttle max");
-	SerialUSB.println("z = detect throttle min/max  and other values");
+	SerialUSB.println("z = detect throttle min/max, num throttles and subtype");
 	SerialUSB.println("Z = save detected throttle values");
 	SerialUSB.println("b = detect brake min/max");
 	SerialUSB.println("B = Save detected brake values");
@@ -105,7 +103,7 @@ void SerialConsole::printMenu() {
 	SerialUSB.println("TORQ = Set torque upper limit (tenths of a Nm)");
 	SerialUSB.println("RPMS = Set maximum RPMs");
 	SerialUSB.println("TPOT = Number of pots to use (1 or 2)");
-	SerialUSB.println("TTYPE = Subtype of pedal");
+	SerialUSB.println("TTYPE = Set throttle subtype (1=std linear, 2=inverse)");
 	SerialUSB.println("T1MN = Set throttle 1 min value");
 	SerialUSB.println("T1MX = Set throttle 1 max value");
 	SerialUSB.println("T2MN = Set throttle 2 min value");
@@ -389,23 +387,17 @@ void SerialConsole::handleShortCmd()
 			setOutput(3, false);
 			Logger::info("all outputs: OFF");
 			break;
-                case 'y': // detect throttle min
-			DeviceManager::getInstance()->getAccelerator()->detectThrottleMin();
-			break;
-                case 'Y': // detect throttle max
-			DeviceManager::getInstance()->getAccelerator()->detectThrottleMax();
-			break;
 		case 'z': // detect throttle min/max & other details
 			DeviceManager::getInstance()->getAccelerator()->detectThrottle();
+			break;
+		case 'Z': // save throttle settings
+			DeviceManager::getInstance()->getAccelerator()->saveConfiguration();
 			break;
 		case 'b':
 			DeviceManager::getInstance()->getBrake()->detectThrottle();
 			break;
 		case 'B':
 			DeviceManager::getInstance()->getBrake()->saveConfiguration();
-			break;
-		case 'Z': // save throttle settings
-			DeviceManager::getInstance()->getAccelerator()->saveConfiguration();
 			break;
 		case 'p':
 			Logger::info("PASSTHROUGH MODE - All traffic Serial3 <-> SerialUSB");

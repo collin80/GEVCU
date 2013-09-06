@@ -83,6 +83,12 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #define CFG_THROTTLE_TOLERANCE  30 //the max that things can go over or under the min/max without fault - 1/10% each #
 #define BLINK_LED          73 //13 is L, 73 is TX, 72 is RX
 
+// Throttle pins/ADC ports
+#define CFG_THROTTLE_NONE	255
+#define CFG_THROTTLE1_PIN	0
+#define CFG_THROTTLE2_PIN	1
+#define CFG_BRAKE_PIN		2
+
 //if this is defined then the ADC code will use raw readings from the actual ADC port of that number.
 //In other words, no DMA, no differential input, just the ADC. If you ask for ADC0 you will get a raw
 //reading from ADC0.
