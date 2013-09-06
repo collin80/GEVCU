@@ -189,7 +189,10 @@ Device *DeviceManager::getDeviceByID(Device::DeviceId id)
 {
 	for (int i = 0; i < CFG_DEV_MGR_MAX_DEVICES; i++)
 	{
-		if (devices[i]->getId() == id) return devices[i];
+		if (devices[i]) 
+		{
+			if (devices[i]->getId() == id) return devices[i];
+		}
 	}
 	return 0;
 }
@@ -202,7 +205,10 @@ Device *DeviceManager::getDeviceByType(Device::DeviceType type)
 {
 	for (int i = 0; i < CFG_DEV_MGR_MAX_DEVICES; i++)
 	{
-		if (devices[i]->getType() == type) return devices[i];
+		if (devices[i]) 
+		{
+			if (devices[i]->getType() == type) return devices[i];
+		}
 	}
 	return 0;
 }
