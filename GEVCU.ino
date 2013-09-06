@@ -224,7 +224,7 @@ void initializeDevices() {
 #endif
 #ifdef CFG_ENABLE_DEVICE_ICHIP2128_WIFI
 	Logger::info("add device: iChip 2128 WiFi");
-	WIFI *iChip = new WIFI();
+	ICHIPWIFI *iChip = new ICHIPWIFI();
 	iChip->setup();
 	deviceManager->addDevice(iChip);
 #endif
@@ -289,9 +289,12 @@ void setup() {
 }
 
 void loop() {
+
+#ifdef CFG_ENABLE_DEVICE_ICHIP2128_WIFI	
 	//Evilness... Find a better way to reference the wifi stuff
 	Device *tempDevice;
 	tempDevice = DeviceManager::getInstance()->getDeviceByID(Device::ICHIP2128);
+#endif
 
 #ifdef CFG_TIMER_USE_QUEUING
 	tickHandler->process();
@@ -303,9 +306,9 @@ void loop() {
 
 	serialConsole->loop();
 
-//#ifdef CFG_ENABLE_DEVICE_ICHIP2128_WIFI	
+#ifdef CFG_ENABLE_DEVICE_ICHIP2128_WIFI	
 	((ICHIPWIFI*)tempDevice)->loop();
-//#endif
+#endif
 
 
 	//this should still be here. It checks for a flag set during an interrupt
