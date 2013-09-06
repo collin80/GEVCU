@@ -43,7 +43,7 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #define CFG_DEV_MGR_MAX_DEVICES 9 // the maximum number of devices supported by the DeviceManager
 #define CFG_CAN_NUM_OBSERVERS 10 // maximum number of device subscriptions per CAN bus
 #define CFG_TIMER_NUM_OBSERVERS 9 // the maximum number of supported observers per timer
-//#define CFG_TIMER_USE_QUEUING // if defined, TickHandler uses a queuing buffer instead of direct calls from interrupts
+#define CFG_TIMER_USE_QUEUING // if defined, TickHandler uses a queuing buffer instead of direct calls from interrupts
 #define CFG_TIMER_BUFFER_SIZE 100 // the size of the queuing buffer for TickHandler
 
 // Define the devices which are to be used (and compiled) via the following lines. It is advisable
@@ -57,7 +57,7 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #define CFG_ENABLE_DEVICE_MOTORCTRL_DMOC_645
 //#define CFG_ENABLE_DEVICE_MOTORCTRL_BRUSA_DMC5
 //#define CFG_ENABLE_DEVICE_ICHIP2128_WIFI
-#define CFG_ENABLE_DEVICE_BMS_THINK
+//#define CFG_ENABLE_DEVICE_BMS_THINK
 
 // specify the intervals (microseconds) at which each device type should be "ticked"
 // try to use the same numbers for several devices because then they will share
