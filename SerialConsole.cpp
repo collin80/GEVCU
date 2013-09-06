@@ -271,6 +271,9 @@ void SerialConsole::handleConfigCmd()
 		DeviceManager::getInstance()->getBrake()->setT1Min(newValue);
 		DeviceManager::getInstance()->getBrake()->saveEEPROM();
 	}
+	else {
+		Logger::debug("Unknown command!");
+	}
 }
 
 void SerialConsole::handleShortCmd() 
