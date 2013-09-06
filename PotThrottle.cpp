@@ -35,10 +35,11 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 PotThrottle::PotThrottle(uint8_t throttle1, uint8_t throttle2) : Throttle() {
 	throttle1ADC = throttle1;
 	throttle2ADC = throttle2;
-	if (throttle2 == 255)
+	if (throttle2 == CFG_THROTTLE_NONE) {
 		numThrottlePots = 1;
-	else
+	} else {
 		numThrottlePots = 2;
+	}
 	throttleStatus = OK;
 	throttleMaxErr = ThrottleMaxErrValue; //in tenths of a percent. So 25 = max 2.5% difference
 	//analogReadResolution(12);
@@ -53,6 +54,7 @@ void PotThrottle::setup() {
 	
 #ifndef USE_HARD_CODED
 	if (prefsHandler->checksumValid()) { //checksum is good, read in the values stored in EEPROM
+		Logger::debug("Valid checksum so using stored throttle config values");
 		prefsHandler->read(EETH_MIN_ONE, &throttleMin1);
 		prefsHandler->read(EETH_MAX_ONE, &throttleMax1);
 		prefsHandler->read(EETH_MIN_TWO, &throttleMin2);
@@ -63,11 +65,20 @@ void PotThrottle::setup() {
 		prefsHandler->read(EETH_MAX_ACCEL_REGEN, &throttleMaxRegen);
 		prefsHandler->read(EETH_NUM_THROTTLES, &numThrottlePots);
 		prefsHandler->read(EETH_THROTTLE_TYPE, &throttleSubType);
+
+		// ** This is potentially a condition that is only met if you don't have the EEPROM hardware **
+		// If preferences have never been set before, numThrottlePots and throttleSubType
+		// will both be zero.  We really should refuse to operate in this condition and force
+		// calibration, but for now at least allow calibration to work by setting numThrottlePots = 2
+		Logger::debug("THROTTLE APPEARS TO NEED CALIBRATION/DETECTION - choose 'z' on the serial console menu");
+		numThrottlePots = 2;
+
 		Logger::debug("# of pots: %i       subtype: %i", numThrottlePots, throttleSubType);
 		Logger::debug("T1 MIN: %i MAX: %i      T2 MIN: %i MAX: %i", throttleMin1, throttleMax1, throttleMin2, throttleMax2);
 		Logger::debug("Regen: %i Fwd: %i Map: %i MaxRegen: %i", throttleRegen, throttleFwd, throttleMap, throttleMaxRegen);
 	}
 	else { //checksum invalid. Reinitialize values and store to EEPROM
+		Logger::debug("Invalid checksum so using hard coded throttle config values");
 
 		 //The next three are tenths of a percent
 		throttleRegen = ThrottleRegenValue;
@@ -94,6 +105,7 @@ void PotThrottle::setup() {
 		prefsHandler->saveChecksum();
 	}
 #else
+	Logger::debug("#define USE_HARD_CODED so using hard coded throttle config values");
 	throttleRegen = ThrottleRegenValue;
 	throttleFwd = ThrottleFwdValue;
 	throttleMap = ThrottleMapValue;
@@ -271,8 +283,8 @@ void PotThrottle::saveConfiguration() {
   TickHandler::getInstance()->detach(this); // unregister from TickHandler first
   setT1Min(throttleDetector->getThrottle1Min());
   setT1Max(throttleDetector->getThrottle1Max());
-  numThrottlePots = throttleDetector->getPotentiometerCount();
-  if ( numThrottlePots > 1 ) {
+  setNumThrottlePots(throttleDetector->getPotentiometerCount());
+  if ( getNumThrottlePots() > 1 ) {
 	setT2Min(throttleDetector->getThrottle2Min());
 	setT2Max(throttleDetector->getThrottle2Max());
   }
@@ -280,6 +292,7 @@ void PotThrottle::saveConfiguration() {
     setT2Min(0);
     setT2Max(0);
   }
+  setSubtype(throttleDetector->getSubtype());
   saveEEPROM();
   
   TickHandler::getInstance()->attach(this, getTickInterval());

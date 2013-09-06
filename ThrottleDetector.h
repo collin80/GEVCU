@@ -39,8 +39,6 @@ public:
 	ThrottleDetector(Throttle *throttle);
 	void handleTick();
 	void detect();
-	void detectMin();
-	void detectMax();
 	int getPotentiometerCount();
 	bool isThrottle1HighLow();
 	bool isThrottle2HighLow();
@@ -49,28 +47,18 @@ public:
 	uint16_t getThrottle1Max();
 	uint16_t getThrottle2Min();
 	uint16_t getThrottle2Max();
+	uint8_t getSubtype();
 	~ThrottleDetector();
 
 private:
 	enum DetectionState {
 		DoNothing,
-
-		DetectBothMinWait,
-		DetectBothMinCalibrate,
-		DetectBothMaxWait,
-		DetectBothMaxCalibrate,
-
 		DetectMinWait,
 		DetectMinCalibrate,
-
 		DetectMaxWait,
 		DetectMaxCalibrate
 	};
 
-	void detectBothMinWait();
-	void detectBothMinCalibrate();
-	void detectBothMaxWait();
-	void detectBothMaxCalibrate();
 	void detectMinWait();
 	void detectMinCalibrate();
 	void detectMaxWait();
@@ -79,6 +67,8 @@ private:
 	void resetValues();
 	void readThrottleValues();
 	bool throttle2Provided();
+	int checkLinear(uint16_t, uint16_t);
+	int checkInverse(uint16_t, uint16_t);
 	Throttle *throttle;
 	DetectionState state;
 	unsigned long startTime;
@@ -89,6 +79,7 @@ private:
 	uint16_t throttle2Value;
 	uint16_t throttle2Min;
 	uint16_t throttle2Max;
+	uint8_t throttleSubType;
 	bool throttle1HighLow;
 	bool throttle2HighLow;
 	bool throttle2Inverse;
@@ -96,6 +87,13 @@ private:
 	int throttle2MinRest;  // minimum sensor value at rest
 	int throttle2MaxRest;  // maximum sensor value at rest
 	int maxThrottleReadingDeviationPercent;
+	// stats/counters when sampling
+	static const int maxSamples = 300;
+	int sampleCount;
+	int linearCount;
+	int inverseCount;
+	uint16_t throttle1Values[maxSamples];
+	uint16_t throttle2Values[maxSamples];
 
 };
 
