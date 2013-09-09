@@ -35,8 +35,11 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 #include <due_can.h>
 
-#define CFG_VERSION "GEVCU alpha 2013-08-18"
+#define CFG_BUILD_NUM	1000        //increment this every time a git commit is done. 
+
+#define CFG_VERSION "GEVCU alpha 2013-09-09"
 #define CFG_SERIAL_SPEED 115200
+
 
 #define SerialUSB Serial // re-route serial-usb output to programming port ;) comment if output should go to std usb
 
