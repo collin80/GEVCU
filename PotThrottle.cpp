@@ -70,9 +70,11 @@ void PotThrottle::setup() {
 		// If preferences have never been set before, numThrottlePots and throttleSubType
 		// will both be zero.  We really should refuse to operate in this condition and force
 		// calibration, but for now at least allow calibration to work by setting numThrottlePots = 2
-		Logger::debug("THROTTLE APPEARS TO NEED CALIBRATION/DETECTION - choose 'z' on the serial console menu");
-		//numThrottlePots = 2;
-
+		if (numThrottlePots == 0 && throttleSubType == 0) {
+			Logger::debug("THROTTLE APPEARS TO NEED CALIBRATION/DETECTION - choose 'z' on the serial console menu");
+			numThrottlePots = 2;
+		}
+		
 		Logger::debug("# of pots: %i       subtype: %i", numThrottlePots, throttleSubType);
 		Logger::debug("T1 MIN: %i MAX: %i      T2 MIN: %i MAX: %i", throttleMin1, throttleMax1, throttleMin2, throttleMax2);
 		Logger::debug("Regen: %i Fwd: %i Map: %i MaxRegen: %i", throttleRegen, throttleFwd, throttleMap, throttleMaxRegen);
