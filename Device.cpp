@@ -50,3 +50,8 @@ Device::DeviceType Device::getType() {
 Device::DeviceId Device::getId() {
 	return INVALID;
 }
+
+uint32_t Device::getTickInterval() 
+{
+	return 0;
+}

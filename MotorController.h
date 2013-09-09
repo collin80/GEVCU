@@ -83,6 +83,10 @@ class MotorController : public Device {
     uint16_t maxTorque;	//maximum torque in 0.1 Nm
     uint16_t maxRPM; //in RPM
     GearSwitch gearSwitch;
+	uint16_t prechargeC; //capacitance of motor controller input in uf
+	uint16_t prechargeR; //resistance of precharge resistor in tenths of ohm
+	uint16_t prechargeTime; //time in ms that precharge should last
+	uint16_t nominalVolt; //nominal pack voltage in tenths of a volt
 };
 
 #endif

@@ -26,6 +26,8 @@ here and then get to fixing it so that nothing is hard coded anymore.
 	
 #define	MaxTorqueValue	2000; //in tenths of a Nm
 #define	MaxRPMValue		6000; //DMOC will ignore this but we can use it ourselves for limiting
+#define PrechargeC		11000; //approximate C of DMOC input
+#define PrechargeR		500; //a stupidly high resistance just to make sure we precharge long enough
 
 #define MaxRegenWatts	20000 //in actual watts, there is no scale here
 #define MaxAccelWatts	150000

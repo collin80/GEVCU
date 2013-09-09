@@ -70,6 +70,7 @@ void DmocMotorController::handleCanFrame(RX_CAN_FRAME *frame) {
 	int RotorTemp, invTemp, StatorTemp;
 	int temp;
 	online = 1; //if a frame got to here then it passed the filter and must have been from the DMOC
+        //Logger::debug("dmoc msg: %i", frame->id);
 	switch (frame->id) {
 	case 0x651: //Temperature status
 		RotorTemp = frame->data[0];
@@ -364,6 +365,11 @@ void DmocMotorController::setPowerMode(PowerMode mode) {
 
 DmocMotorController::PowerMode DmocMotorController::getPowerMode() {
 	return powerMode;
+}
+
+uint32_t DmocMotorController::getTickInterval() 
+{
+	return CFG_TICK_INTERVAL_MOTOR_CONTROLLER_DMOC;
 }
 
 #endif //CFG_ENABLE_DEVICE_MOTORCTRL_DMOC_645
