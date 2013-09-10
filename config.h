@@ -92,6 +92,10 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #define CFG_THROTTLE2_PIN	1
 #define CFG_BRAKE_PIN		2
 
+#define NUM_ANALOG	4
+#define NUM_DIGITAL	4
+#define NUM_OUTPUT	4
+
 //if this is defined then the ADC code will use raw readings from the actual ADC port of that number.
 //In other words, no DMA, no differential input, just the ADC. If you ask for ADC0 you will get a raw
 //reading from ADC0.

@@ -118,7 +118,11 @@ void SerialConsole::printMenu() {
 	SerialUSB.println("B1MN = Set brake min value");
 	SerialUSB.println("B1MX = Set brake max value");
 	SerialUSB.println("BMRN = Percent of full torque to use for brake regen");
-
+	SerialUSB.println("PREC = Precharge capacitance (uf)");
+	SerialUSB.println("PRER = Precharge resistance (1/10 of ohm)");
+	SerialUSB.println("NOMV = Nominal system voltage (1/10 of a volt)");
+	SerialUSB.println("PRELAY = Which output to use for precharge contactor (255 to disable)");
+	SerialUSB.println("MRELAY = Which output to use for main contactor (255 to disable)");
 }
 
 /*	There is a help menu (press H or h or ?)
@@ -273,6 +277,37 @@ void SerialConsole::handleConfigCmd()
 		Logger::debug("Setting Brake Min to %i", newValue);
 		DeviceManager::getInstance()->getBrake()->setT1Min(newValue);
 		DeviceManager::getInstance()->getBrake()->saveEEPROM();
+	}
+
+	else if (cmdString == String("PREC")) {
+		newValue = atoi((char *)(cmdBuffer + i));
+		Logger::debug("Setting Precharge Capacitance to %i", newValue);
+		DeviceManager::getInstance()->getMotorController()->setT1Min(newValue);
+		DeviceManager::getInstance()->getMotorController()->saveEEPROM();
+	}
+	else if (cmdString == String("PRER")) {
+		newValue = atoi((char *)(cmdBuffer + i));
+		Logger::debug("Setting Precharge Resistance to %i", newValue);
+		DeviceManager::getInstance()->getMotorController()->setT1Min(newValue);
+		DeviceManager::getInstance()->getMotorController()->saveEEPROM();
+	}
+	else if (cmdString == String("NOMV")) {
+		newValue = atoi((char *)(cmdBuffer + i));
+		Logger::debug("Setting Nominal Voltage to %i", newValue);
+		DeviceManager::getInstance()->getMotorController()->setT1Min(newValue);
+		DeviceManager::getInstance()->getMotorController()->saveEEPROM();
+	}
+	else if (cmdString == String("MRELAY")) {
+		newValue = atoi((char *)(cmdBuffer + i));
+		Logger::debug("Setting Main Contactor relay to %i", newValue);
+		DeviceManager::getInstance()->getMotorController()->setT1Min(newValue);
+		DeviceManager::getInstance()->getMotorController()->saveEEPROM();
+	}
+	else if (cmdString == String("PRELAY")) {
+		newValue = atoi((char *)(cmdBuffer + i));
+		Logger::debug("Setting Precharge Relay to %i", newValue);
+		DeviceManager::getInstance()->getMotorController()->setT1Min(newValue);
+		DeviceManager::getInstance()->getMotorController()->saveEEPROM();
 	}
 }
 

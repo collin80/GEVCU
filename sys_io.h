@@ -35,10 +35,6 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include "eeprom_layout.h"
 #include "PrefHandler.h"
 
-#define NUM_ANALOG	4
-#define NUM_DIGITAL	4
-#define NUM_OUTPUT	4
-
 #define NUM_ADC_SAMPLES  16
 
 typedef struct {

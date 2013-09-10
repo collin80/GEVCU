@@ -27,7 +27,6 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */ 
  
 #include "MotorController.h"
-#include "Params.h"
  
 MotorController::MotorController() : Device() {
 	prefsHandler = new PrefHandler(EE_MOTORCTL_START);
@@ -45,6 +44,11 @@ MotorController::MotorController() : Device() {
 	gearSwitch = GS_FAULT;
 	prechargeC = 0;
 	prechargeR = 0;
+	prechargeTime = 0;
+	prechargeSoFar = 0;
+	prechargeRelay = 255;
+	mainContactorRelay = 255;
+	donePrecharge = false;
 }
 
 Device::DeviceType MotorController::getType() {
@@ -74,6 +78,22 @@ void MotorController::handleTick() {
 	if (brake && brake->getLevel() != 0) //if the brake has been pressed it overrides the accelerator.
 		requestedThrottle = brake->getLevel();
 
+	if (prechargeTime == 0) donePrecharge = true;
+
+	if (!donePrecharge) 
+	{
+		if (prechargeSoFar < prechargeTime) 
+		{
+			prechargeSoFar += (getTickInterval() / 1000);
+		}
+		else {
+			Logger::info("Done with precharge.");
+			setOutput(mainContactorRelay, true);
+			setOutput(prechargeRelay, false);
+			donePrecharge = true;
+		}
+	}
+
 	//Logger::debug("Throttle: %d", requestedThrottle);
 
 }
@@ -94,12 +114,18 @@ void MotorController::setup() {
 		prefsHandler->read(EEMC_MAX_TORQUE, &maxTorque);
 		prefsHandler->read(EEMC_PRECHARGE_C, &prechargeC);
 		prefsHandler->read(EEMC_PRECHARGE_R, &prechargeR);
+		prefsHandler->read(EEMC_NOMINAL_V, &nominalVolt);
+		prefsHandler->read(EEMC_PRECHARGE_RELAY, &prechargeRelay);
+		prefsHandler->read(EEMC_CONTACTOR_RELAY, &mainContactorRelay);
 	}
 	else { //checksum invalid. Reinitialize values and store to EEPROM
 		maxRPM = MaxRPMValue;
 		maxTorque = MaxTorqueValue;
 		prechargeC = PrechargeC;
 		prechargeR = PrechargeR;
+		nominalVolt = NominalVolt;
+		prechargeRelay = PrechargeRelay;
+		mainContactorRelay = MainContactorRelay;
 		saveEEPROM();
 	}
 
@@ -108,12 +134,18 @@ void MotorController::setup() {
 	maxTorque = MaxTorqueValue;
 	prechargeC = PrechargeC;
 	prechargeR = PrechargeR;
+	nominalVolt = NominalVolt;
+	prechargeRelay = PrechargeRelay;
+	mainContactorRelay = MainContactorRelay;
 #endif
 
 	Logger::debug("MaxTorque: %i MaxRPM: %i", maxTorque, maxRPM);
-	if (prechargeC> 0) {
-		//precharge time is 5RC which is (R*C / 1000) ms * 5 = RC/200
-		Logger::debug("RC precharge mode. C: %i  R: %i   Precharge time: %i ms", prechargeC, prechargeR, ((int)prechargeC * prechargeR) / 200);
+	if (prechargeC> 0 && prechargeRelay < NUM_OUTPUT) {
+		//precharge time is 5RC which is (R*C / 1000) ms * 5 = RC/200 but ohms is in tenths so divide by another 10 = RC/2000
+		prechargeTime = ((int)prechargeC * prechargeR) / 2000;
+		Logger::debug("RC precharge mode. C: %i  R: %i   Precharge time: %i ms", prechargeC, prechargeR, prechargeTime);
+		setOutput(prechargeRelay, true); //start the precharge right now
+		setOutput(mainContactorRelay, false); //just to be sure
 	}
 	else {
 		Logger::debug("Not precharging in RC mode");
@@ -178,12 +210,40 @@ void MotorController::setMaxTorque(uint16_t maxTorque)
 	this->maxTorque = maxTorque;
 }
 
+void MotorController::setPrechargeC(uint16_t c)
+{
+	prechargeC = c;
+}
+
+void MotorController::setPrechargeR(uint16_t r) 
+{
+	prechargeR = r;
+}
+
+void MotorController::setNominalV(uint16_t v) 
+{
+	nominalVolt = v;
+}
+
+void MotorController::setPrechargeRelay(uint8_t relay) 
+{
+	prechargeRelay = relay;
+}
+
+void MotorController::setMainRelay(uint8_t relay) 
+{
+	mainContactorRelay = relay;
+}
+
 void MotorController::saveEEPROM()
 {
 	prefsHandler->write(EEMC_MAX_RPM, maxRPM);
 	prefsHandler->write(EEMC_MAX_TORQUE, maxTorque);
 	prefsHandler->write(EEMC_PRECHARGE_C, prechargeC);
 	prefsHandler->write(EEMC_PRECHARGE_R, prechargeR);
+	prefsHandler->write(EEMC_NOMINAL_V, nominalVolt);
+	prefsHandler->write(EEMC_CONTACTOR_RELAY, mainContactorRelay);
+	prefsHandler->write(EEMC_PRECHARGE_RELAY, prechargeRelay);
 
 	prefsHandler->saveChecksum();
 }
