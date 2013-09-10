@@ -85,6 +85,7 @@ class ICHIPWIFI : public Device {
     USARTClass* serialInterface; //Allows for retargetting which serial port we use
     char incomingBuffer[128]; //storage for one incoming line
     int ibWritePtr;
+	int currReply;
     
     public:
     void setup(); //initialization on start up

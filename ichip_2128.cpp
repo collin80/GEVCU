@@ -34,6 +34,7 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 void ICHIPWIFI::setup() {
   
   ibWritePtr = 0;
+  currReply = 0;
   serialInterface->begin(9600);
   
   //for now force a specific ad-hoc network to be set up
