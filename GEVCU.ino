@@ -33,6 +33,22 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
  */
 
+
+
+
+/*
+Changelog (Update with very brief message along with build # - Dates wouldn't hurt either
+Sept 9 2013:
+1000 - First build # enabled build - Comment out hard coded line for # of throttles
+1001 - Proper fix for issue corrected by build 1000
+1002 - Show build # on startup and in menu
+1003 - Implementation of RC precharging mode for motor controller
+*/
+
+
+
+
+
 /*
 Random comments on things that should be coded up soon:
 1. Wifi code needs to be finished. It should read in settings from EEPROM, etc. And start up a webserver. Then
@@ -55,9 +71,11 @@ the code should scan for changed parameters occassionally and set them in eeprom
 	For instance, power could be controlled to the +12V connection at the DMOC so that it can be power cycled
 	in software. But, that uses up an input and people can just cycle the key (though that resets the GEVCU too)
 7. Support has been added for saving how many throttle pots there are and which throttle type. Make the throttle
-	code respect these parameters and use them. Quite hard coding so much stuff.
+	code respect these parameters and use them. Quit hard coding so much stuff.
 8. Some people (like me, Collin) have a terrible habit of mixing several coding styles. It would be beneficial to
 	continue to harmonize the source code.
+9. It should be possible to limit speed and/or torque in reverse so someone doesn't kill themselves or someone else
+	while gunning it in reverse.
 */
 
 #include "GEVCU.h"
@@ -235,6 +253,8 @@ void setup() {
 
 	SerialUSB.begin(CFG_SERIAL_SPEED);
 	SerialUSB.println(CFG_VERSION);
+	SerialUSB.print("Build number: ");
+	SerialUSB.println(CFG_BUILD_NUM);
         
 	pinMode(BLINK_LED, OUTPUT);
 	digitalWrite(BLINK_LED, LOW);
