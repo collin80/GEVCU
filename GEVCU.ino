@@ -187,10 +187,9 @@ void initializeDevices() {
 	heartbeat->setup();
 #endif
 #ifdef CFG_ENABLE_DEVICE_POT_THROTTLE
-	//The pedal I have has two pots and one should be twice the value of the other normally (within tolerance)
-	//if min is less than max for a throttle then the pot goes low to high as pressed.
-	//if max is less than min for a throttle then the pot goes high to low as pressed.
-	Throttle *accelerator = new PotThrottle(0, 255);//specify the shield ADC ports to use for throttle 255 = not used (valid only for second value)
+	// Specify the shield ADC port(s) to use for throttle
+	// CFG_THROTTLE_NONE = not used (valid only for second value and should not be needed due to calibration/detection)
+	Throttle *accelerator = new PotThrottle(CFG_THROTTLE1_PIN, CFG_THROTTLE2_PIN);
 	Logger::info("add device: PotThrottle (%d)", accelerator);
 	accelerator->setup();
 	deviceManager->addDevice(accelerator);
@@ -202,7 +201,7 @@ void initializeDevices() {
 	deviceManager->addDevice(accelerator);
 #endif
 #ifdef CFG_ENABLE_DEVICE_POT_BRAKE
-	Throttle *brake = new PotBrake(2, 255); //set up the brake input as the third ADC input from the shield.
+	Throttle *brake = new PotBrake(CFG_BRAKE_PIN, CFG_THROTTLE_NONE); //set up the brake input as the third ADC input from the shield.
 	Logger::info("add device: PotBrake (%d)", brake);
 	brake->setup();
 	deviceManager->addDevice(brake);
@@ -306,10 +305,11 @@ void loop() {
 
 	serialConsole->loop();
 
-#ifdef CFG_ENABLE_DEVICE_ICHIP2128_WIFI	
+#ifdef CFG_ENABLE_DEVICE_ICHIP2128_WIFI
+	if ( tempDevice != NULL ) {
 	((ICHIPWIFI*)tempDevice)->loop();
+	}
 #endif
-
 
 	//this should still be here. It checks for a flag set during an interrupt
 	sys_io_adc_poll();

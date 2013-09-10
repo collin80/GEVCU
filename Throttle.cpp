@@ -65,6 +65,7 @@ int Throttle::getLevel()
 
 void Throttle::setNumThrottlePots(uint8_t num) 
 {
+	// Currently only valid values are 1  and 2
 	if (num < 1) num = 1;
 	if (num > 2) num = 2;
 
@@ -78,6 +79,10 @@ uint8_t Throttle::getNumThrottlePots()
 
 void Throttle::setSubtype(uint8_t num)
 {
+	// Currently only valid values are 1  and 2
+	if (num < 1) num = 1;
+	if (num > 2) num = 2;
+
 	throttleSubType = num;
 }
 
@@ -137,7 +142,7 @@ void Throttle::mapThrottle(signed int inVal)
 				return;
 			}
 			level = (signed int) ((signed int) 10 * range * inVal) / (signed int) 1000;
-			level -= -10 * throttleMaxRegen;
+			level -= 10 * throttleMaxRegen;
 		}
 	}
 	//Logger::debug("level: %d", level);
@@ -148,20 +153,6 @@ void Throttle::detectThrottle() {
     throttleDetector = new ThrottleDetector(this);
   }
   throttleDetector->detect();
-}
-
-void Throttle::detectThrottleMin() {
-  if ( throttleDetector == NULL ) {
-    throttleDetector = new ThrottleDetector(this);
-  }
-  throttleDetector->detectMin();
-}
-
-void Throttle::detectThrottleMax() {
-  if ( throttleDetector == NULL ) {
-    throttleDetector = new ThrottleDetector(this);
-  }
-  throttleDetector->detectMax();
 }
 
 void Throttle::setT1Min(uint16_t min) {
