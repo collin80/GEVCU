@@ -43,6 +43,8 @@ Sept 9 2013:
 1001 - Proper fix for issue corrected by build 1000
 1002 - Show build # on startup and in menu
 1003 - Implementation of RC precharging mode for motor controller
+Sept 12 2013:
+1004 - Change some variables in brake to 32 bit
 */
 
 
