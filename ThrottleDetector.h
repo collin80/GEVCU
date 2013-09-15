@@ -32,6 +32,9 @@
 #define THROTTLE_DETECTOR_H_
 
 #include "Throttle.h"
+#include "Logger.h"
+
+class Throttle;
 
 class ThrottleDetector {
 

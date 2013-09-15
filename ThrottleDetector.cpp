@@ -29,8 +29,6 @@
  */
 
 #include "ThrottleDetector.h"
-#include "Logger.h"
-
 
 /*
  * The constructor takes a pointer to a throttle

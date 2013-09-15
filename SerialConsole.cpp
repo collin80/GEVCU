@@ -24,14 +24,7 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
  */
 
-#include "config.h"
-#include "sys_io.h"
 #include "SerialConsole.h"
-#include "Throttle.h"
-#include "DeviceManager.h"
-#include "MotorController.h"
-#include "DmocMotorController.h" //TODO: direct reference to dmoc must be removed
-
 
 SerialConsole::SerialConsole(MemCache* memCache) 
     : memCache(memCache), heartbeat(NULL)
@@ -282,31 +275,31 @@ void SerialConsole::handleConfigCmd()
 	else if (cmdString == String("PREC")) {
 		newValue = atoi((char *)(cmdBuffer + i));
 		Logger::debug("Setting Precharge Capacitance to %i", newValue);
-		DeviceManager::getInstance()->getMotorController()->setT1Min(newValue);
+//		DeviceManager::getInstance()->getMotorController()->setT1Min(newValue);
 		DeviceManager::getInstance()->getMotorController()->saveEEPROM();
 	}
 	else if (cmdString == String("PRER")) {
 		newValue = atoi((char *)(cmdBuffer + i));
 		Logger::debug("Setting Precharge Resistance to %i", newValue);
-		DeviceManager::getInstance()->getMotorController()->setT1Min(newValue);
+//		DeviceManager::getInstance()->getMotorController()->setT1Min(newValue);
 		DeviceManager::getInstance()->getMotorController()->saveEEPROM();
 	}
 	else if (cmdString == String("NOMV")) {
 		newValue = atoi((char *)(cmdBuffer + i));
 		Logger::debug("Setting Nominal Voltage to %i", newValue);
-		DeviceManager::getInstance()->getMotorController()->setT1Min(newValue);
+//		DeviceManager::getInstance()->getMotorController()->setT1Min(newValue);
 		DeviceManager::getInstance()->getMotorController()->saveEEPROM();
 	}
 	else if (cmdString == String("MRELAY")) {
 		newValue = atoi((char *)(cmdBuffer + i));
 		Logger::debug("Setting Main Contactor relay to %i", newValue);
-		DeviceManager::getInstance()->getMotorController()->setT1Min(newValue);
+//		DeviceManager::getInstance()->getMotorController()->setT1Min(newValue);
 		DeviceManager::getInstance()->getMotorController()->saveEEPROM();
 	}
 	else if (cmdString == String("PRELAY")) {
 		newValue = atoi((char *)(cmdBuffer + i));
 		Logger::debug("Setting Precharge Relay to %i", newValue);
-		DeviceManager::getInstance()->getMotorController()->setT1Min(newValue);
+//		DeviceManager::getInstance()->getMotorController()->setT1Min(newValue);
 		DeviceManager::getInstance()->getMotorController()->saveEEPROM();
 	}
 }

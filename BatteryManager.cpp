@@ -27,7 +27,6 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */ 
 
 #include "BatteryManager.h"
-#include "Params.h"
  
 BatteryManager::BatteryManager() : Device() {
 	prefsHandler = new PrefHandler(EE_BMS_START);

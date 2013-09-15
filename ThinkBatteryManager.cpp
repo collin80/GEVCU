@@ -28,7 +28,6 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 #ifdef CFG_ENABLE_DEVICE_BMS_THINK
 #include "ThinkBatteryManager.h"
-#include "Params.h"
 
 ThinkBatteryManager::ThinkBatteryManager() : BatteryManager() {
 }
