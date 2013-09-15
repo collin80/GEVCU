@@ -26,10 +26,7 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 #include "config.h"
 #ifdef CFG_ENABLE_DEVICE_POT_BRAKE
-#include "ThrottleDetector.h"
 #include "PotBrake.h"
-#include "Logger.h"
-#include "Params.h"
 
 //initialize by telling the code which two ADC channels to use (or set channel 2 to 255 to disable)
 PotBrake::PotBrake(uint8_t brake1, uint8_t brake2) :

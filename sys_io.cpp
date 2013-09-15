@@ -31,7 +31,6 @@ by stimmer
 */ 
 
 #include "sys_io.h"
-#include "eeprom_layout.h"
 
 #undef HID_ENABLED
 

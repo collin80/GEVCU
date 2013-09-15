@@ -35,6 +35,7 @@
 #include <Arduino.h>
 #include "config.h"
 #include "Device.h"
+#include "ThrottleDetector.h"
 
 class ThrottleDetector;
 // avoid circular dependency by declaring it here
