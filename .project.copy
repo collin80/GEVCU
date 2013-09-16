@@ -29,7 +29,7 @@
 		<link>
 			<name>Libraries/DueTimer</name>
 			<type>2</type>
-			<locationURI>ArduinoHardwareLibPath/DueTimer</locationURI>
+			<locationURI>ArduinoPivateLibPath/DueTimer</locationURI>
 		</link>
 		<link>
 			<name>Libraries/Ethernet</name>
@@ -44,17 +44,17 @@
 		<link>
 			<name>Libraries/due_can</name>
 			<type>2</type>
-			<locationURI>ArduinoHardwareLibPath/due_can</locationURI>
+			<locationURI>ArduinoPivateLibPath/due_can</locationURI>
 		</link>
 		<link>
 			<name>Libraries/due_rtc</name>
 			<type>2</type>
-			<locationURI>ArduinoHardwareLibPath/due_rtc</locationURI>
+			<locationURI>ArduinoPivateLibPath/due_rtc</locationURI>
 		</link>
 		<link>
 			<name>Libraries/due_wire</name>
 			<type>2</type>
-			<locationURI>ArduinoHardwareLibPath/due_wire</locationURI>
+			<locationURI>ArduinoPivateLibPath/due_wire</locationURI>
 		</link>
 		<link>
 			<name>arduino/core</name>
@@ -70,15 +70,15 @@
 	<variableList>
 		<variable>
 			<name>ArduinoHardwareLibPath</name>
-			<value>file:/Z:/development/arduino/arduino-1.5.2/hardware/arduino/sam/libraries</value>
+			<value>file:/data/development/arduino/arduino-1.5.2_linux_64bit/hardware/arduino/sam/libraries</value>
 		</variable>
 		<variable>
 			<name>ArduinoPinPath</name>
-			<value>file:/Z:/development/arduino/arduino-1.5.2/hardware/arduino/sam/variants</value>
+			<value>file:/data/development/arduino/arduino-1.5.2_linux_64bit/hardware/arduino/sam/variants</value>
 		</variable>
 		<variable>
 			<name>ArduinoPlatformPath</name>
-			<value>file:/Z:/development/arduino/arduino-1.5.2/hardware/arduino/sam</value>
+			<value>file:/data/development/arduino/arduino-1.5.2_linux_64bit/hardware/arduino/sam</value>
 		</variable>
 	</variableList>
 </projectDescription>

@@ -34,7 +34,6 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include "Device.h"
 #include "Throttle.h"
 #include "DeviceManager.h"
-#include "Params.h"
 #include "sys_io.h"
 
 #define MOTORCTL_INPUT_DRIVE_EN    3

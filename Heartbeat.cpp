@@ -27,8 +27,6 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include "config.h"
 #ifdef CFG_ENABLE_DEVICE_HEARTBEAT
 #include "Heartbeat.h"
-#include "sys_io.h"
-#include "DeviceManager.h"
 
 Heartbeat::Heartbeat() {
 	led = false;

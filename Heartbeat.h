@@ -29,6 +29,8 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 #include "config.h"
 #include "TickHandler.h"
+#include "DeviceManager.h"
+#include "sys_io.h"
 
 class Heartbeat: public TickObserver {
 public:
