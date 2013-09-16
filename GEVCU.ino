@@ -45,6 +45,7 @@ Sept 9 2013:
 1003 - Implementation of RC precharging mode for motor controller
 Sept 12 2013:
 1004 - Change some variables in brake to 32 bit
+1005 - bug fix in in ichip routines
 */
 
 

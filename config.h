@@ -35,12 +35,12 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 #include <due_can.h>
 
-#define CFG_BUILD_NUM	1004        //increment this every time a git commit is done. 
-#define CFG_VERSION "GEVCU alpha 2013-09-15"
+#define CFG_BUILD_NUM	1005        //increment this every time a git commit is done. 
+#define CFG_VERSION "GEVCU alpha 2013-09-16"
 
 
 /*
- * SERAIL CONFIGURATION
+ * SERIAL CONFIGURATION
  */
 #define CFG_SERIAL_SPEED 115200
 #define SerialUSB Serial // re-route serial-usb output to programming port ;) comment if output should go to std usb
@@ -119,7 +119,7 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 #define MaxTorqueValue		2000 //in tenths of a Nm
 #define	 MaxRPMValue		6000 //DMOC will ignore this but we can use it ourselves for limiting
-#define PrechargeC			11000 //approximate C of DMOC input
+#define PrechargeC			11000 //approximate C of DMOC input - in uF
 #define PrechargeR			500 //a stupidly high resistance just to make sure we precharge long enough
 #define NominalVolt			3300 //a reasonable figure for a lithium cell pack driving the DMOC (in tenths of a volt)
 #define PrechargeRelay		3 //third output
@@ -158,7 +158,7 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 
 /*
- * DEBUGING
+ * DEBUGGING
  */
 //if this is defined then the ADC code will use raw readings from the actual ADC port of that number.
 //In other words, no DMA, no differential input, just the ADC. If you ask for ADC0 you will get a raw
