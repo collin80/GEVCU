@@ -78,6 +78,16 @@ the code should scan for changed parameters occassionally and set them in eeprom
 	continue to harmonize the source code.
 9. It should be possible to limit speed and/or torque in reverse so someone doesn't kill themselves or someone else
 	while gunning it in reverse.
+10. Instead of starting brake at the max throttle regen start it at a new parameter for min brake regen. Then,
+	compare brake regen and throttle position. If throttle is commanding harder regen then brake then keep throttle
+	regen. Otherwise use brake regen.        
+11. Allow the vehicle to go as soon as the key is turned to on. That is, turn the enable switch to a disable switch
+	and go immediately. This might not be the safest but hopefully people know what they're doing. We could support
+	a gear selection system eventually. (Maybe make this default enabled code optional?)
+12. DeviceManager currently creates null devices to satisfy requests for devices that don't exist. Instead of this
+	leave the device unallocated but log a message to the console to show that something like this is happening. This
+	aids in debugging. The calling code should deal with the case where a device is a null pointer.
+
 */
 
 #include "GEVCU.h"
