@@ -34,6 +34,7 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 #include <Arduino.h>
 #include "config.h"
+#include "Logger.h"
 
 //structure to use for storing and retrieving faults.
 //Stores the info a fault record will contain.

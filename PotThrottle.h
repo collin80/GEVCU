@@ -32,6 +32,8 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include "Throttle.h"
 #include "sys_io.h"
 #include "TickHandler.h"
+#include "ThrottleDetector.h"
+#include "Logger.h"
 
 #define THROTTLE_INPUT_BRAKELIGHT  2
 

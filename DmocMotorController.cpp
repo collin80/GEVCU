@@ -44,7 +44,6 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include "config.h"
 #ifdef CFG_ENABLE_DEVICE_MOTORCTRL_DMOC_645
 #include "DmocMotorController.h"
-#include "Params.h"
 
 extern bool runThrottle; //TODO: remove use of global variables !
 
