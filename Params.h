@@ -24,10 +24,14 @@ here and then get to fixing it so that nothing is hard coded anymore.
 #define BrakeMaxValue			500		//Value ADC reads when brake is pushed all of the way down
 #define BrakeMaxRegenValue		40		//percent of full power to use for brake regen (max)
 	
-#define	MaxTorqueValue	2000; //in tenths of a Nm
-#define	MaxRPMValue		6000; //DMOC will ignore this but we can use it ourselves for limiting
-#define PrechargeC		11000; //approximate C of DMOC input
-#define PrechargeR		500; //a stupidly high resistance just to make sure we precharge long enough
+#define	MaxTorqueValue		2000 //in tenths of a Nm
+#define	MaxRPMValue			6000 //DMOC will ignore this but we can use it ourselves for limiting
+#define PrechargeC			11000 //approximate C of DMOC input
+#define PrechargeR			500 //a stupidly high resistance just to make sure we precharge long enough
+#define NominalVolt			3300 //a reasonable figure for a lithium cell pack driving the DMOC (in tenths of a volt)
+#define PrechargeRelay		3 //third output
+#define MainContactorRelay	4 //fourth output
+
 
 #define MaxRegenWatts	20000 //in actual watts, there is no scale here
 #define MaxAccelWatts	150000

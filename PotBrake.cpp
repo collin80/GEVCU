@@ -137,7 +137,7 @@ int PotBrake::calcBrake(int clampedVal, int minVal, int maxVal) {
 void PotBrake::doBrake() {
 	signed int range;
 	signed int calcBrake1, calcBrake2, clampedVal, tempLow, temp;
-	static uint16_t brakeAvg = 0, brakeFeedback = 0; //used to create proportional control
+	static int brakeAvg = 0, brakeFeedback = 0; //used to create proportional control
 
 	clampedVal = brake1Val;
 

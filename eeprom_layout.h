@@ -81,6 +81,7 @@ the end of the stardard data. The below numbers are offsets from the device's ee
 #define EEMC_MAX_TEMP_INV		38 //2 bytes - signed int - Highest value on temp gauge (99% PWM output)
 #define EEMC_PRECHARGE_C		40 //2 bytes - capacitance of controller capacitor bank in micro farads (uf) - set to zero to disable RC precharge
 #define EEMC_PRECHARGE_R		42 //2 bytes - Resistance of precharge resistor in tenths of an ohm
+#define EEMC_NOMINAL_V			44 //2 bytes - nominal system voltage to expect (in tenths of a volt)
 
 //throttle data
 #define EETH_MIN_ONE			20 //2 bytes - ADC value of minimum value for first channel

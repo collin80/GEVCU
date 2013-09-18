@@ -35,9 +35,9 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 #include <due_can.h>
 
-#define CFG_BUILD_NUM	1003        //increment this every time a git commit is done. 
+#define CFG_BUILD_NUM	1004        //increment this every time a git commit is done. 
 
-#define CFG_VERSION "GEVCU alpha 2013-09-09"
+#define CFG_VERSION "GEVCU alpha 12 Sept 2013"
 #define CFG_SERIAL_SPEED 115200
 
 
@@ -56,7 +56,7 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #define CFG_ENABLE_DEVICE_HEARTBEAT
 #define CFG_ENABLE_DEVICE_POT_THROTTLE
 //#define CFG_ENABLE_DEVICE_CAN_THROTTLE
-//#define CFG_ENABLE_DEVICE_POT_BRAKE
+#define CFG_ENABLE_DEVICE_POT_BRAKE
 #define CFG_ENABLE_DEVICE_MOTORCTRL_DMOC_645
 //#define CFG_ENABLE_DEVICE_MOTORCTRL_BRUSA_DMC5
 //#define CFG_ENABLE_DEVICE_ICHIP2128_WIFI
@@ -91,6 +91,10 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #define CFG_THROTTLE1_PIN	0
 #define CFG_THROTTLE2_PIN	1
 #define CFG_BRAKE_PIN		2
+
+#define NUM_ANALOG	4
+#define NUM_DIGITAL	4
+#define NUM_OUTPUT	4
 
 //if this is defined then the ADC code will use raw readings from the actual ADC port of that number.
 //In other words, no DMA, no differential input, just the ADC. If you ask for ADC0 you will get a raw

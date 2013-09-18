@@ -34,6 +34,8 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include "Device.h"
 #include "Throttle.h"
 #include "DeviceManager.h"
+#include "Params.h"
+#include "sys_io.h"
 
 #define MOTORCTL_INPUT_DRIVE_EN    3
 #define MOTORCTL_INPUT_FORWARD     4
@@ -65,6 +67,11 @@ class MotorController : public Device {
 	uint16_t getMaxTorque();
 	void setMaxRpm(uint16_t maxRPM);
 	void setMaxTorque(uint16_t maxTorque);
+	void setPrechargeC(uint16_t c);
+	void setPrechargeR(uint16_t r);
+	void setNominalV(uint16_t v);
+	void setPrechargeRelay(uint8_t relay);
+	void setMainRelay(uint8_t relay);
 	signed int getMotorTemp();
 	uint16_t getRequestedRpm();
 	uint16_t getRequestedTorque();
@@ -86,7 +93,11 @@ class MotorController : public Device {
 	uint16_t prechargeC; //capacitance of motor controller input in uf
 	uint16_t prechargeR; //resistance of precharge resistor in tenths of ohm
 	uint16_t prechargeTime; //time in ms that precharge should last
+	uint16_t prechargeSoFar; //how long we have precharged so far
 	uint16_t nominalVolt; //nominal pack voltage in tenths of a volt
+	uint8_t prechargeRelay; //# of output to use for this relay or 255 if there is no relay
+	uint8_t mainContactorRelay; //# of output to use for this relay or 255 if there is no relay
+	bool donePrecharge; //already completed the precharge cycle?
 };
 
 #endif
