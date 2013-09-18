@@ -30,6 +30,12 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include "config.h"
 #include "Heartbeat.h"
 #include "MemCache.h"
+#include "config.h"
+#include "sys_io.h"
+#include "Throttle.h"
+#include "DeviceManager.h"
+#include "MotorController.h"
+#include "DmocMotorController.h" //TODO: direct reference to dmoc must be removed
 
 class SerialConsole {
 public:
