@@ -69,7 +69,9 @@ void DeviceManager::addDevice(Device *device) {
 		if (i != -1) {
 			devices[i] = device;
 		} else {
+#if DEBUG_DEVICEMGR > 0
 			Logger::error("unable to register device, max number of devices reached.");
+#endif
 		}
 	}
 	switch (device->getType()) {
@@ -159,7 +161,10 @@ Throttle *DeviceManager::getAccelerator() {
 	//so down range code doesn't puke
 	if (!throttle) 
 	{ 
-		throttle = new Throttle();
+#if DEBUG_DEVICEMGR > 1
+		Logger::debug("getAccelerator() called but there is no registered accelerator!");
+#endif
+		return 0; //NULL!
 	}
 	return throttle;
 }
@@ -167,7 +172,10 @@ Throttle *DeviceManager::getAccelerator() {
 Throttle *DeviceManager::getBrake() {
 	if (!brake) 
 	{
-		brake = new Throttle();
+#if DEBUG_DEVICEMGR > 1
+		Logger::debug("getBrake() called but there is no registered brake!");
+#endif
+		return 0; //NULL!		
 	}
 	return brake;
 }
@@ -175,7 +183,10 @@ Throttle *DeviceManager::getBrake() {
 MotorController *DeviceManager::getMotorController() {
 	if (!motorController) 
 	{
-		motorController = new MotorController();
+#if DEBUG_DEVICEMGR > 1
+		Logger::debug("getMotorController() called but there is no registered motor controller!");
+#endif
+		return 0; //NULL!
 	}
 	return motorController;
 }
@@ -194,7 +205,10 @@ Device *DeviceManager::getDeviceByID(Device::DeviceId id)
 			if (devices[i]->getId() == id) return devices[i];
 		}
 	}
-	return 0;
+#if DEBUG_DEVICEMGR > 1
+	Logger::debug("getDeviceByID - No device with ID: %u", (int)id);
+#endif
+	return 0; //NULL!
 }
 
 /*
@@ -210,7 +224,10 @@ Device *DeviceManager::getDeviceByType(Device::DeviceType type)
 			if (devices[i]->getType() == type) return devices[i];
 		}
 	}
-	return 0;
+#if DEBUG_DEVICEMGR > 1
+	Logger::debug("getDeviceByType - No devices of type: %u", (int)type);
+#endif
+	return 0; //NULL!
 }
 
 /*

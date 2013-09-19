@@ -35,8 +35,8 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 #include <due_can.h>
 
-#define CFG_BUILD_NUM	1005        //increment this every time a git commit is done. 
-#define CFG_VERSION "GEVCU alpha 2013-09-16"
+#define CFG_BUILD_NUM	1006        //increment this every time a git commit is done. 
+#define CFG_VERSION "GEVCU alpha 2013-09-19"
 
 
 /*
@@ -164,5 +164,21 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 //In other words, no DMA, no differential input, just the ADC. If you ask for ADC0 you will get a raw
 //reading from ADC0.
 //#define RAWADC
+
+
+/*
+ * Per module debugging levels.
+ *
+ * 0 = No debugging output
+ * 1 = Only errors reported
+ * 2 = Warnings too
+ * 3 = Generate quite a bit of debugging output
+ * 4 = Start the avalanche
+ * 
+ * Devices do not need to implement anything for higher levels. That is,
+ * you might not get any more info at level 4 than you do at 1.
+ */
+
+#define DEBUG_DEVICEMGR		1
 
 #endif /* CONFIG_H_ */

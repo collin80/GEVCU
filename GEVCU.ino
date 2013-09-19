@@ -46,6 +46,7 @@ Sept 9 2013:
 Sept 12 2013:
 1004 - Change some variables in brake to 32 bit
 1005 - bug fix in in ichip routines
+1006 - Added ability to configure debugging output - switched DeviceManager to not create null objects
 */
 
 
@@ -85,10 +86,6 @@ the code should scan for changed parameters occassionally and set them in eeprom
 11. Allow the vehicle to go as soon as the key is turned to on. That is, turn the enable switch to a disable switch
 	and go immediately. This might not be the safest but hopefully people know what they're doing. We could support
 	a gear selection system eventually. (Maybe make this default enabled code optional?)
-12. DeviceManager currently creates null devices to satisfy requests for devices that don't exist. Instead of this
-	leave the device unallocated but log a message to the console to show that something like this is happening. This
-	aids in debugging. The calling code should deal with the case where a device is a null pointer.
-
 */
 
 #include "GEVCU.h"
