@@ -48,6 +48,7 @@ Sept 12 2013:
 1005 - bug fix in in ichip routines
 1006 - Added ability to configure debugging output - switched DeviceManager to not create null objects
 1007 - Allow the DMOC to start up ready to go. It now must be explicitly disabled via the second digital input
+1008 - Implement (initial support) reverse limit, switch brake to using indep. min value, get existing values settable with serial console
 */
 
 
@@ -84,10 +85,7 @@ the code should scan for changed parameters occassionally and set them in eeprom
 10. Instead of starting brake at the max throttle regen start it at a new parameter for min brake regen. Then,
 	compare brake regen and throttle position. If throttle is commanding harder regen then brake then keep throttle
 	regen. Otherwise use brake regen.        
-11. Allow the vehicle to go as soon as the key is turned to on. That is, turn the enable switch to a disable switch
-	and go immediately. This might not be the safest but hopefully people know what they're doing. We could support
-	a gear selection system eventually. (Maybe make this default enabled code optional?)
-12. The DMOC code duplicates a bunch of functionality that the base class also used to implement. We've got to figure
+11. The DMOC code duplicates a bunch of functionality that the base class also used to implement. We've got to figure
 	out where the overlaps are and fix it up so that as much as possible is done generically at the base MotorController
 	class and not directly in the Dmoc class.
 */

@@ -83,7 +83,7 @@ void MotorController::handleTick() {
 	Throttle *brake = DeviceManager::getInstance()->getBrake();
 	if (accelerator)
 		requestedThrottle = accelerator->getLevel();
-	if (brake && brake->getLevel() < -10) //if the brake has been pressed it overrides the accelerator.
+	if (brake && brake->getLevel() < -10 && brake->getLevel() < accelerator->getLevel()) //if the brake has been pressed it overrides the accelerator.
 		requestedThrottle = brake->getLevel();
 
 	if (prechargeTime == 0) donePrecharge = true;
@@ -125,6 +125,7 @@ void MotorController::setup() {
 		prefsHandler->read(EEMC_NOMINAL_V, &nominalVolt);
 		prefsHandler->read(EEMC_PRECHARGE_RELAY, &prechargeRelay);
 		prefsHandler->read(EEMC_CONTACTOR_RELAY, &mainContactorRelay);
+		prefsHandler->read(EEMC_REVERSE_LIMIT, &reversePercent);
 	}
 	else { //checksum invalid. Reinitialize values and store to EEPROM
 		maxRPM = MaxRPMValue;
@@ -134,6 +135,7 @@ void MotorController::setup() {
 		nominalVolt = NominalVolt;
 		prechargeRelay = PrechargeRelay;
 		mainContactorRelay = MainContactorRelay;
+		reversePercent = ReversePercent;
 		saveEEPROM();
 	}
 
@@ -243,6 +245,11 @@ void MotorController::setMainRelay(uint8_t relay)
 	mainContactorRelay = relay;
 }
 
+void MotorController::setReversePercent(uint8_t perc) 
+{
+	reversePercent = perc;
+}
+
 void MotorController::saveEEPROM()
 {
 	prefsHandler->write(EEMC_MAX_RPM, maxRPM);
@@ -252,7 +259,7 @@ void MotorController::saveEEPROM()
 	prefsHandler->write(EEMC_NOMINAL_V, nominalVolt);
 	prefsHandler->write(EEMC_CONTACTOR_RELAY, mainContactorRelay);
 	prefsHandler->write(EEMC_PRECHARGE_RELAY, prechargeRelay);
-
+	prefsHandler->write(EEMC_REVERSE_LIMIT, reversePercent);
 	prefsHandler->saveChecksum();
 }
 

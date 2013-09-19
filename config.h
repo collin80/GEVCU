@@ -35,7 +35,7 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 #include <due_can.h>
 
-#define CFG_BUILD_NUM	1007        //increment this every time a git commit is done. 
+#define CFG_BUILD_NUM	1008        //increment this every time a git commit is done. 
 #define CFG_VERSION "GEVCU alpha 2013-09-19"
 
 
@@ -115,7 +115,9 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #define Throttle2MaxValue		1900	//Value ADC reads when pedal fully depressed
 #define BrakeMinValue			100		//Value ADC reads when brake is not pressed
 #define BrakeMaxValue			500		//Value ADC reads when brake is pushed all of the way down
+#define BrakeMinRegenValue		20		//percent of full power to use for brake regen (min)
 #define BrakeMaxRegenValue		40		//percent of full power to use for brake regen (max)
+
 
 #define MaxTorqueValue		2000 //in tenths of a Nm
 #define	 MaxRPMValue		6000 //DMOC will ignore this but we can use it ourselves for limiting
@@ -124,6 +126,7 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #define NominalVolt			3300 //a reasonable figure for a lithium cell pack driving the DMOC (in tenths of a volt)
 #define PrechargeRelay		3 //third output
 #define MainContactorRelay	4 //fourth output
+#define ReversePercent		50
 
 #define MaxRegenWatts	20000 //in actual watts, there is no scale here
 #define MaxAccelWatts	150000

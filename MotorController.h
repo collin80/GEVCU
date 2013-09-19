@@ -71,6 +71,7 @@ class MotorController : public Device {
 	void setNominalV(uint16_t v);
 	void setPrechargeRelay(uint8_t relay);
 	void setMainRelay(uint8_t relay);
+	void setReversePercent(uint8_t perc);
 	signed int getMotorTemp();
 	uint16_t getRequestedRpm();
 	uint16_t getRequestedTorque();
@@ -96,6 +97,7 @@ class MotorController : public Device {
 	uint16_t nominalVolt; //nominal pack voltage in tenths of a volt
 	uint8_t prechargeRelay; //# of output to use for this relay or 255 if there is no relay
 	uint8_t mainContactorRelay; //# of output to use for this relay or 255 if there is no relay
+	uint8_t reversePercent;
 	bool donePrecharge; //already completed the precharge cycle?
 };
 
