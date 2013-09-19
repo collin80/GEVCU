@@ -35,7 +35,7 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 #include <due_can.h>
 
-#define CFG_BUILD_NUM	1006        //increment this every time a git commit is done. 
+#define CFG_BUILD_NUM	1007        //increment this every time a git commit is done. 
 #define CFG_VERSION "GEVCU alpha 2013-09-19"
 
 
@@ -69,14 +69,14 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  * try to use the same numbers for several devices because then they will share
  * the same timer (out of a limited number of 9 timers).
  */
-#define CFG_TICK_INTERVAL_HEARTBEAT 2000000
-#define CFG_TICK_INTERVAL_POT_THROTTLE 40000
+#define CFG_TICK_INTERVAL_HEARTBEAT					2000000
+#define CFG_TICK_INTERVAL_POT_THROTTLE				40000
 #define CFG_TICK_INTERVAL_CAN_THROTTLE				40000
-#define CFG_TICK_INTERVAL_MOTOR_CONTROLLER_DMOC 40000
-#define CFG_TICK_INTERVAL_MOTOR_CONTROLLER_BRUSA 20000
-#define CFG_TICK_INTERVAL_MEM_CACHE 40000
-#define CFG_TICK_INTERVAL_BMS_THINK	500000
-#define CFG_TICK_INTERVAL_WIFI		2000000
+#define CFG_TICK_INTERVAL_MOTOR_CONTROLLER_DMOC		40000
+#define CFG_TICK_INTERVAL_MOTOR_CONTROLLER_BRUSA	20000
+#define CFG_TICK_INTERVAL_MEM_CACHE					40000
+#define CFG_TICK_INTERVAL_BMS_THINK					500000
+#define CFG_TICK_INTERVAL_WIFI						2000000
 
 
 /*

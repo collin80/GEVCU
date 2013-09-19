@@ -145,14 +145,14 @@ void DmocMotorController::handleTick() {
 
 	//TODO: this check somehow duplicates functionality in MotorController !
 	//if the first digital input is high we'll enable drive so we can go!
-	if (getDigital(0)) {
+	//if (getDigital(0)) {
 		setGear(DRIVE);
 		//runThrottle = true;
 		setPowerMode(MODE_TORQUE);
-	}
+	//}
 
 	//but, if the second input is high we cancel the whole thing and disable the drive.
-	if (getDigital(1) || !getDigital(0)) {
+	if (getDigital(1) /*|| !getDigital(0)*/) {
 		setOpState(DISABLED);
 		//runThrottle = false;
 	}

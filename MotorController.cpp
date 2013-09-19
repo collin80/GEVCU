@@ -57,6 +57,10 @@ Device::DeviceType MotorController::getType() {
 
 void MotorController::handleTick() {
 	uint8_t forwardSwitch, reverseSwitch;
+
+	//I'm pretty sure this whole block of code is worthless.
+	//The inputs that this code uses aren't even actual, valid inputs to the GEVCU box.
+	/*
 	if (digitalRead(MOTORCTL_INPUT_DRIVE_EN) == LOW)
 		running = true;
 	else
@@ -70,12 +74,16 @@ void MotorController::handleTick() {
 		gearSwitch = GS_FORWARD;
 	if (forwardSwitch == HIGH && reverseSwitch == LOW)
 		gearSwitch = GS_REVERSE;
+	*/
+
+	running = true;
+	gearSwitch = GS_FORWARD;
 
 	Throttle *accelerator = DeviceManager::getInstance()->getAccelerator();
 	Throttle *brake = DeviceManager::getInstance()->getBrake();
 	if (accelerator)
 		requestedThrottle = accelerator->getLevel();
-	if (brake && brake->getLevel() != 0) //if the brake has been pressed it overrides the accelerator.
+	if (brake && brake->getLevel() < -10) //if the brake has been pressed it overrides the accelerator.
 		requestedThrottle = brake->getLevel();
 
 	if (prechargeTime == 0) donePrecharge = true;
