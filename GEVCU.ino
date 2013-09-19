@@ -46,13 +46,11 @@ Sept 9 2013:
 Sept 12 2013:
 1004 - Change some variables in brake to 32 bit
 1005 - bug fix in in ichip routines
+Sept 19 2013:
 1006 - Added ability to configure debugging output - switched DeviceManager to not create null objects
 1007 - Allow the DMOC to start up ready to go. It now must be explicitly disabled via the second digital input
 1008 - Implement (initial support) reverse limit, switch brake to using indep. min value, get existing values settable with serial console
 */
-
-
-
 
 
 /*

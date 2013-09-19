@@ -82,7 +82,7 @@ the end of the stardard data. The below numbers are offsets from the device's ee
 #define EEMC_PRECHARGE_C		40 //2 bytes - capacitance of controller capacitor bank in micro farads (uf) - set to zero to disable RC precharge
 #define EEMC_PRECHARGE_R		42 //2 bytes - Resistance of precharge resistor in tenths of an ohm
 #define EEMC_NOMINAL_V			44 //2 bytes - nominal system voltage to expect (in tenths of a volt)
-#define EEMC_REVERSE_LIMIT		46 //2 bytes - a percentage (in tenths of a percent) to knock the requested torque down by while in reverse.
+#define EEMC_REVERSE_LIMIT		46 //2 bytes - a percentage to knock the requested torque down by while in reverse.
 
 //throttle data
 #define EETH_MIN_ONE			20 //2 bytes - ADC value of minimum value for first channel
