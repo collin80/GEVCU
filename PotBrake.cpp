@@ -54,8 +54,9 @@ void PotBrake::setup() {
 		prefsHandler->read(EETH_BRAKE_MAX, &brakeMax);
 		prefsHandler->read(EETH_MAX_ACCEL_REGEN, &throttleMaxRegen);
 		prefsHandler->read(EETH_MAX_BRAKE_REGEN, &brakeMaxRegen);
+		prefsHandler->read(EETH_MIN_BRAKE_REGEN, &brakeMinRegen);
 		Logger::debug("BRAKE T1 MIN: %i MAX: %i", brakeMin, brakeMax);
-		Logger::debug("MaxRegen: %i", brakeMaxRegen);
+		Logger::debug("Min: %i MaxRegen: %i", brakeMinRegen, brakeMaxRegen);
 	 }
 	 else { //checksum invalid. Reinitialize values and store to EEPROM
 	 
