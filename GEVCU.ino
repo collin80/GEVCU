@@ -50,6 +50,7 @@ Sept 19 2013:
 1006 - Added ability to configure debugging output - switched DeviceManager to not create null objects
 1007 - Allow the DMOC to start up ready to go. It now must be explicitly disabled via the second digital input
 1008 - Implement (initial support) reverse limit, switch brake to using indep. min value, get existing values settable with serial console
+1009 - Implemented message passing and hooked up the rest of the code to use it.
 */
 
 
@@ -58,32 +59,22 @@ Random comments on things that should be coded up soon:
 1. Wifi code needs to be finished. It should read in settings from EEPROM, etc. And start up a webserver. Then
 the code should scan for changed parameters occassionally and set them in eeprom
 2. Serial console needs to be able to set the wifi stuff
-3. A new module needs to be coded that implements precharging. There are two basic types of precharge:
-	- If a BMS exists we can grab the pack voltage from there. Otherwise use a set nominal voltage
-	- If a motor controller reports voltage then ask it what it sees as we're precharging to see where we are
-	- Otherwise wait for 3-5 RC (resistance * capacitance) time constant. Note that the DMOC has about 11,000uf
-		capacitance so default to that for C. We have no idea what the user will use for R.
-	- Set whether there is a precharge relay and/or main contactor relay and control them.
-	- On fault open both if they exist.
-4. So, obviously the serial console needs to allow setting R,C,how many RC to wait, whether to ask BMS, motor ctrl
-	as well as precharge and main contactor details. 
-5. It wouldn't be a bad idea to finish the code for message passing. There are certain messages that all devices
+3. Most of the support code for precharge based on RC is done. But, it still must be tested. Also, it should
+	check to see if the motor controller reports voltage and make sure the voltage is reported at least up
+	to the set nominal voltage before closing the main contactor. If it takes too long then fault and open
+	everything. Also, open contactors in case of a serious fault (but not for just any fault. Opening contactors under load can be nasty!)
+4. It wouldn't be a bad idea to finish the code for message passing. There are certain messages that all devices
 	should support. For one, setup could be done automatically by sending each device a system starting up message.
 	Also, in case of fault there should be a way to send a universal "system faulted" message so that each device
 	can render its hardware safe. I'm sure there are other messages that should be implemented. Maybe disable/enable a device.
-6. It is a possibility that there should be support for actually controlling the power to some of the devices.
+5. It is a possibility that there should be support for actually controlling the power to some of the devices.
 	For instance, power could be controlled to the +12V connection at the DMOC so that it can be power cycled
 	in software. But, that uses up an input and people can just cycle the key (though that resets the GEVCU too)
-7. Support has been added for saving how many throttle pots there are and which throttle type. Make the throttle
-	code respect these parameters and use them. Quit hard coding so much stuff.
-8. Some people (like me, Collin) have a terrible habit of mixing several coding styles. It would be beneficial to
-	continue to harmonize the source code.
-9. It should be possible to limit speed and/or torque in reverse so someone doesn't kill themselves or someone else
-	while gunning it in reverse.
-10. Instead of starting brake at the max throttle regen start it at a new parameter for min brake regen. Then,
-	compare brake regen and throttle position. If throttle is commanding harder regen then brake then keep throttle
-	regen. Otherwise use brake regen.        
-11. The DMOC code duplicates a bunch of functionality that the base class also used to implement. We've got to figure
+6. Some people (like me, Collin) have a terrible habit of mixing several coding styles. It would be beneficial to
+	continue to harmonize the source code - Perhaps use a tool to do this.
+7. It should be possible to limit speed and/or torque in reverse so someone doesn't kill themselves or someone else
+	while gunning it in reverse - The configuration variable is there and settable now. Just need to integrate it.
+8. The DMOC code duplicates a bunch of functionality that the base class also used to implement. We've got to figure
 	out where the overlaps are and fix it up so that as much as possible is done generically at the base MotorController
 	class and not directly in the Dmoc class.
 */
@@ -219,31 +210,31 @@ void initializeDevices() {
 	// CFG_THROTTLE_NONE = not used (valid only for second value and should not be needed due to calibration/detection)
 	Throttle *accelerator = new PotThrottle(CFG_THROTTLE1_PIN, CFG_THROTTLE2_PIN);
 	Logger::info("add device: PotThrottle (%d)", accelerator);
-	accelerator->setup();
+	//accelerator->setup();
 	deviceManager->addDevice(accelerator);
 #endif
 #ifdef CFG_ENABLE_DEVICE_CAN_THROTTLE
 	Throttle *accelerator = new CanThrottle();
 	Logger::info("add device: CanThrottle (%d)", accelerator);
-	accelerator->setup();
+	//accelerator->setup();
 	deviceManager->addDevice(accelerator);
 #endif
 #ifdef CFG_ENABLE_DEVICE_POT_BRAKE
 	Throttle *brake = new PotBrake(CFG_BRAKE_PIN, CFG_THROTTLE_NONE); //set up the brake input as the third ADC input from the shield.
 	Logger::info("add device: PotBrake (%d)", brake);
-	brake->setup();
+	//brake->setup();
 	deviceManager->addDevice(brake);
 #endif
 #ifdef CFG_ENABLE_DEVICE_CAN_THROTTLE_BRAKE
 	Logger::info("add device: CanThrottle brake");
 	Throtle *brake = new CanThrottle();
-	brake->setup();
+	//brake->setup();
 	deviceManager->addDevice(brake);
 #endif
 #ifdef CFG_ENABLE_DEVICE_MOTORCTRL_DMOC_645
 	MotorController *motorController = new DmocMotorController(); //instantiate a DMOC645 device controller as our motor controller
 	Logger::info("add device: DMOC645 (%d)", motorController);
-	motorController->setup();
+	//motorController->setup();
 	deviceManager->addDevice(motorController);
 #endif
 #ifdef CFG_ENABLE_DEVICE_MOTORCTRL_BRUSA_DMC5
@@ -252,9 +243,18 @@ void initializeDevices() {
 #ifdef CFG_ENABLE_DEVICE_ICHIP2128_WIFI
 	Logger::info("add device: iChip 2128 WiFi");
 	ICHIPWIFI *iChip = new ICHIPWIFI();
-	iChip->setup();
+	//iChip->setup();
 	deviceManager->addDevice(iChip);
 #endif
+
+	/*
+	 *	We defer setting up the devices until here. This allows all objects to be instantiated
+	 *	before any of them set up. That in turn allows the devices to inspect what else is
+	 *	out there as they initialize. For instance, a motor controller could see if a BMS
+	 *	exists and supports a function that the motor controller wants to access.
+	 */
+	deviceManager->sendMessage(Device::DEVICE_ANY, Device::INVALID, MSG_STARTUP, NULL);
+
 }
 
 void setup() {
@@ -307,8 +307,8 @@ void setup() {
 
 	initializeDevices();
 
-        serialConsole = new SerialConsole(memCache, heartbeat);
-        Logger::info("Serial console Ready");
+    serialConsole = new SerialConsole(memCache, heartbeat);
+    Logger::info("Serial console Ready");
         
 	Logger::info("System Ready");
 	serialConsole->printMenu();

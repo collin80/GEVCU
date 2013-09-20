@@ -133,7 +133,23 @@ void DeviceManager::removeDevice(Device *device) {
  intercommunication.
  */
 void DeviceManager::sendMessage(Device::DeviceType devType, Device::DeviceId devId, uint32_t msgType, void* message)
+{
+	for (int i = 0; i < CFG_DEV_MGR_MAX_DEVICES; i++)
+	{
+		if (devices[i]) //does this object even exist?
 		{
+			if (devType == Device::DEVICE_ANY || devType == devices[i]->getType()) 
+			{
+				if (devId == Device::INVALID || devId == devices[i]->getId())
+				{
+#if DEBUG_DEVICEMGR > 2 //only if verbose logging is on
+					Logger::debug("Sending msg to device with ID %u", devices[i]->getId());
+#endif
+					devices[i]->handleMessage(msgType, message);
+				}
+			}
+		}
+	}
 }
 
 uint8_t DeviceManager::getNumThrottles() {

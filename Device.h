@@ -31,6 +31,7 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include "config.h"
 #include "eeprom_layout.h"
 #include "PrefHandler.h"
+#include "Sys_Messages.h"
 
 class Device : public TickObserver {
 public:
