@@ -62,7 +62,7 @@ void BrusaMotorController::setup() {
 	CanHandler::getInstanceEV()->attach(this, CAN_MASKED_ID_1, CAN_MASK_1, false);
 	CanHandler::getInstanceEV()->attach(this, CAN_MASKED_ID_2, CAN_MASK_2, false);
 
-	TickHandler::getInstance()->attach(this, CFG_TICK_INTERVAL_MOTOR_CONTROLLER);
+	TickHandler::getInstance()->attach(this, CFG_TICK_INTERVAL_MOTOR_CONTROLLER_BRUSA);
 }
 
 void BrusaMotorController::handleTick() {
@@ -74,8 +74,8 @@ void BrusaMotorController::handleTick() {
 void BrusaMotorController::handleCanFrame(RX_CAN_FRAME* frame) {
 
 	//TODO: remove debug log
-	Logger::debug("BrusaMotorController CAN: dlc=%X fid=%X id=%X ide=%X rtr=%X data=%X,%X,%X,%X,%X,%X,%X,%X",
-			frame->dlc, frame->fid, frame->id, frame->ide, frame->rtr,
+	Logger::debug("BrusaMotorController CAN: id=%X dlc=%X fid=%X ide=%X rtr=%X data=%X,%X,%X,%X,%X,%X,%X,%X",
+			frame->id, frame->dlc, frame->fid, frame->ide, frame->rtr,
 			frame->data[0], frame->data[1], frame->data[2], frame->data[3],
 			frame->data[4], frame->data[5], frame->data[6], frame->data[7]);
 
@@ -86,7 +86,7 @@ void BrusaMotorController::handleCanFrame(RX_CAN_FRAME* frame) {
 	uint64_t value1 = (frame->data[7]<<0) | (frame->data[6]<<8) | (frame->data[5]<<16) | (frame->data[4]<<24) | (frame->data[3]<<32) | (frame->data[2]<<40) | (frame->data[1]<<48) | (frame->data[0]<<56);
 	uint64_t value2 = (frame->data[0]<<0) | (frame->data[1]<<8) | (frame->data[2]<<16) | (frame->data[3]<<24) | (frame->data[4]<<32) | (frame->data[5]<<40) | (frame->data[6]<<48) | (frame->data[7]<<56);
 
-	Logger::debug("value1: %B %b, value2: %b %b", value1 >> 32, value1 & 0xFFFFFFFF, value2 >> 32, value2 & 0xFFFFFFFF);
+	Logger::debug("value1: %B %B, value2: %B %B", value1 >> 32, value1 & 0xFFFFFFFF, value2 >> 32, value2 & 0xFFFFFFFF);
 
 	switch (frame->id) {
 	case CAN_ID_STATUS:
@@ -105,7 +105,7 @@ void BrusaMotorController::handleCanFrame(RX_CAN_FRAME* frame) {
 		Logger::debug("temp message received");
 		break;
 	default:
-		Logger::debug("BrusaMotorController: received unknown frame id %d", frame->id);
+		Logger::debug("BrusaMotorController: received unknown frame id %X", frame->id);
 	}
 }
 
