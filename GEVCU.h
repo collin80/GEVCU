@@ -45,6 +45,7 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include "DeviceManager.h"
 #include "SerialConsole.h"
 #include "ichip_2128.h"
+#include "Sys_Messages.h"
 
 #ifdef __cplusplus
 extern "C" {

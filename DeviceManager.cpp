@@ -69,7 +69,9 @@ void DeviceManager::addDevice(Device *device) {
 		if (i != -1) {
 			devices[i] = device;
 		} else {
+#if DEBUG_DEVICEMGR > 0
 			Logger::error("unable to register device, max number of devices reached.");
+#endif
 		}
 	}
 	switch (device->getType()) {
@@ -131,7 +133,23 @@ void DeviceManager::removeDevice(Device *device) {
  intercommunication.
  */
 void DeviceManager::sendMessage(Device::DeviceType devType, Device::DeviceId devId, uint32_t msgType, void* message)
+{
+	for (int i = 0; i < CFG_DEV_MGR_MAX_DEVICES; i++)
+	{
+		if (devices[i]) //does this object even exist?
 		{
+			if (devType == Device::DEVICE_ANY || devType == devices[i]->getType()) 
+			{
+				if (devId == Device::INVALID || devId == devices[i]->getId())
+				{
+#if DEBUG_DEVICEMGR > 2 //only if verbose logging is on
+					Logger::debug("Sending msg to device with ID %u", devices[i]->getId());
+#endif
+					devices[i]->handleMessage(msgType, message);
+				}
+			}
+		}
+	}
 }
 
 uint8_t DeviceManager::getNumThrottles() {
@@ -159,7 +177,10 @@ Throttle *DeviceManager::getAccelerator() {
 	//so down range code doesn't puke
 	if (!throttle) 
 	{ 
-		throttle = new Throttle();
+#if DEBUG_DEVICEMGR > 1
+		Logger::debug("getAccelerator() called but there is no registered accelerator!");
+#endif
+		return 0; //NULL!
 	}
 	return throttle;
 }
@@ -167,7 +188,10 @@ Throttle *DeviceManager::getAccelerator() {
 Throttle *DeviceManager::getBrake() {
 	if (!brake) 
 	{
-		brake = new Throttle();
+#if DEBUG_DEVICEMGR > 1
+		Logger::debug("getBrake() called but there is no registered brake!");
+#endif
+		return 0; //NULL!		
 	}
 	return brake;
 }
@@ -175,7 +199,10 @@ Throttle *DeviceManager::getBrake() {
 MotorController *DeviceManager::getMotorController() {
 	if (!motorController) 
 	{
-		motorController = new MotorController();
+#if DEBUG_DEVICEMGR > 1
+		Logger::debug("getMotorController() called but there is no registered motor controller!");
+#endif
+		return 0; //NULL!
 	}
 	return motorController;
 }
@@ -194,7 +221,10 @@ Device *DeviceManager::getDeviceByID(Device::DeviceId id)
 			if (devices[i]->getId() == id) return devices[i];
 		}
 	}
-	return 0;
+#if DEBUG_DEVICEMGR > 1
+	Logger::debug("getDeviceByID - No device with ID: %u", (int)id);
+#endif
+	return 0; //NULL!
 }
 
 /*
@@ -210,7 +240,10 @@ Device *DeviceManager::getDeviceByType(Device::DeviceType type)
 			if (devices[i]->getType() == type) return devices[i];
 		}
 	}
-	return 0;
+#if DEBUG_DEVICEMGR > 1
+	Logger::debug("getDeviceByType - No devices of type: %u", (int)type);
+#endif
+	return 0; //NULL!
 }
 
 /*

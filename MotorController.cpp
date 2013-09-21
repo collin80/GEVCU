@@ -57,6 +57,10 @@ Device::DeviceType MotorController::getType() {
 
 void MotorController::handleTick() {
 	uint8_t forwardSwitch, reverseSwitch;
+
+	//I'm pretty sure this whole block of code is worthless.
+	//The inputs that this code uses aren't even actual, valid inputs to the GEVCU box.
+	/*
 	if (digitalRead(MOTORCTL_INPUT_DRIVE_EN) == LOW)
 		running = true;
 	else
@@ -70,12 +74,16 @@ void MotorController::handleTick() {
 		gearSwitch = GS_FORWARD;
 	if (forwardSwitch == HIGH && reverseSwitch == LOW)
 		gearSwitch = GS_REVERSE;
+	*/
+
+	running = true;
+	gearSwitch = GS_FORWARD;
 
 	Throttle *accelerator = DeviceManager::getInstance()->getAccelerator();
 	Throttle *brake = DeviceManager::getInstance()->getBrake();
 	if (accelerator)
 		requestedThrottle = accelerator->getLevel();
-	if (brake && brake->getLevel() != 0) //if the brake has been pressed it overrides the accelerator.
+	if (brake && brake->getLevel() < -10 && brake->getLevel() < accelerator->getLevel()) //if the brake has been pressed it overrides the accelerator.
 		requestedThrottle = brake->getLevel();
 
 	if (prechargeTime == 0) donePrecharge = true;
@@ -94,7 +102,7 @@ void MotorController::handleTick() {
 		}
 	}
 
-	//Logger::debug("Throttle: %d", requestedThrottle);
+	Logger::debug("Throttle: %d", requestedThrottle);
 
 }
 
@@ -117,6 +125,7 @@ void MotorController::setup() {
 		prefsHandler->read(EEMC_NOMINAL_V, &nominalVolt);
 		prefsHandler->read(EEMC_PRECHARGE_RELAY, &prechargeRelay);
 		prefsHandler->read(EEMC_CONTACTOR_RELAY, &mainContactorRelay);
+		prefsHandler->read(EEMC_REVERSE_LIMIT, &reversePercent);
 	}
 	else { //checksum invalid. Reinitialize values and store to EEPROM
 		maxRPM = MaxRPMValue;
@@ -126,6 +135,7 @@ void MotorController::setup() {
 		nominalVolt = NominalVolt;
 		prechargeRelay = PrechargeRelay;
 		mainContactorRelay = MainContactorRelay;
+		reversePercent = ReversePercent;
 		saveEEPROM();
 	}
 
@@ -235,6 +245,11 @@ void MotorController::setMainRelay(uint8_t relay)
 	mainContactorRelay = relay;
 }
 
+void MotorController::setReversePercent(uint8_t perc) 
+{
+	reversePercent = perc;
+}
+
 void MotorController::saveEEPROM()
 {
 	prefsHandler->write(EEMC_MAX_RPM, maxRPM);
@@ -244,7 +259,7 @@ void MotorController::saveEEPROM()
 	prefsHandler->write(EEMC_NOMINAL_V, nominalVolt);
 	prefsHandler->write(EEMC_CONTACTOR_RELAY, mainContactorRelay);
 	prefsHandler->write(EEMC_PRECHARGE_RELAY, prechargeRelay);
-
+	prefsHandler->write(EEMC_REVERSE_LIMIT, reversePercent);
 	prefsHandler->saveChecksum();
 }
 

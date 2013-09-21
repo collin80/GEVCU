@@ -54,8 +54,9 @@ void PotBrake::setup() {
 		prefsHandler->read(EETH_BRAKE_MAX, &brakeMax);
 		prefsHandler->read(EETH_MAX_ACCEL_REGEN, &throttleMaxRegen);
 		prefsHandler->read(EETH_MAX_BRAKE_REGEN, &brakeMaxRegen);
+		prefsHandler->read(EETH_MIN_BRAKE_REGEN, &brakeMinRegen);
 		Logger::debug("BRAKE T1 MIN: %i MAX: %i", brakeMin, brakeMax);
-		Logger::debug("MaxRegen: %i", brakeMaxRegen);
+		Logger::debug("Min: %i MaxRegen: %i", brakeMinRegen, brakeMaxRegen);
 	 }
 	 else { //checksum invalid. Reinitialize values and store to EEPROM
 	 
@@ -63,16 +64,15 @@ void PotBrake::setup() {
 		//The next three are tenths of a percent
 		throttleMaxRegen = 00; //percentage of full power to use for regen at throttle
 		brakeMaxRegen = 80; //percentage of full power to use for regen at brake pedal transducer
+		brakeMinRegen = 20;
 		brakeMin = 5;
 		brakeMax = 500;
-		prefsHandler->write(EETH_BRAKE_MIN, brakeMin);
-		prefsHandler->write(EETH_BRAKE_MAX, brakeMax);
-		prefsHandler->write(EETH_MAX_BRAKE_REGEN, brakeMaxRegen);
-		prefsHandler->saveChecksum();
+		saveEEPROM();
 	}
 #else
 		throttleMaxRegen = ThrottleMaxRegenValue;
 		brakeMaxRegen = BrakeMaxRegenValue;
+		brakeMinRegen = BrakeMinRegenValue;
 		brakeMin = BrakeMinValue;
 		brakeMax = BrakeMaxValue;
 #endif
@@ -100,7 +100,10 @@ void PotBrake::setMaxRegen(uint16_t regen)
 	brakeMaxRegen = regen;
 }
 
-
+void PotBrake::setMinRegen(uint16_t regen) 
+{
+	brakeMinRegen = regen;
+}
 
 
 int PotBrake::calcBrake(int clampedVal, int minVal, int maxVal) {
@@ -134,7 +137,7 @@ int PotBrake::calcBrake(int clampedVal, int minVal, int maxVal) {
 void PotBrake::doBrake() {
 	signed int range;
 	signed int calcBrake1, calcBrake2, clampedVal, tempLow, temp;
-	static uint16_t brakeAvg = 0, brakeFeedback = 0; //used to create proportional control
+	static int brakeAvg = 0, brakeFeedback = 0; //used to create proportional control
 
 	clampedVal = brake1Val;
 
@@ -143,13 +146,8 @@ void PotBrake::doBrake() {
 		return;
 	}
 
-	//The below code now only faults if the value of the ADC is 15 outside of the range +/-
-	//otherwise we'll just clamp
+	//We do not raise a fault of the brake goes too high. We just clamp. This will lock regen on full blast.
 	if (brake1Val > brakeMax) {
-		if (brake1Val > (brakeMax + 15)) {
-			brakeStatus = ERR_HIGH_T1;
-			//Logger::debug("A");
-		}
 		clampedVal = brakeMax;
 	}
 
@@ -192,7 +190,7 @@ void PotBrake::doBrake() {
 	}
 
 	if (brakeMaxRegen != 0) { //is the brake regen even enabled?
-		int range = brakeMaxRegen - throttleMaxRegen; //we start the brake at ThrottleMaxRegen so the range is reduced by that amount
+		int range = brakeMaxRegen - brakeMinRegen; //we start the brake at ThrottleMaxRegen so the range is reduced by that amount
 		//Logger::debug("range: %d", range);
 		//Logger::debug("brakeFeedback: %d", brakeFeedback);
 		if (range < 1) { //detect stupidity and abort
@@ -200,7 +198,7 @@ void PotBrake::doBrake() {
 			return;
 		}
 		level = (signed int) ((signed int) -10 * range * brakeFeedback) / (signed int) 1000;
-		level -= 10 * throttleMaxRegen;
+		level -= 10 * brakeMinRegen;
 		//Logger::debug("level: %d", level);
 	}
 
@@ -239,6 +237,7 @@ void PotBrake::saveEEPROM() {
 	prefsHandler->write(EETH_BRAKE_MIN, brakeMin);
 	prefsHandler->write(EETH_BRAKE_MAX, brakeMax);
 	prefsHandler->write(EETH_MAX_BRAKE_REGEN, brakeMaxRegen);
+	prefsHandler->write(EETH_MIN_BRAKE_REGEN, brakeMinRegen);
 	prefsHandler->saveChecksum();
 }
 

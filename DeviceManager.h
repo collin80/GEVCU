@@ -26,11 +26,12 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #ifndef DEVICEMGR_H_
 #define DEVICEMGR_H_
 
-#include "Device.h"
 #include "config.h"
 #include "Throttle.h"
 #include "MotorController.h"
 #include "CanHandler.h"
+#include "Device.h"
+#include "Sys_Messages.h"
 
 class MotorController; // cyclic reference between MotorController and DeviceManager
 
@@ -52,14 +53,6 @@ public:
 	MotorController *getMotorController();
 	Device *getDeviceByID(Device::DeviceId);
 	Device *getDeviceByType(Device::DeviceType);
-
-	enum SystemMessage {
-		MSG_STARTUP = 0x3000,
-		MSG_SOFT_FAULT = 0x3100,
-		MSG_HARD_FAULT = 0x3150,
-		MSG_DISABLE = 0x3200,
-		MSG_ENABLE = 0x3300
-	};
 
 protected:
 
