@@ -35,8 +35,8 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 #include <due_can.h>
 
-#define CFG_BUILD_NUM	1009        //increment this every time a git commit is done. 
-#define CFG_VERSION "GEVCU alpha 2013-09-19"
+#define CFG_BUILD_NUM	1010        //increment this every time a git commit is done. 
+#define CFG_VERSION "GEVCU alpha 2013-09-24"
 
 
 /*
@@ -153,7 +153,8 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #define CFG_THROTTLE2_PIN	1
 #define CFG_BRAKE_PIN		2
 #define BLINK_LED          73 //13 is L, 73 is TX, 72 is RX
-#define DUED //define this if using the new DUED boards. These have ampseal connectors
+#define DUED //define this if using the new DUED boards. These have ampseal connectors - GEVCU2 boards
+//#define GEVCU3 //define this instead if you have a GEVCU3 board
 
 #define NUM_ANALOG	4
 #define NUM_DIGITAL	4
@@ -167,6 +168,11 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 //In other words, no DMA, no differential input, just the ADC. If you ask for ADC0 you will get a raw
 //reading from ADC0.
 //#define RAWADC
+
+//GEVCU3 requires RAWADC so automatically enable it if we're using that board
+#ifdef GEVCU3
+#define RAWADC
+#endif
 
 
 /*
