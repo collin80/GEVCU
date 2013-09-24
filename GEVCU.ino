@@ -51,6 +51,7 @@ Sept 19 2013:
 1007 - Allow the DMOC to start up ready to go. It now must be explicitly disabled via the second digital input
 1008 - Implement (initial support) reverse limit, switch brake to using indep. min value, get existing values settable with serial console
 1009 - Implemented message passing and hooked up the rest of the code to use it.
+1010 - Support for GEVCU3 boards
 */
 
 

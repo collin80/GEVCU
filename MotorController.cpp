@@ -102,7 +102,7 @@ void MotorController::handleTick() {
 		}
 	}
 
-	Logger::debug("Throttle: %d", requestedThrottle);
+	//Logger::debug("Throttle: %d", requestedThrottle);
 
 }
 

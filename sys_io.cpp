@@ -40,12 +40,19 @@ by stimmer
 #ifdef DUED
 uint8_t dig[] = {9, 11, 12, 13};
 uint8_t adc[NUM_ANALOG][2] = {{1,0}, {3,2}, {5,4}, {7,6}}; //low, high
-#else
+#elif defined GEVCU3
+uint8_t dig[] = {48, 49, 50, 51};
+uint8_t adc[NUM_ANALOG][2] = {{3,255}, {2,255}, {1,255}, {0,255}}; //low, high
+#else 
 uint8_t adc[NUM_ANALOG][2] = {{1,0}, {2,3}, {4,5}, {7,6}}; //low, high
 uint8_t dig[] = {11, 9, 13, 12};
 #endif
 
+#ifdef GEVCU3
+uint8_t out[] = {9, 8, 7, 6};
+#else
 uint8_t out[] = {52, 22, 48, 32};
+#endif
 
 volatile int bufn,obufn;
 volatile uint16_t adc_buf[NUM_ANALOG][256];   // 4 buffers of 256 readings
@@ -163,12 +170,14 @@ uint16_t getAnalog(uint8_t which) {
 #ifndef RAWADC
 	return adc_out_vals[which]; //return precalculated ADC reading
 #else
-  #ifdef RAWDIFF
-    val = getDiffADC(which);
-    return val;    
-  #else
-	return analogRead(which);
-  #endif
+   #ifdef RAWDIFF
+     val = getDiffADC(which);
+     return val; 
+   #elif defined GEVCU3
+      return analogRead(adc[which][0]);
+   #else
+	  return analogRead(which);
+   #endif
 #endif
 }
 
