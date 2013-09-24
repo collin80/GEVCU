@@ -52,9 +52,9 @@ void Throttle::handleTick()
 	}
 }
 
-Device::DeviceType Throttle::getType() 
+DeviceType Throttle::getType()
 {
-	return Device::DEVICE_THROTTLE;
+	return DEVICE_THROTTLE;
 }
 
 int Throttle::getLevel() 

@@ -51,8 +51,8 @@ MotorController::MotorController() : Device() {
 	donePrecharge = false;
 }
 
-Device::DeviceType MotorController::getType() {
-	return (Device::DEVICE_MOTORCTRL);
+DeviceType MotorController::getType() {
+	return (DEVICE_MOTORCTRL);
 }
 
 void MotorController::handleTick() {

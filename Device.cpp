@@ -48,11 +48,11 @@ void Device::handleMessage(uint32_t msgType, void* message) {
 	}
 }
 
-Device::DeviceType Device::getType() {
+DeviceType Device::getType() {
 	return DEVICE_NONE;
 }
 
-Device::DeviceId Device::getId() {
+DeviceId Device::getId() {
 	return INVALID;
 }
 

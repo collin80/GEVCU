@@ -125,10 +125,10 @@ void ICHIPWIFI::loop() {
 	}
 }
 
-Device::DeviceType ICHIPWIFI::getType() {
-	return Device::DEVICE_WIFI;
+DeviceType ICHIPWIFI::getType() {
+	return DEVICE_WIFI;
 }
 
-Device::DeviceId ICHIPWIFI::getId() {
-	return (Device::ICHIP2128);
+DeviceId ICHIPWIFI::getId() {
+	return (ICHIP2128);
 }

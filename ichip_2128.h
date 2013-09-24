@@ -88,8 +88,8 @@ class ICHIPWIFI : public Device {
     
     public:
     void setup(); //initialization on start up
-    Device::DeviceType getType();
-    Device::DeviceId getId();
+    DeviceType getType();
+    DeviceId getId();
     void loop();
     void handleTick(); //periodic processes
     void enableServer(); //turn on the web server

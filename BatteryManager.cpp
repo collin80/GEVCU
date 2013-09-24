@@ -34,8 +34,8 @@ BatteryManager::BatteryManager() : Device() {
 	packCurrent = 0;
 }
 
-Device::DeviceType BatteryManager::getType() {
-	return (Device::DEVICE_BMS);
+DeviceType BatteryManager::getType() {
+	return (DEVICE_BMS);
 }
 
 void BatteryManager::handleTick() {

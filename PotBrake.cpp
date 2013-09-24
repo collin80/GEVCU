@@ -225,11 +225,11 @@ PotBrake::BrakeStatus PotBrake::getStatus() {
 	return brakeStatus;
 }
 
-Device::DeviceId PotBrake::getId() {
+DeviceId PotBrake::getId() {
 	return (POTBRAKEPEDAL);
 }
 
-Device::DeviceType PotBrake::getType() {
+DeviceType PotBrake::getType() {
 	return (DEVICE_BRAKE);
 }
 

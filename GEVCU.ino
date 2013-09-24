@@ -240,7 +240,7 @@ void initializeDevices() {
 #ifdef CFG_ENABLE_DEVICE_MOTORCTRL_BRUSA_DMC5
 	MotorController *motorController = new BrusaMotorController(); //instantiate a Brusa DMC5 device controller as our motor controller
 	Logger::info("add device: Brusa DMC5 (%X)", motorController);
-	motorController->setup();
+//	motorController->setup();
 	deviceManager->addDevice(motorController);
 #endif
 #ifdef CFG_ENABLE_DEVICE_ICHIP2128_WIFI
@@ -256,7 +256,7 @@ void initializeDevices() {
 	 *	out there as they initialize. For instance, a motor controller could see if a BMS
 	 *	exists and supports a function that the motor controller wants to access.
 	 */
-	deviceManager->sendMessage(Device::DEVICE_ANY, Device::INVALID, MSG_STARTUP, NULL);
+	deviceManager->sendMessage(DEVICE_ANY, INVALID, MSG_STARTUP, NULL);
 
 }
 
