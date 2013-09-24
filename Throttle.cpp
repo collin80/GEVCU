@@ -142,7 +142,7 @@ void Throttle::mapThrottle(signed int inVal)
 				return;
 			}
 			level = (signed int) ((signed int) 10 * range * inVal) / (signed int) 1000;
-			level -= -10 * throttleMaxRegen;
+			level -= 10 * throttleMaxRegen;
 		}
 	}
 	//Logger::debug("level: %d", level);

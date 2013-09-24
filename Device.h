@@ -58,12 +58,14 @@ public:
 		THINKBMS = 0x2000,
 		INVALID = 0xFFFF
 	};
+
 	Device();
 	virtual void setup();
 	virtual void handleTick();
 	virtual void handleMessage(uint32_t msgType, void* message);
 	virtual DeviceType getType();
 	virtual DeviceId getId();
+	virtual uint32_t getTickInterval();
 
 protected:
 	PrefHandler *prefsHandler;

@@ -81,6 +81,8 @@ public:
 	void setPowerMode(PowerMode mode);
 	PowerMode getPowerMode();
 
+	uint32_t getTickInterval();
+
 private:
 	Gears selectedGear;
 	Gears actualGear;

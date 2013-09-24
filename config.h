@@ -35,15 +35,18 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 #include <due_can.h>
 
-#define CFG_VERSION "GEVCU alpha 2013-08-18"
+#define CFG_BUILD_NUM	1004        //increment this every time a git commit is done. 
+
+#define CFG_VERSION "GEVCU alpha 12 Sept 2013"
 #define CFG_SERIAL_SPEED 115200
+
 
 #define SerialUSB Serial // re-route serial-usb output to programming port ;) comment if output should go to std usb
 
 #define CFG_DEV_MGR_MAX_DEVICES 9 // the maximum number of devices supported by the DeviceManager
 #define CFG_CAN_NUM_OBSERVERS 10 // maximum number of device subscriptions per CAN bus
 #define CFG_TIMER_NUM_OBSERVERS 9 // the maximum number of supported observers per timer
-//#define CFG_TIMER_USE_QUEUING // if defined, TickHandler uses a queuing buffer instead of direct calls from interrupts
+#define CFG_TIMER_USE_QUEUING // if defined, TickHandler uses a queuing buffer instead of direct calls from interrupts
 #define CFG_TIMER_BUFFER_SIZE 100 // the size of the queuing buffer for TickHandler
 
 // Define the devices which are to be used (and compiled) via the following lines. It is advisable
@@ -53,11 +56,11 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #define CFG_ENABLE_DEVICE_HEARTBEAT
 #define CFG_ENABLE_DEVICE_POT_THROTTLE
 //#define CFG_ENABLE_DEVICE_CAN_THROTTLE
-//#define CFG_ENABLE_DEVICE_POT_BRAKE
+#define CFG_ENABLE_DEVICE_POT_BRAKE
 #define CFG_ENABLE_DEVICE_MOTORCTRL_DMOC_645
 //#define CFG_ENABLE_DEVICE_MOTORCTRL_BRUSA_DMC5
 //#define CFG_ENABLE_DEVICE_ICHIP2128_WIFI
-#define CFG_ENABLE_DEVICE_BMS_THINK
+//#define CFG_ENABLE_DEVICE_BMS_THINK
 
 // specify the intervals (microseconds) at which each device type should be "ticked"
 // try to use the same numbers for several devices because then they will share
@@ -88,6 +91,10 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #define CFG_THROTTLE1_PIN	0
 #define CFG_THROTTLE2_PIN	1
 #define CFG_BRAKE_PIN		2
+
+#define NUM_ANALOG	4
+#define NUM_DIGITAL	4
+#define NUM_OUTPUT	4
 
 //if this is defined then the ADC code will use raw readings from the actual ADC port of that number.
 //In other words, no DMA, no differential input, just the ADC. If you ask for ADC0 you will get a raw

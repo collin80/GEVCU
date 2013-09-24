@@ -72,13 +72,16 @@ the end of the stardard data. The below numbers are offsets from the device's ee
 #define EEMC_LIMP_SCALE			25 //1 byte - percentage of power to allow during limp mode
 #define EEMC_MAX_REGEN			26 //1 byte - percentage of max torque to apply to regen
 #define EEMC_REGEN_SCALE		28 //1 byte - percentage - reduces all regen related values (throttle, brake, maximum above)
-#define EEMC_PRECHARGE_RELAY	        29 //1 byte - 0 = no precharge relay 1 = yes, there is one
-#define EEMC_CONTACTOR_RELAY	        30 //1 byte - 0 = no contactor relay 1 = yes there is
+#define EEMC_PRECHARGE_RELAY	29 //1 byte - 255 = no precharge relay 0-3 = yes, there is one (and the output is the number stored)
+#define EEMC_CONTACTOR_RELAY	30 //1 byte - 255 = no contactor relay 0-3 = yes there is
 #define EEMC_COOLING			31 //1 byte - set point in C for starting up cooling relay
 #define EEMC_MIN_TEMP_MOTOR		32 //2 bytes - signed int - Smallest value on temp gauge (1% PWM output)
 #define EEMC_MAX_TEMP_MOTOR		34 //2 bytes - signed int - Highest value on temp gauge (99% PWM output)
 #define EEMC_MIN_TEMP_INV		36 //2 bytes - signed int - Smallest value on temp gauge (1% PWM output)
 #define EEMC_MAX_TEMP_INV		38 //2 bytes - signed int - Highest value on temp gauge (99% PWM output)
+#define EEMC_PRECHARGE_C		40 //2 bytes - capacitance of controller capacitor bank in micro farads (uf) - set to zero to disable RC precharge
+#define EEMC_PRECHARGE_R		42 //2 bytes - Resistance of precharge resistor in tenths of an ohm
+#define EEMC_NOMINAL_V			44 //2 bytes - nominal system voltage to expect (in tenths of a volt)
 
 //throttle data
 #define EETH_MIN_ONE			20 //2 bytes - ADC value of minimum value for first channel

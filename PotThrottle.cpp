@@ -74,7 +74,7 @@ void PotThrottle::setup() {
 			Logger::debug("THROTTLE APPEARS TO NEED CALIBRATION/DETECTION - choose 'z' on the serial console menu");
 			numThrottlePots = 2;
 		}
-
+		
 		Logger::debug("# of pots: %i       subtype: %i", numThrottlePots, throttleSubType);
 		Logger::debug("T1 MIN: %i MAX: %i      T2 MIN: %i MAX: %i", throttleMin1, throttleMax1, throttleMin2, throttleMax2);
 		Logger::debug("Regen: %i Fwd: %i Map: %i MaxRegen: %i", throttleRegen, throttleFwd, throttleMap, throttleMaxRegen);
@@ -180,6 +180,7 @@ void PotThrottle::doAccel() {
 		return;
 	}
 	calcThrottle1 = calcThrottle(clampedVal, throttleMin1, throttleMax1);
+        //Logger::debug("calc throttle: %i", calcThrottle1);
 
 	if (numThrottlePots > 1) { //can only do these things if there are two or more pots
 		clampedVal = throttle2Val;
