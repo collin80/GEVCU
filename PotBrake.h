@@ -57,8 +57,8 @@ public:
 	int getRawBrake2();
 	int getRawThrottle1();
 	int getRawThrottle2();
-	Device::DeviceId getId();
-	Device::DeviceType getType();
+	DeviceId getId();
+	DeviceType getType();
 	void saveConfiguration();
 	void saveEEPROM();
 	void setT1Min(uint16_t min);

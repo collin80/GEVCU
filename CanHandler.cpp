@@ -131,7 +131,7 @@ void CanHandler::attach(CanObserver* observer, uint32_t id, uint32_t mask, bool 
 
 	bus->enable_interrupt(getMailboxIer(mailbox));
 
-	Logger::debug("attached CanObserver %d for id=%X, mask=%X, mailbox=%d", observer, id, mask, mailbox);
+	Logger::debug("attached CanObserver (%X) for id=%X, mask=%X, mailbox=%d", observer, id, mask, mailbox);
 }
 
 /*
