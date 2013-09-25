@@ -35,8 +35,8 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 #include <due_can.h>
 
-#define CFG_BUILD_NUM	1005        //increment this every time a git commit is done. 
-#define CFG_VERSION "GEVCU alpha 2013-09-16"
+#define CFG_BUILD_NUM	1010        //increment this every time a git commit is done. 
+#define CFG_VERSION "GEVCU alpha 2013-09-24"
 
 
 /*
@@ -69,14 +69,14 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  * try to use the same numbers for several devices because then they will share
  * the same timer (out of a limited number of 9 timers).
  */
-#define CFG_TICK_INTERVAL_HEARTBEAT 2000000
-#define CFG_TICK_INTERVAL_POT_THROTTLE 40000
+#define CFG_TICK_INTERVAL_HEARTBEAT					2000000
+#define CFG_TICK_INTERVAL_POT_THROTTLE				40000
 #define CFG_TICK_INTERVAL_CAN_THROTTLE				40000
-#define CFG_TICK_INTERVAL_MOTOR_CONTROLLER_DMOC 40000
-#define CFG_TICK_INTERVAL_MOTOR_CONTROLLER_BRUSA 20000
-#define CFG_TICK_INTERVAL_MEM_CACHE 40000
-#define CFG_TICK_INTERVAL_BMS_THINK	500000
-#define CFG_TICK_INTERVAL_WIFI		2000000
+#define CFG_TICK_INTERVAL_MOTOR_CONTROLLER_DMOC		40000
+#define CFG_TICK_INTERVAL_MOTOR_CONTROLLER_BRUSA	20000
+#define CFG_TICK_INTERVAL_MEM_CACHE					40000
+#define CFG_TICK_INTERVAL_BMS_THINK					500000
+#define CFG_TICK_INTERVAL_WIFI						2000000
 
 
 /*
@@ -115,7 +115,9 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #define Throttle2MaxValue		1900	//Value ADC reads when pedal fully depressed
 #define BrakeMinValue			100		//Value ADC reads when brake is not pressed
 #define BrakeMaxValue			500		//Value ADC reads when brake is pushed all of the way down
+#define BrakeMinRegenValue		20		//percent of full power to use for brake regen (min)
 #define BrakeMaxRegenValue		40		//percent of full power to use for brake regen (max)
+
 
 #define MaxTorqueValue		2000 //in tenths of a Nm
 #define	 MaxRPMValue		6000 //DMOC will ignore this but we can use it ourselves for limiting
@@ -124,6 +126,7 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #define NominalVolt			3300 //a reasonable figure for a lithium cell pack driving the DMOC (in tenths of a volt)
 #define PrechargeRelay		3 //third output
 #define MainContactorRelay	4 //fourth output
+#define ReversePercent		50
 
 #define MaxRegenWatts	20000 //in actual watts, there is no scale here
 #define MaxAccelWatts	150000
@@ -150,7 +153,8 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #define CFG_THROTTLE2_PIN	1
 #define CFG_BRAKE_PIN		2
 #define BLINK_LED          73 //13 is L, 73 is TX, 72 is RX
-#define DUED //define this if using the new DUED boards. These have ampseal connectors
+#define DUED //define this if using the new DUED boards. These have ampseal connectors - GEVCU2 boards
+//#define GEVCU3 //define this instead if you have a GEVCU3 board
 
 #define NUM_ANALOG	4
 #define NUM_DIGITAL	4
@@ -164,5 +168,26 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 //In other words, no DMA, no differential input, just the ADC. If you ask for ADC0 you will get a raw
 //reading from ADC0.
 //#define RAWADC
+
+//GEVCU3 requires RAWADC so automatically enable it if we're using that board
+#ifdef GEVCU3
+#define RAWADC
+#endif
+
+
+/*
+ * Per module debugging levels.
+ *
+ * 0 = No debugging output
+ * 1 = Only errors reported
+ * 2 = Warnings too
+ * 3 = Generate quite a bit of debugging output
+ * 4 = Start the avalanche
+ * 
+ * Devices do not need to implement anything for higher levels. That is,
+ * you might not get any more info at level 4 than you do at 1.
+ */
+
+#define DEBUG_DEVICEMGR		1
 
 #endif /* CONFIG_H_ */

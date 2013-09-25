@@ -64,6 +64,7 @@ public:
 	void setT1Min(uint16_t min);
 	void setT1Max(uint16_t max);
 	void setMaxRegen(uint16_t regen);
+	void setMinRegen(uint16_t regen);
 
 
 
@@ -72,8 +73,6 @@ private:
 	uint16_t brake1Val, brake2Val;
 	uint8_t brake1ADC, brake2ADC; //which ADC pin each are on
 	int numBrakePots; //whether there are one or two pots. Should support three as well since some pedals really do have that many
-	uint16_t throttleMaxRegen; //TODO: should not be used in here anymore - maybe outside ?
-	uint16_t brakeMaxRegen; //percentage of max torque allowable for regen at brake pedal
 	byte brakeMaxErr;
 	BrakeStatus brakeStatus;
 	int calcBrake(int, int, int);

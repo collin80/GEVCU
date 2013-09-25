@@ -98,6 +98,7 @@ void SerialConsole::printMenu() {
 	SerialUSB.println("Config Commands (enter command=newvalue):");
 	SerialUSB.println("TORQ = Set torque upper limit (tenths of a Nm)");
 	SerialUSB.println("RPMS = Set maximum RPMs");
+	SerialUSB.println("REVLIM = How much torque to allow in reverse (Tenths of a percent)");
 	SerialUSB.println("TPOT = Number of pots to use (1 or 2)");
 	SerialUSB.println("TTYPE = Set throttle subtype (1=std linear, 2=inverse)");
 	SerialUSB.println("T1MN = Set throttle 1 min value");
@@ -110,7 +111,8 @@ void SerialConsole::printMenu() {
 	SerialUSB.println("TMRN = Percent of full torque to use for throttle regen");
 	SerialUSB.println("B1MN = Set brake min value");
 	SerialUSB.println("B1MX = Set brake max value");
-	SerialUSB.println("BMRN = Percent of full torque to use for brake regen");
+	SerialUSB.println("BMINR = Percent of full torque for start of brake regen");
+	SerialUSB.println("BMAXR = Percent of full torque for maximum brake regen");
 	SerialUSB.println("PREC = Precharge capacitance (uf)");
 	SerialUSB.println("PRER = Precharge resistance (1/10 of ohm)");
 	SerialUSB.println("NOMV = Nominal system voltage (1/10 of a volt)");
@@ -189,6 +191,13 @@ void SerialConsole::handleConfigCmd()
 		DeviceManager::getInstance()->getMotorController()->saveEEPROM();
 	}
 
+	else if (cmdString == String("REVLIM")) {
+		newValue = atoi((char *)(cmdBuffer + i));
+		Logger::debug("Setting Reverse Limit to %i", newValue);
+		DeviceManager::getInstance()->getMotorController()->setReversePercent(newValue);
+		DeviceManager::getInstance()->getMotorController()->saveEEPROM();
+	}
+
 	else if (cmdString == String("TPOT")) {
 		newValue = atoi((char *)(cmdBuffer + i));
 		Logger::debug("Setting # of Throttle Pots to %i", newValue);
@@ -252,10 +261,17 @@ void SerialConsole::handleConfigCmd()
 		DeviceManager::getInstance()->getAccelerator()->saveEEPROM();
 	}
 
-	else if (cmdString == String("BMRN")) {
+	else if (cmdString == String("BMAXR")) {
 		newValue = atoi((char *)(cmdBuffer + i));
-		Logger::debug("Setting Brake Regen Strength to %i", newValue);
+		Logger::debug("Setting Max Brake Regen to %i", newValue);
 		DeviceManager::getInstance()->getBrake()->setMaxRegen(newValue);
+		DeviceManager::getInstance()->getBrake()->saveEEPROM();
+	}
+
+	else if (cmdString == String("BMINR")) {
+		newValue = atoi((char *)(cmdBuffer + i));
+		Logger::debug("Setting Min Brake Regen to %i", newValue);
+		DeviceManager::getInstance()->getBrake()->setMinRegen(newValue);
 		DeviceManager::getInstance()->getBrake()->saveEEPROM();
 	}
 
@@ -275,31 +291,31 @@ void SerialConsole::handleConfigCmd()
 	else if (cmdString == String("PREC")) {
 		newValue = atoi((char *)(cmdBuffer + i));
 		Logger::debug("Setting Precharge Capacitance to %i", newValue);
-//		DeviceManager::getInstance()->getMotorController()->setT1Min(newValue);
+		DeviceManager::getInstance()->getMotorController()->setPrechargeC(newValue);
 		DeviceManager::getInstance()->getMotorController()->saveEEPROM();
 	}
 	else if (cmdString == String("PRER")) {
 		newValue = atoi((char *)(cmdBuffer + i));
 		Logger::debug("Setting Precharge Resistance to %i", newValue);
-//		DeviceManager::getInstance()->getMotorController()->setT1Min(newValue);
+		DeviceManager::getInstance()->getMotorController()->setPrechargeR(newValue);
 		DeviceManager::getInstance()->getMotorController()->saveEEPROM();
 	}
 	else if (cmdString == String("NOMV")) {
 		newValue = atoi((char *)(cmdBuffer + i));
 		Logger::debug("Setting Nominal Voltage to %i", newValue);
-//		DeviceManager::getInstance()->getMotorController()->setT1Min(newValue);
+		DeviceManager::getInstance()->getMotorController()->setNominalV(newValue);
 		DeviceManager::getInstance()->getMotorController()->saveEEPROM();
 	}
 	else if (cmdString == String("MRELAY")) {
 		newValue = atoi((char *)(cmdBuffer + i));
 		Logger::debug("Setting Main Contactor relay to %i", newValue);
-//		DeviceManager::getInstance()->getMotorController()->setT1Min(newValue);
+		DeviceManager::getInstance()->getMotorController()->setMainRelay(newValue);
 		DeviceManager::getInstance()->getMotorController()->saveEEPROM();
 	}
 	else if (cmdString == String("PRELAY")) {
 		newValue = atoi((char *)(cmdBuffer + i));
 		Logger::debug("Setting Precharge Relay to %i", newValue);
-//		DeviceManager::getInstance()->getMotorController()->setT1Min(newValue);
+		DeviceManager::getInstance()->getMotorController()->setPrechargeRelay(newValue);
 		DeviceManager::getInstance()->getMotorController()->saveEEPROM();
 	}
 }

@@ -95,7 +95,11 @@ String ICHIPWIFI::setParam(String paramName, String value) {
 }
 
 ICHIPWIFI::ICHIPWIFI() {
+#ifdef GEVCU3
+	serialInterface = &Serial2;
+#else
 	serialInterface = &Serial3; //default is serial 3 because that should be what our shield really uses
+#endif
 }
 
 ICHIPWIFI::ICHIPWIFI(USARTClass *which) {

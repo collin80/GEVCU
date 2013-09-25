@@ -40,7 +40,12 @@ void Device::handleTick() {
 }
 
 void Device::handleMessage(uint32_t msgType, void* message) {
-
+	switch (msgType)
+	{
+	case MSG_STARTUP:
+		this->setup();
+		break;
+	}
 }
 
 Device::DeviceType Device::getType() {

@@ -82,6 +82,7 @@ the end of the stardard data. The below numbers are offsets from the device's ee
 #define EEMC_PRECHARGE_C		40 //2 bytes - capacitance of controller capacitor bank in micro farads (uf) - set to zero to disable RC precharge
 #define EEMC_PRECHARGE_R		42 //2 bytes - Resistance of precharge resistor in tenths of an ohm
 #define EEMC_NOMINAL_V			44 //2 bytes - nominal system voltage to expect (in tenths of a volt)
+#define EEMC_REVERSE_LIMIT		46 //2 bytes - a percentage to knock the requested torque down by while in reverse.
 
 //throttle data
 #define EETH_MIN_ONE			20 //2 bytes - ADC value of minimum value for first channel
@@ -94,10 +95,10 @@ the end of the stardard data. The below numbers are offsets from the device's ee
 #define EETH_BRAKE_MIN			34 //2 bytes - ADC value of minimum value for brake input
 #define EETH_BRAKE_MAX			36 //2 bytes - ADC value of max value for brake input
 #define EETH_MAX_ACCEL_REGEN	38 //2 bytes - maximum percentage of throttle to command on accel pedal regen
-#define EETH_MAX_BRAKE_REGEN	40 //2 bytes - maximum percentage of throttle to command for braking regen. Starts at max accel regen and works up to here.
+#define EETH_MAX_BRAKE_REGEN	40 //2 bytes - maximum percentage of throttle to command for braking regen. Starts at min brake regen and works up to here.
 #define EETH_NUM_THROTTLES		42 //1 byte - How many throttle inputs should we use? (1 or 2)
 #define EETH_THROTTLE_TYPE		43 //1 byte - Allow for different throttle types. For now 1 = Linear pots, 2 = Inverse relationship between pots. See Throttle.h
-
+#define EETH_MIN_BRAKE_REGEN	44 //2 bytes - the starting point for brake regen as a percentage of throttle
 
 //System Data
 #define EESYS_SYSTEM_TYPE        10  //1 byte - 10 = Macchina/MCP2515, 20 = Arduino Due w/ dual shield

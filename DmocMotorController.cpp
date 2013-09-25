@@ -141,18 +141,28 @@ void DmocMotorController::setup() {
  rotate through all of them, one per tick. That gives us a time frame of 30ms for each command frame. That should be plenty fast.
 */
 void DmocMotorController::handleTick() {
+
+	static int startUpCount = 0;
+
 	MotorController::handleTick(); //kick the ball up to papa
+
+	if (startUpCount < 80) { //wait two seconds after start up to enable drive
+		startUpCount++;
+		setGear(NEUTRAL);
+	}
+	else setGear(DRIVE);
+
 
 	//TODO: this check somehow duplicates functionality in MotorController !
 	//if the first digital input is high we'll enable drive so we can go!
-	if (getDigital(0)) {
-		setGear(DRIVE);
+	//if (getDigital(0)) {
+		//setGear(DRIVE);
 		//runThrottle = true;
 		setPowerMode(MODE_TORQUE);
-	}
+	//}
 
 	//but, if the second input is high we cancel the whole thing and disable the drive.
-	if (getDigital(1) || !getDigital(0)) {
+	if (getDigital(1) /*|| !getDigital(0)*/) {
 		setOpState(DISABLED);
 		//runThrottle = false;
 	}

@@ -1,5 +1,5 @@
 /*
- * GEVCU.h
+ * Sys_Messages.h
  *
 Copyright (c) 2013 Collin Kidder, Michael Neuweiler, Charles Galpin
 
@@ -21,40 +21,18 @@ IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY
 CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT,
 TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
 SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+*/
 
- */
+#ifndef SYSMSG_H_
+#define SYSMSG_H_
 
-#ifndef GEVCU_H_
-#define GEVCU_H_
 
-#include <Arduino.h>
-#include "config.h"
-#include "Throttle.h"
-#include "CanThrottle.h"
-#include "PotThrottle.h"
-#include "PotBrake.h"
-#include "Device.h"
-#include "MotorController.h"
-#include "DmocMotorController.h"
-#include "Heartbeat.h"
-#include "sys_io.h"
-#include "CanHandler.h"
-#include "MemCache.h"
-#include "ThrottleDetector.h"
-#include "DeviceManager.h"
-#include "SerialConsole.h"
-#include "ichip_2128.h"
-#include "Sys_Messages.h"
+enum SystemMessage {
+	MSG_STARTUP = 0x3000,
+	MSG_SOFT_FAULT = 0x3100,
+	MSG_HARD_FAULT = 0x3150,
+	MSG_DISABLE = 0x3200,
+	MSG_ENABLE = 0x3300
+};
 
-#ifdef __cplusplus
-extern "C" {
 #endif
-void loop();
-void setup();
-#ifdef __cplusplus
-} // extern "C"
-#endif
-
-#define SYSTEM_DUE        20
-
-#endif /* GEVCU_H_ */
