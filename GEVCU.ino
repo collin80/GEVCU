@@ -64,18 +64,14 @@ the code should scan for changed parameters occassionally and set them in eeprom
 	check to see if the motor controller reports voltage and make sure the voltage is reported at least up
 	to the set nominal voltage before closing the main contactor. If it takes too long then fault and open
 	everything. Also, open contactors in case of a serious fault (but not for just any fault. Opening contactors under load can be nasty!)
-4. It wouldn't be a bad idea to finish the code for message passing. There are certain messages that all devices
-	should support. For one, setup could be done automatically by sending each device a system starting up message.
-	Also, in case of fault there should be a way to send a universal "system faulted" message so that each device
-	can render its hardware safe. I'm sure there are other messages that should be implemented. Maybe disable/enable a device.
-5. It is a possibility that there should be support for actually controlling the power to some of the devices.
+4. It is a possibility that there should be support for actually controlling the power to some of the devices.
 	For instance, power could be controlled to the +12V connection at the DMOC so that it can be power cycled
 	in software. But, that uses up an input and people can just cycle the key (though that resets the GEVCU too)
-6. Some people (like me, Collin) have a terrible habit of mixing several coding styles. It would be beneficial to
+5. Some people (like me, Collin) have a terrible habit of mixing several coding styles. It would be beneficial to
 	continue to harmonize the source code - Perhaps use a tool to do this.
-7. It should be possible to limit speed and/or torque in reverse so someone doesn't kill themselves or someone else
+6. It should be possible to limit speed and/or torque in reverse so someone doesn't kill themselves or someone else
 	while gunning it in reverse - The configuration variable is there and settable now. Just need to integrate it.
-8. The DMOC code duplicates a bunch of functionality that the base class also used to implement. We've got to figure
+7. The DMOC code duplicates a bunch of functionality that the base class also used to implement. We've got to figure
 	out where the overlaps are and fix it up so that as much as possible is done generically at the base MotorController
 	class and not directly in the Dmoc class.
 */

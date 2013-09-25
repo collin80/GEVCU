@@ -71,7 +71,7 @@ void ThinkBatteryManager::handleTick() {
 void ThinkBatteryManager::sendKeepAlive() 
 {
 	TX_CAN_FRAME output;
-	output.dlc = 8;
+	output.dlc = 3;
 	output.id = 0x310;
 	output.ide = 0; //standard frame
 	output.rtr = 0;
@@ -79,6 +79,7 @@ void ThinkBatteryManager::sendKeepAlive()
 	CanHandler::getInstanceEV()->sendFrame(output);
 
 	output.id = 0x311;
+	output.dlc = 2;
 	CanHandler::getInstanceEV()->sendFrame(output);
 }
 
