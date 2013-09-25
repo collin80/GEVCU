@@ -85,7 +85,7 @@ class MemCache: public TickObserver {
 
   PageCache pages[NUM_CACHED_PAGES];
   boolean isWriting();
-  uint8_t cache_hit(U32 address);
+  uint8_t cache_hit(uint32_t address);
   void cache_age();
   uint8_t cache_findpage();
   uint8_t cache_readpage(uint32_t addr);
