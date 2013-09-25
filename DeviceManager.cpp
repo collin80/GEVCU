@@ -75,13 +75,13 @@ void DeviceManager::addDevice(Device *device) {
 		}
 	}
 	switch (device->getType()) {
-	case Device::DEVICE_THROTTLE:
+	case DEVICE_THROTTLE:
 		throttle = (Throttle *) device;
 		break;
-	case Device::DEVICE_BRAKE:
+	case DEVICE_BRAKE:
 		brake = (Throttle *) device;
 		break;
-	case Device::DEVICE_MOTORCTRL:
+	case DEVICE_MOTORCTRL:
 		motorController = (MotorController *) device;
 		break;
 	}
@@ -95,13 +95,13 @@ void DeviceManager::removeDevice(Device *device) {
 	if (i != -1)
 		devices[i] = NULL;
 	switch (device->getType()) {
-	case Device::DEVICE_THROTTLE:
+	case DEVICE_THROTTLE:
 		throttle = NULL;
 		break;
-	case Device::DEVICE_BRAKE:
+	case DEVICE_BRAKE:
 		brake = NULL;
 		break;
-	case Device::DEVICE_MOTORCTRL:
+	case DEVICE_MOTORCTRL:
 		motorController = NULL;
 		break;
 	}
@@ -132,15 +132,15 @@ void DeviceManager::removeDevice(Device *device) {
  whatever you want. The standard message types are to enforce standard messages for easy
  intercommunication.
  */
-void DeviceManager::sendMessage(Device::DeviceType devType, Device::DeviceId devId, uint32_t msgType, void* message)
+void DeviceManager::sendMessage(DeviceType devType, DeviceId devId, uint32_t msgType, void* message)
 {
 	for (int i = 0; i < CFG_DEV_MGR_MAX_DEVICES; i++)
 	{
 		if (devices[i]) //does this object even exist?
 		{
-			if (devType == Device::DEVICE_ANY || devType == devices[i]->getType()) 
+			if (devType == DEVICE_ANY || devType == devices[i]->getType())
 			{
-				if (devId == Device::INVALID || devId == devices[i]->getId())
+				if (devId == INVALID || devId == devices[i]->getId())
 				{
 #if DEBUG_DEVICEMGR > 2 //only if verbose logging is on
 					Logger::debug("Sending msg to device with ID %u", devices[i]->getId());
@@ -153,23 +153,23 @@ void DeviceManager::sendMessage(Device::DeviceType devType, Device::DeviceId dev
 }
 
 uint8_t DeviceManager::getNumThrottles() {
-	return countDeviceType(Device::DEVICE_THROTTLE);
+	return countDeviceType(DEVICE_THROTTLE);
 }
 
 uint8_t DeviceManager::getNumControllers() {
-	return countDeviceType(Device::DEVICE_MOTORCTRL);
+	return countDeviceType(DEVICE_MOTORCTRL);
 }
 
 uint8_t DeviceManager::getNumBMS() {
-	return countDeviceType(Device::DEVICE_BMS);
+	return countDeviceType(DEVICE_BMS);
 }
 
 uint8_t DeviceManager::getNumChargers() {
-	return countDeviceType(Device::DEVICE_CHARGER);
+	return countDeviceType(DEVICE_CHARGER);
 }
 
 uint8_t DeviceManager::getNumDisplays() {
-	return countDeviceType(Device::DEVICE_DISPLAY);
+	return countDeviceType(DEVICE_DISPLAY);
 }
 
 Throttle *DeviceManager::getAccelerator() {
@@ -212,7 +212,7 @@ Allows one to request a reference to a device with the given ID. This lets code 
 device. Normally this would be a bad idea because it sort of breaks the OOP design philosophy of polymorphism
 but sometimes you can't help it. 
 */
-Device *DeviceManager::getDeviceByID(Device::DeviceId id)
+Device *DeviceManager::getDeviceByID(DeviceId id)
 {
 	for (int i = 0; i < CFG_DEV_MGR_MAX_DEVICES; i++)
 	{
@@ -231,7 +231,7 @@ Device *DeviceManager::getDeviceByID(Device::DeviceId id)
 The more object oriented version of the above function. Allows one to find the first device that matches
 a given type.
 */
-Device *DeviceManager::getDeviceByType(Device::DeviceType type)
+Device *DeviceManager::getDeviceByType(DeviceType type)
 {
 	for (int i = 0; i < CFG_DEV_MGR_MAX_DEVICES; i++)
 	{
@@ -261,7 +261,7 @@ int8_t DeviceManager::findDevice(Device *device) {
 /*
  * Count the number of registered devices of a certain type.
  */
-uint8_t DeviceManager::countDeviceType(Device::DeviceType deviceType) {
+uint8_t DeviceManager::countDeviceType(DeviceType deviceType) {
 	uint8_t count = 0;
 	for (int i = 0; i < CFG_DEV_MGR_MAX_DEVICES; i++) {
 		if (devices[i]->getType() == deviceType)

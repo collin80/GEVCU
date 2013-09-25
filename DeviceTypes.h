@@ -1,5 +1,5 @@
 /*
- * PotThrottle.h
+ * Device.h
  *
 Copyright (c) 2013 Collin Kidder, Michael Neuweiler, Charles Galpin
 
@@ -24,49 +24,33 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
  */
 
-#ifndef PEDAL_POT_H_
-#define PEDAL_POT_H_
+#ifndef DEVICE_TYPES_H_
+#define DEVICE_TYPES_H_
 
-#include <Arduino.h>
-#include "config.h"
-#include "Throttle.h"
-#include "sys_io.h"
-#include "TickHandler.h"
-#include "ThrottleDetector.h"
-#include "Logger.h"
-
-#define THROTTLE_INPUT_BRAKELIGHT  2
-
-class PotThrottle: public Throttle {
-public:
-	enum ThrottleStatus {
-		OK,
-		ERR_LOW_T1,
-		ERR_LOW_T2,
-		ERR_HIGH_T1,
-		ERR_HIGH_T2,
-		ERR_MISMATCH,
-		ERR_MISC
-	};
-
-	void handleTick();
-	void setup();
-	ThrottleStatus getStatus();
-	int getRawThrottle1();
-	int getRawThrottle2();
-	void saveEEPROM();
-	void saveConfiguration();
-
-	PotThrottle(uint8_t throttle1, uint8_t throttle2);
-	DeviceId getId();
-
-private:
-	uint8_t throttle1ADC, throttle2ADC; //which ADC pin each are on
-	byte throttleMaxErr;
-	ThrottleStatus throttleStatus;
-
-	int calcThrottle(int, int, int);
-	void doAccel();
+enum DeviceType {
+	DEVICE_ANY,
+	DEVICE_MOTORCTRL,
+	DEVICE_BMS,
+	DEVICE_CHARGER,
+	DEVICE_DISPLAY,
+	DEVICE_THROTTLE,
+	DEVICE_BRAKE,
+	DEVICE_MISC,
+	DEVICE_WIFI,
+	DEVICE_NONE
 };
 
-#endif /* POT_THROTTLE_H_ */
+enum DeviceId { //unique device ID for every piece of hardware possible
+	DMOC645 = 0x1000,
+	BRUSA_DMC5 = 0x1001,
+	BRUSACHARGE = 0x1010,
+	TCCHCHARGE = 0x1020,
+	POTACCELPEDAL = 0x1030,
+	POTBRAKEPEDAL = 0x1031,
+	CANACCELPEDAL = 0x1032,
+	ICHIP2128 = 0x1040,
+	THINKBMS = 0x2000,
+	INVALID = 0xFFFF
+};
+
+#endif /* DEVICE_TYPES_H_ */

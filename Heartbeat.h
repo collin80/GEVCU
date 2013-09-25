@@ -46,7 +46,7 @@ private:
 	bool led;
         bool throttleDebug;
         int dotCount;
-        unsigned long lastTickTime;
+        uint32_t lastTickTime;
 };
 
 #endif /* HEARTBEAT_H_ */
