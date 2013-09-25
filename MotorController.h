@@ -51,7 +51,7 @@ class MotorController : public Device {
         GS_FAULT
     };
     MotorController();
-	Device::DeviceType getType();
+	DeviceType getType();
     virtual void setup();
     void handleTick();
 	int getThrottle();

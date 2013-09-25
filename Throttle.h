@@ -45,7 +45,7 @@ public:
 	Throttle();
 	~Throttle();
 
-	virtual Device::DeviceType getType();
+	virtual DeviceType getType();
 
 	virtual void handleTick();
 	virtual int getLevel();

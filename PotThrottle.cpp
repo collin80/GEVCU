@@ -260,7 +260,7 @@ PotThrottle::ThrottleStatus PotThrottle::getStatus() {
 }
 
 
-Device::DeviceId PotThrottle::getId() {
+DeviceId PotThrottle::getId() {
 	return (POTACCELPEDAL);
 }
 

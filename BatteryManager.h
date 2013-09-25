@@ -41,7 +41,7 @@ public:
 	signed int getPackCurrent(); //in tenths of an amp
 	bool allowCharging();
 	bool allowDischarging();
-	virtual Device::DeviceType getType();
+	virtual DeviceType getType();
     virtual void setup();
     virtual void handleTick();
 protected:

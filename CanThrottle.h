@@ -43,7 +43,7 @@ public:
 	void setup();
 	void handleTick();
 	void handleCanFrame(RX_CAN_FRAME *frame);
-	Device::DeviceId getId();
+	DeviceId getId();
 
 protected:
 
