@@ -52,6 +52,7 @@ Sept 19 2013:
 1008 - Implement (initial support) reverse limit, switch brake to using indep. min value, get existing values settable with serial console
 1009 - Implemented message passing and hooked up the rest of the code to use it.
 1010 - Support for GEVCU3 boards
+1011 - Added support for Think City battery packs with BMS
 */
 
 
@@ -242,11 +243,14 @@ void initializeDevices() {
 #endif
 #ifdef CFG_ENABLE_DEVICE_ICHIP2128_WIFI
 	ICHIPWIFI *iChip = new ICHIPWIFI();
-	Logger::info("add device: iChip 2128 WiFi (%X)", iChip);
-	//iChip->setup();
+	Logger::info("add device: iChip 2128 WiFi (%X)", iChip);	
 	deviceManager->addDevice(iChip);
 #endif
-
+#ifdef CFG_ENABLE_DEVICE_BMS_THINK
+	BatteryManager *BMS = new ThinkBatteryManager();
+	Logger::info("add device: Th!nk City BMS (%X)", BMS);	
+	deviceManager->addDevice(BMS);
+#endif
 	/*
 	 *	We defer setting up the devices until here. This allows all objects to be instantiated
 	 *	before any of them set up. That in turn allows the devices to inspect what else is

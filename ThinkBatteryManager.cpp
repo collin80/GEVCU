@@ -26,12 +26,14 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
  */
 
+#include "config.h"
 #ifdef CFG_ENABLE_DEVICE_BMS_THINK
 #include "ThinkBatteryManager.h"
 
 ThinkBatteryManager::ThinkBatteryManager() : BatteryManager() {
+	allowCharge = false;
+	allowDischarge = false;
 }
-
 
 /*For all multibyte integers the format is MSB first, LSB last
 */
@@ -73,6 +75,8 @@ void ThinkBatteryManager::handleCanFrame(RX_CAN_FRAME *frame) {
 		//categories: 0 = no faults, 1 = Reserved, 2 = Warning, 3 = Delayed switch off, 4 = immediate switch off
 		//bytes 4-5 = Pack max temperature (tenths of degree C) - Signed
 		//byte 6-7 = Pack min temperature (tenths of a degree C) - Signed
+		lowestCellTemp = (S16)(frame->data[4] * 256 + frame->data[5]);
+		highestCellTemp = (S16)(frame->data[6] * 256 + frame->data[7]);
 		break;
 	case 0x305: //System Data 4
 		//byte 2 bits 0-3 = BMS state
@@ -131,7 +135,8 @@ void ThinkBatteryManager::sendKeepAlive()
 	CanHandler::getInstanceEV()->sendFrame(output);
 }
 
-DeviceId ThinkBatteryManager::getId() {
+DeviceId ThinkBatteryManager::getId() 
+{
 	return (THINKBMS);
 }
 

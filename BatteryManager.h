@@ -37,10 +37,11 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 class BatteryManager : public Device {
 public:
 	BatteryManager();
+	~BatteryManager();
 	int getPackVoltage(); //in tenths of a volt
 	signed int getPackCurrent(); //in tenths of an amp
-	bool allowCharging();
-	bool allowDischarging();
+	//bool allowCharging();
+	//bool allowDischarging();
 	virtual DeviceType getType();
     virtual void setup();
     virtual void handleTick();

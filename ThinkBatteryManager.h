@@ -39,22 +39,19 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 class ThinkBatteryManager : public BatteryManager, CanObserver
 {
 public:
-	virtual void setup();
-	virtual void handleTick();
-	virtual DeviceType getType();
-	virtual DeviceId getId();
+	ThinkBatteryManager();
+	void setup();
+	void handleTick();
+	DeviceId getId();
 	void handleCanFrame(RX_CAN_FRAME *frame);
-	virtual bool hasPackVoltage();
-	virtual bool hasPackCurrent();
-	virtual bool hasTemperatures();
-	virtual bool isChargeOK();
-	virtual bool isDischargeOK();
+	bool hasPackVoltage();
+	bool hasPackCurrent();
+	bool hasTemperatures();
+	bool isChargeOK();
+	bool isDischargeOK();
 protected:
 private:
 	void sendKeepAlive();
 };
-
-
-
 
 #endif

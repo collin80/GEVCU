@@ -28,10 +28,15 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 #include "BatteryManager.h"
  
-BatteryManager::BatteryManager() : Device() {
+BatteryManager::BatteryManager() : Device() 
+{
 	prefsHandler = new PrefHandler(EE_BMS_START);
 	packVoltage = 0;
 	packCurrent = 0;
+}
+
+BatteryManager::~BatteryManager() 
+{
 }
 
 DeviceType BatteryManager::getType() {
@@ -55,3 +60,14 @@ void BatteryManager::setup() {
 //TickHandler::getInstance()->attach(this, CFG_TICK_INTERVAL_MOTOR_CONTROLLER_DMOC);
 
 }
+
+int BatteryManager::getPackVoltage()
+{
+	return packVoltage;
+}
+
+signed int BatteryManager::getPackCurrent()
+{
+	return packCurrent;
+}
+
