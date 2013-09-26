@@ -44,6 +44,11 @@ public:
 	virtual DeviceType getType();
 	virtual DeviceId getId();
 	void handleCanFrame(RX_CAN_FRAME *frame);
+	virtual bool hasPackVoltage();
+	virtual bool hasPackCurrent();
+	virtual bool hasTemperatures();
+	virtual bool isChargeOK();
+	virtual bool isDischargeOK();
 protected:
 private:
 	void sendKeepAlive();

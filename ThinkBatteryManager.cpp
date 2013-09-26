@@ -131,8 +131,33 @@ void ThinkBatteryManager::sendKeepAlive()
 	CanHandler::getInstanceEV()->sendFrame(output);
 }
 
-Device::DeviceId ThinkBatteryManager::getId() {
-	return (Device::THINKBMS);
+DeviceId ThinkBatteryManager::getId() {
+	return (THINKBMS);
+}
+
+bool ThinkBatteryManager::hasPackVoltage() 
+{
+	return true;
+}
+
+bool ThinkBatteryManager::hasPackCurrent() 
+{
+	return true;
+}
+
+bool ThinkBatteryManager::hasTemperatures() 
+{
+	return true;
+}
+
+bool ThinkBatteryManager::isChargeOK() 
+{
+	return allowCharge;
+}
+
+bool ThinkBatteryManager::isDischargeOK() 
+{
+	return allowDischarge;
 }
 
 #endif
