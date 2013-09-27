@@ -364,8 +364,8 @@ byte DmocMotorController::calcChecksum(TX_CAN_FRAME thisFrame) {
 	return cs;
 }
 
-Device::DeviceId DmocMotorController::getId() {
-	return (Device::DMOC645);
+DeviceId DmocMotorController::getId() {
+	return (DMOC645);
 }
 
 void DmocMotorController::setPowerMode(PowerMode mode) {

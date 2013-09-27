@@ -1,59 +1,99 @@
 /*
  * Logger.cpp
  *
-Copyright (c) 2013 Collin Kidder, Michael Neuweiler, Charles Galpin
+ Copyright (c) 2013 Collin Kidder, Michael Neuweiler, Charles Galpin
 
-Permission is hereby granted, free of charge, to any person obtaining
-a copy of this software and associated documentation files (the
-"Software"), to deal in the Software without restriction, including
-without limitation the rights to use, copy, modify, merge, publish,
-distribute, sublicense, and/or sell copies of the Software, and to
-permit persons to whom the Software is furnished to do so, subject to
-the following conditions:
+ Permission is hereby granted, free of charge, to any person obtaining
+ a copy of this software and associated documentation files (the
+ "Software"), to deal in the Software without restriction, including
+ without limitation the rights to use, copy, modify, merge, publish,
+ distribute, sublicense, and/or sell copies of the Software, and to
+ permit persons to whom the Software is furnished to do so, subject to
+ the following conditions:
 
-The above copyright notice and this permission notice shall be included
-in all copies or substantial portions of the Software.
+ The above copyright notice and this permission notice shall be included
+ in all copies or substantial portions of the Software.
 
-THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
-EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
-MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.
-IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY
-CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT,
-TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
-SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+ EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
+ MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.
+ IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY
+ CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT,
+ TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
+ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
  */
 
 #include "Logger.h"
 
-Logger::LogLevel logLevel = Logger::Debug;
-unsigned long lastLogTime = 0;
+Logger::LogLevel Logger::logLevel = Logger::Debug;
+uint32_t Logger::lastLogTime = 0;
 
 void Logger::debug(char *message, ...) {
+	if (logLevel > Debug)
+		return;
 	va_list args;
 	va_start(args, message);
-	Logger::log(Debug, message, args);
+	Logger::log((DeviceId)NULL, Debug, message, args);
+	va_end(args);
+}
+
+void Logger::debug(DeviceId deviceId, char *message, ...) {
+	if (logLevel > Debug)
+		return;
+	va_list args;
+	va_start(args, message);
+	Logger::log(deviceId, Debug, message, args);
 	va_end(args);
 }
 
 void Logger::info(char *message, ...) {
+	if (logLevel > Info)
+		return;
 	va_list args;
 	va_start(args, message);
-	Logger::log(Info, message, args);
+	Logger::log((DeviceId)NULL, Info, message, args);
+	va_end(args);
+}
+
+void Logger::info(DeviceId deviceId, char *message, ...) {
+	if (logLevel > Info)
+		return;
+	va_list args;
+	va_start(args, message);
+	Logger::log(deviceId, Info, message, args);
 	va_end(args);
 }
 
 void Logger::warn(char *message, ...) {
+	if (logLevel > Warn)
+		return;
 	va_list args;
 	va_start(args, message);
-	Logger::log(Warn, message, args);
+	Logger::log((DeviceId)NULL, Warn, message, args);
+	va_end(args);
+}
+
+void Logger::warn(DeviceId deviceId, char *message, ...) {
+	if (logLevel > Warn)
+		return;
+	va_list args;
+	va_start(args, message);
+	Logger::log(deviceId, Warn, message, args);
 	va_end(args);
 }
 
 void Logger::error(char *message, ...) {
 	va_list args;
 	va_start(args, message);
-	Logger::log(Error, message, args);
+	Logger::log((DeviceId)NULL, Error, message, args);
+	va_end(args);
+}
+
+void Logger::error(DeviceId deviceId, char *message, ...) {
+	va_list args;
+	va_start(args, message);
+	Logger::log(deviceId, Error, message, args);
 	va_end(args);
 }
 
@@ -65,12 +105,11 @@ Logger::LogLevel Logger::getLogLevel() {
 	return logLevel;
 }
 
-unsigned long Logger::getLastLogTime() {
-       return lastLogTime;
+uint32_t Logger::getLastLogTime() {
+	return lastLogTime;
 }
 
-void Logger::log(LogLevel level, char *format, va_list args) {
-	if (logLevel <= level) {
+void Logger::log(DeviceId deviceId, LogLevel level, char *format, va_list args) {
 		lastLogTime = millis();
 		SerialUSB.print(lastLogTime);
 		SerialUSB.print(" - ");
@@ -91,6 +130,9 @@ void Logger::log(LogLevel level, char *format, va_list args) {
 		}
 		SerialUSB.print(": ");
 
+		if (deviceId)
+			printDeviceName(deviceId);
+
 		for (; *format != 0; ++format) {
 			if (*format == '%') {
 				++format;
@@ -110,7 +152,7 @@ void Logger::log(LogLevel level, char *format, va_list args) {
 					continue;
 				}
 				if (*format == 'f') {
-					SerialUSB.print(va_arg( args, float ), DEC);
+					SerialUSB.print(va_arg( args, double ), 2);
 					continue;
 				}
 				if (*format == 'x') {
@@ -161,5 +203,37 @@ void Logger::log(LogLevel level, char *format, va_list args) {
 			SerialUSB.print(*format);
 		}
 		SerialUSB.println();
+}
+
+void Logger::printDeviceName(DeviceId deviceId) {
+	switch (deviceId) {
+	case DMOC645:
+		SerialUSB.print("DMOC645");
+		break;
+	case BRUSA_DMC5:
+		SerialUSB.print("DMC5");
+		break;
+	case BRUSACHARGE:
+		SerialUSB.print("NLG5");
+		break;
+	case TCCHCHARGE:
+		SerialUSB.print("TCCH");
+		break;
+	case POTACCELPEDAL:
+		SerialUSB.print("POTACCEL");
+		break;
+	case POTBRAKEPEDAL:
+		SerialUSB.print("POTBRAKE");
+		break;
+	case CANACCELPEDAL:
+		SerialUSB.print("CANACCEL");
+		break;
+	case ICHIP2128:
+		SerialUSB.print("ICHIP");
+		break;
+	case THINKBMS:
+		SerialUSB.print("THINKBMS");
+		break;
 	}
+	SerialUSB.print(" - ");
 }

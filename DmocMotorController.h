@@ -77,7 +77,7 @@ public:
 	void setGear(Gears gear);
 
 	DmocMotorController();
-	Device::DeviceId getId();
+	DeviceId getId();
 	void setPowerMode(PowerMode mode);
 	PowerMode getPowerMode();
 

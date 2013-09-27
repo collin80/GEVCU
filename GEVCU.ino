@@ -52,6 +52,7 @@ Sept 19 2013:
 1008 - Implement (initial support) reverse limit, switch brake to using indep. min value, get existing values settable with serial console
 1009 - Implemented message passing and hooked up the rest of the code to use it.
 1010 - Support for GEVCU3 boards
+1011 - Added support for Think City battery packs with BMS
 */
 
 
@@ -64,18 +65,14 @@ the code should scan for changed parameters occassionally and set them in eeprom
 	check to see if the motor controller reports voltage and make sure the voltage is reported at least up
 	to the set nominal voltage before closing the main contactor. If it takes too long then fault and open
 	everything. Also, open contactors in case of a serious fault (but not for just any fault. Opening contactors under load can be nasty!)
-4. It wouldn't be a bad idea to finish the code for message passing. There are certain messages that all devices
-	should support. For one, setup could be done automatically by sending each device a system starting up message.
-	Also, in case of fault there should be a way to send a universal "system faulted" message so that each device
-	can render its hardware safe. I'm sure there are other messages that should be implemented. Maybe disable/enable a device.
-5. It is a possibility that there should be support for actually controlling the power to some of the devices.
+4. It is a possibility that there should be support for actually controlling the power to some of the devices.
 	For instance, power could be controlled to the +12V connection at the DMOC so that it can be power cycled
 	in software. But, that uses up an input and people can just cycle the key (though that resets the GEVCU too)
-6. Some people (like me, Collin) have a terrible habit of mixing several coding styles. It would be beneficial to
+5. Some people (like me, Collin) have a terrible habit of mixing several coding styles. It would be beneficial to
 	continue to harmonize the source code - Perhaps use a tool to do this.
-7. It should be possible to limit speed and/or torque in reverse so someone doesn't kill themselves or someone else
+6. It should be possible to limit speed and/or torque in reverse so someone doesn't kill themselves or someone else
 	while gunning it in reverse - The configuration variable is there and settable now. Just need to integrate it.
-8. The DMOC code duplicates a bunch of functionality that the base class also used to implement. We've got to figure
+7. The DMOC code duplicates a bunch of functionality that the base class also used to implement. We've got to figure
 	out where the overlaps are and fix it up so that as much as possible is done generically at the base MotorController
 	class and not directly in the Dmoc class.
 */
@@ -203,58 +200,64 @@ void initializeDevices() {
 
 #ifdef CFG_ENABLE_DEVICE_HEARTBEAT
 	heartbeat = new Heartbeat();
-	Logger::info("add: Heartbeat (%d)", heartbeat);
+	Logger::info("add: Heartbeat (%X)", heartbeat);
 	heartbeat->setup();
 #endif
 #ifdef CFG_ENABLE_DEVICE_POT_THROTTLE
 	// Specify the shield ADC port(s) to use for throttle
 	// CFG_THROTTLE_NONE = not used (valid only for second value and should not be needed due to calibration/detection)
 	Throttle *accelerator = new PotThrottle(CFG_THROTTLE1_PIN, CFG_THROTTLE2_PIN);
-	Logger::info("add device: PotThrottle (%d)", accelerator);
+	Logger::info("add device: PotThrottle (%X)", accelerator);
 	//accelerator->setup();
 	deviceManager->addDevice(accelerator);
 #endif
 #ifdef CFG_ENABLE_DEVICE_CAN_THROTTLE
 	Throttle *accelerator = new CanThrottle();
-	Logger::info("add device: CanThrottle (%d)", accelerator);
+	Logger::info("add device: CanThrottle (%X)", accelerator);
 	//accelerator->setup();
 	deviceManager->addDevice(accelerator);
 #endif
 #ifdef CFG_ENABLE_DEVICE_POT_BRAKE
 	Throttle *brake = new PotBrake(CFG_BRAKE_PIN, CFG_THROTTLE_NONE); //set up the brake input as the third ADC input from the shield.
-	Logger::info("add device: PotBrake (%d)", brake);
+	Logger::info("add device: PotBrake (%X)", brake);
 	//brake->setup();
 	deviceManager->addDevice(brake);
 #endif
 #ifdef CFG_ENABLE_DEVICE_CAN_THROTTLE_BRAKE
-	Logger::info("add device: CanThrottle brake");
 	Throtle *brake = new CanThrottle();
+	Logger::info("add device: CanThrottle brake (%X)", brake);
 	//brake->setup();
 	deviceManager->addDevice(brake);
 #endif
 #ifdef CFG_ENABLE_DEVICE_MOTORCTRL_DMOC_645
 	MotorController *motorController = new DmocMotorController(); //instantiate a DMOC645 device controller as our motor controller
-	Logger::info("add device: DMOC645 (%d)", motorController);
+	Logger::info("add device: DMOC645 (%X)", motorController);
 	//motorController->setup();
 	deviceManager->addDevice(motorController);
 #endif
 #ifdef CFG_ENABLE_DEVICE_MOTORCTRL_BRUSA_DMC5
-	Logger::info("add device: Brusa DMC5");
+	MotorController *motorController = new BrusaMotorController(); //instantiate a Brusa DMC5 device controller as our motor controller
+	Logger::info("add device: Brusa DMC5 (%X)", motorController);
+//	motorController->setup();
+	deviceManager->addDevice(motorController);
 #endif
 #ifdef CFG_ENABLE_DEVICE_ICHIP2128_WIFI
-	Logger::info("add device: iChip 2128 WiFi");
 	ICHIPWIFI *iChip = new ICHIPWIFI();
-	//iChip->setup();
+	Logger::info("add device: iChip 2128 WiFi (%X)", iChip);	
 	deviceManager->addDevice(iChip);
 #endif
-
+#ifdef CFG_ENABLE_DEVICE_BMS_THINK
+	BatteryManager *BMS = new ThinkBatteryManager();
+	Logger::info("add device: Th!nk City BMS (%X)", BMS);	
+	deviceManager->addDevice(BMS);
+#endif
 	/*
 	 *	We defer setting up the devices until here. This allows all objects to be instantiated
 	 *	before any of them set up. That in turn allows the devices to inspect what else is
 	 *	out there as they initialize. For instance, a motor controller could see if a BMS
 	 *	exists and supports a function that the motor controller wants to access.
 	 */
-	deviceManager->sendMessage(Device::DEVICE_ANY, Device::INVALID, MSG_STARTUP, NULL);
+	deviceManager->sendMessage(DEVICE_ANY, INVALID, MSG_STARTUP, NULL);
 
 }
 
@@ -281,6 +284,7 @@ void setup() {
 	Logger::info("TWI init ok");
 
 	memCache = new MemCache();
+	Logger::info("add MemCache (%X)", memCache);
 	memCache->setup();
 	sysPrefs = new PrefHandler(EE_SYSTEM_START);
 	if (!sysPrefs->checksumValid()) {

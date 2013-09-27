@@ -37,18 +37,33 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 class BatteryManager : public Device {
 public:
 	BatteryManager();
+	~BatteryManager();
 	int getPackVoltage(); //in tenths of a volt
 	signed int getPackCurrent(); //in tenths of an amp
-	bool allowCharging();
-	bool allowDischarging();
-	virtual Device::DeviceType getType();
+	//bool allowCharging();
+	//bool allowDischarging();
+	virtual DeviceType getType();
     virtual void setup();
     virtual void handleTick();
+	//a bunch of boolean functions. Derived classes must implment
+	//these functions to tell everyone else what they support
+	virtual bool hasPackVoltage() = 0;
+	virtual bool hasPackCurrent() = 0;
+	virtual bool hasTemperatures() = 0;
+	virtual bool isChargeOK() = 0;
+	virtual bool isDischargeOK() = 0;
 protected:
-private:
-	int packVoltage;
-	signed int packCurrent;
+	int packVoltage; //tenths of a volt
+	signed int packCurrent; //tenths of an amp
+	int SOC; //state of charge in percent
+	int lowestCellV, highestCellV; //in mv
+	int lowestCellTemp, highestCellTemp;
+	//should be some form of discharge and charge limit. I don't know if it should be % or amps
+	//some BMS systems will report one way and some the other. 
+	int dischargeLimit, chargeLimit;
 	bool allowCharge, allowDischarge;
+
+private:
 };
 
 #endif

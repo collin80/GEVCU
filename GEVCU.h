@@ -29,13 +29,16 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 #include <Arduino.h>
 #include "config.h"
+#include "Device.h"
 #include "Throttle.h"
 #include "CanThrottle.h"
 #include "PotThrottle.h"
 #include "PotBrake.h"
-#include "Device.h"
+#include "BatteryManager.h"
+#include "ThinkBatteryManager.h"
 #include "MotorController.h"
 #include "DmocMotorController.h"
+#include "BrusaMotorController.h"
 #include "Heartbeat.h"
 #include "sys_io.h"
 #include "CanHandler.h"

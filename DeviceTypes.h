@@ -1,7 +1,5 @@
 /*
- * BatteryManager.cpp
- *
- * Parent class for all battery management/monitoring systems
+ * Device.h
  *
 Copyright (c) 2013 Collin Kidder, Michael Neuweiler, Charles Galpin
 
@@ -24,50 +22,35 @@ CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT,
 TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
 SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
- */ 
+ */
 
-#include "BatteryManager.h"
- 
-BatteryManager::BatteryManager() : Device() 
-{
-	prefsHandler = new PrefHandler(EE_BMS_START);
-	packVoltage = 0;
-	packCurrent = 0;
-}
+#ifndef DEVICE_TYPES_H_
+#define DEVICE_TYPES_H_
 
-BatteryManager::~BatteryManager() 
-{
-}
+enum DeviceType {
+	DEVICE_ANY,
+	DEVICE_MOTORCTRL,
+	DEVICE_BMS,
+	DEVICE_CHARGER,
+	DEVICE_DISPLAY,
+	DEVICE_THROTTLE,
+	DEVICE_BRAKE,
+	DEVICE_MISC,
+	DEVICE_WIFI,
+	DEVICE_NONE
+};
 
-DeviceType BatteryManager::getType() {
-	return (DEVICE_BMS);
-}
+enum DeviceId { //unique device ID for every piece of hardware possible
+	DMOC645 = 0x1000,
+	BRUSA_DMC5 = 0x1001,
+	BRUSACHARGE = 0x1010,
+	TCCHCHARGE = 0x1020,
+	POTACCELPEDAL = 0x1030,
+	POTBRAKEPEDAL = 0x1031,
+	CANACCELPEDAL = 0x1032,
+	ICHIP2128 = 0x1040,
+	THINKBMS = 0x2000,
+	INVALID = 0xFFFF
+};
 
-void BatteryManager::handleTick() {
-}
-
-void BatteryManager::setup() {
-#ifndef USE_HARD_CODED
-	if (prefsHandler->checksumValid()) { //checksum is good, read in the values stored in EEPROM
-	}
-	else { //checksum invalid. Reinitialize values and store to EEPROM
-		//prefsHandler->saveChecksum();
-	}
-#else
-#endif
-
-//TickHandler::getInstance()->detach(this);
-//TickHandler::getInstance()->attach(this, CFG_TICK_INTERVAL_MOTOR_CONTROLLER_DMOC);
-
-}
-
-int BatteryManager::getPackVoltage()
-{
-	return packVoltage;
-}
-
-signed int BatteryManager::getPackCurrent()
-{
-	return packCurrent;
-}
-
+#endif /* DEVICE_TYPES_H_ */

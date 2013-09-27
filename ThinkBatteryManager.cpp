@@ -26,27 +26,79 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
  */
 
+#include "config.h"
 #ifdef CFG_ENABLE_DEVICE_BMS_THINK
 #include "ThinkBatteryManager.h"
 
 ThinkBatteryManager::ThinkBatteryManager() : BatteryManager() {
+	allowCharge = false;
+	allowDischarge = false;
 }
 
+/*For all multibyte integers the format is MSB first, LSB last
+*/
 void ThinkBatteryManager::handleCanFrame(RX_CAN_FRAME *frame) {
 	switch (frame->id) {
 	case 0x300: //Start up message
+		//we're not really interested in much here except whether init worked.
+		if ((frame->data[6] & 1) == 0)  //there was an initialization error!
+		{
+			//set fault condition here
+		}
+		break;
 	case 0x301: //System Data 0
-	case 0x302: //System Data 1
+		//first two bytes = current, next two voltage, next two DOD, last two avg. temp 
+		//readings in tenths
+		packVoltage = (frame->data[0] * 256 + frame->data[1]);
+		packCurrent = (frame->data[2] * 256 + frame->data[3]);
+		break;
+	case 0x302: //System Data 1		 
+		if ((frame->data[0] & 1) == 1) //Byte 0 bit 0 = general error
+		{
+			//raise a fault
+		}
+		if ((frame->data[2] & 1) == 1) //Byte 2 bit 0 = general isolation error
+		{
+			//raise a fault
+		}
+		//Min discharge voltage = bytes 4-5 - tenths of a volt
+		//Max discharge current = bytes 6-7 - tenths of an amp
+		break;
 	case 0x303: //System Data 2
+		//bytes 0-1 = max charge voltage (tenths of volt)
+		//bytes 2-3 = max charge current (tenths of amp)
+		//byte 4 bit 1 = regen braking OK, bit 2 = Discharging OK
+		//byte 6 bit 3 = EPO (emergency power off) happened, bit 5 = battery pack fan is on
+		break;
 	case 0x304: //System Data 3
+		//Byte 2 lower 4 bits = highest error category
+		//categories: 0 = no faults, 1 = Reserved, 2 = Warning, 3 = Delayed switch off, 4 = immediate switch off
+		//bytes 4-5 = Pack max temperature (tenths of degree C) - Signed
+		//byte 6-7 = Pack min temperature (tenths of a degree C) - Signed
+		lowestCellTemp = (S16)(frame->data[4] * 256 + frame->data[5]);
+		highestCellTemp = (S16)(frame->data[6] * 256 + frame->data[7]);
+		break;
 	case 0x305: //System Data 4
+		//byte 2 bits 0-3 = BMS state
+		//0 = idle state, 1 = discharge state (contactor closed), 15 = fault state
+		//byte 2 bit 4 = Internal HV isolation fault
+		//byte 2 bit 5 = External HV isolation fault
+		break;
 	case 0x306: //System Data 5
+		//bytes 0-1 = Equiv. internal resistance in milliohms
+		//not recommended to rely on so probably just ignore it
+		break;
+	//technically there is a specification for frames 0x307 - 0x30A but I have never seen these frames
+	//sent on the canbus system so I doubt that they are used.
+/*
 	case 0x307: //System Data 6
 	case 0x308: //System Data 7
 	case 0x309: //System Data 8
 	case 0x30A: //System Data 9
+	//do we care about the serial #? Probably not.
 	case 0x30E: //Serial # part 1
 	case 0x30B: //Serial # part 2
+*/
 	}
 }
 
@@ -71,7 +123,7 @@ void ThinkBatteryManager::handleTick() {
 void ThinkBatteryManager::sendKeepAlive() 
 {
 	TX_CAN_FRAME output;
-	output.dlc = 8;
+	output.dlc = 3;
 	output.id = 0x310;
 	output.ide = 0; //standard frame
 	output.rtr = 0;
@@ -79,11 +131,38 @@ void ThinkBatteryManager::sendKeepAlive()
 	CanHandler::getInstanceEV()->sendFrame(output);
 
 	output.id = 0x311;
+	output.dlc = 2;
 	CanHandler::getInstanceEV()->sendFrame(output);
 }
 
-Device::DeviceId ThinkBatteryManager::getId() {
-	return (Device::THINKBMS);
+DeviceId ThinkBatteryManager::getId() 
+{
+	return (THINKBMS);
+}
+
+bool ThinkBatteryManager::hasPackVoltage() 
+{
+	return true;
+}
+
+bool ThinkBatteryManager::hasPackCurrent() 
+{
+	return true;
+}
+
+bool ThinkBatteryManager::hasTemperatures() 
+{
+	return true;
+}
+
+bool ThinkBatteryManager::isChargeOK() 
+{
+	return allowCharge;
+}
+
+bool ThinkBatteryManager::isDischargeOK() 
+{
+	return allowDischarge;
 }
 
 #endif

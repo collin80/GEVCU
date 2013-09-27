@@ -58,7 +58,7 @@ public:
 	void saveConfiguration();
 
 	PotThrottle(uint8_t throttle1, uint8_t throttle2);
-	Device::DeviceId getId();
+	DeviceId getId();
 
 private:
 	uint8_t throttle1ADC, throttle2ADC; //which ADC pin each are on
