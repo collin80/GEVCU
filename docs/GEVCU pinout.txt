@@ -1,0 +1,17 @@
+Pin 1 - +12V Input
+Pin 3 - +12V output for first digital input
+Pin 7 - EXT GND connection to chassis ground / Battery - (in my case)
+Pins 9 & 10 - First canbus
+Pin 19 - Gnd connection for first and second analog inputs (Throttle)
+Pin 20 - First analog input (Throttle)
+Pin 21 - Second analog input (Throttle)
+Pin 22 - Third analog input (brake / testing input for me)
+Pin 23 - Fourth analog input (test pot on my wires)
+Pin 24 - +5V power for first and second analog inputs (Throttle)
+Pin 26 - +5V power for third and fourth analog inputs (test pots for me,
+probably brake transducer for you)
+Pin 30 - Gnd connection for third and fourth analog inputs (Brake / Testing)
+Pin 32 - First digital input. Tied to pin 3 above through a switch
+
+I used a gnd at pin 19 for one of the gnds. It really doesn't matter
+which one you use. All four (19,29,30,31) are equivalent.

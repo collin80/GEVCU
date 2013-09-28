@@ -55,8 +55,8 @@ void PotBrake::setup() {
 		prefsHandler->read(EETH_MAX_ACCEL_REGEN, &throttleMaxRegen);
 		prefsHandler->read(EETH_MAX_BRAKE_REGEN, &brakeMaxRegen);
 		prefsHandler->read(EETH_MIN_BRAKE_REGEN, &brakeMinRegen);
-		Logger::debug("BRAKE T1 MIN: %i MAX: %i", brakeMin, brakeMax);
-		Logger::debug("Min: %i MaxRegen: %i", brakeMinRegen, brakeMaxRegen);
+		Logger::debug(POTBRAKEPEDAL, "BRAKE T1 MIN: %i MAX: %i", brakeMin, brakeMax);
+		Logger::debug(POTBRAKEPEDAL, "Min: %i MaxRegen: %i", brakeMinRegen, brakeMaxRegen);
 	 }
 	 else { //checksum invalid. Reinitialize values and store to EEPROM
 	 
@@ -158,7 +158,7 @@ void PotBrake::doBrake() {
 	if (brake1Val < brakeMin) {
 		if (brake1Val < tempLow) {
 			brakeStatus = ERR_LOW_T1;
-			//Logger::debug("B");
+			//Logger::debug(POTBRAKEPEDAL, "B");
 		}
 		clampedVal = brakeMin;
 	}
@@ -168,7 +168,7 @@ void PotBrake::doBrake() {
 		return;
 	}
 	calcBrake1 = calcBrake(clampedVal, brakeMin, brakeMax);
-	//Logger::debug("calcBrake: %d", calcBrake1);
+	//Logger::debug(POTBRAKEPEDAL, "calcBrake: %d", calcBrake1);
 
 	//Apparently all is well with the throttle input
 	//so go ahead and calculate the proper throttle output
@@ -191,15 +191,15 @@ void PotBrake::doBrake() {
 
 	if (brakeMaxRegen != 0) { //is the brake regen even enabled?
 		int range = brakeMaxRegen - brakeMinRegen; //we start the brake at ThrottleMaxRegen so the range is reduced by that amount
-		//Logger::debug("range: %d", range);
-		//Logger::debug("brakeFeedback: %d", brakeFeedback);
+		//Logger::debug(POTBRAKEPEDAL, "range: %d", range);
+		//Logger::debug(POTBRAKEPEDAL, "brakeFeedback: %d", brakeFeedback);
 		if (range < 1) { //detect stupidity and abort
 			level = 0;
 			return;
 		}
 		level = (signed int) ((signed int) -10 * range * brakeFeedback) / (signed int) 1000;
 		level -= 10 * brakeMinRegen;
-		//Logger::debug("level: %d", level);
+		//Logger::debug(POTBRAKEPEDAL, "level: %d", level);
 	}
 
 }
@@ -242,7 +242,7 @@ void PotBrake::saveEEPROM() {
 }
 
 void PotBrake::saveConfiguration() {
-  Logger::info("Saving brake settings");
+  Logger::info(POTBRAKEPEDAL, "Saving brake settings");
   TickHandler::getInstance()->detach(this); // unregister from TickHandler first
   setT1Min(throttleDetector->getThrottle1Min());
   setT1Max(throttleDetector->getThrottle1Max());

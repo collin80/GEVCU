@@ -40,7 +40,6 @@ void ICHIPWIFI::setup() {
 	sendCmd("WLSI=!GEVCU"); //name our ADHOC network GEVCU (the ! indicates a ad-hoc network)
 	sendCmd("DIP=192.168.3.10"); //IP of GEVCU is this
 	sendCmd("DPSZ=10"); //serve up 10 more addresses (11 - 20)
-	sendCmd("DOWN"); //cause a reset to allow it to come up with the settings
 	enableServer();
 
 	TickHandler::getInstance()->attach(this, CFG_TICK_INTERVAL_WIFI);
@@ -63,13 +62,14 @@ void ICHIPWIFI::handleTick() {
 
 //turn on the web server
 void ICHIPWIFI::enableServer() {
-	sendCmd("WRFU"); //enable WIFI if not already enabled
 	sendCmd("WWW=3"); //turn on web server for three clients
+	sendCmd("DOWN"); //cause a reset to allow it to come up with the settings
 }
 
 //turn off the web server
 void ICHIPWIFI::disableServer() {
 	sendCmd("WWW=0"); //turn off web server
+	sendCmd("DOWN"); //cause a reset to allow it to come up with the settings
 }
 
 //Determine if a parameter has changed, which one, and the new value
@@ -116,13 +116,14 @@ void ICHIPWIFI::loop() {
 		incoming = serialInterface->read();
 		if (incoming != -1) { //and there is no reason it should be -1
 			if (incoming != 13 && ibWritePtr < 127) { //add to the line
-				incomingBuffer[ibWritePtr++] = (char) incoming;
+				if (incoming != 10)
+					incomingBuffer[ibWritePtr++] = (char) incoming;
 			} else { //that's the end of the line. Try to figure out what it said.
 				incomingBuffer[ibWritePtr] = 0; //null terminate the string
 				ibWritePtr = 0; //reset the write pointer
 				if (strcmp(incomingBuffer, "I/ERROR") == 0) { //got an error back!
 				}
-				Logger::debug("Msg from wifi: %s", incomingBuffer);
+				Logger::debug(ICHIP2128, incomingBuffer);
 			}
 		} else
 			return;

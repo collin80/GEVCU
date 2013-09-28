@@ -47,6 +47,7 @@ public:
 	static void setLoglevel(LogLevel);
 	static LogLevel getLogLevel();
 	static uint32_t getLastLogTime();
+	static boolean isDebug();
 private:
 	static LogLevel logLevel;
 	static uint32_t lastLogTime;
