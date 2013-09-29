@@ -1,3 +1,52 @@
-Idea and requirements specification by Jack Rickard<br/>
-Software design by Collin Kidder, Michael Neuweiler, Charles Gaplin<br/>
-Harware design by Ed Clausen, Collin Kidder, Paulo Jorge de Almeida
+<h2>ABOUT GEVCU</h2>
+<p />
+Version 1.00001
+<p />
+The Generalized Electric Vehicle Control Unit - GEVCU is an open source
+software project to develop a Vehicle Control Unit (VCU) specifically
+for electric vehicles. Following the OEM automotive model, standardized
+components are used in multiple cars, with a single component (VCU)
+containing software to integrate operation of those components
+specifically for that make and model vehicle.
+<p />
+The purpose of GEVCU is to handle throttle control, regenerative
+braking, and such peculiarities as precharge, cooling system control,
+instrumentation etc. - essentially the driver interface of the car.
+GEVCU then manages torque and speed commands to the power electronics
+via CAN bus to actually operate the vehicle in response to driver input.
+But it also provides outputs to instrumentation, cooling systems, and
+other controls specific to that vehicle.
+<p />
+GEVCU is both open-source and object-oriented allowing easy addition of
+modules to incorporate multiple standard power components. It is easily
+modified to incorporate additional features peculiar to any electric car
+conversion or build. For most operations, it is easily configurable by
+non-programmers to adapt to a wide variety of power components and
+vehicle applications.
+<p />
+GEVCU is designed to operate on any Arduino Due hardware with two CANbus
+channels and appropriate analog and digital inputs and outputs.
+<p />
+GEVCU was originally conceived of and proposed by Jack Rickard of
+Electric Vehicle Television (http://www.EVtv.me) who wrote the original
+design specification. The main source of the program was developed and
+is maintained by Collin Kidder and the latest version is always
+available at http:/github.com/collin80/GEVCU.
+<p />
+Major contributors to the original project include:
+<p />
+Michael Neuweiler<br />
+Charles Galpin<br />
+Ed Clausen<br />
+Mark Weisheimer<br />
+Paulo Almeida<br />
+<p />
+Collectively, this group operates loosely under the name EVACI -
+Electric Vehicle Ass Clowns International - a global team of software
+and hardware developers dedicated primarily to not electrocuting
+themselves or burning any buildings to the ground.
+<p />
+GEVCU is open source and forever classified EXPERIMENTAL - USE AT YOUR
+OWN RISK. It is offered strictly for experimental and educational
+purposes and is NOT intended for actual use in any commercial product
+for any specific useful purpose.
