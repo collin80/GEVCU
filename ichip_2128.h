@@ -99,6 +99,7 @@ class ICHIPWIFI : public Device {
     String getParamById(String paramName); //try to retrieve the value of the given parameter
     void setParam(String paramName, String value); //set the given parameter with the given string
     void setParam(String paramName, int32_t value);
+    void setParam(String paramName, float value, int precision);
     void sendCmd(String cmd);
     ICHIPWIFI();
     ~ICHIPWIFI();

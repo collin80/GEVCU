@@ -38,8 +38,8 @@
 
 BrusaMotorController::BrusaMotorController() {
 	dmcReady = false;
-	dmcRunning = false;
-	dmcError = false;
+	running = false;
+	faulted = false;
 	dmcWarning = false;
 	torqueAvailable = 0;
 	torqueActual = 0;
@@ -99,21 +99,21 @@ void BrusaMotorController::sendControl() {
 
 
 	//TODO: remove ramp testing
-	requestedTorque = 50;
-	if (speedActual == 0)
+	requestedTorque = 20;
+	if (speedActual < 100)
 		requestedRPM = 1000;
 	if (speedActual > 950)
-		requestedRPM = 0;
+		requestedRPM = 50;
 
 
 
 	outputFrame.data[0] = enablePositiveTorqueSpeed | enableNegativeTorqueSpeed;
-	if (dmcError) {
+	if (faulted) {
 		outputFrame.data[0] |= clearErrorLatch;
 	} else {
 		if (dmcReady || speedActual > 1000) { // see warning about field weakening current to prevent uncontrollable regen
 			outputFrame.data[0] |= enablePowerStage;
-			if (dmcRunning) {
+			if (running) {
 				// outputFrame.data[0] |= enableOscillationLimiter;
 				if (powerMode == modeSpeed)
 					outputFrame.data[0] |= enableSpeedMode;
@@ -198,6 +198,10 @@ void BrusaMotorController::handleCanFrame(RX_CAN_FRAME* frame) {
 		torqueActual = frame->data[5] | (frame->data[4] << 8);
 		speedActual = frame->data[7] | (frame->data[6] << 8);
 
+		//TODO: replace mapping
+		actualTorque = torqueActual / 10; //in tenths Nm
+		actualRPM = speedActual; //in RPM
+
 		if(Logger::isDebug())
 			Logger::debug(BRUSA_DMC5, "status: %X, torque avail: %fNm, actual torque: %fNm, speed actual: %drpm", statusBitField, (float)torqueAvailable/100.0F, (float)torqueActual/100.0F, speedActual);
 
@@ -205,12 +209,12 @@ void BrusaMotorController::handleCanFrame(RX_CAN_FRAME* frame) {
 		if (dmcReady)
 			Logger::info(BRUSA_DMC5, "ready");
 
-		dmcRunning = (statusBitField & stateRunning) != 0 ? true : false;
-		if (dmcRunning)
+		running = (statusBitField & stateRunning) != 0 ? true : false;
+		if (running)
 			Logger::info(BRUSA_DMC5, "running");
 
-		dmcError = (statusBitField & errorFlag) != 0 ? true : false;
-		if (dmcError)
+		faulted = (statusBitField & errorFlag) != 0 ? true : false;
+		if (faulted)
 			Logger::error(BRUSA_DMC5, "error is present, see error message");
 
 		dmcWarning = (statusBitField & warningFlag) != 0 ? true : false;
@@ -352,6 +356,10 @@ void BrusaMotorController::handleCanFrame(RX_CAN_FRAME* frame) {
 		temperatureInverter = frame->data[1] | (frame->data[0] << 8);
 		temperatureMotor = frame->data[3] | (frame->data[2] << 8);
 		temperatureSystem = frame->data[4];
+
+		//TODO: replace mapping
+	    motorTemp = temperatureMotor * 5; //temperature of motor in tenths of degree C
+	    inverterTemp = temperatureInverter * 5; //temperature of inverter in tenths deg C
 
 		if (Logger::isDebug())
 			Logger::debug(BRUSA_DMC5, "temperature: inverter: %f°C, motor: %f°C, system: %d°C", (float)temperatureInverter / 2.0F, (float)temperatureMotor / 2.0F, temperatureSystem - 50);

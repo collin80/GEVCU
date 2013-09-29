@@ -63,16 +63,16 @@ void ICHIPWIFI::handleTick() {
 	if (motorController) {
 		setParam("statusMillis", millis());
 		setParam("statusThrottle", motorController->getThrottle());
-		setParam("statusTorqueReq", motorController->getRequestedTorque());
-		setParam("statusTorqueActual", motorController->getActualTorque());
+		setParam("statusTorqueReq", motorController->getRequestedTorque() / 10.0f, 1);
+		setParam("statusTorqueActual", motorController->getActualTorque() / 10.0f, 1);
 		setParam("statusSpeedRequested", motorController->getRequestedRpm());
 		setParam("statusSpeedActual", motorController->getActualRpm());
 
 		if (tickCounter++ > 3) {
-			setParam("statusRunning", motorController->isRunning());
-			setParam("statusFaulted", motorController->isFaulted());
-			setParam("statusTempMotor", motorController->getMotorTemp());
-			setParam("statusTempInverter", motorController->getInverterTemp());
+			setParam("statusRunning", (motorController->isRunning() ? "true" : "false"));
+			setParam("statusFaulted", (motorController->isFaulted() ? "true" : "false"));
+			setParam("statusTempMotor", motorController->getMotorTemp() / 10.0f, 1);
+			setParam("statusTempInverter", motorController->getInverterTemp() / 10.0f, 1);
 			setParam("statusGear", motorController->getGearSwitch());
 			tickCounter = 0;
 		}
@@ -119,6 +119,15 @@ void ICHIPWIFI::setParam(String paramName, String value) {
 void ICHIPWIFI::setParam(String paramName, int32_t value) {
 	char buffer[33];
 	sprintf(buffer, "%lu", value);
+	setParam(paramName, buffer);
+}
+
+//set the given parameter with the given string
+void ICHIPWIFI::setParam(String paramName, float value, int precision) {
+	char format[10];
+	char buffer[33];
+	sprintf(format, "%%.%df", precision);
+	sprintf(buffer, format, value);
 	setParam(paramName, buffer);
 }
 
