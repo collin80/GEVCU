@@ -26,7 +26,7 @@
 
 #include "Logger.h"
 
-Logger::LogLevel Logger::logLevel = Logger::Debug;
+Logger::LogLevel Logger::logLevel = Logger::Info;
 uint32_t Logger::lastLogTime = 0;
 
 /*

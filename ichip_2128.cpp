@@ -32,6 +32,7 @@
 void ICHIPWIFI::setup() {
 	TickHandler::getInstance()->detach(this);
 
+	tickCounter = 0;
 	ibWritePtr = 0;
 	serialInterface->begin(115200);
 
@@ -40,6 +41,7 @@ void ICHIPWIFI::setup() {
 	sendCmd("WLSI=!GEVCU"); //name our ADHOC network GEVCU (the ! indicates a ad-hoc network)
 	sendCmd("DIP=192.168.3.10"); //IP of GEVCU is this
 	sendCmd("DPSZ=10"); //serve up 10 more addresses (11 - 20)
+	sendCmd("RPG=secret"); // set the configuration password for /ichip
 	enableServer();
 
 	TickHandler::getInstance()->attach(this, CFG_TICK_INTERVAL_WIFI);
@@ -57,7 +59,24 @@ void ICHIPWIFI::sendCmd(String cmd) {
 
 //periodic processes
 void ICHIPWIFI::handleTick() {
+	MotorController* motorController = DeviceManager::getInstance()->getMotorController();
+	if (motorController) {
+		setParam("statusMillis", millis());
+		setParam("statusThrottle", motorController->getThrottle());
+		setParam("statusTorqueReq", motorController->getRequestedTorque());
+		setParam("statusTorqueActual", motorController->getActualTorque());
+		setParam("statusSpeedRequested", motorController->getRequestedRpm());
+		setParam("statusSpeedActual", motorController->getActualRpm());
 
+		if (tickCounter++ > 3) {
+			setParam("statusRunning", motorController->isRunning());
+			setParam("statusFaulted", motorController->isFaulted());
+			setParam("statusTempMotor", motorController->getMotorTemp());
+			setParam("statusTempInverter", motorController->getInverterTemp());
+			setParam("statusGear", motorController->getGearSwitch());
+			tickCounter = 0;
+		}
+	}
 }
 
 //turn on the web server
@@ -83,15 +102,24 @@ String ICHIPWIFI::getParamById(String paramName) {
 	serialInterface->print(paramName);
 	serialInterface->print("?");
 	serialInterface->write(13);
+	loop();
 }
 
 //set the given parameter with the given string
-String ICHIPWIFI::setParam(String paramName, String value) {
+void ICHIPWIFI::setParam(String paramName, String value) {
 	serialInterface->write("AT+i");
 	serialInterface->print(paramName);
-	serialInterface->print("=");
+	serialInterface->write("=");
 	serialInterface->print(value);
 	serialInterface->write(13);
+	loop();
+}
+
+//set the given parameter with the given string
+void ICHIPWIFI::setParam(String paramName, int32_t value) {
+	char buffer[33];
+	sprintf(buffer, "%lu", value);
+	setParam(paramName, buffer);
 }
 
 ICHIPWIFI::ICHIPWIFI() {

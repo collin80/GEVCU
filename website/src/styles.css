@@ -1,0 +1,96 @@
+html {
+	background: #0F0F0F;
+	background: linear-gradient(bottom, rgb(2, 44, 84) 1%, rgb(15, 15, 16) 70%);
+	background: -o-linear-gradient(bottom, rgb(2, 44, 84) 1%, rgb(15, 15, 16) 70%);
+	background: -moz-linear-gradient(bottom, rgb(2, 44, 84), rgb(15, 15, 16) 70%);
+	background: -webkit-linear-gradient(bottom, rgb(2, 44, 84) 1%, rgb(15, 15, 16) 70%);
+	background: -ms-linear-gradient(bottom, rgb(2, 44, 84) 1%, rgb(15, 15, 16) 70%);
+	background-attachment: fixed;
+}
+
+body {
+	color: #ffffff;
+	font-family: arial, verdana, sans-serif;
+}
+
+div.tabHeader {
+	height: 32px;
+	overflow: hidden;
+}
+
+div.tabHeader a {
+	float: left;
+	display: block;
+	width: 120px;
+	text-align: center;
+	height: 28px;
+	padding-top: 3px;
+	vertical-align: middle;
+	border: 1px solid #555599;
+	border-bottom-width: 0;
+	text-decoration: none;
+	font-weight: 500;
+	color: #8888ff;
+}
+
+div.tabHeader a:hover,div.tabHeader a.Active {
+	background-color: #ffff55;
+	background: linear-gradient(bottom, rgb(2, 44, 84) 1%, rgb(15, 15, 16) 70%);
+	background: -o-linear-gradient(bottom, rgb(2, 44, 84) 1%, rgb(15, 15, 16) 70%);
+	background: -moz-linear-gradient(bottom, rgb(2, 44, 84), rgb(15, 15, 16) 70%);
+	background: -webkit-linear-gradient(bottom, rgb(2, 44, 84) 1%, rgb(15, 15, 16) 70%);
+	background: -ms-linear-gradient(bottom, rgb(2, 44, 84) 1%, rgb(15, 15, 16) 70%);
+}
+
+div.tabHeader a.on {
+	color:#ffffff;
+	background: linear-gradient(top, rgb(2, 44, 84) 1%, rgb(15, 15, 16) 70%);
+	background: -o-linear-gradient(top, rgb(2, 44, 84) 1%, rgb(15, 15, 16) 70%);
+	background: -moz-linear-gradient(top, rgb(2, 44, 84), rgb(15, 15, 16) 70%);
+	background: -webkit-linear-gradient(top, rgb(2, 44, 84) 1%, rgb(15, 15, 16) 70%);
+	background: -ms-linear-gradient(top, rgb(2, 44, 84) 1%, rgb(15, 15, 16) 70%);
+}
+
+div.tabs
+{
+  clear: both;
+  border: 1px solid #555599;
+  overflow: hidden;
+}
+
+a {
+	color: #5555ff;
+}
+
+h1 {
+	color: #9999dd;
+	font-size: 3em;
+	margin-top: 5px;
+	margin-bottom: 5px;
+}
+
+h2 {
+	color: #bbbbff;
+	margin-top: 5px;
+	padding: 0px 0px 0px 0px;
+}
+
+h3 {
+	color: #ddddff;
+	margin-top: 5px;
+	padding: 0px 0px 0px 0px;
+}
+
+table {
+	width: 800px
+}
+
+.small {
+	font-size: 0.6em;
+}
+
+table.topborder {
+	border-top-width: 1;
+	border-top-style: solid;
+	border-top-color: #003E61;
+}
