@@ -94,7 +94,7 @@ void CanThrottle::handleCanFrame(RX_CAN_FRAME *frame) {
 	}
 }
 
-Device::DeviceId CanThrottle::getId() {
+DeviceId CanThrottle::getId() {
 	return CANACCELPEDAL;
 }
 

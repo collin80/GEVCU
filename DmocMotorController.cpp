@@ -53,7 +53,6 @@ DmocMotorController::DmocMotorController() : MotorController() {
 	operationState = DISABLED;
 	actualState = DISABLED;
 	online = 0;
-	powerMode = MODE_TORQUE;
 //	maxTorque = 2000;
 }
 
@@ -75,20 +74,20 @@ void DmocMotorController::handleCanFrame(RX_CAN_FRAME *frame) {
 		RotorTemp = frame->data[0];
 		invTemp = frame->data[1];
 		StatorTemp = frame->data[2];
-		inverterTemp = invTemp * 10;
+		temperatureInverter = invTemp * 10;
 		//now pick highest of motor temps and report it
 		if (RotorTemp > StatorTemp) {
-			motorTemp = RotorTemp * 10;
+			temperatureMotor = RotorTemp * 10;
 		}
 		else {
-			motorTemp = StatorTemp * 10;
+			temperatureMotor = StatorTemp * 10;
 		}
 		break;
 	case 0x23A: //torque report
-		actualTorque = ((frame->data[0] * 256) + frame->data[1]) - 30000;
+		torqueActual = ((frame->data[0] * 256) + frame->data[1]) - 30000;
 		break;
 	case 0x23B: //speed and current operation status
-		actualRPM = ((frame->data[0] * 256) + frame->data[1]) - 20000;
+		speedActual = ((frame->data[0] * 256) + frame->data[1]) - 20000;
 		temp = (OperationState) (frame->data[6] >> 4);
 		//actually, the above is an operation status report which doesn't correspond
 		//to the state enum so translate here.
@@ -158,7 +157,7 @@ void DmocMotorController::handleTick() {
 	//if (getDigital(0)) {
 		//setGear(DRIVE);
 		//runThrottle = true;
-		setPowerMode(MODE_TORQUE);
+		setPowerMode(modeTorque);
 	//}
 
 	//but, if the second input is high we cancel the whole thing and disable the drive.
@@ -189,12 +188,12 @@ void DmocMotorController::sendCmd1() {
 	output.ide = 0; //standard frame
 	output.rtr = 0;
 
-	if (requestedThrottle > 0 && operationState == ENABLE && selectedGear != NEUTRAL && powerMode == MODE_RPM)
-		requestedRPM = 20000 + (((long) requestedThrottle * (long) maxRPM) / 1000);
+	if (throttleRequested > 0 && operationState == ENABLE && selectedGear != NEUTRAL && powerMode == modeSpeed)
+		speedRequested = 20000 + (((long) throttleRequested * (long) speedMax) / 1000);
 	else
-		requestedRPM = 20000;
-	output.data[0] = (requestedRPM & 0xFF00) >> 8;
-	output.data[1] = (requestedRPM & 0x00FF);
+		speedRequested = 20000;
+	output.data[0] = (speedRequested & 0xFF00) >> 8;
+	output.data[1] = (speedRequested & 0x00FF);
 	output.data[2] = 0; //not used
 	output.data[3] = 0; //not used
 	output.data[4] = 0; //not used
@@ -232,25 +231,25 @@ void DmocMotorController::sendCmd2() {
 	//MaxTorque is in tenths like it should be.
 	//Requested throttle is [-1000, 1000]
 	//data 0-1 is upper limit, 2-3 is lower limit. They are set to same value to lock torque to this value
-	//requestedTorque = 30000L + (((long)requestedThrottle * (long)MaxTorque) / 1000L);
+	//torqueRequested = 30000L + (((long)throttleRequested * (long)MaxTorque) / 1000L);
 
-	requestedTorque = 30000; //set upper torque to zero if not drive enabled
-	if (powerMode == MODE_TORQUE) {
+	torqueRequested = 30000; //set upper torque to zero if not drive enabled
+	if (powerMode == modeTorque) {
 		if (actualState == ENABLE) { //don't even try sending torque commands until the DMOC reports it is ready
 			if (selectedGear == DRIVE)
 				//Logger::debug("Drive - ENABLED - Torque Mode - Go!");
-                requestedTorque = 30000L + (((long) requestedThrottle * (long) maxTorque) / 1000L);
+                torqueRequested = 30000L + (((long) throttleRequested * (long) torqueMax) / 1000L);
 			if (selectedGear == REVERSE)
-				requestedTorque = 30000L - (((long) requestedThrottle * (long) maxTorque) / 1000L);
+				torqueRequested = 30000L - (((long) throttleRequested * (long) torqueMax) / 1000L);
 		}
-		output.data[0] = (requestedTorque & 0xFF00) >> 8;
-		output.data[1] = (requestedTorque & 0x00FF);
+		output.data[0] = (torqueRequested & 0xFF00) >> 8;
+		output.data[1] = (torqueRequested & 0x00FF);
 		output.data[2] = output.data[0];
 		output.data[3] = output.data[1];
 	}
 	else { //RPM mode so request max torque as upper limit and zero torque as lower limit
-		output.data[0] = ((30000L + maxTorque) & 0xFF00) >> 8;
-		output.data[1] = ((30000L + maxTorque) & 0x00FF);
+		output.data[0] = ((30000L + torqueMax) & 0xFF00) >> 8;
+		output.data[1] = ((30000L + torqueMax) & 0x00FF);
 		output.data[2] = 0x75;
 		output.data[3] = 0x30;
 	}
@@ -263,7 +262,7 @@ void DmocMotorController::sendCmd2() {
 
     //Logger::debug("max torque: %i", maxTorque);
         
-    //Logger::debug("requested torque: %i",(((long) requestedThrottle * (long) maxTorque) / 1000L));
+    //Logger::debug("requested torque: %i",(((long) throttleRequested * (long) maxTorque) / 1000L));
 
 	CanHandler::getInstanceEV()->sendFrame(output);
 }
@@ -366,14 +365,6 @@ byte DmocMotorController::calcChecksum(TX_CAN_FRAME thisFrame) {
 
 DeviceId DmocMotorController::getId() {
 	return (DMOC645);
-}
-
-void DmocMotorController::setPowerMode(PowerMode mode) {
-	powerMode = mode;
-}
-
-DmocMotorController::PowerMode DmocMotorController::getPowerMode() {
-	return powerMode;
 }
 
 uint32_t DmocMotorController::getTickInterval() 

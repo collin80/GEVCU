@@ -58,11 +58,6 @@ private:
 	int ptrBuffer;
 	int state;
     
-    // temp
-    bool runRamp;
-    bool runStatic;
-    bool runThrottle;
-
     void init();
     void serialEvent();
 	void handleConsoleCmd();
