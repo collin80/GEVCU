@@ -72,6 +72,7 @@ private:
 	bool throttle2Provided();
 	int checkLinear(uint16_t, uint16_t);
 	int checkInverse(uint16_t, uint16_t);
+	uint16_t normalize(uint16_t sensorValue, uint16_t sensorMin, uint16_t sensorMax, uint16_t constrainMin, uint16_t constrainMax);
 	Throttle *throttle;
 	DetectionState state;
 	unsigned long startTime;
