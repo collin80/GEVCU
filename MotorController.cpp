@@ -205,46 +205,68 @@ signed int MotorController::getMotorTemp() {
 uint16_t MotorController::getRequestedRpm() {
 	return requestedRPM;
 }
-
-uint16_t MotorController::getRequestedTorque() {
-	return requestedTorque;
-}
-
 void MotorController::setMaxRpm(uint16_t maxRPM) 
 {
 	this->maxRPM = maxRPM;
 }
 
+uint16_t MotorController::getRequestedTorque() {
+	return requestedTorque;
+}
 void MotorController::setMaxTorque(uint16_t maxTorque) 
 {
 	this->maxTorque = maxTorque;
 }
 
+uint16_t MotorController::getPrechargeC()
+{
+	return prechargeC;
+}
 void MotorController::setPrechargeC(uint16_t c)
 {
 	prechargeC = c;
 }
 
+uint16_t MotorController::getPrechargeR()
+{
+	return prechargeR;
+}
 void MotorController::setPrechargeR(uint16_t r) 
 {
 	prechargeR = r;
 }
 
+uint16_t MotorController::getNominalV()
+{
+	return nominalVolt;
+}
 void MotorController::setNominalV(uint16_t v) 
 {
 	nominalVolt = v;
 }
 
+uint8_t MotorController::getPrechargeRelay()
+{
+	return prechargeRelay;
+}
 void MotorController::setPrechargeRelay(uint8_t relay) 
 {
 	prechargeRelay = relay;
 }
 
+uint8_t MotorController::getMainRelay()
+{
+	return mainContactorRelay;
+}
 void MotorController::setMainRelay(uint8_t relay) 
 {
 	mainContactorRelay = relay;
 }
 
+uint8_t MotorController::getReversePercent()
+{
+	return reversePercent;
+}
 void MotorController::setReversePercent(uint8_t perc) 
 {
 	reversePercent = perc;

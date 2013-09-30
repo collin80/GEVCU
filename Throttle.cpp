@@ -155,48 +155,85 @@ void Throttle::detectThrottle()
   throttleDetector->detect();
 }
 
+uint16_t Throttle::getT1Min()
+{
+	return throttleMin1;
+}
 void Throttle::setT1Min(uint16_t min) 
 {
 	throttleMin1 = min;
 }
 
+uint16_t Throttle::getT2Min()
+{
+	return throttleMin2;
+}
 void Throttle::setT2Min(uint16_t min) 
 {
 	throttleMin2 = min;
 }
 
+uint16_t Throttle::getT1Max()
+{
+	return throttleMax1;
+}
 void Throttle::setT1Max(uint16_t max) 
 {
 	throttleMax1 = max;
 }
 
+uint16_t Throttle::getT2Max()
+{
+	return throttleMax2;
+}
 void Throttle::setT2Max(uint16_t max) 
 {
 	throttleMax2 = max;
 }
 
+uint16_t Throttle::getRegenEnd()
+{
+	return throttleRegen;
+}
 void Throttle::setRegenEnd(uint16_t regen) 
 {
 	throttleRegen = regen;
 }
 
+uint16_t Throttle::getFWDStart()
+{
+	return throttleFwd;
+}
 void Throttle::setFWDStart(uint16_t fwd) 
 {
 	throttleFwd = fwd;
 }
 
+uint16_t Throttle::getMAP()
+{
+	return throttleMap;
+}
 void Throttle::setMAP(uint16_t map) 
 {
 	throttleMap = map;
 }
 
+uint16_t Throttle::getMaxRegen()
+{
+	return throttleMaxRegen;
+}
 void Throttle::setMaxRegen(uint16_t regen) 
 {
 	throttleMaxRegen = regen;
 }
 
+uint16_t Throttle::getMinRegen()
+{
+	return throttleMinRegen;
+}
 void Throttle::setMinRegen(uint16_t regen) 
 {
+	throttleMinRegen = regen;
 }
 
 void Throttle::saveConfiguration()
