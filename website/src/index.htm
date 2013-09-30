@@ -1,0 +1,29 @@
+<html>
+<head>
+	<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+	<title>GEVCU</title>
+	<link rel="stylesheet" type="text/css" href="styles.css" />
+	<script type='text/javascript' src='control.js'></script>
+</head>
+<body>
+	<h1>GEVCU</h1>
+
+	<div class="tabHeader" id="tabHeader">
+		<a href="javascript:showTab('status')" id="statuslink">Status</a>
+		<a href="javascript:showTab('config')" id="configlink">Config</a>
+		<a href="javascript:showTab('about')" id="aboutlink">About</a>
+	</div>
+
+	<div class="tabs" id="tabs">
+		<div class="tab" id="status"></div>
+		<div class="tab" id="config"></div>
+		<div class="tab" id="about"></div>
+	</div>
+	<script>
+		loadPage("status");
+		loadPage("config");
+		loadPage("about");
+		showTab('status');
+	</script>
+</body>
+</html>

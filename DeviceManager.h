@@ -42,7 +42,7 @@ public:
 	void removeDevice(Device *device);
 //	void addTickObserver(TickObserver *observer, uint32_t frequency);
 //	void addCanObserver(CanObserver *observer, uint32_t id, uint32_t mask, bool extended, CanHandler::CanBusNode canBus);
-	void sendMessage(Device::DeviceType deviceType, Device::DeviceId deviceId, uint32_t msgType, void* message);
+	void sendMessage(DeviceType deviceType, DeviceId deviceId, uint32_t msgType, void* message);
 	uint8_t getNumThrottles();
 	uint8_t getNumControllers();
 	uint8_t getNumBMS();
@@ -51,8 +51,8 @@ public:
 	Throttle *getAccelerator();
 	Throttle *getBrake();
 	MotorController *getMotorController();
-	Device *getDeviceByID(Device::DeviceId);
-	Device *getDeviceByType(Device::DeviceType);
+	Device *getDeviceByID(DeviceId);
+	Device *getDeviceByType(DeviceType);
 
 protected:
 
@@ -66,7 +66,7 @@ private:
 	MotorController *motorController;
 
 	int8_t findDevice(Device *device);
-	uint8_t countDeviceType(Device::DeviceType deviceType);
+	uint8_t countDeviceType(DeviceType deviceType);
 };
 
 #endif

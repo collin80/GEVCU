@@ -51,7 +51,7 @@ void PotThrottle::setup() {
 	
 #ifndef USE_HARD_CODED
 	if (prefsHandler->checksumValid()) { //checksum is good, read in the values stored in EEPROM
-		Logger::debug("Valid checksum so using stored throttle config values");
+		Logger::debug(POTACCELPEDAL, "Valid checksum so using stored throttle config values");
 		prefsHandler->read(EETH_MIN_ONE, &throttleMin1);
 		prefsHandler->read(EETH_MAX_ONE, &throttleMax1);
 		prefsHandler->read(EETH_MIN_TWO, &throttleMin2);
@@ -68,16 +68,16 @@ void PotThrottle::setup() {
 		// will both be zero.  We really should refuse to operate in this condition and force
 		// calibration, but for now at least allow calibration to work by setting numThrottlePots = 2
 		if (numThrottlePots == 0 && throttleSubType == 0) {
-			Logger::debug("THROTTLE APPEARS TO NEED CALIBRATION/DETECTION - choose 'z' on the serial console menu");
+			Logger::debug(POTACCELPEDAL, "THROTTLE APPEARS TO NEED CALIBRATION/DETECTION - choose 'z' on the serial console menu");
 			numThrottlePots = 2;
 		}
 		
-		Logger::debug("# of pots: %i       subtype: %i", numThrottlePots, throttleSubType);
-		Logger::debug("T1 MIN: %i MAX: %i      T2 MIN: %i MAX: %i", throttleMin1, throttleMax1, throttleMin2, throttleMax2);
-		Logger::debug("Regen: %i Fwd: %i Map: %i MaxRegen: %i", throttleRegen, throttleFwd, throttleMap, throttleMaxRegen);
+		Logger::debug(POTACCELPEDAL, "# of pots: %i       subtype: %i", numThrottlePots, throttleSubType);
+		Logger::debug(POTACCELPEDAL, "T1 MIN: %i MAX: %i      T2 MIN: %i MAX: %i", throttleMin1, throttleMax1, throttleMin2, throttleMax2);
+		Logger::debug(POTACCELPEDAL, "Regen: %i Fwd: %i Map: %i MaxRegen: %i", throttleRegen, throttleFwd, throttleMap, throttleMaxRegen);
 	}
 	else { //checksum invalid. Reinitialize values and store to EEPROM
-		Logger::debug("Invalid checksum so using hard coded throttle config values");
+		Logger::debug(POTACCELPEDAL, "Invalid checksum so using hard coded throttle config values");
 
 		 //The next three are tenths of a percent
 		throttleRegen = ThrottleRegenValue;
@@ -104,7 +104,7 @@ void PotThrottle::setup() {
 		prefsHandler->saveChecksum();
 	}
 #else
-	Logger::debug("#define USE_HARD_CODED so using hard coded throttle config values");
+	Logger::debug(POTACCELPEDAL, "#define USE_HARD_CODED so using hard coded throttle config values");
 	throttleRegen = ThrottleRegenValue;
 	throttleFwd = ThrottleFwdValue;
 	throttleMap = ThrottleMapValue;
@@ -156,7 +156,7 @@ void PotThrottle::doAccel() {
 	if (throttle1Val > throttleMax1) {
 		if (throttle1Val > (throttleMax1 + CFG_THROTTLE_TOLERANCE)) {
 			throttleStatus = ERR_HIGH_T1;
-			//Logger::debug("T1H ");
+			//Logger::debug(POTACCELPEDAL, "T1H ");
 		}
 		clampedVal = throttleMax1;
 	}
@@ -167,7 +167,7 @@ void PotThrottle::doAccel() {
 	if (throttle1Val < throttleMin1) {
 		if (throttle1Val < tempLow) {
 			throttleStatus = ERR_LOW_T1;
-			//Logger::debug("T1L ");
+			//Logger::debug(POTACCELPEDAL, "T1L ");
 		}
 		clampedVal = throttleMin1;
 	}
@@ -177,14 +177,14 @@ void PotThrottle::doAccel() {
 		return;
 	}
 	calcThrottle1 = calcThrottle(clampedVal, throttleMin1, throttleMax1);
-        //Logger::debug("calc throttle: %i", calcThrottle1);
+        //Logger::debug(POTACCELPEDAL, "calc throttle: %i", calcThrottle1);
 
 	if (numThrottlePots > 1) { //can only do these things if there are two or more pots
 		clampedVal = throttle2Val;
 		if (throttle2Val > throttleMax2) {
 			if (throttle2Val > (throttleMax2 + CFG_THROTTLE_TOLERANCE)) {
 				throttleStatus = ERR_HIGH_T2;
-				//Logger::debug("T2H ");
+				//Logger::debug(POTACCELPEDAL, "T2H ");
 			}
 			clampedVal = throttleMax2;
 		}
@@ -195,7 +195,7 @@ void PotThrottle::doAccel() {
 		if (throttle2Val < throttleMin2) {
 			if (throttle2Val < tempLow) {
 				throttleStatus = ERR_LOW_T2;
-				//Logger::debug("T2L ");
+				//Logger::debug(POTACCELPEDAL, "T2L ");
 			}
 			clampedVal = throttleMin2;
 		}
@@ -204,11 +204,11 @@ void PotThrottle::doAccel() {
 
 		if ((calcThrottle1 - throttleMaxErr) > calcThrottle2) { //then throttle1 is too large compared to 2
 			throttleStatus = ERR_MISMATCH;
-			//Logger::debug("MX1 ");
+			//Logger::debug(POTACCELPEDAL, "MX1 ");
 		}
 		if ((calcThrottle2 - throttleMaxErr) > calcThrottle1) { //then throttle2 is too large compared to 1
 			throttleStatus = ERR_MISMATCH;
-			//Logger::debug("MX2 ");
+			//Logger::debug(POTACCELPEDAL, "MX2 ");
 		}
 
 		calcThrottle1 = (calcThrottle1 + calcThrottle2) / 2; //temp now the average of the two
@@ -239,7 +239,7 @@ void PotThrottle::doAccel() {
 //don't happen. Also, right now values of ADC outside the proper range are just clamped to the proper range.
 void PotThrottle::handleTick() {
 
-	//Logger::debug("Pot Throttle HandleTick");
+	//Logger::debug(POTACCELPEDAL, "handleTick");
 
 	sys_io_adc_poll();
 
@@ -260,7 +260,7 @@ PotThrottle::ThrottleStatus PotThrottle::getStatus() {
 }
 
 
-Device::DeviceId PotThrottle::getId() {
+DeviceId PotThrottle::getId() {
 	return (POTACCELPEDAL);
 }
 
@@ -279,7 +279,7 @@ void PotThrottle::saveEEPROM() {
 }
 
 void PotThrottle::saveConfiguration() {
-  Logger::info("Saving throttle settings");
+  Logger::info(POTACCELPEDAL, "Saving throttle settings");
   TickHandler::getInstance()->detach(this); // unregister from TickHandler first
   setT1Min(throttleDetector->getThrottle1Min());
   setT1Max(throttleDetector->getThrottle1Max());
