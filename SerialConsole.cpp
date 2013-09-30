@@ -118,6 +118,7 @@ void SerialConsole::printMenu() {
 	SerialUSB.println("NOMV = Nominal system voltage (1/10 of a volt)");
 	SerialUSB.println("PRELAY = Which output to use for precharge contactor (255 to disable)");
 	SerialUSB.println("MRELAY = Which output to use for main contactor (255 to disable)");
+	SerialUSB.println("LOGLEVEL = set log level (0=debug, 1=info, 2=warn, 3=error)");
 }
 
 /*	There is a help menu (press H or h or ?)
@@ -317,6 +318,29 @@ void SerialConsole::handleConfigCmd()
 		Logger::debug("Setting Precharge Relay to %i", newValue);
 		DeviceManager::getInstance()->getMotorController()->setPrechargeRelay(newValue);
 		DeviceManager::getInstance()->getMotorController()->saveEEPROM();
+	}
+	else if (cmdString == String("LOGLEVEL")) {
+		newValue = atoi((char *)(cmdBuffer + i));
+		switch (newValue) {
+		case 0:
+			Logger::setLoglevel(Logger::Debug);
+			Logger::info("setting loglevel to 'debug'");
+			break;
+		case 1:
+			Logger::setLoglevel(Logger::Info);
+			Logger::info("setting loglevel to 'info'");
+			break;
+		case 2:
+			Logger::setLoglevel(Logger::Info);
+			Logger::info("setting loglevel to 'warning'");
+			Logger::setLoglevel(Logger::Warn);
+			break;
+		case 3:
+			Logger::setLoglevel(Logger::Info);
+			Logger::info("setting loglevel to 'error'");
+			Logger::setLoglevel(Logger::Error);
+			break;
+		}
 	}
 }
 

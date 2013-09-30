@@ -327,7 +327,7 @@ void loop() {
 #ifdef CFG_ENABLE_DEVICE_ICHIP2128_WIFI	
 	//Evilness... Find a better way to reference the wifi stuff
 	Device *tempDevice;
-	tempDevice = DeviceManager::getInstance()->getDeviceByID(Device::ICHIP2128);
+	tempDevice = DeviceManager::getInstance()->getDeviceByID(ICHIP2128);
 #endif
 
 #ifdef CFG_TIMER_USE_QUEUING

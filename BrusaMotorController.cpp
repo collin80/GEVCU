@@ -38,8 +38,8 @@
 
 BrusaMotorController::BrusaMotorController() {
 	dmcReady = false;
-	dmcRunning = false;
-	dmcError = false;
+	running = false;
+	faulted = false;
 	dmcWarning = false;
 	torqueAvailable = 0;
 	torqueActual = 0;
@@ -99,21 +99,21 @@ void BrusaMotorController::sendControl() {
 
 
 	//TODO: remove ramp testing
-	requestedTorque = 50;
-	if (speedActual == 0)
+	requestedTorque = 20;
+	if (speedActual < 100)
 		requestedRPM = 1000;
 	if (speedActual > 950)
-		requestedRPM = 0;
+		requestedRPM = 50;
 
 
 
 	outputFrame.data[0] = enablePositiveTorqueSpeed | enableNegativeTorqueSpeed;
-	if (dmcError) {
+	if (faulted) {
 		outputFrame.data[0] |= clearErrorLatch;
 	} else {
 		if (dmcReady || speedActual > 1000) { // see warning about field weakening current to prevent uncontrollable regen
 			outputFrame.data[0] |= enablePowerStage;
-			if (dmcRunning) {
+			if (running) {
 				// outputFrame.data[0] |= enableOscillationLimiter;
 				if (powerMode == modeSpeed)
 					outputFrame.data[0] |= enableSpeedMode;
@@ -197,46 +197,52 @@ void BrusaMotorController::handleCanFrame(RX_CAN_FRAME* frame) {
 		torqueAvailable = frame->data[3] | (frame->data[2] << 8);
 		torqueActual = frame->data[5] | (frame->data[4] << 8);
 		speedActual = frame->data[7] | (frame->data[6] << 8);
-		Logger::debug("status: %X, torque avail: %fNm, actual torque: %fNm, speed actual: %drpm", statusBitField, (float)torqueAvailable/100.0F, (float)torqueActual/100.0F, speedActual);
+
+		//TODO: replace mapping
+		actualTorque = torqueActual / 10; //in tenths Nm
+		actualRPM = speedActual; //in RPM
+
+		if(Logger::isDebug())
+			Logger::debug(BRUSA_DMC5, "status: %X, torque avail: %fNm, actual torque: %fNm, speed actual: %drpm", statusBitField, (float)torqueAvailable/100.0F, (float)torqueActual/100.0F, speedActual);
 
 		dmcReady = (statusBitField & stateReady) != 0 ? true : false;
 		if (dmcReady)
-			Logger::info("DMC5: ready");
+			Logger::info(BRUSA_DMC5, "ready");
 
-		dmcRunning = (statusBitField & stateRunning) != 0 ? true : false;
-		if (dmcRunning)
-			Logger::info("DMC5: running");
+		running = (statusBitField & stateRunning) != 0 ? true : false;
+		if (running)
+			Logger::info(BRUSA_DMC5, "running");
 
-		dmcError = (statusBitField & errorFlag) != 0 ? true : false;
-		if (dmcError)
-			Logger::error("DMC5: error is present, see error message");
+		faulted = (statusBitField & errorFlag) != 0 ? true : false;
+		if (faulted)
+			Logger::error(BRUSA_DMC5, "error is present, see error message");
 
 		dmcWarning = (statusBitField & warningFlag) != 0 ? true : false;
 		if (dmcWarning)
-			Logger::warn("DMC5: warning is present, see warning message");
+			Logger::warn(BRUSA_DMC5, "warning is present, see warning message");
 
 		if (statusBitField & motorModelLimitation)
-			Logger::info("DMC5: torque limit by motor model");
+			Logger::info(BRUSA_DMC5, "torque limit by motor model");
 		if (statusBitField & mechanicalPowerLimitation)
-			Logger::info("DMC5: torque limit by mechanical power");
+			Logger::info(BRUSA_DMC5, "torque limit by mechanical power");
 		if (statusBitField & maxTorqueLimitation)
-			Logger::info("DMC5: torque limit by max torque");
+			Logger::info(BRUSA_DMC5, "torque limit by max torque");
 		if (statusBitField & acCurrentLimitation)
-			Logger::info("DMC5: torque limit by AC current");
+			Logger::info(BRUSA_DMC5, "torque limit by AC current");
 		if (statusBitField & temperatureLimitation)
-			Logger::warn("DMC5: torque limit by temperature");
+			Logger::warn(BRUSA_DMC5, "torque limit by temperature");
 		if (statusBitField & speedLimitation)
-			Logger::info("DMC5: torque limit by speed");
+			Logger::info(BRUSA_DMC5, "torque limit by speed");
 		if (statusBitField & voltageLimitation)
-			Logger::info("DMC5: torque limit by DC voltage");
+			Logger::info(BRUSA_DMC5, "torque limit by DC voltage");
 		if (statusBitField & currentLimitation)
-			Logger::info("DMC5: torque limit by DC current");
+			Logger::info(BRUSA_DMC5, "torque limit by DC current");
 		if (statusBitField & torqueLimitation)
-			Logger::info("DMC5: torque limitation is active");
+			Logger::info(BRUSA_DMC5, "torque limitation is active");
 		if (statusBitField & slewRateLimitation)
-			Logger::info("DMC5: torque limit by slew rate");
+			Logger::info(BRUSA_DMC5, "torque limit by slew rate");
 		if (statusBitField & motorTemperatureLimitation)
-			Logger::warn("DMC5: torque limit by motor temperature");
+			Logger::warn(BRUSA_DMC5, "torque limit by motor temperature");
 		break;
 
 	case CAN_ID_ACTUAL_VALUES:
@@ -244,93 +250,97 @@ void BrusaMotorController::handleCanFrame(RX_CAN_FRAME* frame) {
 		dcCurrent = frame->data[3] | (frame->data[2] << 8);
 		acCurrent = frame->data[5] | (frame->data[4] << 8);
 		mechanicalPower = frame->data[7] | (frame->data[6] << 8);
-		Logger::debug("actual values: DC Volts: %fV, DC current: %fA, AC current: %fA, mechPower: %fkW", (float)dcVoltage / 10.0F, (float)dcCurrent / 10.0F, (float)acCurrent / 4.0F, (float)mechanicalPower / 62.5F);
+
+		if (Logger::isDebug())
+			Logger::debug(BRUSA_DMC5, "actual values: DC Volts: %fV, DC current: %fA, AC current: %fA, mechPower: %fkW", (float)dcVoltage / 10.0F, (float)dcCurrent / 10.0F, (float)acCurrent / 4.0F, (float)mechanicalPower / 62.5F);
 		break;
 
 	case CAN_ID_ERRORS:
 		errorBitField = frame->data[1] | (frame->data[0] << 8) | (frame->data[5] << 16) | (frame->data[4] << 24);
 		warningBitField = frame->data[7] | (frame->data[6] << 8);
-		Logger::debug("errors: %X, warning: %X", errorBitField, warningBitField);
+
+		if(Logger::isDebug())
+			Logger::debug(BRUSA_DMC5, "errors: %X, warning: %X", errorBitField, warningBitField);
 
 		//TODO: DMC_CompatibilityWarnings not evaluated at this point. check if needed
 
 		// errors
 		if (errorBitField & speedSensorSupply)
-			Logger::error("DMC5: speed sensor supply");
+			Logger::error(BRUSA_DMC5, "speed sensor supply");
 		if (errorBitField & speedSensor)
-			Logger::error("DMC5: speed sensor");
+			Logger::error(BRUSA_DMC5, "speed sensor");
 		if (errorBitField & canLimitMessageInvalid)
-			Logger::error("DMC5: can limit message invalid");
+			Logger::error(BRUSA_DMC5, "can limit message invalid");
 		if (errorBitField & canControlMessageInvalid)
-			Logger::error("DMC5: can control message invalid");
+			Logger::error(BRUSA_DMC5, "can control message invalid");
 		if (errorBitField & canLimitMessageLost)
-			Logger::error("DMC5: can limit message lost");
+			Logger::error(BRUSA_DMC5, "can limit message lost");
 		if (errorBitField & overvoltageSkyConverter)
-			Logger::error("DMC5: overvoltage sky converter");
+			Logger::error(BRUSA_DMC5, "overvoltage sky converter");
 		if (errorBitField & voltageMeasurement)
-			Logger::error("DMC5: voltage measurement");
+			Logger::error(BRUSA_DMC5, "voltage measurement");
 		if (errorBitField & shortCircuit)
-			Logger::error("DMC5: short circuit");
+			Logger::error(BRUSA_DMC5, "short circuit");
 		if (errorBitField & canControlMessageLost)
-			Logger::error("DMC5: can control message lost");
+			Logger::error(BRUSA_DMC5, "can control message lost");
 		if (errorBitField & overtemp)
-			Logger::error("DMC5: overtemp");
+			Logger::error(BRUSA_DMC5, "overtemp");
 		if (errorBitField & overtempMotor)
-			Logger::error("DMC5: overtemp motor");
+			Logger::error(BRUSA_DMC5, "overtemp motor");
 		if (errorBitField & overspeed)
-			Logger::error("DMC5: overspeed");
+			Logger::error(BRUSA_DMC5, "overspeed");
 		if (errorBitField & undervoltage)
-			Logger::error("DMC5: undervoltage");
+			Logger::error(BRUSA_DMC5, "undervoltage");
 		if (errorBitField & overvoltage)
-			Logger::error("DMC5: overvoltage");
+			Logger::error(BRUSA_DMC5, "overvoltage");
 		if (errorBitField & overcurrent)
-			Logger::error("DMC5: overcurrent");
+			Logger::error(BRUSA_DMC5, "overcurrent");
 		if (errorBitField & initalisation)
-			Logger::error("DMC5: initalisation");
+			Logger::error(BRUSA_DMC5, "initalisation");
 		if (errorBitField & analogInput)
-			Logger::error("DMC5: analogInput");
+			Logger::error(BRUSA_DMC5, "analogInput");
 		if (errorBitField & driverShutdown)
-			Logger::error("DMC5: driver shutdown");
+			Logger::error(BRUSA_DMC5, "driver shutdown");
 		if (errorBitField & powerMismatch)
-			Logger::error("DMC5: power mismatch");
+			Logger::error(BRUSA_DMC5, "power mismatch");
 		if (errorBitField & canControl2MessageLost)
-			Logger::error("DMC5: can Control2 message lost");
+			Logger::error(BRUSA_DMC5, "can Control2 message lost");
 		if (errorBitField & motorEeprom)
-			Logger::error("DMC5: motor Eeprom");
+			Logger::error(BRUSA_DMC5, "motor Eeprom");
 		if (errorBitField & storage)
-			Logger::error("DMC5: storage");
+			Logger::error(BRUSA_DMC5, "storage");
 		if (errorBitField & enablePinSignalLost)
-			Logger::error("DMC5: lost signal on enable pin");
+			Logger::error(BRUSA_DMC5, "lost signal on enable pin");
 		if (errorBitField & canCommunicationStartup)
-			Logger::error("DMC5: can communication startup");
+			Logger::error(BRUSA_DMC5, "can communication startup");
 		if (errorBitField & internalSupply)
-			Logger::error("DMC5: internal supply");
+			Logger::error(BRUSA_DMC5, "internal supply");
 		if (errorBitField & acOvercurrent)
-			Logger::error("DMC5: AC Overcurrent");
+			Logger::error(BRUSA_DMC5, "AC Overcurrent");
 		if (errorBitField & osTrap)
-			Logger::error("DMC5: OS trap");
+			Logger::error(BRUSA_DMC5, "OS trap");
 
 		// warnings
 		if (warningBitField & systemCheckActive)
-			Logger::warn("DMC5: system check active");
+			Logger::warn(BRUSA_DMC5, "system check active");
 		if (warningBitField & externalShutdownPathAw2Off)
-			Logger::warn("DMC5: external shutdown path Aw2 off");
+			Logger::warn(BRUSA_DMC5, "external shutdown path Aw2 off");
 		if (warningBitField & externalShutdownPathAw1Off)
-			Logger::warn("DMC5: external shutdown path Aw1 off");
+			Logger::warn(BRUSA_DMC5, "external shutdown path Aw1 off");
 		if (warningBitField & oscillationLimitControllerActive)
-			Logger::warn("DMC5: oscillation limit controller active");
+			Logger::warn(BRUSA_DMC5, "oscillation limit controller active");
 		if (warningBitField & driverShutdownPathActive)
-			Logger::warn("DMC5: driver shutdown path active");
+			Logger::warn(BRUSA_DMC5, "driver shutdown path active");
 		if (warningBitField & powerMismatchDetected)
-			Logger::warn("DMC5: power mismatch detected");
+			Logger::warn(BRUSA_DMC5, "power mismatch detected");
 		if (warningBitField & speedSensorSignal)
-			Logger::warn("DMC5: speed sensor signal");
+			Logger::warn(BRUSA_DMC5, "speed sensor signal");
 		if (warningBitField & hvUndervoltage)
-			Logger::warn("DMC5: HV undervoltage");
+			Logger::warn(BRUSA_DMC5, "HV undervoltage");
 		if (warningBitField & maximumModulationLimiter)
-			Logger::warn("DMC5: maximum modulation limiter");
+			Logger::warn(BRUSA_DMC5, "maximum modulation limiter");
 		if (warningBitField & temperatureSensor)
-			Logger::warn("DMC5: temperature sensor");
+			Logger::warn(BRUSA_DMC5, "temperature sensor");
 		break;
 
 	case CAN_ID_TORQUE_LIMIT:
@@ -338,7 +348,8 @@ void BrusaMotorController::handleCanFrame(RX_CAN_FRAME* frame) {
 		minNegativeTorque = frame->data[3] | (frame->data[2] << 8);
 		limiterStateNumber = frame->data[4];
 
-		Logger::debug("torque limit: max positive: %fNm, min negative: %fNm", (float) maxPositiveTorque / 100.0F, (float) minNegativeTorque / 100.0F, limiterStateNumber);
+		if (Logger::isDebug())
+			Logger::debug(BRUSA_DMC5, "torque limit: max positive: %fNm, min negative: %fNm", (float) maxPositiveTorque / 100.0F, (float) minNegativeTorque / 100.0F, limiterStateNumber);
 		break;
 
 	case CAN_ID_TEMP:
@@ -346,11 +357,16 @@ void BrusaMotorController::handleCanFrame(RX_CAN_FRAME* frame) {
 		temperatureMotor = frame->data[3] | (frame->data[2] << 8);
 		temperatureSystem = frame->data[4];
 
-		Logger::debug("temperature: inverter: %f°C, motor: %f°C, system: %d°C", (float)temperatureInverter / 2.0F, (float)temperatureMotor / 2.0F, temperatureSystem - 50);
+		//TODO: replace mapping
+	    motorTemp = temperatureMotor * 5; //temperature of motor in tenths of degree C
+	    inverterTemp = temperatureInverter * 5; //temperature of inverter in tenths deg C
+
+		if (Logger::isDebug())
+			Logger::debug(BRUSA_DMC5, "temperature: inverter: %f°C, motor: %f°C, system: %d°C", (float)temperatureInverter / 2.0F, (float)temperatureMotor / 2.0F, temperatureSystem - 50);
 		break;
 
 	default:
-		Logger::debug("DMC5: received unknown frame id %X", frame->id);
+		Logger::debug(BRUSA_DMC5, "received unknown frame id %X", frame->id);
 	}
 }
 

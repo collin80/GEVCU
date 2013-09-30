@@ -36,7 +36,7 @@
 ThrottleDetector::ThrottleDetector(Throttle *throttle) {
 	this->throttle = throttle;
 	state = DoNothing;
-	maxThrottleReadingDeviationPercent = 15;
+	maxThrottleReadingDeviationPercent = 50; // 5% in 0-1000 scale
 	Logger::debug("ThrottleDetector constructed with throttle %d", throttle);
 	resetValues();
 }
@@ -199,16 +199,17 @@ void ThrottleDetector::detectMaxCalibrate() {
 			// Determine throttle subtype by examining the data sampled
 			for (int i=0; i<sampleCount; i++) {
 				// normalize the values to a 0-1000 scale using the found min/max
-				uint16_t value1 = map(throttle1Values[i], getThrottle1Min(), getThrottle1Max(), 0, 1000);
-				uint16_t value2 = map(throttle2Values[i],
+				uint16_t value1 = normalize(throttle1Values[i], getThrottle1Min(), getThrottle1Max(), 0, 1000);
+				uint16_t value2 = normalize(throttle2Values[i],
 										isThrottle2Inverse() ? getThrottle2Max() : getThrottle2Min(),
 										isThrottle2Inverse() ? getThrottle2Min() : getThrottle2Max(),
 										0,1000);
-				//SerialUSB.println("NT1: " + String(value1) + ", NT2: " + String(value2));
 
 				// see if they match known subtypes
 				linearCount += checkLinear(value1, value2);
 				inverseCount += checkInverse(value1, value2);
+
+				//SerialUSB.println("NT1: " + String(value1) + ", NT2: " + String(value2) + ", L: " + String(linearCount) + ", I: " + String(inverseCount));
 			}
 		}
 
@@ -409,6 +410,7 @@ void ThrottleDetector::readThrottleValues() {
 /*
  * Compares two throttle readings and returns 1 if they are a mirror
  * of each other (within a tolerance) otherwise returns 0
+ * Assumes the values are already mapped to a 0-1000 scale
  */
 int ThrottleDetector::checkLinear(uint16_t throttle1Value, uint16_t throttle2Value) {
 	int match = 0;
@@ -455,3 +457,10 @@ void ThrottleDetector::displayCalibratedValues(bool minPedal) {
 	SerialUSB.println("");
 }
 
+/**
+ * Map and constrain the value to the given range
+ */
+uint16_t ThrottleDetector::normalize(uint16_t sensorValue, uint16_t sensorMin, uint16_t sensorMax, uint16_t constrainMin, uint16_t constrainMax) {
+  int value = map(sensorValue, sensorMin, sensorMax, constrainMin, constrainMax);
+  return constrain(value, constrainMin, constrainMax);
+}

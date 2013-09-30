@@ -159,7 +159,7 @@ void CanHandler::detach(CanObserver* observer, uint32_t id, uint32_t mask) {
  * \param frame - the received can frame to log
  */
 void CanHandler::logFrame(RX_CAN_FRAME& frame) {
-	if (Logger::getLogLevel() == Logger::Debug) {
+	if (Logger::isDebug()) {
 		Logger::debug("CAN: dlc=%X fid=%X id=%X ide=%X rtr=%X data=%X,%X,%X,%X,%X,%X,%X,%X",
 				frame.dlc, frame.fid, frame.id, frame.ide, frame.rtr,
 				frame.data[0], frame.data[1], frame.data[2], frame.data[3],
