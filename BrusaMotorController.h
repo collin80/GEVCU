@@ -134,11 +134,6 @@ public:
 		enablePowerStage			= 1 << 7  // 0x80
 	};
 
-	enum PowerMode {
-		modeTorque,
-		modeSpeed
-	};
-
 	void handleTick();
 	void handleCanFrame(RX_CAN_FRAME *frame);
 	void setup();
@@ -147,24 +142,24 @@ public:
 
 private:
 	// DMC_TRQS
-	boolean dmcReady; // indicates that the controller is ready, meaning no error is present and HV is available
-	//boolean running; // indicates that the controller's powerstage is operating
-	//boolean faulted; // indicates the presence of an error (refer to errorBitField, reported in separate message), enabling powerstage is not possible
-	boolean dmcWarning; // indicates the presence of a warning (refer to warningBitField, reported in separate message)
-	int16_t torqueAvailable; // the maximum available torque in 0.01Nm -> divide by 100 to get Nm
-	int16_t torqueActual; // the actual torque in 0.01Nm -> divide by 100 to get Nm
-	int16_t speedActual; // the actual speed of the motor in rpm
+//	boolean dmcReady; // indicates that the controller is ready, meaning no error is present and HV is available
+//	boolean dmcRunning; // indicates that the controller's powerstage is operating
+//	boolean dmcError; // indicates the presence of an error (refer to errorBitField, reported in separate message), enabling powerstage is not possible
+//	boolean dmcWarning; // indicates the presence of a warning (refer to warningBitField, reported in separate message)
+//	int16_t torqueAvailable; // the maximum available torque in 0.01Nm -> divide by 100 to get Nm
+//	int16_t torqueActual; // the actual torque in 0.01Nm -> divide by 100 to get Nm
+//	int16_t speedActual; // the actual speed of the motor in rpm
 
 	// DMC_ACTV
-	uint16_t dcVoltage; // DC voltage in 0.1 Volts -> divide value by 10 to get Volts
-	int16_t dcCurrent; // DC current in 0.1 Amps -> divide value by 10 to get Amps
-	uint16_t acCurrent; // AC current in 0.25 Amps -> divide value by 4 to get Amps
-	int16_t mechanicalPower; // mechanical power of the motor in 0.016 kW -> divide value by 62.5 to get kW
+//	uint16_t dcVoltage; // DC voltage in 0.1 Volts -> divide value by 10 to get Volts
+//	int16_t dcCurrent; // DC current in 0.1 Amps -> divide value by 10 to get Amps
+//	uint16_t acCurrent; // AC current in 0.25 Amps -> divide value by 4 to get Amps
+//	int16_t mechanicalPower; // mechanical power of the motor in 0.016 kW -> divide value by 62.5 to get kW
 
 	// DMC_TEMP
-	int16_t temperatureInverter; // the temperature of the controller powerstage in 0.5°C -> divide by 2 to get °C
-	int16_t temperatureMotor; // the motor temperature in 0.5°C
-	uint8_t temperatureSystem; // the temperature of the controller system in °C with offset of +50°C -> subtract 50°C
+//	int16_t temperatureInverter; // the temperature of the controller powerstage in 0.5ï¿½C -> divide by 2 to get ï¿½C
+//	int16_t temperatureMotor; // the motor temperature in 0.5ï¿½C
+//	uint8_t temperatureSystem; // the temperature of the controller system in ï¿½C with offset of +50ï¿½C -> subtract 50ï¿½C
 
 	// DMC_ERR
 	uint32_t errorBitField; // bits holding the errors defined in enum Error

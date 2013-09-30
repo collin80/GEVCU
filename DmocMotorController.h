@@ -50,11 +50,6 @@ public:
 		CHAL_RESP
 	};
 
-	enum PowerMode {
-		MODE_TORQUE,
-		MODE_RPM
-	};
-
 	enum KeyState {
 		OFF = 0,
 		ON = 1,
@@ -78,8 +73,6 @@ public:
 
 	DmocMotorController();
 	DeviceId getId();
-	void setPowerMode(PowerMode mode);
-	PowerMode getPowerMode();
 
 	uint32_t getTickInterval();
 
@@ -91,7 +84,6 @@ private:
 	int step;
 	byte online; //counter for whether DMOC appears to be operating
 	byte alive;
-	PowerMode powerMode;
 
 	void sendCmd1();
 	void sendCmd2();

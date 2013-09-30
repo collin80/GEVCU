@@ -36,40 +36,20 @@
  ing torque that can't be controlled.
  */
 
-BrusaMotorController::BrusaMotorController() {
-	dmcReady = false;
-	running = false;
-	faulted = false;
-	dmcWarning = false;
+BrusaMotorController::BrusaMotorController() : MotorController() {
 	torqueAvailable = 0;
-	torqueActual = 0;
-	speedActual = 0;
-
-	dcVoltage = 0;
-	dcCurrent = 0;
-	acCurrent = 0;
-	mechanicalPower = 0;
-
-	temperatureInverter = 0;
-	temperatureMotor = 0;
-	temperatureSystem = 0;
+	maxPositiveTorque = 0;
+	minNegativeTorque = 0;
 
 	errorBitField = 0;
 	warningBitField = 0;
 	statusBitField = 0;
-
-	maxPositiveTorque = 0;
-	minNegativeTorque = 0;
 	limiterStateNumber = 0;
 
 	tickCounter = 0;
-	powerMode = modeTorque;
 
-	maxTorque = 20; // TODO: only for testing, in tenths Nm, so 2Nm max torque, remove for production use
-	maxRPM = 2000; // TODO: only for testing, remove for production use
-	requestedRPM = 0;
-	requestedTorque = 0;
-	requestedThrottle = 0;
+	torqueMax = 20; // TODO: only for testing, in tenths Nm, so 2Nm max torque, remove for production use
+	speedMax = 2000; // TODO: only for testing, remove for production use
 }
 
 void BrusaMotorController::setup() {
@@ -99,11 +79,11 @@ void BrusaMotorController::sendControl() {
 
 
 	//TODO: remove ramp testing
-	requestedTorque = 20;
+	torqueRequested = 20;
 	if (speedActual < 100)
-		requestedRPM = 1000;
+		speedRequested = 1000;
 	if (speedActual > 950)
-		requestedRPM = 50;
+		speedRequested = 50;
 
 
 
@@ -111,7 +91,7 @@ void BrusaMotorController::sendControl() {
 	if (faulted) {
 		outputFrame.data[0] |= clearErrorLatch;
 	} else {
-		if (dmcReady || speedActual > 1000) { // see warning about field weakening current to prevent uncontrollable regen
+		if (running || speedActual > 1000) { // see warning about field weakening current to prevent uncontrollable regen
 			outputFrame.data[0] |= enablePowerStage;
 			if (running) {
 				// outputFrame.data[0] |= enableOscillationLimiter;
@@ -122,12 +102,12 @@ void BrusaMotorController::sendControl() {
 				// TODO: check for maxRPM and maxTorque
 
 				// set the speed in rpm
-				outputFrame.data[2] = (requestedRPM & 0xFF00) >> 8;
-				outputFrame.data[3] = (requestedRPM & 0x00FF);
+				outputFrame.data[2] = (speedRequested & 0xFF00) >> 8;
+				outputFrame.data[3] = (speedRequested & 0x00FF);
 
 				// set the torque in 0.01Nm (GEVCU uses 0.1Nm -> multiply by 10)
-				outputFrame.data[4] = ((requestedTorque * 10) & 0xFF00) >> 8;
-				outputFrame.data[5] = ((requestedTorque * 10) & 0x00FF);
+				outputFrame.data[4] = ((torqueRequested * 10) & 0xFF00) >> 8;
+				outputFrame.data[5] = ((torqueRequested * 10) & 0x00FF);
 			}
 		}
 	}
@@ -194,19 +174,15 @@ void BrusaMotorController::handleCanFrame(RX_CAN_FRAME* frame) {
 	switch (frame->id) {
 	case CAN_ID_STATUS:
 		statusBitField = frame->data[1] | (frame->data[0] << 8);
-		torqueAvailable = frame->data[3] | (frame->data[2] << 8);
-		torqueActual = frame->data[5] | (frame->data[4] << 8);
+		torqueAvailable = (frame->data[3] | (frame->data[2] << 8)) / 10;
+		torqueActual = (frame->data[5] | (frame->data[4] << 8)) / 10;
 		speedActual = frame->data[7] | (frame->data[6] << 8);
-
-		//TODO: replace mapping
-		actualTorque = torqueActual / 10; //in tenths Nm
-		actualRPM = speedActual; //in RPM
 
 		if(Logger::isDebug())
 			Logger::debug(BRUSA_DMC5, "status: %X, torque avail: %fNm, actual torque: %fNm, speed actual: %drpm", statusBitField, (float)torqueAvailable/100.0F, (float)torqueActual/100.0F, speedActual);
 
-		dmcReady = (statusBitField & stateReady) != 0 ? true : false;
-		if (dmcReady)
+		ready = (statusBitField & stateReady) != 0 ? true : false;
+		if (ready)
 			Logger::info(BRUSA_DMC5, "ready");
 
 		running = (statusBitField & stateRunning) != 0 ? true : false;
@@ -217,8 +193,8 @@ void BrusaMotorController::handleCanFrame(RX_CAN_FRAME* frame) {
 		if (faulted)
 			Logger::error(BRUSA_DMC5, "error is present, see error message");
 
-		dmcWarning = (statusBitField & warningFlag) != 0 ? true : false;
-		if (dmcWarning)
+		warning = (statusBitField & warningFlag) != 0 ? true : false;
+		if (warning)
 			Logger::warn(BRUSA_DMC5, "warning is present, see warning message");
 
 		if (statusBitField & motorModelLimitation)
@@ -248,11 +224,11 @@ void BrusaMotorController::handleCanFrame(RX_CAN_FRAME* frame) {
 	case CAN_ID_ACTUAL_VALUES:
 		dcVoltage = frame->data[1] | (frame->data[0] << 8);
 		dcCurrent = frame->data[3] | (frame->data[2] << 8);
-		acCurrent = frame->data[5] | (frame->data[4] << 8);
-		mechanicalPower = frame->data[7] | (frame->data[6] << 8);
+		acCurrent = (frame->data[5] | (frame->data[4] << 8)) / 2.5;
+		mechanicalPower = (frame->data[7] | (frame->data[6] << 8)) / 6.25;
 
 		if (Logger::isDebug())
-			Logger::debug(BRUSA_DMC5, "actual values: DC Volts: %fV, DC current: %fA, AC current: %fA, mechPower: %fkW", (float)dcVoltage / 10.0F, (float)dcCurrent / 10.0F, (float)acCurrent / 4.0F, (float)mechanicalPower / 62.5F);
+			Logger::debug(BRUSA_DMC5, "actual values: DC Volts: %fV, DC current: %fA, AC current: %fA, mechPower: %fkW", (float)dcVoltage / 10.0F, (float)dcCurrent / 10.0F, (float)acCurrent / 10.0F, (float)mechanicalPower / 10.0F);
 		break;
 
 	case CAN_ID_ERRORS:
@@ -344,25 +320,21 @@ void BrusaMotorController::handleCanFrame(RX_CAN_FRAME* frame) {
 		break;
 
 	case CAN_ID_TORQUE_LIMIT:
-		maxPositiveTorque = frame->data[1] | (frame->data[0] << 8);
-		minNegativeTorque = frame->data[3] | (frame->data[2] << 8);
+		maxPositiveTorque = (frame->data[1] | (frame->data[0] << 8)) / 10;
+		minNegativeTorque = (frame->data[3] | (frame->data[2] << 8)) / 10;
 		limiterStateNumber = frame->data[4];
 
 		if (Logger::isDebug())
-			Logger::debug(BRUSA_DMC5, "torque limit: max positive: %fNm, min negative: %fNm", (float) maxPositiveTorque / 100.0F, (float) minNegativeTorque / 100.0F, limiterStateNumber);
+			Logger::debug(BRUSA_DMC5, "torque limit: max positive: %fNm, min negative: %fNm", (float) maxPositiveTorque / 10.0F, (float) minNegativeTorque / 10.0F, limiterStateNumber);
 		break;
 
 	case CAN_ID_TEMP:
-		temperatureInverter = frame->data[1] | (frame->data[0] << 8);
-		temperatureMotor = frame->data[3] | (frame->data[2] << 8);
-		temperatureSystem = frame->data[4];
-
-		//TODO: replace mapping
-	    motorTemp = temperatureMotor * 5; //temperature of motor in tenths of degree C
-	    inverterTemp = temperatureInverter * 5; //temperature of inverter in tenths deg C
+		temperatureInverter = (frame->data[1] | (frame->data[0] << 8)) * 5;
+		temperatureMotor = (frame->data[3] | (frame->data[2] << 8)) * 5;
+		temperatureSystem = (frame->data[4] - 50) * 10;
 
 		if (Logger::isDebug())
-			Logger::debug(BRUSA_DMC5, "temperature: inverter: %f°C, motor: %f°C, system: %d°C", (float)temperatureInverter / 2.0F, (float)temperatureMotor / 2.0F, temperatureSystem - 50);
+			Logger::debug(BRUSA_DMC5, "temperature: inverter: %fC, motor: %fC, system: %fC", (float)temperatureInverter / 10.0F, (float)temperatureMotor / 10.0F, (float)temperatureSystem / 10.0F);
 		break;
 
 	default:
