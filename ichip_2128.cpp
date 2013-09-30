@@ -36,6 +36,10 @@ void ICHIPWIFI::setup() {
 	ibWritePtr = 0;
 	serialInterface->begin(115200);
 
+#ifdef GEVCU3
+	digitalWrite(18, HIGH);
+#endif
+
 	//for now force a specific ad-hoc network to be set up
 	sendCmd("WLCH=6"); //use WIFI channel 6
 	sendCmd("WLSI=!GEVCU"); //name our ADHOC network GEVCU (the ! indicates a ad-hoc network)
