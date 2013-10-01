@@ -55,7 +55,7 @@ CanThrottle::CanThrottle() : Throttle() {
 		rxMask = rxId = 0x21;
 		break;
 	default:
-		Logger::error("CanThrottle: no valid car type defined.");
+		Logger::error(CANACCELPEDAL, "no valid car type defined.");
 	}
 	memcpy(txFrame.data, txData, 8);
 }

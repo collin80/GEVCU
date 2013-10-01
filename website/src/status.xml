@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="utf-8"?>
+<status>
+	<timeRunning>~statusMillis~</timeRunning>
+	<running>~statusRunning~</running>
+	<faulted>~statusFaulted~</faulted>
+	<temperatureMotor>~statusTempMotor~</temperatureMotor>
+	<temperatureInverter>~statusTempInverter~</temperatureInverter>
+	<throttle>~statusThrottle~</throttle>
+	<gear>~statusGear~</gear>
+	<torqueRequested>~statusTorqueReq~</torqueRequested>
+	<torqueActual>~statusTorqueActual~</torqueActual>
+	<speedRequested>~statusSpeedRequested~</speedRequested>
+	<speedActual>~statusSpeedActual~</speedActual>
+</status>

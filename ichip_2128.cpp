@@ -32,15 +32,20 @@
 void ICHIPWIFI::setup() {
 	TickHandler::getInstance()->detach(this);
 
+	tickCounter = 0;
 	ibWritePtr = 0;
 	serialInterface->begin(115200);
+
+#ifdef GEVCU3
+	digitalWrite(18, HIGH);
+#endif
 
 	//for now force a specific ad-hoc network to be set up
 	sendCmd("WLCH=6"); //use WIFI channel 6
 	sendCmd("WLSI=!GEVCU"); //name our ADHOC network GEVCU (the ! indicates a ad-hoc network)
 	sendCmd("DIP=192.168.3.10"); //IP of GEVCU is this
 	sendCmd("DPSZ=10"); //serve up 10 more addresses (11 - 20)
-	sendCmd("DOWN"); //cause a reset to allow it to come up with the settings
+	sendCmd("RPG=secret"); // set the configuration password for /ichip
 	enableServer();
 
 	TickHandler::getInstance()->attach(this, CFG_TICK_INTERVAL_WIFI);
@@ -58,18 +63,36 @@ void ICHIPWIFI::sendCmd(String cmd) {
 
 //periodic processes
 void ICHIPWIFI::handleTick() {
+	MotorController* motorController = DeviceManager::getInstance()->getMotorController();
+	if (motorController) {
+		setParam("statusMillis", millis());
+		setParam("statusThrottle", motorController->getThrottle());
+		setParam("statusTorqueReq", motorController->getRequestedTorque() / 10.0f, 1);
+		setParam("statusTorqueActual", motorController->getActualTorque() / 10.0f, 1);
+		setParam("statusSpeedRequested", motorController->getRequestedRpm());
+		setParam("statusSpeedActual", motorController->getActualRpm());
 
+		if (tickCounter++ > 3) {
+			setParam("statusRunning", (motorController->isRunning() ? "true" : "false"));
+			setParam("statusFaulted", (motorController->isFaulted() ? "true" : "false"));
+			setParam("statusTempMotor", motorController->getMotorTemp() / 10.0f, 1);
+			setParam("statusTempInverter", motorController->getInverterTemp() / 10.0f, 1);
+			setParam("statusGear", motorController->getGearSwitch());
+			tickCounter = 0;
+		}
+	}
 }
 
 //turn on the web server
 void ICHIPWIFI::enableServer() {
-	sendCmd("WRFU"); //enable WIFI if not already enabled
 	sendCmd("WWW=3"); //turn on web server for three clients
+	sendCmd("DOWN"); //cause a reset to allow it to come up with the settings
 }
 
 //turn off the web server
 void ICHIPWIFI::disableServer() {
 	sendCmd("WWW=0"); //turn off web server
+	sendCmd("DOWN"); //cause a reset to allow it to come up with the settings
 }
 
 //Determine if a parameter has changed, which one, and the new value
@@ -83,15 +106,33 @@ String ICHIPWIFI::getParamById(String paramName) {
 	serialInterface->print(paramName);
 	serialInterface->print("?");
 	serialInterface->write(13);
+	loop();
 }
 
 //set the given parameter with the given string
-String ICHIPWIFI::setParam(String paramName, String value) {
+void ICHIPWIFI::setParam(String paramName, String value) {
 	serialInterface->write("AT+i");
 	serialInterface->print(paramName);
-	serialInterface->print("=");
+	serialInterface->write("=");
 	serialInterface->print(value);
 	serialInterface->write(13);
+	loop();
+}
+
+//set the given parameter with the given string
+void ICHIPWIFI::setParam(String paramName, int32_t value) {
+	char buffer[33];
+	sprintf(buffer, "%lu", value);
+	setParam(paramName, buffer);
+}
+
+//set the given parameter with the given string
+void ICHIPWIFI::setParam(String paramName, float value, int precision) {
+	char format[10];
+	char buffer[33];
+	sprintf(format, "%%.%df", precision);
+	sprintf(buffer, format, value);
+	setParam(paramName, buffer);
 }
 
 ICHIPWIFI::ICHIPWIFI() {
@@ -116,13 +157,14 @@ void ICHIPWIFI::loop() {
 		incoming = serialInterface->read();
 		if (incoming != -1) { //and there is no reason it should be -1
 			if (incoming != 13 && ibWritePtr < 127) { //add to the line
-				incomingBuffer[ibWritePtr++] = (char) incoming;
+				if (incoming != 10)
+					incomingBuffer[ibWritePtr++] = (char) incoming;
 			} else { //that's the end of the line. Try to figure out what it said.
 				incomingBuffer[ibWritePtr] = 0; //null terminate the string
 				ibWritePtr = 0; //reset the write pointer
 				if (strcmp(incomingBuffer, "I/ERROR") == 0) { //got an error back!
 				}
-				Logger::debug("Msg from wifi: %s", incomingBuffer);
+				Logger::debug(ICHIP2128, incomingBuffer);
 			}
 		} else
 			return;

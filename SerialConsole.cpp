@@ -64,6 +64,10 @@ void SerialConsole::printMenu() {
 	//Show build # here as well in case people are using the native port and don't get to see the start up messages
 	SerialUSB.print("Build number: ");
 	SerialUSB.println(CFG_BUILD_NUM);
+	SerialUSB.println("Status: isRunning: "
+			+ String(DeviceManager::getInstance()->getMotorController()->isRunning())
+			+ " isFaulted: "
+			+ String(DeviceManager::getInstance()->getMotorController()->isFaulted()));
 	SerialUSB.println("System Menu:");
 	SerialUSB.println();
 	SerialUSB.println("Enable line endings of some sort (LF, CR, CRLF)");
@@ -95,29 +99,76 @@ void SerialConsole::printMenu() {
 	SerialUSB.println("B = Save detected brake values");
 	SerialUSB.println("p = enable wifi passthrough (reboot required to resume normal operation)");
 	SerialUSB.println();
-	SerialUSB.println("Config Commands (enter command=newvalue):");
-	SerialUSB.println("TORQ = Set torque upper limit (tenths of a Nm)");
-	SerialUSB.println("RPMS = Set maximum RPMs");
-	SerialUSB.println("REVLIM = How much torque to allow in reverse (Tenths of a percent)");
-	SerialUSB.println("TPOT = Number of pots to use (1 or 2)");
-	SerialUSB.println("TTYPE = Set throttle subtype (1=std linear, 2=inverse)");
-	SerialUSB.println("T1MN = Set throttle 1 min value");
-	SerialUSB.println("T1MX = Set throttle 1 max value");
-	SerialUSB.println("T2MN = Set throttle 2 min value");
-	SerialUSB.println("T2MX = Set throttle 2 max value");
-	SerialUSB.println("TRGN = Tenths of a percent of pedal where regen ends");
-	SerialUSB.println("TFWD = Tenths of a percent of pedal where forward motion starts");
-	SerialUSB.println("TMAP = Tenths of a percent of pedal where 50% throttle will be");
-	SerialUSB.println("TMRN = Percent of full torque to use for throttle regen");
-	SerialUSB.println("B1MN = Set brake min value");
-	SerialUSB.println("B1MX = Set brake max value");
-	SerialUSB.println("BMINR = Percent of full torque for start of brake regen");
-	SerialUSB.println("BMAXR = Percent of full torque for maximum brake regen");
-	SerialUSB.println("PREC = Precharge capacitance (uf)");
-	SerialUSB.println("PRER = Precharge resistance (1/10 of ohm)");
-	SerialUSB.println("NOMV = Nominal system voltage (1/10 of a volt)");
-	SerialUSB.println("PRELAY = Which output to use for precharge contactor (255 to disable)");
-	SerialUSB.println("MRELAY = Which output to use for main contactor (255 to disable)");
+	SerialUSB.println("Config Commands (enter command=newvalue). Current values shown in parenthesis:");
+	SerialUSB.println("TORQ="
+			+ String(DeviceManager::getInstance()->getMotorController()->getMaxTorque())
+			+ " - Set torque upper limit (tenths of a Nm)");
+	SerialUSB.println("RPMS="
+			+ String(DeviceManager::getInstance()->getMotorController()->getMaxRpm())
+			+ " - Set maximum RPMs");
+	SerialUSB.println("REVLIM="
+			+ String(DeviceManager::getInstance()->getMotorController()->getReversePercent())
+			+ " - How much torque to allow in reverse (Tenths of a percent)");
+	SerialUSB.println("TPOT="
+			+ String(DeviceManager::getInstance()->getAccelerator()->getNumThrottlePots())
+			+ " - Number of pots to use (1 or 2)");
+	SerialUSB.println("TTYPE="
+			+ String(DeviceManager::getInstance()->getAccelerator()->getSubtype())
+			+ " - Set throttle subtype (1=std linear, 2=inverse)");
+	SerialUSB.println("T1MN="
+			+ String(DeviceManager::getInstance()->getAccelerator()->getT1Min())
+			+ " - Set throttle 1 min value");
+	SerialUSB.println("T1MX="
+			+ String(DeviceManager::getInstance()->getAccelerator()->getT1Max())
+			+ " - Set throttle 1 max value");
+	SerialUSB.println("T2MN="
+			+ String(DeviceManager::getInstance()->getAccelerator()->getT2Min())
+			+ " - Set throttle 2 min value");
+	SerialUSB.println("T2MX="
+			+ String(DeviceManager::getInstance()->getAccelerator()->getT2Max())
+			+ " - Set throttle 2 max value");
+	SerialUSB.println("TRGN="
+			+ String(DeviceManager::getInstance()->getAccelerator()->getRegenEnd())
+			+ " - Tenths of a percent of pedal where regen ends");
+	SerialUSB.println("TFWD="
+			+ String(DeviceManager::getInstance()->getAccelerator()->getFWDStart())
+			+ " - Tenths of a percent of pedal where forward motion starts");
+	SerialUSB.println("TMAP="
+			+ String(DeviceManager::getInstance()->getAccelerator()->getMAP())
+			+ " - Tenths of a percent of pedal where 50% throttle will be");
+	SerialUSB.println("TMRN="
+			+ String(DeviceManager::getInstance()->getAccelerator()->getMaxRegen())
+			+ " - Percent of full torque to use for throttle regen");
+	SerialUSB.println("B1MN="
+			+ String(DeviceManager::getInstance()->getBrake()->getT1Min())
+			+ " - Set brake min value");
+	SerialUSB.println("B1MX="
+			+ String(DeviceManager::getInstance()->getBrake()->getT1Max())
+			+ " - Set brake max value");
+	SerialUSB.println("BMINR="
+			+ String(DeviceManager::getInstance()->getBrake()->getMinRegen())
+			+ " - Percent of full torque for start of brake regen");
+	SerialUSB.println("BMAXR="
+			+ String(DeviceManager::getInstance()->getBrake()->getMaxRegen())
+			+ " - Percent of full torque for maximum brake regen");
+	SerialUSB.println("PREC="
+			+ String(DeviceManager::getInstance()->getMotorController()->getPrechargeC())
+			+ " - Precharge capacitance (uf)");
+	SerialUSB.println("PRER="
+			+ String(DeviceManager::getInstance()->getMotorController()->getPrechargeR())
+			+ " - Precharge resistance (1/10 of ohm)");
+	SerialUSB.println("NOMV="
+			+ String(DeviceManager::getInstance()->getMotorController()->getNominalV())
+			+ " - Nominal system voltage (1/10 of a volt)");
+	SerialUSB.println("PRELAY="
+			+ String(DeviceManager::getInstance()->getMotorController()->getPrechargeRelay())
+			+ " - Which output to use for precharge contactor (255 to disable)");
+	SerialUSB.println("MRELAY="
+			+ String(DeviceManager::getInstance()->getMotorController()->getMainRelay())
+			+ " - Which output to use for main contactor (255 to disable)");
+	SerialUSB.println("LOGLEVEL="
+			+ String(Logger::getLogLevel())
+			+ " - set log level (0=debug, 1=info, 2=warn, 3=error)");
 }
 
 /*	There is a help menu (press H or h or ?)
@@ -317,6 +368,29 @@ void SerialConsole::handleConfigCmd()
 		Logger::debug("Setting Precharge Relay to %i", newValue);
 		DeviceManager::getInstance()->getMotorController()->setPrechargeRelay(newValue);
 		DeviceManager::getInstance()->getMotorController()->saveEEPROM();
+	}
+	else if (cmdString == String("LOGLEVEL")) {
+		newValue = atoi((char *)(cmdBuffer + i));
+		switch (newValue) {
+		case 0:
+			Logger::setLoglevel(Logger::Debug);
+			Logger::info("setting loglevel to 'debug'");
+			break;
+		case 1:
+			Logger::setLoglevel(Logger::Info);
+			Logger::info("setting loglevel to 'info'");
+			break;
+		case 2:
+			Logger::setLoglevel(Logger::Info);
+			Logger::info("setting loglevel to 'warning'");
+			Logger::setLoglevel(Logger::Warn);
+			break;
+		case 3:
+			Logger::setLoglevel(Logger::Info);
+			Logger::info("setting loglevel to 'error'");
+			Logger::setLoglevel(Logger::Error);
+			break;
+		}
 	}
 }
 

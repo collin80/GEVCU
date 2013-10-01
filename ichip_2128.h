@@ -78,13 +78,15 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 #include <Arduino.h>
 #include "config.h"
-#include "Device.h"
+#include "DeviceManager.h"
 
 class ICHIPWIFI : public Device {
     private:
     USARTClass* serialInterface; //Allows for retargetting which serial port we use
     char incomingBuffer[128]; //storage for one incoming line
+    int tickCounter;
     int ibWritePtr;
+	int currReply;
     
     public:
     void setup(); //initialization on start up
@@ -96,7 +98,9 @@ class ICHIPWIFI : public Device {
     void disableServer(); //turn off the web server
     String getNextParam(); //get next changed parameter
     String getParamById(String paramName); //try to retrieve the value of the given parameter
-    String setParam(String paramName, String valu); //set the given parameter with the given string
+    void setParam(String paramName, String value); //set the given parameter with the given string
+    void setParam(String paramName, int32_t value);
+    void setParam(String paramName, float value, int precision);
     void sendCmd(String cmd);
     ICHIPWIFI();
     ~ICHIPWIFI();

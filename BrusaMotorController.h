@@ -148,8 +148,8 @@ public:
 private:
 	// DMC_TRQS
 	boolean dmcReady; // indicates that the controller is ready, meaning no error is present and HV is available
-	boolean dmcRunning; // indicates that the controller's powerstage is operating
-	boolean dmcError; // indicates the presence of an error (refer to errorBitField, reported in separate message), enabling powerstage is not possible
+	//boolean running; // indicates that the controller's powerstage is operating
+	//boolean faulted; // indicates the presence of an error (refer to errorBitField, reported in separate message), enabling powerstage is not possible
 	boolean dmcWarning; // indicates the presence of a warning (refer to warningBitField, reported in separate message)
 	int16_t torqueAvailable; // the maximum available torque in 0.01Nm -> divide by 100 to get Nm
 	int16_t torqueActual; // the actual torque in 0.01Nm -> divide by 100 to get Nm
