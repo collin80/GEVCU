@@ -67,16 +67,23 @@ void ICHIPWIFI::handleTick() {
 	if (motorController) {
 		setParam("statusMillis", millis());
 		setParam("statusThrottle", motorController->getThrottle());
-		setParam("statusTorqueReq", motorController->getRequestedTorque() / 10.0f, 1);
-		setParam("statusTorqueActual", motorController->getActualTorque() / 10.0f, 1);
-		setParam("statusSpeedRequested", motorController->getRequestedRpm());
-		setParam("statusSpeedActual", motorController->getActualRpm());
+		setParam("statusTorqueReq", motorController->getTorqueRequested() / 10.0f, 1);
+		setParam("statusTorqueActual", motorController->getTorqueActual() / 10.0f, 1);
+		setParam("statusSpeedRequested", motorController->getSpeedRequested());
+		setParam("statusSpeedActual", motorController->getSpeedActual());
+		setParam("statusDcVoltage", motorController->getDcVoltage());
+		setParam("statusDcCurrent", motorController->getDcCurrent());
+		setParam("statusAcCurrent", motorController->getAcCurrent());
+		if (motorController->getId() == BRUSA_DMC5)
+			setParam("statusMechPower", motorController->getMechanicalPower());
 
 		if (tickCounter++ > 3) {
 			setParam("statusRunning", (motorController->isRunning() ? "true" : "false"));
 			setParam("statusFaulted", (motorController->isFaulted() ? "true" : "false"));
-			setParam("statusTempMotor", motorController->getMotorTemp() / 10.0f, 1);
-			setParam("statusTempInverter", motorController->getInverterTemp() / 10.0f, 1);
+			setParam("statusWarning", (motorController->isWarning() ? "true" : "false"));
+			setParam("statusTempMotor", motorController->getTemperatureMotor() / 10.0f, 1);
+			setParam("statusTempInverter", motorController->getTemperatureInverter() / 10.0f, 1);
+			setParam("statusTempSystem", motorController->getTemperatureInverter() / 10.0f, 1);
 			setParam("statusGear", motorController->getGearSwitch());
 			tickCounter = 0;
 		}

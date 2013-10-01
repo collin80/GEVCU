@@ -48,7 +48,7 @@ public:
 	virtual DeviceType getType();
 
 	virtual void handleTick();
-	virtual int getLevel();
+	virtual int16_t getLevel();
 	virtual int getRawThrottle1();
 	virtual int getRawThrottle2();
 
@@ -85,7 +85,7 @@ public:
 	virtual void saveEEPROM(); 
 
 protected:
-	signed int level; //the final signed throttle level. [-1000, 1000] in tenths of a percent of maximum
+	int16_t level; //the final signed throttle level. [-1000, 1000] in tenths of a percent of maximum
 	uint16_t throttleRegen, throttleFwd, throttleMap; //Value at which regen finishes, forward motion starts, and the mid point of throttle
 	uint16_t throttleMaxRegen; //Percentage of max torque allowable for regen
 	uint16_t throttleMinRegen; //Percentage of min torque allowable for regen

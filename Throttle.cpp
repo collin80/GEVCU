@@ -57,7 +57,7 @@ DeviceType Throttle::getType()
 	return DEVICE_THROTTLE;
 }
 
-int Throttle::getLevel() 
+int16_t Throttle::getLevel()
 {
 	return level;
 }

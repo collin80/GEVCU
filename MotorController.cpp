@@ -30,18 +30,33 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  
 MotorController::MotorController() : Device() {
 	prefsHandler = new PrefHandler(EE_MOTORCTL_START);
-	faulted = false;
+
+	ready = false;
 	running = false;
-	motorTemp = 0;
-	inverterTemp = 0;
-	requestedRPM = 0;
-	requestedThrottle = 0;
-	requestedTorque = 0;
-	actualTorque = 0;
-	actualRPM = 0;
-	maxTorque = 0;
-	maxRPM = 0;
+	faulted = false;
+	warning = false;
+
+	temperatureMotor = 0;
+	temperatureInverter = 0;
+	temperatureSystem = 0;
+
+	powerMode = modeTorque;
+	throttleRequested = 0;
+	speedRequested = 0;
+	speedActual = 0;
+	speedMax = 0;
+	torqueRequested = 0;
+	torqueActual = 0;
+	torqueMax = 0;
+	torqueAvailable = 0;
+	mechanicalPower = 0;
+
 	gearSwitch = GS_FAULT;
+
+	dcVoltage = 0;
+	dcCurrent = 0;
+	acCurrent = 0;
+
 	prechargeC = 0;
 	prechargeR = 0;
 	prechargeTime = 0;
@@ -58,33 +73,14 @@ DeviceType MotorController::getType() {
 void MotorController::handleTick() {
 	uint8_t forwardSwitch, reverseSwitch;
 
-	//I'm pretty sure this whole block of code is worthless.
-	//The inputs that this code uses aren't even actual, valid inputs to the GEVCU box.
-	/*
-	if (digitalRead(MOTORCTL_INPUT_DRIVE_EN) == LOW)
-		running = true;
-	else
-		running = false;
-
-	forwardSwitch = digitalRead(MOTORCTL_INPUT_FORWARD);
-	reverseSwitch = digitalRead(MOTORCTL_INPUT_REVERSE);
-
-	gearSwitch = GS_FAULT;
-	if (forwardSwitch == LOW && reverseSwitch == HIGH)
 		gearSwitch = GS_FORWARD;
-	if (forwardSwitch == HIGH && reverseSwitch == LOW)
-		gearSwitch = GS_REVERSE;
-	*/
-
-	running = true;
-	gearSwitch = GS_FORWARD;
 
 	Throttle *accelerator = DeviceManager::getInstance()->getAccelerator();
 	Throttle *brake = DeviceManager::getInstance()->getBrake();
 	if (accelerator)
-		requestedThrottle = accelerator->getLevel();
+		throttleRequested = accelerator->getLevel();
 	if (brake && brake->getLevel() < -10 && brake->getLevel() < accelerator->getLevel()) //if the brake has been pressed it overrides the accelerator.
-		requestedThrottle = brake->getLevel();
+		throttleRequested = brake->getLevel();
 
 	if (prechargeTime == 0) donePrecharge = true;
 
@@ -102,7 +98,7 @@ void MotorController::handleTick() {
 		}
 	}
 
-	//Logger::debug("Throttle: %d", requestedThrottle);
+	//Logger::debug("Throttle: %d", throttleRequested);
 
 }
 
@@ -118,8 +114,8 @@ void MotorController::setup() {
 	 */
 #ifndef USE_HARD_CODED
 	if (prefsHandler->checksumValid()) { //checksum is good, read in the values stored in EEPROM
-		prefsHandler->read(EEMC_MAX_RPM, &maxRPM);
-		prefsHandler->read(EEMC_MAX_TORQUE, &maxTorque);
+		prefsHandler->read(EEMC_MAX_RPM, &speedMax);
+		prefsHandler->read(EEMC_MAX_TORQUE, &torqueMax);
 		prefsHandler->read(EEMC_PRECHARGE_C, &prechargeC);
 		prefsHandler->read(EEMC_PRECHARGE_R, &prechargeR);
 		prefsHandler->read(EEMC_NOMINAL_V, &nominalVolt);
@@ -128,8 +124,8 @@ void MotorController::setup() {
 		prefsHandler->read(EEMC_REVERSE_LIMIT, &reversePercent);
 	}
 	else { //checksum invalid. Reinitialize values and store to EEPROM
-		maxRPM = MaxRPMValue;
-		maxTorque = MaxTorqueValue;
+		speedMax = MaxRPMValue;
+		torqueMax = MaxTorqueValue;
 		prechargeC = PrechargeC;
 		prechargeR = PrechargeR;
 		nominalVolt = NominalVolt;
@@ -140,8 +136,8 @@ void MotorController::setup() {
 	}
 
 #else
-	maxRPM = MaxRPMValue;
-	maxTorque = MaxTorqueValue;
+	speedMax = MaxRPMValue;
+	torqueMax = MaxTorqueValue;
 	prechargeC = PrechargeC;
 	prechargeR = PrechargeR;
 	nominalVolt = NominalVolt;
@@ -149,7 +145,7 @@ void MotorController::setup() {
 	mainContactorRelay = MainContactorRelay;
 #endif
 
-	Logger::debug("MaxTorque: %i MaxRPM: %i", maxTorque, maxRPM);
+	Logger::debug("MaxTorque: %i MaxRPM: %i", torqueMax, speedMax);
 	if (prechargeC> 0 && prechargeRelay < NUM_OUTPUT) {
 		//precharge time is 5RC which is (R*C / 1000) ms * 5 = RC/200 but ohms is in tenths so divide by another 10 = RC/2000
 		prechargeTime = ((int)prechargeC * prechargeR) / 2000;
@@ -162,60 +158,98 @@ void MotorController::setup() {
 	}
 }
 
-int MotorController::getThrottle() {
-	return (requestedThrottle);
-}
-
 bool MotorController::isRunning() {
-	return (running);
+	return running;
 }
 
 bool MotorController::isFaulted() {
-	return (faulted);
+	return faulted;
 }
 
-uint16_t MotorController::getActualRpm() {
-	return actualRPM;
+bool MotorController::isWarning() {
+	return warning;
 }
 
-uint16_t MotorController::getActualTorque() {
-	return actualTorque;
+MotorController::PowerMode MotorController::getPowerMode() {
+	return powerMode;
+}
+
+void MotorController::setPowerMode(PowerMode mode) {
+	powerMode = mode;
+}
+
+int16_t MotorController::getThrottle() {
+	return throttleRequested;
+}
+
+int16_t MotorController::getSpeedRequested() {
+	return speedRequested;
+}
+
+int16_t MotorController::getSpeedActual() {
+	return speedActual;
+}
+
+uint16_t MotorController::getSpeedMax() {
+	return speedMax;
+}
+
+void MotorController::setSpeedMax(uint16_t speedMax)
+{
+	this->speedMax = speedMax;
+}
+
+int16_t MotorController::getTorqueRequested() {
+	return torqueRequested;
+}
+
+int16_t MotorController::getTorqueActual() {
+	return torqueActual;
+}
+
+uint16_t MotorController::getTorqueMax() {
+	return torqueMax;
+}
+
+void MotorController::setTorqueMax(uint16_t maxTorque)
+{
+	this->torqueMax = maxTorque;
 }
 
 MotorController::GearSwitch MotorController::getGearSwitch() {
 	return gearSwitch;
 }
 
-signed int MotorController::getInverterTemp() {
-	return inverterTemp;
+int16_t MotorController::getTorqueAvailable() {
+	return torqueAvailable;
 }
 
-uint16_t MotorController::getMaxRpm() {
-	return maxRPM;
+uint16_t MotorController::getDcVoltage() {
+	return dcVoltage;
 }
 
-uint16_t MotorController::getMaxTorque() {
-	return maxTorque;
+int16_t MotorController::getDcCurrent() {
+	return dcCurrent;
 }
 
-signed int MotorController::getMotorTemp() {
-	return motorTemp;
+uint16_t MotorController::getAcCurrent() {
+	return acCurrent;
 }
 
-uint16_t MotorController::getRequestedRpm() {
-	return requestedRPM;
-}
-void MotorController::setMaxRpm(uint16_t maxRPM) 
-{
-	this->maxRPM = maxRPM;
+int16_t MotorController::getMechanicalPower() {
+	return mechanicalPower;
 }
 
-uint16_t MotorController::getRequestedTorque() {
-	return requestedTorque;
+int16_t MotorController::getTemperatureMotor() {
+	return temperatureMotor;
 }
-void MotorController::setMaxTorque(uint16_t maxTorque) 
-{
-	this->maxTorque = maxTorque;
+
+int16_t MotorController::getTemperatureInverter() {
+	return temperatureInverter;
+}
+
+int16_t MotorController::getTemperatureSystem() {
+	return temperatureSystem;
 }
 
 uint16_t MotorController::getPrechargeC()
@@ -274,8 +308,8 @@ void MotorController::setReversePercent(uint8_t perc)
 
 void MotorController::saveEEPROM()
 {
-	prefsHandler->write(EEMC_MAX_RPM, maxRPM);
-	prefsHandler->write(EEMC_MAX_TORQUE, maxTorque);
+	prefsHandler->write(EEMC_MAX_RPM, speedMax);
+	prefsHandler->write(EEMC_MAX_TORQUE, torqueMax);
 	prefsHandler->write(EEMC_PRECHARGE_C, prechargeC);
 	prefsHandler->write(EEMC_PRECHARGE_R, prechargeR);
 	prefsHandler->write(EEMC_NOMINAL_V, nominalVolt);

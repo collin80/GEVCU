@@ -3,12 +3,18 @@
 	<timeRunning>~statusMillis~</timeRunning>
 	<running>~statusRunning~</running>
 	<faulted>~statusFaulted~</faulted>
+	<warning>~statusWarning~</warning>
 	<temperatureMotor>~statusTempMotor~</temperatureMotor>
 	<temperatureInverter>~statusTempInverter~</temperatureInverter>
+	<temperatureSystem>~statusTempSystem~</temperatureSystem>
 	<throttle>~statusThrottle~</throttle>
 	<gear>~statusGear~</gear>
 	<torqueRequested>~statusTorqueReq~</torqueRequested>
 	<torqueActual>~statusTorqueActual~</torqueActual>
 	<speedRequested>~statusSpeedRequested~</speedRequested>
 	<speedActual>~statusSpeedActual~</speedActual>
+	<dcVoltage>~statusDcVoltage~</dcVoltage>
+	<dcCurrent>~statusDcCurrent~</dcCurrent>
+	<acCurrent>~statusAcCurrent~</acCurrent>
+	<mechanicalPower>~statusMechPower~</mechanicalPower>
 </status>
