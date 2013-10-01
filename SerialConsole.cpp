@@ -82,10 +82,10 @@ void SerialConsole::printMenu() {
 	SerialUSB.println();
 	SerialUSB.println("Config Commands (enter command=newvalue). Current values shown in parenthesis:");
 	SerialUSB.println("TORQ="
-			+ String(DeviceManager::getInstance()->getMotorController()->getMaxTorque())
+			+ String(DeviceManager::getInstance()->getMotorController()->getTorqueMax())
 			+ " - Set torque upper limit (tenths of a Nm)");
 	SerialUSB.println("RPMS="
-			+ String(DeviceManager::getInstance()->getMotorController()->getMaxRpm())
+			+ String(DeviceManager::getInstance()->getMotorController()->getSpeedMax())
 			+ " - Set maximum RPMs");
 	SerialUSB.println("REVLIM="
 			+ String(DeviceManager::getInstance()->getMotorController()->getReversePercent())
