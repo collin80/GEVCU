@@ -131,6 +131,17 @@ void Logger::error(DeviceId deviceId, char *message, ...) {
 }
 
 /*
+ * Output a comnsole message with a variable amount of parameters
+ * printf() style, see Logger::logMessage()
+ */
+void Logger::console(char *message, ...) {
+	va_list args;
+	va_start(args, message);
+	Logger::logMessage(message, args);
+	va_end(args);
+}
+
+/*
  * Set the log level. Any output below the specified log level will be omitted.
  */
 void Logger::setLoglevel(LogLevel level) {
@@ -166,7 +177,7 @@ boolean Logger::isDebug() {
 }
 
 /*
- * Output a log message (called by debug(), info(), warn(), error())
+ * Output a log message (called by debug(), info(), warn(), error(), console())
  *
  * Supports printf() like syntax:
  *
@@ -207,6 +218,28 @@ void Logger::log(DeviceId deviceId, LogLevel level, char *format, va_list args) 
 	if (deviceId)
 		printDeviceName(deviceId);
 
+	logMessage(format, args);
+}
+
+/*
+ * Output a log message (called by log(), console())
+ *
+ * Supports printf() like syntax:
+ *
+ * %% - outputs a '%' character
+ * %s - prints the next parameter as string
+ * %d - prints the next parameter as decimal
+ * %f - prints the next parameter as double float
+ * %x - prints the next parameter as hex value
+ * %X - prints the next parameter as hex value with '0x' added before
+ * %b - prints the next parameter as binary value
+ * %B - prints the next parameter as binary value with '0b' added before
+ * %l - prints the next parameter as long
+ * %c - prints the next parameter as a character
+ * %t - prints the next parameter as boolean ('T' or 'F')
+ * %T - prints the next parameter as boolean ('true' or 'false')
+ */
+void Logger::logMessage(char *format, va_list args) {
 	for (; *format != 0; ++format) {
 		if (*format == '%') {
 			++format;
