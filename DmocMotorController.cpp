@@ -120,8 +120,12 @@ void DmocMotorController::handleCanFrame(RX_CAN_FRAME *frame) {
 		}
 //      Logger::debug("OpState: %d", temp);
 		break;
-	case 0x23E: //electrical status
+	//case 0x23E: //electrical status
 		//gives volts and amps for D and Q but does the firmware really care?
+		//break;
+	case 0x650: //HV bus status
+		reportedVoltage = ((frame->data[0] * 256) + frame->data[1]);
+		reportedCurrent = ((frame->data[2] * 256) + frame->data[3]) - 5000; //offset is 500A, unit = .1A
 		break;
 	}
 }

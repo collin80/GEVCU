@@ -98,6 +98,8 @@ class MotorController : public Device {
 	uint8_t prechargeRelay; //# of output to use for this relay or 255 if there is no relay
 	uint8_t mainContactorRelay; //# of output to use for this relay or 255 if there is no relay
 	uint8_t reversePercent;
+	uint16_t reportedVoltage; //what voltage does the controller report it sees? (1/10 v)
+	signed int reportedCurrent; //HV bus current reported by controller (1/10 A)
 	bool donePrecharge; //already completed the precharge cycle?
 };
 
