@@ -39,7 +39,6 @@ void ICHIPWIFI::setup() {
 #ifdef GEVCU3
 	digitalWrite(18, HIGH);
 #endif
-
 	//for now force a specific ad-hoc network to be set up
 	sendCmd("WLCH=6"); //use WIFI channel 6
 	sendCmd("WLSI=!GEVCU"); //name our ADHOC network GEVCU (the ! indicates a ad-hoc network)
@@ -92,13 +91,13 @@ void ICHIPWIFI::handleTick() {
 
 //turn on the web server
 void ICHIPWIFI::enableServer() {
-	sendCmd("WWW=3"); //turn on web server for three clients
+	sendCmd("AWS=1"); //turn on web server for three clients
 	sendCmd("DOWN"); //cause a reset to allow it to come up with the settings
 }
 
 //turn off the web server
 void ICHIPWIFI::disableServer() {
-	sendCmd("WWW=0"); //turn off web server
+	sendCmd("AWS=0"); //turn off web server
 	sendCmd("DOWN"); //cause a reset to allow it to come up with the settings
 }
 
