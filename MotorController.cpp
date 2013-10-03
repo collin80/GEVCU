@@ -145,16 +145,16 @@ void MotorController::setup() {
 	mainContactorRelay = MainContactorRelay;
 #endif
 
-	Logger::debug("MaxTorque: %i MaxRPM: %i", torqueMax, speedMax);
+	Logger::info("MaxTorque: %i MaxRPM: %i", torqueMax, speedMax);
 	if (prechargeC> 0 && prechargeRelay < NUM_OUTPUT) {
 		//precharge time is 5RC which is (R*C / 1000) ms * 5 = RC/200 but ohms is in tenths so divide by another 10 = RC/2000
 		prechargeTime = ((int)prechargeC * prechargeR) / 2000;
-		Logger::debug("RC precharge mode. C: %i  R: %i   Precharge time: %i ms", prechargeC, prechargeR, prechargeTime);
+		Logger::info("RC precharge mode. C: %i  R: %i   Precharge time: %i ms", prechargeC, prechargeR, prechargeTime);
 		setOutput(prechargeRelay, true); //start the precharge right now
 		setOutput(mainContactorRelay, false); //just to be sure
 	}
 	else {
-		Logger::debug("Not precharging in RC mode");
+		Logger::info("Not precharging in RC mode");
 	}
 }
 
