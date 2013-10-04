@@ -34,6 +34,8 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include "sys_io.h"
 #include "TickHandler.h"
 #include "CanHandler.h"
+#include "DeviceManager.h"
+#include "ichip_2128.h"
 
 // CAN bus id's for frames sent to DMC5
 
@@ -172,6 +174,7 @@ private:
 	uint8_t limiterStateNumber; // state number of active limiter
 
 
+	uint32_t tempBitField; // temporary bitfield store
 	int tickCounter; // count how many times handleTick() was called
 	PowerMode powerMode; // the desired power mode
 	uint8_t controlBitField; // the control bit field to send via DMC_CTRL in data[0]

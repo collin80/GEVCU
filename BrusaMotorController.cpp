@@ -173,13 +173,20 @@ void BrusaMotorController::prepareOutputFrame(uint32_t id) {
 void BrusaMotorController::handleCanFrame(RX_CAN_FRAME* frame) {
 	switch (frame->id) {
 	case CAN_ID_STATUS:
-		statusBitField = frame->data[1] | (frame->data[0] << 8);
+		tempBitField = frame->data[1] | (frame->data[0] << 8);
 		torqueAvailable = (frame->data[3] | (frame->data[2] << 8)) / 10;
 		torqueActual = (frame->data[5] | (frame->data[4] << 8)) / 10;
 		speedActual = frame->data[7] | (frame->data[6] << 8);
 
 		if(Logger::isDebug())
 			Logger::debug(BRUSA_DMC5, "status: %X, torque avail: %fNm, actual torque: %fNm, speed actual: %drpm", statusBitField, (float)torqueAvailable/100.0F, (float)torqueActual/100.0F, speedActual);
+
+		if (statusBitField != tempBitField) {
+			ICHIPWIFI *ichip = (ICHIPWIFI *)DeviceManager::getInstance()->getDeviceByID(ICHIP2128);
+			if (ichip)
+				ichip->setParam("statusBitField1", tempBitField);
+			statusBitField = tempBitField;
+		}
 
 		ready = (statusBitField & stateReady) != 0 ? true : false;
 		if (ready)
@@ -232,8 +239,21 @@ void BrusaMotorController::handleCanFrame(RX_CAN_FRAME* frame) {
 		break;
 
 	case CAN_ID_ERRORS:
-		errorBitField = frame->data[1] | (frame->data[0] << 8) | (frame->data[5] << 16) | (frame->data[4] << 24);
-		warningBitField = frame->data[7] | (frame->data[6] << 8);
+		tempBitField = frame->data[1] | (frame->data[0] << 8) | (frame->data[5] << 16) | (frame->data[4] << 24);
+		if (errorBitField != tempBitField) {
+			ICHIPWIFI *ichip = (ICHIPWIFI *)DeviceManager::getInstance()->getDeviceByID(ICHIP2128);
+			if (ichip)
+				ichip->setParam("statusBitField3", tempBitField);
+			errorBitField = tempBitField;
+		}
+
+		tempBitField = frame->data[7] | (frame->data[6] << 8);
+		if (warningBitField != tempBitField) {
+			ICHIPWIFI *ichip = (ICHIPWIFI *)DeviceManager::getInstance()->getDeviceByID(ICHIP2128);
+			if (ichip)
+				ichip->setParam("statusBitField2", tempBitField);
+			warningBitField = tempBitField;
+		}
 
 		if(Logger::isDebug())
 			Logger::debug(BRUSA_DMC5, "errors: %X, warning: %X", errorBitField, warningBitField);

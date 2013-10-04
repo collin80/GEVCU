@@ -26,6 +26,8 @@
 
  */
 
+#include "config.h"
+#ifdef CFG_ENABLE_DEVICE_ICHIP2128_WIFI
 #include "ichip_2128.h"
 
 //initialization of hardware and parameters
@@ -184,3 +186,5 @@ DeviceType ICHIPWIFI::getType() {
 DeviceId ICHIPWIFI::getId() {
 	return (ICHIP2128);
 }
+
+#endif
