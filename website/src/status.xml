@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <status>
-	<timeRunning>~statusMillis~</timeRunning>
+	<timeRunning>~statusTimeRunning~</timeRunning>
 	<running>~statusRunning~</running>
 	<faulted>~statusFaulted~</faulted>
 	<warning>~statusWarning~</warning>

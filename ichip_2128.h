@@ -87,6 +87,7 @@ class ICHIPWIFI : public Device {
     int tickCounter;
     int ibWritePtr;
 	int currReply;
+	char runtime[15];
     
     public:
     void setup(); //initialization on start up
@@ -102,6 +103,7 @@ class ICHIPWIFI : public Device {
     void setParam(String paramName, int32_t value);
     void setParam(String paramName, float value, int precision);
     void sendCmd(String cmd);
+    char *getTimeRunning();
     ICHIPWIFI();
     ~ICHIPWIFI();
     ICHIPWIFI(USARTClass *which);
