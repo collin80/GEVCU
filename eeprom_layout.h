@@ -63,22 +63,22 @@ the end of the stardard data. The below numbers are offsets from the device's ee
 //Motor controller data
 #define EEMC_MAX_RPM			20 //2 bytes, unsigned int for maximum allowable RPM
 #define EEMC_MAX_TORQUE			22 //2 bytes, unsigned int - maximum torque in tenths of a Nm
-#define EEMC_ACTIVE_HIGH		24  //1 byte - bitfield - each bit corresponds to whether a given signal is active high (1) or low (0)
+//#define EEMC_ACTIVE_HIGH		24  //1 byte - bitfield - each bit corresponds to whether a given signal is active high (1) or low (0)
 									// bit:		function:
 									// 0		Drive enable
 									// 1		Gear Select - Park/Neutral
 									// 2		Gear Select - Forward
 									// 3		Gear Select - Reverse
-#define EEMC_LIMP_SCALE			25 //1 byte - percentage of power to allow during limp mode
-#define EEMC_MAX_REGEN			26 //1 byte - percentage of max torque to apply to regen
-#define EEMC_REGEN_SCALE		28 //1 byte - percentage - reduces all regen related values (throttle, brake, maximum above)
+//#define EEMC_LIMP_SCALE			25 //1 byte - percentage of power to allow during limp mode
+//#define EEMC_MAX_REGEN			26 //1 byte - percentage of max torque to apply to regen
+//#define EEMC_REGEN_SCALE		28 //1 byte - percentage - reduces all regen related values (throttle, brake, maximum above)
 #define EEMC_PRECHARGE_RELAY	29 //1 byte - 255 = no precharge relay 0-3 = yes, there is one (and the output is the number stored)
 #define EEMC_CONTACTOR_RELAY	30 //1 byte - 255 = no contactor relay 0-3 = yes there is
-#define EEMC_COOLING			31 //1 byte - set point in C for starting up cooling relay
-#define EEMC_MIN_TEMP_MOTOR		32 //2 bytes - signed int - Smallest value on temp gauge (1% PWM output)
-#define EEMC_MAX_TEMP_MOTOR		34 //2 bytes - signed int - Highest value on temp gauge (99% PWM output)
-#define EEMC_MIN_TEMP_INV		36 //2 bytes - signed int - Smallest value on temp gauge (1% PWM output)
-#define EEMC_MAX_TEMP_INV		38 //2 bytes - signed int - Highest value on temp gauge (99% PWM output)
+//#define EEMC_COOLING			31 //1 byte - set point in C for starting up cooling relay
+//#define EEMC_MIN_TEMP_MOTOR		32 //2 bytes - signed int - Smallest value on temp gauge (1% PWM output)
+//#define EEMC_MAX_TEMP_MOTOR		34 //2 bytes - signed int - Highest value on temp gauge (99% PWM output)
+//#define EEMC_MIN_TEMP_INV		36 //2 bytes - signed int - Smallest value on temp gauge (1% PWM output)
+//#define EEMC_MAX_TEMP_INV		38 //2 bytes - signed int - Highest value on temp gauge (99% PWM output)
 #define EEMC_PRECHARGE_C		40 //2 bytes - capacitance of controller capacitor bank in micro farads (uf) - set to zero to disable RC precharge
 #define EEMC_PRECHARGE_R		42 //2 bytes - Resistance of precharge resistor in tenths of an ohm
 #define EEMC_NOMINAL_V			44 //2 bytes - nominal system voltage to expect (in tenths of a volt)
