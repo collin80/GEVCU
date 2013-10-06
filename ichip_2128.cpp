@@ -26,6 +26,8 @@
 
  */
 
+#include "config.h"
+#ifdef CFG_ENABLE_DEVICE_ICHIP2128_WIFI
 #include "ichip_2128.h"
 
 //initialization of hardware and parameters
@@ -64,7 +66,7 @@ void ICHIPWIFI::sendCmd(String cmd) {
 void ICHIPWIFI::handleTick() {
 	MotorController* motorController = DeviceManager::getInstance()->getMotorController();
 	if (motorController) {
-		setParam("statusMillis", millis());
+		setParam("statusTimeRunning", getTimeRunning());
 		setParam("statusThrottle", motorController->getThrottle());
 		setParam("statusTorqueReq", motorController->getTorqueRequested() / 10.0f, 1);
 		setParam("statusTorqueActual", motorController->getTorqueActual() / 10.0f, 1);
@@ -87,6 +89,16 @@ void ICHIPWIFI::handleTick() {
 			tickCounter = 0;
 		}
 	}
+}
+
+char * ICHIPWIFI::getTimeRunning() {
+	uint32_t ms = millis();
+	int milliseconds = (int) ms % 1000;
+	int seconds = (int) (ms / 1000) % 60;
+	int minutes = (int) ((ms / (1000 * 60)) % 60);
+	int hours = (int) ((ms / (1000 * 3600)) % 24);
+	sprintf(runtime, "%02d:%02d:%02d.%03d", hours, minutes, seconds, milliseconds);
+	return runtime;
 }
 
 //turn on the web server
@@ -119,9 +131,9 @@ String ICHIPWIFI::getParamById(String paramName) {
 void ICHIPWIFI::setParam(String paramName, String value) {
 	serialInterface->write("AT+i");
 	serialInterface->print(paramName);
-	serialInterface->write("=");
+	serialInterface->write("=\"");
 	serialInterface->print(value);
-	serialInterface->write(13);
+	serialInterface->write("\"\r");
 	loop();
 }
 
@@ -184,3 +196,5 @@ DeviceType ICHIPWIFI::getType() {
 DeviceId ICHIPWIFI::getId() {
 	return (ICHIP2128);
 }
+
+#endif

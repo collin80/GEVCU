@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <status>
-	<timeRunning>~statusMillis~</timeRunning>
+	<timeRunning>~statusTimeRunning~</timeRunning>
 	<running>~statusRunning~</running>
 	<faulted>~statusFaulted~</faulted>
 	<warning>~statusWarning~</warning>
@@ -17,4 +17,8 @@
 	<dcCurrent>~statusDcCurrent~</dcCurrent>
 	<acCurrent>~statusAcCurrent~</acCurrent>
 	<mechanicalPower>~statusMechPower~</mechanicalPower>
+	<bitfield1>0~statusBitfield1~</bitfield1>
+	<bitfield2>0~statusBitfield2~</bitfield2>
+	<bitfield3>0~statusBitfield3~</bitfield3>
+	<bitfield4>0~statusBitfield4~</bitfield4>
 </status>

@@ -52,7 +52,6 @@ void PotBrake::setup() {
 	 if (prefsHandler->checksumValid()) { //checksum is good, read in the values stored in EEPROM
 		prefsHandler->read(EETH_BRAKE_MIN, &brakeMin);
 		prefsHandler->read(EETH_BRAKE_MAX, &brakeMax);
-		prefsHandler->read(EETH_MAX_ACCEL_REGEN, &throttleMaxRegen);
 		prefsHandler->read(EETH_MAX_BRAKE_REGEN, &brakeMaxRegen);
 		prefsHandler->read(EETH_MIN_BRAKE_REGEN, &brakeMinRegen);
 		Logger::debug(POTBRAKEPEDAL, "BRAKE T1 MIN: %i MAX: %i", brakeMin, brakeMax);
@@ -62,7 +61,6 @@ void PotBrake::setup() {
 	 
 		//these four values are ADC values
 		//The next three are tenths of a percent
-		throttleMaxRegen = 00; //percentage of full power to use for regen at throttle
 		brakeMaxRegen = 80; //percentage of full power to use for regen at brake pedal transducer
 		brakeMinRegen = 20;
 		brakeMin = 5;
@@ -70,7 +68,6 @@ void PotBrake::setup() {
 		saveEEPROM();
 	}
 #else
-		throttleMaxRegen = ThrottleMaxRegenValue;
 		brakeMaxRegen = BrakeMaxRegenValue;
 		brakeMinRegen = BrakeMinRegenValue;
 		brakeMin = BrakeMinValue;

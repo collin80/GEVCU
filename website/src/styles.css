@@ -43,7 +43,7 @@ div.tabHeader a:hover,div.tabHeader a.Active {
 }
 
 div.tabHeader a.on {
-	color:#ffffff;
+	color: #ffffff;
 	background: linear-gradient(top, rgb(2, 44, 84) 1%, rgb(15, 15, 16) 70%);
 	background: -o-linear-gradient(top, rgb(2, 44, 84) 1%, rgb(15, 15, 16) 70%);
 	background: -moz-linear-gradient(top, rgb(2, 44, 84), rgb(15, 15, 16) 70%);
@@ -51,11 +51,45 @@ div.tabHeader a.on {
 	background: -ms-linear-gradient(top, rgb(2, 44, 84) 1%, rgb(15, 15, 16) 70%);
 }
 
-div.tabs
-{
-  clear: both;
-  border: 1px solid #555599;
-  overflow: hidden;
+div.tabs {
+	clear: both;
+	border: 1px solid #555599;
+	overflow: hidden;
+}
+
+table.annunciators {
+	background: #111111;
+	border-collapse: collapse;
+	border-spacing: 0px;
+}
+
+table.annunciators td {
+	text-align: center;
+	border: 4px solid #000000;
+	height: 30px;
+	width: 110px;
+	font-size: 75%;
+}
+
+.annunciatorOff {
+	color: #444444;
+}
+
+.annunciatorWarn {
+	color: #ffbb00;
+}
+
+.annunciatorError {
+	color: #ff3300;
+}
+
+.annunciatorOk {
+	color: #33ff33;
+}
+
+input[type=range] {
+	padding: 0 5px;
+	width: 200px;
 }
 
 a {
@@ -81,10 +115,6 @@ h3 {
 	margin-top: 10px;
 	margin-bottom: 5px;
 	padding: 0px 0px 0px 0px;
-}
-
-table {
-/*	width: 800px*/
 }
 
 .small {
