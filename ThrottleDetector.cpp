@@ -351,7 +351,7 @@ bool ThrottleDetector::isThrottle2Inverse() {
  * Returns true if a second throttle was provided
  */
 bool ThrottleDetector::throttle2Provided() {
-	return throttle->getNumThrottlePots() > 1;
+	return throttle->getNumberPotMeters() > 1;
 }
 
 /*

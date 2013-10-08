@@ -40,6 +40,11 @@ MotorController::MotorController() : Device() {
 	temperatureInverter = 0;
 	temperatureSystem = 0;
 
+	statusBitfield1 = 0;
+	statusBitfield2 = 0;
+	statusBitfield3 = 0;
+	statusBitfield4 = 0;
+
 	powerMode = modeTorque;
 	throttleRequested = 0;
 	speedRequested = 0;
@@ -319,3 +324,18 @@ void MotorController::saveEEPROM()
 	prefsHandler->saveChecksum();
 }
 
+uint32_t MotorController::getStatusBitfield1() {
+	return statusBitfield1;
+}
+
+uint32_t MotorController::getStatusBitfield2() {
+	return statusBitfield2;
+}
+
+uint32_t MotorController::getStatusBitfield3() {
+	return statusBitfield3;
+}
+
+uint32_t MotorController::getStatusBitfield4() {
+	return statusBitfield4;
+}

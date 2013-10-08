@@ -27,238 +27,181 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  
 #include "Throttle.h"
  
-Throttle::Throttle() : Device() 
-{
+Throttle::Throttle() : Device() {
 	prefsHandler = new PrefHandler(EE_THROTTLE_START);
     throttleDetector = NULL;
 	level = 0;
 }
 
-Throttle::~Throttle() 
-{
-  if ( throttleDetector != NULL ) 
-  {
+Throttle::~Throttle() {
+  if ( throttleDetector != NULL ) {
     delete throttleDetector;
     throttleDetector = NULL;
   }
 }
 
-void Throttle::handleTick() 
-{
+void Throttle::handleTick() {
 	Device::handleTick();
-	if ( throttleDetector != NULL ) 
-	{
+	if ( throttleDetector != NULL ) {
 	    throttleDetector->handleTick();
 	}
 }
 
-DeviceType Throttle::getType()
-{
+DeviceType Throttle::getType(){
 	return DEVICE_THROTTLE;
 }
 
-int16_t Throttle::getLevel()
-{
+int16_t Throttle::getLevel(){
 	return level;
 }
 
-void Throttle::setNumThrottlePots(uint8_t num) 
-{
-	// Currently only valid values are 1  and 2
-	if (num < 1) num = 1;
-	if (num > 2) num = 2;
-
-	numThrottlePots = num;
+void Throttle::setNumberPotMeters(uint8_t num) {
+	numberPotMeters = constrain(num, 1, 2); // Currently only valid values are 1  and 2
 }
 
-uint8_t Throttle::getNumThrottlePots() 
-{
-	return numThrottlePots;
+uint8_t Throttle::getNumberPotMeters() {
+	return numberPotMeters;
 }
 
-void Throttle::setSubtype(uint8_t num)
-{
-	// Currently only valid values are 1  and 2
-	if (num < 1) num = 1;
-	if (num > 2) num = 2;
-
-	throttleSubType = num;
+void Throttle::setSubtype(uint8_t num) {
+	throttleSubType = constrain(num, 1, 2); // Currently only valid values are 1  and 2
 }
 
-uint8_t Throttle::getSubtype()
-{
+uint8_t Throttle::getSubtype() {
 	return throttleSubType;
 }
 
-
-//Give default versions that return 0. Override in a child class if you implement the throttle
+/*
+ * Give default versions that return 0. Override in a child class if you implement the throttle
+ */
 int Throttle::getRawThrottle1() {return 0;}
 int Throttle::getRawThrottle2() {return 0;}
 
-// Return the tick interval for this throttle. Override in a child class
-// if you use a different tick interval
-uint32_t Throttle::getTickInterval() 
-{
+/*
+ * Return the tick interval for this throttle. Override in a child class
+ * if you use a different tick interval
+ */
+uint32_t Throttle::getTickInterval() {
 	return CFG_TICK_INTERVAL_POT_THROTTLE;
 }
 
-//a common function to all throttles that takes as input the throttle position percentage
-//and outputs an output throttle percentage which is calculated based on the throttle and
-//brake mapping parameters. 
-void Throttle::mapThrottle(signed int inVal) 
-{
-	signed int range, temp;
+/*
+ * Maps the input throttle position (0-1000 permille) to an output level which is calculated
+ * based on the throttle mapping parameters.
+ */
+void Throttle::mapThrottle(int16_t currentPosition) {
+	int16_t range, value;
 
-	//Logger::debug("Entering mapThrottle: %i", inVal);
+	level = 0; //by default we give zero throttle
 
-	if (inVal > 0) {
-		if (throttleRegen != 0) {
-			if (inVal <= throttleRegen) {
-				range = throttleRegen;
-				temp = range - inVal;
-				level = (signed long) ((signed long) (-10) * throttleMaxRegen * temp / range);
+	if (currentPosition > 0) {
+		if (positionRegenStart != 0) {
+			if (currentPosition <= positionRegenStart) {
+				range = positionRegenStart;
+				value = range - currentPosition;
+				level = (signed long) ((signed long) (-10) * maximumRegen * value / range);
 			}
 		}
 
-		if (inVal >= throttleFwd) {
-			if (inVal <= throttleMap) { //bottom 50% forward
-				range = throttleMap - throttleFwd;
-				temp = (inVal - throttleFwd);
-				level = (signed long) ((signed long) (500) * temp / range);
+		if (currentPosition >= positionForwardMotionStart) {
+			if (currentPosition <= positionHalfPower) { //bottom 50% forward
+				range = positionHalfPower - positionForwardMotionStart;
+				value = currentPosition - positionForwardMotionStart;
+				level = 500 * value / range;
 			}
 			else { //more than throttleMap
-				range = 1000 - throttleMap;
-				temp = (inVal - throttleMap);
-				level = 500 + (signed int) ((signed long) (500) * temp / range);
+				range = 1000 - positionHalfPower;
+				value = currentPosition - positionHalfPower;
+				level = 500 + 500 * value / range;
 			}
 		}
 	}
 	else {
-		if (brakeMaxRegen != 0) { //is the brake regen even enabled?
-			int range = brakeMaxRegen - throttleMaxRegen; //we start the brake at ThrottleMaxRegen so the range is reduced by that amount
-			if (range < 1) { //detect stupidity and abort
-				level = 0;
-				return;
-			}
-			level = (signed int) ((signed int) 10 * range * inVal) / (signed int) 1000;
-			level -= 10 * throttleMaxRegen;
-		}
+		level = -10 * maximumRegen;
 	}
-	//Logger::debug("level: %d", level);
+	//Logger::debug("throttle level: %d", level);
 }
 
-void Throttle::detectThrottle() 
-{
-  if ( throttleDetector == NULL ) {
+void Throttle::detectThrottle() {
+  if ( throttleDetector == NULL )
     throttleDetector = new ThrottleDetector(this);
-  }
   throttleDetector->detect();
 }
 
-uint16_t Throttle::getT1Min()
-{
-	return throttleMin1;
-}
-void Throttle::setT1Min(uint16_t min) 
-{
-	throttleMin1 = min;
+void Throttle::setMinumumLevel1(uint16_t min) {
+	minimumLevel1 = min;
 }
 
-uint16_t Throttle::getT2Min()
-{
-	return throttleMin2;
-}
-void Throttle::setT2Min(uint16_t min) 
-{
-	throttleMin2 = min;
+uint16_t Throttle::getMinimumLevel1() {
+	return minimumLevel1;
 }
 
-uint16_t Throttle::getT1Max()
-{
-	return throttleMax1;
-}
-void Throttle::setT1Max(uint16_t max) 
-{
-	throttleMax1 = max;
+void Throttle::setMinimumLevel2(uint16_t min) {
+	minimumLevel2 = min;
 }
 
-uint16_t Throttle::getT2Max()
-{
-	return throttleMax2;
-}
-void Throttle::setT2Max(uint16_t max) 
-{
-	throttleMax2 = max;
+uint16_t Throttle::getMinimumLevel2() {
+	return minimumLevel2;
 }
 
-uint16_t Throttle::getRegenEnd()
-{
-	return throttleRegen;
-}
-void Throttle::setRegenEnd(uint16_t regen) 
-{
-	throttleRegen = regen;
+void Throttle::setMaximumLevel1(uint16_t max) {
+	maximumLevel1 = max;
 }
 
-uint16_t Throttle::getFWDStart()
-{
-	return throttleFwd;
-}
-void Throttle::setFWDStart(uint16_t fwd) 
-{
-	throttleFwd = fwd;
+uint16_t Throttle::getMaximumLevel1() {
+	return maximumLevel1;
 }
 
-uint16_t Throttle::getMAP()
-{
-	return throttleMap;
-}
-void Throttle::setMAP(uint16_t map) 
-{
-	throttleMap = map;
+void Throttle::setMaximumLevel2(uint16_t max) {
+	maximumLevel2 = max;
 }
 
-uint16_t Throttle::getMaxRegen()
-{
-	return throttleMaxRegen;
-}
-void Throttle::setMaxRegen(uint16_t regen) 
-{
-	throttleMaxRegen = regen;
+uint16_t Throttle::getMaximumLevel2() {
+	return maximumLevel2;
 }
 
-uint16_t Throttle::getMinRegen()
-{
-	return throttleMinRegen;
-}
-void Throttle::setMinRegen(uint16_t regen) 
-{
-	throttleMinRegen = regen;
+void Throttle::setPositionRegenStart(uint16_t regen) {
+	positionRegenStart = regen;
 }
 
-void Throttle::saveConfiguration()
-{
+uint16_t Throttle::getPositionRegenStart() {
+	return positionRegenStart;
 }
 
-void Throttle::saveEEPROM()
-{
+void Throttle::setPositionForwardMotionStart(uint16_t fwd) {
+	positionForwardMotionStart = fwd;
 }
 
+uint16_t Throttle::getPositionForwardMotionStart() {
+	return positionForwardMotionStart;
+}
 
-//TODO: need to plant this in here somehow..
+void Throttle::setPositionHalfPower(uint16_t map) {
+	positionHalfPower = map;
+}
 
-//if (!runStatic)
-//	throttleval++;
-//if (throttleval > 80)
-//	throttleval = 0;
-//if (!runThrottle) { //ramping test
-//	if (!runRamp) {
-//		throttleval = 0;
-//	}
-//	motorController->setThrottle(throttleval * (int) 12); //with throttle 0-80 this sets throttle to 0 - 960
-//}
-//else { //use the installed throttle
-//}
+uint16_t Throttle::getPositionHalfPower() {
+	return positionHalfPower;
+}
 
+void Throttle::setMaximumRegen(uint16_t regen) {
+	maximumRegen = regen;
+}
 
+uint16_t Throttle::getMaximumRegen() {
+	return maximumRegen;
+}
 
+void Throttle::setMinimumRegen(uint16_t regen) {
+	minimumRegen = regen;
+}
+
+uint16_t Throttle::getMinimumRegen() {
+	return minimumRegen;
+}
+
+void Throttle::saveConfiguration() {
+}
+
+void Throttle::saveEEPROM() {
+}
