@@ -152,6 +152,17 @@ void DeviceManager::sendMessage(DeviceType devType, DeviceId devId, uint32_t msg
 	}
 }
 
+void DeviceManager::setParameter(DeviceType deviceType, DeviceId deviceId, uint32_t msgType, char *key, char *value) {
+	char *params[] = { key, value };
+	sendMessage(deviceType, deviceId, msgType, params);
+}
+
+void DeviceManager::setParameter(DeviceType deviceType, DeviceId deviceId, uint32_t msgType, char *key, uint32_t value) {
+	char buffer[15];
+	sprintf(buffer, "%lu", value);
+	setParameter(deviceType, deviceId, msgType, key, buffer);
+}
+
 uint8_t DeviceManager::getNumThrottles() {
 	return countDeviceType(DEVICE_THROTTLE);
 }

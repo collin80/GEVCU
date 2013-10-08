@@ -4,74 +4,75 @@
 			<td colspan="5"><h2>Throttle</h2></td>
 		</tr>
 		<tr>
-			<td>Number of Throttle Potentiometers</td>
+			<td>Number of Throttle Pots</td>
 			<td><select name="numThrottlePots">
 				<option value="1">1</option>
-				<option value="2" selected>2</option>
+				<option value="2">2</option>
 			</select></td>
 			<td>&nbsp;</td>
 			<td>Throttle Type</td>
 			<td><select name="throttleSubType">
 				<option value="0">unknown</option>
-				<option value="1" selected>linear</option>
+				<option value="1">linear</option>
 				<option value="2">inverse</option>
 			</select></td>
 		</tr>
 		<tr>
-			<td>Minimum Level Throttle 1</td>
+			<td>Minimum Level Throttle Pot1</td>
 			<td nowrap="nowrap"><span id="throttleMin1Span"></span></td>
 			<td></td>
-			<td>Pedal Position Regen Start (&#8240;)</td>
-			<td nowrap="nowrap"><span id="throttleRegenSpan"></span></td>
+			<td>Pedal Position Regen Start</td>
+			<td nowrap="nowrap"><span id="throttleRegenSpan"></span> &#8240;</td>
 		</tr>
 		<tr>
-			<td>Maximum Level Throttle 1</td>
+			<td>Maximum Level Throttle Pot1</td>
 			<td><span id="throttleMax1Span"></span></td>
 			<td></td>
-			<td>Pedal Position Forward Motion Start (&#8240;)</td>
-			<td><span id="throttleFwdSpan"></span></td>
+			<td>Pedal Position Forward Motion Start</td>
+			<td><span id="throttleFwdSpan"></span> &#8240;</td>
 		</tr>
 		<tr>
-			<td>Minimum Level Throttle 2</td>
+			<td>Minimum Level Throttle Pot2</td>
 			<td><span id="throttleMin2Span"></span></td>
 			<td></td>
-			<td>Pedal Position 50% throttle (&#8240;)</td>
-			<td><span id="throttleMapSpan"></span></td>
+			<td>Pedal Position 50% throttle</td>
+			<td><span id="throttleMapSpan"></span> &#8240;</td>
 		</tr>
 		<tr>
-			<td>Maximum Level Throttle 2</td>
+			<td>Maximum Level Throttle Pot2</td>
 			<td><span id="throttleMax2Span"></span></td>
 			<td></td>
-			<td>Maximum Regen Level (&#8240;)</td>
-			<td><span id="throttleMaxRegenSpan"></span></td>
+			<td>Maximum Throttle Regen</td>
+			<td><span id="throttleMaxRegenSpan"></span> %</td>
 		</tr>
 		<tr>
 			<td colspan="5"><h2>Brake</h2></td>
 		</tr>
+		<tr>
 			<td>Minimum Level Brake</td>
 			<td><span id="brakeMinSpan"></span></td>
 			<td></td>
-			<td>Minimum Brake Regen (&#8240;)</td>
-			<td><span id="brakeMinRegenSpan"></span></td>
+			<td>Minimum Brake Regen</td>
+			<td><span id="brakeMinRegenSpan"></span> %</td>
 		</tr>
 		<tr>
 			<td>Maximum Level Brake</td>
 			<td><span id="brakeMaxSpan"></span></td>
 			<td></td>
-			<td>Maximum Brake Regen (&#8240;)</td>
-			<td><span id="brakeMaxRegenSpan"></span></td>
+			<td>Maximum Brake Regen</td>
+			<td><span id="brakeMaxRegenSpan"></span> %</td>
 		</tr>
 		<tr>
 			<td colspan="5"><h2>Motor Controller</h2></td>
 		</tr>
 		<tr>
-			<td>Max RPM</td>
-			<td><input name="speedMax" type="text" value="~speedMax~" /></td>
+			<td>Maximum Speed</td>
+			<td><input name="speedMax" type="text"/> rpm</td>
 			<td></td>
-			<td>Max Torque</td>
-			<td><input name="torqueMax" type="text" value="~torqueMax~" /></td>
+			<td>Maximum Torque</td>
+			<td><input name="torqueMax" type="text"/> Nm</td>
 		</tr>
-		<tr>
+<!--		<tr>
 			<td>Active High</td>
 			<td><input name="f24" type="text" value="c" /></td>
 			<td></td>
@@ -159,8 +160,8 @@
 			<td>Key (13 bytes=WEP,8-40=WPA)</td>
 			<td><input name="f539" type="text" value="" /></td>
 		</tr>
-	</table>
-	<center>
+-->	</table>
+ 	<center>
 		<input type="submit" value="Save" />
 	</center>
 </form>

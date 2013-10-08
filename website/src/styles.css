@@ -58,7 +58,7 @@ div.tabs {
 }
 
 table.annunciators {
-	background: #111111;
+	background: #080808;
 	border-collapse: collapse;
 	border-spacing: 0px;
 }
@@ -69,10 +69,11 @@ table.annunciators td {
 	height: 30px;
 	width: 110px;
 	font-size: 75%;
+	color: #303030;
 }
 
 .annunciatorOff {
-	color: #444444;
+	color: #303030;
 }
 
 .annunciatorWarn {
@@ -80,11 +81,11 @@ table.annunciators td {
 }
 
 .annunciatorError {
-	color: #ff3300;
+	color: #ff2200;
 }
 
 .annunciatorOk {
-	color: #33ff33;
+	color: #22ee22;
 }
 
 input[type=range] {
@@ -108,21 +109,4 @@ h2 {
 	margin-top: 10px;
 	margin-bottom: 5px;
 	padding: 0px 0px 0px 0px;
-}
-
-h3 {
-	color: #ddddff;
-	margin-top: 10px;
-	margin-bottom: 5px;
-	padding: 0px 0px 0px 0px;
-}
-
-.small {
-	font-size: 0.6em;
-}
-
-table.topborder {
-	border-top-width: 1;
-	border-top-style: solid;
-	border-top-color: #003E61;
 }
