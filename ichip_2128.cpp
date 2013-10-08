@@ -70,18 +70,18 @@ void ICHIPWIFI::handleTick() {
 		// make small slices so the main loop is not blocked for too long
 		if (tickCounter == 1) {
 			setParam("timeRunning", getTimeRunning());
-			setParam("throttle", motorController->getThrottle());
+			setParam("throttle", motorController->getThrottle() / 10.0f, 1);
 			setParam("torqueRequested", motorController->getTorqueRequested() / 10.0f, 1);
 			setParam("torqueActual", motorController->getTorqueActual() / 10.0f, 1);
 		}
 		else if (tickCounter == 2) {
 			setParam("speedRequested", motorController->getSpeedRequested());
 			setParam("speedActual", motorController->getSpeedActual());
-			setParam("dcVoltage", motorController->getDcVoltage());
-			setParam("dcCurrent", motorController->getDcCurrent());
+			setParam("dcVoltage", motorController->getDcVoltage() / 10.0f, 1);
+			setParam("dcCurrent", motorController->getDcCurrent() / 10.0f, 1);
 		}
 		else if (tickCounter == 3) {
-			setParam("acCurrent", motorController->getAcCurrent());
+			setParam("acCurrent", motorController->getAcCurrent() / 10.0f, 1);
 			setParam("bitfield1", motorController->getStatusBitfield1());
 			setParam("bitfield2", motorController->getStatusBitfield2());
 			setParam("bitfield3", motorController->getStatusBitfield3());
@@ -96,8 +96,8 @@ void ICHIPWIFI::handleTick() {
 		else if (tickCounter > 4) {
 			setParam("tempMotor", motorController->getTemperatureMotor() / 10.0f, 1);
 			setParam("tempInverter", motorController->getTemperatureInverter() / 10.0f, 1);
-			setParam("tempSystem", motorController->getTemperatureInverter() / 10.0f, 1);
-			setParam("mechPower", motorController->getMechanicalPower());
+			setParam("tempSystem", motorController->getTemperatureSystem() / 10.0f, 1);
+			setParam("mechPower", motorController->getMechanicalPower() / 10.0f, 1);
 			tickCounter = 0;
 
 			getNextParam();
