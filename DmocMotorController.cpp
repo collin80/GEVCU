@@ -142,6 +142,8 @@ void DmocMotorController::setup() {
 	CanHandler::getInstanceEV()->attach(this, 0x230, 0x7f0, false);
 	CanHandler::getInstanceEV()->attach(this, 0x650, 0x7f0, false);
 
+	actualGear = NEUTRAL;
+
 	TickHandler::getInstance()->attach(this, CFG_TICK_INTERVAL_MOTOR_CONTROLLER_DMOC);
 }
 
@@ -155,7 +157,10 @@ void DmocMotorController::handleTick() {
 	if (activityCount > 0) {
 		activityCount--;
 		if (activityCount > 60) activityCount = 60;
-		if (actualGear == NEUTRAL && activityCount > 40) setGear(DRIVE);
+		if (actualState == DISABLED && activityCount > 40) {
+			setOpState(ENABLE);
+			setGear(DRIVE);
+		}
 	}
 	else {
 		setGear(NEUTRAL);
@@ -246,7 +251,6 @@ void DmocMotorController::sendCmd2() {
 	if (powerMode == modeTorque) {
 		if (actualState == ENABLE) { //don't even try sending torque commands until the DMOC reports it is ready
 			if (selectedGear == DRIVE)
-				//Logger::debug("Drive - ENABLED - Torque Mode - Go!");
                 torqueRequested = 30000L + (((long) throttleRequested * (long) torqueMax) / 1000L);
 			if (selectedGear == REVERSE)
 				torqueRequested = 30000L - (((long) throttleRequested * (long) torqueMax) / 1000L);
