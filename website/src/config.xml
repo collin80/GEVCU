@@ -1,4 +1,19 @@
 <?xml version="1.0" encoding="utf-8"?>
 <config>
-
+	<numThrottlePots>~numThrottlePots~</numThrottlePots>
+	<throttleSubType>~throttleSubType~</throttleSubType>
+	<throttleMin1>~throttleMin1~</throttleMin1>
+	<throttleMin2>~throttleMin2~</throttleMin2>
+	<throttleMax1>~throttleMax1~</throttleMax1>
+	<throttleMax2>~throttleMax2~</throttleMax2>
+	<throttleRegen>~throttleRegen~</throttleRegen>
+	<throttleFwd>~throttleFwd~</throttleFwd>
+	<throttleMap>~throttleMap~</throttleMap>
+	<throttleMaxRegen>~throttleMaxRegen~</throttleMaxRegen>
+	<brakeMin>~brakeMin~</brakeMin>
+	<brakeMax>~brakeMax~</brakeMax>
+	<brakeMinRegen>~brakeMinRegen~</brakeMinRegen>
+	<brakeMaxRegen>~brakeMaxRegen~</brakeMaxRegen>
+	<speedMax>~speedMax~</speedMax>
+	<torqueMax>~torqueMax~</torqueMax>
 </config>

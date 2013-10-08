@@ -34,6 +34,8 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include "sys_io.h"
 #include "TickHandler.h"
 #include "CanHandler.h"
+#include "DeviceManager.h"
+#include "ichip_2128.h"
 
 // CAN bus id's for frames sent to DMC5
 
@@ -141,36 +143,22 @@ public:
 	DeviceId getId();
 
 private:
-	// DMC_TRQS
-//	boolean dmcReady; // indicates that the controller is ready, meaning no error is present and HV is available
-//	boolean dmcRunning; // indicates that the controller's powerstage is operating
-//	boolean dmcError; // indicates the presence of an error (refer to errorBitField, reported in separate message), enabling powerstage is not possible
-//	boolean dmcWarning; // indicates the presence of a warning (refer to warningBitField, reported in separate message)
-//	int16_t torqueAvailable; // the maximum available torque in 0.01Nm -> divide by 100 to get Nm
-//	int16_t torqueActual; // the actual torque in 0.01Nm -> divide by 100 to get Nm
-//	int16_t speedActual; // the actual speed of the motor in rpm
-
-	// DMC_ACTV
-//	uint16_t dcVoltage; // DC voltage in 0.1 Volts -> divide value by 10 to get Volts
-//	int16_t dcCurrent; // DC current in 0.1 Amps -> divide value by 10 to get Amps
-//	uint16_t acCurrent; // AC current in 0.25 Amps -> divide value by 4 to get Amps
-//	int16_t mechanicalPower; // mechanical power of the motor in 0.016 kW -> divide value by 62.5 to get kW
-
-	// DMC_TEMP
-//	int16_t temperatureInverter; // the temperature of the controller powerstage in 0.5�C -> divide by 2 to get �C
-//	int16_t temperatureMotor; // the motor temperature in 0.5�C
-//	uint8_t temperatureSystem; // the temperature of the controller system in �C with offset of +50�C -> subtract 50�C
-
-	// DMC_ERR
-	uint32_t errorBitField; // bits holding the errors defined in enum Error
-	uint16_t warningBitField; // bits holding the warnings defined in enum Warning
-	uint16_t statusBitField; // bits holding the status flags defined in enum Status
-
 	// DMC_TRQS2
 	int16_t maxPositiveTorque; // max positive available torque in 0.01Nm -> divide by 100 to get Nm
 	int16_t minNegativeTorque; // minimum negative available torque in 0.01Nm
 	uint8_t limiterStateNumber; // state number of active limiter
 
+	// DMC_CTRL2
+	uint16_t torqueSlewRate; // for torque mode only: slew rate of torque value, 0=disabled, in 0.01Nm/sec
+	uint16_t speedSlewRate; //  for speed mode only: slew rate of speed value, 0=disabled, in rpm/sec
+	uint16_t maxMechanicalPowerMotor; // maximal mechanical power of motor in 4W steps
+	uint16_t maxMechanicalPowerRegen; // maximal mechanical power of regen in 4W steps
+
+	// DMC_LIM
+	uint16_t dcVoltLimitMotor; // minimum DC voltage limit for motoring in 0.1V
+	uint16_t dcVoltLimitRegen; //  maximum DC voltage limit for regen in 0.1V
+	uint16_t dcCurrentLimitMotor; // current limit for motoring in 0.1A
+	uint16_t dcCurrentLimitRegen; // current limit for regen in 0.1A
 
 	int tickCounter; // count how many times handleTick() was called
 	PowerMode powerMode; // the desired power mode
@@ -181,6 +169,11 @@ private:
 	void sendControl2();
 	void sendLimits();
 	void prepareOutputFrame(uint32_t);
+	void processStatus(uint8_t data[]);
+	void processActualValues(uint8_t data[]);
+	void processErrors(uint8_t data[]);
+	void processTorqueLimit(uint8_t data[]);
+	void processTemperature(uint8_t data[]);
 };
 
 #endif /* BRUSAMOTORCONTROLLER_H_ */

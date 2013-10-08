@@ -34,11 +34,10 @@ PotBrake::PotBrake(uint8_t brake1, uint8_t brake2) :
 	brake1ADC = brake1;
 	brake2ADC = brake2;
 	if (brake2 == 255)
-		numBrakePots = 1;
+		numberPotMeters = 1;
 	else
-		numBrakePots = 2;
+		numberPotMeters = 2;
 	brakeStatus = OK;
-	brakeMaxErr = 75; //in tenths of a percent. So 25 = max 2.5% difference
 	//analogReadResolution(12);
 }
 
@@ -50,78 +49,42 @@ void PotBrake::setup() {
 	//pinMode(THROTTLE_INPUT_BRAKELIGHT, INPUT_PULLUP); //Brake light switch
 #ifndef USE_HARD_CODED	
 	 if (prefsHandler->checksumValid()) { //checksum is good, read in the values stored in EEPROM
-		prefsHandler->read(EETH_BRAKE_MIN, &brakeMin);
-		prefsHandler->read(EETH_BRAKE_MAX, &brakeMax);
-		prefsHandler->read(EETH_MAX_ACCEL_REGEN, &throttleMaxRegen);
-		prefsHandler->read(EETH_MAX_BRAKE_REGEN, &brakeMaxRegen);
-		prefsHandler->read(EETH_MIN_BRAKE_REGEN, &brakeMinRegen);
-		Logger::debug(POTBRAKEPEDAL, "BRAKE T1 MIN: %i MAX: %i", brakeMin, brakeMax);
-		Logger::debug(POTBRAKEPEDAL, "Min: %i MaxRegen: %i", brakeMinRegen, brakeMaxRegen);
+		prefsHandler->read(EETH_BRAKE_MIN, &minimumLevel1);
+		prefsHandler->read(EETH_BRAKE_MAX, &maximumLevel1);
+		prefsHandler->read(EETH_MAX_BRAKE_REGEN, &maximumRegen);
+		prefsHandler->read(EETH_MIN_BRAKE_REGEN, &minimumRegen);
+		Logger::debug(POTBRAKEPEDAL, "BRAKE MIN: %l MAX: %l", minimumLevel1, maximumLevel1);
+		Logger::debug(POTBRAKEPEDAL, "Min: %l MaxRegen: %l", minimumRegen, maximumRegen);
 	 }
 	 else { //checksum invalid. Reinitialize values and store to EEPROM
 	 
 		//these four values are ADC values
 		//The next three are tenths of a percent
-		throttleMaxRegen = 00; //percentage of full power to use for regen at throttle
-		brakeMaxRegen = 80; //percentage of full power to use for regen at brake pedal transducer
-		brakeMinRegen = 20;
-		brakeMin = 5;
-		brakeMax = 500;
+		maximumRegen = BrakeMaxRegenValue; //percentage of full power to use for regen at brake pedal transducer
+		minimumRegen = BrakeMinRegenValue;
+		minimumLevel1 = BrakeMinValue;
+		maximumLevel1 = BrakeMaxValue;
 		saveEEPROM();
 	}
 #else
-		throttleMaxRegen = ThrottleMaxRegenValue;
-		brakeMaxRegen = BrakeMaxRegenValue;
-		brakeMinRegen = BrakeMinRegenValue;
-		brakeMin = BrakeMinValue;
-		brakeMax = BrakeMaxValue;
+	 	 maximumRegen = BrakeMaxRegenValue;
+	 	 minimumRegen = BrakeMinRegenValue;
+	 	 minimumLevel1 = BrakeMinValue;
+	 	 maximumLevel1 = BrakeMaxValue;
 #endif
 	TickHandler::getInstance()->attach(this, CFG_TICK_INTERVAL_POT_THROTTLE);
 }
 
-int PotBrake::getRawBrake1() {
-	return brake1Val;
-}
-
-int PotBrake::getRawBrake2() {
-	return brake2Val;
-}
-
 int PotBrake::getRawThrottle1() {
-	return brake1Val;
+	return rawLevel1;
 }
 
 int PotBrake::getRawThrottle2() {
-	return brake2Val;
+	return rawLevel2;
 }
-
-void PotBrake::setMaxRegen(uint16_t regen) 
-{
-	brakeMaxRegen = regen;
-}
-
-void PotBrake::setMinRegen(uint16_t regen) 
-{
-	brakeMinRegen = regen;
-}
-
 
 int PotBrake::calcBrake(int clampedVal, int minVal, int maxVal) {
-	int range, val, retVal;
-
-	if (minVal < maxVal) { //low to high pot
-		range = maxVal - minVal;
-		val = clampedVal - minVal;
-		retVal = (int) (((long) val * 1000) / (long) range); //output is tenths of a percent of max brake
-	}
-	else { //high to low pot
-		range = minVal - maxVal;
-		val = clampedVal - maxVal;
-		retVal = (int) (((long) val * 1000) / (long) range); //output is tenths of a percent of max brake
-		retVal = 1000 - retVal; //reverses the value since the pedal runs reverse
-	}
-
-	return retVal;
+	return map(clampedVal, minVal, maxVal, 0, 1000);
 }
 
 /*
@@ -139,35 +102,35 @@ void PotBrake::doBrake() {
 	signed int calcBrake1, calcBrake2, clampedVal, tempLow, temp;
 	static int brakeAvg = 0, brakeFeedback = 0; //used to create proportional control
 
-	clampedVal = brake1Val;
+	clampedVal = rawLevel1;
 
-	if (brakeMax == 0) { //brake processing disabled if Max is 0
+	if (maximumLevel1 == 0) { //brake processing disabled if Max is 0
 		level = 0;
 		return;
 	}
 
 	//We do not raise a fault of the brake goes too high. We just clamp. This will lock regen on full blast.
-	if (brake1Val > brakeMax) {
-		clampedVal = brakeMax;
+	if (rawLevel1 > maximumLevel1) {
+		clampedVal = maximumLevel1;
 	}
 
 	tempLow = 0;
-	if (brakeMin > 14) {
-		tempLow = brakeMin - 15;
+	if (minimumLevel1 > 14) {
+		tempLow = minimumLevel1 - 15;
 	}
-	if (brake1Val < brakeMin) {
-		if (brake1Val < tempLow) {
+	if (rawLevel1 < minimumLevel1) {
+		if (rawLevel1 < tempLow) {
 			brakeStatus = ERR_LOW_T1;
 			//Logger::debug(POTBRAKEPEDAL, "B");
 		}
-		clampedVal = brakeMin;
+		clampedVal = minimumLevel1;
 	}
 
 	if (!(brakeStatus == OK)) {
 		level = 0; //no throttle if there is a fault
 		return;
 	}
-	calcBrake1 = calcBrake(clampedVal, brakeMin, brakeMax);
+	calcBrake1 = calcBrake(clampedVal, minimumLevel1, maximumLevel1);
 	//Logger::debug(POTBRAKEPEDAL, "calcBrake: %d", calcBrake1);
 
 	//Apparently all is well with the throttle input
@@ -189,8 +152,8 @@ void PotBrake::doBrake() {
 		return;
 	}
 
-	if (brakeMaxRegen != 0) { //is the brake regen even enabled?
-		int range = brakeMaxRegen - brakeMinRegen; //we start the brake at ThrottleMaxRegen so the range is reduced by that amount
+	if (maximumRegen != 0) { //is the brake regen even enabled?
+		int range = maximumRegen - minimumRegen; //we start the brake at ThrottleMaxRegen so the range is reduced by that amount
 		//Logger::debug(POTBRAKEPEDAL, "range: %d", range);
 		//Logger::debug(POTBRAKEPEDAL, "brakeFeedback: %d", brakeFeedback);
 		if (range < 1) { //detect stupidity and abort
@@ -198,7 +161,7 @@ void PotBrake::doBrake() {
 			return;
 		}
 		level = (signed int) ((signed int) -10 * range * brakeFeedback) / (signed int) 1000;
-		level -= 10 * brakeMinRegen;
+		level -= 10 * minimumRegen;
 		//Logger::debug(POTBRAKEPEDAL, "level: %d", level);
 	}
 
@@ -209,10 +172,9 @@ void PotBrake::doBrake() {
 void PotBrake::handleTick() {
 	sys_io_adc_poll();
 
-	brake1Val = getAnalog(brake1ADC);
-	if (numBrakePots > 1) {
-		brake2Val = getAnalog(brake2ADC);
-	}
+	rawLevel1 = getAnalog(brake1ADC);
+	if (numberPotMeters > 1)
+		rawLevel2 = getAnalog(brake2ADC);
 
 	// Call parent handleTick
 	Throttle::handleTick();
@@ -234,31 +196,20 @@ DeviceType PotBrake::getType() {
 }
 
 void PotBrake::saveEEPROM() {
-	prefsHandler->write(EETH_BRAKE_MIN, brakeMin);
-	prefsHandler->write(EETH_BRAKE_MAX, brakeMax);
-	prefsHandler->write(EETH_MAX_BRAKE_REGEN, brakeMaxRegen);
-	prefsHandler->write(EETH_MIN_BRAKE_REGEN, brakeMinRegen);
+	prefsHandler->write(EETH_BRAKE_MIN, minimumLevel1);
+	prefsHandler->write(EETH_BRAKE_MAX, maximumLevel1);
+	prefsHandler->write(EETH_MAX_BRAKE_REGEN, maximumRegen);
+	prefsHandler->write(EETH_MIN_BRAKE_REGEN, minimumRegen);
 	prefsHandler->saveChecksum();
 }
 
 void PotBrake::saveConfiguration() {
   Logger::info(POTBRAKEPEDAL, "Saving brake settings");
   TickHandler::getInstance()->detach(this); // unregister from TickHandler first
-  setT1Min(throttleDetector->getThrottle1Min());
-  setT1Max(throttleDetector->getThrottle1Max());
+  setMinumumLevel1(throttleDetector->getThrottle1Min());
+  setMaximumLevel1(throttleDetector->getThrottle1Max());
   saveEEPROM();  
   TickHandler::getInstance()->attach(this, getTickInterval());
 }
-
-void PotBrake::setT1Min(uint16_t minVal) 
-{
-	brakeMin = minVal;
-}
-
-void PotBrake::setT1Max(uint16_t maxVal) 
-{
-	brakeMax = maxVal;
-}
-
 
 #endif // CFG_ENABLE_DEVICE_POT_BRAKE

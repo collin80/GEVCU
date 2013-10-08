@@ -1,20 +1,24 @@
 <?xml version="1.0" encoding="utf-8"?>
 <status>
-	<timeRunning>~statusMillis~</timeRunning>
-	<running>~statusRunning~</running>
-	<faulted>~statusFaulted~</faulted>
-	<warning>~statusWarning~</warning>
-	<temperatureMotor>~statusTempMotor~</temperatureMotor>
-	<temperatureInverter>~statusTempInverter~</temperatureInverter>
-	<temperatureSystem>~statusTempSystem~</temperatureSystem>
-	<throttle>~statusThrottle~</throttle>
-	<gear>~statusGear~</gear>
-	<torqueRequested>~statusTorqueReq~</torqueRequested>
-	<torqueActual>~statusTorqueActual~</torqueActual>
-	<speedRequested>~statusSpeedRequested~</speedRequested>
-	<speedActual>~statusSpeedActual~</speedActual>
-	<dcVoltage>~statusDcVoltage~</dcVoltage>
-	<dcCurrent>~statusDcCurrent~</dcCurrent>
-	<acCurrent>~statusAcCurrent~</acCurrent>
-	<mechanicalPower>~statusMechPower~</mechanicalPower>
+	<timeRunning>~timeRunning~</timeRunning>
+	<running>~running~</running>
+	<faulted>~faulted~</faulted>
+	<warning>~warning~</warning>
+	<temperatureMotor>~tempMotor~</temperatureMotor>
+	<temperatureInverter>~tempInverter~</temperatureInverter>
+	<temperatureSystem>~tempSystem~</temperatureSystem>
+	<throttle>~throttle~</throttle>
+	<gear>~gear~</gear>
+	<torqueRequested>~torqueRequested~</torqueRequested>
+	<torqueActual>~torqueActual~</torqueActual>
+	<speedRequested>~speedRequested~</speedRequested>
+	<speedActual>~speedActual~</speedActual>
+	<dcVoltage>~dcVoltage~</dcVoltage>
+	<dcCurrent>~dcCurrent~</dcCurrent>
+	<acCurrent>~acCurrent~</acCurrent>
+	<mechanicalPower>~mechPower~</mechanicalPower>
+	<bitfield1>~bitfield1~</bitfield1>
+	<bitfield2>~bitfield2~</bitfield2>
+	<bitfield3>~bitfield3~</bitfield3>
+	<bitfield4>~bitfield4~</bitfield4>
 </status>
