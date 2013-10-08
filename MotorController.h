@@ -87,6 +87,11 @@ public:
 	int16_t getTemperatureInverter();
 	int16_t getTemperatureSystem();
 
+	uint32_t getStatusBitfield1();
+	uint32_t getStatusBitfield2();
+	uint32_t getStatusBitfield3();
+	uint32_t getStatusBitfield4();
+
 	GearSwitch getGearSwitch();
 	void setPrechargeC(uint16_t c);
 	void setPrechargeR(uint16_t r);
@@ -121,6 +126,11 @@ protected:
 	int16_t temperatureMotor; // temperature of motor in 0.1 degree C
 	int16_t temperatureInverter; // temperature of inverter power stage in 0.1 degree C
 	int16_t temperatureSystem; // temperature of controller in 0.1 degree C
+
+	uint32_t statusBitfield1; // bitfield variable for use of the specific implementation
+	uint32_t statusBitfield2;
+	uint32_t statusBitfield3;
+	uint32_t statusBitfield4;
 
 	uint16_t prechargeC; //capacitance of motor controller input in uf
 	uint16_t prechargeR; //resistance of precharge resistor in tenths of ohm

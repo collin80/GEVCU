@@ -181,7 +181,7 @@ void SerialConsole::handleConfigCmd() {
 	else if (cmdString == String("TPOT")) {
 		newValue = atoi((char *) (cmdBuffer + i));
 		Logger::debug("Setting # of Throttle Pots to %i", newValue);
-		DeviceManager::getInstance()->getAccelerator()->setNumThrottlePots(newValue);
+		DeviceManager::getInstance()->getAccelerator()->setNumberPotMeters(newValue);
 		DeviceManager::getInstance()->getAccelerator()->saveEEPROM();
 	}
 
@@ -195,68 +195,68 @@ void SerialConsole::handleConfigCmd() {
 	else if (cmdString == String("T1MN")) {
 		newValue = atoi((char *) (cmdBuffer + i));
 		Logger::debug("Setting Throttle1 Min to %i", newValue);
-		DeviceManager::getInstance()->getAccelerator()->setT1Min(newValue);
+		DeviceManager::getInstance()->getAccelerator()->setMinumumLevel1(newValue);
 		DeviceManager::getInstance()->getAccelerator()->saveEEPROM();
 	} else if (cmdString == String("T1MX")) {
 		newValue = atoi((char *) (cmdBuffer + i));
 		Logger::debug("Setting Throttle1 Max to %i", newValue);
-		DeviceManager::getInstance()->getAccelerator()->setT1Max(newValue);
+		DeviceManager::getInstance()->getAccelerator()->setMaximumLevel1(newValue);
 		DeviceManager::getInstance()->getAccelerator()->saveEEPROM();
 	} else if (cmdString == String("T2MN")) {
 		newValue = atoi((char *) (cmdBuffer + i));
 		Logger::debug("Setting Throttle2 Min to %i", newValue);
-		DeviceManager::getInstance()->getAccelerator()->setT2Min(newValue);
+		DeviceManager::getInstance()->getAccelerator()->setMinimumLevel2(newValue);
 		DeviceManager::getInstance()->getAccelerator()->saveEEPROM();
 	} else if (cmdString == String("T2MX")) {
 		newValue = atoi((char *) (cmdBuffer + i));
 		Logger::debug("Setting Throttle2 Max to %i", newValue);
-		DeviceManager::getInstance()->getAccelerator()->setT2Max(newValue);
+		DeviceManager::getInstance()->getAccelerator()->setMaximumLevel2(newValue);
 		DeviceManager::getInstance()->getAccelerator()->saveEEPROM();
 	} else if (cmdString == String("TRGN")) {
 		newValue = atoi((char *) (cmdBuffer + i));
 		Logger::debug("Setting Throttle Regen End to %i", newValue);
-		DeviceManager::getInstance()->getAccelerator()->setRegenEnd(newValue);
+		DeviceManager::getInstance()->getAccelerator()->setPositionRegenStart(newValue);
 		DeviceManager::getInstance()->getAccelerator()->saveEEPROM();
 	} else if (cmdString == String("TFWD")) {
 		newValue = atoi((char *) (cmdBuffer + i));
 		Logger::debug("Setting Throttle Forward Start to %i", newValue);
-		DeviceManager::getInstance()->getAccelerator()->setFWDStart(newValue);
+		DeviceManager::getInstance()->getAccelerator()->setPositionForwardMotionStart(newValue);
 		DeviceManager::getInstance()->getAccelerator()->saveEEPROM();
 	} else if (cmdString == String("TMAP")) {
 		newValue = atoi((char *) (cmdBuffer + i));
 		Logger::debug("Setting Throttle MAP Point to %i", newValue);
-		DeviceManager::getInstance()->getAccelerator()->setMAP(newValue);
+		DeviceManager::getInstance()->getAccelerator()->setPositionHalfPower(newValue);
 		DeviceManager::getInstance()->getAccelerator()->saveEEPROM();
 	} else if (cmdString == String("TMRN")) {
 		newValue = atoi((char *) (cmdBuffer + i));
 		Logger::debug("Setting Throttle Regen Strength to %i", newValue);
-		DeviceManager::getInstance()->getAccelerator()->setMaxRegen(newValue);
+		DeviceManager::getInstance()->getAccelerator()->setMaximumRegen(newValue);
 		DeviceManager::getInstance()->getAccelerator()->saveEEPROM();
 	}
 
 	else if (cmdString == String("BMAXR")) {
 		newValue = atoi((char *) (cmdBuffer + i));
 		Logger::debug("Setting Max Brake Regen to %i", newValue);
-		DeviceManager::getInstance()->getBrake()->setMaxRegen(newValue);
+		DeviceManager::getInstance()->getBrake()->setMaximumRegen(newValue);
 		DeviceManager::getInstance()->getBrake()->saveEEPROM();
 	}
 
 	else if (cmdString == String("BMINR")) {
 		newValue = atoi((char *) (cmdBuffer + i));
 		Logger::debug("Setting Min Brake Regen to %i", newValue);
-		DeviceManager::getInstance()->getBrake()->setMinRegen(newValue);
+		DeviceManager::getInstance()->getBrake()->setMinimumRegen(newValue);
 		DeviceManager::getInstance()->getBrake()->saveEEPROM();
 	}
 
 	else if (cmdString == String("B1MX")) {
 		newValue = atoi((char *) (cmdBuffer + i));
 		Logger::debug("Setting Brake Max to %i", newValue);
-		DeviceManager::getInstance()->getBrake()->setT1Max(newValue);
+		DeviceManager::getInstance()->getBrake()->setMaximumLevel1(newValue);
 		DeviceManager::getInstance()->getBrake()->saveEEPROM();
 	} else if (cmdString == String("B1MN")) {
 		newValue = atoi((char *) (cmdBuffer + i));
 		Logger::debug("Setting Brake Min to %i", newValue);
-		DeviceManager::getInstance()->getBrake()->setT1Min(newValue);
+		DeviceManager::getInstance()->getBrake()->setMinumumLevel1(newValue);
 		DeviceManager::getInstance()->getBrake()->saveEEPROM();
 	}
 

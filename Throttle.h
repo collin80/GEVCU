@@ -56,34 +56,41 @@ public:
 	void detectThrottleMin();
 	void detectThrottleMax();
 
-	virtual void mapThrottle(signed int);
-	virtual void setRegenEnd(uint16_t regen);
-	virtual void setFWDStart(uint16_t fwd);
-	virtual void setMAP(uint16_t map);
-	virtual void setMaxRegen(uint16_t regen);
-	virtual void setMinRegen(uint16_t regen);
-    virtual void setT1Min(uint16_t min);
-	virtual void setT2Min(uint16_t min);
-	virtual void setT1Max(uint16_t max);
-	virtual void setT2Max(uint16_t max);
-	void setNumThrottlePots(uint8_t num);
-	uint8_t getNumThrottlePots();
+	virtual void mapThrottle(int16_t);
+	virtual void saveConfiguration();
+	virtual void saveEEPROM();
+
+	virtual void setPositionRegenStart(uint16_t regen);
+	uint16_t getPositionRegenStart();
+	virtual void setPositionForwardMotionStart(uint16_t fwd);
+	uint16_t getPositionForwardMotionStart();
+	virtual void setPositionHalfPower(uint16_t map);
+	uint16_t getPositionHalfPower();
+	virtual void setMaximumRegen(uint16_t regen);
+	uint16_t getMaximumRegen();
+	virtual void setMinimumRegen(uint16_t regen);
+	uint16_t getMinimumRegen();
+    virtual void setMinumumLevel1(uint16_t min);
+	uint16_t getMinimumLevel1();
+	virtual void setMinimumLevel2(uint16_t min);
+	uint16_t getMinimumLevel2();
+	virtual void setMaximumLevel1(uint16_t max);
+	uint16_t getMaximumLevel1();
+	virtual void setMaximumLevel2(uint16_t max);
+	uint16_t getMaximumLevel2();
+	void setNumberPotMeters(uint8_t num);
+	uint8_t getNumberPotMeters();
 	void setSubtype(uint8_t num);
 	uint8_t getSubtype();
 
-
-	virtual void saveConfiguration();
-	virtual void saveEEPROM(); 
-
 protected:
-	int16_t level; //the final signed throttle level. [-1000, 1000] in tenths of a percent of maximum
-	uint16_t throttleRegen, throttleFwd, throttleMap; //Value at which regen finishes, forward motion starts, and the mid point of throttle
-	uint16_t throttleMaxRegen; //Percentage of max torque allowable for regen
-	uint16_t brakeMaxRegen; //percentage of max torque allowable for regen at brake pedal
-	uint16_t brakeMinRegen; //percentage of min torque allowable for regen at brake pedal
-    uint16_t throttleMin1, throttleMax1, throttleMin2, throttleMax2; //Values for when the pedal is at its min and max for each throttle input
-	uint16_t throttle1Val, throttle2Val;
-	uint8_t numThrottlePots; //whether there are one or two pots. Should support three as well since some pedals really do have that many
+	int16_t level; // the final signed throttle level. [-1000, 1000] in permille of maximum
+	uint16_t positionRegenStart, positionForwardMotionStart, positionHalfPower; // value at which regen starts, forward motion starts, and the mid point of throttle
+	uint8_t maximumRegen; // percentage of max torque allowable for regen
+	uint8_t minimumRegen; // percentage of min torque allowable for regen
+    uint16_t minimumLevel1, maximumLevel1, minimumLevel2, maximumLevel2; // values for when the pedal is at its min and max for each input
+	uint16_t rawLevel1, rawLevel2; // the raw level of the input potentiometers
+	uint8_t numberPotMeters; // the number of potentiometers to be used. Should support three as well since some pedals really do have that many
 	/*
 	 * Allows subclasses to have sub types for their pedal type
 	 * 0 - unknown type (prefs will return 0 if never set)

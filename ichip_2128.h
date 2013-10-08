@@ -79,17 +79,11 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include <Arduino.h>
 #include "config.h"
 #include "DeviceManager.h"
+#include "Sys_Messages.h"
 
 class ICHIPWIFI : public Device {
-    private:
-    USARTClass* serialInterface; //Allows for retargetting which serial port we use
-    char incomingBuffer[128]; //storage for one incoming line
-    int tickCounter;
-    int ibWritePtr;
-	int currReply;
-	char runtime[15];
-    
     public:
+    
     void setup(); //initialization on start up
     DeviceType getType();
     DeviceId getId();
@@ -97,16 +91,29 @@ class ICHIPWIFI : public Device {
     void handleTick(); //periodic processes
     void enableServer(); //turn on the web server
     void disableServer(); //turn off the web server
-    String getNextParam(); //get next changed parameter
-    String getParamById(String paramName); //try to retrieve the value of the given parameter
-    void setParam(String paramName, String value); //set the given parameter with the given string
-    void setParam(String paramName, int32_t value);
-    void setParam(String paramName, float value, int precision);
-    void sendCmd(String cmd);
+    void handleMessage(uint32_t messageType, void* message);
     char *getTimeRunning();
     ICHIPWIFI();
     ~ICHIPWIFI();
     ICHIPWIFI(USARTClass *which);
+
+    private:
+    USARTClass* serialInterface; //Allows for retargetting which serial port we use
+    char incomingBuffer[128]; //storage for one incoming line
+    int tickCounter;
+    int ibWritePtr;
+	int currReply;
+	char runtime[10];
+	int loadParams; // a counter to wait x seconds before loading the parameters
+
+    void getNextParam(); //get next changed parameter
+    void getParamById(String paramName); //try to retrieve the value of the given parameter
+    void setParam(String paramName, String value); //set the given parameter with the given string
+    void setParam(String paramName, int32_t value);
+    void setParam(String paramName, float value, int precision);
+    void sendCmd(String cmd);
+    void processParameterChange(char *response);
+    void loadParameters();
 };
 
 #endif

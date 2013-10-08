@@ -61,6 +61,7 @@ public:
 	DeviceId getId();
 
 private:
+	uint16_t throttleAverage, throttleFeedback; //used to create proportional control
 	uint8_t throttle1ADC, throttle2ADC; //which ADC pin each are on
 	byte throttleMaxErr;
 	ThrottleStatus throttleStatus;

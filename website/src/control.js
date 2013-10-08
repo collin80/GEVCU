@@ -43,7 +43,6 @@ function loadPage(pageId) {
 				generateRangeControls();
 			if (pageId == 'status')
 				loadPage("annunciator");
-/*			loadData(pageId);*/
 		}
 	};
 	xmlhttp.open("GET", pageId + ".htm", true);
@@ -57,16 +56,33 @@ function loadData(pageId) {
 		if (xmlhttp.readyState == 4 && xmlhttp.status == 200) {
 			var root = xmlhttp.responseXML.firstChild;
 			for (var i = 0; i < root.childNodes.length; i++) {
-				var node = root.childNodes[i];
+				var node = root.childNodes[i]; // scan through the nodes
 				if (node.nodeType == 1 && node.childNodes[0]) {
 					var name = node.nodeName;
 					var value = node.childNodes[0].nodeValue;
-					if (name.indexOf('bitfield') == -1) {
+					if (name.indexOf('bitfield') == -1) { // a normal div/span to update
 						var target = document.getElementById(name);
-						if (target)
-							target.innerHTML = value;
-					} else {
+						if (!target) { // id not found, try to find by name
+							var namedElements = document.getElementsByName(name);
+							if (namedElements && namedElements.length)
+								target = namedElements[0];
+						}
+						if (target) { // found an element, update according to its type
+							if (target.nodeName.toUpperCase() == 'DIV' || target.nodeName.toUpperCase() == 'SPAN')
+								target.innerHTML = value;
+							if (target.nodeName.toUpperCase() == 'INPUT') {
+								target.value = value;
+								var slider = document.getElementById(name + "Level");
+								if (slider)
+									slider.value = value;
+							}
+							if (target.nodeName.toUpperCase() == 'SELECT') {
+								selectItemByValue(target, value);
+							}
+						}
+					} else { // an annunciator field of a bitfield value
 						updateAnnunciatorFields(name, value);
+//						updateAnnunciatorFields(name, Math.round(Math.random() * 100000));
 					}
 				}
 			}
@@ -76,72 +92,102 @@ function loadData(pageId) {
 	xmlhttp.send();
 }
 
+// scan through the options of a select input field and activate the one with the given value
+function selectItemByValue(node, value) {
+	for (var i = 0; i < node.options.length; i++) {
+		if (node.options[i].value === value) {
+			node.selectedIndex = i;
+			break;
+		}
+	}
+}
+
 function updateRangeValue(id, source) {
-	var val = source.value;
-	if (val > 1000)
-		val = 1000;
+	var val = parseInt(source.value);
+//	if (val > 1000)
+//		val = 1000;
 	if (val < 0 || isNaN(val))
 		val = 0;
 	
 	if (id == 'throttleMin1') {
-		var node = document.getElementById("throttleMax1");
-		if (node && val > node.value)
-			val = node.value;
-	}
-	if (id == 'throttleMax1') {
-		var node = document.getElementById("throttleMin1");
-		if (node && val < node.value)
-			val = node.value;
-	}
-	if (id == 'throttleMin2') {
-		var node = document.getElementById("throttleMax2");
-		if (node && val > node.value)
-			val = node.value;
-	}
-	if (id == 'throttleMax2') {
-		var node = document.getElementById("throttleMin2");
-		if (node && val < node.value)
-			val = node.value;
-	}
-	if (id == 'throttleRegen') {
-		var node = document.getElementById("throttleFwd");
-		if (node && val > node.value)
-			val = node.value;
-	}
-	if (id == 'throttleFwd') {
-		var regen = document.getElementById("throttleRegen");
-		var map = document.getElementById("throttleMap");
-		if (regen && map && val < regen.value)
-			val = regen.value;
-		if (val > map.value)
-			val = map.value;
-	}
-	if (id == 'throttleMap') {
-		var node = document.getElementById("throttleFwd");
-		if (node && val < node.value)
-			val = node.value;
+		var max = getIntValue("throttleMax1");
+		if (val > max)
+			val = max;
+	} else if (id == 'throttleMax1') {
+		var min = getIntValue("throttleMin1");
+		if (val < min)
+			val = min;
+	} else if (id == 'throttleMin2') {
+		var max = getIntValue("throttleMax2");
+		if (val > max)
+			val = max;
+	} else if (id == 'throttleMax2') {
+		var min = getIntValue("throttleMin2");
+		if (val < min)
+			val = min;
+	} else if (id == 'throttleRegen') {
+		var fwd = getIntValue("throttleFwd");
+		if (val > fwd)
+			val = fwd;
+	} else if (id == 'throttleFwd') {
+		var regen = getIntValue("throttleRegen");
+		var map = getIntValue("throttleMap");
+		if (val < regen)
+			val = regen;
+		if (val > map)
+			val = map;
+	} else if (id == 'throttleMap') {
+		var map = getIntValue("throttleFwd");
+		if (val < map)
+			val = map;
+	} else if (id == 'brakeMin') {
+		var max = getIntValue("brakeMax");
+		if (val > max)
+			val = max;
+	} else if (id == 'brakeMax') {
+		var min = getIntValue("brakeMin");
+		if (val < min)
+			val = min;
+	} else if (id == 'brakeMinRegen') {
+		var max = getIntValue("brakeMaxRegen");
+		var throttleMax = getIntValue("throttleMaxRegen");
+		if (val > max)
+			val = max;
+		if (val < throttleMax)
+			val = throttleMax;
+	} else if (id == 'brakeMaxRegen') {
+		var min = getIntValue("brakeMinRegen");
+		if (val < min)
+			val = min;
 	}
 		
 	document.getElementById(id).value = val;
 	source.value = val;
 }
 
-function generateRangeControls() {
-	addRangeControl("throttleMin1");
-	addRangeControl("throttleMin2");
-	addRangeControl("throttleMax1");
-	addRangeControl("throttleMax2");
-	addRangeControl("throttleRegen");
-	addRangeControl("throttleFwd");
-	addRangeControl("throttleMap");
-	addRangeControl("throttleMaxRegen");
-	addRangeControl("brakeMin");
-	addRangeControl("brakeMinRegen");
-	addRangeControl("brakeMax");
-	addRangeControl("brakeMaxRegen");
+function getIntValue(id) {
+	var node = document.getElementById(id);
+	if (node)
+		return parseInt(node.value);
+	return 0;
 }
 
-function addRangeControl(id) {
+function generateRangeControls() {
+	addRangeControl("throttleMin1", 0, 4095);
+	addRangeControl("throttleMin2", 0, 4095);
+	addRangeControl("throttleMax1", 0, 4095);
+	addRangeControl("throttleMax2", 0, 4095);
+	addRangeControl("throttleRegen", 0, 1000);
+	addRangeControl("throttleFwd", 0, 1000);
+	addRangeControl("throttleMap", 0, 1000);
+	addRangeControl("throttleMaxRegen", 0, 100);
+	addRangeControl("brakeMin", 0, 4095);
+	addRangeControl("brakeMinRegen", 0, 100);
+	addRangeControl("brakeMax", 0, 4095);
+	addRangeControl("brakeMaxRegen", 0, 100);
+}
+
+function addRangeControl(id, min, max) {
 	var node = document.getElementById(id + "Span");
-	node.innerHTML = "<input id='"+id+"Level' name='"+id+"Level' type='range' min='0' max='1000' onchange=\"updateRangeValue('"+id+"', this);\" onmousemove=\"updateRangeValue('"+id+"', this);\" /><input type='number' id='"+id+"' min='0' max='1000' maxlength='4' size='4' onchange=\"updateRangeValue('"+id+"Level', this);\"/>";
+	node.innerHTML = "<input id='"+id+"Level' type='range' min='"+min+"' max='"+max+"' onchange=\"updateRangeValue('"+id+"', this);\" onmousemove=\"updateRangeValue('"+id+"', this);\" /><input type='number' id='"+id+"' name='"+id+"' min='"+min+"' max='"+max+"' maxlength='4' size='4' onchange=\"updateRangeValue('"+id+"Level', this);\"/>";
 }

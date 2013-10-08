@@ -241,15 +241,16 @@ void initializeDevices() {
 //	motorController->setup();
 	deviceManager->addDevice(motorController);
 #endif
+#ifdef CFG_ENABLE_DEVICE_BMS_THINK
+	BatteryManager *BMS = new ThinkBatteryManager();
+	Logger::info("add device: Th!nk City BMS (%X)", BMS);
+	deviceManager->addDevice(BMS);
+#endif
+// add wifi as last device, because ICHIPWIFI::loadParameters() depends on pre-loaded preferences
 #ifdef CFG_ENABLE_DEVICE_ICHIP2128_WIFI
 	ICHIPWIFI *iChip = new ICHIPWIFI();
 	Logger::info("add device: iChip 2128 WiFi (%X)", iChip);	
 	deviceManager->addDevice(iChip);
-#endif
-#ifdef CFG_ENABLE_DEVICE_BMS_THINK
-	BatteryManager *BMS = new ThinkBatteryManager();
-	Logger::info("add device: Th!nk City BMS (%X)", BMS);	
-	deviceManager->addDevice(BMS);
 #endif
 	/*
 	 *	We defer setting up the devices until here. This allows all objects to be instantiated

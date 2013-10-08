@@ -1,17 +1,19 @@
 <?xml version="1.0" encoding="utf-8"?>
 <config>
-	<numThrottlePots>2</numThrottlePots>
-	<throttleSubType>1</throttleSubType>
-	<throttleMin1>0</throttleMin1>
-	<throttleMin2>40</throttleMin2>
-	<throttleMax1>80</throttleMax1>
-	<throttleMax2>120</throttleMax2>
-	<throttleFwd>260</throttleFwd>
-	<throttleRegen>300</throttleRegen>
-	<throttleMap>340</throttleMap>
-	<throttleMaxRegen>380</throttleMaxRegen>
-	<brakeMin>420</brakeMin>
-	<brakeMinRegen>460</brakeMinRegen>
-	<brakeMax>500</brakeMax>
-	<brakeMaxRegen>540</brakeMaxRegen>
+	<numThrottlePots>~numThrottlePots~</numThrottlePots>
+	<throttleSubType>~throttleSubType~</throttleSubType>
+	<throttleMin1>~throttleMin1~</throttleMin1>
+	<throttleMin2>~throttleMin2~</throttleMin2>
+	<throttleMax1>~throttleMax1~</throttleMax1>
+	<throttleMax2>~throttleMax2~</throttleMax2>
+	<throttleRegen>~throttleRegen~</throttleRegen>
+	<throttleFwd>~throttleFwd~</throttleFwd>
+	<throttleMap>~throttleMap~</throttleMap>
+	<throttleMaxRegen>~throttleMaxRegen~</throttleMaxRegen>
+	<brakeMin>~brakeMin~</brakeMin>
+	<brakeMax>~brakeMax~</brakeMax>
+	<brakeMinRegen>~brakeMinRegen~</brakeMinRegen>
+	<brakeMaxRegen>~brakeMaxRegen~</brakeMaxRegen>
+	<speedMax>~speedMax~</speedMax>
+	<torqueMax>~torqueMax~</torqueMax>
 </config>
