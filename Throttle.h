@@ -61,27 +61,27 @@ public:
 	virtual void saveEEPROM();
 
 	virtual void setPositionRegenStart(uint16_t regen);
-	uint16_t getPositionRegenStart();
+	virtual uint16_t getPositionRegenStart();
 	virtual void setPositionForwardMotionStart(uint16_t fwd);
-	uint16_t getPositionForwardMotionStart();
+	virtual uint16_t getPositionForwardMotionStart();
 	virtual void setPositionHalfPower(uint16_t map);
-	uint16_t getPositionHalfPower();
+	virtual uint16_t getPositionHalfPower();
 	virtual void setMaximumRegen(uint16_t regen);
-	uint16_t getMaximumRegen();
+	virtual uint16_t getMaximumRegen();
 	virtual void setMinimumRegen(uint16_t regen);
-	uint16_t getMinimumRegen();
+	virtual uint16_t getMinimumRegen();
     virtual void setMinumumLevel1(uint16_t min);
-	uint16_t getMinimumLevel1();
+    virtual uint16_t getMinimumLevel1();
 	virtual void setMinimumLevel2(uint16_t min);
-	uint16_t getMinimumLevel2();
+	virtual uint16_t getMinimumLevel2();
 	virtual void setMaximumLevel1(uint16_t max);
-	uint16_t getMaximumLevel1();
+	virtual uint16_t getMaximumLevel1();
 	virtual void setMaximumLevel2(uint16_t max);
-	uint16_t getMaximumLevel2();
-	void setNumberPotMeters(uint8_t num);
-	uint8_t getNumberPotMeters();
-	void setSubtype(uint8_t num);
-	uint8_t getSubtype();
+	virtual uint16_t getMaximumLevel2();
+	virtual void setNumberPotMeters(uint8_t num);
+	virtual uint8_t getNumberPotMeters();
+	virtual void setSubtype(uint8_t num);
+	virtual uint8_t getSubtype();
 
 protected:
 	int16_t level; // the final signed throttle level. [-1000, 1000] in permille of maximum
@@ -91,6 +91,7 @@ protected:
     uint16_t minimumLevel1, maximumLevel1, minimumLevel2, maximumLevel2; // values for when the pedal is at its min and max for each input
 	uint16_t rawLevel1, rawLevel2; // the raw level of the input potentiometers
 	uint8_t numberPotMeters; // the number of potentiometers to be used. Should support three as well since some pedals really do have that many
+
 	/*
 	 * Allows subclasses to have sub types for their pedal type
 	 * 0 - unknown type (prefs will return 0 if never set)

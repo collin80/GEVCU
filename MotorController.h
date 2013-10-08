@@ -1,6 +1,6 @@
 /*
  * MotorController.h
- *
+  *
  * Parent class for all motor controllers.
  *
  Copyright (c) 2013 Collin Kidder, Michael Neuweiler, Charles Galpin
@@ -44,22 +44,22 @@
 class MotorController: public Device {
 
 public:
-	enum GearSwitch {
-		GS_NEUTRAL,
-		GS_FORWARD,
-		GS_REVERSE,
-		GS_FAULT
-	};
+    enum GearSwitch {
+        GS_NEUTRAL,
+        GS_FORWARD,
+        GS_REVERSE,
+        GS_FAULT
+    };
 
 	enum PowerMode {
 		modeTorque,
 		modeSpeed
 	};
 
-	MotorController();
+    MotorController();
 	DeviceType getType();
-	virtual void setup();
-	void handleTick();
+    virtual void setup();
+    void handleTick();
 
 	bool isReady();
 	bool isRunning();
@@ -93,11 +93,17 @@ public:
 	uint32_t getStatusBitfield4();
 
 	GearSwitch getGearSwitch();
+	uint16_t getPrechargeC();
 	void setPrechargeC(uint16_t c);
+	uint16_t getPrechargeR();
 	void setPrechargeR(uint16_t r);
+	uint16_t getNominalV();
 	void setNominalV(uint16_t v);
+	uint8_t getPrechargeRelay();
 	void setPrechargeRelay(uint8_t relay);
+	uint8_t getMainRelay();
 	void setMainRelay(uint8_t relay);
+	uint8_t getReversePercent();
 	void setReversePercent(uint8_t perc);
 	void saveEEPROM();
 
@@ -117,7 +123,7 @@ protected:
 	uint16_t torqueMax;	// maximum torque in 0.1 Nm
 	int16_t torqueAvailable; // the maximum available torque in 0.1Nm
 
-	GearSwitch gearSwitch;
+    GearSwitch gearSwitch;
 
 	uint16_t dcVoltage; // DC voltage in 0.1 Volts
 	int16_t dcCurrent; // DC current in 0.1 Amps
@@ -140,6 +146,8 @@ protected:
 	uint8_t prechargeRelay; //# of output to use for this relay or 255 if there is no relay
 	uint8_t mainContactorRelay; //# of output to use for this relay or 255 if there is no relay
 	uint8_t reversePercent;
+	uint16_t reportedVoltage; //what voltage does the controller report it sees? (1/10 v)
+	signed int reportedCurrent; //HV bus current reported by controller (1/10 A)
 	bool donePrecharge; //already completed the precharge cycle?
 };
 

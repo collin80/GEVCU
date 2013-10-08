@@ -78,7 +78,7 @@ DeviceType MotorController::getType() {
 void MotorController::handleTick() {
 	uint8_t forwardSwitch, reverseSwitch;
 
-	gearSwitch = GS_FORWARD;
+		gearSwitch = GS_FORWARD;
 
 	Throttle *accelerator = DeviceManager::getInstance()->getAccelerator();
 	Throttle *brake = DeviceManager::getInstance()->getBrake();
@@ -150,16 +150,16 @@ void MotorController::setup() {
 	mainContactorRelay = MainContactorRelay;
 #endif
 
-	Logger::debug("MaxTorque: %i MaxRPM: %i", torqueMax, speedMax);
+	Logger::info("MaxTorque: %i MaxRPM: %i", torqueMax, speedMax);
 	if (prechargeC> 0 && prechargeRelay < NUM_OUTPUT) {
 		//precharge time is 5RC which is (R*C / 1000) ms * 5 = RC/200 but ohms is in tenths so divide by another 10 = RC/2000
 		prechargeTime = ((int)prechargeC * prechargeR) / 2000;
-		Logger::debug("RC precharge mode. C: %i  R: %i   Precharge time: %i ms", prechargeC, prechargeR, prechargeTime);
+		Logger::info("RC precharge mode. C: %i  R: %i   Precharge time: %i ms", prechargeC, prechargeR, prechargeTime);
 		setOutput(prechargeRelay, true); //start the precharge right now
 		setOutput(mainContactorRelay, false); //just to be sure
 	}
 	else {
-		Logger::debug("Not precharging in RC mode");
+		Logger::info("Not precharging in RC mode");
 	}
 }
 
@@ -257,31 +257,55 @@ int16_t MotorController::getTemperatureSystem() {
 	return temperatureSystem;
 }
 
+uint16_t MotorController::getPrechargeC()
+{
+	return prechargeC;
+}
 void MotorController::setPrechargeC(uint16_t c)
 {
 	prechargeC = c;
 }
 
+uint16_t MotorController::getPrechargeR()
+{
+	return prechargeR;
+}
 void MotorController::setPrechargeR(uint16_t r) 
 {
 	prechargeR = r;
 }
 
+uint16_t MotorController::getNominalV()
+{
+	return nominalVolt;
+}
 void MotorController::setNominalV(uint16_t v) 
 {
 	nominalVolt = v;
 }
 
+uint8_t MotorController::getPrechargeRelay()
+{
+	return prechargeRelay;
+}
 void MotorController::setPrechargeRelay(uint8_t relay) 
 {
 	prechargeRelay = relay;
 }
 
+uint8_t MotorController::getMainRelay()
+{
+	return mainContactorRelay;
+}
 void MotorController::setMainRelay(uint8_t relay) 
 {
 	mainContactorRelay = relay;
 }
 
+uint8_t MotorController::getReversePercent()
+{
+	return reversePercent;
+}
 void MotorController::setReversePercent(uint8_t perc) 
 {
 	reversePercent = perc;

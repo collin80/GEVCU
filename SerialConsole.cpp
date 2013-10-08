@@ -57,6 +57,10 @@ void SerialConsole::printMenu() {
 	//Show build # here as well in case people are using the native port and don't get to see the start up messages
 	SerialUSB.print("Build number: ");
 	SerialUSB.println(CFG_BUILD_NUM);
+	SerialUSB.println("Status: isRunning: "
+			+ String(DeviceManager::getInstance()->getMotorController()->isRunning())
+			+ " isFaulted: "
+			+ String(DeviceManager::getInstance()->getMotorController()->isFaulted()));
 	SerialUSB.println("System Menu:");
 	SerialUSB.println();
 	SerialUSB.println("Enable line endings of some sort (LF, CR, CRLF)");
@@ -76,30 +80,76 @@ void SerialConsole::printMenu() {
 	SerialUSB.println("B = Save detected brake values");
 	SerialUSB.println("p = enable wifi passthrough (reboot required to resume normal operation)");
 	SerialUSB.println();
-	SerialUSB.println("Config Commands (enter command=newvalue):");
-	SerialUSB.println("TORQ = Set torque upper limit (tenths of a Nm)");
-	SerialUSB.println("RPMS = Set maximum RPMs");
-	SerialUSB.println("REVLIM = How much torque to allow in reverse (Tenths of a percent)");
-	SerialUSB.println("TPOT = Number of pots to use (1 or 2)");
-	SerialUSB.println("TTYPE = Set throttle subtype (1=std linear, 2=inverse)");
-	SerialUSB.println("T1MN = Set throttle 1 min value");
-	SerialUSB.println("T1MX = Set throttle 1 max value");
-	SerialUSB.println("T2MN = Set throttle 2 min value");
-	SerialUSB.println("T2MX = Set throttle 2 max value");
-	SerialUSB.println("TRGN = Tenths of a percent of pedal where regen ends");
-	SerialUSB.println("TFWD = Tenths of a percent of pedal where forward motion starts");
-	SerialUSB.println("TMAP = Tenths of a percent of pedal where 50% throttle will be");
-	SerialUSB.println("TMRN = Percent of full torque to use for throttle regen");
-	SerialUSB.println("B1MN = Set brake min value");
-	SerialUSB.println("B1MX = Set brake max value");
-	SerialUSB.println("BMINR = Percent of full torque for start of brake regen");
-	SerialUSB.println("BMAXR = Percent of full torque for maximum brake regen");
-	SerialUSB.println("PREC = Precharge capacitance (uf)");
-	SerialUSB.println("PRER = Precharge resistance (1/10 of ohm)");
-	SerialUSB.println("NOMV = Nominal system voltage (1/10 of a volt)");
-	SerialUSB.println("PRELAY = Which output to use for precharge contactor (255 to disable)");
-	SerialUSB.println("MRELAY = Which output to use for main contactor (255 to disable)");
-	SerialUSB.println("LOGLEVEL = set log level (0=debug, 1=info, 2=warn, 3=error)");
+	SerialUSB.println("Config Commands (enter command=newvalue). Current values shown in parenthesis:");
+	SerialUSB.println("TORQ="
+			+ String(DeviceManager::getInstance()->getMotorController()->getTorqueMax())
+			+ " - Set torque upper limit (tenths of a Nm)");
+	SerialUSB.println("RPMS="
+			+ String(DeviceManager::getInstance()->getMotorController()->getSpeedMax())
+			+ " - Set maximum RPMs");
+	SerialUSB.println("REVLIM="
+			+ String(DeviceManager::getInstance()->getMotorController()->getReversePercent())
+			+ " - How much torque to allow in reverse (Tenths of a percent)");
+	SerialUSB.println("TPOT="
+			+ String(DeviceManager::getInstance()->getAccelerator()->getNumberPotMeters())
+			+ " - Number of pots to use (1 or 2)");
+	SerialUSB.println("TTYPE="
+			+ String(DeviceManager::getInstance()->getAccelerator()->getSubtype())
+			+ " - Set throttle subtype (1=std linear, 2=inverse)");
+	SerialUSB.println("T1MN="
+			+ String(DeviceManager::getInstance()->getAccelerator()->getMinimumLevel1())
+			+ " - Set throttle 1 min value");
+	SerialUSB.println("T1MX="
+			+ String(DeviceManager::getInstance()->getAccelerator()->getMaximumLevel1())
+			+ " - Set throttle 1 max value");
+	SerialUSB.println("T2MN="
+			+ String(DeviceManager::getInstance()->getAccelerator()->getMinimumLevel2())
+			+ " - Set throttle 2 min value");
+	SerialUSB.println("T2MX="
+			+ String(DeviceManager::getInstance()->getAccelerator()->getMaximumLevel2())
+			+ " - Set throttle 2 max value");
+	SerialUSB.println("TRGN="
+			+ String(DeviceManager::getInstance()->getAccelerator()->getPositionRegenStart())
+			+ " - Tenths of a percent of pedal where regen ends");
+	SerialUSB.println("TFWD="
+			+ String(DeviceManager::getInstance()->getAccelerator()->getPositionForwardMotionStart())
+			+ " - Tenths of a percent of pedal where forward motion starts");
+	SerialUSB.println("TMAP="
+			+ String(DeviceManager::getInstance()->getAccelerator()->getPositionHalfPower())
+			+ " - Tenths of a percent of pedal where 50% throttle will be");
+	SerialUSB.println("TMRN="
+			+ String(DeviceManager::getInstance()->getAccelerator()->getMaximumRegen())
+			+ " - Percent of full torque to use for throttle regen");
+	SerialUSB.println("B1MN="
+			+ String(DeviceManager::getInstance()->getBrake()->getMinimumLevel1())
+			+ " - Set brake min value");
+	SerialUSB.println("B1MX="
+			+ String(DeviceManager::getInstance()->getBrake()->getMaximumLevel1())
+			+ " - Set brake max value");
+	SerialUSB.println("BMINR="
+			+ String(DeviceManager::getInstance()->getBrake()->getMinimumRegen())
+			+ " - Percent of full torque for start of brake regen");
+	SerialUSB.println("BMAXR="
+			+ String(DeviceManager::getInstance()->getBrake()->getMaximumRegen())
+			+ " - Percent of full torque for maximum brake regen");
+	SerialUSB.println("PREC="
+			+ String(DeviceManager::getInstance()->getMotorController()->getPrechargeC())
+			+ " - Precharge capacitance (uf)");
+	SerialUSB.println("PRER="
+			+ String(DeviceManager::getInstance()->getMotorController()->getPrechargeR())
+			+ " - Precharge resistance (1/10 of ohm)");
+	SerialUSB.println("NOMV="
+			+ String(DeviceManager::getInstance()->getMotorController()->getNominalV())
+			+ " - Nominal system voltage (1/10 of a volt)");
+	SerialUSB.println("PRELAY="
+			+ String(DeviceManager::getInstance()->getMotorController()->getPrechargeRelay())
+			+ " - Which output to use for precharge contactor (255 to disable)");
+	SerialUSB.println("MRELAY="
+			+ String(DeviceManager::getInstance()->getMotorController()->getMainRelay())
+			+ " - Which output to use for main contactor (255 to disable)");
+	SerialUSB.println("LOGLEVEL="
+			+ String(Logger::getLogLevel())
+			+ " - set log level (0=debug, 1=info, 2=warn, 3=error)");
 }
 
 /*	There is a help menu (press H or h or ?)
@@ -161,19 +211,19 @@ void SerialConsole::handleConfigCmd() {
 	cmdString.toUpperCase();
 	if (cmdString == String("TORQ")) {
 		newValue = atoi((char *) (cmdBuffer + i));
-		Logger::debug("Setting Torque Limit to %i", newValue);
+		Logger::console("Setting Torque Limit to %i", newValue);
 		DeviceManager::getInstance()->getMotorController()->setTorqueMax(newValue);
 		DeviceManager::getInstance()->getMotorController()->saveEEPROM();
 	} else if (cmdString == String("RPMS")) {
 		newValue = atoi((char *) (cmdBuffer + i));
-		Logger::debug("Setting RPM Limit to %i", newValue);
+		Logger::console("Setting RPM Limit to %i", newValue);
 		DeviceManager::getInstance()->getMotorController()->setSpeedMax(newValue);
 		DeviceManager::getInstance()->getMotorController()->saveEEPROM();
 	}
 
 	else if (cmdString == String("REVLIM")) {
 		newValue = atoi((char *) (cmdBuffer + i));
-		Logger::debug("Setting Reverse Limit to %i", newValue);
+		Logger::console("Setting Reverse Limit to %i", newValue);
 		DeviceManager::getInstance()->getMotorController()->setReversePercent(newValue);
 		DeviceManager::getInstance()->getMotorController()->saveEEPROM();
 	}
@@ -187,7 +237,7 @@ void SerialConsole::handleConfigCmd() {
 
 	else if (cmdString == String("TTYPE")) {
 		newValue = atoi((char *) (cmdBuffer + i));
-		Logger::debug("Setting Throttle Subtype to %i", newValue);
+		Logger::console("Setting Throttle Subtype to %i", newValue);
 		DeviceManager::getInstance()->getAccelerator()->setSubtype(newValue);
 		DeviceManager::getInstance()->getAccelerator()->saveEEPROM();
 	}
@@ -262,27 +312,27 @@ void SerialConsole::handleConfigCmd() {
 
 	else if (cmdString == String("PREC")) {
 		newValue = atoi((char *) (cmdBuffer + i));
-		Logger::debug("Setting Precharge Capacitance to %i", newValue);
+		Logger::console("Setting Precharge Capacitance to %i", newValue);
 		DeviceManager::getInstance()->getMotorController()->setPrechargeC(newValue);
 		DeviceManager::getInstance()->getMotorController()->saveEEPROM();
 	} else if (cmdString == String("PRER")) {
 		newValue = atoi((char *) (cmdBuffer + i));
-		Logger::debug("Setting Precharge Resistance to %i", newValue);
+		Logger::console("Setting Precharge Resistance to %i", newValue);
 		DeviceManager::getInstance()->getMotorController()->setPrechargeR(newValue);
 		DeviceManager::getInstance()->getMotorController()->saveEEPROM();
 	} else if (cmdString == String("NOMV")) {
 		newValue = atoi((char *) (cmdBuffer + i));
-		Logger::debug("Setting Nominal Voltage to %i", newValue);
+		Logger::console("Setting Nominal Voltage to %i", newValue);
 		DeviceManager::getInstance()->getMotorController()->setNominalV(newValue);
 		DeviceManager::getInstance()->getMotorController()->saveEEPROM();
 	} else if (cmdString == String("MRELAY")) {
 		newValue = atoi((char *) (cmdBuffer + i));
-		Logger::debug("Setting Main Contactor relay to %i", newValue);
+		Logger::console("Setting Main Contactor relay to %i", newValue);
 		DeviceManager::getInstance()->getMotorController()->setMainRelay(newValue);
 		DeviceManager::getInstance()->getMotorController()->saveEEPROM();
 	} else if (cmdString == String("PRELAY")) {
 		newValue = atoi((char *) (cmdBuffer + i));
-		Logger::debug("Setting Precharge Relay to %i", newValue);
+		Logger::console("Setting Precharge Relay to %i", newValue);
 		DeviceManager::getInstance()->getMotorController()->setPrechargeRelay(newValue);
 		DeviceManager::getInstance()->getMotorController()->saveEEPROM();
 	} else if (cmdString == String("LOGLEVEL")) {
@@ -290,20 +340,18 @@ void SerialConsole::handleConfigCmd() {
 		switch (newValue) {
 		case 0:
 			Logger::setLoglevel(Logger::Debug);
-			Logger::info("setting loglevel to 'debug'");
+			Logger::console("setting loglevel to 'debug'");
 			break;
 		case 1:
 			Logger::setLoglevel(Logger::Info);
-			Logger::info("setting loglevel to 'info'");
+			Logger::console("setting loglevel to 'info'");
 			break;
 		case 2:
-			Logger::setLoglevel(Logger::Info);
-			Logger::info("setting loglevel to 'warning'");
+			Logger::console("setting loglevel to 'warning'");
 			Logger::setLoglevel(Logger::Warn);
 			break;
 		case 3:
-			Logger::setLoglevel(Logger::Info);
-			Logger::info("setting loglevel to 'error'");
+			Logger::console("setting loglevel to 'error'");
 			Logger::setLoglevel(Logger::Error);
 			break;
 		}
@@ -324,34 +372,34 @@ void SerialConsole::handleShortCmd() {
 		if (heartbeat != NULL) {
 			heartbeat->setThrottleDebug(!heartbeat->getThrottleDebug());
 			if (heartbeat->getThrottleDebug()) {
-				Logger::info("Output raw throttle");
+				Logger::console("Output raw throttle");
 			} else {
-				Logger::info("Cease raw throttle output");
+				Logger::console("Cease raw throttle output");
 			}
 		}
 		break;
 	case 'U':
-		Logger::info("Adding a sequence of values from 0 to 255 into eeprom");
+		Logger::console("Adding a sequence of values from 0 to 255 into eeprom");
 		for (int i = 0; i < 256; i++) {
 			memCache->Write(1000 + i, (uint8_t) i);
 		}
 		Logger::info("Flushing cache");
 		memCache->FlushAllPages(); //write everything to eeprom
 		memCache->InvalidateAll(); //remove all data from cache
-		Logger::info("Operation complete.");
+		Logger::console("Operation complete.");
 		break;
 	case 'I':
-		Logger::info("Retrieving data previously saved");
+		Logger::console("Retrieving data previously saved");
 		for (int i = 0; i < 256; i++) {
 			memCache->Read(1000 + i, &val);
-			Logger::info("%d: %d", i, val);
+			Logger::console("%d: %d", i, val);
 		}
 		break;
 	case 'A':
-		Logger::info("Retrieving System EEPROM values");
+		Logger::console("Retrieving System EEPROM values");
 		for (int i = 0; i < 256; i++) {
 			memCache->Read(EE_SYSTEM_START + i, &val);
-			Logger::info("%d: %d", i, val);
+			Logger::console("%d: %d", i, val);
 		}
 		break;
 	case 'K': //set all outputs high
@@ -359,14 +407,14 @@ void SerialConsole::handleShortCmd() {
 		setOutput(1, true);
 		setOutput(2, true);
 		setOutput(3, true);
-		Logger::info("all outputs: ON");
+		Logger::console("all outputs: ON");
 		break;
 	case 'J': //set the four outputs low
 		setOutput(0, false);
 		setOutput(1, false);
 		setOutput(2, false);
 		setOutput(3, false);
-		Logger::info("all outputs: OFF");
+		Logger::console("all outputs: OFF");
 		break;
 	case 'z': // detect throttle min/max & other details
 		DeviceManager::getInstance()->getAccelerator()->detectThrottle();
@@ -381,7 +429,7 @@ void SerialConsole::handleShortCmd() {
 		DeviceManager::getInstance()->getBrake()->saveConfiguration();
 		break;
 	case 'p':
-		Logger::info("PASSTHROUGH MODE - All traffic Serial3 <-> SerialUSB");
+		Logger::console("PASSTHROUGH MODE - All traffic Serial3 <-> SerialUSB");
 		//this never stops so basically everything dies. you will have to reboot.
 		int inSerialUSB, inSerial3;
 		while (1 == 1) {

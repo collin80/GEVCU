@@ -65,10 +65,13 @@ void Heartbeat::handleTick() {
 	led = !led;
 
 	if (throttleDebug) {
-		Logger::debug("A0: %d, A1: %d, A2: %d, A3: %d", getAnalog(0), getAnalog(1), getAnalog(2), getAnalog(3));
-		Logger::debug("D0: %d, D1: %d, D2: %d, D3: %d", getDigital(0), getDigital(1), getDigital(2), getDigital(3));
-        Logger::debug("Throttle Output: %i", DeviceManager::getInstance()->getAccelerator()->getLevel());
-		Logger::debug("Brake Output: %i", DeviceManager::getInstance()->getBrake()->getLevel());
+		Logger::console("Status: isRunning: %T isFaulted: %T",
+					DeviceManager::getInstance()->getMotorController()->isRunning(),
+					DeviceManager::getInstance()->getMotorController()->isFaulted());
+		Logger::console("A0: %d, A1: %d, A2: %d, A3: %d", getAnalog(0), getAnalog(1), getAnalog(2), getAnalog(3));
+		Logger::console("D0: %d, D1: %d, D2: %d, D3: %d", getDigital(0), getDigital(1), getDigital(2), getDigital(3));
+        Logger::console("Throttle Output: %i", DeviceManager::getInstance()->getAccelerator()->getLevel());
+		Logger::console("Brake Output: %i", DeviceManager::getInstance()->getBrake()->getLevel());
 	}
 }
 

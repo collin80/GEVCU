@@ -84,6 +84,7 @@ private:
 	int step;
 	byte online; //counter for whether DMOC appears to be operating
 	byte alive;
+	int activityCount;
 
 	void sendCmd1();
 	void sendCmd2();

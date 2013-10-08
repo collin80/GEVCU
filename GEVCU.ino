@@ -53,6 +53,7 @@ Sept 19 2013:
 1009 - Implemented message passing and hooked up the rest of the code to use it.
 1010 - Support for GEVCU3 boards
 1011 - Added support for Think City battery packs with BMS
+1012 - Tons of changes to MotorController and SerialConsole
 */
 
 
