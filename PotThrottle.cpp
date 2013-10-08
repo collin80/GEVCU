@@ -213,10 +213,10 @@ void PotThrottle::doAccel() {
 	//Apparently all is well with the throttle input
 	//so go ahead and calculate the proper throttle output
 
-	throttleAverage += calcThrottle1;
-	throttleAverage -= throttleFeedback;
-	throttleFeedback = throttleAverage >> 4;
-	mapThrottle(throttleFeedback);
+	//throttleAverage += calcThrottle1;
+	//throttleAverage -= throttleFeedback;
+	//throttleFeedback = throttleAverage >> 4;
+	mapThrottle(calcThrottle1);
 }
 
 //right now only the first throttle ADC port is used. Eventually the second one should be used to cross check so dumb things
