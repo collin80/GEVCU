@@ -103,13 +103,16 @@ class ICHIPWIFI : public Device {
     int tickCounter;
     int ibWritePtr;
 	int currReply;
-	char runtime[10];
+	char buffer[30]; // a buffer for various string conversions
 	int loadParams; // a counter to wait x seconds before loading the parameters
 
     void getNextParam(); //get next changed parameter
     void getParamById(String paramName); //try to retrieve the value of the given parameter
     void setParam(String paramName, String value); //set the given parameter with the given string
     void setParam(String paramName, int32_t value);
+    void setParam(String paramName, int16_t value);
+    void setParam(String paramName, uint32_t value);
+    void setParam(String paramName, uint16_t value);
     void setParam(String paramName, float value, int precision);
     void sendCmd(String cmd);
     void processParameterChange(char *response);
