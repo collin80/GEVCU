@@ -54,13 +54,17 @@ void SerialConsole::loop() {
 }
 
 void SerialConsole::printMenu() {
+	MotorController* motorController = (MotorController*) DeviceManager::getInstance()->getMotorController();
+	Throttle *accelerator = DeviceManager::getInstance()->getAccelerator();
+	Throttle *brake = DeviceManager::getInstance()->getBrake();
+
 	//Show build # here as well in case people are using the native port and don't get to see the start up messages
 	SerialUSB.print("Build number: ");
 	SerialUSB.println(CFG_BUILD_NUM);
-	SerialUSB.println("Status: isRunning: "
-			+ String(DeviceManager::getInstance()->getMotorController()->isRunning())
+	SerialUSB.println("Motor Controller Status: isRunning: "
+			+ String(motorController->isRunning())
 			+ " isFaulted: "
-			+ String(DeviceManager::getInstance()->getMotorController()->isFaulted()));
+			+ String(motorController->isFaulted()));
 	SerialUSB.println("System Menu:");
 	SerialUSB.println();
 	SerialUSB.println("Enable line endings of some sort (LF, CR, CRLF)");
@@ -81,75 +85,59 @@ void SerialConsole::printMenu() {
 	SerialUSB.println("p = enable wifi passthrough (reboot required to resume normal operation)");
 	SerialUSB.println();
 	SerialUSB.println("Config Commands (enter command=newvalue). Current values shown in parenthesis:");
-	SerialUSB.println("TORQ="
-			+ String(DeviceManager::getInstance()->getMotorController()->getTorqueMax())
-			+ " - Set torque upper limit (tenths of a Nm)");
-	SerialUSB.println("RPMS="
-			+ String(DeviceManager::getInstance()->getMotorController()->getSpeedMax())
-			+ " - Set maximum RPMs");
-	SerialUSB.println("REVLIM="
-			+ String(DeviceManager::getInstance()->getMotorController()->getReversePercent())
-			+ " - How much torque to allow in reverse (Tenths of a percent)");
-	SerialUSB.println("TPOT="
-			+ String(DeviceManager::getInstance()->getAccelerator()->getNumberPotMeters())
-			+ " - Number of pots to use (1 or 2)");
-	SerialUSB.println("TTYPE="
-			+ String(DeviceManager::getInstance()->getAccelerator()->getSubtype())
-			+ " - Set throttle subtype (1=std linear, 2=inverse)");
-	SerialUSB.println("T1MN="
-			+ String(DeviceManager::getInstance()->getAccelerator()->getMinimumLevel1())
-			+ " - Set throttle 1 min value");
-	SerialUSB.println("T1MX="
-			+ String(DeviceManager::getInstance()->getAccelerator()->getMaximumLevel1())
-			+ " - Set throttle 1 max value");
-	SerialUSB.println("T2MN="
-			+ String(DeviceManager::getInstance()->getAccelerator()->getMinimumLevel2())
-			+ " - Set throttle 2 min value");
-	SerialUSB.println("T2MX="
-			+ String(DeviceManager::getInstance()->getAccelerator()->getMaximumLevel2())
-			+ " - Set throttle 2 max value");
-	SerialUSB.println("TRGN="
-			+ String(DeviceManager::getInstance()->getAccelerator()->getPositionRegenStart())
-			+ " - Tenths of a percent of pedal where regen ends");
-	SerialUSB.println("TFWD="
-			+ String(DeviceManager::getInstance()->getAccelerator()->getPositionForwardMotionStart())
-			+ " - Tenths of a percent of pedal where forward motion starts");
-	SerialUSB.println("TMAP="
-			+ String(DeviceManager::getInstance()->getAccelerator()->getPositionHalfPower())
-			+ " - Tenths of a percent of pedal where 50% throttle will be");
-	SerialUSB.println("TMRN="
-			+ String(DeviceManager::getInstance()->getAccelerator()->getMaximumRegen())
-			+ " - Percent of full torque to use for throttle regen");
-	SerialUSB.println("B1MN="
-			+ String(DeviceManager::getInstance()->getBrake()->getMinimumLevel1())
-			+ " - Set brake min value");
-	SerialUSB.println("B1MX="
-			+ String(DeviceManager::getInstance()->getBrake()->getMaximumLevel1())
-			+ " - Set brake max value");
-	SerialUSB.println("BMINR="
-			+ String(DeviceManager::getInstance()->getBrake()->getMinimumRegen())
-			+ " - Percent of full torque for start of brake regen");
-	SerialUSB.println("BMAXR="
-			+ String(DeviceManager::getInstance()->getBrake()->getMaximumRegen())
-			+ " - Percent of full torque for maximum brake regen");
-	SerialUSB.println("PREC="
-			+ String(DeviceManager::getInstance()->getMotorController()->getPrechargeC())
-			+ " - Precharge capacitance (uf)");
-	SerialUSB.println("PRER="
-			+ String(DeviceManager::getInstance()->getMotorController()->getPrechargeR())
-			+ " - Precharge resistance (1/10 of ohm)");
-	SerialUSB.println("NOMV="
-			+ String(DeviceManager::getInstance()->getMotorController()->getNominalV())
-			+ " - Nominal system voltage (1/10 of a volt)");
-	SerialUSB.println("PRELAY="
-			+ String(DeviceManager::getInstance()->getMotorController()->getPrechargeRelay())
-			+ " - Which output to use for precharge contactor (255 to disable)");
-	SerialUSB.println("MRELAY="
-			+ String(DeviceManager::getInstance()->getMotorController()->getMainRelay())
-			+ " - Which output to use for main contactor (255 to disable)");
-	SerialUSB.println("LOGLEVEL="
-			+ String(Logger::getLogLevel())
-			+ " - set log level (0=debug, 1=info, 2=warn, 3=error)");
+	Logger::console("TORQ=%i - Set torque upper limit (tenths of a Nm)",
+			motorController->getTorqueMax());
+	Logger::console("RPMS=%i - Set maximum RPMs",
+			motorController->getSpeedMax());
+	Logger::console("REVLIM=%i - How much torque to allow in reverse (Tenths of a percent)",
+			motorController->getReversePercent());
+
+	if ( accelerator != NULL ) {
+		Logger::console("TPOT=%i - Number of pots to use (1 or 2)",
+				accelerator->getNumberPotMeters());
+		Logger::console("TTYPE=%i - Set throttle subtype (1=std linear, 2=inverse)",
+				accelerator->getSubtype());
+		Logger::console("T1MN=%i - Set throttle 1 min value",
+				accelerator->getMinimumLevel1());
+		Logger::console("T1MX=%i - Set throttle 1 max value",
+				accelerator->getMaximumLevel1());
+		Logger::console("T2MN=%i - Set throttle 2 min value",
+				accelerator->getMinimumLevel2());
+		Logger::console("T2MX=%i - Set throttle 2 max value",
+				accelerator->getMaximumLevel2());
+		Logger::console("TRGN=%i - Tenths of a percent of pedal where regen starts",
+				accelerator->getPositionRegenStart());
+		Logger::console("TFWD=%i - Tenths of a percent of pedal where forward motion starts",
+				accelerator->getPositionForwardMotionStart());
+		Logger::console("TMAP=%i - Tenths of a percent of pedal where 50% throttle will be",
+				accelerator->getPositionHalfPower());
+		Logger::console("TMRN=%i - Percent of full torque to use for throttle regen",
+				accelerator->getMaximumRegen());
+	}
+
+	if ( brake != NULL ) {
+		Logger::console("B1MN=%i - Set brake min value",
+				brake->getMinimumLevel1());
+		Logger::console("B1MX=%i - Set brake max value",
+				brake->getMaximumLevel1());
+		Logger::console("BMINR=%i - Percent of full torque for start of brake regen",
+				brake->getMinimumRegen());
+		Logger::console("BMAXR=%i - Percent of full torque for maximum brake regen",
+				brake->getMaximumRegen());
+	}
+
+	Logger::console("PREC=%i - Precharge capacitance (uf)",
+			DeviceManager::getInstance()->getMotorController()->getPrechargeC());
+	Logger::console("PRER=%i - Precharge resistance (1/10 of ohm)",
+			DeviceManager::getInstance()->getMotorController()->getPrechargeR());
+	Logger::console("NOMV=%i - Nominal system voltage (1/10 of a volt)",
+			DeviceManager::getInstance()->getMotorController()->getNominalV());
+	Logger::console("PRELAY=%i - Which output to use for precharge contactor (255 to disable)",
+			DeviceManager::getInstance()->getMotorController()->getPrechargeRelay());
+	Logger::console("MRELAY=%i - Which output to use for main contactor (255 to disable)",
+			DeviceManager::getInstance()->getMotorController()->getMainRelay());
+	Logger::console("LOGLEVEL=%i - set log level (0=debug, 1=info, 2=warn, 3=error, 4=off)",
+			Logger::getLogLevel());
 }
 
 /*	There is a help menu (press H or h or ?)
@@ -192,6 +180,10 @@ void SerialConsole::handleConsoleCmd() {
  comparison purposes.
  */
 void SerialConsole::handleConfigCmd() {
+
+	Throttle *accelerator = DeviceManager::getInstance()->getAccelerator();
+	Throttle *brake = DeviceManager::getInstance()->getBrake();
+
 	int i;
 	int newValue;
 	//Logger::debug("Cmd size: %i", ptrBuffer);
@@ -219,98 +211,138 @@ void SerialConsole::handleConfigCmd() {
 		Logger::console("Setting RPM Limit to %i", newValue);
 		DeviceManager::getInstance()->getMotorController()->setSpeedMax(newValue);
 		DeviceManager::getInstance()->getMotorController()->saveEEPROM();
-	}
-
-	else if (cmdString == String("REVLIM")) {
+	} else if (cmdString == String("REVLIM")) {
 		newValue = atoi((char *) (cmdBuffer + i));
 		Logger::console("Setting Reverse Limit to %i", newValue);
 		DeviceManager::getInstance()->getMotorController()->setReversePercent(newValue);
 		DeviceManager::getInstance()->getMotorController()->saveEEPROM();
-	}
-
-	else if (cmdString == String("TPOT")) {
-		newValue = atoi((char *) (cmdBuffer + i));
-		Logger::debug("Setting # of Throttle Pots to %i", newValue);
-		DeviceManager::getInstance()->getAccelerator()->setNumberPotMeters(newValue);
-		DeviceManager::getInstance()->getAccelerator()->saveEEPROM();
-	}
-
-	else if (cmdString == String("TTYPE")) {
-		newValue = atoi((char *) (cmdBuffer + i));
-		Logger::console("Setting Throttle Subtype to %i", newValue);
-		DeviceManager::getInstance()->getAccelerator()->setSubtype(newValue);
-		DeviceManager::getInstance()->getAccelerator()->saveEEPROM();
-	}
-
-	else if (cmdString == String("T1MN")) {
-		newValue = atoi((char *) (cmdBuffer + i));
-		Logger::debug("Setting Throttle1 Min to %i", newValue);
-		DeviceManager::getInstance()->getAccelerator()->setMinumumLevel1(newValue);
-		DeviceManager::getInstance()->getAccelerator()->saveEEPROM();
+	} else if (cmdString == String("TPOT")) {
+		if ( accelerator != NULL ) {
+			newValue = atoi((char *) (cmdBuffer + i));
+			Logger::console("Setting # of Throttle Pots to %i", newValue);
+			accelerator->setNumberPotMeters(newValue);
+			accelerator->saveEEPROM();
+		} else {
+			Logger::console("No acclerator object available");
+		}
+	} else if (cmdString == String("TTYPE")) {
+		if ( accelerator != NULL ) {
+			newValue = atoi((char *) (cmdBuffer + i));
+			Logger::console("Setting Throttle Subtype to %i", newValue);
+			accelerator->setSubtype(newValue);
+			accelerator->saveEEPROM();
+		} else {
+			Logger::console("No acclerator object available");
+		}
+	} else if (cmdString == String("T1MN")) {
+		if ( accelerator != NULL ) {
+			newValue = atoi((char *) (cmdBuffer + i));
+			Logger::console("Setting Throttle1 Min to %i", newValue);
+			accelerator->setMinumumLevel1(newValue);
+			accelerator->saveEEPROM();
+		} else {
+			Logger::console("No acclerator object available");
+		}
 	} else if (cmdString == String("T1MX")) {
-		newValue = atoi((char *) (cmdBuffer + i));
-		Logger::debug("Setting Throttle1 Max to %i", newValue);
-		DeviceManager::getInstance()->getAccelerator()->setMaximumLevel1(newValue);
-		DeviceManager::getInstance()->getAccelerator()->saveEEPROM();
+		if ( accelerator != NULL ) {
+			newValue = atoi((char *) (cmdBuffer + i));
+			Logger::console("Setting Throttle1 Max to %i", newValue);
+			accelerator->setMaximumLevel1(newValue);
+			accelerator->saveEEPROM();
+		} else {
+			Logger::console("No acclerator object available");
+		}
 	} else if (cmdString == String("T2MN")) {
-		newValue = atoi((char *) (cmdBuffer + i));
-		Logger::debug("Setting Throttle2 Min to %i", newValue);
-		DeviceManager::getInstance()->getAccelerator()->setMinimumLevel2(newValue);
-		DeviceManager::getInstance()->getAccelerator()->saveEEPROM();
+		if ( accelerator != NULL ) {
+			newValue = atoi((char *) (cmdBuffer + i));
+			Logger::console("Setting Throttle2 Min to %i", newValue);
+			accelerator->setMinimumLevel2(newValue);
+			accelerator->saveEEPROM();
+		} else {
+			Logger::console("No acclerator object available");
+		}
 	} else if (cmdString == String("T2MX")) {
-		newValue = atoi((char *) (cmdBuffer + i));
-		Logger::debug("Setting Throttle2 Max to %i", newValue);
-		DeviceManager::getInstance()->getAccelerator()->setMaximumLevel2(newValue);
-		DeviceManager::getInstance()->getAccelerator()->saveEEPROM();
+		if ( accelerator != NULL ) {
+			newValue = atoi((char *) (cmdBuffer + i));
+			Logger::console("Setting Throttle2 Max to %i", newValue);
+			accelerator->setMaximumLevel2(newValue);
+			accelerator->saveEEPROM();
+		} else {
+			Logger::console("No acclerator object available");
+		}
 	} else if (cmdString == String("TRGN")) {
-		newValue = atoi((char *) (cmdBuffer + i));
-		Logger::debug("Setting Throttle Regen End to %i", newValue);
-		DeviceManager::getInstance()->getAccelerator()->setPositionRegenStart(newValue);
-		DeviceManager::getInstance()->getAccelerator()->saveEEPROM();
+		if ( accelerator != NULL ) {
+			newValue = atoi((char *) (cmdBuffer + i));
+			Logger::console("Setting Throttle Regen Start to %i", newValue);
+			accelerator->setPositionRegenStart(newValue);
+			accelerator->saveEEPROM();
+		} else {
+			Logger::console("No acclerator object available");
+		}
 	} else if (cmdString == String("TFWD")) {
-		newValue = atoi((char *) (cmdBuffer + i));
-		Logger::debug("Setting Throttle Forward Start to %i", newValue);
-		DeviceManager::getInstance()->getAccelerator()->setPositionForwardMotionStart(newValue);
-		DeviceManager::getInstance()->getAccelerator()->saveEEPROM();
+		if ( accelerator != NULL ) {
+			newValue = atoi((char *) (cmdBuffer + i));
+			Logger::console("Setting Throttle Forward Start to %i", newValue);
+			accelerator->setPositionForwardMotionStart(newValue);
+			accelerator->saveEEPROM();
+		} else {
+			Logger::console("No acclerator object available");
+		}
 	} else if (cmdString == String("TMAP")) {
-		newValue = atoi((char *) (cmdBuffer + i));
-		Logger::debug("Setting Throttle MAP Point to %i", newValue);
-		DeviceManager::getInstance()->getAccelerator()->setPositionHalfPower(newValue);
-		DeviceManager::getInstance()->getAccelerator()->saveEEPROM();
+		if ( accelerator != NULL ) {
+			newValue = atoi((char *) (cmdBuffer + i));
+			Logger::console("Setting Throttle MAP Point to %i", newValue);
+			accelerator->setPositionHalfPower(newValue);
+			accelerator->saveEEPROM();
+		} else {
+			Logger::console("No acclerator object available");
+		}
 	} else if (cmdString == String("TMRN")) {
-		newValue = atoi((char *) (cmdBuffer + i));
-		Logger::debug("Setting Throttle Regen Strength to %i", newValue);
-		DeviceManager::getInstance()->getAccelerator()->setMaximumRegen(newValue);
-		DeviceManager::getInstance()->getAccelerator()->saveEEPROM();
-	}
-
-	else if (cmdString == String("BMAXR")) {
-		newValue = atoi((char *) (cmdBuffer + i));
-		Logger::debug("Setting Max Brake Regen to %i", newValue);
-		DeviceManager::getInstance()->getBrake()->setMaximumRegen(newValue);
-		DeviceManager::getInstance()->getBrake()->saveEEPROM();
-	}
-
-	else if (cmdString == String("BMINR")) {
-		newValue = atoi((char *) (cmdBuffer + i));
-		Logger::debug("Setting Min Brake Regen to %i", newValue);
-		DeviceManager::getInstance()->getBrake()->setMinimumRegen(newValue);
-		DeviceManager::getInstance()->getBrake()->saveEEPROM();
-	}
-
-	else if (cmdString == String("B1MX")) {
-		newValue = atoi((char *) (cmdBuffer + i));
-		Logger::debug("Setting Brake Max to %i", newValue);
-		DeviceManager::getInstance()->getBrake()->setMaximumLevel1(newValue);
-		DeviceManager::getInstance()->getBrake()->saveEEPROM();
+		if ( accelerator != NULL ) {
+			newValue = atoi((char *) (cmdBuffer + i));
+			Logger::console("Setting Throttle Regen Strength to %i", newValue);
+			accelerator->setMaximumRegen(newValue);
+			accelerator->saveEEPROM();
+		} else {
+			Logger::console("No acclerator object available");
+		}
+	} else if (cmdString == String("BMAXR")) {
+		if ( brake != NULL ) {
+			newValue = atoi((char *) (cmdBuffer + i));
+			Logger::console("Setting Max Brake Regen to %i", newValue);
+			brake->setMaximumRegen(newValue);
+			brake->saveEEPROM();
+		} else {
+			Logger::console("No brake object available");
+		}
+	} else if (cmdString == String("BMINR")) {
+		if ( brake != NULL ) {
+			newValue = atoi((char *) (cmdBuffer + i));
+			Logger::console("Setting Min Brake Regen to %i", newValue);
+			brake->setMinimumRegen(newValue);
+			brake->saveEEPROM();
+		} else {
+			Logger::console("No brake object available");
+		}
+	} else if (cmdString == String("B1MX")) {
+		if ( brake != NULL ) {
+			newValue = atoi((char *) (cmdBuffer + i));
+			Logger::console("Setting Brake Max to %i", newValue);
+			brake->setMaximumLevel1(newValue);
+			brake->saveEEPROM();
+		} else {
+			Logger::console("No brake object available");
+		}
 	} else if (cmdString == String("B1MN")) {
-		newValue = atoi((char *) (cmdBuffer + i));
-		Logger::debug("Setting Brake Min to %i", newValue);
-		DeviceManager::getInstance()->getBrake()->setMinumumLevel1(newValue);
-		DeviceManager::getInstance()->getBrake()->saveEEPROM();
-	}
-
-	else if (cmdString == String("PREC")) {
+		if ( brake != NULL ) {
+			newValue = atoi((char *) (cmdBuffer + i));
+			Logger::console("Setting Brake Min to %i", newValue);
+			brake->setMinumumLevel1(newValue);
+			brake->saveEEPROM();
+		} else {
+			Logger::console("No brake object available");
+		}
+	} else if (cmdString == String("PREC")) {
 		newValue = atoi((char *) (cmdBuffer + i));
 		Logger::console("Setting Precharge Capacitance to %i", newValue);
 		DeviceManager::getInstance()->getMotorController()->setPrechargeC(newValue);
@@ -354,13 +386,21 @@ void SerialConsole::handleConfigCmd() {
 			Logger::console("setting loglevel to 'error'");
 			Logger::setLoglevel(Logger::Error);
 			break;
+		case 4:
+			Logger::console("setting loglevel to 'off'");
+			Logger::setLoglevel(Logger::Off);
+			break;
 		}
+	} else {
+		Logger::console("Unknown command");
 	}
 }
 
 void SerialConsole::handleShortCmd() {
 	uint8_t val;
 	MotorController* motorController = (MotorController*) DeviceManager::getInstance()->getMotorController();
+	Throttle *accelerator = DeviceManager::getInstance()->getAccelerator();
+	Throttle *brake = DeviceManager::getInstance()->getBrake();
 
 	switch (cmdBuffer[0]) {
 	case 'h':
@@ -417,16 +457,24 @@ void SerialConsole::handleShortCmd() {
 		Logger::console("all outputs: OFF");
 		break;
 	case 'z': // detect throttle min/max & other details
-		DeviceManager::getInstance()->getAccelerator()->detectThrottle();
+		if ( accelerator != NULL ) {
+			accelerator->detectThrottle();
+		}
 		break;
 	case 'Z': // save throttle settings
-		DeviceManager::getInstance()->getAccelerator()->saveConfiguration();
+		if ( accelerator != NULL ) {
+			accelerator->saveConfiguration();
+		}
 		break;
 	case 'b':
-		DeviceManager::getInstance()->getBrake()->detectThrottle();
+		if ( brake != NULL ) {
+			brake->detectThrottle();
+		}
 		break;
 	case 'B':
-		DeviceManager::getInstance()->getBrake()->saveConfiguration();
+		if ( brake != NULL ) {
+			brake->saveConfiguration();
+		}
 		break;
 	case 'p':
 		Logger::console("PASSTHROUGH MODE - All traffic Serial3 <-> SerialUSB");

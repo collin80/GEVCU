@@ -34,7 +34,7 @@
 class Logger {
 public:
 	enum LogLevel {
-		Debug, Info, Warn, Error
+		Debug, Info, Warn, Error, Off
 	};
 	static void debug(char *, ...);
 	static void debug(DeviceId, char *, ...);

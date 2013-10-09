@@ -64,6 +64,10 @@ int16_t Throttle::getLevel(){
 	return level;
 }
 
+bool Throttle::isFaulted() {
+	return true;
+}
+
 void Throttle::setNumberPotMeters(uint8_t num) {
 	numberPotMeters = constrain(num, 1, 2); // Currently only valid values are 1  and 2
 }

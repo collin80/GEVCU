@@ -52,6 +52,7 @@ public:
 	virtual uint16_t getRawThrottle1();
 	virtual uint16_t getRawThrottle2();
 
+	bool isFaulted();
 	void detectThrottle();
 	void detectThrottleMin();
 	void detectThrottleMax();

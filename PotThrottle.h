@@ -51,6 +51,7 @@ public:
 
 	void handleTick();
 	void setup();
+	bool isFaulted();
 	ThrottleStatus getStatus();
 	uint16_t getRawThrottle1();
 	uint16_t getRawThrottle2();
