@@ -117,11 +117,11 @@ void PotThrottle::setup() {
 	TickHandler::getInstance()->attach(this, CFG_TICK_INTERVAL_POT_THROTTLE);
 }
 
-int PotThrottle::getRawThrottle1() {
+uint16_t PotThrottle::getRawThrottle1() {
 	return rawLevel1;
 }
 
-int PotThrottle::getRawThrottle2() {
+uint16_t PotThrottle::getRawThrottle2() {
 	return rawLevel2;
 }
 

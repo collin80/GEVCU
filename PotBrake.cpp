@@ -75,11 +75,11 @@ void PotBrake::setup() {
 	TickHandler::getInstance()->attach(this, CFG_TICK_INTERVAL_POT_THROTTLE);
 }
 
-int PotBrake::getRawThrottle1() {
+uint16_t PotBrake::getRawThrottle1() {
 	return rawLevel1;
 }
 
-int PotBrake::getRawThrottle2() {
+uint16_t PotBrake::getRawThrottle2() {
 	return rawLevel2;
 }
 

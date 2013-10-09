@@ -49,8 +49,8 @@ public:
 
 	virtual void handleTick();
 	virtual int16_t getLevel();
-	virtual int getRawThrottle1();
-	virtual int getRawThrottle2();
+	virtual uint16_t getRawThrottle1();
+	virtual uint16_t getRawThrottle2();
 
 	void detectThrottle();
 	void detectThrottleMin();

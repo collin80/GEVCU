@@ -74,8 +74,8 @@ uint8_t Throttle::getSubtype() {
 /*
  * Give default versions that return 0. Override in a child class if you implement the throttle
  */
-int Throttle::getRawThrottle1() {return 0;}
-int Throttle::getRawThrottle2() {return 0;}
+uint16_t Throttle::getRawThrottle1() {return 0;}
+uint16_t Throttle::getRawThrottle2() {return 0;}
 
 /*
  * Return the tick interval for this throttle. Override in a child class
@@ -99,7 +99,7 @@ void Throttle::mapThrottle(int16_t currentPosition) {
 			if (currentPosition <= positionRegenStart) {
 				range = positionRegenStart;
 				value = range - currentPosition;
-				level = (signed long) ((signed long) (-10) * maximumRegen * value / range);
+				level = -10 * maximumRegen * value / range;
 			}
 		}
 

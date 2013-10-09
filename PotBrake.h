@@ -53,8 +53,8 @@ public:
 	void setup();
 	void handleTick();
 	BrakeStatus getStatus();
-	int getRawThrottle1();
-	int getRawThrottle2();
+	uint16_t getRawThrottle1();
+	uint16_t getRawThrottle2();
 	DeviceId getId();
 	DeviceType getType();
 	void saveConfiguration();
