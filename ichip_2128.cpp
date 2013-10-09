@@ -72,51 +72,63 @@ void ICHIPWIFI::sendCmd(String cmd) {
  * Also query for changed parameters of the config page.
  */
 void ICHIPWIFI::handleTick() {
-	tickCounter++;
 	MotorController* motorController = DeviceManager::getInstance()->getMotorController();
-	if (motorController) {
-		// make small slices so the main loop is not blocked for too long
-		if (tickCounter == 1) {
+	Throttle *accelerator = DeviceManager::getInstance()->getAccelerator();
+	Throttle *brake = DeviceManager::getInstance()->getBrake();
+
+	tickCounter++;
+
+	// make small slices so the main loop is not blocked for too long
+	if (tickCounter == 1) {
+		if (motorController) {
 			setParam("timeRunning", getTimeRunning());
-			setParam("throttle", motorController->getThrottle() / 10.0f, 1);
 			setParam("torqueRequested", motorController->getTorqueRequested() / 10.0f, 1);
 			setParam("torqueActual", motorController->getTorqueActual() / 10.0f, 1);
 		}
-		else if (tickCounter == 2) {
+		if (accelerator)
+			setParam("throttle", accelerator->getLevel() / 10.0f, 1);
+		if (brake)
+			setParam("brake", brake->getLevel() / 10.0f, 1);
+		else
+			setParam("brake", "n/a");
+	} else if (tickCounter == 2) {
+		if (motorController) {
 			setParam("speedRequested", motorController->getSpeedRequested());
 			setParam("speedActual", motorController->getSpeedActual());
 			setParam("dcVoltage", motorController->getDcVoltage() / 10.0f, 1);
 			setParam("dcCurrent", motorController->getDcCurrent() / 10.0f, 1);
 		}
-		else if (tickCounter == 3) {
+	} else if (tickCounter == 3) {
+		if (motorController) {
 			setParam("acCurrent", motorController->getAcCurrent() / 10.0f, 1);
 			setParam("bitfield1", motorController->getStatusBitfield1());
 			setParam("bitfield2", motorController->getStatusBitfield2());
 			setParam("bitfield3", motorController->getStatusBitfield3());
 			setParam("bitfield4", motorController->getStatusBitfield4());
 		}
-		else if (tickCounter == 4) {
+	} else if (tickCounter == 4) {
+		if (motorController) {
 			setParam("running", (motorController->isRunning() ? "true" : "false"));
 			setParam("faulted", (motorController->isFaulted() ? "true" : "false"));
 			setParam("warning", (motorController->isWarning() ? "true" : "false"));
-			setParam("gear", (uint16_t)motorController->getGearSwitch());
+			setParam("gear", (uint16_t) motorController->getGearSwitch());
 		}
-		else if (tickCounter > 4) {
+	} else if (tickCounter > 4) {
+		if (motorController) {
 			setParam("tempMotor", motorController->getTemperatureMotor() / 10.0f, 1);
 			setParam("tempInverter", motorController->getTemperatureInverter() / 10.0f, 1);
 			setParam("tempSystem", motorController->getTemperatureSystem() / 10.0f, 1);
 			setParam("mechPower", motorController->getMechanicalPower() / 10.0f, 1);
 			tickCounter = 0;
+		}
+		getNextParam();
 
-			getNextParam();
-
-			// wait "loadParams" cycles of tickCounter > 4 before sending config parameters
-			// sending them too early after a soft-reset of ichip results in lost data.
-			if (loadParams > 0) {
-				if (loadParams == 1)
-					loadParameters();
-				loadParams--;
-			}
+		// wait "loadParams" cycles of tickCounter > 4 before sending config parameters
+		// sending them too early after a soft-reset of ichip results in lost data.
+		if (loadParams > 0) {
+			if (loadParams == 1)
+				loadParameters();
+			loadParams--;
 		}
 	}
 }
