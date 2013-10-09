@@ -44,6 +44,7 @@ public:
 	void handleTick();
 	void handleCanFrame(RX_CAN_FRAME *frame);
 	DeviceId getId();
+	bool isFaulted();
 
 protected:
 

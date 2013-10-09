@@ -113,6 +113,8 @@ void Logger::warn(DeviceId deviceId, char *message, ...) {
  * printf() style, see Logger::log()
  */
 void Logger::error(char *message, ...) {
+	if (logLevel > Error)
+		return;
 	va_list args;
 	va_start(args, message);
 	Logger::log((DeviceId) NULL, Error, message, args);
@@ -124,6 +126,8 @@ void Logger::error(char *message, ...) {
  * printf() style, see Logger::log()
  */
 void Logger::error(DeviceId deviceId, char *message, ...) {
+	if (logLevel > Error)
+		return;
 	va_list args;
 	va_start(args, message);
 	Logger::log(deviceId, Error, message, args);
