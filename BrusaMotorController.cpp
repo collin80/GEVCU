@@ -182,15 +182,15 @@ void BrusaMotorController::handleCanFrame(RX_CAN_FRAME *frame) {
 		processTemperature(frame->data);
 		break;
 	default:
-		Logger::debug(BRUSA_DMC5, "received unknown frame id %X", frame->id);
+		Logger::warn(BRUSA_DMC5, "received unknown frame id %X", frame->id);
 	}
 }
 
 void BrusaMotorController::processStatus(uint8_t data[]) {
-	statusBitfield1 = data[1] | (data[0] << 8);
-	torqueAvailable = (data[3] | (data[2] << 8)) / 10;
-	torqueActual = (data[5] | (data[4] << 8)) / 10;
-	speedActual = data[7] | (data[6] << 8);
+	statusBitfield1 = (uint32_t)(data[1] | (data[0] << 8));
+	torqueAvailable = (int16_t)(data[3] | (data[2] << 8)) / 10;
+	torqueActual = (int16_t)(data[5] | (data[4] << 8)) / 10;
+	speedActual = (int16_t)(data[7] | (data[6] << 8));
 
 	if(Logger::isDebug())
 		Logger::debug(BRUSA_DMC5, "status: %X, torque avail: %fNm, actual torque: %fNm, speed actual: %drpm", statusBitfield1, (float)torqueAvailable/100.0F, (float)torqueActual/100.0F, speedActual);
@@ -202,36 +202,36 @@ void BrusaMotorController::processStatus(uint8_t data[]) {
 }
 
 void BrusaMotorController::processActualValues(uint8_t data[]) {
-	dcVoltage = data[1] | (data[0] << 8);
-	dcCurrent = data[3] | (data[2] << 8);
-	acCurrent = (data[5] | (data[4] << 8)) / 2.5;
-	mechanicalPower = (data[7] | (data[6] << 8)) / 6.25;
+	dcVoltage = (uint16_t)(data[1] | (data[0] << 8));
+	dcCurrent = (int16_t)(data[3] | (data[2] << 8));
+	acCurrent = (uint16_t)(data[5] | (data[4] << 8)) / 2.5;
+	mechanicalPower = (int16_t)(data[7] | (data[6] << 8)) / 6.25;
 
 	if (Logger::isDebug())
 		Logger::debug(BRUSA_DMC5, "actual values: DC Volts: %fV, DC current: %fA, AC current: %fA, mechPower: %fkW", (float)dcVoltage / 10.0F, (float)dcCurrent / 10.0F, (float)acCurrent / 10.0F, (float)mechanicalPower / 10.0F);
 }
 
 void BrusaMotorController::processErrors(uint8_t data[]) {
-	statusBitfield3 = data[1] | (data[0] << 8) | (data[5] << 16) | (data[4] << 24);
-	statusBitfield2 = data[7] | (data[6] << 8);
+	statusBitfield3 = (uint32_t)(data[1] | (data[0] << 8) | (data[5] << 16) | (data[4] << 24));
+	statusBitfield2 = (uint32_t)(data[7] | (data[6] << 8));
 
 	if (Logger::isDebug())
 		Logger::debug(BRUSA_DMC5, "errors: %X, warning: %X", statusBitfield3, statusBitfield2);
 }
 
 void BrusaMotorController::processTorqueLimit(uint8_t data[]) {
-	maxPositiveTorque = (data[1] | (data[0] << 8)) / 10;
-	minNegativeTorque = (data[3] | (data[2] << 8)) / 10;
-	limiterStateNumber = data[4];
+	maxPositiveTorque = (int16_t)(data[1] | (data[0] << 8)) / 10;
+	minNegativeTorque = (int16_t)(data[3] | (data[2] << 8)) / 10;
+	limiterStateNumber = (uint8_t)data[4];
 
 	if (Logger::isDebug())
 		Logger::debug(BRUSA_DMC5, "torque limit: max positive: %fNm, min negative: %fNm", (float) maxPositiveTorque / 10.0F, (float) minNegativeTorque / 10.0F, limiterStateNumber);
 }
 
 void BrusaMotorController::processTemperature(uint8_t data[]) {
-	temperatureInverter = (data[1] | (data[0] << 8)) * 5;
-	temperatureMotor = (data[3] | (data[2] << 8)) * 5;
-	temperatureSystem = (data[4] - 50) * 10;
+	temperatureInverter = (int16_t)(data[1] | (data[0] << 8)) * 5;
+	temperatureMotor = (int16_t)(data[3] | (data[2] << 8)) * 5;
+	temperatureSystem = (int16_t)(data[4] - 50) * 10;
 
 	if (Logger::isDebug())
 		Logger::debug(BRUSA_DMC5, "temperature: inverter: %fC, motor: %fC, system: %fC", (float)temperatureInverter / 10.0F, (float)temperatureMotor / 10.0F, (float)temperatureSystem / 10.0F);

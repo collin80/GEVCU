@@ -8,6 +8,7 @@
 	<temperatureInverter>~tempInverter~</temperatureInverter>
 	<temperatureSystem>~tempSystem~</temperatureSystem>
 	<throttle>~throttle~</throttle>
+	<brake>~brake~</brake>
 	<gear>~gear~</gear>
 	<torqueRequested>~torqueRequested~</torqueRequested>
 	<torqueActual>~torqueActual~</torqueActual>
