@@ -74,7 +74,9 @@ void Heartbeat::handleTick() {
         Logger::console("Throttle Status: isFaulted: %T output: %i",
         		DeviceManager::getInstance()->getAccelerator()->isFaulted(),
         		DeviceManager::getInstance()->getAccelerator()->getLevel());
-		Logger::console("Brake Output: %i", DeviceManager::getInstance()->getBrake()->getLevel());
+        if ( DeviceManager::getInstance()->getBrake() != NULL ) {
+        	Logger::console("Brake Output: %i", DeviceManager::getInstance()->getBrake()->getLevel());
+        }
 	}
 }
 
