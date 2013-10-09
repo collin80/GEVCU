@@ -63,7 +63,7 @@ public:
 private:
 	uint8_t brake1ADC, brake2ADC; //which ADC pin each are on
 	BrakeStatus brakeStatus;
-	int calcBrake(int, int, int);
+	uint16_t calcBrake(uint16_t, uint16_t, uint16_t);
 	void doBrake();
 };
 

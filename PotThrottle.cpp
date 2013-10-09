@@ -129,8 +129,8 @@ int PotThrottle::getRawThrottle2() {
  * Convert the raw ADC values to a range from 0 to 1000 (per mille) according
  * to the specified range and the type of potentiometer.
  */
-int PotThrottle::calcThrottle(int clampedVal, int minVal, int maxVal) {
-	return map(clampedVal, minVal, maxVal, 0, 1000);
+uint16_t PotThrottle::calcThrottle(uint16_t clampedVal, uint16_t minVal, uint16_t maxVal) {
+	return map(constrain(clampedVal, minVal, maxVal), minVal, maxVal, (uint16_t)0, (uint16_t)1000);
 }
 
 /*

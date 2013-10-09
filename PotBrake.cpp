@@ -83,8 +83,8 @@ int PotBrake::getRawThrottle2() {
 	return rawLevel2;
 }
 
-int PotBrake::calcBrake(int clampedVal, int minVal, int maxVal) {
-	return map(clampedVal, minVal, maxVal, 0, 1000);
+uint16_t PotBrake::calcBrake(uint16_t clampedVal, uint16_t minVal, uint16_t maxVal) {
+	return map(constrain(clampedVal, minVal, maxVal), minVal, maxVal, (uint16_t)0, (uint16_t)1000);
 }
 
 /*
@@ -98,9 +98,8 @@ int PotBrake::calcBrake(int clampedVal, int minVal, int maxVal) {
 
  */
 void PotBrake::doBrake() {
-	signed int range;
-	signed int calcBrake1, calcBrake2, clampedVal, tempLow, temp;
-	static int brakeAvg = 0, brakeFeedback = 0; //used to create proportional control
+	uint16_t calcBrake1, calcBrake2, clampedVal, tempLow, temp;
+//	static uint16_t brakeAvg = 0, brakeFeedback = 0; //used to create proportional control
 
 	clampedVal = rawLevel1;
 
@@ -137,9 +136,9 @@ void PotBrake::doBrake() {
 	//so go ahead and calculate the proper throttle output
 
 	//still use this smoothing/easing code for the brake. It works quickly enough
-	brakeAvg += calcBrake1;
-	brakeAvg -= brakeFeedback;
-	brakeFeedback = brakeAvg >> 4;
+//	brakeAvg += calcBrake1;
+//	brakeAvg -= brakeFeedback;
+//	brakeFeedback = brakeAvg >> 4;
 
 	level = 0; //by default we give zero throttle
 
@@ -147,7 +146,7 @@ void PotBrake::doBrake() {
 	//regen on intermittantly just because the value fluttered a couple of numbers. This makes sure
 	//that we're actually pushing the pedal. Without this even a small flutter at the brake will send
 	//ThrottleMaxRegen regen out and ignore the accelerator. That'd be unpleasant.
-	if (brakeFeedback < 15) {
+	if (calcBrake1 < 15) {
 		level = 0;
 		return;
 	}
@@ -160,7 +159,7 @@ void PotBrake::doBrake() {
 			level = 0;
 			return;
 		}
-		level = (signed int) ((signed int) -10 * range * brakeFeedback) / (signed int) 1000;
+		level = -10 * range * calcBrake1 / 1000;
 		level -= 10 * minimumRegen;
 		//Logger::debug(POTBRAKEPEDAL, "level: %d", level);
 	}
