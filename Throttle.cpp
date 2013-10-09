@@ -42,8 +42,17 @@ Throttle::~Throttle() {
 
 void Throttle::handleTick() {
 	Device::handleTick();
-	if ( throttleDetector != NULL ) {
+
+	if (throttleDetector)
 	    throttleDetector->handleTick();
+
+	rawValues = acquireData(); // get the raw data from pot's or e.g. send a query to the ECU (can msg) but don't wait for response
+	if (validate(rawValues)) { // validate the raw data
+		throttlePosition = calculateThrottlePosition(rawValues); // bring the raw data into a range of 0-1000 (without mapping)
+		level = mapThrottle(throttlePosition); // apply mapping of the 0-1000 range to the user defined range
+	} else {
+		level = 0;
+		Logger::error("invaild input values, setting throttle to 0");
 	}
 }
 
