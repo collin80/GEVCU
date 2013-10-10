@@ -30,7 +30,9 @@
 #ifdef CFG_ENABLE_DEVICE_ICHIP2128_WIFI
 #include "ichip_2128.h"
 
-//initialization of hardware and parameters
+/*
+ * Initialization of hardware and parameters
+ */
 void ICHIPWIFI::setup() {
 	TickHandler::getInstance()->detach(this);
 
@@ -55,6 +57,9 @@ void ICHIPWIFI::setup() {
 	TickHandler::getInstance()->attach(this, CFG_TICK_INTERVAL_WIFI);
 }
 
+/*
+ * Send a command to ichip. The "AT+i" part will be added.
+ */
 void ICHIPWIFI::sendCmd(String cmd) {
 	serialInterface->write("AT+i");
 	serialInterface->print(cmd);
@@ -62,64 +67,89 @@ void ICHIPWIFI::sendCmd(String cmd) {
 	loop();
 }
 
-//periodic processes
+/*
+ * Periodic updates of parameters to ichip RAM.
+ * Also query for changed parameters of the config page.
+ */
 void ICHIPWIFI::handleTick() {
-	tickCounter++;
 	MotorController* motorController = DeviceManager::getInstance()->getMotorController();
-	if (motorController) {
-		// make small slices so the main loop is not blocked for too long
-		if (tickCounter == 1) {
+	Throttle *accelerator = DeviceManager::getInstance()->getAccelerator();
+	Throttle *brake = DeviceManager::getInstance()->getBrake();
+
+	tickCounter++;
+
+	// make small slices so the main loop is not blocked for too long
+	if (tickCounter == 1) {
+		if (motorController) {
 			setParam("timeRunning", getTimeRunning());
-			setParam("throttle", motorController->getThrottle());
 			setParam("torqueRequested", motorController->getTorqueRequested() / 10.0f, 1);
 			setParam("torqueActual", motorController->getTorqueActual() / 10.0f, 1);
 		}
-		else if (tickCounter == 2) {
+		if (accelerator)
+			setParam("throttle", accelerator->getLevel() / 10.0f, 1);
+		if (brake)
+			setParam("brake", brake->getLevel() / 10.0f, 1);
+		else
+			setParam("brake", "n/a");
+	} else if (tickCounter == 2) {
+		if (motorController) {
 			setParam("speedRequested", motorController->getSpeedRequested());
 			setParam("speedActual", motorController->getSpeedActual());
-			setParam("dcVoltage", motorController->getDcVoltage());
-			setParam("dcCurrent", motorController->getDcCurrent());
+			setParam("dcVoltage", motorController->getDcVoltage() / 10.0f, 1);
+			setParam("dcCurrent", motorController->getDcCurrent() / 10.0f, 1);
 		}
-		else if (tickCounter == 3) {
-			setParam("acCurrent", motorController->getAcCurrent());
+	} else if (tickCounter == 3) {
+		if (motorController) {
+			setParam("acCurrent", motorController->getAcCurrent() / 10.0f, 1);
 			setParam("bitfield1", motorController->getStatusBitfield1());
 			setParam("bitfield2", motorController->getStatusBitfield2());
 			setParam("bitfield3", motorController->getStatusBitfield3());
 			setParam("bitfield4", motorController->getStatusBitfield4());
 		}
-		else if (tickCounter == 4) {
+	} else if (tickCounter == 4) {
+		if (motorController) {
 			setParam("running", (motorController->isRunning() ? "true" : "false"));
 			setParam("faulted", (motorController->isFaulted() ? "true" : "false"));
 			setParam("warning", (motorController->isWarning() ? "true" : "false"));
-			setParam("gear", motorController->getGearSwitch());
+			setParam("gear", (uint16_t) motorController->getGearSwitch());
 		}
-		else if (tickCounter > 4) {
+	} else if (tickCounter > 4) {
+		if (motorController) {
 			setParam("tempMotor", motorController->getTemperatureMotor() / 10.0f, 1);
 			setParam("tempInverter", motorController->getTemperatureInverter() / 10.0f, 1);
-			setParam("tempSystem", motorController->getTemperatureInverter() / 10.0f, 1);
-			setParam("mechPower", motorController->getMechanicalPower());
+			setParam("tempSystem", motorController->getTemperatureSystem() / 10.0f, 1);
+			setParam("mechPower", motorController->getMechanicalPower() / 10.0f, 1);
 			tickCounter = 0;
+		}
+		getNextParam();
 
-			getNextParam();
-
-			if (loadParams > 0) {
-				if (loadParams == 1)
-					loadParameters();
-				loadParams--;
-			}
+		// wait "loadParams" cycles of tickCounter > 4 before sending config parameters
+		// sending them too early after a soft-reset of ichip results in lost data.
+		if (loadParams > 0) {
+			if (loadParams == 1)
+				loadParameters();
+			loadParams--;
 		}
 	}
 }
 
+/*
+ * Calculate the runtime in hh:mm:ss
+ */
 char *ICHIPWIFI::getTimeRunning() {
 	uint32_t ms = millis();
 	int seconds = (int) (ms / 1000) % 60;
 	int minutes = (int) ((ms / (1000 * 60)) % 60);
 	int hours = (int) ((ms / (1000 * 3600)) % 24);
-	sprintf(runtime, "%02d:%02d:%02d", hours, minutes, seconds);
-	return runtime;
+	sprintf(buffer, "%02d:%02d:%02d", hours, minutes, seconds);
+	return buffer;
 }
 
+/*
+ * Handle a message sent by the DeviceManager.
+ * Currently MSG_SET_PARAM is supported. A array of two char * has to be included
+ * in the message.
+ */
 void ICHIPWIFI::handleMessage(uint32_t messageType, void* message) {
 	Device::handleMessage(messageType, message);
 
@@ -131,24 +161,34 @@ void ICHIPWIFI::handleMessage(uint32_t messageType, void* message) {
 	}
 }
 
-//turn on the web server
+/*
+ * Turn on the web server.
+ * Requires a soft-reset to enable the server (DOWN).
+ */
 void ICHIPWIFI::enableServer() {
 	sendCmd("AWS=1"); //turn on web server for three clients
 	sendCmd("DOWN"); //cause a reset to allow it to come up with the settings
 }
 
-//turn off the web server
+/*
+ * Turn off the web server
+ */
 void ICHIPWIFI::disableServer() {
 	sendCmd("AWS=0"); //turn off web server
 	sendCmd("DOWN"); //cause a reset to allow it to come up with the settings
 }
 
-//Determine if a parameter has changed, which one, and the new value
+/*
+ * Determine if a parameter has changed
+ * The result will be processed in loop() -> processParameterChange()
+ */
 void ICHIPWIFI::getNextParam() {
 	sendCmd("WNXT"); //send command to get next changed parameter
 }
 
-//try to retrieve the value of the given parameter
+/*
+ * Try to retrieve the value of the given parameter.
+ */
 void ICHIPWIFI::getParamById(String paramName) {
 	serialInterface->write("AT+i");
 	serialInterface->print(paramName);
@@ -156,7 +196,9 @@ void ICHIPWIFI::getParamById(String paramName) {
 	serialInterface->write(13);
 }
 
-//set the given parameter with the given string
+/*
+ * Set a parameter to the given string value
+ */
 void ICHIPWIFI::setParam(String paramName, String value) {
 	serialInterface->write("AT+i");
 	serialInterface->print(paramName);
@@ -165,22 +207,51 @@ void ICHIPWIFI::setParam(String paramName, String value) {
 	serialInterface->write("\"\r");
 }
 
-//set the given parameter with the given string
+/*
+ * Set a parameter to the given int32 value
+ */
 void ICHIPWIFI::setParam(String paramName, int32_t value) {
-	char buffer[33];
+	sprintf(buffer, "%l", value);
+	setParam(paramName, buffer);
+}
+
+/*
+ * Set a parameter to the given uint32 value
+ */
+void ICHIPWIFI::setParam(String paramName, uint32_t value) {
 	sprintf(buffer, "%lu", value);
 	setParam(paramName, buffer);
 }
 
-//set the given parameter with the given string
+/*
+ * Set a parameter to the given int16 value
+ */
+void ICHIPWIFI::setParam(String paramName, int16_t value) {
+	sprintf(buffer, "%d", value);
+	setParam(paramName, buffer);
+}
+
+/*
+ * Set a parameter to the given unit16 value
+ */
+void ICHIPWIFI::setParam(String paramName, uint16_t value) {
+	sprintf(buffer, "%d", value);
+	setParam(paramName, buffer);
+}
+
+/*
+ * Set a parameter to the given float value
+ */
 void ICHIPWIFI::setParam(String paramName, float value, int precision) {
 	char format[10];
-	char buffer[33];
 	sprintf(format, "%%.%df", precision);
 	sprintf(buffer, format, value);
 	setParam(paramName, buffer);
 }
 
+/*
+ * Constructor. Assign serial interface to use for ichip communication
+ */
 ICHIPWIFI::ICHIPWIFI() {
 #ifdef GEVCU3
 	serialInterface = &Serial2;
@@ -189,14 +260,20 @@ ICHIPWIFI::ICHIPWIFI() {
 #endif
 }
 
+/*
+ * Constructor. Pass serial interface to use for ichip communication
+ */
 ICHIPWIFI::ICHIPWIFI(USARTClass *which) {
 	serialInterface = which;
 }
 
-//called in the main loop (hopefully) in order to process serial input waiting for us
-//from the wifi module. It should always terminate its answers with 13 so buffer
-//until we get 13 (CR) and then process it.
-//But, for now just echo stuff to our serial port for debugging
+/*
+ * Called in the main loop (hopefully) in order to process serial input waiting for us
+ * from the wifi module. It should always terminate its answers with 13 so buffer
+ * until we get 13 (CR) and then process it.
+ * But, for now just echo stuff to our serial port for debugging
+ */
+
 void ICHIPWIFI::loop() {
 	int incoming;
 	while (serialInterface->available()) {
@@ -288,7 +365,7 @@ void ICHIPWIFI::processParameterChange(char *key) {
 }
 
 /*
- * Load parameters from eeprom and forward them to ichip.
+ * Get parameters from devices and forward them to ichip.
  * This is required to initially set-up the
  */
 void ICHIPWIFI::loadParameters() {
@@ -296,8 +373,8 @@ void ICHIPWIFI::loadParameters() {
 	Throttle *accelerator = DeviceManager::getInstance()->getAccelerator();
 	Throttle *brake = DeviceManager::getInstance()->getBrake();
 
-	setParam("numThrottlePots", accelerator->getNumberPotMeters());
-	setParam("throttleSubType", accelerator->getSubtype());
+	setParam("numThrottlePots", (uint16_t)accelerator->getNumberPotMeters());
+	setParam("throttleSubType", (uint16_t)accelerator->getSubtype());
 	setParam("throttleMin1", accelerator->getMinimumLevel1());
 	setParam("throttleMin2", accelerator->getMinimumLevel2());
 	setParam("throttleMax1", accelerator->getMaximumLevel1());
@@ -311,7 +388,7 @@ void ICHIPWIFI::loadParameters() {
 	setParam("brakeMinRegen", brake->getMinimumRegen());
 	setParam("brakeMaxRegen", brake->getMaximumRegen());
 	setParam("speedMax", motorController->getSpeedMax());
-	setParam("torqueMax", motorController->getTorqueMax() / 10); // skip the tenth's
+	setParam("torqueMax", (uint16_t)(motorController->getTorqueMax() / 10)); // skip the tenth's
 }
 
 DeviceType ICHIPWIFI::getType() {

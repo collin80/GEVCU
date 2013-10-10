@@ -66,7 +66,7 @@ private:
 	byte throttleMaxErr;
 	ThrottleStatus throttleStatus;
 
-	int calcThrottle(int, int, int);
+	uint16_t calcThrottle(uint16_t, uint16_t, uint16_t);
 	void doAccel();
 };
 
