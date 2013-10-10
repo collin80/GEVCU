@@ -52,6 +52,7 @@ public:
 	virtual int getRawThrottle1();
 	virtual int getRawThrottle2();
 
+	bool isFaulted();
 	void detectThrottle();
 	void detectThrottleMin();
 	void detectThrottleMax();

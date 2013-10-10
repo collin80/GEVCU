@@ -51,6 +51,7 @@ public:
 
 	void handleTick();
 	void setup();
+	bool isFaulted();
 	ThrottleStatus getStatus();
 	int getRawThrottle1();
 	int getRawThrottle2();

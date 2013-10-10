@@ -150,7 +150,7 @@ void PotThrottle::doAccel() {
 	if (rawLevel1 > maximumLevel1) {
 		if (rawLevel1 > (maximumLevel1 + CFG_THROTTLE_TOLERANCE)) {
 			throttleStatus = ERR_HIGH_T1;
-			Logger::error(POTACCELPEDAL, "throttle 1 value out of range: %l", rawLevel1);
+			Logger::error(POTACCELPEDAL, "ERR_HIGH_T1: throttle 1 value out of range: %l", rawLevel1);
 		}
 		clampedLevel = maximumLevel1;
 	}
@@ -161,7 +161,7 @@ void PotThrottle::doAccel() {
 	if (rawLevel1 < minimumLevel1) {
 		if (rawLevel1 < tempLow) {
 			throttleStatus = ERR_LOW_T1;
-			Logger::error(POTACCELPEDAL, "throttle 1 value out of range: %l ", rawLevel1);
+			Logger::error(POTACCELPEDAL, "ERR_LOW_T1: throttle 1 value out of range: %l ", rawLevel1);
 		}
 		clampedLevel = minimumLevel1;
 	}
@@ -174,7 +174,7 @@ void PotThrottle::doAccel() {
 		if (rawLevel2 > maximumLevel2) {
 			if (rawLevel2 > (maximumLevel2 + CFG_THROTTLE_TOLERANCE)) {
 				throttleStatus = ERR_HIGH_T2;
-				Logger::error(POTACCELPEDAL, "throttle 2 value out of range: %l", rawLevel2);
+				Logger::error(POTACCELPEDAL, "ERR_HIGH_T2: throttle 2 value out of range: %l", rawLevel2);
 			}
 			clampedLevel = maximumLevel2;
 		}
@@ -185,7 +185,7 @@ void PotThrottle::doAccel() {
 		if (rawLevel2 < minimumLevel2) {
 			if (rawLevel2 < tempLow) {
 				throttleStatus = ERR_LOW_T2;
-				Logger::error(POTACCELPEDAL, "throttle 2 value out of range: %l", rawLevel2);
+				Logger::error(POTACCELPEDAL, "ERR_LOW_T2: throttle 2 value out of range: %l", rawLevel2);
 			}
 			clampedLevel = minimumLevel2;
 		}
@@ -233,6 +233,10 @@ void PotThrottle::handleTick() {
 
 	throttleStatus = OK;
 	doAccel();
+}
+
+bool PotThrottle::isFaulted() {
+	return throttleStatus != OK;
 }
 
 PotThrottle::ThrottleStatus PotThrottle::getStatus() {
