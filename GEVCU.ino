@@ -225,7 +225,7 @@ void initializeDevices() {
 	deviceManager->addDevice(brake);
 #endif
 #ifdef CFG_ENABLE_DEVICE_CAN_THROTTLE_BRAKE
-	Throtle *brake = new CanThrottle();
+	Throttle *brake = new CanThrottle();
 	Logger::info("add device: CanThrottle brake (%X)", brake);
 	//brake->setup();
 	deviceManager->addDevice(brake);
