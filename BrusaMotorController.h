@@ -141,6 +141,7 @@ public:
 	void setup();
 	BrusaMotorController();
 	DeviceId getId();
+	virtual uint32_t getTickInterval();
 
 private:
 	// DMC_TRQS2

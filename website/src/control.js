@@ -125,12 +125,19 @@ function updateRangeValue(id, source) {
 		var min = getIntValue("throttleMin2");
 		if (val < min)
 			val = min;
-	} else if (id == 'throttleRegen') {
+	} else if (id == 'throttleRegenMax') {
+		var regen = getIntValue("throttleRegenMin");
+		if (val > regen)
+			val = regen;
+	} else if (id == 'throttleRegenMin') {
+		var regen = getIntValue("throttleRegenMax");
 		var fwd = getIntValue("throttleFwd");
+		if (val < regen)
+			val = regen;
 		if (val > fwd)
 			val = fwd;
 	} else if (id == 'throttleFwd') {
-		var regen = getIntValue("throttleRegen");
+		var regen = getIntValue("throttleRegenMin");
 		var map = getIntValue("throttleMap");
 		if (val < regen)
 			val = regen;
@@ -140,6 +147,14 @@ function updateRangeValue(id, source) {
 		var map = getIntValue("throttleFwd");
 		if (val < map)
 			val = map;
+	} else if (id == 'throttleMinRegen') {
+		var regen = getIntValue("throttleMaxRegen");
+		if (val > regen)
+			val = regen;
+	} else if (id == 'throttleMaxRegen') {
+		var regen = getIntValue("throttleMinRegen");
+		if (val < regen)
+			val = regen;
 	} else if (id == 'brakeMin') {
 		var max = getIntValue("brakeMax");
 		if (val > max)
@@ -150,11 +165,8 @@ function updateRangeValue(id, source) {
 			val = min;
 	} else if (id == 'brakeMinRegen') {
 		var max = getIntValue("brakeMaxRegen");
-		var throttleMax = getIntValue("throttleMaxRegen");
 		if (val > max)
 			val = max;
-		if (val < throttleMax)
-			val = throttleMax;
 	} else if (id == 'brakeMaxRegen') {
 		var min = getIntValue("brakeMinRegen");
 		if (val < min)
@@ -177,10 +189,13 @@ function generateRangeControls() {
 	addRangeControl("throttleMin2", 0, 4095);
 	addRangeControl("throttleMax1", 0, 4095);
 	addRangeControl("throttleMax2", 0, 4095);
-	addRangeControl("throttleRegen", 0, 1000);
-	addRangeControl("throttleFwd", 0, 1000);
-	addRangeControl("throttleMap", 0, 1000);
+	addRangeControl("throttleRegenMax", 0, 100);
+	addRangeControl("throttleRegenMin", 0, 100);
+	addRangeControl("throttleFwd", 0, 100);
+	addRangeControl("throttleMap", 0, 100);
+	addRangeControl("throttleMinRegen", 0, 100);
 	addRangeControl("throttleMaxRegen", 0, 100);
+	addRangeControl("throttleCreep", 0, 100);
 	addRangeControl("brakeMin", 0, 4095);
 	addRangeControl("brakeMinRegen", 0, 100);
 	addRangeControl("brakeMax", 0, 4095);

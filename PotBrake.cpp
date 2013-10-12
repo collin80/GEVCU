@@ -1,26 +1,26 @@
 /*
  * PotBrake.cpp
  *
-Copyright (c) 2013 Collin Kidder, Michael Neuweiler, Charles Galpin
+ Copyright (c) 2013 Collin Kidder, Michael Neuweiler, Charles Galpin
 
-Permission is hereby granted, free of charge, to any person obtaining
-a copy of this software and associated documentation files (the
-"Software"), to deal in the Software without restriction, including
-without limitation the rights to use, copy, modify, merge, publish,
-distribute, sublicense, and/or sell copies of the Software, and to
-permit persons to whom the Software is furnished to do so, subject to
-the following conditions:
+ Permission is hereby granted, free of charge, to any person obtaining
+ a copy of this software and associated documentation files (the
+ "Software"), to deal in the Software without restriction, including
+ without limitation the rights to use, copy, modify, merge, publish,
+ distribute, sublicense, and/or sell copies of the Software, and to
+ permit persons to whom the Software is furnished to do so, subject to
+ the following conditions:
 
-The above copyright notice and this permission notice shall be included
-in all copies or substantial portions of the Software.
+ The above copyright notice and this permission notice shall be included
+ in all copies or substantial portions of the Software.
 
-THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
-EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
-MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.
-IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY
-CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT,
-TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
-SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+ EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
+ MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.
+ IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY
+ CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT,
+ TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
+ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
  */
 
@@ -28,187 +28,175 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #ifdef CFG_ENABLE_DEVICE_POT_BRAKE
 #include "PotBrake.h"
 
-//initialize by telling the code which two ADC channels to use (or set channel 2 to 255 to disable)
-PotBrake::PotBrake(uint8_t brake1, uint8_t brake2) :
+/*
+ * Constructor
+ * Set which ADC channel to use
+ */
+PotBrake::PotBrake(uint8_t brake1) :
 		Throttle() {
-	brake1ADC = brake1;
-	brake2ADC = brake2;
-	if (brake2 == 255)
-		numberPotMeters = 1;
-	else
-		numberPotMeters = 2;
+	brake1AdcPin = brake1;
 	brakeStatus = OK;
-	//analogReadResolution(12);
-}
-
-void PotBrake::setup() {
-	TickHandler::getInstance()->detach(this); // unregister from TickHandler first
-	Throttle::setup(); //call base class
-	//set digital ports to inputs and pull them up
-	//all inputs currently active low
-	//pinMode(THROTTLE_INPUT_BRAKELIGHT, INPUT_PULLUP); //Brake light switch
-#ifndef USE_HARD_CODED	
-	 if (prefsHandler->checksumValid()) { //checksum is good, read in the values stored in EEPROM
-		prefsHandler->read(EETH_BRAKE_MIN, &minimumLevel1);
-		prefsHandler->read(EETH_BRAKE_MAX, &maximumLevel1);
-		prefsHandler->read(EETH_MAX_BRAKE_REGEN, &maximumRegen);
-		prefsHandler->read(EETH_MIN_BRAKE_REGEN, &minimumRegen);
-		Logger::debug(POTBRAKEPEDAL, "BRAKE MIN: %l MAX: %l", minimumLevel1, maximumLevel1);
-		Logger::debug(POTBRAKEPEDAL, "Min: %l MaxRegen: %l", minimumRegen, maximumRegen);
-	 }
-	 else { //checksum invalid. Reinitialize values and store to EEPROM
-	 
-		//these four values are ADC values
-		//The next three are tenths of a percent
-		maximumRegen = BrakeMaxRegenValue; //percentage of full power to use for regen at brake pedal transducer
-		minimumRegen = BrakeMinRegenValue;
-		minimumLevel1 = BrakeMinValue;
-		maximumLevel1 = BrakeMaxValue;
-		saveEEPROM();
-	}
-#else
-	 	 maximumRegen = BrakeMaxRegenValue;
-	 	 minimumRegen = BrakeMinRegenValue;
-	 	 minimumLevel1 = BrakeMinValue;
-	 	 maximumLevel1 = BrakeMaxValue;
-#endif
-	TickHandler::getInstance()->attach(this, CFG_TICK_INTERVAL_POT_THROTTLE);
-}
-
-uint16_t PotBrake::getRawThrottle1() {
-	return rawLevel1;
-}
-
-uint16_t PotBrake::getRawThrottle2() {
-	return rawLevel2;
-}
-
-uint16_t PotBrake::calcBrake(uint16_t clampedVal, uint16_t minVal, uint16_t maxVal) {
-	return map(constrain(clampedVal, minVal, maxVal), minVal, maxVal, (uint16_t)0, (uint16_t)1000);
 }
 
 /*
- the brake only really uses one variable input and uses different parameters
-
- story time: this code will start at ThrottleMaxRegen when applying the brake. It
- will do this even if you're currently flooring it. The accelerator pedal is ignored
- if there is any pressure detected on the brake. This is a sort of failsafe. It should
- not be possible to go racing down the road with a stuck accelerator. As soon as the
- brake is pressed it overrides the accelerator signal. Sorry, no standing burn outs.
-
+ * Setup the device.
  */
-void PotBrake::doBrake() {
-	uint16_t calcBrake1, calcBrake2, clampedVal, tempLow, temp;
-//	static uint16_t brakeAvg = 0, brakeFeedback = 0; //used to create proportional control
+void PotBrake::setup() {
+	TickHandler::getInstance()->detach(this); // unregister from TickHandler first
+	Throttle::setup(); //call base class
 
-	clampedVal = rawLevel1;
+	//set digital ports to inputs and pull them up all inputs currently active low
+	//pinMode(THROTTLE_INPUT_BRAKELIGHT, INPUT_PULLUP); //Brake light switch
 
-	if (maximumLevel1 == 0) { //brake processing disabled if Max is 0
-		level = 0;
-		return;
-	}
-
-	//We do not raise a fault of the brake goes too high. We just clamp. This will lock regen on full blast.
-	if (rawLevel1 > maximumLevel1) {
-		clampedVal = maximumLevel1;
-	}
-
-	tempLow = 0;
-	if (minimumLevel1 > 14) {
-		tempLow = minimumLevel1 - 15;
-	}
-	if (rawLevel1 < minimumLevel1) {
-		if (rawLevel1 < tempLow) {
-			brakeStatus = ERR_LOW_T1;
-			//Logger::debug(POTBRAKEPEDAL, "B");
-		}
-		clampedVal = minimumLevel1;
-	}
-
-	if (!(brakeStatus == OK)) {
-		level = 0; //no throttle if there is a fault
-		return;
-	}
-	calcBrake1 = calcBrake(clampedVal, minimumLevel1, maximumLevel1);
-	//Logger::debug(POTBRAKEPEDAL, "calcBrake: %d", calcBrake1);
-
-	//Apparently all is well with the throttle input
-	//so go ahead and calculate the proper throttle output
-
-	//still use this smoothing/easing code for the brake. It works quickly enough
-//	brakeAvg += calcBrake1;
-//	brakeAvg -= brakeFeedback;
-//	brakeFeedback = brakeAvg >> 4;
-
-	level = 0; //by default we give zero throttle
-
-	//I suppose I should explain. This prevents flutter in the ADC readings of the brake from slamming
-	//regen on intermittantly just because the value fluttered a couple of numbers. This makes sure
-	//that we're actually pushing the pedal. Without this even a small flutter at the brake will send
-	//ThrottleMaxRegen regen out and ignore the accelerator. That'd be unpleasant.
-	if (calcBrake1 < 15) {
-		level = 0;
-		return;
-	}
-
-	if (maximumRegen != 0) { //is the brake regen even enabled?
-		int range = maximumRegen - minimumRegen; //we start the brake at ThrottleMaxRegen so the range is reduced by that amount
-		//Logger::debug(POTBRAKEPEDAL, "range: %d", range);
-		//Logger::debug(POTBRAKEPEDAL, "brakeFeedback: %d", brakeFeedback);
-		if (range < 1) { //detect stupidity and abort
-			level = 0;
-			return;
-		}
-		level = -10 * range * calcBrake1 / 1000;
-		level -= 10 * minimumRegen;
-		//Logger::debug(POTBRAKEPEDAL, "level: %d", level);
-	}
-
+	loadConfiguration();
+	TickHandler::getInstance()->attach(this, CFG_TICK_INTERVAL_POT_THROTTLE);
 }
 
-//right now only the first throttle ADC port is used. Eventually the second one should be used to cross check so dumb things
-//don't happen. Also, right now values of ADC outside the proper range are just clamped to the proper range.
+/*
+ * Process a timer event.
+ */
 void PotBrake::handleTick() {
-	sys_io_adc_poll();
-
-	rawLevel1 = getAnalog(brake1ADC);
-	if (numberPotMeters > 1)
-		rawLevel2 = getAnalog(brake2ADC);
-
-	// Call parent handleTick
-	Throttle::handleTick();
-
-	brakeStatus = OK;
-	doBrake();
+	Throttle::handleTick(); // Call parent which controls the workflow
 }
 
+/*
+ * Retrieve raw input signals from the brake hardware.
+ */
+RawSignalData *PotBrake::acquireRawSignal() {
+	sys_io_adc_poll();
+	rawSignal.input1 = getAnalog(brake1AdcPin);
+	return &rawSignal;
+}
+
+/*
+ * Perform sanity check on the ADC input values.
+ */
+bool PotBrake::validateSignal(RawSignalData *rawValues) {
+	PotBrakeConfiguration *config = (PotBrakeConfiguration *) getConfiguration();
+	brakeStatus = OK;
+
+	if (rawSignal.input1 > (config->maximumLevel1 + CFG_THROTTLE_TOLERANCE)) {
+		brakeStatus = ERR_HIGH_T1;
+		Logger::error(POTBRAKEPEDAL, "ERR_HIGH_T1: brake 1 value out of range: %l", rawSignal.input1);
+		// even if it's too high, let it process and apply full regen
+		// return false;
+	}
+	if (rawSignal.input1 < (config->minimumLevel1 - CFG_THROTTLE_TOLERANCE)) {
+		brakeStatus = ERR_LOW_T1;
+		Logger::error(POTBRAKEPEDAL, "ERR_LOW_T1: brake 1 value out of range: %l ", rawSignal.input1);
+		return false;
+	}
+
+	return true;
+}
+
+/*
+ * Convert the raw ADC values to a range from 0 to 1000 (per mille) according
+ * to the specified range and the type of potentiometer.
+ */
+uint16_t PotBrake::calculatePedalPosition(RawSignalData *rawValues) {
+	PotBrakeConfiguration *config = (PotBrakeConfiguration *) getConfiguration();
+	uint16_t calcBrake1, clampedLevel;
+
+	if (config->maximumLevel1 == 0) //brake processing disabled if max is 0
+		return 0;
+
+	clampedLevel = constrain(rawSignal.input1, config->minimumLevel1, config->maximumLevel1);
+	calcBrake1 = map(clampedLevel, config->minimumLevel1, config->maximumLevel1, (uint16_t) 0, (uint16_t) 1000);
+
+	//This prevents flutter in the ADC readings of the brake from slamming regen on intermittently
+	// just because the value fluttered a couple of numbers. This makes sure that we're actually
+	// pushing the pedal. Without this even a small flutter at the brake will send minregen
+	// out and ignore the accelerator. That'd be unpleasant.
+	if (calcBrake1 < 15)
+		calcBrake1 = 0;
+
+	return calcBrake1;
+}
+/*
+ * Overrides the standard implementation of throttle mapping as different rules apply to
+ * brake based regen.
+ */
+int16_t PotBrake::mapPedalPosition(int16_t pedalPosition) {
+	ThrottleConfiguration *config = (ThrottleConfiguration *) getConfiguration();
+	int16_t brakeLevel, range;
+
+	range = config->maximumRegen - config->minimumRegen;
+	brakeLevel = -10 * range * pedalPosition / 1000;
+	brakeLevel -= 10 * config->minimumRegen;
+	//Logger::debug(POTBRAKEPEDAL, "level: %d", level);
+
+	return brakeLevel;
+}
+
+/*
+ * Return the brake's current status
+ */
 PotBrake::BrakeStatus PotBrake::getStatus() {
 	return brakeStatus;
 }
 
+/*
+ * Return the device ID
+ */
 DeviceId PotBrake::getId() {
 	return (POTBRAKEPEDAL);
 }
 
+/*
+ * Return the device type
+ */
 DeviceType PotBrake::getType() {
 	return (DEVICE_BRAKE);
 }
 
-void PotBrake::saveEEPROM() {
-	prefsHandler->write(EETH_BRAKE_MIN, minimumLevel1);
-	prefsHandler->write(EETH_BRAKE_MAX, maximumLevel1);
-	prefsHandler->write(EETH_MAX_BRAKE_REGEN, maximumRegen);
-	prefsHandler->write(EETH_MIN_BRAKE_REGEN, minimumRegen);
-	prefsHandler->saveChecksum();
+/*
+ * Load the device configuration.
+ * If possible values are read from EEPROM. If not, reasonable default values
+ * are chosen and the configuration is overwritten in the EEPROM.
+ */
+void PotBrake::loadConfiguration() {
+	PotBrakeConfiguration *config = new PotBrakeConfiguration();
+
+#ifndef USE_HARD_CODED
+	if (prefsHandler->checksumValid()) { //checksum is good, read in the values stored in EEPROM
+		prefsHandler->read(EETH_BRAKE_MIN, &config->minimumLevel1);
+		prefsHandler->read(EETH_BRAKE_MAX, &config->maximumLevel1);
+		prefsHandler->read(EETH_MAX_BRAKE_REGEN, &config->maximumRegen);
+		prefsHandler->read(EETH_MIN_BRAKE_REGEN, &config->minimumRegen);
+		Logger::debug(POTBRAKEPEDAL, "BRAKE MIN: %l MAX: %l", config->minimumLevel1, config->maximumLevel1);
+		Logger::debug(POTBRAKEPEDAL, "Min: %l MaxRegen: %l", config->minimumRegen, config->maximumRegen);
+	} else { //checksum invalid. Reinitialize values and store to EEPROM
+
+		//these four values are ADC values
+		//The next three are tenths of a percent
+		config->maximumRegen = BrakeMaxRegenValue; //percentage of full power to use for regen at brake pedal transducer
+		config->minimumRegen = BrakeMinRegenValue;
+		config->minimumLevel1 = BrakeMinValue;
+		config->maximumLevel1 = BrakeMaxValue;
+		saveConfiguration();
+	}
+#else
+	config->maximumRegen = BrakeMaxRegenValue;
+	config->minimumRegen = BrakeMinRegenValue;
+	config->minimumLevel1 = BrakeMinValue;
+	config->maximumLevel1 = BrakeMaxValue;
+#endif
+
+	setConfiguration(config);
 }
 
+/*
+ * Store the current configuration to EEPROM
+ */
 void PotBrake::saveConfiguration() {
-  Logger::info(POTBRAKEPEDAL, "Saving brake settings");
-  TickHandler::getInstance()->detach(this); // unregister from TickHandler first
-  setMinumumLevel1(throttleDetector->getThrottle1Min());
-  setMaximumLevel1(throttleDetector->getThrottle1Max());
-  saveEEPROM();  
-  TickHandler::getInstance()->attach(this, getTickInterval());
+	PotBrakeConfiguration *config = (PotBrakeConfiguration *) getConfiguration();
+
+	prefsHandler->write(EETH_BRAKE_MIN, config->minimumLevel1);
+	prefsHandler->write(EETH_BRAKE_MAX, config->maximumLevel1);
+	prefsHandler->write(EETH_MAX_BRAKE_REGEN, config->maximumRegen);
+	prefsHandler->write(EETH_MIN_BRAKE_REGEN, config->minimumRegen);
+	prefsHandler->saveChecksum();
 }
 
 #endif // CFG_ENABLE_DEVICE_POT_BRAKE

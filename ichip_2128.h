@@ -79,6 +79,7 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include <Arduino.h>
 #include "config.h"
 #include "DeviceManager.h"
+#include "PotThrottle.h"
 #include "Sys_Messages.h"
 
 class ICHIPWIFI : public Device {
@@ -113,6 +114,7 @@ class ICHIPWIFI : public Device {
     void setParam(String paramName, int16_t value);
     void setParam(String paramName, uint32_t value);
     void setParam(String paramName, uint16_t value);
+    void setParam(String paramName, uint8_t value);
     void setParam(String paramName, float value, int precision);
     void sendCmd(String cmd);
     void processParameterChange(char *response);

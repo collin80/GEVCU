@@ -241,4 +241,8 @@ DeviceId BrusaMotorController::getId() {
 	return BRUSA_DMC5;
 }
 
+uint32_t BrusaMotorController::getTickInterval() {
+	return CFG_TICK_INTERVAL_MOTOR_CONTROLLER_BRUSA;
+}
+
 #endif

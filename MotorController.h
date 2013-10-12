@@ -60,6 +60,7 @@ public:
 	DeviceType getType();
     virtual void setup();
     void handleTick();
+	virtual uint32_t getTickInterval();
 
 	bool isReady();
 	bool isRunning();
