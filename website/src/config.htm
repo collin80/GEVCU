@@ -18,29 +18,43 @@
 			</select></td>
 		</tr>
 		<tr>
-			<td>Minimum Level Throttle Pot1</td>
+			<td>Minimum Signal Level 1</td>
 			<td nowrap="nowrap"><span id="throttleMin1Span"></span></td>
 			<td></td>
-			<td>Pedal Position Regen Start</td>
-			<td nowrap="nowrap"><span id="throttleRegenSpan"></span> &#8240;</td>
+			<td>Pedal Position Regen Maximum</td>
+			<td nowrap="nowrap"><span id="throttleRegenMaxSpan"></span> %</td>
 		</tr>
 		<tr>
-			<td>Maximum Level Throttle Pot1</td>
+			<td>Maximum Signal Level 1</td>
 			<td><span id="throttleMax1Span"></span></td>
 			<td></td>
-			<td>Pedal Position Forward Motion Start</td>
-			<td><span id="throttleFwdSpan"></span> &#8240;</td>
+			<td>Pedal Position Regen Minimum</td>
+			<td nowrap="nowrap"><span id="throttleRegenMinSpan"></span> %</td>
 		</tr>
 		<tr>
-			<td>Minimum Level Throttle Pot2</td>
+			<td>Minimum Signal Level 2</td>
 			<td><span id="throttleMin2Span"></span></td>
 			<td></td>
-			<td>Pedal Position 50% throttle</td>
-			<td><span id="throttleMapSpan"></span> &#8240;</td>
+			<td>Pedal Position Forward Motion Start</td>
+			<td><span id="throttleFwdSpan"></span> %</td>
 		</tr>
 		<tr>
-			<td>Maximum Level Throttle Pot2</td>
+			<td>Maximum Signal Level 2</td>
 			<td><span id="throttleMax2Span"></span></td>
+			<td></td>
+			<td>Pedal Position 50% throttle</td>
+			<td><span id="throttleMapSpan"></span> %</td>
+		</tr>
+		<tr>
+			<td>Creep Level</td>
+			<td><span id="throttleCreepSpan"></span> %</td>
+			<td></td>
+			<td>Minimum Throttle Regen</td>
+			<td><span id="throttleMinRegenSpan"></span> %</td>
+		</tr>
+		<tr>
+			<td></td>
+			<td></td>
 			<td></td>
 			<td>Maximum Throttle Regen</td>
 			<td><span id="throttleMaxRegenSpan"></span> %</td>
@@ -49,14 +63,14 @@
 			<td colspan="5"><h2>Brake</h2></td>
 		</tr>
 		<tr>
-			<td>Minimum Level Brake</td>
+			<td>Minimum Signal Level</td>
 			<td><span id="brakeMinSpan"></span></td>
 			<td></td>
 			<td>Minimum Brake Regen</td>
 			<td><span id="brakeMinRegenSpan"></span> %</td>
 		</tr>
 		<tr>
-			<td>Maximum Level Brake</td>
+			<td>Maximum Signal Level</td>
 			<td><span id="brakeMaxSpan"></span></td>
 			<td></td>
 			<td>Maximum Brake Regen</td>

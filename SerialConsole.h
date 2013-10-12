@@ -32,10 +32,11 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include "MemCache.h"
 #include "config.h"
 #include "sys_io.h"
-#include "Throttle.h"
+#include "PotThrottle.h"
 #include "DeviceManager.h"
 #include "MotorController.h"
 #include "DmocMotorController.h" //TODO: direct reference to dmoc must be removed
+#include "ThrottleDetector.h"
 
 class SerialConsole {
 public:

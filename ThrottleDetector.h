@@ -31,12 +31,12 @@
 #ifndef THROTTLE_DETECTOR_H_
 #define THROTTLE_DETECTOR_H_
 
-#include "Throttle.h"
+#include "PotThrottle.h"
 #include "Logger.h"
 
 class Throttle;
 
-class ThrottleDetector {
+class ThrottleDetector : public Device {
 
 public:
 	ThrottleDetector(Throttle *throttle);
@@ -74,6 +74,7 @@ private:
 	int checkInverse(uint16_t, uint16_t);
 	uint16_t normalize(uint16_t sensorValue, uint16_t sensorMin, uint16_t sensorMax, uint16_t constrainMin, uint16_t constrainMax);
 	Throttle *throttle;
+	PotThrottleConfiguration *config;
 	DetectionState state;
 	unsigned long startTime;
 	int potentiometerCount;

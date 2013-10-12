@@ -35,6 +35,7 @@
  */
 ThrottleDetector::ThrottleDetector(Throttle *throttle) {
 	this->throttle = throttle;
+	config = (PotThrottleConfiguration *) throttle->getConfiguration();
 	state = DoNothing;
 	maxThrottleReadingDeviationPercent = 50; // 5% in 0-1000 scale
 	Logger::debug("ThrottleDetector constructed with throttle %d", throttle);
@@ -92,6 +93,8 @@ void ThrottleDetector::detect() {
 	// we wait for 2 seconds so kick this off
 	startTime = millis();
 	state = DetectMinWait;
+
+	TickHandler::getInstance()->attach(this, CFG_TICK_INTERVAL_POT_THROTTLE);
 }
 
 /*
@@ -275,8 +278,22 @@ void ThrottleDetector::detectMaxCalibrate() {
 
 		SerialUSB.println("========================================");
 
+		// update the throttle's configuration (without storing it yet)
+		config->minimumLevel1 = getThrottle1Min();
+		config->maximumLevel1 = getThrottle1Max();
+		config->numberPotMeters = getPotentiometerCount();
+		if (config->numberPotMeters > 1) {
+			config->minimumLevel2 = getThrottle2Min();
+			config->maximumLevel2 = getThrottle2Max();
+		} else {
+			config->minimumLevel2 = 0;
+			config->maximumLevel2 = 0;
+		}
+		config->throttleSubType = getSubtype();
+
 		// Done!
 		state = DoNothing;
+		TickHandler::getInstance()->detach(this);
 	}
 }
 
@@ -351,7 +368,7 @@ bool ThrottleDetector::isThrottle2Inverse() {
  * Returns true if a second throttle was provided
  */
 bool ThrottleDetector::throttle2Provided() {
-	return throttle->getNumberPotMeters() > 1;
+	return config->numberPotMeters > 1;
 }
 
 /*
@@ -376,12 +393,9 @@ void ThrottleDetector::resetValues() {
  * Reads values from the throttles.
  */
 void ThrottleDetector::readThrottleValues() {
-	throttle1Value = throttle->getRawThrottle1();
-	if (throttle2Provided()) {
-		throttle2Value = throttle->getRawThrottle2();
-	}
-	throttle1Values[sampleCount] = throttle1Value;
-	throttle2Values[sampleCount] = throttle2Value;
+	RawSignalData *rawSignal = throttle->acquireRawSignal();
+	throttle1Values[sampleCount] = rawSignal->input1;
+	throttle2Values[sampleCount] = rawSignal->input2;
 	sampleCount++;
 
 	// record the minimum sensor value

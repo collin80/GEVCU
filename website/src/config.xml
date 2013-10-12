@@ -6,10 +6,13 @@
 	<throttleMin2>~throttleMin2~</throttleMin2>
 	<throttleMax1>~throttleMax1~</throttleMax1>
 	<throttleMax2>~throttleMax2~</throttleMax2>
-	<throttleRegen>~throttleRegen~</throttleRegen>
+	<throttleRegenMax>~throttleRegenMax~</throttleRegenMax>
+	<throttleRegenMin>~throttleRegenMin~</throttleRegenMin>
 	<throttleFwd>~throttleFwd~</throttleFwd>
 	<throttleMap>~throttleMap~</throttleMap>
+	<throttleMinRegen>~throttleMinRegen~</throttleMinRegen>
 	<throttleMaxRegen>~throttleMaxRegen~</throttleMaxRegen>
+	<throttleCreep>~throttleCreep~</throttleCreep>
 	<brakeMin>~brakeMin~</brakeMin>
 	<brakeMax>~brakeMax~</brakeMax>
 	<brakeMinRegen>~brakeMinRegen~</brakeMinRegen>
