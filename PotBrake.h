@@ -29,7 +29,7 @@
 
 #include <Arduino.h>
 #include "config.h"
-#include "Throttle.h"
+#include "PotThrottle.h"
 #include "sys_io.h"
 #include "TickHandler.h"
 #include "Logger.h"

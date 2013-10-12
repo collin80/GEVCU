@@ -85,7 +85,9 @@ int16_t Throttle::mapPedalPosition(int16_t pedalPosition) {
 
 	throttleLevel = 0;
 
-	if (pedalPosition <= config->positionRegenMinimum) {
+	if (pedalPosition == 0 && config->creep > 0) {
+		throttleLevel = 10 * config->creep;
+	} else if (pedalPosition <= config->positionRegenMinimum) {
 		if (pedalPosition >= config->positionRegenMaximum) {
 			range = config->positionRegenMinimum - config->positionRegenMaximum;
 			value = pedalPosition - config->positionRegenMinimum;
