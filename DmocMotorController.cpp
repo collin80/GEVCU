@@ -42,12 +42,14 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
 #include "config.h"
-#ifdef CFG_ENABLE_DEVICE_MOTORCTRL_DMOC_645
 #include "DmocMotorController.h"
 
 extern bool runThrottle; //TODO: remove use of global variables !
 
 DmocMotorController::DmocMotorController() : MotorController() {
+
+	prefsHandler = new PrefHandler(DMOC645);
+
 	step = SPEED_TORQUE;
 	selectedGear = NEUTRAL;
 	operationState = DISABLED;
@@ -385,5 +387,4 @@ uint32_t DmocMotorController::getTickInterval()
 	return CFG_TICK_INTERVAL_MOTOR_CONTROLLER_DMOC;
 }
 
-#endif //CFG_ENABLE_DEVICE_MOTORCTRL_DMOC_645
 

@@ -35,7 +35,7 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 #include <due_can.h>
 
-#define CFG_BUILD_NUM	1013        //increment this every time a git commit is done. 
+#define CFG_BUILD_NUM	1014        //increment this every time a git commit is done. 
 #define CFG_VERSION "GEVCU alpha 2013-10-16"
 
 
@@ -46,21 +46,9 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #define SerialUSB Serial // re-route serial-usb output to programming port ;) comment if output should go to std usb
 
 
-/*
- * DEVICE DEFINITION
- *
- * Define the devices which are to be used (and compiled) via the following lines
- * Uncomment only one device per device type.
- */
-#define CFG_ENABLE_DEVICE_HEARTBEAT
-#define CFG_ENABLE_DEVICE_POT_THROTTLE
-//#define CFG_ENABLE_DEVICE_CAN_THROTTLE
-#define CFG_ENABLE_DEVICE_POT_BRAKE
-#define CFG_ENABLE_DEVICE_MOTORCTRL_DMOC_645
-//#define CFG_ENABLE_DEVICE_MOTORCTRL_BRUSA_DMC5
-#define CFG_ENABLE_DEVICE_ICHIP2128_WIFI
-#define CFG_ENABLE_DEVICE_BMS_THINK
-
+//The defines that used to be here to configure devices are gone now.
+//The EEPROM stores which devices to bring up at start up and all
+//devices are programmed into the firware at the same time.
 
 /*
  * TIMER INTERVALS

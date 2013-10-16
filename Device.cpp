@@ -39,6 +39,12 @@ void Device::handleTick() {
 
 }
 
+//just bubbles up the value from the preference handler.
+bool Device::isEnabled() 
+{
+	return prefsHandler->isEnabled();
+}
+
 void Device::handleMessage(uint32_t msgType, void* message) {
 	switch (msgType)
 	{

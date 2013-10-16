@@ -30,7 +30,6 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  
 BatteryManager::BatteryManager() : Device() 
 {
-	prefsHandler = new PrefHandler(EE_BMS_START);
 	packVoltage = 0;
 	packCurrent = 0;
 }

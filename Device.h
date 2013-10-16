@@ -42,6 +42,7 @@ public:
 	virtual void handleMessage(uint32_t msgType, void* message);
 	virtual DeviceType getType();
 	virtual DeviceId getId();
+	bool isEnabled();
 	virtual uint32_t getTickInterval();
 
 protected:

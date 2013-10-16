@@ -33,6 +33,8 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include "config.h"
 #include "eeprom_layout.h"
 #include "MemCache.h"
+#include "DeviceTypes.h"
+#include "Logger.h"
 
 //normal or Last Known Good configuration
 #define PREF_MODE_NORMAL  false
@@ -42,8 +44,9 @@ extern MemCache *memCache;
 
 class PrefHandler {
 public:
+
 	PrefHandler();
-	PrefHandler(uint32_t base);
+	PrefHandler(DeviceId id);
         ~PrefHandler();
 	void LKG_mode(bool mode);
 	void write(uint16_t address, uint8_t val);
@@ -55,12 +58,17 @@ public:
 	uint8_t calcChecksum();
 	void saveChecksum();
 	bool checksumValid();
-        void forceCacheWrite();
+    void forceCacheWrite();
+	bool isEnabled();
+	void setEnabledStatus(bool en);
 
 private:
 	uint32_t base_address; //base address for the parent device
 	uint32_t lkg_address;
 	bool use_lkg; //use last known good config?
+	bool enabled;
+	int position; //position within the device table
+	void initDevTable();
 };
 
 #endif

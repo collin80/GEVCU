@@ -34,9 +34,89 @@ PrefHandler::PrefHandler() {
   base_address = 0;
 }
 
-PrefHandler::PrefHandler(uint32_t base) {
-  base_address = base;
-  lkg_address = EE_MAIN_OFFSET;
+bool PrefHandler::isEnabled() 
+{
+	return enabled;
+}
+
+void PrefHandler::setEnabledStatus(bool en) 
+{
+	uint16_t id;
+
+	enabled = en;
+
+	if (enabled) {
+		id |= 0x8000; //set enabled bit
+	}
+	else {
+		id &= 0x7FFF; //clear enabled bit
+	}
+
+	memCache->Write(EE_DEVICE_TABLE + (2 * position), id);
+}
+
+
+void PrefHandler::initDevTable() 
+{
+  uint16_t id;
+
+  memCache->Read(EE_DEVICE_TABLE, &id);
+  if (id == 0xDEAD) return;
+
+  Logger::debug("Initializing EEPROM device table");
+
+  //initialize table with zeros
+  id = 0;
+  for (int x = 1; x < 64; x++) {
+	  memCache->Write(EE_DEVICE_TABLE + (2 * x), id);
+  }
+
+  //write out magic entry
+  id = 0xDEAD;
+  memCache->Write(EE_DEVICE_TABLE, id);
+}
+
+//Given a device ID we must search the 64 entry table found in EEPROM to see if the device
+//has a spot in EEPROM. If it does not then 
+PrefHandler::PrefHandler(DeviceId id_in) {
+	uint16_t id;
+
+	enabled = false; 
+
+	initDevTable();
+
+	for (int x = 1; x < 64; x++) {
+		memCache->Read(EE_DEVICE_TABLE + (2 * x), &id);
+		if (id == ((int)id_in & 0x7FFF)) {
+			base_address = EE_DEVICES_BASE + (EE_DEVICE_SIZE * x);
+			lkg_address = EE_MAIN_OFFSET;
+			if (id & 0x8000) enabled = true;
+			position = x;
+			Logger::debug("Device ID: %i was found in device table at entry: %i", (int)id, x);
+			return;
+		}
+	}
+
+	//if we got here then there was no entry for this device in the table yet.
+	//try to find an empty spot and place it there.
+	for (int x = 1; x < 64; x++) {
+		memCache->Read(EE_DEVICE_TABLE + (2 * x), &id);
+		if (id == 0) {
+			base_address = EE_DEVICES_BASE + (EE_DEVICE_SIZE * x);
+			lkg_address = EE_MAIN_OFFSET;
+			enabled = false; //default to devices being off until the user says otherwise
+			id = (int)id_in;
+			memCache->Write(EE_DEVICE_TABLE + (2*x), id);
+			position = x;
+			Logger::debug("Device ID: %i was placed into device table at entry: %i", (int)id, x);
+			return;
+		}
+	}
+
+	//we found no matches and could not allocate a space. This is bad. Error out here
+	base_address = 0xF0F0;
+	lkg_address = EE_MAIN_OFFSET;
+	Logger::error("PrefManager - Device Table Full!!!");
 }
 
 PrefHandler::~PrefHandler() {
@@ -95,7 +175,7 @@ bool PrefHandler::checksumValid() {
   
   memCache->Read(EE_CHECKSUM + base_address + lkg_address, &stored_chk);
   calc_chk = calcChecksum();
-  Logger::debug("Stored Checksum: %i Calc: %i", stored_chk, calc_chk);
+  Logger::info("Stored Checksum: %i Calc: %i", stored_chk, calc_chk);
   
   return (stored_chk == calc_chk);
 }

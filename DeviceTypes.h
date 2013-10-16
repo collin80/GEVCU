@@ -50,6 +50,7 @@ enum DeviceId { //unique device ID for every piece of hardware possible
 	CANACCELPEDAL = 0x1032,
 	ICHIP2128 = 0x1040,
 	THINKBMS = 0x2000,
+	SYSTEM = 0x5000,
 	INVALID = 0xFFFF
 };
 

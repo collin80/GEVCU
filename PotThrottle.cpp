@@ -25,11 +25,11 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
 #include "config.h"
-#ifdef CFG_ENABLE_DEVICE_POT_THROTTLE
 #include "PotThrottle.h"
 
 //initialize by telling the code which two ADC channels to use (or set channel 2 to 255 to disable)
 PotThrottle::PotThrottle(uint8_t throttle1, uint8_t throttle2) : Throttle() {
+	prefsHandler = new PrefHandler(POTACCELPEDAL);
 	throttle1ADC = throttle1;
 	throttle2ADC = throttle2;
 	if (throttle2 == CFG_THROTTLE_NONE)
@@ -282,5 +282,3 @@ void PotThrottle::saveConfiguration() {
   TickHandler::getInstance()->attach(this, getTickInterval());
 }
 
-
-#endif //CFG_ENABLE_DEVICE_POT_THROTTLE

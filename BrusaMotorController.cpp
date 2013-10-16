@@ -26,7 +26,6 @@
  */
 
 #include "config.h"
-#ifdef CFG_ENABLE_DEVICE_MOTORCTRL_BRUSA_DMC5
 #include "BrusaMotorController.h"
 
 /*
@@ -37,6 +36,9 @@
  */
 
 BrusaMotorController::BrusaMotorController() : MotorController() {
+
+	prefsHandler = new PrefHandler(BRUSA_DMC5);
+
 	torqueSlewRate = 0;
 	speedSlewRate = 0;
 	maxMechanicalPowerMotor = 50000;
@@ -241,4 +243,3 @@ DeviceId BrusaMotorController::getId() {
 	return BRUSA_DMC5;
 }
 
-#endif

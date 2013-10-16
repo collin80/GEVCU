@@ -25,12 +25,11 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
 #include "config.h"
-#ifdef CFG_ENABLE_DEVICE_POT_BRAKE
 #include "PotBrake.h"
 
 //initialize by telling the code which two ADC channels to use (or set channel 2 to 255 to disable)
-PotBrake::PotBrake(uint8_t brake1, uint8_t brake2) :
-		Throttle() {
+PotBrake::PotBrake(uint8_t brake1, uint8_t brake2) : Throttle() {
+	prefsHandler = new PrefHandler(POTBRAKEPEDAL);
 	brake1ADC = brake1;
 	brake2ADC = brake2;
 	if (brake2 == 255)
@@ -211,4 +210,3 @@ void PotBrake::saveConfiguration() {
   TickHandler::getInstance()->attach(this, getTickInterval());
 }
 
-#endif // CFG_ENABLE_DEVICE_POT_BRAKE

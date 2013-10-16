@@ -27,13 +27,15 @@
  */
 
 #include "config.h"
-#ifdef CFG_ENABLE_DEVICE_ICHIP2128_WIFI
 #include "ichip_2128.h"
 
 /*
  * Initialization of hardware and parameters
  */
 void ICHIPWIFI::setup() {
+
+	prefsHandler = new PrefHandler(ICHIP2128);
+
 	TickHandler::getInstance()->detach(this);
 
 	tickCounter = 0;
@@ -399,4 +401,3 @@ DeviceId ICHIPWIFI::getId() {
 	return (ICHIP2128);
 }
 
-#endif

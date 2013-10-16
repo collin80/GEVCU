@@ -28,7 +28,6 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include "Throttle.h"
  
 Throttle::Throttle() : Device() {
-	prefsHandler = new PrefHandler(EE_THROTTLE_START);
     throttleDetector = NULL;
 	level = 0;
 }
