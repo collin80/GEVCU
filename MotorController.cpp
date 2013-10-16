@@ -337,3 +337,11 @@ uint32_t MotorController::getStatusBitfield3() {
 uint32_t MotorController::getStatusBitfield4() {
 	return statusBitfield4;
 }
+
+uint32_t MotorController::getTickInterval() {
+	return 0;
+}
+
+bool MotorController::isReady() {
+	return false;
+}

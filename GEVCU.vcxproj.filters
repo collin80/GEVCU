@@ -84,9 +84,6 @@
     <ClInclude Include="SerialConsole.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="Params.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="BrusaMotorController.h">
       <Filter>Header Files</Filter>
     </ClInclude>
@@ -94,6 +91,12 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="ThinkBatteryManager.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Sys_Messages.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="DeviceTypes.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

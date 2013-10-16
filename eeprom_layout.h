@@ -95,7 +95,7 @@ the end of the stardard data. The below numbers are offsets from the device's ee
 #define EETH_MAX_ONE			22 //2 bytes - ADC value of maximum value for first channel
 #define EETH_MIN_TWO			24 //2 bytes - ADC value of minimum value for second channel
 #define EETH_MAX_TWO			26 //2 bytes - ADC value of maximum value for second channel
-#define EETH_REGEN		        28 //2 bytes - unsigned int - tenths of a percent (0-1000) of pedal position where regen stops
+#define EETH_REGEN_MIN	        28 //2 bytes - unsigned int - tenths of a percent (0-1000) of pedal position where regen stops
 #define EETH_FWD				30 //2 bytes - unsigned int - tenths of a percent (0-1000) of pedal position where forward motion starts 
 #define EETH_MAP				32 //2 bytes - unsigned int - tenths of a percent (0-1000) of pedal position where forward motion is at 50% throttle
 #define EETH_BRAKE_MIN			34 //2 bytes - ADC value of minimum value for brake input
@@ -104,7 +104,10 @@ the end of the stardard data. The below numbers are offsets from the device's ee
 #define EETH_MAX_BRAKE_REGEN	40 //2 bytes - maximum percentage of throttle to command for braking regen. Starts at min brake regen and works up to here.
 #define EETH_NUM_THROTTLES		42 //1 byte - How many throttle inputs should we use? (1 or 2)
 #define EETH_THROTTLE_TYPE		43 //1 byte - Allow for different throttle types. For now 1 = Linear pots, 2 = Inverse relationship between pots. See Throttle.h
-#define EETH_MIN_BRAKE_REGEN	44 //2 bytes - the starting point for brake regen as a percentage of throttle
+#define EETH_MIN_BRAKE_REGEN	44 //2 bytes - the starting level for brake regen as a percentage of throttle
+#define EETH_MIN_ACCEL_REGEN	46 //2 bytes - the starting level for accelerator regen as a percentage of throttle
+#define EETH_REGEN_MAX	        48 //2 bytes - unsigned int - tenths of a percent (0-1000) of pedal position where regen is at maximum
+#define EETH_CREEP		        48 //2 bytes - percentage of throttle used to simulate creep
 
 //System Data
 #define EESYS_SYSTEM_TYPE        10  //1 byte - 10 = Macchina/MCP2515, 20 = Arduino Due w/ dual shield

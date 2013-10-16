@@ -43,13 +43,13 @@
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <ClCompile>
-      <PreprocessorDefinitions>__SAM3X8E__;USB_PID=0x003e;USB_VID=0x2341;USBCON;ARDUINO=152;ARDUINO_MAIN;printf=iprintf;__SAM__;F_CPU=84000000L;__cplusplus;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>__SAM3X8E__;USB_VID=0x2341;USB_PID=0x003e;USBCON;ARDUINO=154;ARDUINO_MAIN;printf=iprintf;__SAM__;F_CPU=84000000L;__cplusplus;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <RuntimeLibrary>MultiThreadedDebugDLL</RuntimeLibrary>
       <WarningLevel>Level3</WarningLevel>
       <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
       <Optimization>Disabled</Optimization>
       <BrowseInformation>true</BrowseInformation>
-      <AdditionalIncludeDirectories>c:\users\collin\desktop\Arduino-1.5.2\hardware\arduino\sam\cores\arduino;c:\users\collin\desktop\Arduino-1.5.2\hardware\arduino\sam\variants\arduino_due_x;c:\users\collin\desktop\Arduino-1.5.2\hardware\arduino\sam\libraries\due_rtc;c:\users\collin\desktop\Arduino-1.5.2\hardware\arduino\sam\libraries\due_rtc\utility;c:\users\collin\desktop\Arduino-1.5.2\hardware\arduino\sam\libraries\due_can;c:\users\collin\desktop\Arduino-1.5.2\hardware\arduino\sam\libraries\due_can\utility;c:\users\collin\desktop\Arduino-1.5.2\hardware\arduino\sam\libraries\due_wire;c:\users\collin\desktop\Arduino-1.5.2\hardware\arduino\sam\libraries\due_wire\utility;c:\users\collin\desktop\Arduino-1.5.2\hardware\arduino\sam\libraries\DueTimer;c:\users\collin\desktop\Arduino-1.5.2\hardware\arduino\sam\libraries\DueTimer\utility;c:\users\collin\desktop\Arduino-1.5.2\hardware\arduino\sam\system\CMSIS\CMSIS\Include\;c:\users\collin\desktop\Arduino-1.5.2\hardware\arduino\sam\system\CMSIS\Device\ATMEL\;c:\users\collin\desktop\Arduino-1.5.2\hardware\arduino\sam\system\libsam;c:\users\collin\desktop\Arduino-1.5.2\hardware\arduino\sam\system\libsam\include;c:\users\collin\desktop\Arduino-1.5.2/hardware/tools/g++_arm_none_eabi\arm-none-eabi\include;c:\users\collin\desktop\Arduino-1.5.2/hardware/tools/g++_arm_none_eabi\arm_none_eabi\include\;c:\users\collin\desktop\Arduino-1.5.2/hardware/tools/g++_arm_none_eabi\lib\gcc\arm-none-eabi\4.4.1\include;c:\users\collin\desktop\Arduino-1.5.2/hardware/tools/g++_arm_none_eabi\lib\gcc\arm-none-eabi\4.4.1\include\;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>c:\arduino\hardware\arduino\sam\cores\arduino;c:\arduino\hardware\arduino\sam\variants\arduino_due_x;C:\Users\Collin\Documents\Arduino\libraries\due_rtc;C:\Users\Collin\Documents\Arduino\libraries\due_rtc\utility;C:\Users\Collin\Documents\Arduino\libraries\due_can;C:\Users\Collin\Documents\Arduino\libraries\due_can\utility;C:\Users\Collin\Documents\Arduino\libraries\due_wire;C:\Users\Collin\Documents\Arduino\libraries\due_wire\utility;C:\Users\Collin\Documents\Arduino\libraries\DueTimer;C:\Users\Collin\Documents\Arduino\libraries\DueTimer\utility;c:\arduino\hardware\arduino\sam\system\CMSIS\CMSIS\Include\;c:\arduino\hardware\arduino\sam\system\CMSIS\Device\ATMEL\;c:\arduino\hardware\arduino\sam\system\libsam;c:\arduino\hardware\arduino\sam\system\libsam\include;c:\arduino/hardware/tools/g++_arm_none_eabi\arm-none-eabi\include;c:\arduino/hardware/tools/g++_arm_none_eabi\arm_none_eabi\include\;c:\arduino/hardware/tools/g++_arm_none_eabi\lib\gcc\arm-none-eabi\4.4.1\include;c:\arduino/hardware/tools/g++_arm_none_eabi\lib\gcc\arm-none-eabi\4.4.1\include\;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <ForcedIncludeFiles>C:\Users\Collin\Desktop\GEVCU\Visual Micro\.GEVCU.vsarduino.h;%(ForcedIncludeFiles)</ForcedIncludeFiles>
       <IgnoreStandardIncludePath>true</IgnoreStandardIncludePath>
     </ClCompile>
@@ -87,6 +87,9 @@
     <ClInclude Include="config.h" />
     <ClInclude Include="Device.h" />
     <ClInclude Include="DeviceManager.h" />
+    <ClInclude Include="DeviceTypes.h">
+      <FileType>CppCode</FileType>
+    </ClInclude>
     <ClInclude Include="DmocMotorController.h" />
     <ClInclude Include="eeprom_layout.h" />
     <ClInclude Include="FaultHandler.h" />
@@ -98,7 +101,6 @@
     <ClInclude Include="Logger.h" />
     <ClInclude Include="MemCache.h" />
     <ClInclude Include="MotorController.h" />
-    <ClInclude Include="Params.h" />
     <ClInclude Include="PotBrake.h">
       <FileType>CppCode</FileType>
     </ClInclude>
@@ -108,6 +110,7 @@
       <FileType>CppCode</FileType>
     </ClInclude>
     <ClInclude Include="sys_io.h" />
+    <ClInclude Include="Sys_Messages.h" />
     <ClInclude Include="ThinkBatteryManager.h" />
     <ClInclude Include="Throttle.h" />
     <ClInclude Include="ThrottleDetector.h">

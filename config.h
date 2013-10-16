@@ -86,16 +86,19 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 /*
  * HARD CODED PARAMETERS
  *
- * If USE_HARD_CODED is defined, the parameter values defined here are used
- * instead of those stored in the EEPROM.
+ * If USE_HARD_CODED is defined or the checksum of the parameters stored in EEPROM,
+ * the parameter values defined here are used instead of those stored in the EEPROM.
  */
 //#define USE_HARD_CODED
 #define ThrottleNumPots			1		//# of pots to use by default
 #define ThrottleSubtype			1		//subtype 1 is a standard linear pot throttle
-#define ThrottleRegenValue		0		//where does Regen stop (1/10 of percent)
+#define ThrottleRegenMinValue	0		//where does Regen stop (1/10 of percent)
+#define ThrottleRegenMaxValue	0		//where Regen is at maximum (1/10 of percent)
 #define ThrottleFwdValue		175		//where does forward motion start
 #define ThrottleMapValue		665		//Where is the 1/2 way point for throttle
-#define ThrottleMaxRegenValue	00		//how many percent of full regen to do with accel pedal
+#define ThrottleMinRegenValue	0		//how many percent of full power to use at minimal regen
+#define ThrottleMaxRegenValue	0		//how many percent of full power to use at maximum regen
+#define ThrottleCreepValue		0		//how many percent of full power to use at creep
 #define ThrottleMaxErrValue		75		//tenths of percentage allowable deviation between pedals
 #define Throttle1MinValue		180		//Value ADC reads when pedal is up
 #define Throttle1MaxValue		930		//Value ADC reads when pedal fully depressed

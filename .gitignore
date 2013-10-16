@@ -20,3 +20,4 @@ Release
 *.elf
 *.map
 *.srec
+*.vcx*

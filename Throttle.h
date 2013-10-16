@@ -35,76 +35,51 @@
 #include <Arduino.h>
 #include "config.h"
 #include "Device.h"
-#include "ThrottleDetector.h"
 
-class ThrottleDetector;
-// avoid circular dependency by declaring it here
+/*
+ * Data structure to hold raw signal(s) of the throttle.
+ * E.g. for a three pot pedal, all signals could be used.
+ */
+struct RawSignalData {
+	int32_t input1; // e.g. pot #1 or the signal from a can bus throttle
+	int32_t input2; // e.g. pot #2 (optional)
+	int32_t input3; // e.g. pot #3 (optional)
+};
 
+/*
+ * A abstract class to hold throttle configuration parameters.
+ * Can be extended by the subclass.
+ */
+class ThrottleConfiguration: public DeviceConfiguration {
+public:
+	uint16_t positionRegenMaximum, positionRegenMinimum; // throttle position where regen is highest and lowest
+	uint16_t positionForwardMotionStart, positionHalfPower; // throttle position where forward motion starts and the mid point of throttle
+	uint8_t maximumRegen; // percentage of max torque allowable for regen at maximum level
+	uint8_t minimumRegen; // percentage of max torque allowable for regen at minimum level
+	uint8_t creep; // percentage of torque used for creep function (imitate creep of automatic transmission, set 0 to disable)
+};
+
+/*
+ * Abstract class for all throttle implementations.
+ */
 class Throttle: public Device {
 public:
 	Throttle();
-	~Throttle();
-
+	virtual int16_t getLevel();
+	virtual void handleTick();
+	virtual bool isFaulted();
 	virtual DeviceType getType();
 
-	virtual void handleTick();
-	virtual int16_t getLevel();
-	virtual int getRawThrottle1();
-	virtual int getRawThrottle2();
-
-	bool isFaulted();
-	void detectThrottle();
-	void detectThrottleMin();
-	void detectThrottleMax();
-
-	virtual void mapThrottle(int16_t);
-	virtual void saveConfiguration();
-	virtual void saveEEPROM();
-
-	virtual void setPositionRegenStart(uint16_t regen);
-	virtual uint16_t getPositionRegenStart();
-	virtual void setPositionForwardMotionStart(uint16_t fwd);
-	virtual uint16_t getPositionForwardMotionStart();
-	virtual void setPositionHalfPower(uint16_t map);
-	virtual uint16_t getPositionHalfPower();
-	virtual void setMaximumRegen(uint16_t regen);
-	virtual uint16_t getMaximumRegen();
-	virtual void setMinimumRegen(uint16_t regen);
-	virtual uint16_t getMinimumRegen();
-    virtual void setMinumumLevel1(uint16_t min);
-    virtual uint16_t getMinimumLevel1();
-	virtual void setMinimumLevel2(uint16_t min);
-	virtual uint16_t getMinimumLevel2();
-	virtual void setMaximumLevel1(uint16_t max);
-	virtual uint16_t getMaximumLevel1();
-	virtual void setMaximumLevel2(uint16_t max);
-	virtual uint16_t getMaximumLevel2();
-	virtual void setNumberPotMeters(uint8_t num);
-	virtual uint8_t getNumberPotMeters();
-	virtual void setSubtype(uint8_t num);
-	virtual uint8_t getSubtype();
+	virtual RawSignalData *acquireRawSignal();
 
 protected:
-	int16_t level; // the final signed throttle level. [-1000, 1000] in permille of maximum
-	uint16_t positionRegenStart, positionForwardMotionStart, positionHalfPower; // value at which regen starts, forward motion starts, and the mid point of throttle
-	uint8_t maximumRegen; // percentage of max torque allowable for regen
-	uint8_t minimumRegen; // percentage of min torque allowable for regen
-    uint16_t minimumLevel1, maximumLevel1, minimumLevel2, maximumLevel2; // values for when the pedal is at its min and max for each input
-	uint16_t rawLevel1, rawLevel2; // the raw level of the input potentiometers
-	uint8_t numberPotMeters; // the number of potentiometers to be used. Should support three as well since some pedals really do have that many
-
-	/*
-	 * Allows subclasses to have sub types for their pedal type
-	 * 0 - unknown type (prefs will return 0 if never set)
-	 * 1 - standard linear potentiometer (low-high). If 2 pots, both are low-high and the 2nd mirrors the 1st.
-	 * 2 - inverse potentiometer (high-low). If 2 pots, then 1st is low-high and 2nd is high-low)
-	 */
-	uint8_t throttleSubType;
-	uint32_t getTickInterval();
-	ThrottleDetector *throttleDetector;
+	virtual bool validateSignal(RawSignalData *);
+	virtual uint16_t calculatePedalPosition(RawSignalData *);
+	virtual int16_t mapPedalPosition(int16_t);
 
 private:
-	
+	int16_t level; // the final signed throttle level. [-1000, 1000] in permille of maximum
+
 };
 
 #endif

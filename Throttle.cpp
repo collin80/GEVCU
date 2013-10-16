@@ -26,185 +26,124 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */ 
  
 #include "Throttle.h"
- 
+
+/*
+ * Constructor
+ */
 Throttle::Throttle() : Device() {
-    throttleDetector = NULL;
 	level = 0;
 }
 
-Throttle::~Throttle() {
-  if ( throttleDetector != NULL ) {
-    delete throttleDetector;
-    throttleDetector = NULL;
-  }
-}
-
+/*
+ * Controls the main flow of throttle data acquisiton, validation and mapping to
+ * user defined behaviour.
+ *
+ * Get's called by the sub-class which is triggered by the tick handler
+ */
 void Throttle::handleTick() {
 	Device::handleTick();
-	if ( throttleDetector != NULL ) {
-	    throttleDetector->handleTick();
-	}
+
+	RawSignalData *rawSignals = acquireRawSignal(); // get raw data from the throttle device
+	if (validateSignal(rawSignals)) { // validate the raw data
+		uint16_t position = calculatePedalPosition(rawSignals); // bring the raw data into a range of 0-1000 (without mapping)
+		level = mapPedalPosition(position); // apply mapping of the 0-1000 range to the user defined settings
+	} else
+		level = 0;
 }
 
-DeviceType Throttle::getType(){
-	return DEVICE_THROTTLE;
+/*
+ * Maps the input throttle position (0-1000 permille) to an output level which is
+ * calculated based on the throttle mapping parameters (free float, regen, acceleration,
+ * 50% acceleration).
+ * The output value will be in the range of -1000 to 1000. The value will be used by the
+ * MotorController class to calculate commanded torque or speed. Positive numbers result in
+ * acceleration, negative numbers in regeneration. 0 will result in no force applied by
+ * the motor.
+ *
+ * Configuration parameters:
+ * positionRegenMaximum: The pedal position (0-1000) where maximumRegen will be applied. If not 0, then
+ *                       moving the pedal from positionRegenMaximum to 0 will result in linear reduction
+ *                       of regen from maximumRegen.
+ * positionRegenMinimum: The pedal position (0-1000) where minimumRegen will be applied. If not 0, then
+ *                       a linear regen force will be applied when moving the pedal from positionRegenMinimum
+ *                       to positionRegenMaximum.
+ * positionForwardMotionStart: The pedal position where the car starts to accelerate. If not equal to
+ *                       positionRegenMinimum, then the gap between the two positions will result in no force
+ *                       applied (free coasting).
+ * positionHalfPower:    Position of the pedal where 50% of the maximum torque will be applied. To gain more
+ *                       fine control in the lower speed range (e.g. when parking) it might make sense to
+ *                       set this position higher than the mid point of positionForwardMotionStart and full
+ *                       throttle.
+ *
+ * Important pre-condition (to be checked when changing parameters) :
+ * 0 <= positionRegenMaximum <= positionRegenMinimum <= positionForwardMotionStart <= positionHalfPower
+ */
+int16_t Throttle::mapPedalPosition(int16_t pedalPosition) {
+	int16_t throttleLevel, range, value;
+	ThrottleConfiguration *config = (ThrottleConfiguration *)getConfiguration();
+
+	throttleLevel = 0;
+
+	if (pedalPosition == 0 && config->creep > 0) {
+		throttleLevel = 10 * config->creep;
+	} else if (pedalPosition <= config->positionRegenMinimum) {
+		if (pedalPosition >= config->positionRegenMaximum) {
+			range = config->positionRegenMinimum - config->positionRegenMaximum;
+			value = pedalPosition - config->positionRegenMinimum;
+			if (range != 0) // prevent div by zero, should result in 0 throttle if min==max
+				throttleLevel = -10 * config->minimumRegen + value / range * (config->maximumRegen - config->minimumRegen) * 10;
+		} else {
+			range = config->positionRegenMaximum;
+			value = pedalPosition;
+			throttleLevel = -10 * config->maximumRegen * value / range;
+			}
+		}
+
+	if (pedalPosition >= config->positionForwardMotionStart) {
+		if (pedalPosition <= config->positionHalfPower) {
+			range = config->positionHalfPower - config->positionForwardMotionStart;
+			value = pedalPosition - config->positionForwardMotionStart;
+			if (range != 0) // prevent div by zero, should result in 0 throttle if half==startFwd
+				throttleLevel = 500 * value / range;
+		} else {
+			range = 1000 - config->positionHalfPower;
+			value = pedalPosition - config->positionHalfPower;
+			throttleLevel = 500 + 500 * value / range;
+			}
+			}
+	//Logger::debug("throttle level: %d", throttleLevel);
+	return throttleLevel;
 }
 
+/*
+ * Returns the currently calculated/mapped throttle level (from -1000 to 1000).
+ */
 int16_t Throttle::getLevel(){
 	return level;
 }
 
+/*
+ * Is the throttle faulted?
+ */
 bool Throttle::isFaulted() {
 	return true;
 }
 
-void Throttle::setNumberPotMeters(uint8_t num) {
-	numberPotMeters = constrain(num, 1, 2); // Currently only valid values are 1  and 2
-}
-
-uint8_t Throttle::getNumberPotMeters() {
-	return numberPotMeters;
-}
-
-void Throttle::setSubtype(uint8_t num) {
-	throttleSubType = constrain(num, 1, 2); // Currently only valid values are 1  and 2
-}
-
-uint8_t Throttle::getSubtype() {
-	return throttleSubType;
-}
-
 /*
- * Give default versions that return 0. Override in a child class if you implement the throttle
+ * Return the device type
  */
-int Throttle::getRawThrottle1() {return 0;}
-int Throttle::getRawThrottle2() {return 0;}
-
-/*
- * Return the tick interval for this throttle. Override in a child class
- * if you use a different tick interval
- */
-uint32_t Throttle::getTickInterval() {
-	return CFG_TICK_INTERVAL_POT_THROTTLE;
+DeviceType Throttle::getType(){
+	return DEVICE_THROTTLE;
 }
 
-/*
- * Maps the input throttle position (0-1000 permille) to an output level which is calculated
- * based on the throttle mapping parameters.
- */
-void Throttle::mapThrottle(int16_t currentPosition) {
-	int16_t range, value;
-
-	level = 0; //by default we give zero throttle
-
-	if (currentPosition > 0) {
-		if (positionRegenStart != 0) {
-			if (currentPosition <= positionRegenStart) {
-				range = positionRegenStart;
-				value = range - currentPosition;
-				level = (signed long) ((signed long) (-10) * maximumRegen * value / range);
-			}
-		}
-
-		if (currentPosition >= positionForwardMotionStart) {
-			if (currentPosition <= positionHalfPower) { //bottom 50% forward
-				range = positionHalfPower - positionForwardMotionStart;
-				value = currentPosition - positionForwardMotionStart;
-				level = 500 * value / range;
-			}
-			else { //more than throttleMap
-				range = 1000 - positionHalfPower;
-				value = currentPosition - positionHalfPower;
-				level = 500 + 500 * value / range;
-			}
-		}
-	}
-	else {
-		level = -10 * maximumRegen;
-	}
-	//Logger::debug("throttle level: %d", level);
+RawSignalData* Throttle::acquireRawSignal() {
+	return NULL;
 }
 
-void Throttle::detectThrottle() {
-  if ( throttleDetector == NULL )
-    throttleDetector = new ThrottleDetector(this);
-  throttleDetector->detect();
+bool Throttle::validateSignal(RawSignalData*) {
+	return false;
 }
 
-void Throttle::setMinumumLevel1(uint16_t min) {
-	minimumLevel1 = min;
-}
-
-uint16_t Throttle::getMinimumLevel1() {
-	return minimumLevel1;
-}
-
-void Throttle::setMinimumLevel2(uint16_t min) {
-	minimumLevel2 = min;
-}
-
-uint16_t Throttle::getMinimumLevel2() {
-	return minimumLevel2;
-}
-
-void Throttle::setMaximumLevel1(uint16_t max) {
-	maximumLevel1 = max;
-}
-
-uint16_t Throttle::getMaximumLevel1() {
-	return maximumLevel1;
-}
-
-void Throttle::setMaximumLevel2(uint16_t max) {
-	maximumLevel2 = max;
-}
-
-uint16_t Throttle::getMaximumLevel2() {
-	return maximumLevel2;
-}
-
-void Throttle::setPositionRegenStart(uint16_t regen) {
-	positionRegenStart = regen;
-}
-
-uint16_t Throttle::getPositionRegenStart() {
-	return positionRegenStart;
-}
-
-void Throttle::setPositionForwardMotionStart(uint16_t fwd) {
-	positionForwardMotionStart = fwd;
-}
-
-uint16_t Throttle::getPositionForwardMotionStart() {
-	return positionForwardMotionStart;
-}
-
-void Throttle::setPositionHalfPower(uint16_t map) {
-	positionHalfPower = map;
-}
-
-uint16_t Throttle::getPositionHalfPower() {
-	return positionHalfPower;
-}
-
-void Throttle::setMaximumRegen(uint16_t regen) {
-	maximumRegen = regen;
-}
-
-uint16_t Throttle::getMaximumRegen() {
-	return maximumRegen;
-}
-
-void Throttle::setMinimumRegen(uint16_t regen) {
-	minimumRegen = regen;
-}
-
-uint16_t Throttle::getMinimumRegen() {
-	return minimumRegen;
-}
-
-void Throttle::saveConfiguration() {
-}
-
-void Throttle::saveEEPROM() {
+uint16_t Throttle::calculatePedalPosition(RawSignalData*) {
+	return 0;
 }
