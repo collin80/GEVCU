@@ -5,26 +5,26 @@
 
  Copyright (c) 2013 Collin Kidder, Michael Neuweiler, Charles Galpin
 
-Permission is hereby granted, free of charge, to any person obtaining
-a copy of this software and associated documentation files (the
-"Software"), to deal in the Software without restriction, including
-without limitation the rights to use, copy, modify, merge, publish,
-distribute, sublicense, and/or sell copies of the Software, and to
-permit persons to whom the Software is furnished to do so, subject to
-the following conditions:
+ Permission is hereby granted, free of charge, to any person obtaining
+ a copy of this software and associated documentation files (the
+ "Software"), to deal in the Software without restriction, including
+ without limitation the rights to use, copy, modify, merge, publish,
+ distribute, sublicense, and/or sell copies of the Software, and to
+ permit persons to whom the Software is furnished to do so, subject to
+ the following conditions:
 
-The above copyright notice and this permission notice shall be included
-in all copies or substantial portions of the Software.
+ The above copyright notice and this permission notice shall be included
+ in all copies or substantial portions of the Software.
 
-THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
-EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
-MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.
-IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY
-CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT,
-TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
-SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
- */ 
- 
+ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+ EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
+ MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.
+ IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY
+ CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT,
+ TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
+ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+ */
+
 #include "Throttle.h"
 
 /*
@@ -81,7 +81,7 @@ void Throttle::handleTick() {
  */
 int16_t Throttle::mapPedalPosition(int16_t pedalPosition) {
 	int16_t throttleLevel, range, value;
-	ThrottleConfiguration *config = (ThrottleConfiguration *)getConfiguration();
+	ThrottleConfiguration *config = (ThrottleConfiguration *) getConfiguration();
 
 	throttleLevel = 0;
 
@@ -119,7 +119,7 @@ int16_t Throttle::mapPedalPosition(int16_t pedalPosition) {
 /*
  * Returns the currently calculated/mapped throttle level (from -1000 to 1000).
  */
-int16_t Throttle::getLevel(){
+int16_t Throttle::getLevel() {
 	return level;
 }
 
@@ -133,7 +133,7 @@ bool Throttle::isFaulted() {
 /*
  * Return the device type
  */
-DeviceType Throttle::getType(){
+DeviceType Throttle::getType() {
 	return DEVICE_THROTTLE;
 }
 
@@ -147,4 +147,63 @@ bool Throttle::validateSignal(RawSignalData*) {
 
 uint16_t Throttle::calculatePedalPosition(RawSignalData*) {
 	return 0;
+}
+
+/*
+ * Load the config parameters which are required by all throttles
+ */
+void Throttle::loadConfiguration() {
+	ThrottleConfiguration *config = (ThrottleConfiguration *) getConfiguration();
+
+	Device: loadConfiguration(); // call parent
+
+#ifdef USE_HARD_CODED
+	if (false) {
+#else
+	if (prefsHandler->checksumValid()) { //checksum is good, read in the values stored in EEPROM
+#endif
+		prefsHandler->read(EETH_REGEN_MIN, &config->positionRegenMinimum);
+		prefsHandler->read(EETH_REGEN_MAX, &config->positionRegenMaximum);
+		prefsHandler->read(EETH_FWD, &config->positionForwardMotionStart);
+		prefsHandler->read(EETH_MAP, &config->positionHalfPower);
+		prefsHandler->read(EETH_CREEP, &config->creep);
+		prefsHandler->read(EETH_MIN_ACCEL_REGEN, &config->minimumRegen);
+		prefsHandler->read(EETH_MAX_ACCEL_REGEN, &config->maximumRegen);
+
+		// some safety precautions for new values (depending on eeprom, they might be completely off).
+		if (config->creep > 100 || config->positionRegenMaximum > 1000 || config->minimumRegen > 100) {
+			config->creep = ThrottleCreepValue;
+			config->positionRegenMaximum = ThrottleRegenMaxValue;
+			config->minimumRegen = ThrottleMinRegenValue;
+		}
+	} else { //checksum invalid. Reinitialize values, leave storing them to the subclasses
+		config->positionRegenMinimum = ThrottleRegenMinValue;
+		config->positionRegenMaximum = ThrottleRegenMaxValue;
+		config->positionForwardMotionStart = ThrottleFwdValue;
+		config->positionHalfPower = ThrottleMapValue;
+		config->creep = ThrottleCreepValue;
+		config->minimumRegen = ThrottleMinRegenValue; //percentage of minimal power to use when regen starts
+		config->maximumRegen = ThrottleMaxRegenValue; //percentage of full power to use for regen at throttle
+	}
+	Logger::debug(THROTTLE, "RegenMax: %l RegenMin: %l Fwd: %l Map: %l", config->positionRegenMaximum, config->positionRegenMinimum,
+			config->positionForwardMotionStart, config->positionHalfPower);
+	Logger::debug(THROTTLE, "MinRegen: %d MaxRegen: %d", config->minimumRegen, config->maximumRegen);
+}
+
+/*
+ * Store the current configuration to EEPROM
+ */
+void Throttle::saveConfiguration() {
+	ThrottleConfiguration *config = (ThrottleConfiguration *) getConfiguration();
+
+	Device: saveConfiguration(); // call parent
+
+	prefsHandler->write(EETH_REGEN_MIN, config->positionRegenMinimum);
+	prefsHandler->write(EETH_REGEN_MAX, config->positionRegenMaximum);
+	prefsHandler->write(EETH_FWD, config->positionForwardMotionStart);
+	prefsHandler->write(EETH_MAP, config->positionHalfPower);
+	prefsHandler->write(EETH_CREEP, config->creep);
+	prefsHandler->write(EETH_MIN_ACCEL_REGEN, config->minimumRegen);
+	prefsHandler->write(EETH_MAX_ACCEL_REGEN, config->maximumRegen);
+	prefsHandler->saveChecksum();
 }

@@ -36,7 +36,7 @@
 
 class Throttle;
 
-class ThrottleDetector : public Device {
+class ThrottleDetector : public TickObserver {
 
 public:
 	ThrottleDetector(Throttle *throttle);

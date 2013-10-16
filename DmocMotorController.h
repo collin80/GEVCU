@@ -36,6 +36,13 @@
 #include "TickHandler.h"
 #include "CanHandler.h"
 
+/*
+ * Class for DMOC specific configuration parameters
+ */
+class DmocMotorControllerConfiguration : public MotorControllerConfiguration {
+public:
+};
+
 class DmocMotorController: public MotorController, CanObserver {
 public:
 	enum Gears {
@@ -73,8 +80,10 @@ public:
 
 	DmocMotorController();
 	DeviceId getId();
-
 	uint32_t getTickInterval();
+
+	virtual void loadConfiguration();
+	virtual void saveConfiguration();
 
 private:
 	Gears selectedGear;

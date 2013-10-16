@@ -124,6 +124,8 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 #define MaxTorqueValue		2000 //in tenths of a Nm
 #define	MaxRPMValue			6000 //DMOC will ignore this but we can use it ourselves for limiting
+#define RPMSlewRateValue	10000 // rpm/sec the requested speed should change (speed mode)
+#define TorqueSlewRateValue	6000 // 0.1Nm/sec the requested torque output should change (torque mode)
 #define PrechargeC			11000 //approximate C of DMOC input - in uF
 #define PrechargeR			500 //a stupidly high resistance just to make sure we precharge long enough
 #define NominalVolt			3300 //a reasonable figure for a lithium cell pack driving the DMOC (in tenths of a volt)

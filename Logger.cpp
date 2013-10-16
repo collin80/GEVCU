@@ -336,6 +336,9 @@ void Logger::printDeviceName(DeviceId deviceId) {
 	case TCCHCHARGE:
 		SerialUSB.print("TCCH");
 		break;
+	case THROTTLE:
+		SerialUSB.print("THROTTLE");
+		break;
 	case POTACCELPEDAL:
 		SerialUSB.print("POTACCEL");
 		break;

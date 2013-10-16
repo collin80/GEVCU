@@ -83,6 +83,8 @@ the end of the stardard data. The below numbers are offsets from the device's ee
 #define EEMC_PRECHARGE_R		42 //2 bytes - Resistance of precharge resistor in tenths of an ohm
 #define EEMC_NOMINAL_V			44 //2 bytes - nominal system voltage to expect (in tenths of a volt)
 #define EEMC_REVERSE_LIMIT		46 //2 bytes - a percentage to knock the requested torque down by while in reverse.
+#define EEMC_RPM_SLEW_RATE		48 //2 bytes - slew rate (rpm/sec) at which speed should change (only in speed mode)
+#define EEMC_TORQUE_SLEW_RATE	50 //2 bytes - slew rate (0.1Nm/sec) at which the torque should change
 
 //throttle data
 #define EETH_MIN_ONE			20 //2 bytes - ADC value of minimum value for first channel

@@ -41,6 +41,21 @@
 #define MOTORCTL_INPUT_REVERSE     5
 #define MOTORCTL_INPUT_LIMP        6
 
+class MotorControllerConfiguration : public DeviceConfiguration {
+public:
+	uint16_t speedMax; // in rpm
+	uint16_t torqueMax;	// maximum torque in 0.1 Nm
+	uint16_t torqueSlewRate; // for torque mode only: slew rate of torque value, 0=disabled, in 0.1Nm/sec
+	uint16_t speedSlewRate; //  for speed mode only: slew rate of speed value, 0=disabled, in rpm/sec
+	uint8_t reversePercent;
+
+	uint16_t prechargeC; //capacitance of motor controller input in uf
+	uint16_t prechargeR; //resistance of precharge resistor in tenths of ohm
+	uint16_t nominalVolt; //nominal pack voltage in tenths of a volt
+	uint8_t prechargeRelay; //# of output to use for this relay or 255 if there is no relay
+	uint8_t mainContactorRelay; //# of output to use for this relay or 255 if there is no relay
+};
+
 class MotorController: public Device {
 
 public:
@@ -62,6 +77,9 @@ public:
     void handleTick();
 	virtual uint32_t getTickInterval();
 
+	void loadConfiguration();
+	void saveConfiguration();
+
 	bool isReady();
 	bool isRunning();
 	bool isFaulted();
@@ -72,12 +90,8 @@ public:
 	int16_t getThrottle();
 	int16_t getSpeedRequested();
 	int16_t getSpeedActual();
-	uint16_t getSpeedMax();
-	void setSpeedMax(uint16_t);
 	int16_t getTorqueRequested();
 	int16_t getTorqueActual();
-	uint16_t getTorqueMax();
-	void setTorqueMax(uint16_t);
 	int16_t getTorqueAvailable();
 
 	uint16_t getDcVoltage();
@@ -94,19 +108,6 @@ public:
 	uint32_t getStatusBitfield4();
 
 	GearSwitch getGearSwitch();
-	uint16_t getPrechargeC();
-	void setPrechargeC(uint16_t c);
-	uint16_t getPrechargeR();
-	void setPrechargeR(uint16_t r);
-	uint16_t getNominalV();
-	void setNominalV(uint16_t v);
-	uint8_t getPrechargeRelay();
-	void setPrechargeRelay(uint8_t relay);
-	uint8_t getMainRelay();
-	void setMainRelay(uint8_t relay);
-	uint8_t getReversePercent();
-	void setReversePercent(uint8_t perc);
-	void saveEEPROM();
 
 protected:
 	bool ready; // indicates if the controller is ready to enable the power stage
@@ -118,10 +119,8 @@ protected:
 	int16_t throttleRequested; // -1000 to 1000 (per mille of throttle level)
 	int16_t speedRequested; // in rpm
 	int16_t speedActual; // in rpm
-	uint16_t speedMax; // in rpm
 	int16_t torqueRequested; // in 0.1 Nm
 	int16_t torqueActual; // in 0.1 Nm
-	uint16_t torqueMax;	// maximum torque in 0.1 Nm
 	int16_t torqueAvailable; // the maximum available torque in 0.1Nm
 
     GearSwitch gearSwitch;
@@ -139,16 +138,8 @@ protected:
 	uint32_t statusBitfield3;
 	uint32_t statusBitfield4;
 
-	uint16_t prechargeC; //capacitance of motor controller input in uf
-	uint16_t prechargeR; //resistance of precharge resistor in tenths of ohm
 	uint16_t prechargeTime; //time in ms that precharge should last
 	uint16_t prechargeSoFar; //how long we have precharged so far
-	uint16_t nominalVolt; //nominal pack voltage in tenths of a volt
-	uint8_t prechargeRelay; //# of output to use for this relay or 255 if there is no relay
-	uint8_t mainContactorRelay; //# of output to use for this relay or 255 if there is no relay
-	uint8_t reversePercent;
-	uint16_t reportedVoltage; //what voltage does the controller report it sees? (1/10 v)
-	signed int reportedCurrent; //HV bus current reported by controller (1/10 A)
 	bool donePrecharge; //already completed the precharge cycle?
 };
 

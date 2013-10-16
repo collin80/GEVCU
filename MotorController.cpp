@@ -49,10 +49,8 @@ MotorController::MotorController() : Device() {
 	throttleRequested = 0;
 	speedRequested = 0;
 	speedActual = 0;
-	speedMax = 0;
 	torqueRequested = 0;
 	torqueActual = 0;
-	torqueMax = 0;
 	torqueAvailable = 0;
 	mechanicalPower = 0;
 
@@ -62,12 +60,8 @@ MotorController::MotorController() : Device() {
 	dcCurrent = 0;
 	acCurrent = 0;
 
-	prechargeC = 0;
-	prechargeR = 0;
 	prechargeTime = 0;
 	prechargeSoFar = 0;
-	prechargeRelay = 255;
-	mainContactorRelay = 255;
 	donePrecharge = false;
 }
 
@@ -78,7 +72,7 @@ DeviceType MotorController::getType() {
 void MotorController::handleTick() {
 	uint8_t forwardSwitch, reverseSwitch;
 
-		gearSwitch = GS_FORWARD;
+	gearSwitch = GS_FORWARD;
 
 	Throttle *accelerator = DeviceManager::getInstance()->getAccelerator();
 	Throttle *brake = DeviceManager::getInstance()->getBrake();
@@ -96,9 +90,10 @@ void MotorController::handleTick() {
 			prechargeSoFar += (getTickInterval() / 1000);
 		}
 		else {
+			MotorControllerConfiguration *config = (MotorControllerConfiguration *)getConfiguration();
 			Logger::info("Done with precharge.");
-			setOutput(mainContactorRelay, true);
-			setOutput(prechargeRelay, false);
+			setOutput(config->mainContactorRelay, true);
+			setOutput(config->prechargeRelay, false);
 			donePrecharge = true;
 		}
 	}
@@ -108,7 +103,7 @@ void MotorController::handleTick() {
 }
 
 void MotorController::setup() {
-	//this is where common parameters for motor controllers should be loaded from EEPROM
+	MotorControllerConfiguration *config = (MotorControllerConfiguration *)getConfiguration();
 
 	//first set up the appropriate digital pins. All are active low currently
 	/*
@@ -117,46 +112,15 @@ void MotorController::setup() {
 	 pinMode(MOTORCTL_INPUT_REVERSE, INPUT_PULLUP); //Reverse Gear
 	 pinMode(MOTORCTL_INPUT_LIMP, INPUT_PULLUP); //Limp mode
 	 */
-#ifndef USE_HARD_CODED
-	if (prefsHandler->checksumValid()) { //checksum is good, read in the values stored in EEPROM
-		prefsHandler->read(EEMC_MAX_RPM, &speedMax);
-		prefsHandler->read(EEMC_MAX_TORQUE, &torqueMax);
-		prefsHandler->read(EEMC_PRECHARGE_C, &prechargeC);
-		prefsHandler->read(EEMC_PRECHARGE_R, &prechargeR);
-		prefsHandler->read(EEMC_NOMINAL_V, &nominalVolt);
-		prefsHandler->read(EEMC_PRECHARGE_RELAY, &prechargeRelay);
-		prefsHandler->read(EEMC_CONTACTOR_RELAY, &mainContactorRelay);
-		prefsHandler->read(EEMC_REVERSE_LIMIT, &reversePercent);
-	}
-	else { //checksum invalid. Reinitialize values and store to EEPROM
-		speedMax = MaxRPMValue;
-		torqueMax = MaxTorqueValue;
-		prechargeC = PrechargeC;
-		prechargeR = PrechargeR;
-		nominalVolt = NominalVolt;
-		prechargeRelay = PrechargeRelay;
-		mainContactorRelay = MainContactorRelay;
-		reversePercent = ReversePercent;
-		saveEEPROM();
-	}
 
-#else
-	speedMax = MaxRPMValue;
-	torqueMax = MaxTorqueValue;
-	prechargeC = PrechargeC;
-	prechargeR = PrechargeR;
-	nominalVolt = NominalVolt;
-	prechargeRelay = PrechargeRelay;
-	mainContactorRelay = MainContactorRelay;
-#endif
+	Device:setup();
 
-	Logger::info("MaxTorque: %i MaxRPM: %i", torqueMax, speedMax);
-	if (prechargeC> 0 && prechargeRelay < NUM_OUTPUT) {
+	if (config->prechargeC> 0 && config->prechargeRelay < NUM_OUTPUT) {
 		//precharge time is 5RC which is (R*C / 1000) ms * 5 = RC/200 but ohms is in tenths so divide by another 10 = RC/2000
-		prechargeTime = ((int)prechargeC * prechargeR) / 2000;
-		Logger::info("RC precharge mode. C: %i  R: %i   Precharge time: %i ms", prechargeC, prechargeR, prechargeTime);
-		setOutput(prechargeRelay, true); //start the precharge right now
-		setOutput(mainContactorRelay, false); //just to be sure
+		prechargeTime = ((int)config->prechargeC * config->prechargeR) / 2000;
+		Logger::info("RC precharge mode. C: %i  R: %i   Precharge time: %i ms", config->prechargeC, config->prechargeR, prechargeTime);
+		setOutput(config->prechargeRelay, true); //start the precharge right now
+		setOutput(config->mainContactorRelay, false); //just to be sure
 	}
 	else {
 		Logger::info("Not precharging in RC mode");
@@ -195,30 +159,12 @@ int16_t MotorController::getSpeedActual() {
 	return speedActual;
 }
 
-uint16_t MotorController::getSpeedMax() {
-	return speedMax;
-}
-
-void MotorController::setSpeedMax(uint16_t speedMax)
-{
-	this->speedMax = speedMax;
-}
-
 int16_t MotorController::getTorqueRequested() {
 	return torqueRequested;
 }
 
 int16_t MotorController::getTorqueActual() {
 	return torqueActual;
-}
-
-uint16_t MotorController::getTorqueMax() {
-	return torqueMax;
-}
-
-void MotorController::setTorqueMax(uint16_t maxTorque)
-{
-	this->torqueMax = maxTorque;
 }
 
 MotorController::GearSwitch MotorController::getGearSwitch() {
@@ -257,73 +203,6 @@ int16_t MotorController::getTemperatureSystem() {
 	return temperatureSystem;
 }
 
-uint16_t MotorController::getPrechargeC()
-{
-	return prechargeC;
-}
-void MotorController::setPrechargeC(uint16_t c)
-{
-	prechargeC = c;
-}
-
-uint16_t MotorController::getPrechargeR()
-{
-	return prechargeR;
-}
-void MotorController::setPrechargeR(uint16_t r) 
-{
-	prechargeR = r;
-}
-
-uint16_t MotorController::getNominalV()
-{
-	return nominalVolt;
-}
-void MotorController::setNominalV(uint16_t v) 
-{
-	nominalVolt = v;
-}
-
-uint8_t MotorController::getPrechargeRelay()
-{
-	return prechargeRelay;
-}
-void MotorController::setPrechargeRelay(uint8_t relay) 
-{
-	prechargeRelay = relay;
-}
-
-uint8_t MotorController::getMainRelay()
-{
-	return mainContactorRelay;
-}
-void MotorController::setMainRelay(uint8_t relay) 
-{
-	mainContactorRelay = relay;
-}
-
-uint8_t MotorController::getReversePercent()
-{
-	return reversePercent;
-}
-void MotorController::setReversePercent(uint8_t perc) 
-{
-	reversePercent = perc;
-}
-
-void MotorController::saveEEPROM()
-{
-	prefsHandler->write(EEMC_MAX_RPM, speedMax);
-	prefsHandler->write(EEMC_MAX_TORQUE, torqueMax);
-	prefsHandler->write(EEMC_PRECHARGE_C, prechargeC);
-	prefsHandler->write(EEMC_PRECHARGE_R, prechargeR);
-	prefsHandler->write(EEMC_NOMINAL_V, nominalVolt);
-	prefsHandler->write(EEMC_CONTACTOR_RELAY, mainContactorRelay);
-	prefsHandler->write(EEMC_PRECHARGE_RELAY, prechargeRelay);
-	prefsHandler->write(EEMC_REVERSE_LIMIT, reversePercent);
-	prefsHandler->saveChecksum();
-}
-
 uint32_t MotorController::getStatusBitfield1() {
 	return statusBitfield1;
 }
@@ -346,4 +225,56 @@ uint32_t MotorController::getTickInterval() {
 
 bool MotorController::isReady() {
 	return false;
+}
+
+void MotorController::loadConfiguration() {
+	MotorControllerConfiguration *config = (MotorControllerConfiguration *)getConfiguration();
+
+#ifdef USE_HARD_CODED
+	if (false) {
+#else
+	if (prefsHandler->checksumValid()) { //checksum is good, read in the values stored in EEPROM
+#endif
+		prefsHandler->read(EEMC_MAX_RPM, &config->speedMax);
+		prefsHandler->read(EEMC_MAX_TORQUE, &config->torqueMax);
+		prefsHandler->read(EEMC_RPM_SLEW_RATE, &config->speedSlewRate);
+		prefsHandler->read(EEMC_TORQUE_SLEW_RATE, &config->torqueSlewRate);
+		prefsHandler->read(EEMC_REVERSE_LIMIT, &config->reversePercent);
+		prefsHandler->read(EEMC_PRECHARGE_C, &config->prechargeC);
+		prefsHandler->read(EEMC_PRECHARGE_R, &config->prechargeR);
+		prefsHandler->read(EEMC_NOMINAL_V, &config->nominalVolt);
+		prefsHandler->read(EEMC_PRECHARGE_RELAY, &config->prechargeRelay);
+		prefsHandler->read(EEMC_CONTACTOR_RELAY, &config->mainContactorRelay);
+	}
+	else { //checksum invalid. Reinitialize values and store to EEPROM
+		config->speedMax = MaxRPMValue;
+		config->torqueMax = MaxTorqueValue;
+		config->speedSlewRate = RPMSlewRateValue;
+		config->torqueSlewRate = TorqueSlewRateValue;
+		config->reversePercent = ReversePercent;
+		config->prechargeC = PrechargeC;
+		config->prechargeR = PrechargeR;
+		config->nominalVolt = NominalVolt;
+		config->prechargeRelay = PrechargeRelay;
+		config->mainContactorRelay = MainContactorRelay;
+	}
+	Logger::info("MaxTorque: %i MaxRPM: %i", config->torqueMax, config->speedMax);
+}
+
+void MotorController::saveConfiguration() {
+	MotorControllerConfiguration *config = (MotorControllerConfiguration *)getConfiguration();
+
+	Device:saveConfiguration(); // call parent
+
+	prefsHandler->write(EEMC_MAX_RPM, config->speedMax);
+	prefsHandler->write(EEMC_MAX_TORQUE, config->torqueMax);
+	prefsHandler->write(EEMC_RPM_SLEW_RATE, config->speedSlewRate);
+	prefsHandler->write(EEMC_TORQUE_SLEW_RATE, config->torqueSlewRate);
+	prefsHandler->write(EEMC_REVERSE_LIMIT, config->reversePercent);
+	prefsHandler->write(EEMC_PRECHARGE_C, config->prechargeC);
+	prefsHandler->write(EEMC_PRECHARGE_R, config->prechargeR);
+	prefsHandler->write(EEMC_NOMINAL_V, config->nominalVolt);
+	prefsHandler->write(EEMC_CONTACTOR_RELAY, config->mainContactorRelay);
+	prefsHandler->write(EEMC_PRECHARGE_RELAY, config->prechargeRelay);
+	prefsHandler->saveChecksum();
 }

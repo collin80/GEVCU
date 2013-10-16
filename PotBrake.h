@@ -42,6 +42,7 @@
  * NOTE: Because of ThrottleDetector, this currently MUST be the same as PotThrottleConfiguratin !!!
  */
 class PotBrakeConfiguration: public PotThrottleConfiguration {
+public:
 };
 
 class PotBrake: public Throttle {

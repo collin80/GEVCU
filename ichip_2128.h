@@ -82,9 +82,18 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include "PotThrottle.h"
 #include "Sys_Messages.h"
 
+/*
+ * The extended configuration class with additional parameters for ichip WLAN
+ */
+class WifiConfiguration : public DeviceConfiguration {
+public:
+};
+
 class ICHIPWIFI : public Device {
     public:
     
+    ICHIPWIFI();
+    ICHIPWIFI(USARTClass *which);
     void setup(); //initialization on start up
     DeviceType getType();
     DeviceId getId();
@@ -94,9 +103,9 @@ class ICHIPWIFI : public Device {
     void disableServer(); //turn off the web server
     void handleMessage(uint32_t messageType, void* message);
     char *getTimeRunning();
-    ICHIPWIFI();
-    ~ICHIPWIFI();
-    ICHIPWIFI(USARTClass *which);
+
+	void loadConfiguration();
+	void saveConfiguration();
 
     private:
     USARTClass* serialInterface; //Allows for retargetting which serial port we use

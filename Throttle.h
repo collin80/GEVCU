@@ -71,6 +71,8 @@ public:
 	virtual DeviceType getType();
 
 	virtual RawSignalData *acquireRawSignal();
+	virtual void loadConfiguration();
+	virtual void saveConfiguration();
 
 protected:
 	virtual bool validateSignal(RawSignalData *);
