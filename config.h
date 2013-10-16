@@ -35,8 +35,8 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 #include <due_can.h>
 
-#define CFG_BUILD_NUM	1012        //increment this every time a git commit is done. 
-#define CFG_VERSION "GEVCU alpha 2013-10-01"
+#define CFG_BUILD_NUM	1013        //increment this every time a git commit is done. 
+#define CFG_VERSION "GEVCU alpha 2013-10-16"
 
 
 /*
@@ -58,8 +58,8 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #define CFG_ENABLE_DEVICE_POT_BRAKE
 #define CFG_ENABLE_DEVICE_MOTORCTRL_DMOC_645
 //#define CFG_ENABLE_DEVICE_MOTORCTRL_BRUSA_DMC5
-//#define CFG_ENABLE_DEVICE_ICHIP2128_WIFI
-//#define CFG_ENABLE_DEVICE_BMS_THINK
+#define CFG_ENABLE_DEVICE_ICHIP2128_WIFI
+#define CFG_ENABLE_DEVICE_BMS_THINK
 
 
 /*
