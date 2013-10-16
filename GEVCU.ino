@@ -220,7 +220,7 @@ void initializeDevices() {
 		deviceManager->addDevice(caccelerator);
 	}
 
-	Throttle *pbrake = new PotBrake(CFG_BRAKE_PIN, CFG_THROTTLE_NONE); //set up the brake input as the third ADC input from the shield.
+	Throttle *pbrake = new PotBrake(CFG_BRAKE_PIN); //set up the brake input as the third ADC input from the shield.
 	if (pbrake->isEnabled()) {
 		Logger::info("add device: PotBrake (%X)", pbrake);
 		deviceManager->addDevice(pbrake);
