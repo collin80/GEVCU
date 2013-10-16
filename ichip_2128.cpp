@@ -240,6 +240,13 @@ void ICHIPWIFI::setParam(String paramName, uint16_t value) {
 }
 
 /*
+ * Set a parameter to the given unit16 value
+ */
+void ICHIPWIFI::setParam(String paramName, uint8_t value) {
+	sprintf(buffer, "%d", value);
+	setParam(paramName, buffer);
+}
+/*
  * Set a parameter to the given float value
  */
 void ICHIPWIFI::setParam(String paramName, float value, int precision) {
@@ -302,6 +309,16 @@ void ICHIPWIFI::loop() {
  * by looking for the '=' sign and the leading/trailing '"' have to be ignored.
  */
 void ICHIPWIFI::processParameterChange(char *key) {
+	PotThrottleConfiguration *acceleratorConfig;
+	PotThrottleConfiguration *brakeConfig;
+	Throttle *accelerator = DeviceManager::getInstance()->getAccelerator();
+	Throttle *brake = DeviceManager::getInstance()->getBrake();
+
+	if (accelerator)
+		acceleratorConfig = (PotThrottleConfiguration *)accelerator->getConfiguration();
+	if (brake)
+		brakeConfig = (PotThrottleConfiguration *)brake->getConfiguration();
+
 	char *value = strchr(key, '=');
 	if (value) {
 		value[0] = 0; // replace the '=' sign with a 0
@@ -311,48 +328,56 @@ void ICHIPWIFI::processParameterChange(char *key) {
 		if (value[strlen(value) - 1] == '"')
 			value[strlen(value) - 1] = 0; // if the value ends with a '"' character, replace it with 0
 
-		if (!strcmp(key, "numThrottlePots")) {
-			DeviceManager::getInstance()->getAccelerator()->setNumberPotMeters(atol(value));
-			DeviceManager::getInstance()->getAccelerator()->saveEEPROM();
-		} else if (!strcmp(key, "throttleSubType")) {
-			DeviceManager::getInstance()->getAccelerator()->setSubtype(atol(value));
-			DeviceManager::getInstance()->getAccelerator()->saveEEPROM();
-		} else if (!strcmp(key, "throttleMin1")) {
-			DeviceManager::getInstance()->getAccelerator()->setMinumumLevel1(atol(value));
-			DeviceManager::getInstance()->getAccelerator()->saveEEPROM();
-		} else if (!strcmp(key, "throttleMin2")) {
-			DeviceManager::getInstance()->getAccelerator()->setMinimumLevel2(atol(value));
-			DeviceManager::getInstance()->getAccelerator()->saveEEPROM();
-		} else if (!strcmp(key, "throttleMax1")) {
-			DeviceManager::getInstance()->getAccelerator()->setMaximumLevel1(atol(value));
-			DeviceManager::getInstance()->getAccelerator()->saveEEPROM();
-		} else if (!strcmp(key, "throttleMax2")) {
-			DeviceManager::getInstance()->getAccelerator()->setMaximumLevel2(atol(value));
-			DeviceManager::getInstance()->getAccelerator()->saveEEPROM();
-		} else if (!strcmp(key, "throttleRegen")) {
-			DeviceManager::getInstance()->getAccelerator()->setPositionRegenStart(atol(value));
-			DeviceManager::getInstance()->getAccelerator()->saveEEPROM();
-		} else if (!strcmp(key, "throttleFwd")) {
-			DeviceManager::getInstance()->getAccelerator()->setPositionForwardMotionStart(atol(value));
-			DeviceManager::getInstance()->getAccelerator()->saveEEPROM();
-		} else if (!strcmp(key, "throttleMap")) {
-			DeviceManager::getInstance()->getAccelerator()->setPositionHalfPower(atol(value));
-			DeviceManager::getInstance()->getAccelerator()->saveEEPROM();
-		} else if (!strcmp(key, "throttleMaxRegen")) {
-			DeviceManager::getInstance()->getAccelerator()->setMaximumRegen(atol(value));
-			DeviceManager::getInstance()->getAccelerator()->saveEEPROM();
-		} else if (!strcmp(key, "brakeMin")) {
-			DeviceManager::getInstance()->getBrake()->setMinumumLevel1(atol(value));
-			DeviceManager::getInstance()->getBrake()->saveEEPROM();
-		} else if (!strcmp(key, "brakeMax")) {
-			DeviceManager::getInstance()->getBrake()->setMaximumLevel1(atol(value));
-			DeviceManager::getInstance()->getBrake()->saveEEPROM();
-		} else if (!strcmp(key, "brakeMinRegen")) {
-			DeviceManager::getInstance()->getBrake()->setMinimumRegen(atol(value));
-			DeviceManager::getInstance()->getBrake()->saveEEPROM();
-		} else if (!strcmp(key, "brakeMaxRegen")) {
-			DeviceManager::getInstance()->getBrake()->setMaximumRegen(atol(value));
-			DeviceManager::getInstance()->getBrake()->saveEEPROM();
+		if (!strcmp(key, "numThrottlePots") && acceleratorConfig) {
+			acceleratorConfig->numberPotMeters = atol(value);
+			accelerator->saveConfiguration();
+		} else if (!strcmp(key, "throttleSubType") && acceleratorConfig) {
+			acceleratorConfig->throttleSubType = atol(value);
+			accelerator->saveConfiguration();
+		} else if (!strcmp(key, "throttleMin1") && acceleratorConfig) {
+			acceleratorConfig->minimumLevel1 = atol(value);
+			accelerator->saveConfiguration();
+		} else if (!strcmp(key, "throttleMin2") && acceleratorConfig) {
+			acceleratorConfig->minimumLevel2 = atol(value);
+			accelerator->saveConfiguration();
+		} else if (!strcmp(key, "throttleMax1") && acceleratorConfig) {
+			acceleratorConfig->maximumLevel1 = atol(value);
+			accelerator->saveConfiguration();
+		} else if (!strcmp(key, "throttleMax2") && acceleratorConfig) {
+			acceleratorConfig->maximumLevel2 = atol(value);
+			accelerator->saveConfiguration();
+		} else if (!strcmp(key, "throttleRegenMax") && acceleratorConfig) {
+			acceleratorConfig->positionRegenMaximum = atol(value) * 10;
+		} else if (!strcmp(key, "throttleRegenMin") && acceleratorConfig) {
+			acceleratorConfig->positionRegenMinimum = atol(value) * 10;
+			accelerator->saveConfiguration();
+		} else if (!strcmp(key, "throttleFwd") && acceleratorConfig) {
+			acceleratorConfig->positionForwardMotionStart = atol(value) * 10;
+			accelerator->saveConfiguration();
+		} else if (!strcmp(key, "throttleMap") && acceleratorConfig) {
+			acceleratorConfig->positionHalfPower = atol(value) * 10;
+			accelerator->saveConfiguration();
+		} else if (!strcmp(key, "throttleMinRegen") && acceleratorConfig) {
+			acceleratorConfig->minimumRegen = atol(value);
+			accelerator->saveConfiguration();
+		} else if (!strcmp(key, "throttleMaxRegen") && acceleratorConfig) {
+			acceleratorConfig->maximumRegen = atol(value);
+			accelerator->saveConfiguration();
+		} else if (!strcmp(key, "throttleCreep") && acceleratorConfig) {
+			acceleratorConfig->creep = atol(value);
+			accelerator->saveConfiguration();
+		} else if (!strcmp(key, "brakeMin") && brakeConfig) {
+			brakeConfig->minimumLevel1 = atol(value);
+			brake->saveConfiguration();
+		} else if (!strcmp(key, "brakeMax") && brakeConfig) {
+			brakeConfig->maximumLevel1 = atol(value);
+			brake->saveConfiguration();
+		} else if (!strcmp(key, "brakeMinRegen") && brakeConfig) {
+			brakeConfig->minimumRegen = atol(value);
+			brake->saveConfiguration();
+		} else if (!strcmp(key, "brakeMaxRegen") && brakeConfig) {
+			brakeConfig->maximumRegen = atol(value);
+			brake->saveConfiguration();
 		} else if (!strcmp(key, "speedMax")) {
 			DeviceManager::getInstance()->getMotorController()->setSpeedMax(atol(value));
 			DeviceManager::getInstance()->getMotorController()->saveEEPROM();
@@ -372,21 +397,31 @@ void ICHIPWIFI::loadParameters() {
 	MotorController *motorController = DeviceManager::getInstance()->getMotorController();
 	Throttle *accelerator = DeviceManager::getInstance()->getAccelerator();
 	Throttle *brake = DeviceManager::getInstance()->getBrake();
+	PotThrottleConfiguration *acceleratorConfig;
+	PotThrottleConfiguration *brakeConfig;
 
-	setParam("numThrottlePots", (uint16_t)accelerator->getNumberPotMeters());
-	setParam("throttleSubType", (uint16_t)accelerator->getSubtype());
-	setParam("throttleMin1", accelerator->getMinimumLevel1());
-	setParam("throttleMin2", accelerator->getMinimumLevel2());
-	setParam("throttleMax1", accelerator->getMaximumLevel1());
-	setParam("throttleMax2", accelerator->getMaximumLevel2());
-	setParam("throttleRegen", accelerator->getPositionRegenStart());
-	setParam("throttleFwd", accelerator->getPositionForwardMotionStart());
-	setParam("throttleMap", accelerator->getPositionHalfPower());
-	setParam("throttleMaxRegen", accelerator->getMaximumRegen());
-	setParam("brakeMin", brake->getMinimumLevel1());
-	setParam("brakeMax", brake->getMaximumLevel1());
-	setParam("brakeMinRegen", brake->getMinimumRegen());
-	setParam("brakeMaxRegen", brake->getMaximumRegen());
+	if (accelerator)
+		acceleratorConfig = (PotThrottleConfiguration *)accelerator->getConfiguration();
+	if (brake)
+		brakeConfig = (PotThrottleConfiguration *)brake->getConfiguration();
+
+	setParam("numThrottlePots", acceleratorConfig->numberPotMeters);
+	setParam("throttleSubType", acceleratorConfig->throttleSubType);
+	setParam("throttleMin1", acceleratorConfig->minimumLevel1);
+	setParam("throttleMin2", acceleratorConfig->minimumLevel2);
+	setParam("throttleMax1", acceleratorConfig->maximumLevel1);
+	setParam("throttleMax2", acceleratorConfig->maximumLevel2);
+	setParam("throttleRegenMax", (uint16_t)(acceleratorConfig->positionRegenMaximum / 10));
+	setParam("throttleRegenMin", (uint16_t)(acceleratorConfig->positionRegenMinimum / 10));
+	setParam("throttleFwd", (uint16_t)(acceleratorConfig->positionForwardMotionStart / 10));
+	setParam("throttleMap", (uint16_t)(acceleratorConfig->positionHalfPower / 10));
+	setParam("throttleMinRegen", acceleratorConfig->minimumRegen);
+	setParam("throttleMaxRegen", acceleratorConfig->maximumRegen);
+	setParam("throttleCreep", acceleratorConfig->creep);
+	setParam("brakeMin", brakeConfig->minimumLevel1);
+	setParam("brakeMax", brakeConfig->maximumLevel1);
+	setParam("brakeMinRegen", brakeConfig->minimumRegen);
+	setParam("brakeMaxRegen", brakeConfig->maximumRegen);
 	setParam("speedMax", motorController->getSpeedMax());
 	setParam("torqueMax", (uint16_t)(motorController->getTorqueMax() / 10)); // skip the tenth's
 }

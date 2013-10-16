@@ -209,37 +209,31 @@ void initializeDevices() {
 	// CFG_THROTTLE_NONE = not used (valid only for second value and should not be needed due to calibration/detection)
 	Throttle *accelerator = new PotThrottle(CFG_THROTTLE1_PIN, CFG_THROTTLE2_PIN);
 	Logger::info("add device: PotThrottle (%X)", accelerator);
-	//accelerator->setup();
 	deviceManager->addDevice(accelerator);
 #endif
 #ifdef CFG_ENABLE_DEVICE_CAN_THROTTLE
 	Throttle *accelerator = new CanThrottle();
 	Logger::info("add device: CanThrottle (%X)", accelerator);
-	//accelerator->setup();
 	deviceManager->addDevice(accelerator);
 #endif
 #ifdef CFG_ENABLE_DEVICE_POT_BRAKE
-	Throttle *brake = new PotBrake(CFG_BRAKE_PIN, CFG_THROTTLE_NONE); //set up the brake input as the third ADC input from the shield.
+	Throttle *brake = new PotBrake(CFG_BRAKE_PIN); //set up the brake input as the third ADC input from the shield.
 	Logger::info("add device: PotBrake (%X)", brake);
-	//brake->setup();
 	deviceManager->addDevice(brake);
 #endif
 #ifdef CFG_ENABLE_DEVICE_CAN_THROTTLE_BRAKE
 	Throttle *brake = new CanThrottle();
 	Logger::info("add device: CanThrottle brake (%X)", brake);
-	//brake->setup();
 	deviceManager->addDevice(brake);
 #endif
 #ifdef CFG_ENABLE_DEVICE_MOTORCTRL_DMOC_645
 	MotorController *motorController = new DmocMotorController(); //instantiate a DMOC645 device controller as our motor controller
 	Logger::info("add device: DMOC645 (%X)", motorController);
-	//motorController->setup();
 	deviceManager->addDevice(motorController);
 #endif
 #ifdef CFG_ENABLE_DEVICE_MOTORCTRL_BRUSA_DMC5
 	MotorController *motorController = new BrusaMotorController(); //instantiate a Brusa DMC5 device controller as our motor controller
 	Logger::info("add device: Brusa DMC5 (%X)", motorController);
-//	motorController->setup();
 	deviceManager->addDevice(motorController);
 #endif
 #ifdef CFG_ENABLE_DEVICE_BMS_THINK

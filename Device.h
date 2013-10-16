@@ -34,20 +34,37 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include "PrefHandler.h"
 #include "Sys_Messages.h"
 
-class Device : public TickObserver {
+/*
+ * A abstract class to hold device configuration. It is to be accessed
+ * by sub-classes via getConfiguration() and then cast into its
+ * correct sub-class.
+ */
+class DeviceConfiguration {
+
+};
+
+/*
+ * A abstract class for all Devices.
+ */
+class Device: public TickObserver {
 public:
 	Device();
 	virtual void setup();
 	virtual void handleTick();
-	virtual void handleMessage(uint32_t msgType, void* message);
+	virtual void handleMessage(uint32_t, void* );
 	virtual DeviceType getType();
 	virtual DeviceId getId();
-	virtual uint32_t getTickInterval();
+
+	virtual void loadConfiguration();
+	virtual void saveConfiguration();
+	DeviceConfiguration *getConfiguration();
+	void setConfiguration(DeviceConfiguration *);
 
 protected:
 	PrefHandler *prefsHandler;
 
 private:
+	DeviceConfiguration *deviceConfiguration; // reference to the currently active configuration
 };
 
 #endif /* DEVICE_H_ */
