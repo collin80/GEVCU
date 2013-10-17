@@ -119,6 +119,28 @@ PrefHandler::PrefHandler(DeviceId id_in) {
 	Logger::error("PrefManager - Device Table Full!!!");
 }
 
+//A special static function that can be called whenever, wherever to turn a specific device on/off. Does not
+//attempt to do so at runtime so the user will still have to power cycle to change the device status.
+//returns true if it could make the change, false if it could not.
+bool PrefHandler::setDeviceStatus(uint16_t device, bool enabled) 
+{
+	uint16_t id;
+	for (int x = 1; x < 64; x++) {
+		memCache->Read(EE_DEVICE_TABLE + (2 * x), &id);
+		if (id == (device & 0x7FFF)) {
+			if (enabled) {
+				id |= 0x8000;
+			}
+			else {
+				id &= 0x7FFF;
+			}
+			memCache->Write(EE_DEVICE_TABLE + (2 * x), id);
+			return true;
+		}
+	}
+	return false;
+}
+
 PrefHandler::~PrefHandler() {
 }
 

@@ -69,9 +69,7 @@ void DeviceManager::addDevice(Device *device) {
 		if (i != -1) {
 			devices[i] = device;
 		} else {
-#if DEBUG_DEVICEMGR > 0
 			Logger::error("unable to register device, max number of devices reached.");
-#endif
 		}
 	}
 	switch (device->getType()) {
@@ -142,9 +140,7 @@ void DeviceManager::sendMessage(DeviceType devType, DeviceId devId, uint32_t msg
 			{
 				if (devId == INVALID || devId == devices[i]->getId())
 				{
-#if DEBUG_DEVICEMGR > 2 //only if verbose logging is on
 					Logger::debug("Sending msg to device with ID %u", devices[i]->getId());
-#endif
 					devices[i]->handleMessage(msgType, message);
 				}
 			}
@@ -188,9 +184,7 @@ Throttle *DeviceManager::getAccelerator() {
 	//so down range code doesn't puke
 	if (!throttle) 
 	{ 
-#if DEBUG_DEVICEMGR > 1
 		Logger::debug("getAccelerator() called but there is no registered accelerator!");
-#endif
 		return 0; //NULL!
 	}
 	return throttle;
@@ -199,9 +193,7 @@ Throttle *DeviceManager::getAccelerator() {
 Throttle *DeviceManager::getBrake() {
 	if (!brake) 
 	{
-#if DEBUG_DEVICEMGR > 1
 		Logger::debug("getBrake() called but there is no registered brake!");
-#endif
 		return 0; //NULL!		
 	}
 	return brake;
@@ -210,9 +202,7 @@ Throttle *DeviceManager::getBrake() {
 MotorController *DeviceManager::getMotorController() {
 	if (!motorController) 
 	{
-#if DEBUG_DEVICEMGR > 1
 		Logger::debug("getMotorController() called but there is no registered motor controller!");
-#endif
 		return 0; //NULL!
 	}
 	return motorController;
@@ -232,9 +222,7 @@ Device *DeviceManager::getDeviceByID(DeviceId id)
 			if (devices[i]->getId() == id) return devices[i];
 		}
 	}
-#if DEBUG_DEVICEMGR > 1
 	Logger::debug("getDeviceByID - No device with ID: %u", (int)id);
-#endif
 	return 0; //NULL!
 }
 
@@ -251,9 +239,7 @@ Device *DeviceManager::getDeviceByType(DeviceType type)
 			if (devices[i]->getType() == type) return devices[i];
 		}
 	}
-#if DEBUG_DEVICEMGR > 1
 	Logger::debug("getDeviceByType - No devices of type: %u", (int)type);
-#endif
 	return 0; //NULL!
 }
 

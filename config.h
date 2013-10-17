@@ -165,20 +165,4 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #define RAWADC
 #endif
 
-
-/*
- * Per module debugging levels.
- *
- * 0 = No debugging output
- * 1 = Only errors reported
- * 2 = Warnings too
- * 3 = Generate quite a bit of debugging output
- * 4 = Start the avalanche
- * 
- * Devices do not need to implement anything for higher levels. That is,
- * you might not get any more info at level 4 than you do at 1.
- */
-
-#define DEBUG_DEVICEMGR		1
-
 #endif /* CONFIG_H_ */

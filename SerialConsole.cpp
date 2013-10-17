@@ -81,8 +81,11 @@ void SerialConsole::printMenu() {
 	SerialUSB.println("b = detect brake min/max");
 	SerialUSB.println("B = save brake values");
 	SerialUSB.println("p = enable wifi passthrough (reboot required to resume normal operation)");
+	SerialUSB.println("S = show possible device IDs");
 	SerialUSB.println();
 	SerialUSB.println("Config Commands (enter command=newvalue). Current values shown in parenthesis:");
+	SerialUSB.println("ENABLE - Enable the given device by ID");
+	SerialUSB.println("DISABLE - Disable the given device by ID");
 	Logger::console("TORQ=%i - Set torque upper limit (tenths of a Nm)", motorController->getTorqueMax());
 	Logger::console("RPMS=%i - Set maximum RPMs", motorController->getSpeedMax());
 	Logger::console("REVLIM=%i - How much torque to allow in reverse (Tenths of a percent)", motorController->getReversePercent());
@@ -188,25 +191,26 @@ void SerialConsole::handleConfigCmd() {
 	if (brake)
 		brakeConfig = (PotThrottleConfiguration *) brake->getConfiguration();
 
+	//Go ahead and move this here. It was previously reiterated in every single config handler.
+	//If you need another style of input (say, for floats) then do it yourself in your config
+	//handling block. Otherwise, this is done for you.
+	newValue = atoi((char *) (cmdBuffer + i));
+
 	cmdString.toUpperCase();
 	if (cmdString == String("TORQ")) {
-		newValue = atoi((char *) (cmdBuffer + i));
 		Logger::console("Setting Torque Limit to %i", newValue);
 		DeviceManager::getInstance()->getMotorController()->setTorqueMax(newValue);
 		DeviceManager::getInstance()->getMotorController()->saveEEPROM();
 	} else if (cmdString == String("RPMS")) {
-		newValue = atoi((char *) (cmdBuffer + i));
 		Logger::console("Setting RPM Limit to %i", newValue);
 		DeviceManager::getInstance()->getMotorController()->setSpeedMax(newValue);
 		DeviceManager::getInstance()->getMotorController()->saveEEPROM();
 	} else if (cmdString == String("REVLIM")) {
-		newValue = atoi((char *) (cmdBuffer + i));
 		Logger::console("Setting Reverse Limit to %i", newValue);
 		DeviceManager::getInstance()->getMotorController()->setReversePercent(newValue);
 		DeviceManager::getInstance()->getMotorController()->saveEEPROM();
 	} else if (cmdString == String("TPOT")) {
 		if (accelerator) {
-			newValue = atoi((char *) (cmdBuffer + i));
 			Logger::console("Setting # of Throttle Pots to %i", newValue);
 			acceleratorConfig->numberPotMeters = newValue;
 			accelerator->saveConfiguration();
@@ -215,7 +219,6 @@ void SerialConsole::handleConfigCmd() {
 		}
 	} else if (cmdString == String("TTYPE")) {
 		if (accelerator != NULL) {
-			newValue = atoi((char *) (cmdBuffer + i));
 			Logger::console("Setting Throttle Subtype to %i", newValue);
 			acceleratorConfig->throttleSubType = newValue;
 			accelerator->saveConfiguration();
@@ -224,7 +227,6 @@ void SerialConsole::handleConfigCmd() {
 		}
 	} else if (cmdString == String("T1MN")) {
 		if (accelerator != NULL) {
-			newValue = atoi((char *) (cmdBuffer + i));
 			Logger::console("Setting Throttle1 Min to %i", newValue);
 			acceleratorConfig->minimumLevel1 = newValue;
 			accelerator->saveConfiguration();
@@ -233,7 +235,6 @@ void SerialConsole::handleConfigCmd() {
 		}
 	} else if (cmdString == String("T1MX")) {
 		if (accelerator != NULL) {
-			newValue = atoi((char *) (cmdBuffer + i));
 			Logger::console("Setting Throttle1 Max to %i", newValue);
 			acceleratorConfig->maximumLevel1 = newValue;
 			accelerator->saveConfiguration();
@@ -242,7 +243,6 @@ void SerialConsole::handleConfigCmd() {
 		}
 	} else if (cmdString == String("T2MN")) {
 		if (accelerator != NULL) {
-			newValue = atoi((char *) (cmdBuffer + i));
 			Logger::console("Setting Throttle2 Min to %i", newValue);
 			acceleratorConfig->minimumLevel2 = newValue;
 			accelerator->saveConfiguration();
@@ -251,7 +251,6 @@ void SerialConsole::handleConfigCmd() {
 		}
 	} else if (cmdString == String("T2MX")) {
 		if (accelerator != NULL) {
-			newValue = atoi((char *) (cmdBuffer + i));
 			Logger::console("Setting Throttle2 Max to %i", newValue);
 			acceleratorConfig->maximumLevel2 = newValue;
 			accelerator->saveConfiguration();
@@ -260,7 +259,6 @@ void SerialConsole::handleConfigCmd() {
 		}
 	} else if (cmdString == String("TRGNMAX")) {
 		if (accelerator != NULL) {
-			newValue = atoi((char *) (cmdBuffer + i));
 			Logger::console("Setting Throttle Regen maximum to %i", newValue);
 			acceleratorConfig->positionRegenMaximum = newValue;
 			accelerator->saveConfiguration();
@@ -269,7 +267,6 @@ void SerialConsole::handleConfigCmd() {
 		}
 	} else if (cmdString == String("TRGNMIN")) {
 		if (accelerator != NULL) {
-			newValue = atoi((char *) (cmdBuffer + i));
 			Logger::console("Setting Throttle Regen minimum to %i", newValue);
 			acceleratorConfig->positionRegenMinimum = newValue;
 			accelerator->saveConfiguration();
@@ -278,7 +275,6 @@ void SerialConsole::handleConfigCmd() {
 		}
 	} else if (cmdString == String("TFWD")) {
 		if (accelerator != NULL) {
-			newValue = atoi((char *) (cmdBuffer + i));
 			Logger::console("Setting Throttle Forward Start to %i", newValue);
 			acceleratorConfig->positionForwardMotionStart = newValue;
 			accelerator->saveConfiguration();
@@ -287,7 +283,6 @@ void SerialConsole::handleConfigCmd() {
 		}
 	} else if (cmdString == String("TMAP")) {
 		if (accelerator != NULL) {
-			newValue = atoi((char *) (cmdBuffer + i));
 			Logger::console("Setting Throttle MAP Point to %i", newValue);
 			acceleratorConfig->positionHalfPower = newValue;
 			accelerator->saveConfiguration();
@@ -296,7 +291,6 @@ void SerialConsole::handleConfigCmd() {
 		}
 	} else if (cmdString == String("TMINRN")) {
 		if (accelerator != NULL) {
-			newValue = atoi((char *) (cmdBuffer + i));
 			Logger::console("Setting Throttle Regen Minimum Strength to %i", newValue);
 			acceleratorConfig->minimumRegen = newValue;
 			accelerator->saveConfiguration();
@@ -305,7 +299,6 @@ void SerialConsole::handleConfigCmd() {
 		}
 	} else if (cmdString == String("TMAXRN")) {
 		if (accelerator != NULL) {
-			newValue = atoi((char *) (cmdBuffer + i));
 			Logger::console("Setting Throttle Regen Maximum Strength to %i", newValue);
 			acceleratorConfig->maximumRegen = newValue;
 			accelerator->saveConfiguration();
@@ -314,7 +307,6 @@ void SerialConsole::handleConfigCmd() {
 		}
 	} else if (cmdString == String("TCREEP")) {
 		if (accelerator != NULL) {
-			newValue = atoi((char *) (cmdBuffer + i));
 			Logger::console("Setting Throttle Creep Strength to %i", newValue);
 			acceleratorConfig->creep = newValue;
 			accelerator->saveConfiguration();
@@ -323,7 +315,6 @@ void SerialConsole::handleConfigCmd() {
 		}
 	} else if (cmdString == String("BMAXR")) {
 		if (brake != NULL) {
-			newValue = atoi((char *) (cmdBuffer + i));
 			Logger::console("Setting Max Brake Regen to %i", newValue);
 			brakeConfig->maximumRegen = newValue;
 			brake->saveConfiguration();
@@ -332,7 +323,6 @@ void SerialConsole::handleConfigCmd() {
 		}
 	} else if (cmdString == String("BMINR")) {
 		if (brake != NULL) {
-			newValue = atoi((char *) (cmdBuffer + i));
 			Logger::console("Setting Min Brake Regen to %i", newValue);
 			brakeConfig->minimumRegen = newValue;
 			brake->saveConfiguration();
@@ -341,7 +331,6 @@ void SerialConsole::handleConfigCmd() {
 		}
 	} else if (cmdString == String("B1MX")) {
 		if (brake != NULL) {
-			newValue = atoi((char *) (cmdBuffer + i));
 			Logger::console("Setting Brake Max to %i", newValue);
 			brakeConfig->maximumLevel1 = newValue;
 			brake->saveConfiguration();
@@ -350,7 +339,6 @@ void SerialConsole::handleConfigCmd() {
 		}
 	} else if (cmdString == String("B1MN")) {
 		if (brake != NULL) {
-			newValue = atoi((char *) (cmdBuffer + i));
 			Logger::console("Setting Brake Min to %i", newValue);
 			brakeConfig->minimumLevel1 = newValue;
 			brake->saveConfiguration();
@@ -358,32 +346,40 @@ void SerialConsole::handleConfigCmd() {
 			Logger::console("No brake object available");
 		}
 	} else if (cmdString == String("PREC")) {
-		newValue = atoi((char *) (cmdBuffer + i));
 		Logger::console("Setting Precharge Capacitance to %i", newValue);
 		DeviceManager::getInstance()->getMotorController()->setPrechargeC(newValue);
 		DeviceManager::getInstance()->getMotorController()->saveEEPROM();
 	} else if (cmdString == String("PRER")) {
-		newValue = atoi((char *) (cmdBuffer + i));
 		Logger::console("Setting Precharge Resistance to %i", newValue);
 		DeviceManager::getInstance()->getMotorController()->setPrechargeR(newValue);
 		DeviceManager::getInstance()->getMotorController()->saveEEPROM();
 	} else if (cmdString == String("NOMV")) {
-		newValue = atoi((char *) (cmdBuffer + i));
 		Logger::console("Setting Nominal Voltage to %i", newValue);
 		DeviceManager::getInstance()->getMotorController()->setNominalV(newValue);
 		DeviceManager::getInstance()->getMotorController()->saveEEPROM();
 	} else if (cmdString == String("MRELAY")) {
-		newValue = atoi((char *) (cmdBuffer + i));
 		Logger::console("Setting Main Contactor relay to %i", newValue);
 		DeviceManager::getInstance()->getMotorController()->setMainRelay(newValue);
 		DeviceManager::getInstance()->getMotorController()->saveEEPROM();
 	} else if (cmdString == String("PRELAY")) {
-		newValue = atoi((char *) (cmdBuffer + i));
 		Logger::console("Setting Precharge Relay to %i", newValue);
 		DeviceManager::getInstance()->getMotorController()->setPrechargeRelay(newValue);
 		DeviceManager::getInstance()->getMotorController()->saveEEPROM();
+	} else if (cmdString == String("ENABLE")) {
+		if (PrefHandler::setDeviceStatus(newValue, true)) {
+			Logger::console("Succesfully enabled device. Power cycle to activate.");
+		}
+		else {
+			Logger::console("Invalid device ID");
+		}
+	} else if (cmdString == String("DISABLE")) {
+		if (PrefHandler::setDeviceStatus(newValue, true)) {
+			Logger::console("Succesfully disabled device. Power cycle to deactivate.");
+		}
+		else {
+			Logger::console("Invalid device ID");
+		}
 	} else if (cmdString == String("LOGLEVEL")) {
-		newValue = atoi((char *) (cmdBuffer + i));
 		switch (newValue) {
 		case 0:
 			Logger::setLoglevel(Logger::Debug);
@@ -507,6 +503,23 @@ void SerialConsole::handleShortCmd() {
 				SerialUSB.write((char) inSerial3);
 			}
 		}
+		break;
+
+	case 'S':
+		//there is not really any good way (currently) to auto generate this list
+		//the information just isn't stored anywhere in code. Perhaps we might
+		//think to change that. Otherwise you must remember to update here or
+		//nobody will know your device exists. Additionally, these values are
+		//decoded into decimal from their hex specification in DeviceTypes.h
+		Logger::console("DMOC645 = 4096");
+		Logger::console("Brusa DMC5 = 4097");
+		Logger::console("Brusa Charger = 4112");
+		Logger::console("TCCH Charger = 4128");
+		Logger::console("Pot based accelerator = 4144");
+		Logger::console("Pot based brake = 4145");
+		Logger::console("CANBus accelerator = 4146");
+		Logger::console("WIFI (iChip2128) = 4160");
+		Logger::console("Th!nk City BMS = 8192");
 		break;
 	}
 }
