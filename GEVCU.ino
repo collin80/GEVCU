@@ -54,6 +54,8 @@ Sept 19 2013:
 1010 - Support for GEVCU3 boards
 1011 - Added support for Think City battery packs with BMS
 1012 - Tons of changes to MotorController and SerialConsole
+1013 - New release in master - Addition of Wifi configuration pages, throttle changes
+1014 - Brand new system in place that allows devices to be configured based on EEPROM instead of compiler defines.
 */
 
 
@@ -96,7 +98,7 @@ TickHandler *tickHandler;
 PrefHandler *sysPrefs;
 MemCache *memCache;
 Heartbeat *heartbeat;
-SerialConsole * serialConsole;
+SerialConsole *serialConsole;
 
 byte i = 0;
 
@@ -108,7 +110,7 @@ void initSysEEPROM() {
 	uint16_t sixteen;
 	uint32_t thirtytwo;
 
-	eight = SYSTEM_DUE;
+	eight = SYSTEM_DUED;
 	sysPrefs->write(EESYS_SYSTEM_TYPE, eight);
 
 	sixteen = 1024; //no gain
@@ -199,54 +201,64 @@ void initSysEEPROM() {
 void initializeDevices() {
 	DeviceManager *deviceManager = DeviceManager::getInstance();
 
-#ifdef CFG_ENABLE_DEVICE_HEARTBEAT
+	//heartbeat is always enabled now
 	heartbeat = new Heartbeat();
 	Logger::info("add: Heartbeat (%X)", heartbeat);
 	heartbeat->setup();
-#endif
-#ifdef CFG_ENABLE_DEVICE_POT_THROTTLE
+
 	// Specify the shield ADC port(s) to use for throttle
 	// CFG_THROTTLE_NONE = not used (valid only for second value and should not be needed due to calibration/detection)
-	Throttle *accelerator = new PotThrottle(CFG_THROTTLE1_PIN, CFG_THROTTLE2_PIN);
-	Logger::info("add device: PotThrottle (%X)", accelerator);
-	deviceManager->addDevice(accelerator);
-#endif
-#ifdef CFG_ENABLE_DEVICE_CAN_THROTTLE
-	Throttle *accelerator = new CanThrottle();
-	Logger::info("add device: CanThrottle (%X)", accelerator);
-	deviceManager->addDevice(accelerator);
-#endif
-#ifdef CFG_ENABLE_DEVICE_POT_BRAKE
-	Throttle *brake = new PotBrake(CFG_BRAKE_PIN); //set up the brake input as the third ADC input from the shield.
-	Logger::info("add device: PotBrake (%X)", brake);
-	deviceManager->addDevice(brake);
-#endif
-#ifdef CFG_ENABLE_DEVICE_CAN_THROTTLE_BRAKE
-	Throttle *brake = new CanThrottle();
-	Logger::info("add device: CanThrottle brake (%X)", brake);
-	deviceManager->addDevice(brake);
-#endif
-#ifdef CFG_ENABLE_DEVICE_MOTORCTRL_DMOC_645
-	MotorController *motorController = new DmocMotorController(); //instantiate a DMOC645 device controller as our motor controller
-	Logger::info("add device: DMOC645 (%X)", motorController);
-	deviceManager->addDevice(motorController);
-#endif
-#ifdef CFG_ENABLE_DEVICE_MOTORCTRL_BRUSA_DMC5
-	MotorController *motorController = new BrusaMotorController(); //instantiate a Brusa DMC5 device controller as our motor controller
-	Logger::info("add device: Brusa DMC5 (%X)", motorController);
-	deviceManager->addDevice(motorController);
-#endif
-#ifdef CFG_ENABLE_DEVICE_BMS_THINK
+	Throttle *paccelerator = new PotThrottle(CFG_THROTTLE1_PIN, CFG_THROTTLE2_PIN);
+	if (paccelerator->isEnabled()) {
+		Logger::info("add device: PotThrottle (%X)", paccelerator);		
+		deviceManager->addDevice(paccelerator);
+	}
+
+	Throttle *caccelerator = new CanThrottle();
+	if (caccelerator->isEnabled()) {
+		Logger::info("add device: CanThrottle (%X)", caccelerator);
+		deviceManager->addDevice(caccelerator);
+	}
+
+	Throttle *pbrake = new PotBrake(CFG_BRAKE_PIN); //set up the brake input as the third ADC input from the shield.
+	if (pbrake->isEnabled()) {
+		Logger::info("add device: PotBrake (%X)", pbrake);
+		deviceManager->addDevice(pbrake);
+	}
+
+	Throttle *cbrake = new CanThrottle();
+	if (cbrake->isEnabled()) {
+		Logger::info("add device: CanThrottle brake (%X)", cbrake);	
+		deviceManager->addDevice(cbrake);
+	}
+
+	MotorController *dmotorController = new DmocMotorController(); //instantiate a DMOC645 device controller as our motor controller
+	if (dmotorController->isEnabled()) {
+		Logger::info("add device: DMOC645 (%X)", dmotorController);
+		deviceManager->addDevice(dmotorController);
+	}
+
+	MotorController *bmotorController = new BrusaMotorController(); //instantiate a Brusa DMC5 device controller as our motor controller
+	if (bmotorController->isEnabled()) {
+		Logger::info("add device: Brusa DMC5 (%X)", bmotorController);
+		deviceManager->addDevice(bmotorController);
+	}
+
 	BatteryManager *BMS = new ThinkBatteryManager();
-	Logger::info("add device: Th!nk City BMS (%X)", BMS);
-	deviceManager->addDevice(BMS);
-#endif
+	if (BMS->isEnabled()) {
+		Logger::info("add device: Th!nk City BMS (%X)", BMS);
+		deviceManager->addDevice(BMS);
+	}
+
 // add wifi as last device, because ICHIPWIFI::loadParameters() depends on pre-loaded preferences
-#ifdef CFG_ENABLE_DEVICE_ICHIP2128_WIFI
+/*
+	Logger::info("Trying WIFI");
 	ICHIPWIFI *iChip = new ICHIPWIFI();
-	Logger::info("add device: iChip 2128 WiFi (%X)", iChip);	
-	deviceManager->addDevice(iChip);
-#endif
+	if (iChip->isEnabled()) {
+		Logger::info("add device: iChip 2128 WiFi (%X)", iChip);	
+		deviceManager->addDevice(iChip);
+	}
+*/
 	/*
 	 *	We defer setting up the devices until here. This allows all objects to be instantiated
 	 *	before any of them set up. That in turn allows the devices to inspect what else is
@@ -259,22 +271,8 @@ void initializeDevices() {
 
 void setup() {
 
-	sys_early_setup();
-
-	SerialUSB.begin(CFG_SERIAL_SPEED);
-	SerialUSB.println(CFG_VERSION);
-	SerialUSB.print("Build number: ");
-	SerialUSB.println(CFG_BUILD_NUM);
-        
 	pinMode(BLINK_LED, OUTPUT);
 	digitalWrite(BLINK_LED, LOW);
-
-	tickHandler = TickHandler::getInstance();
-
-	canHandlerEV = CanHandler::getInstanceEV();
-	canHandlerCar = CanHandler::getInstanceCar();
-	canHandlerEV->initialize();
-	canHandlerCar->initialize();
 
 	Wire.begin();
 	Logger::info("TWI init ok");
@@ -282,13 +280,27 @@ void setup() {
 	memCache = new MemCache();
 	Logger::info("add MemCache (%X)", memCache);
 	memCache->setup();
-	sysPrefs = new PrefHandler(EE_SYSTEM_START);
+	sysPrefs = new PrefHandler(SYSTEM);
 	if (!sysPrefs->checksumValid()) {
 		Logger::info("Initializing EEPROM");
 		initSysEEPROM();
 	} else {  //checksum is good, read in the values stored in EEPROM
 		Logger::info("Using existing EEPROM values");
 	}
+
+	sys_early_setup();
+
+	SerialUSB.begin(CFG_SERIAL_SPEED);
+	SerialUSB.println(CFG_VERSION);
+	SerialUSB.print("Build number: ");
+	SerialUSB.println(CFG_BUILD_NUM);
+        
+	tickHandler = TickHandler::getInstance();
+
+	canHandlerEV = CanHandler::getInstanceEV();
+	canHandlerCar = CanHandler::getInstanceCar();
+	canHandlerEV->initialize();
+	canHandlerCar->initialize();
 
 	//rtc_clock.init();
 	//Now, we have no idea what the real time is but the EEPROM should have stored a time in the past.
@@ -320,11 +332,9 @@ void setup() {
 
 void loop() {
 
-#ifdef CFG_ENABLE_DEVICE_ICHIP2128_WIFI	
-	//Evilness... Find a better way to reference the wifi stuff
 	Device *tempDevice;
 	tempDevice = DeviceManager::getInstance()->getDeviceByID(ICHIP2128);
-#endif
+
 
 #ifdef CFG_TIMER_USE_QUEUING
 	tickHandler->process();
@@ -336,11 +346,9 @@ void loop() {
 
 	serialConsole->loop();
 
-#ifdef CFG_ENABLE_DEVICE_ICHIP2128_WIFI
 	if ( tempDevice != NULL ) {
-	((ICHIPWIFI*)tempDevice)->loop();
+		((ICHIPWIFI*)tempDevice)->loop();
 	}
-#endif
 
 	//this should still be here. It checks for a flag set during an interrupt
 	sys_io_adc_poll();

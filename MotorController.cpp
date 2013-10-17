@@ -29,8 +29,6 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include "MotorController.h"
  
 MotorController::MotorController() : Device() {
-	prefsHandler = new PrefHandler(EE_MOTORCTL_START);
-
 	ready = false;
 	running = false;
 	faulted = false;

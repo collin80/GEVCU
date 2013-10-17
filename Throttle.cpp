@@ -31,7 +31,6 @@
  * Constructor
  */
 Throttle::Throttle() : Device() {
-	prefsHandler = new PrefHandler(EE_THROTTLE_START);
 	level = 0;
 }
 
@@ -97,8 +96,8 @@ int16_t Throttle::mapPedalPosition(int16_t pedalPosition) {
 			range = config->positionRegenMaximum;
 			value = pedalPosition;
 			throttleLevel = -10 * config->maximumRegen * value / range;
+			}
 		}
-	}
 
 	if (pedalPosition >= config->positionForwardMotionStart) {
 		if (pedalPosition <= config->positionHalfPower) {
@@ -110,8 +109,8 @@ int16_t Throttle::mapPedalPosition(int16_t pedalPosition) {
 			range = 1000 - config->positionHalfPower;
 			value = pedalPosition - config->positionHalfPower;
 			throttleLevel = 500 + 500 * value / range;
-		}
-	}
+			}
+			}
 	//Logger::debug("throttle level: %d", throttleLevel);
 	return throttleLevel;
 }

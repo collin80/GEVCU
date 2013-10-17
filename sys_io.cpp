@@ -34,25 +34,9 @@ by stimmer
 
 #undef HID_ENABLED
 
-//pin definitions for system IO
-
-
-#ifdef DUED
-uint8_t dig[] = {9, 11, 12, 13};
-uint8_t adc[NUM_ANALOG][2] = {{1,0}, {3,2}, {5,4}, {7,6}}; //low, high
-#elif defined GEVCU3
-uint8_t dig[] = {48, 49, 50, 51};
-uint8_t adc[NUM_ANALOG][2] = {{3,255}, {2,255}, {1,255}, {0,255}}; //low, high
-#else 
-uint8_t adc[NUM_ANALOG][2] = {{1,0}, {2,3}, {4,5}, {7,6}}; //low, high
-uint8_t dig[] = {11, 9, 13, 12};
-#endif
-
-#ifdef GEVCU3
-uint8_t out[] = {9, 8, 7, 6};
-#else
-uint8_t out[] = {52, 22, 48, 32};
-#endif
+uint8_t dig[NUM_DIGITAL];
+uint8_t adc[NUM_ANALOG][2];
+uint8_t out[NUM_OUTPUT];
 
 volatile int bufn,obufn;
 volatile uint16_t adc_buf[NUM_ANALOG][256];   // 4 buffers of 256 readings
@@ -69,25 +53,61 @@ extern PrefHandler *sysPrefs;
 
 ADC_COMP adc_comp[NUM_ANALOG];
 
+bool useRawADC = false;
+
 //forces the digital I/O ports to a safe state. This is called very early in initialization.
 void sys_early_setup() {
-  int i;
-  for (i = 0; i < NUM_DIGITAL; i++) pinMode(dig[i], INPUT);
-  for (i = 0; i < NUM_OUTPUT; i++) {
-	  pinMode(out[i], OUTPUT);
-	  digitalWrite(out[i], LOW);
-  }
+	int i;
+
+	//the first order of business is to figure out what hardware we are running on and fill in
+	//the pin tables.
+
+	uint8_t rawadc;
+	sysPrefs->read(EESYS_RAWADC, &rawadc);
+	if (rawadc != 0) useRawADC = true;
+	else useRawADC = false;
+
+	uint8_t sys_type;
+	sysPrefs->read(EESYS_SYSTEM_TYPE, &sys_type);
+	if (sys_type == 2) {
+		dig[0]=9; dig[1]=11; dig[2]=12; dig[3]=13;
+		adc[0][0] = 1; adc[0][1] = 0;
+		adc[1][0] = 3; adc[1][1] = 2;
+		adc[1][0] = 5; adc[1][1] = 4;
+		adc[1][0] = 7; adc[1][1] = 6;
+		out[0] = 52; out[1] = 22; out[2] = 48; out[3] = 32;
+	} else if (sys_type == 3) {
+		dig[0]=48; dig[1]=49; dig[2]=50; dig[3]=51;
+		adc[0][0] = 3; adc[0][1] = 255;
+		adc[1][0] = 2; adc[1][1] = 255;
+		adc[1][0] = 1; adc[1][1] = 255;
+		adc[1][0] = 0; adc[1][1] = 255;
+		out[0] = 9; out[1] = 8; out[2] = 7; out[3] = 6;
+		useRawADC = true; //this board does require raw adc so force it.
+	} else {
+		dig[0]=11; dig[1]=9; dig[2]=13; dig[3]=12;
+		adc[0][0] = 1; adc[0][1] = 0;
+		adc[1][0] = 2; adc[1][1] = 3;
+		adc[1][0] = 4; adc[1][1] = 5;
+		adc[1][0] = 7; adc[1][1] = 6;
+		out[0] = 52; out[1] = 22; out[2] = 48; out[3] = 32;
+	}
+	
+	for (i = 0; i < NUM_DIGITAL; i++) pinMode(dig[i], INPUT);
+	for (i = 0; i < NUM_OUTPUT; i++) {
+		pinMode(out[i], OUTPUT);
+		digitalWrite(out[i], LOW);
+	}
 }
 
 void setup_sys_io() {
   int i;
   
-#ifndef RAWADC
+if (!useRawADC)
   setupFastADC();
-#else
+else
   analogReadResolution(12);
-#endif
-  
+
   //requires the value to be contiguous in memory
   for (i = 0; i < NUM_ANALOG; i++) {
     sysPrefs->read(EESYS_ADC0_GAIN + 4*i, &adc_comp[i].gain);
@@ -106,15 +126,8 @@ void setup_sys_io() {
 uint16_t getDiffADC(uint8_t which) {
   uint32_t low, high;
   
-#ifdef RAWDIFF
-  low = analogRead(adc[which][0]);
-  high = analogRead(adc[which][1]);
-  high = high - low;
-  return high;
-#else
   low = adc_values[adc[which][0]];
   high = adc_values[adc[which][1]];
-#endif
 
   if (low < high) {
 
@@ -167,18 +180,11 @@ uint16_t getAnalog(uint8_t which) {
 	
     if (which >= NUM_ANALOG) which = 0;
 
-#ifndef RAWADC
-	return adc_out_vals[which]; //return precalculated ADC reading
-#else
-   #ifdef RAWDIFF
-     val = getDiffADC(which);
-     return val; 
-   #elif defined GEVCU3
-      return analogRead(adc[which][0]);
-   #else
-	  return analogRead(which);
-   #endif
-#endif
+	if (!useRawADC)
+		return adc_out_vals[which]; //return precalculated ADC reading
+	else {
+		return analogRead(adc[which][0]);		
+	}
 }
 
 //get value of one of the 4 digital inputs
@@ -265,46 +271,45 @@ void setupFastADC(){
   Logger::debug("Fast ADC Mode Enabled");
 }
 
-//polls for the end of an adc conversion event. Then processe buffer to extract the averaged
+//polls	for the end of an adc conversion event. Then processe buffer to extract the averaged
 //value. It takes this value and averages it with the existing value in an 8 position buffer
 //which serves as a super fast place for other code to retrieve ADC values
 // This is only used when RAWADC is not defined
 void sys_io_adc_poll() {
-#ifndef RAWADC
-  uint32_t tempbuff[8] = {0,0,0,0,0,0,0,0}; //make sure its zero'd
-  if (obufn != bufn) {
-    //the eight enabled adcs are interleaved in the buffer
-    //this is a somewhat unrolled for loop with no incrementer. it's odd but it works
-    for (int i = 0; i < 256;) {	   
-       tempbuff[7] += adc_buf[obufn][i++];
-       tempbuff[6] += adc_buf[obufn][i++];
-       tempbuff[5] += adc_buf[obufn][i++];
-       tempbuff[4] += adc_buf[obufn][i++];
-       tempbuff[3] += adc_buf[obufn][i++];
-       tempbuff[2] += adc_buf[obufn][i++];
-       tempbuff[1] += adc_buf[obufn][i++];
-       tempbuff[0] += adc_buf[obufn][i++];
-    }	
+	if (obufn != bufn && !useRawADC) {
+		uint32_t tempbuff[8] = {0,0,0,0,0,0,0,0}; //make sure its zero'd
+	
+		//the eight enabled adcs are interleaved in the buffer
+		//this is a somewhat unrolled for loop with no incrementer. it's odd but it works
+		for (int i = 0; i < 256;) {	   
+			tempbuff[7] += adc_buf[obufn][i++];
+			tempbuff[6] += adc_buf[obufn][i++];
+			tempbuff[5] += adc_buf[obufn][i++];
+			tempbuff[4] += adc_buf[obufn][i++];
+			tempbuff[3] += adc_buf[obufn][i++];
+			tempbuff[2] += adc_buf[obufn][i++];
+			tempbuff[1] += adc_buf[obufn][i++];
+			tempbuff[0] += adc_buf[obufn][i++];
+		}	
 
-	//for (int i = 0; i < 256;i++) Logger::debug("%i - %i", i, adc_buf[obufn][i]);
+		//for (int i = 0; i < 256;i++) Logger::debug("%i - %i", i, adc_buf[obufn][i]);
 
-    //now, all of the ADC values are summed over 32 readings. So, divide by 32 (shift by 5) to get the average
-    //then add that to the old value we had stored and divide by two to average those. Lots of averaging going on.
-    for (int j = 0; j < 8; j++) {
-      adc_values[j] += (tempbuff[j] >> 5);
-      adc_values[j] = adc_values[j] >> 1;
-	  //Logger::debug("A%i: %i", j, adc_values[j]);
-    }
+		//now, all of the ADC values are summed over 32 readings. So, divide by 32 (shift by 5) to get the average
+		//then add that to the old value we had stored and divide by two to average those. Lots of averaging going on.
+		for (int j = 0; j < 8; j++) {
+			adc_values[j] += (tempbuff[j] >> 5);
+			adc_values[j] = adc_values[j] >> 1;
+			//Logger::debug("A%i: %i", j, adc_values[j]);
+		}
     
-	for (int i = 0; i < NUM_ANALOG; i++) {
-		int val = getDiffADC(i);
-		addNewADCVal(i, val);
-        adc_out_vals[i] = getADCAvg(i);
-	}
+		for (int i = 0; i < NUM_ANALOG; i++) {
+			int val = getDiffADC(i);
+			addNewADCVal(i, val);
+			adc_out_vals[i] = getADCAvg(i);
+		}
 
-    obufn = bufn;    
-  }
-#endif
+		obufn = bufn;    
+	}
 }
 
 

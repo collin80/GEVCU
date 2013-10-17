@@ -25,7 +25,6 @@
  */
 
 #include "config.h"
-#ifdef CFG_ENABLE_DEVICE_POT_BRAKE
 #include "PotBrake.h"
 
 /*
@@ -33,6 +32,7 @@
  * Set which ADC channel to use
  */
 PotBrake::PotBrake(uint8_t brake1) : Throttle() {
+	prefsHandler = new PrefHandler(POTBRAKEPEDAL);
 	brake1AdcPin = brake1;
 	brakeStatus = OK;
 }
@@ -81,10 +81,10 @@ bool PotBrake::validateSignal(RawSignalData *rawValues) {
 		// return false;
 	}
 	if (rawSignal.input1 < (config->minimumLevel1 - CFG_THROTTLE_TOLERANCE)) {
-		brakeStatus = ERR_LOW_T1;
+			brakeStatus = ERR_LOW_T1;
 		Logger::error(POTBRAKEPEDAL, "ERR_LOW_T1: brake 1 value out of range: %l ", rawSignal.input1);
 		return false;
-	}
+		}
 
 	return true;
 }
@@ -198,4 +198,3 @@ void PotBrake::saveConfiguration() {
 	prefsHandler->saveChecksum();
 }
 
-#endif // CFG_ENABLE_DEVICE_POT_BRAKE

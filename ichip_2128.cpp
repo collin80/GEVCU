@@ -27,13 +27,15 @@
  */
 
 #include "config.h"
-#ifdef CFG_ENABLE_DEVICE_ICHIP2128_WIFI
 #include "ichip_2128.h"
 
 /*
  * Initialization of hardware and parameters
  */
 void ICHIPWIFI::setup() {
+
+	prefsHandler = new PrefHandler(ICHIP2128);
+
 	TickHandler::getInstance()->detach(this);
 
 	tickCounter = 0;
@@ -265,7 +267,7 @@ void ICHIPWIFI::setParam(String paramName, float value, int precision) {
  * Constructor. Assign serial interface to use for ichip communication
  */
 ICHIPWIFI::ICHIPWIFI() {
-	prefsHandler = new PrefHandler(EE_SYSTEM_START);
+	prefsHandler = new PrefHandler(ICHIP2128);
 
 #ifdef GEVCU3
 	serialInterface = &Serial2;
@@ -278,7 +280,7 @@ ICHIPWIFI::ICHIPWIFI() {
  * Constructor. Pass serial interface to use for ichip communication
  */
 ICHIPWIFI::ICHIPWIFI(USARTClass *which) {
-	prefsHandler = new PrefHandler(EE_SYSTEM_START);
+	prefsHandler = new PrefHandler(ICHIP2128);
 	serialInterface = which;
 }
 
@@ -472,5 +474,3 @@ void ICHIPWIFI::saveConfiguration() {
 //	prefsHandler->write(EESYS_WIFI0_SSID, config->ssid);
 //	prefsHandler->saveChecksum();
 }
-
-#endif

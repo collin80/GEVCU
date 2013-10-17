@@ -25,10 +25,11 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
 #include "config.h"
-#ifdef CFG_ENABLE_DEVICE_CAN_THROTTLE
 #include "CanThrottle.h"
 
 CanThrottle::CanThrottle() : Throttle() {
+
+	prefsHandler = new PrefHandler(CANACCELPEDAL);
 
 	carType = Volvo_S80_Gas; //TODO: find a better way to configure the car type
 
@@ -82,13 +83,14 @@ void CanThrottle::handleTick() {
  *
  */
 void CanThrottle::handleCanFrame(RX_CAN_FRAME *frame) {
+	int rawLevel;
 	if (frame->id == rxId) {
 		switch (carType) {
 			case Volvo_S80_Gas:
-				level = frame->data[4] * 1000 / 255;
+				rawLevel = frame->data[4] * 1000 / 255;
 				break;
 			case Volvo_V50_Diesel:
-				level = (frame->data[5] + 1) * frame->data[6] * 1000 / 1020;
+				rawLevel = (frame->data[5] + 1) * frame->data[6] * 1000 / 1020;
 				break;
 		}
 	}
@@ -102,4 +104,3 @@ bool CanThrottle::isFaulted() {
 	return false;
 }
 
-#endif // CFG_ENABLE_DEVICE_CAN_THROTTLE

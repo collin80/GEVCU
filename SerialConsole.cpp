@@ -26,6 +26,8 @@
 
 #include "SerialConsole.h"
 
+extern PrefHandler *sysPrefs;
+
 SerialConsole::SerialConsole(MemCache* memCache) :
 		memCache(memCache), heartbeat(NULL) {
 	init();
@@ -81,8 +83,14 @@ void SerialConsole::printMenu() {
 	SerialUSB.println("b = detect brake min/max");
 	SerialUSB.println("B = save brake values");
 	SerialUSB.println("p = enable wifi passthrough (reboot required to resume normal operation)");
+	SerialUSB.println("S = show possible device IDs");
 	SerialUSB.println();
 	SerialUSB.println("Config Commands (enter command=newvalue). Current values shown in parenthesis:");
+	SerialUSB.println("ENABLE - Enable the given device by ID");
+	SerialUSB.println("DISABLE - Disable the given device by ID");
+	uint8_t systype;
+	sysPrefs->read(EESYS_SYSTEM_TYPE, &systype);
+	Logger::console("SYSTYPE=%i - Set board revision (Dued=2, GEVCU3=3)", systype);
 	if (motorController && motorController->getConfiguration()) {
 		MotorControllerConfiguration *config = (MotorControllerConfiguration *) motorController->getConfiguration();
 		Logger::console("TORQ=%i - Set torque upper limit (tenths of a Nm)", config->torqueMax);
@@ -195,6 +203,11 @@ void SerialConsole::handleConfigCmd() {
 		brakeConfig = (PotThrottleConfiguration *) brake->getConfiguration();
 	if (motorController)
 		motorConfig = (MotorControllerConfiguration *) motorController->getConfiguration();
+
+	//Go ahead and move this here. It was previously reiterated in every single config handler.
+	//If you need another style of input (say, for floats) then do it yourself in your config
+	//handling block. Otherwise, this is done for you.
+	newValue = atoi((char *) (cmdBuffer + i));
 
 	cmdString.toUpperCase();
 	if (cmdString == String("TORQ") && motorConfig) {
@@ -322,8 +335,29 @@ void SerialConsole::handleConfigCmd() {
 		Logger::console("Setting Precharge Relay to %i", newValue);
 		motorConfig->prechargeRelay = newValue;
 		motorController->saveConfiguration();
+	} else if (cmdString == String("ENABLE")) {
+		if (PrefHandler::setDeviceStatus(newValue, true)) {
+			sysPrefs->forceCacheWrite(); //just in case someone takes us literally and power cycles quickly
+			Logger::console("Successfully enabled device. Power cycle to activate.");
+		}
+		else {
+			Logger::console("Invalid device ID");
+		}
+	} else if (cmdString == String("DISABLE")) {
+		if (PrefHandler::setDeviceStatus(newValue, true)) {
+			sysPrefs->forceCacheWrite(); //just in case someone takes us literally and power cycles quickly
+			Logger::console("Successfully disabled device. Power cycle to deactivate.");
+		}
+		else {
+			Logger::console("Invalid device ID");
+		}
+	} else if (cmdString == String("SYSTYPE")) {
+		if (newValue < 4) {
+			sysPrefs->write(EESYS_SYSTEM_TYPE, (uint8_t)(newValue));
+			sysPrefs->forceCacheWrite(); //just in case someone takes us literally and power cycles quickly
+			Logger::console("System type updated. Power cycle to apply.");
+		}
 	} else if (cmdString == String("LOGLEVEL")) {
-		newValue = atoi((char *) (cmdBuffer + i));
 		switch (newValue) {
 		case 0:
 			Logger::setLoglevel(Logger::Debug);
@@ -447,6 +481,23 @@ void SerialConsole::handleShortCmd() {
 				SerialUSB.write((char) inSerial3);
 			}
 		}
+		break;
+
+	case 'S':
+		//there is not really any good way (currently) to auto generate this list
+		//the information just isn't stored anywhere in code. Perhaps we might
+		//think to change that. Otherwise you must remember to update here or
+		//nobody will know your device exists. Additionally, these values are
+		//decoded into decimal from their hex specification in DeviceTypes.h
+		Logger::console("DMOC645 = %d", DMOC645);
+		Logger::console("Brusa DMC5 = %d", BRUSA_DMC5);
+		Logger::console("Brusa Charger = %d", BRUSACHARGE);
+		Logger::console("TCCH Charger = %d", TCCHCHARGE);
+		Logger::console("Pot based accelerator = %d", POTACCELPEDAL);
+		Logger::console("Pot based brake = %d", POTBRAKEPEDAL);
+		Logger::console("CANBus accelerator = %d", CANACCELPEDAL);
+		Logger::console("WIFI (iChip2128) = %d", ICHIP2128);
+		Logger::console("Th!nk City BMS = %d", THINKBMS);
 		break;
 	}
 }

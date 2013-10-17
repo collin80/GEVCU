@@ -29,25 +29,34 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 */
 
-#define EE_MOTORCTL_START	0
-#define EE_DISPLAY_START	450
-#define EE_CHARGER_START	900
-#define EE_BMS_START		1350
-#define EE_THROTTLE_START	1800
-#define EE_MISC_START		2250
-#define EE_SYSTEM_START		2700
-#define EE_DEVICE_SIZE          450 //# of bytes allocated to each device
+#ifndef EEPROM_H_
+#define EEPROM_H_
+
+#include "config.h"
+
+/*
+The device table is just a list of IDs. The devices register for a spot in the table.
+Since each device has a 16 bit ID and the reserved space is 128 bytes we can support
+64 different devices in the table and EEPROM
+Devices are considered enabled if their highest ID bit is set (0x8000) otherwise
+they're disabled.
+This means that valid IDs must be under 0x8000 but that still leaves a couple of open IDs ;)
+First device entry is 0xDEAD if valid - otherwise table is initialized
+*/
+#define EE_DEVICE_TABLE		0 //where is the table of devices found in EEPROM?
+
+#define EE_DEVICE_SIZE      512 //# of bytes allocated to each device
+#define EE_DEVICES_BASE		1024 //start of where devices in the table can use
+#define EE_SYSTEM_START		128
 
 #define EE_MAIN_OFFSET          0 //offset from start of EEPROM where main config is
-#define EE_LKG_OFFSET           4096  //start EEPROM addr where last known good config is
+#define EE_LKG_OFFSET           34816  //start EEPROM addr where last known good config is
 
 //start EEPROM addr where the system log starts. <SYS LOG YET TO BE DEFINED>
-//62K of space set aside for this log.
-#define EE_SYS_LOG              8192  
+#define EE_SYS_LOG              69632
 
 //start EEPROM addr for fault log (Used by fault_handler)
-//62K of space allocated to this log. That's over 1260 faults stored.
-#define EE_FAULT_LOG            71680
+#define EE_FAULT_LOG            102400
 
 /*Now, all devices also have a default list of things that WILL be stored in EEPROM. Each actual
 implementation for a given device can store it's own custom info as well. This data must come after
@@ -57,8 +66,6 @@ the end of the stardard data. The below numbers are offsets from the device's ee
 //first, things in common to all devices - leave 20 bytes for this
 #define EE_CHECKSUM 		0 //1 byte - checksum for this section of EEPROM to makesure it is valid
 #define EE_DEVICE_ID		1 //2 bytes - the value of the ENUM DEVID of this device.
-#define EE_DEVICE_ENABLE	3 //1 byte - if this is zero then the device is disabled
-
 
 //Motor controller data
 #define EEMC_MAX_RPM			20 //2 bytes, unsigned int for maximum allowable RPM
@@ -106,7 +113,8 @@ the end of the stardard data. The below numbers are offsets from the device's ee
 #define EETH_CREEP		        48 //2 bytes - percentage of throttle used to simulate creep
 
 //System Data
-#define EESYS_SYSTEM_TYPE        10  //1 byte - 10 = Macchina/MCP2515, 20 = Arduino Due w/ dual shield
+#define EESYS_SYSTEM_TYPE        10  //1 byte - 1 = Old school protoboards 2 = GEVCU2/DUED 3 = GEVCU3 - Defaults to 2 if invalid or not set up
+#define EESYS_RAWADC			 20  //1 byte - if not zero then use raw ADC mode (no preconditioning or buffering or differential).
 #define EESYS_ADC0_GAIN          30  //2 bytes - ADC gain centered at 1024 being 1 to 1 gain, thus 512 is 0.5 gain, 2048 is double, etc
 #define EESYS_ADC0_OFFSET        32  //2 bytes - ADC offset from zero - ADC reads 12 bit so the offset will be [0,4095] - Offset is subtracted from read ADC value
 #define EESYS_ADC1_GAIN          34  //2 bytes - ADC gain centered at 1024 being 1 to 1 gain, thus 512 is 0.5 gain, 2048 is double, etc
@@ -165,32 +173,23 @@ the end of the stardard data. The below numbers are offsets from the device's ee
 #define EESYS_WIFI1_IPADDR       435 //4 bytes - IP address to use if DHCP is off
 #define EESYS_WIFI1_KEY          439 //40 bytes - the security key (13 bytes for WEP, 8 - 83 for WPA but only up to 40 here
 
-#define EESYS_WIFI2_SSID	 500 //32 bytes - the SSID to create or use (prefixed with ! if create ad-hoc)
-#define EESYS_WIFI2_CHAN         532 //1 byte - the wifi channel (1 - 11) to use
-#define EESYS_WIFI2_DHCP	 533 //1 byte - DHCP mode, 0 = off, 1 = server, 2 = client
-#define EESYS_WIFI2_MODE         534 //1 byte - 0 = B, 1 = G
-#define EESYS_WIFI2_IPADDR       535 //4 bytes - IP address to use if DHCP is off
-#define EESYS_WIFI2_KEY          539 //40 bytes - the security key (13 bytes for WEP, 8 - 83 for WPA but only up to 40 here
+#define EESYS_WIFI2_SSID		500 //32 bytes - the SSID to create or use (prefixed with ! if create ad-hoc)
+#define EESYS_WIFI2_CHAN		532 //1 byte - the wifi channel (1 - 11) to use
+#define EESYS_WIFI2_DHCP		533 //1 byte - DHCP mode, 0 = off, 1 = server, 2 = client
+#define EESYS_WIFI2_MODE		534 //1 byte - 0 = B, 1 = G
+#define EESYS_WIFI2_IPADDR		535 //4 bytes - IP address to use if DHCP is off
+#define EESYS_WIFI2_KEY			539 //40 bytes - the security key (13 bytes for WEP, 8 - 83 for WPA but only up to 40 here
 
 //If the above networks can't be joined then try to form our own adhoc network
 //with the below parameters.
-#define EESYS_WIFIX_SSID	 500 //32 bytes - the SSID to create or use (prefixed with ! if create ad-hoc)
-#define EESYS_WIFIX_CHAN         532 //1 byte - the wifi channel (1 - 11) to use
-#define EESYS_WIFIX_DHCP	 533 //1 byte - DHCP mode, 0 = off, 1 = server, 2 = client
-#define EESYS_WIFIX_MODE         534 //1 byte - 0 = B, 1 = G
-#define EESYS_WIFIX_IPADDR       535 //4 bytes - IP address to use if DHCP is off
-#define EESYS_WIFIX_KEY          539 //40 bytes - the security key (13 bytes for WEP, 8 - 83 for WPA but only up to 40 here
+#define EESYS_WIFIX_SSID		579 //32 bytes - the SSID to create or use (prefixed with ! if create ad-hoc)
+#define EESYS_WIFIX_CHAN		611 //1 byte - the wifi channel (1 - 11) to use
+#define EESYS_WIFIX_DHCP		612 //1 byte - DHCP mode, 0 = off, 1 = server, 2 = client
+#define EESYS_WIFIX_MODE        613 //1 byte - 0 = B, 1 = G
+#define EESYS_WIFIX_IPADDR      614 //4 bytes - IP address to use if DHCP is off
+#define EESYS_WIFIX_KEY         618 //40 bytes - the security key (13 bytes for WEP, 8 - 83 for WPA but only up to 40 here
 
-#define EESYS_LOG_LEVEL          579 //1 byte - the log level
+#define EESYS_LOG_LEVEL         658 //1 byte - the log level
 
-/*
-AT+i commands:
-WWW - turn on WWW server (0 = turn off, 1-3 = allow that many port 80 accesses, 100 = allow one HTTPS connection
-WRFU - Turn on wifi
-WRFD - Turn off wifi
-WLBM - Use Wifi B
-WLGM - Use wifi G
-WNXT - get next edited param
-
-*/
+#endif
 

@@ -25,7 +25,6 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
 #include "config.h"
-#ifdef CFG_ENABLE_DEVICE_HEARTBEAT
 #include "Heartbeat.h"
 
 Heartbeat::Heartbeat() {
@@ -80,4 +79,3 @@ void Heartbeat::handleTick() {
 	}
 }
 
-#endif //CFG_ENABLE_DEVICE_HEART_BEAT

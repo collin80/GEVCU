@@ -81,6 +81,7 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include "DeviceManager.h"
 #include "PotThrottle.h"
 #include "Sys_Messages.h"
+#include "DeviceTypes.h"
 
 /*
  * The extended configuration class with additional parameters for ichip WLAN
@@ -95,7 +96,7 @@ class ICHIPWIFI : public Device {
     ICHIPWIFI();
     ICHIPWIFI(USARTClass *which);
     void setup(); //initialization on start up
-    DeviceType getType();
+	DeviceType getType();
     DeviceId getId();
     void loop();
     void handleTick(); //periodic processes

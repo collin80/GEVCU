@@ -25,7 +25,6 @@
  */
 
 #include "config.h"
-#ifdef CFG_ENABLE_DEVICE_POT_THROTTLE
 #include "PotThrottle.h"
 
 /*
@@ -34,6 +33,7 @@
  */
 PotThrottle::PotThrottle(uint8_t throttle1Pin, uint8_t throttle2Pin) :
 		Throttle() {
+	prefsHandler = new PrefHandler(POTACCELPEDAL);
 	throttle1AdcPin = throttle1Pin;
 	throttle2AdcPin = throttle2Pin;
 	throttleStatus = OK;
@@ -86,27 +86,27 @@ bool PotThrottle::validateSignal(RawSignalData *rawValues) {
 	throttleStatus = OK;
 
 	if (rawSignal.input1 > (config->maximumLevel1 + CFG_THROTTLE_TOLERANCE)) {
-		throttleStatus = ERR_HIGH_T1;
+			throttleStatus = ERR_HIGH_T1;
 		Logger::error(POTACCELPEDAL, "ERR_HIGH_T1: throttle 1 value out of range: %l", rawSignal.input1);
 		return false;
-	}
+		}
 	if (rawSignal.input1 < (config->minimumLevel1 - CFG_THROTTLE_TOLERANCE)) {
-		throttleStatus = ERR_LOW_T1;
+			throttleStatus = ERR_LOW_T1;
 		Logger::error(POTACCELPEDAL, "ERR_LOW_T1: throttle 1 value out of range: %l ", rawSignal.input1);
 		return false;
-	}
+		}
 
 	if (config->numberPotMeters > 1) {
 		if (rawSignal.input2 > (config->maximumLevel2 + CFG_THROTTLE_TOLERANCE)) {
-			throttleStatus = ERR_HIGH_T2;
+				throttleStatus = ERR_HIGH_T2;
 			Logger::error(POTACCELPEDAL, "ERR_HIGH_T2: throttle 2 value out of range: %l", rawSignal.input2);
 			return false;
-		}
+			}
 		if (rawSignal.input2 < (config->minimumLevel2 - CFG_THROTTLE_TOLERANCE)) {
-			throttleStatus = ERR_LOW_T2;
+				throttleStatus = ERR_LOW_T2;
 			Logger::error(POTACCELPEDAL, "ERR_LOW_T2: throttle 2 value out of range: %l", rawSignal.input2);
 			return false;
-		}
+			}
 
 		calcThrottle1 = map(constrain(rawSignal.input1, config->minimumLevel1, config->maximumLevel1), config->minimumLevel1, config->maximumLevel1,
 				(uint16_t) 0, (uint16_t) 1000);
@@ -202,6 +202,13 @@ void PotThrottle::loadConfiguration() {
 			Logger::debug(POTACCELPEDAL, "THROTTLE APPEARS TO NEED CALIBRATION/DETECTION - choose 'z' on the serial console menu");
 			config->numberPotMeters = 2;
 		}
+
+		// some safety precautions for new values (depending on eeprom, they might be completely off).
+		if (config->creep > 100 || config->positionRegenMaximum > 1000 || config->minimumRegen > 100) {
+			config->creep = ThrottleCreepValue;
+			config->positionRegenMaximum = ThrottleRegenMaxValue;
+			config->minimumRegen = ThrottleMinRegenValue;
+		}
 	} else { //checksum invalid. Reinitialize values and store to EEPROM
 		Logger::warn(POTACCELPEDAL, "Invalid checksum so using hard coded throttle config values");
 
@@ -235,5 +242,3 @@ void PotThrottle::saveConfiguration() {
 	prefsHandler->write(EETH_THROTTLE_TYPE, config->throttleSubType);
 	prefsHandler->saveChecksum();
 }
-
-#endif //CFG_ENABLE_DEVICE_POT_THROTTLE

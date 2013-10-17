@@ -54,6 +54,7 @@ public:
 	virtual void handleMessage(uint32_t, void* );
 	virtual DeviceType getType();
 	virtual DeviceId getId();
+	bool isEnabled();
 
 	virtual void loadConfiguration();
 	virtual void saveConfiguration();

@@ -81,6 +81,7 @@ protected:
 
 private:
 	int16_t level; // the final signed throttle level. [-1000, 1000] in permille of maximum
+	
 
 };
 

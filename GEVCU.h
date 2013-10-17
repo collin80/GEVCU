@@ -58,6 +58,8 @@ void setup();
 } // extern "C"
 #endif
 
-#define SYSTEM_DUE        20
+#define SYSTEM_PROTO	1
+#define SYSTEM_DUED		2
+#define SYSTEM_GEVCU3	3
 
 #endif /* GEVCU_H_ */

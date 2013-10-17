@@ -35,8 +35,8 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 #include <due_can.h>
 
-#define CFG_BUILD_NUM	1012        //increment this every time a git commit is done. 
-#define CFG_VERSION "GEVCU alpha 2013-10-01"
+#define CFG_BUILD_NUM	1014        //increment this every time a git commit is done. 
+#define CFG_VERSION "GEVCU alpha 2013-10-16"
 
 
 /*
@@ -46,21 +46,9 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #define SerialUSB Serial // re-route serial-usb output to programming port ;) comment if output should go to std usb
 
 
-/*
- * DEVICE DEFINITION
- *
- * Define the devices which are to be used (and compiled) via the following lines
- * Uncomment only one device per device type.
- */
-#define CFG_ENABLE_DEVICE_HEARTBEAT
-#define CFG_ENABLE_DEVICE_POT_THROTTLE
-//#define CFG_ENABLE_DEVICE_CAN_THROTTLE
-#define CFG_ENABLE_DEVICE_POT_BRAKE
-#define CFG_ENABLE_DEVICE_MOTORCTRL_DMOC_645
-//#define CFG_ENABLE_DEVICE_MOTORCTRL_BRUSA_DMC5
-#define CFG_ENABLE_DEVICE_ICHIP2128_WIFI
-//#define CFG_ENABLE_DEVICE_BMS_THINK
-
+//The defines that used to be here to configure devices are gone now.
+//The EEPROM stores which devices to bring up at start up and all
+//devices are programmed into the firware at the same time.
 
 /*
  * TIMER INTERVALS
@@ -149,7 +137,6 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #define CFG_TIMER_USE_QUEUING // if defined, TickHandler uses a queuing buffer instead of direct calls from interrupts
 #define CFG_TIMER_BUFFER_SIZE 100 // the size of the queuing buffer for TickHandler
 
-
 /*
  * PIN ASSIGNMENT
  */
@@ -158,41 +145,9 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #define CFG_THROTTLE2_PIN	1
 #define CFG_BRAKE_PIN		2
 #define BLINK_LED          73 //13 is L, 73 is TX, 72 is RX
-#define DUED //define this if using the new DUED boards. These have ampseal connectors - GEVCU2 boards
-//#define GEVCU3 //define this instead if you have a GEVCU3 board
 
 #define NUM_ANALOG	4
 #define NUM_DIGITAL	4
 #define NUM_OUTPUT	4
-
-
-/*
- * DEBUGGING
- */
-//if this is defined then the ADC code will use raw readings from the actual ADC port of that number.
-//In other words, no DMA, no differential input, just the ADC. If you ask for ADC0 you will get a raw
-//reading from ADC0.
-//#define RAWADC
-
-//GEVCU3 requires RAWADC so automatically enable it if we're using that board
-#ifdef GEVCU3
-#define RAWADC
-#endif
-
-
-/*
- * Per module debugging levels.
- *
- * 0 = No debugging output
- * 1 = Only errors reported
- * 2 = Warnings too
- * 3 = Generate quite a bit of debugging output
- * 4 = Start the avalanche
- * 
- * Devices do not need to implement anything for higher levels. That is,
- * you might not get any more info at level 4 than you do at 1.
- */
-
-#define DEBUG_DEVICEMGR		1
 
 #endif /* CONFIG_H_ */

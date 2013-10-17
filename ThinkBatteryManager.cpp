@@ -27,10 +27,10 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
 #include "config.h"
-#ifdef CFG_ENABLE_DEVICE_BMS_THINK
 #include "ThinkBatteryManager.h"
 
 ThinkBatteryManager::ThinkBatteryManager() : BatteryManager() {
+	prefsHandler = new PrefHandler(THINKBMS);
 	allowCharge = false;
 	allowDischarge = false;
 }
@@ -165,4 +165,3 @@ bool ThinkBatteryManager::isDischargeOK()
 	return allowDischarge;
 }
 
-#endif

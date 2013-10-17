@@ -26,7 +26,6 @@
  */
 
 #include "config.h"
-#ifdef CFG_ENABLE_DEVICE_MOTORCTRL_BRUSA_DMC5
 #include "BrusaMotorController.h"
 
 /*
@@ -286,5 +285,3 @@ void BrusaMotorController::saveConfiguration() {
 //	prefsHandler->write(EEMC_, config->dcCurrentLimitRegen);
 	prefsHandler->saveChecksum();
 }
-
-#endif
