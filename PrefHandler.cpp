@@ -87,12 +87,12 @@ PrefHandler::PrefHandler(DeviceId id_in) {
 
 	for (int x = 1; x < 64; x++) {
 		memCache->Read(EE_DEVICE_TABLE + (2 * x), &id);
-		if (id == ((int)id_in & 0x7FFF)) {
+		if ((id & 0x7FFF) == ((int)id_in)) {
 			base_address = EE_DEVICES_BASE + (EE_DEVICE_SIZE * x);
 			lkg_address = EE_MAIN_OFFSET;
 			if (id & 0x8000) enabled = true;
 			position = x;
-			Logger::debug("Device ID: %i was found in device table at entry: %i", (int)id, x);
+			Logger::info("Device ID: %i was found in device table at entry: %i", (int)id_in, x);
 			return;
 		}
 	}
@@ -108,7 +108,7 @@ PrefHandler::PrefHandler(DeviceId id_in) {
 			id = (int)id_in;
 			memCache->Write(EE_DEVICE_TABLE + (2*x), id);
 			position = x;
-			Logger::debug("Device ID: %i was placed into device table at entry: %i", (int)id, x);
+			Logger::info("Device ID: %i was placed into device table at entry: %i", (int)id, x);
 			return;
 		}
 	}
@@ -128,12 +128,14 @@ bool PrefHandler::setDeviceStatus(uint16_t device, bool enabled)
 	for (int x = 1; x < 64; x++) {
 		memCache->Read(EE_DEVICE_TABLE + (2 * x), &id);
 		if (id == (device & 0x7FFF)) {
+			Logger::debug("Found a device record to edit");
 			if (enabled) {
 				id |= 0x8000;
 			}
 			else {
 				id &= 0x7FFF;
 			}
+			Logger::debug("ID to write: %i", id);
 			memCache->Write(EE_DEVICE_TABLE + (2 * x), id);
 			return true;
 		}
