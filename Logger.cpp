@@ -354,6 +354,16 @@ void Logger::printDeviceName(DeviceId deviceId) {
 	case THINKBMS:
 		SerialUSB.print("THINKBMS");
 		break;
+	case SYSTEM:
+		SerialUSB.print("SYSTEM");
+		break;
+	case HEARTBEAT:
+		SerialUSB.print("HEARTBEAT");
+		break;
+	case MEMCACHE:
+		SerialUSB.print("MEMCACHE");
+		break;
 	}
 	SerialUSB.print(" - ");
+
 }

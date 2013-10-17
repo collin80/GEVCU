@@ -73,9 +73,9 @@ public:
 
     MotorController();
 	DeviceType getType();
-    virtual void setup();
+    void setup();
     void handleTick();
-	virtual uint32_t getTickInterval();
+	uint32_t getTickInterval();
 
 	void loadConfiguration();
 	void saveConfiguration();

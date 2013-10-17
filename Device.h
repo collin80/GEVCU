@@ -50,10 +50,10 @@ class Device: public TickObserver {
 public:
 	Device();
 	virtual void setup();
-	virtual void handleTick();
 	virtual void handleMessage(uint32_t, void* );
 	virtual DeviceType getType();
 	virtual DeviceId getId();
+	void handleTick();
 	bool isEnabled();
 
 	virtual void loadConfiguration();

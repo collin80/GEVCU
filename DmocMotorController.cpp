@@ -399,9 +399,9 @@ void DmocMotorController::loadConfiguration() {
 		setConfiguration(config);
 	}
 
-	MotorController:loadConfiguration(); // call parent
+	MotorController::loadConfiguration(); // call parent
 }
 
 void DmocMotorController::saveConfiguration() {
-	MotorController:saveConfiguration();
+	MotorController::saveConfiguration();
 }

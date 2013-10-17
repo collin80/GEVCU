@@ -203,50 +203,50 @@ void initializeDevices() {
 
 	//heartbeat is always enabled now
 	heartbeat = new Heartbeat();
-	Logger::info("add: Heartbeat (%X)", heartbeat);
+	Logger::info("add: Heartbeat (id: %X, %X)", HEARTBEAT, heartbeat);
 	heartbeat->setup();
 
 	// Specify the shield ADC port(s) to use for throttle
 	// CFG_THROTTLE_NONE = not used (valid only for second value and should not be needed due to calibration/detection)
 	Throttle *paccelerator = new PotThrottle(CFG_THROTTLE1_PIN, CFG_THROTTLE2_PIN);
 	if (paccelerator->isEnabled()) {
-		Logger::info("add device: PotThrottle (%X)", paccelerator);		
+		Logger::info("add device: PotThrottle (id: %X, %X)", POTACCELPEDAL, paccelerator);
 		deviceManager->addDevice(paccelerator);
 	}
 
 	Throttle *caccelerator = new CanThrottle();
 	if (caccelerator->isEnabled()) {
-		Logger::info("add device: CanThrottle (%X)", caccelerator);
+		Logger::info("add device: CanThrottle (id: %X, %X)", CANACCELPEDAL, caccelerator);
 		deviceManager->addDevice(caccelerator);
 	}
 
 	Throttle *pbrake = new PotBrake(CFG_BRAKE_PIN); //set up the brake input as the third ADC input from the shield.
 	if (pbrake->isEnabled()) {
-		Logger::info("add device: PotBrake (%X)", pbrake);
+		Logger::info("add device: PotBrake (id: %X, %X)", POTBRAKEPEDAL, pbrake);
 		deviceManager->addDevice(pbrake);
 	}
 
 	Throttle *cbrake = new CanThrottle();
 	if (cbrake->isEnabled()) {
-		Logger::info("add device: CanThrottle brake (%X)", cbrake);	
+		Logger::info("add device: CanThrottle brake (id: %X, %X)", CANACCELPEDAL, cbrake);
 		deviceManager->addDevice(cbrake);
 	}
 
 	MotorController *dmotorController = new DmocMotorController(); //instantiate a DMOC645 device controller as our motor controller
 	if (dmotorController->isEnabled()) {
-		Logger::info("add device: DMOC645 (%X)", dmotorController);
+		Logger::info("add device: DMOC645 (id:%X, %X)", DMOC645, dmotorController);
 		deviceManager->addDevice(dmotorController);
 	}
 
 	MotorController *bmotorController = new BrusaMotorController(); //instantiate a Brusa DMC5 device controller as our motor controller
 	if (bmotorController->isEnabled()) {
-		Logger::info("add device: Brusa DMC5 (%X)", bmotorController);
+		Logger::info("add device: Brusa DMC5 (id: %X, %X)", BRUSA_DMC5, bmotorController);
 		deviceManager->addDevice(bmotorController);
 	}
 
 	BatteryManager *BMS = new ThinkBatteryManager();
 	if (BMS->isEnabled()) {
-		Logger::info("add device: Th!nk City BMS (%X)", BMS);
+		Logger::info("add device: Th!nk City BMS (id: %X, %X)", THINKBMS, BMS);
 		deviceManager->addDevice(BMS);
 	}
 
@@ -255,7 +255,7 @@ void initializeDevices() {
 	Logger::info("Trying WIFI");
 	ICHIPWIFI *iChip = new ICHIPWIFI();
 	if (iChip->isEnabled()) {
-		Logger::info("add device: iChip 2128 WiFi (%X)", iChip);	
+		Logger::info("add device: iChip 2128 WiFi (id: %X, %X)", ICHIP2128, iChip);
 		deviceManager->addDevice(iChip);
 	}
 */
@@ -283,7 +283,7 @@ void setup() {
 	Logger::info("TWI init ok");
 
 	memCache = new MemCache();
-	Logger::info("add MemCache (%X)", memCache);
+	Logger::info("add MemCache (id: %X, %X)", MEMCACHE, memCache);
 	memCache->setup();
 	sysPrefs = new PrefHandler(SYSTEM);
 	if (!sysPrefs->checksumValid()) {

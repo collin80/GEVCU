@@ -150,15 +150,15 @@ public:
 		enablePowerStage			= 1 << 7  // 0x80
 	};
 
+	BrusaMotorController();
 	void handleTick();
 	void handleCanFrame(RX_CAN_FRAME *frame);
 	void setup();
-	BrusaMotorController();
 	DeviceId getId();
-	virtual uint32_t getTickInterval();
+	uint32_t getTickInterval();
 
-	virtual void loadConfiguration();
-	virtual void saveConfiguration();
+	void loadConfiguration();
+	void saveConfiguration();
 
 private:
 	// DMC_TRQS2

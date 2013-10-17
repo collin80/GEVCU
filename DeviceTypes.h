@@ -52,6 +52,8 @@ enum DeviceId { //unique device ID for every piece of hardware possible
 	ICHIP2128 = 0x1040,
 	THINKBMS = 0x2000,
 	SYSTEM = 0x5000,
+	HEARTBEAT = 0x5001,
+	MEMCACHE = 0x5002,
 	INVALID = 0xFFFF
 };
 

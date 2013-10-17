@@ -111,7 +111,7 @@ void MotorController::setup() {
 	 pinMode(MOTORCTL_INPUT_LIMP, INPUT_PULLUP); //Limp mode
 	 */
 
-	Device:setup();
+	Device::setup();
 
 	if (config->prechargeC> 0 && config->prechargeRelay < NUM_OUTPUT) {
 		//precharge time is 5RC which is (R*C / 1000) ms * 5 = RC/200 but ohms is in tenths so divide by another 10 = RC/2000
@@ -228,6 +228,8 @@ bool MotorController::isReady() {
 void MotorController::loadConfiguration() {
 	MotorControllerConfiguration *config = (MotorControllerConfiguration *)getConfiguration();
 
+	Device::loadConfiguration(); // call parent
+
 #ifdef USE_HARD_CODED
 	if (false) {
 #else
@@ -262,7 +264,7 @@ void MotorController::loadConfiguration() {
 void MotorController::saveConfiguration() {
 	MotorControllerConfiguration *config = (MotorControllerConfiguration *)getConfiguration();
 
-	Device:saveConfiguration(); // call parent
+	Device::saveConfiguration(); // call parent
 
 	prefsHandler->write(EEMC_MAX_RPM, config->speedMax);
 	prefsHandler->write(EEMC_MAX_TORQUE, config->torqueMax);

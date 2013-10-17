@@ -72,9 +72,9 @@ public:
 	};
 
 public:
-	void handleTick();
-	void handleCanFrame(RX_CAN_FRAME *frame);
-	void setup();
+	virtual void handleTick();
+	virtual void handleCanFrame(RX_CAN_FRAME *frame);
+	virtual void setup();
 	void setOpState(OperationState op);
 	void setGear(Gears gear);
 

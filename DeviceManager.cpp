@@ -140,7 +140,7 @@ void DeviceManager::sendMessage(DeviceType devType, DeviceId devId, uint32_t msg
 			{
 				if (devId == INVALID || devId == devices[i]->getId())
 				{
-					Logger::debug("Sending msg to device with ID %u", devices[i]->getId());
+					Logger::debug("Sending msg to device with ID %X", devices[i]->getId());
 					devices[i]->handleMessage(msgType, message);
 				}
 			}
@@ -222,7 +222,7 @@ Device *DeviceManager::getDeviceByID(DeviceId id)
 			if (devices[i]->getId() == id) return devices[i];
 		}
 	}
-	Logger::debug("getDeviceByID - No device with ID: %u", (int)id);
+	Logger::debug("getDeviceByID - No device with ID: %X", (int)id);
 	return 0; //NULL!
 }
 
@@ -239,7 +239,7 @@ Device *DeviceManager::getDeviceByType(DeviceType type)
 			if (devices[i]->getType() == type) return devices[i];
 		}
 	}
-	Logger::debug("getDeviceByType - No devices of type: %u", (int)type);
+	Logger::debug("getDeviceByType - No devices of type: %X", (int)type);
 	return 0; //NULL!
 }
 

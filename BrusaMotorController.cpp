@@ -46,6 +46,8 @@ BrusaMotorController::BrusaMotorController() : MotorController() {
 
 void BrusaMotorController::setup() {
 	TickHandler::getInstance()->detach(this);
+
+	loadConfiguration();
 	MotorController::setup(); // run the parent class version of this function
 
 	// register ourselves as observer of 0x258-0x268 and 0x458 can frames
@@ -243,7 +245,7 @@ void BrusaMotorController::loadConfiguration() {
 		setConfiguration(config);
 	}
 
-	MotorController:loadConfiguration(); // call parent
+	MotorController::loadConfiguration(); // call parent
 
 #ifdef USE_HARD_CODED
 	if (false) {
@@ -255,7 +257,6 @@ void BrusaMotorController::loadConfiguration() {
 //		prefsHandler->read(EEMC_, &config->minimumLevel1);
 	} else { //checksum invalid. Reinitialize values and store to EEPROM
 		Logger::warn(BRUSA_DMC5, "Invalid checksum so using hard coded config values");
-
 		config->maxMechanicalPowerMotor = 50000;
 		config->maxMechanicalPowerRegen = 50000;
 
@@ -263,7 +264,6 @@ void BrusaMotorController::loadConfiguration() {
 		config->dcVoltLimitRegen = 1000;
 		config->dcCurrentLimitMotor = 0;
 		config->dcCurrentLimitRegen = 0;
-
 		saveConfiguration();
 	}
 	Logger::debug(BRUSA_DMC5, "Max mech power motor: %d kW, max mech power regen: %d ", config->maxMechanicalPowerMotor, config->maxMechanicalPowerRegen);
@@ -274,7 +274,7 @@ void BrusaMotorController::loadConfiguration() {
 void BrusaMotorController::saveConfiguration() {
 	BrusaMotorControllerConfiguration *config = (BrusaMotorControllerConfiguration *)getConfiguration();
 
-	Throttle:saveConfiguration(); // call parent
+	MotorController::saveConfiguration(); // call parent
 
 	//TODO: store to eeprom
 //	prefsHandler->write(EEMC_, config->maxMechanicalPowerMotor);

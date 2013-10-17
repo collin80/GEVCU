@@ -96,13 +96,13 @@ class ICHIPWIFI : public Device {
     ICHIPWIFI();
     ICHIPWIFI(USARTClass *which);
     void setup(); //initialization on start up
+    void handleTick(); //periodic processes
+    void handleMessage(uint32_t messageType, void* message);
 	DeviceType getType();
     DeviceId getId();
     void loop();
-    void handleTick(); //periodic processes
     void enableServer(); //turn on the web server
     void disableServer(); //turn off the web server
-    void handleMessage(uint32_t messageType, void* message);
     char *getTimeRunning();
 
 	void loadConfiguration();
