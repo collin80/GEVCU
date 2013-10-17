@@ -274,6 +274,11 @@ void setup() {
 	pinMode(BLINK_LED, OUTPUT);
 	digitalWrite(BLINK_LED, LOW);
 
+	SerialUSB.begin(CFG_SERIAL_SPEED);
+	SerialUSB.println(CFG_VERSION);
+	SerialUSB.print("Build number: ");
+	SerialUSB.println(CFG_BUILD_NUM);
+
 	Wire.begin();
 	Logger::info("TWI init ok");
 
@@ -289,11 +294,6 @@ void setup() {
 	}
 
 	sys_early_setup();
-
-	SerialUSB.begin(CFG_SERIAL_SPEED);
-	SerialUSB.println(CFG_VERSION);
-	SerialUSB.print("Build number: ");
-	SerialUSB.println(CFG_BUILD_NUM);
         
 	tickHandler = TickHandler::getInstance();
 

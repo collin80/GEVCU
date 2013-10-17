@@ -70,6 +70,7 @@ void sys_early_setup() {
 	uint8_t sys_type;
 	sysPrefs->read(EESYS_SYSTEM_TYPE, &sys_type);
 	if (sys_type == 2) {
+		Logger::info("Running on GEVCU2/DUED hardware.");
 		dig[0]=9; dig[1]=11; dig[2]=12; dig[3]=13;
 		adc[0][0] = 1; adc[0][1] = 0;
 		adc[1][0] = 3; adc[1][1] = 2;
@@ -77,6 +78,7 @@ void sys_early_setup() {
 		adc[1][0] = 7; adc[1][1] = 6;
 		out[0] = 52; out[1] = 22; out[2] = 48; out[3] = 32;
 	} else if (sys_type == 3) {
+		Logger::info("Running on GEVCU3 hardware");
 		dig[0]=48; dig[1]=49; dig[2]=50; dig[3]=51;
 		adc[0][0] = 3; adc[0][1] = 255;
 		adc[1][0] = 2; adc[1][1] = 255;
@@ -85,6 +87,7 @@ void sys_early_setup() {
 		out[0] = 9; out[1] = 8; out[2] = 7; out[3] = 6;
 		useRawADC = true; //this board does require raw adc so force it.
 	} else {
+		Logger::info("Running on legacy hardware?");
 		dig[0]=11; dig[1]=9; dig[2]=13; dig[3]=12;
 		adc[0][0] = 1; adc[0][1] = 0;
 		adc[1][0] = 2; adc[1][1] = 3;
