@@ -40,6 +40,7 @@ Since each device has a 16 bit ID and the reserved space is 128 bytes we can sup
 64 different devices in the table and EEPROM
 Devices are considered enabled if their highest ID bit is set (0x8000) otherwise
 they're disabled.
+This means that valid IDs must be under 0x8000 but that still leaves a couple of open IDs ;)
 First device entry is 0xDEAD if valid - otherwise table is initialized
 */
 #define EE_DEVICE_TABLE		0 //where is the table of devices found in EEPROM?
@@ -110,7 +111,8 @@ the end of the stardard data. The below numbers are offsets from the device's ee
 #define EETH_CREEP		        48 //2 bytes - percentage of throttle used to simulate creep
 
 //System Data
-#define EESYS_SYSTEM_TYPE        10  //1 byte - 10 = Macchina/MCP2515, 20 = Arduino Due w/ dual shield
+#define EESYS_SYSTEM_TYPE        10  //1 byte - 1 = Old school protoboards 2 = GEVCU2/DUED 3 = GEVCU3 - Defaults to 2 if invalid or not set up
+#define EESYS_RAWADC			 20  //1 byte - if not zero then use raw ADC mode (no preconditioning or buffering or differential).
 #define EESYS_ADC0_GAIN          30  //2 bytes - ADC gain centered at 1024 being 1 to 1 gain, thus 512 is 0.5 gain, 2048 is double, etc
 #define EESYS_ADC0_OFFSET        32  //2 bytes - ADC offset from zero - ADC reads 12 bit so the offset will be [0,4095] - Offset is subtracted from read ADC value
 #define EESYS_ADC1_GAIN          34  //2 bytes - ADC gain centered at 1024 being 1 to 1 gain, thus 512 is 0.5 gain, 2048 is double, etc

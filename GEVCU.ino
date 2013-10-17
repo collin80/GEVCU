@@ -110,7 +110,7 @@ void initSysEEPROM() {
 	uint16_t sixteen;
 	uint32_t thirtytwo;
 
-	eight = SYSTEM_DUE;
+	eight = SYSTEM_DUED;
 	sysPrefs->write(EESYS_SYSTEM_TYPE, eight);
 
 	sixteen = 1024; //no gain
@@ -271,22 +271,8 @@ void initializeDevices() {
 
 void setup() {
 
-	sys_early_setup();
-
-	SerialUSB.begin(CFG_SERIAL_SPEED);
-	SerialUSB.println(CFG_VERSION);
-	SerialUSB.print("Build number: ");
-	SerialUSB.println(CFG_BUILD_NUM);
-        
 	pinMode(BLINK_LED, OUTPUT);
 	digitalWrite(BLINK_LED, LOW);
-
-	tickHandler = TickHandler::getInstance();
-
-	canHandlerEV = CanHandler::getInstanceEV();
-	canHandlerCar = CanHandler::getInstanceCar();
-	canHandlerEV->initialize();
-	canHandlerCar->initialize();
 
 	Wire.begin();
 	Logger::info("TWI init ok");
@@ -301,6 +287,20 @@ void setup() {
 	} else {  //checksum is good, read in the values stored in EEPROM
 		Logger::info("Using existing EEPROM values");
 	}
+
+	sys_early_setup();
+
+	SerialUSB.begin(CFG_SERIAL_SPEED);
+	SerialUSB.println(CFG_VERSION);
+	SerialUSB.print("Build number: ");
+	SerialUSB.println(CFG_BUILD_NUM);
+        
+	tickHandler = TickHandler::getInstance();
+
+	canHandlerEV = CanHandler::getInstanceEV();
+	canHandlerCar = CanHandler::getInstanceCar();
+	canHandlerEV->initialize();
+	canHandlerCar->initialize();
 
 	//rtc_clock.init();
 	//Now, we have no idea what the real time is but the EEPROM should have stored a time in the past.
@@ -332,11 +332,9 @@ void setup() {
 
 void loop() {
 
-#ifdef CFG_ENABLE_DEVICE_ICHIP2128_WIFI	
-	//Evilness... Find a better way to reference the wifi stuff
 	Device *tempDevice;
 	tempDevice = DeviceManager::getInstance()->getDeviceByID(ICHIP2128);
-#endif
+
 
 #ifdef CFG_TIMER_USE_QUEUING
 	tickHandler->process();
@@ -348,11 +346,9 @@ void loop() {
 
 	serialConsole->loop();
 
-#ifdef CFG_ENABLE_DEVICE_ICHIP2128_WIFI
 	if ( tempDevice != NULL ) {
-	((ICHIPWIFI*)tempDevice)->loop();
+		((ICHIPWIFI*)tempDevice)->loop();
 	}
-#endif
 
 	//this should still be here. It checks for a flag set during an interrupt
 	sys_io_adc_poll();

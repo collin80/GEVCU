@@ -26,6 +26,8 @@
 
 #include "SerialConsole.h"
 
+extern PrefHandler *sysPrefs;
+
 SerialConsole::SerialConsole(MemCache* memCache) :
 		memCache(memCache), heartbeat(NULL) {
 	init();
@@ -86,6 +88,9 @@ void SerialConsole::printMenu() {
 	SerialUSB.println("Config Commands (enter command=newvalue). Current values shown in parenthesis:");
 	SerialUSB.println("ENABLE - Enable the given device by ID");
 	SerialUSB.println("DISABLE - Disable the given device by ID");
+	uint8_t systype;
+	sysPrefs->read(EESYS_SYSTEM_TYPE, &systype);
+	Logger::console("SYSTYPE=%i - Set board revision (Dued=2, GEVCU3=3)", systype);
 	Logger::console("TORQ=%i - Set torque upper limit (tenths of a Nm)", motorController->getTorqueMax());
 	Logger::console("RPMS=%i - Set maximum RPMs", motorController->getSpeedMax());
 	Logger::console("REVLIM=%i - How much torque to allow in reverse (Tenths of a percent)", motorController->getReversePercent());
@@ -367,17 +372,25 @@ void SerialConsole::handleConfigCmd() {
 		DeviceManager::getInstance()->getMotorController()->saveEEPROM();
 	} else if (cmdString == String("ENABLE")) {
 		if (PrefHandler::setDeviceStatus(newValue, true)) {
-			Logger::console("Succesfully enabled device. Power cycle to activate.");
+			sysPrefs->forceCacheWrite(); //just in case someone takes us literally and power cycles quickly
+			Logger::console("Successfully enabled device. Power cycle to activate.");
 		}
 		else {
 			Logger::console("Invalid device ID");
 		}
 	} else if (cmdString == String("DISABLE")) {
 		if (PrefHandler::setDeviceStatus(newValue, true)) {
-			Logger::console("Succesfully disabled device. Power cycle to deactivate.");
+			sysPrefs->forceCacheWrite(); //just in case someone takes us literally and power cycles quickly
+			Logger::console("Successfully disabled device. Power cycle to deactivate.");
 		}
 		else {
 			Logger::console("Invalid device ID");
+		}
+	} else if (cmdString == String("SYSTYPE")) {
+		if (newValue < 4) {
+			sysPrefs->write(EESYS_SYSTEM_TYPE, (uint8_t)(newValue));
+			sysPrefs->forceCacheWrite(); //just in case someone takes us literally and power cycles quickly
+			Logger::console("System type updated. Power cycle to apply.");
 		}
 	} else if (cmdString == String("LOGLEVEL")) {
 		switch (newValue) {
