@@ -210,7 +210,7 @@ void ThrottleDetector::detectMaxCalibrate() {
 			linearCount += checkLinear(value1, value2);
 			inverseCount += checkInverse(value1, value2);
 
-			//SerialUSB.println("NT1: " + String(value1) + ", NT2: " + String(value2) + ", L: " + String(linearCount) + ", I: " + String(inverseCount));
+			//Logger::debug("NT1: %d, NT2: %d, L: %d, I: %d", value1, value2, linearCount, inverseCount);
 		}
 
 		throttleSubType = 0;
@@ -386,7 +386,7 @@ void ThrottleDetector::displayCalibratedValues(bool minPedal) {
 	SerialUSB.print(throttle1Min, DEC);
 	SerialUSB.print(" to ");
 	SerialUSB.print(throttle1Max, DEC);
-	if (throttle2Provided()) {
+	if (throttle2Provided) {
 		SerialUSB.print(" T2: ");
 		SerialUSB.print(throttle2Min, DEC);
 		SerialUSB.print(" to ");
