@@ -79,37 +79,37 @@ RawSignalData *PotThrottle::acquireRawSignal() {
 /*
  * Perform sanity check on the ADC input values.
  */
-bool PotThrottle::validateSignal(RawSignalData *rawValues) {
+bool PotThrottle::validateSignal(RawSignalData *rawSignal) {
 	PotThrottleConfiguration *config = (PotThrottleConfiguration *) getConfiguration();
 	uint16_t calcThrottle1, calcThrottle2;
 	throttleStatus = OK;
 
-	if (rawSignal.input1 > (config->maximumLevel1 + CFG_THROTTLE_TOLERANCE)) {
-			throttleStatus = ERR_HIGH_T1;
-		Logger::error(POTACCELPEDAL, "ERR_HIGH_T1: throttle 1 value out of range: %l", rawSignal.input1);
+	if (rawSignal->input1 > (config->maximumLevel1 + CFG_THROTTLE_TOLERANCE)) {
+		throttleStatus = ERR_HIGH_T1;
+		Logger::error(POTACCELPEDAL, "ERR_HIGH_T1: throttle 1 value out of range: %l", rawSignal->input1);
 		return false;
-		}
-	if (rawSignal.input1 < (config->minimumLevel1 - CFG_THROTTLE_TOLERANCE)) {
-			throttleStatus = ERR_LOW_T1;
-		Logger::error(POTACCELPEDAL, "ERR_LOW_T1: throttle 1 value out of range: %l ", rawSignal.input1);
+	}
+	if (rawSignal->input1 < (config->minimumLevel1 - CFG_THROTTLE_TOLERANCE)) {
+		throttleStatus = ERR_LOW_T1;
+		Logger::error(POTACCELPEDAL, "ERR_LOW_T1: throttle 1 value out of range: %l ", rawSignal->input1);
 		return false;
-		}
+	}
 
 	if (config->numberPotMeters > 1) {
-		if (rawSignal.input2 > (config->maximumLevel2 + CFG_THROTTLE_TOLERANCE)) {
-				throttleStatus = ERR_HIGH_T2;
-			Logger::error(POTACCELPEDAL, "ERR_HIGH_T2: throttle 2 value out of range: %l", rawSignal.input2);
+		if (rawSignal->input2 > (config->maximumLevel2 + CFG_THROTTLE_TOLERANCE)) {
+			throttleStatus = ERR_HIGH_T2;
+			Logger::error(POTACCELPEDAL, "ERR_HIGH_T2: throttle 2 value out of range: %l", rawSignal->input2);
 			return false;
-			}
-		if (rawSignal.input2 < (config->minimumLevel2 - CFG_THROTTLE_TOLERANCE)) {
-				throttleStatus = ERR_LOW_T2;
-			Logger::error(POTACCELPEDAL, "ERR_LOW_T2: throttle 2 value out of range: %l", rawSignal.input2);
+		}
+		if (rawSignal->input2 < (config->minimumLevel2 - CFG_THROTTLE_TOLERANCE)) {
+			throttleStatus = ERR_LOW_T2;
+			Logger::error(POTACCELPEDAL, "ERR_LOW_T2: throttle 2 value out of range: %l", rawSignal->input2);
 			return false;
-			}
+		}
 
-		calcThrottle1 = map(constrain(rawSignal.input1, config->minimumLevel1, config->maximumLevel1), config->minimumLevel1, config->maximumLevel1,
+		calcThrottle1 = map(constrain(rawSignal->input1, config->minimumLevel1, config->maximumLevel1), config->minimumLevel1, config->maximumLevel1,
 				(uint16_t) 0, (uint16_t) 1000);
-		calcThrottle2 = map(constrain(rawSignal.input2, config->minimumLevel2, config->maximumLevel2), config->minimumLevel2, config->maximumLevel2,
+		calcThrottle2 = map(constrain(rawSignal->input2, config->minimumLevel2, config->maximumLevel2), config->minimumLevel2, config->maximumLevel2,
 				(uint16_t) 0, (uint16_t) 1000);
 		if ((calcThrottle1 - ThrottleMaxErrValue) > calcThrottle2) { //then throttle1 is too large compared to 2
 			throttleStatus = ERR_MISMATCH;
@@ -129,15 +129,15 @@ bool PotThrottle::validateSignal(RawSignalData *rawValues) {
  * Convert the raw ADC values to a range from 0 to 1000 (per mille) according
  * to the specified range and the type of potentiometer.
  */
-uint16_t PotThrottle::calculatePedalPosition(RawSignalData *rawValues) {
+uint16_t PotThrottle::calculatePedalPosition(RawSignalData *rawSignal) {
 	PotThrottleConfiguration *config = (PotThrottleConfiguration *) getConfiguration();
 	uint16_t calcThrottle1, calcThrottle2, clampedLevel;
 
-	clampedLevel = constrain(rawSignal.input1, config->minimumLevel1, config->maximumLevel1);
+	clampedLevel = constrain(rawSignal->input1, config->minimumLevel1, config->maximumLevel1);
 	calcThrottle1 = map(clampedLevel, config->minimumLevel1, config->maximumLevel1, (uint16_t) 0, (uint16_t) 1000);
 
 	if (config->numberPotMeters > 1) {
-		clampedLevel = constrain(rawSignal.input2, config->minimumLevel2, config->maximumLevel2);
+		clampedLevel = constrain(rawSignal->input2, config->minimumLevel2, config->maximumLevel2);
 		calcThrottle2 = map(clampedLevel, config->minimumLevel2, config->maximumLevel2, (uint16_t) 0, (uint16_t) 1000);
 		calcThrottle1 = (calcThrottle1 + calcThrottle2) / 2; // now the average of the two
 	}
@@ -171,9 +171,9 @@ DeviceId PotThrottle::getId() {
  * are chosen and the configuration is overwritten in the EEPROM.
  */
 void PotThrottle::loadConfiguration() {
-	PotThrottleConfiguration *config = (PotThrottleConfiguration *)getConfiguration();
+	PotThrottleConfiguration *config = (PotThrottleConfiguration *) getConfiguration();
 
-	if(!config) { // as lowest sub-class make sure we have a config object
+	if (!config) { // as lowest sub-class make sure we have a config object
 		config = new PotThrottleConfiguration();
 		setConfiguration(config);
 	}
@@ -221,8 +221,8 @@ void PotThrottle::loadConfiguration() {
 		saveConfiguration();
 	}
 	Logger::debug(POTACCELPEDAL, "# of pots: %d       subtype: %d", config->numberPotMeters, config->throttleSubType);
-	Logger::debug(POTACCELPEDAL, "T1 MIN: %l MAX: %l      T2 MIN: %l MAX: %l", config->minimumLevel1, config->maximumLevel1,
-			config->minimumLevel2, config->maximumLevel2);
+	Logger::debug(POTACCELPEDAL, "T1 MIN: %l MAX: %l      T2 MIN: %l MAX: %l", config->minimumLevel1, config->maximumLevel1, config->minimumLevel2,
+			config->maximumLevel2);
 }
 
 /*

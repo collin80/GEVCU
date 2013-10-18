@@ -265,13 +265,11 @@ void ThrottleDetector::detectMaxCalibrate() {
 			SerialUSB.println("Inverse");
 		}
 
-		/*
 		SerialUSB.println();
 		SerialUSB.println("----- RAW values ----");
 		for (int i=0; i<sampleCount; i++) {
 			SerialUSB.println("T1: " + String(throttle1Values[i]) + ", T2: " + String(throttle2Values[i]));
 		}
-		*/
 
 		SerialUSB.println("========================================");
 
@@ -332,7 +330,7 @@ void ThrottleDetector::readThrottleValues() {
 		throttle1Max = rawSignal->input1;
 	}
 
-	if (throttle2Provided()) {
+	if (potentiometerCount > 1) {
 		// record the minimum sensor value
 		if (rawSignal->input2 < throttle2Min) {
 			throttle2Min = rawSignal->input2;
@@ -386,7 +384,7 @@ void ThrottleDetector::displayCalibratedValues(bool minPedal) {
 	SerialUSB.print(throttle1Min, DEC);
 	SerialUSB.print(" to ");
 	SerialUSB.print(throttle1Max, DEC);
-	if (throttle2Provided) {
+	if (potentiometerCount > 1) {
 		SerialUSB.print(" T2: ");
 		SerialUSB.print(throttle2Min, DEC);
 		SerialUSB.print(" to ");
