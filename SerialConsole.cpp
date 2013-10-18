@@ -356,9 +356,13 @@ void SerialConsole::handleConfigCmd() {
 			Logger::setLoglevel(Logger::Off);
 			break;
 		}
+
+		// send updates to ichip wifi
+		// send updates to ichip wifi
 	} else {
 		Logger::console("Unknown command");
 	}
+	DeviceManager::getInstance()->sendMessage(DEVICE_WIFI, ICHIP2128, MSG_CONFIG_CHANGE, NULL);
 }
 
 void SerialConsole::handleShortCmd() {

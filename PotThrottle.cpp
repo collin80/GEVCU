@@ -71,8 +71,7 @@ RawSignalData *PotThrottle::acquireRawSignal() {
 	sys_io_adc_poll();
 
 	rawSignal.input1 = getAnalog(throttle1AdcPin);
-	if (config->numberPotMeters > 1)
-		rawSignal.input2 = getAnalog(throttle2AdcPin);
+	rawSignal.input2 = getAnalog(throttle2AdcPin);
 
 	return &rawSignal;
 }
@@ -179,7 +178,7 @@ void PotThrottle::loadConfiguration() {
 		setConfiguration(config);
 	}
 
-	Throttle:loadConfiguration(); // call parent
+	Throttle::loadConfiguration(); // call parent
 
 #ifdef USE_HARD_CODED
 	if (false) {
@@ -232,7 +231,7 @@ void PotThrottle::loadConfiguration() {
 void PotThrottle::saveConfiguration() {
 	PotThrottleConfiguration *config = (PotThrottleConfiguration *) getConfiguration();
 
-	Throttle:saveConfiguration(); // call parent
+	Throttle::saveConfiguration(); // call parent
 
 	prefsHandler->write(EETH_MIN_ONE, config->minimumLevel1);
 	prefsHandler->write(EETH_MAX_ONE, config->maximumLevel1);

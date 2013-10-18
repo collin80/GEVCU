@@ -47,6 +47,9 @@ void ICHIPWIFI::setup() {
 	digitalWrite(18, HIGH);
 #endif
 
+	sendCmd("FD");
+	delay(500);
+
 	//for now force a specific ad-hoc network to be set up
 	sendCmd("WLCH=6"); //use WIFI channel 6
 	sendCmd("WLSI=!GEVCU"); //name our ADHOC network GEVCU (the ! indicates a ad-hoc network)
@@ -161,9 +164,13 @@ void ICHIPWIFI::handleMessage(uint32_t messageType, void* message) {
 	Device::handleMessage(messageType, message);
 
 	switch (messageType) {
-	case MSG_SET_PARAM:
+	case MSG_SET_PARAM: {
 		char **params = (char **)message;
 		setParam((char *)params[0], (char *)params[1]);
+		break;
+	}
+	case MSG_CONFIG_CHANGE:
+		loadParameters();
 		break;
 	}
 }
@@ -414,6 +421,8 @@ void ICHIPWIFI::loadParameters() {
 	PotThrottleConfiguration *acceleratorConfig = NULL;
 	PotThrottleConfiguration *brakeConfig = NULL;
 	MotorControllerConfiguration *motorConfig = NULL;
+
+	Logger::info("loading config params to ichip/wifi");
 
 	if (accelerator)
 		acceleratorConfig = (PotThrottleConfiguration *)accelerator->getConfiguration();

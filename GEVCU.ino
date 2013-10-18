@@ -251,14 +251,13 @@ void initializeDevices() {
 	}
 
 // add wifi as last device, because ICHIPWIFI::loadParameters() depends on pre-loaded preferences
-/*
 	Logger::info("Trying WIFI");
 	ICHIPWIFI *iChip = new ICHIPWIFI();
 	if (iChip->isEnabled()) {
 		Logger::info("add device: iChip 2128 WiFi (id: %X, %X)", ICHIP2128, iChip);
 		deviceManager->addDevice(iChip);
 	}
-*/
+
 	/*
 	 *	We defer setting up the devices until here. This allows all objects to be instantiated
 	 *	before any of them set up. That in turn allows the devices to inspect what else is

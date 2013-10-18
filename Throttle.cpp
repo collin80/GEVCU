@@ -154,7 +154,7 @@ uint16_t Throttle::calculatePedalPosition(RawSignalData*) {
 void Throttle::loadConfiguration() {
 	ThrottleConfiguration *config = (ThrottleConfiguration *) getConfiguration();
 
-	Device: loadConfiguration(); // call parent
+	Device::loadConfiguration(); // call parent
 
 #ifdef USE_HARD_CODED
 	if (false) {
@@ -195,7 +195,7 @@ void Throttle::loadConfiguration() {
 void Throttle::saveConfiguration() {
 	ThrottleConfiguration *config = (ThrottleConfiguration *) getConfiguration();
 
-	Device: saveConfiguration(); // call parent
+	Device::saveConfiguration(); // call parent
 
 	prefsHandler->write(EETH_REGEN_MIN, config->positionRegenMinimum);
 	prefsHandler->write(EETH_REGEN_MAX, config->positionRegenMaximum);
