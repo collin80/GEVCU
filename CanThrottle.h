@@ -46,6 +46,9 @@ public:
 	DeviceId getId();
 	bool isFaulted();
 
+	void loadConfiguration();
+	void saveConfiguration();
+
 protected:
 
 private:

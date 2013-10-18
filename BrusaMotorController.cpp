@@ -36,32 +36,18 @@
  */
 
 BrusaMotorController::BrusaMotorController() : MotorController() {
-
-	prefsHandler = new PrefHandler(BRUSA_DMC5);
-
-	torqueSlewRate = 0;
-	speedSlewRate = 0;
-	maxMechanicalPowerMotor = 50000;
-	maxMechanicalPowerRegen = 50000;
-
-	dcVoltLimitMotor = 1000;
-	dcVoltLimitRegen = 1000;
-	dcCurrentLimitMotor = 0;
-	dcCurrentLimitRegen = 0;
-
 	torqueAvailable = 0;
 	maxPositiveTorque = 0;
 	minNegativeTorque = 0;
 	limiterStateNumber = 0;
 
 	tickCounter = 0;
-
-	torqueMax = 20; // TODO: only for testing, in tenths Nm, so 2Nm max torque, remove for production use
-	speedMax = 2000; // TODO: only for testing, remove for production use
 }
 
 void BrusaMotorController::setup() {
 	TickHandler::getInstance()->detach(this);
+
+	loadConfiguration();
 	MotorController::setup(); // run the parent class version of this function
 
 	// register ourselves as observer of 0x258-0x268 and 0x458 can frames
@@ -124,29 +110,33 @@ void BrusaMotorController::sendControl() {
 }
 
 void BrusaMotorController::sendControl2() {
+	BrusaMotorControllerConfiguration *config = (BrusaMotorControllerConfiguration *)getConfiguration();
+
 	prepareOutputFrame(CAN_ID_CONTROL_2);
-	outputFrame.data[0] = (torqueSlewRate & 0xFF00) >> 8;
-	outputFrame.data[1] = (torqueSlewRate & 0x00FF);
-	outputFrame.data[2] = (speedSlewRate & 0xFF00) >> 8;
-	outputFrame.data[3] = (speedSlewRate & 0x00FF);
-	outputFrame.data[4] = (maxMechanicalPowerMotor & 0xFF00) >> 8;
-	outputFrame.data[5] = (maxMechanicalPowerMotor & 0x00FF);
-	outputFrame.data[6] = (maxMechanicalPowerRegen & 0xFF00) >> 8;
-	outputFrame.data[7] = (maxMechanicalPowerRegen & 0x00FF);
+	outputFrame.data[0] = ((config->torqueSlewRate * 10) & 0xFF00) >> 8;
+	outputFrame.data[1] = ((config->torqueSlewRate * 10) & 0x00FF);
+	outputFrame.data[2] = (config->speedSlewRate & 0xFF00) >> 8;
+	outputFrame.data[3] = (config->speedSlewRate & 0x00FF);
+	outputFrame.data[4] = (config->maxMechanicalPowerMotor & 0xFF00) >> 8;
+	outputFrame.data[5] = (config->maxMechanicalPowerMotor & 0x00FF);
+	outputFrame.data[6] = (config->maxMechanicalPowerRegen & 0xFF00) >> 8;
+	outputFrame.data[7] = (config->maxMechanicalPowerRegen & 0x00FF);
 
 	CanHandler::getInstanceEV()->sendFrame(outputFrame);
 }
 
 void BrusaMotorController::sendLimits() {
+	BrusaMotorControllerConfiguration *config = (BrusaMotorControllerConfiguration *)getConfiguration();
+
 	prepareOutputFrame(CAN_ID_LIMIT);
-	outputFrame.data[0] = (dcVoltLimitMotor & 0xFF00) >> 8;
-	outputFrame.data[1] = (dcVoltLimitMotor & 0x00FF);
-	outputFrame.data[2] = (dcVoltLimitRegen & 0xFF00) >> 8;
-	outputFrame.data[3] = (dcVoltLimitRegen & 0x00FF);
-	outputFrame.data[4] = (dcCurrentLimitMotor & 0xFF00) >> 8;
-	outputFrame.data[5] = (dcCurrentLimitMotor & 0x00FF);
-	outputFrame.data[6] = (dcCurrentLimitRegen & 0xFF00) >> 8;
-	outputFrame.data[7] = (dcCurrentLimitRegen & 0x00FF);
+	outputFrame.data[0] = (config->dcVoltLimitMotor & 0xFF00) >> 8;
+	outputFrame.data[1] = (config->dcVoltLimitMotor & 0x00FF);
+	outputFrame.data[2] = (config->dcVoltLimitRegen & 0xFF00) >> 8;
+	outputFrame.data[3] = (config->dcVoltLimitRegen & 0x00FF);
+	outputFrame.data[4] = (config->dcCurrentLimitMotor & 0xFF00) >> 8;
+	outputFrame.data[5] = (config->dcCurrentLimitMotor & 0x00FF);
+	outputFrame.data[6] = (config->dcCurrentLimitRegen & 0xFF00) >> 8;
+	outputFrame.data[7] = (config->dcCurrentLimitRegen & 0x00FF);
 
 	CanHandler::getInstanceEV()->sendFrame(outputFrame);
 }
@@ -247,3 +237,51 @@ uint32_t BrusaMotorController::getTickInterval() {
 	return CFG_TICK_INTERVAL_MOTOR_CONTROLLER_BRUSA;
 }
 
+void BrusaMotorController::loadConfiguration() {
+	BrusaMotorControllerConfiguration *config = (BrusaMotorControllerConfiguration *)getConfiguration();
+
+	if(!config) { // as lowest sub-class make sure we have a config object
+		config = new BrusaMotorControllerConfiguration();
+		setConfiguration(config);
+	}
+
+	MotorController::loadConfiguration(); // call parent
+
+#ifdef USE_HARD_CODED
+	if (false) {
+#else
+//	if (prefsHandler->checksumValid()) { //checksum is good, read in the values stored in EEPROM
+	if (false) { //TODO: use eeprom, not fixed values
+#endif
+		Logger::debug(BRUSA_DMC5, "Valid checksum so using stored config values");
+//		prefsHandler->read(EEMC_, &config->minimumLevel1);
+	} else { //checksum invalid. Reinitialize values and store to EEPROM
+		Logger::warn(BRUSA_DMC5, "Invalid checksum so using hard coded config values");
+		config->maxMechanicalPowerMotor = 50000;
+		config->maxMechanicalPowerRegen = 50000;
+
+		config->dcVoltLimitMotor = 1000;
+		config->dcVoltLimitRegen = 1000;
+		config->dcCurrentLimitMotor = 0;
+		config->dcCurrentLimitRegen = 0;
+		saveConfiguration();
+	}
+	Logger::debug(BRUSA_DMC5, "Max mech power motor: %d kW, max mech power regen: %d ", config->maxMechanicalPowerMotor, config->maxMechanicalPowerRegen);
+	Logger::debug(BRUSA_DMC5, "DC limit motor: %d Volt, DC limit regen: %d Volt", config->dcVoltLimitMotor, config->dcVoltLimitRegen);
+	Logger::debug(BRUSA_DMC5, "DC limit motor: %d Amps, DC limit regen: %d Amps", config->dcCurrentLimitMotor, config->dcCurrentLimitRegen);
+}
+
+void BrusaMotorController::saveConfiguration() {
+	BrusaMotorControllerConfiguration *config = (BrusaMotorControllerConfiguration *)getConfiguration();
+
+	MotorController::saveConfiguration(); // call parent
+
+	//TODO: store to eeprom
+//	prefsHandler->write(EEMC_, config->maxMechanicalPowerMotor);
+//	prefsHandler->write(EEMC_, config->maxMechanicalPowerRegen);
+//	prefsHandler->write(EEMC_, config->dcVoltLimitMotor);
+//	prefsHandler->write(EEMC_, config->dcVoltLimitRegen);
+//	prefsHandler->write(EEMC_, config->dcCurrentLimitMotor);
+//	prefsHandler->write(EEMC_, config->dcCurrentLimitRegen);
+	prefsHandler->saveChecksum();
+}

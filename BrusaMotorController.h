@@ -57,6 +57,19 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #define CAN_MASK_2			0x7ff // mask for above id's								11111111111
 #define CAN_MASKED_ID_2		0x458 // masked id for id's from 0x258 to 0x268				10001011000
 
+class BrusaMotorControllerConfiguration : public MotorControllerConfiguration {
+public:
+	// DMC_CTRL2
+	uint16_t maxMechanicalPowerMotor; // maximal mechanical power of motor in 4W steps
+	uint16_t maxMechanicalPowerRegen; // maximal mechanical power of regen in 4W steps
+
+	// DMC_LIM
+	uint16_t dcVoltLimitMotor; // minimum DC voltage limit for motoring in 0.1V
+	uint16_t dcVoltLimitRegen; //  maximum DC voltage limit for regen in 0.1V
+	uint16_t dcCurrentLimitMotor; // current limit for motoring in 0.1A
+	uint16_t dcCurrentLimitRegen; // current limit for regen in 0.1A
+};
+
 class BrusaMotorController: public MotorController, CanObserver {
 public:
 	// Message id=0x258, DMC_TRQS
@@ -137,30 +150,21 @@ public:
 		enablePowerStage			= 1 << 7  // 0x80
 	};
 
+	BrusaMotorController();
 	void handleTick();
 	void handleCanFrame(RX_CAN_FRAME *frame);
 	void setup();
-	BrusaMotorController();
 	DeviceId getId();
-	virtual uint32_t getTickInterval();
+	uint32_t getTickInterval();
+
+	void loadConfiguration();
+	void saveConfiguration();
 
 private:
 	// DMC_TRQS2
 	int16_t maxPositiveTorque; // max positive available torque in 0.01Nm -> divide by 100 to get Nm
 	int16_t minNegativeTorque; // minimum negative available torque in 0.01Nm
 	uint8_t limiterStateNumber; // state number of active limiter
-
-	// DMC_CTRL2
-	uint16_t torqueSlewRate; // for torque mode only: slew rate of torque value, 0=disabled, in 0.01Nm/sec
-	uint16_t speedSlewRate; //  for speed mode only: slew rate of speed value, 0=disabled, in rpm/sec
-	uint16_t maxMechanicalPowerMotor; // maximal mechanical power of motor in 4W steps
-	uint16_t maxMechanicalPowerRegen; // maximal mechanical power of regen in 4W steps
-
-	// DMC_LIM
-	uint16_t dcVoltLimitMotor; // minimum DC voltage limit for motoring in 0.1V
-	uint16_t dcVoltLimitRegen; //  maximum DC voltage limit for regen in 0.1V
-	uint16_t dcCurrentLimitMotor; // current limit for motoring in 0.1A
-	uint16_t dcCurrentLimitRegen; // current limit for regen in 0.1A
 
 	int tickCounter; // count how many times handleTick() was called
 	PowerMode powerMode; // the desired power mode

@@ -39,16 +39,8 @@ void Device::setup() {
 void Device::handleTick() {
 }
 
-//Had to add this to build properly but I'm not really happy to just add this
-//to make things compile. There must be an issue here.
-uint32_t Device::getTickInterval()
-{
-	return 0;
-}
-
 //just bubbles up the value from the preference handler.
-bool Device::isEnabled() 
-{
+bool Device::isEnabled() {
 	return prefsHandler->isEnabled();
 }
 

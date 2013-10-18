@@ -44,12 +44,14 @@ PotThrottle::PotThrottle(uint8_t throttle1Pin, uint8_t throttle2Pin) :
  */
 void PotThrottle::setup() {
 	TickHandler::getInstance()->detach(this); // unregister from TickHandler first
+
+	loadConfiguration();
+
 	Throttle::setup(); //call base class
 
 	//set digital ports to inputs and pull them up all inputs currently active low
 	//pinMode(THROTTLE_INPUT_BRAKELIGHT, INPUT_PULLUP); //Brake light switch
 
-	loadConfiguration();
 	TickHandler::getInstance()->attach(this, CFG_TICK_INTERVAL_POT_THROTTLE);
 }
 
@@ -69,8 +71,7 @@ RawSignalData *PotThrottle::acquireRawSignal() {
 	sys_io_adc_poll();
 
 	rawSignal.input1 = getAnalog(throttle1AdcPin);
-	if (config->numberPotMeters > 1)
-		rawSignal.input2 = getAnalog(throttle2AdcPin);
+	rawSignal.input2 = getAnalog(throttle2AdcPin);
 
 	return &rawSignal;
 }
@@ -170,22 +171,25 @@ DeviceId PotThrottle::getId() {
  * are chosen and the configuration is overwritten in the EEPROM.
  */
 void PotThrottle::loadConfiguration() {
-	PotThrottleConfiguration *config = new PotThrottleConfiguration();
+	PotThrottleConfiguration *config = (PotThrottleConfiguration *)getConfiguration();
 
-#ifndef USE_HARD_CODED
+	if(!config) { // as lowest sub-class make sure we have a config object
+		config = new PotThrottleConfiguration();
+		setConfiguration(config);
+	}
+
+	Throttle::loadConfiguration(); // call parent
+
+#ifdef USE_HARD_CODED
+	if (false) {
+#else
 	if (prefsHandler->checksumValid()) { //checksum is good, read in the values stored in EEPROM
+#endif
 		Logger::debug(POTACCELPEDAL, "Valid checksum so using stored throttle config values");
 		prefsHandler->read(EETH_MIN_ONE, &config->minimumLevel1);
 		prefsHandler->read(EETH_MAX_ONE, &config->maximumLevel1);
 		prefsHandler->read(EETH_MIN_TWO, &config->minimumLevel2);
 		prefsHandler->read(EETH_MAX_TWO, &config->maximumLevel2);
-		prefsHandler->read(EETH_REGEN_MIN, &config->positionRegenMinimum);
-		prefsHandler->read(EETH_REGEN_MAX, &config->positionRegenMaximum);
-		prefsHandler->read(EETH_FWD, &config->positionForwardMotionStart);
-		prefsHandler->read(EETH_MAP, &config->positionHalfPower);
-		prefsHandler->read(EETH_CREEP, &config->creep);
-		prefsHandler->read(EETH_MIN_ACCEL_REGEN, &config->minimumRegen);
-		prefsHandler->read(EETH_MAX_ACCEL_REGEN, &config->maximumRegen);
 		prefsHandler->read(EETH_NUM_THROTTLES, &config->numberPotMeters);
 		prefsHandler->read(EETH_THROTTLE_TYPE, &config->throttleSubType);
 
@@ -196,21 +200,14 @@ void PotThrottle::loadConfiguration() {
 		if (config->numberPotMeters == 0 && config->throttleSubType == 0) {
 			Logger::debug(POTACCELPEDAL, "THROTTLE APPEARS TO NEED CALIBRATION/DETECTION - choose 'z' on the serial console menu");
 			config->numberPotMeters = 2;
-  }
+		}
 
 		// some safety precautions for new values (depending on eeprom, they might be completely off).
 		if (config->creep > 100 || config->positionRegenMaximum > 1000 || config->minimumRegen > 100) {
 			config->creep = ThrottleCreepValue;
 			config->positionRegenMaximum = ThrottleRegenMaxValue;
 			config->minimumRegen = ThrottleMinRegenValue;
-  }
-
-		Logger::debug(POTACCELPEDAL, "# of pots: %d       subtype: %d", config->numberPotMeters, config->throttleSubType);
-		Logger::debug(POTACCELPEDAL, "T1 MIN: %l MAX: %l      T2 MIN: %l MAX: %l", config->minimumLevel1, config->maximumLevel1,
-				config->minimumLevel2, config->maximumLevel2);
-		Logger::debug(POTACCELPEDAL, "RegenMax: %l RegenMin: %l Fwd: %l Map: %l", config->positionRegenMaximum,
-				config->positionRegenMinimum, config->positionForwardMotionStart, config->positionHalfPower);
-		Logger::debug(POTACCELPEDAL, "MinRegen: %d MaxRegen: %d", config->minimumRegen, config->maximumRegen);
+		}
 	} else { //checksum invalid. Reinitialize values and store to EEPROM
 		Logger::warn(POTACCELPEDAL, "Invalid checksum so using hard coded throttle config values");
 
@@ -218,40 +215,14 @@ void PotThrottle::loadConfiguration() {
 		config->maximumLevel1 = Throttle1MaxValue;
 		config->minimumLevel2 = Throttle2MinValue;
 		config->maximumLevel2 = Throttle2MaxValue;
-		config->positionRegenMinimum = ThrottleRegenMinValue;
-		config->positionRegenMaximum = ThrottleRegenMaxValue;
-		config->positionForwardMotionStart = ThrottleFwdValue;
-		config->positionHalfPower = ThrottleMapValue;
-		config->creep = ThrottleCreepValue;
-		config->minimumRegen = ThrottleMinRegenValue; //percentage of minimal power to use when regen starts
-		config->maximumRegen = ThrottleMaxRegenValue; //percentage of full power to use for regen at throttle
 		config->numberPotMeters = ThrottleNumPots;
 		config->throttleSubType = ThrottleSubtype;
 
 		saveConfiguration();
 	}
-#else
-	Logger::info(POTACCELPEDAL, "#define USE_HARD_CODED so using hard coded throttle config values");
-	config->minimumLevel1 = Throttle1MinValue;
-	config->maximumLevel1 = Throttle1MaxValue;
-	config->minimumLevel2 = Throttle2MinValue;
-	config->maximumLevel2 = Throttle2MaxValue;
-	config->positionRegenMinimum = ThrottleRegenMinValue;
-	config->positionRegenMaximum = ThrottleRegenMaxValue;
-	config->positionForwardMotionStart = ThrottleFwdValue;
-	config->positionHalfPower = ThrottleMapValue;
-	config->creep = ThrottleCreepValue;
-	config->minimumRegen = ThrottleMinRegenValue; //percentage of minimal power to use when regen starts
-	config->maximumRegen = ThrottleMaxRegenValue;//percentage of full power to use for regen at throttle
-	if (throttle2AdcPin == CFG_THROTTLE_NONE)
-	config->numberPotMeters = 1;
-	else
-	config->numberPotMeters = 2;
-	config->throttleSubType = ThrottleSubtype;
-
-#endif
-
-	setConfiguration(config);
+	Logger::debug(POTACCELPEDAL, "# of pots: %d       subtype: %d", config->numberPotMeters, config->throttleSubType);
+	Logger::debug(POTACCELPEDAL, "T1 MIN: %l MAX: %l      T2 MIN: %l MAX: %l", config->minimumLevel1, config->maximumLevel1,
+			config->minimumLevel2, config->maximumLevel2);
 }
 
 /*
@@ -260,17 +231,12 @@ void PotThrottle::loadConfiguration() {
 void PotThrottle::saveConfiguration() {
 	PotThrottleConfiguration *config = (PotThrottleConfiguration *) getConfiguration();
 
+	Throttle::saveConfiguration(); // call parent
+
 	prefsHandler->write(EETH_MIN_ONE, config->minimumLevel1);
 	prefsHandler->write(EETH_MAX_ONE, config->maximumLevel1);
 	prefsHandler->write(EETH_MIN_TWO, config->minimumLevel2);
 	prefsHandler->write(EETH_MAX_TWO, config->maximumLevel2);
-	prefsHandler->write(EETH_REGEN_MIN, config->positionRegenMinimum);
-	prefsHandler->write(EETH_REGEN_MAX, config->positionRegenMaximum);
-	prefsHandler->write(EETH_FWD, config->positionForwardMotionStart);
-	prefsHandler->write(EETH_MAP, config->positionHalfPower);
-	prefsHandler->write(EETH_CREEP, config->creep);
-	prefsHandler->write(EETH_MIN_ACCEL_REGEN, config->minimumRegen);
-	prefsHandler->write(EETH_MAX_ACCEL_REGEN, config->maximumRegen);
 	prefsHandler->write(EETH_NUM_THROTTLES, config->numberPotMeters);
 	prefsHandler->write(EETH_THROTTLE_TYPE, config->throttleSubType);
 	prefsHandler->saveChecksum();

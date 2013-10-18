@@ -83,13 +83,14 @@ void CanThrottle::handleTick() {
  *
  */
 void CanThrottle::handleCanFrame(RX_CAN_FRAME *frame) {
+	int rawLevel;
 	if (frame->id == rxId) {
 		switch (carType) {
 			case Volvo_S80_Gas:
-				level = frame->data[4] * 1000 / 255;
+				rawLevel = frame->data[4] * 1000 / 255;
 				break;
 			case Volvo_V50_Diesel:
-				level = (frame->data[5] + 1) * frame->data[6] * 1000 / 1020;
+				rawLevel = (frame->data[5] + 1) * frame->data[6] * 1000 / 1020;
 				break;
 		}
 	}

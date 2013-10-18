@@ -27,7 +27,10 @@
 #include "config.h"
 #include "PotBrake.h"
 
-//initialize by telling the code which ADC channel to use
+/*
+ * Constructor
+ * Set which ADC channel to use
+ */
 PotBrake::PotBrake(uint8_t brake1) : Throttle() {
 	prefsHandler = new PrefHandler(POTBRAKEPEDAL);
 	brake1AdcPin = brake1;
@@ -153,9 +156,15 @@ DeviceType PotBrake::getType() {
  */
 void PotBrake::loadConfiguration() {
 	PotBrakeConfiguration *config = new PotBrakeConfiguration();
+	setConfiguration(config);
 
-#ifndef USE_HARD_CODED
+	// we deliberately do not load config via parent class here !
+
+#ifdef USE_HARD_CODED
+	if (false) {
+#else
 	if (prefsHandler->checksumValid()) { //checksum is good, read in the values stored in EEPROM
+#endif
 		prefsHandler->read(EETH_BRAKE_MIN, &config->minimumLevel1);
 		prefsHandler->read(EETH_BRAKE_MAX, &config->maximumLevel1);
 		prefsHandler->read(EETH_MAX_BRAKE_REGEN, &config->maximumRegen);
@@ -172,14 +181,6 @@ void PotBrake::loadConfiguration() {
 		config->maximumLevel1 = BrakeMaxValue;
 		saveConfiguration();
 	}
-#else
-	config->maximumRegen = BrakeMaxRegenValue;
-	config->minimumRegen = BrakeMinRegenValue;
-	config->minimumLevel1 = BrakeMinValue;
-	config->maximumLevel1 = BrakeMaxValue;
-#endif
-
-	setConfiguration(config);
 }
 
 /*
@@ -187,6 +188,8 @@ void PotBrake::loadConfiguration() {
  */
 void PotBrake::saveConfiguration() {
 	PotBrakeConfiguration *config = (PotBrakeConfiguration *) getConfiguration();
+
+	// we deliberately do not save config via parent class here !
 
 	prefsHandler->write(EETH_BRAKE_MIN, config->minimumLevel1);
 	prefsHandler->write(EETH_BRAKE_MAX, config->maximumLevel1);

@@ -66,19 +66,21 @@ class Throttle: public Device {
 public:
 	Throttle();
 	virtual int16_t getLevel();
-	virtual void handleTick();
+	void handleTick();
 	virtual bool isFaulted();
 	virtual DeviceType getType();
 
 	virtual RawSignalData *acquireRawSignal();
+	void loadConfiguration();
+	void saveConfiguration();
 
 protected:
 	virtual bool validateSignal(RawSignalData *);
 	virtual uint16_t calculatePedalPosition(RawSignalData *);
 	virtual int16_t mapPedalPosition(int16_t);
-	int16_t level; // the final signed throttle level. [-1000, 1000] in permille of maximum
 
 private:
+	int16_t level; // the final signed throttle level. [-1000, 1000] in permille of maximum
 	
 
 };

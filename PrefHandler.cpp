@@ -92,7 +92,7 @@ PrefHandler::PrefHandler(DeviceId id_in) {
 			lkg_address = EE_MAIN_OFFSET;
 			if (id & 0x8000) enabled = true;
 			position = x;
-			Logger::info("Device ID: %i was found in device table at entry: %i", (int)id_in, x);
+			Logger::info("Device ID: %X was found in device table at entry: %i", (int)id_in, x);
 			return;
 		}
 	}
@@ -108,7 +108,7 @@ PrefHandler::PrefHandler(DeviceId id_in) {
 			id = (int)id_in;
 			memCache->Write(EE_DEVICE_TABLE + (2*x), id);
 			position = x;
-			Logger::info("Device ID: %i was placed into device table at entry: %i", (int)id, x);
+			Logger::info("Device ID: %X was placed into device table at entry: %i", (int)id, x);
 			return;
 		}
 	}
@@ -135,7 +135,7 @@ bool PrefHandler::setDeviceStatus(uint16_t device, bool enabled)
 			else {
 				id &= 0x7FFF;
 			}
-			Logger::debug("ID to write: %i", id);
+			Logger::debug("ID to write: %X", id);
 			memCache->Write(EE_DEVICE_TABLE + (2 * x), id);
 			return true;
 		}
@@ -199,7 +199,7 @@ bool PrefHandler::checksumValid() {
   
   memCache->Read(EE_CHECKSUM + base_address + lkg_address, &stored_chk);
   calc_chk = calcChecksum();
-  Logger::info("Stored Checksum: %i Calc: %i", stored_chk, calc_chk);
+  Logger::info("Stored Checksum: %X Calc: %X", stored_chk, calc_chk);
   
   return (stored_chk == calc_chk);
 }

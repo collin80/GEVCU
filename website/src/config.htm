@@ -5,7 +5,7 @@
 		</tr>
 		<tr>
 			<td>Number of Throttle Pots</td>
-			<td><select name="numThrottlePots">
+			<td><select name="numThrottlePots" title="Some throttles have two outputs, main, and a second sanity check output">
 				<option value="1">1</option>
 				<option value="2">2</option>
 			</select></td>
@@ -19,72 +19,72 @@
 		</tr>
 		<tr>
 			<td>Minimum Signal Level 1</td>
-			<td nowrap="nowrap"><span id="throttleMin1Span"></span></td>
+			<td nowrap="nowrap"><span id="throttleMin1Span" title="Raw ADC numeric output with foot off throttle"></span></td>
 			<td></td>
 			<td>Pedal Position Regen Maximum</td>
-			<td nowrap="nowrap"><span id="throttleRegenMaxSpan"></span> %</td>
+			<td nowrap="nowrap"><span id="throttleRegenMaxSpan" title="Percent throttle where maximum regenerative braking occurs/ends"></span> %</td>
 		</tr>
 		<tr>
 			<td>Maximum Signal Level 1</td>
-			<td><span id="throttleMax1Span"></span></td>
+			<td><span id="throttleMax1Span" title="Raw ADC numeric output with full throttle (floored)"></span></td>
 			<td></td>
 			<td>Pedal Position Regen Minimum</td>
-			<td nowrap="nowrap"><span id="throttleRegenMinSpan"></span> %</td>
+			<td nowrap="nowrap"><span id="throttleRegenMinSpan" title="Percent throttle where minimum regenerative braking begins"></span> %</td>
 		</tr>
 		<tr>
 			<td>Minimum Signal Level 2</td>
-			<td><span id="throttleMin2Span"></span></td>
+			<td><span id="throttleMin2Span" title="Raw ADC numeric output of second throttle sensor with foot off throttle"></span></td>
 			<td></td>
 			<td>Pedal Position Forward Motion Start</td>
-			<td><span id="throttleFwdSpan"></span> %</td>
+			<td><span id="throttleFwdSpan" title="Percent throttle where minimum forward torque begins"></span> %</td>
 		</tr>
 		<tr>
 			<td>Maximum Signal Level 2</td>
-			<td><span id="throttleMax2Span"></span></td>
+			<td><span id="throttleMax2Span" title="Raw ADC numeric output of second throttle sensor with full throttle (floored)"></span></td>
 			<td></td>
 			<td>Pedal Position 50% throttle</td>
-			<td><span id="throttleMapSpan"></span> %</td>
+			<td><span id="throttleMapSpan" title="Percent throttle where 50% forward torque occurs. Adjust to higher percentage to increase control in lower half of forward pedal"></span> %</td>
 		</tr>
 		<tr>
 			<td>Creep Level</td>
-			<td><span id="throttleCreepSpan"></span> %</td>
+			<td><span id="throttleCreepSpan" title="Percent of maximum torque to apply for creep (0% throttle, simulate automatic transmission creep)"></span> %</td>
 			<td></td>
 			<td>Minimum Throttle Regen</td>
-			<td><span id="throttleMinRegenSpan"></span> %</td>
+			<td><span id="throttleMinRegenSpan" title="Percent of maximum torque to apply for minimum throttle regen"></span> %</td>
 		</tr>
 		<tr>
 			<td></td>
 			<td></td>
 			<td></td>
 			<td>Maximum Throttle Regen</td>
-			<td><span id="throttleMaxRegenSpan"></span> %</td>
+			<td><span id="throttleMaxRegenSpan" title="Percent of maximum torque to apply for maximum throttle regen"></span> %</td>
 		</tr>
 		<tr>
 			<td colspan="5"><h2>Brake</h2></td>
 		</tr>
 		<tr>
 			<td>Minimum Signal Level</td>
-			<td><span id="brakeMinSpan"></span></td>
+			<td><span id="brakeMinSpan" title="Raw ADC numeric output of brake transducer with very light brake pedal pressure"></span></td>
 			<td></td>
 			<td>Minimum Brake Regen</td>
-			<td><span id="brakeMinRegenSpan"></span> %</td>
+			<td><span id="brakeMinRegenSpan" title="Percent of maximum torque for regen with minimum brake value"></span> %</td>
 		</tr>
 		<tr>
 			<td>Maximum Signal Level</td>
-			<td><span id="brakeMaxSpan"></span></td>
+			<td><span id="brakeMaxSpan" title="Raw ADC numeric output of brake transducer with full brake pedal pressure applied"></span></td>
 			<td></td>
 			<td>Maximum Brake Regen</td>
-			<td><span id="brakeMaxRegenSpan"></span> %</td>
+			<td><span id="brakeMaxRegenSpan" title="Percent of maximum torque for regen with full brake pedal pressure"></span> %</td>
 		</tr>
 		<tr>
 			<td colspan="5"><h2>Motor Controller</h2></td>
 		</tr>
 		<tr>
 			<td>Maximum Speed</td>
-			<td><input name="speedMax" type="text"/> rpm</td>
+			<td><input name="speedMax" type="text"  title="Maximum speed or RPM controller will apply to motor"/> rpm</td>
 			<td></td>
 			<td>Maximum Torque</td>
-			<td><input name="torqueMax" type="text"/> Nm</td>
+			<td><input name="torqueMax" type="text" title="Maximum torque or power controller will apply to motor"/> Nm</td>
 		</tr>
 <!--		<tr>
 			<td>Active High</td>
@@ -178,5 +178,7 @@
  	<center>
 		<input type="submit" value="Save" />
 	</center>
+	<h2>Legend</h2>
+	<img src="throttlemap.png"/>
 </form>
 

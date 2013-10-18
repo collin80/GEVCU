@@ -33,25 +33,17 @@
 
 #include "PotThrottle.h"
 #include "Logger.h"
+#include "DeviceManager.h"
 
 class Throttle;
 
-class ThrottleDetector : public Device {
+class ThrottleDetector : public TickObserver {
 
 public:
 	ThrottleDetector(Throttle *throttle);
+	~ThrottleDetector();
 	void handleTick();
 	void detect();
-	int getPotentiometerCount();
-	bool isThrottle1HighLow();
-	bool isThrottle2HighLow();
-	bool isThrottle2Inverse();
-	uint16_t getThrottle1Min();
-	uint16_t getThrottle1Max();
-	uint16_t getThrottle2Min();
-	uint16_t getThrottle2Max();
-	uint8_t getSubtype();
-	~ThrottleDetector();
 
 private:
 	enum DetectionState {
@@ -73,21 +65,20 @@ private:
 	int checkLinear(uint16_t, uint16_t);
 	int checkInverse(uint16_t, uint16_t);
 	uint16_t normalize(uint16_t sensorValue, uint16_t sensorMin, uint16_t sensorMax, uint16_t constrainMin, uint16_t constrainMax);
+
 	Throttle *throttle;
 	PotThrottleConfiguration *config;
 	DetectionState state;
 	unsigned long startTime;
-	int potentiometerCount;
-	uint16_t throttle1Value;
-	uint16_t throttle1Min;
-	uint16_t throttle1Max;
-	uint16_t throttle2Value;
-	uint16_t throttle2Min;
-	uint16_t throttle2Max;
-	uint8_t throttleSubType;
-	bool throttle1HighLow;
-	bool throttle2HighLow;
-	bool throttle2Inverse;
+	int potentiometerCount; // the number of potentiometers detected
+	uint16_t throttle1Min; // the minimum value of throttle1
+	uint16_t throttle1Max; // the maximum value of throttle1
+	uint16_t throttle2Min; // the minimum value of throttle2
+	uint16_t throttle2Max; // the maximum value of throttle2
+	uint8_t throttleSubType; // the throttle sub type
+	bool throttle1HighLow; // true if throttle1 ranges from highest to lowest value as the pedal is pressed
+	bool throttle2HighLow; // true if throttle2 ranges from highest to lowest value as the pedal is pressed
+	bool throttle2Inverse; // true if throttle2 values are the opposite of the throttle1 values.
 	int throttle1MinRest;  // minimum sensor value at rest
 	int throttle2MinRest;  // minimum sensor value at rest
 	int throttle2MaxRest;  // maximum sensor value at rest

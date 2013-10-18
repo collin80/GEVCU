@@ -129,8 +129,8 @@ void DmocMotorController::handleCanFrame(RX_CAN_FRAME *frame) {
 		//gives volts and amps for D and Q but does the firmware really care?
 		//break;
 	case 0x650: //HV bus status
-		reportedVoltage = ((frame->data[0] * 256) + frame->data[1]);
-		reportedCurrent = ((frame->data[2] * 256) + frame->data[3]) - 5000; //offset is 500A, unit = .1A
+		dcVoltage = ((frame->data[0] * 256) + frame->data[1]);
+		dcCurrent = ((frame->data[2] * 256) + frame->data[3]) - 5000; //offset is 500A, unit = .1A
 		activityCount++;
 		break;
 	}
@@ -138,6 +138,8 @@ void DmocMotorController::handleCanFrame(RX_CAN_FRAME *frame) {
 
 void DmocMotorController::setup() {
 	TickHandler::getInstance()->detach(this);
+
+	loadConfiguration();
 	MotorController::setup(); // run the parent class version of this function
 
 	// register ourselves as observer of 0x23x and 0x65x can frames
@@ -196,6 +198,7 @@ void DmocMotorController::handleTick() {
 
 //Commanded RPM plus state of key and gear selector
 void DmocMotorController::sendCmd1() {
+	DmocMotorControllerConfiguration *config = (DmocMotorControllerConfiguration *)getConfiguration();
 	TX_CAN_FRAME output;
 	OperationState newstate;
 	alive = (alive + 2) & 0x0F;
@@ -205,7 +208,7 @@ void DmocMotorController::sendCmd1() {
 	output.rtr = 0;
 
 	if (throttleRequested > 0 && operationState == ENABLE && selectedGear != NEUTRAL && powerMode == modeSpeed)
-		speedRequested = 20000 + (((long) throttleRequested * (long) speedMax) / 1000);
+		speedRequested = 20000 + (((long) throttleRequested * (long) config->speedMax) / 1000);
 	else
 		speedRequested = 20000;
 	output.data[0] = (speedRequested & 0xFF00) >> 8;
@@ -238,6 +241,7 @@ void DmocMotorController::sendCmd1() {
 
 //Torque limits
 void DmocMotorController::sendCmd2() {
+	DmocMotorControllerConfiguration *config = (DmocMotorControllerConfiguration *)getConfiguration();
 	TX_CAN_FRAME output;
 	output.dlc = 8;
 	output.id = 0x233;
@@ -253,9 +257,9 @@ void DmocMotorController::sendCmd2() {
 	if (powerMode == modeTorque) {
 		if (actualState == ENABLE) { //don't even try sending torque commands until the DMOC reports it is ready
 			if (selectedGear == DRIVE)
-                torqueRequested = 30000L + (((long) throttleRequested * (long) torqueMax) / 1000L);
+                torqueRequested = 30000L + (((long) throttleRequested * (long) config->torqueMax) / 1000L);
 			if (selectedGear == REVERSE)
-				torqueRequested = 30000L - (((long) throttleRequested * (long) torqueMax) / 1000L);
+				torqueRequested = 30000L - (((long) throttleRequested * (long) config->torqueMax) / 1000L);
 		}
 		output.data[0] = (torqueRequested & 0xFF00) >> 8;
 		output.data[1] = (torqueRequested & 0x00FF);
@@ -263,8 +267,8 @@ void DmocMotorController::sendCmd2() {
 		output.data[3] = output.data[1];
 	}
 	else { //RPM mode so request max torque as upper limit and zero torque as lower limit
-		output.data[0] = ((30000L + torqueMax) & 0xFF00) >> 8;
-		output.data[1] = ((30000L + torqueMax) & 0x00FF);
+		output.data[0] = ((30000L + config->torqueMax) & 0xFF00) >> 8;
+		output.data[1] = ((30000L + config->torqueMax) & 0x00FF);
 		output.data[2] = 0x75;
 		output.data[3] = 0x30;
 	}
@@ -387,4 +391,17 @@ uint32_t DmocMotorController::getTickInterval()
 	return CFG_TICK_INTERVAL_MOTOR_CONTROLLER_DMOC;
 }
 
+void DmocMotorController::loadConfiguration() {
+	DmocMotorControllerConfiguration *config = (DmocMotorControllerConfiguration *)getConfiguration();
 
+	if (!config) {
+		config = new DmocMotorControllerConfiguration();
+		setConfiguration(config);
+	}
+
+	MotorController::loadConfiguration(); // call parent
+}
+
+void DmocMotorController::saveConfiguration() {
+	MotorController::saveConfiguration();
+}

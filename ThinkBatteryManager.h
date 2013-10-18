@@ -42,8 +42,8 @@ public:
 	ThinkBatteryManager();
 	void setup();
 	void handleTick();
-	DeviceId getId();
 	void handleCanFrame(RX_CAN_FRAME *frame);
+	DeviceId getId();
 	bool hasPackVoltage();
 	bool hasPackCurrent();
 	bool hasTemperatures();

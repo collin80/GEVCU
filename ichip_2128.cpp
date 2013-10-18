@@ -47,6 +47,9 @@ void ICHIPWIFI::setup() {
 	digitalWrite(18, HIGH);
 #endif
 
+	sendCmd("FD");
+	delay(500);
+
 	//for now force a specific ad-hoc network to be set up
 	sendCmd("WLCH=6"); //use WIFI channel 6
 	sendCmd("WLSI=!GEVCU"); //name our ADHOC network GEVCU (the ! indicates a ad-hoc network)
@@ -54,6 +57,11 @@ void ICHIPWIFI::setup() {
 	sendCmd("DPSZ=10"); //serve up 10 more addresses (11 - 20)
 	sendCmd("RPG=secret"); // set the configuration password for /ichip
 	sendCmd("WPWD=secret"); // set the password to update config params
+
+//	sendCmd("WSI1=AndroidAP"); // hotspot SSID
+//	sendCmd("WST1=4"); //wpa2
+//	sendCmd("WPP1=verysecret"); //wpa2 password
+
 	enableServer();
 
 	TickHandler::getInstance()->attach(this, CFG_TICK_INTERVAL_WIFI);
@@ -156,9 +164,13 @@ void ICHIPWIFI::handleMessage(uint32_t messageType, void* message) {
 	Device::handleMessage(messageType, message);
 
 	switch (messageType) {
-	case MSG_SET_PARAM:
+	case MSG_SET_PARAM: {
 		char **params = (char **)message;
 		setParam((char *)params[0], (char *)params[1]);
+		break;
+	}
+	case MSG_CONFIG_CHANGE:
+		loadParameters();
 		break;
 	}
 }
@@ -262,6 +274,8 @@ void ICHIPWIFI::setParam(String paramName, float value, int precision) {
  * Constructor. Assign serial interface to use for ichip communication
  */
 ICHIPWIFI::ICHIPWIFI() {
+	prefsHandler = new PrefHandler(ICHIP2128);
+
 #ifdef GEVCU3
 	serialInterface = &Serial2;
 #else
@@ -273,6 +287,7 @@ ICHIPWIFI::ICHIPWIFI() {
  * Constructor. Pass serial interface to use for ichip communication
  */
 ICHIPWIFI::ICHIPWIFI(USARTClass *which) {
+	prefsHandler = new PrefHandler(ICHIP2128);
 	serialInterface = which;
 }
 
@@ -311,15 +326,19 @@ void ICHIPWIFI::loop() {
  * by looking for the '=' sign and the leading/trailing '"' have to be ignored.
  */
 void ICHIPWIFI::processParameterChange(char *key) {
-	PotThrottleConfiguration *acceleratorConfig;
-	PotThrottleConfiguration *brakeConfig;
+	PotThrottleConfiguration *acceleratorConfig = NULL;
+	PotThrottleConfiguration *brakeConfig = NULL;
+	MotorControllerConfiguration *motorConfig = NULL;
 	Throttle *accelerator = DeviceManager::getInstance()->getAccelerator();
 	Throttle *brake = DeviceManager::getInstance()->getBrake();
+	MotorController *motorController = DeviceManager::getInstance()->getMotorController();
 
 	if (accelerator)
 		acceleratorConfig = (PotThrottleConfiguration *)accelerator->getConfiguration();
 	if (brake)
 		brakeConfig = (PotThrottleConfiguration *)brake->getConfiguration();
+	if(motorController)
+		motorConfig = (MotorControllerConfiguration *)motorController->getConfiguration();
 
 	char *value = strchr(key, '=');
 	if (value) {
@@ -380,12 +399,12 @@ void ICHIPWIFI::processParameterChange(char *key) {
 		} else if (!strcmp(key, "brakeMaxRegen") && brakeConfig) {
 			brakeConfig->maximumRegen = atol(value);
 			brake->saveConfiguration();
-		} else if (!strcmp(key, "speedMax")) {
-			DeviceManager::getInstance()->getMotorController()->setSpeedMax(atol(value));
-			DeviceManager::getInstance()->getMotorController()->saveEEPROM();
-		} else if (!strcmp(key, "torqueMax")) {
-			DeviceManager::getInstance()->getMotorController()->setTorqueMax(atol(value) * 10);
-			DeviceManager::getInstance()->getMotorController()->saveEEPROM();
+		} else if (!strcmp(key, "speedMax") && motorConfig) {
+			motorConfig->speedMax = atol(value);
+			motorController->saveConfiguration();
+		} else if (!strcmp(key, "torqueMax") && motorConfig) {
+			motorConfig->torqueMax = atol(value) * 10;
+			motorController->saveConfiguration();
 		}
 	}
 	getNextParam(); // try to get another one immediately
@@ -399,33 +418,44 @@ void ICHIPWIFI::loadParameters() {
 	MotorController *motorController = DeviceManager::getInstance()->getMotorController();
 	Throttle *accelerator = DeviceManager::getInstance()->getAccelerator();
 	Throttle *brake = DeviceManager::getInstance()->getBrake();
-	PotThrottleConfiguration *acceleratorConfig;
-	PotThrottleConfiguration *brakeConfig;
+	PotThrottleConfiguration *acceleratorConfig = NULL;
+	PotThrottleConfiguration *brakeConfig = NULL;
+	MotorControllerConfiguration *motorConfig = NULL;
+
+	Logger::info("loading config params to ichip/wifi");
 
 	if (accelerator)
 		acceleratorConfig = (PotThrottleConfiguration *)accelerator->getConfiguration();
 	if (brake)
 		brakeConfig = (PotThrottleConfiguration *)brake->getConfiguration();
+	if (motorController)
+		motorConfig = (MotorControllerConfiguration *)motorController->getConfiguration();
 
-	setParam("numThrottlePots", acceleratorConfig->numberPotMeters);
-	setParam("throttleSubType", acceleratorConfig->throttleSubType);
-	setParam("throttleMin1", acceleratorConfig->minimumLevel1);
-	setParam("throttleMin2", acceleratorConfig->minimumLevel2);
-	setParam("throttleMax1", acceleratorConfig->maximumLevel1);
-	setParam("throttleMax2", acceleratorConfig->maximumLevel2);
-	setParam("throttleRegenMax", (uint16_t)(acceleratorConfig->positionRegenMaximum / 10));
-	setParam("throttleRegenMin", (uint16_t)(acceleratorConfig->positionRegenMinimum / 10));
-	setParam("throttleFwd", (uint16_t)(acceleratorConfig->positionForwardMotionStart / 10));
-	setParam("throttleMap", (uint16_t)(acceleratorConfig->positionHalfPower / 10));
-	setParam("throttleMinRegen", acceleratorConfig->minimumRegen);
-	setParam("throttleMaxRegen", acceleratorConfig->maximumRegen);
-	setParam("throttleCreep", acceleratorConfig->creep);
-	setParam("brakeMin", brakeConfig->minimumLevel1);
-	setParam("brakeMax", brakeConfig->maximumLevel1);
-	setParam("brakeMinRegen", brakeConfig->minimumRegen);
-	setParam("brakeMaxRegen", brakeConfig->maximumRegen);
-	setParam("speedMax", motorController->getSpeedMax());
-	setParam("torqueMax", (uint16_t)(motorController->getTorqueMax() / 10)); // skip the tenth's
+	if (acceleratorConfig) {
+		setParam("numThrottlePots", acceleratorConfig->numberPotMeters);
+		setParam("throttleSubType", acceleratorConfig->throttleSubType);
+		setParam("throttleMin1", acceleratorConfig->minimumLevel1);
+		setParam("throttleMin2", acceleratorConfig->minimumLevel2);
+		setParam("throttleMax1", acceleratorConfig->maximumLevel1);
+		setParam("throttleMax2", acceleratorConfig->maximumLevel2);
+		setParam("throttleRegenMax", (uint16_t)(acceleratorConfig->positionRegenMaximum / 10));
+		setParam("throttleRegenMin", (uint16_t)(acceleratorConfig->positionRegenMinimum / 10));
+		setParam("throttleFwd", (uint16_t)(acceleratorConfig->positionForwardMotionStart / 10));
+		setParam("throttleMap", (uint16_t)(acceleratorConfig->positionHalfPower / 10));
+		setParam("throttleMinRegen", acceleratorConfig->minimumRegen);
+		setParam("throttleMaxRegen", acceleratorConfig->maximumRegen);
+		setParam("throttleCreep", acceleratorConfig->creep);
+	}
+	if (brakeConfig) {
+		setParam("brakeMin", brakeConfig->minimumLevel1);
+		setParam("brakeMax", brakeConfig->maximumLevel1);
+		setParam("brakeMinRegen", brakeConfig->minimumRegen);
+		setParam("brakeMaxRegen", brakeConfig->maximumRegen);
+	}
+	if (motorConfig) {
+		setParam("speedMax", motorConfig->speedMax);
+		setParam("torqueMax", (uint16_t)(motorConfig->torqueMax / 10)); // skip the tenth's
+	}
 }
 
 DeviceType ICHIPWIFI::getType() {
@@ -436,3 +466,20 @@ DeviceId ICHIPWIFI::getId() {
 	return (ICHIP2128);
 }
 
+void ICHIPWIFI::loadConfiguration() {
+	WifiConfiguration *config = new WifiConfiguration();
+
+	if (prefsHandler->checksumValid()) { //checksum is good, read in the values stored in EEPROM
+		Logger::debug(ICHIP2128, "Valid checksum so using stored wifi config values");
+		//TODO: implement processing of config params for WIFI
+//		prefsHandler->read(EESYS_WIFI0_SSID, &config->ssid);
+	}
+}
+
+void ICHIPWIFI::saveConfiguration() {
+	WifiConfiguration *config = (WifiConfiguration *) getConfiguration();
+
+	//TODO: implement processing of config params for WIFI
+//	prefsHandler->write(EESYS_WIFI0_SSID, config->ssid);
+//	prefsHandler->saveChecksum();
+}

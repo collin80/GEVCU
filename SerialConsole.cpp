@@ -91,9 +91,12 @@ void SerialConsole::printMenu() {
 	uint8_t systype;
 	sysPrefs->read(EESYS_SYSTEM_TYPE, &systype);
 	Logger::console("SYSTYPE=%i - Set board revision (Dued=2, GEVCU3=3)", systype);
-	Logger::console("TORQ=%i - Set torque upper limit (tenths of a Nm)", motorController->getTorqueMax());
-	Logger::console("RPMS=%i - Set maximum RPMs", motorController->getSpeedMax());
-	Logger::console("REVLIM=%i - How much torque to allow in reverse (Tenths of a percent)", motorController->getReversePercent());
+	if (motorController && motorController->getConfiguration()) {
+		MotorControllerConfiguration *config = (MotorControllerConfiguration *) motorController->getConfiguration();
+		Logger::console("TORQ=%i - Set torque upper limit (tenths of a Nm)", config->torqueMax);
+		Logger::console("RPMS=%i - Set maximum RPMs", config->speedMax);
+		Logger::console("REVLIM=%i - How much torque to allow in reverse (Tenths of a percent)", config->reversePercent);
+	}
 
 	if (accelerator && accelerator->getConfiguration()) {
 		PotThrottleConfiguration *config = (PotThrottleConfiguration *) accelerator->getConfiguration();
@@ -120,13 +123,14 @@ void SerialConsole::printMenu() {
 		Logger::console("BMAXR=%i - Percent of full torque for maximum brake regen", config->maximumRegen);
 	}
 
-	Logger::console("PREC=%i - Precharge capacitance (uf)", DeviceManager::getInstance()->getMotorController()->getPrechargeC());
-	Logger::console("PRER=%i - Precharge resistance (1/10 of ohm)", DeviceManager::getInstance()->getMotorController()->getPrechargeR());
-	Logger::console("NOMV=%i - Nominal system voltage (1/10 of a volt)", DeviceManager::getInstance()->getMotorController()->getNominalV());
-	Logger::console("PRELAY=%i - Which output to use for precharge contactor (255 to disable)",
-			DeviceManager::getInstance()->getMotorController()->getPrechargeRelay());
-	Logger::console("MRELAY=%i - Which output to use for main contactor (255 to disable)",
-			DeviceManager::getInstance()->getMotorController()->getMainRelay());
+	if (motorController && motorController->getConfiguration()) {
+		MotorControllerConfiguration *config = (MotorControllerConfiguration *) motorController->getConfiguration();
+		Logger::console("PREC=%i - Precharge capacitance (uf)", config->prechargeC);
+		Logger::console("PRER=%i - Precharge resistance (1/10 of ohm)", config->prechargeR);
+		Logger::console("NOMV=%i - Nominal system voltage (1/10 of a volt)", config->nominalVolt);
+		Logger::console("PRELAY=%i - Which output to use for precharge contactor (255 to disable)", config->prechargeRelay);
+		Logger::console("MRELAY=%i - Which output to use for main contactor (255 to disable)", config->mainContactorRelay);
+	}
 	Logger::console("LOGLEVEL=%i - set log level (0=debug, 1=info, 2=warn, 3=error, 4=off)", Logger::getLogLevel());
 }
 
@@ -172,8 +176,10 @@ void SerialConsole::handleConsoleCmd() {
 void SerialConsole::handleConfigCmd() {
 	PotThrottleConfiguration *acceleratorConfig = NULL;
 	PotThrottleConfiguration *brakeConfig = NULL;
+	MotorControllerConfiguration *motorConfig = NULL;
 	Throttle *accelerator = DeviceManager::getInstance()->getAccelerator();
 	Throttle *brake = DeviceManager::getInstance()->getBrake();
+	MotorController *motorController = DeviceManager::getInstance()->getMotorController();
 
 	int i;
 	int newValue;
@@ -195,188 +201,123 @@ void SerialConsole::handleConfigCmd() {
 		acceleratorConfig = (PotThrottleConfiguration *) accelerator->getConfiguration();
 	if (brake)
 		brakeConfig = (PotThrottleConfiguration *) brake->getConfiguration();
+	if (motorController)
+		motorConfig = (MotorControllerConfiguration *) motorController->getConfiguration();
 
 	//Go ahead and move this here. It was previously reiterated in every single config handler.
 	//If you need another style of input (say, for floats) then do it yourself in your config
 	//handling block. Otherwise, this is done for you.
-	newValue = atoi((char *) (cmdBuffer + i));
+	// strtol() is able to parse also hex values (e.g. a string "0xCAFE"), useful for enable/disable by device id
+	newValue = strtol((char *) (cmdBuffer + i), NULL, 0);
 
 	cmdString.toUpperCase();
-	if (cmdString == String("TORQ")) {
+	if (cmdString == String("TORQ") && motorConfig) {
 		Logger::console("Setting Torque Limit to %i", newValue);
-		DeviceManager::getInstance()->getMotorController()->setTorqueMax(newValue);
-		DeviceManager::getInstance()->getMotorController()->saveEEPROM();
-	} else if (cmdString == String("RPMS")) {
+		motorConfig->torqueMax = newValue;
+		motorController->saveConfiguration();
+	} else if (cmdString == String("RPMS") && motorConfig) {
 		Logger::console("Setting RPM Limit to %i", newValue);
-		DeviceManager::getInstance()->getMotorController()->setSpeedMax(newValue);
-		DeviceManager::getInstance()->getMotorController()->saveEEPROM();
-	} else if (cmdString == String("REVLIM")) {
+		motorConfig->speedMax = newValue;
+		motorController->saveConfiguration();
+	} else if (cmdString == String("REVLIM") && motorConfig) {
 		Logger::console("Setting Reverse Limit to %i", newValue);
-		DeviceManager::getInstance()->getMotorController()->setReversePercent(newValue);
-		DeviceManager::getInstance()->getMotorController()->saveEEPROM();
-	} else if (cmdString == String("TPOT")) {
-		if (accelerator) {
-			Logger::console("Setting # of Throttle Pots to %i", newValue);
-			acceleratorConfig->numberPotMeters = newValue;
-			accelerator->saveConfiguration();
-		} else {
-			Logger::console("No acclerator object available");
-		}
-	} else if (cmdString == String("TTYPE")) {
-		if (accelerator != NULL) {
-			Logger::console("Setting Throttle Subtype to %i", newValue);
-			acceleratorConfig->throttleSubType = newValue;
-			accelerator->saveConfiguration();
-		} else {
-			Logger::console("No acclerator object available");
-		}
-	} else if (cmdString == String("T1MN")) {
-		if (accelerator != NULL) {
-			Logger::console("Setting Throttle1 Min to %i", newValue);
-			acceleratorConfig->minimumLevel1 = newValue;
-			accelerator->saveConfiguration();
-		} else {
-			Logger::console("No acclerator object available");
-		}
-	} else if (cmdString == String("T1MX")) {
-		if (accelerator != NULL) {
-			Logger::console("Setting Throttle1 Max to %i", newValue);
-			acceleratorConfig->maximumLevel1 = newValue;
-			accelerator->saveConfiguration();
-		} else {
-			Logger::console("No acclerator object available");
-		}
-	} else if (cmdString == String("T2MN")) {
-		if (accelerator != NULL) {
-			Logger::console("Setting Throttle2 Min to %i", newValue);
-			acceleratorConfig->minimumLevel2 = newValue;
-			accelerator->saveConfiguration();
-		} else {
-			Logger::console("No acclerator object available");
-		}
-	} else if (cmdString == String("T2MX")) {
-		if (accelerator != NULL) {
-			Logger::console("Setting Throttle2 Max to %i", newValue);
-			acceleratorConfig->maximumLevel2 = newValue;
-			accelerator->saveConfiguration();
-		} else {
-			Logger::console("No acclerator object available");
-		}
-	} else if (cmdString == String("TRGNMAX")) {
-		if (accelerator != NULL) {
-			Logger::console("Setting Throttle Regen maximum to %i", newValue);
-			acceleratorConfig->positionRegenMaximum = newValue;
-			accelerator->saveConfiguration();
-		} else {
-			Logger::console("No acclerator object available");
-		}
-	} else if (cmdString == String("TRGNMIN")) {
-		if (accelerator != NULL) {
-			Logger::console("Setting Throttle Regen minimum to %i", newValue);
-			acceleratorConfig->positionRegenMinimum = newValue;
-			accelerator->saveConfiguration();
-		} else {
-			Logger::console("No acclerator object available");
-		}
-	} else if (cmdString == String("TFWD")) {
-		if (accelerator != NULL) {
-			Logger::console("Setting Throttle Forward Start to %i", newValue);
-			acceleratorConfig->positionForwardMotionStart = newValue;
-			accelerator->saveConfiguration();
-		} else {
-			Logger::console("No acclerator object available");
-		}
-	} else if (cmdString == String("TMAP")) {
-		if (accelerator != NULL) {
-			Logger::console("Setting Throttle MAP Point to %i", newValue);
-			acceleratorConfig->positionHalfPower = newValue;
-			accelerator->saveConfiguration();
-		} else {
-			Logger::console("No acclerator object available");
-		}
-	} else if (cmdString == String("TMINRN")) {
-		if (accelerator != NULL) {
-			Logger::console("Setting Throttle Regen Minimum Strength to %i", newValue);
-			acceleratorConfig->minimumRegen = newValue;
-			accelerator->saveConfiguration();
-		} else {
-			Logger::console("No acclerator object available");
-		}
-	} else if (cmdString == String("TMAXRN")) {
-		if (accelerator != NULL) {
-			Logger::console("Setting Throttle Regen Maximum Strength to %i", newValue);
-			acceleratorConfig->maximumRegen = newValue;
-			accelerator->saveConfiguration();
-		} else {
-			Logger::console("No acclerator object available");
-		}
-	} else if (cmdString == String("TCREEP")) {
-		if (accelerator != NULL) {
-			Logger::console("Setting Throttle Creep Strength to %i", newValue);
-			acceleratorConfig->creep = newValue;
-			accelerator->saveConfiguration();
-		} else {
-			Logger::console("No acclerator object available");
-		}
-	} else if (cmdString == String("BMAXR")) {
-		if (brake != NULL) {
-			Logger::console("Setting Max Brake Regen to %i", newValue);
-			brakeConfig->maximumRegen = newValue;
-			brake->saveConfiguration();
-		} else {
-			Logger::console("No brake object available");
-		}
-	} else if (cmdString == String("BMINR")) {
-		if (brake != NULL) {
-			Logger::console("Setting Min Brake Regen to %i", newValue);
-			brakeConfig->minimumRegen = newValue;
-			brake->saveConfiguration();
-		} else {
-			Logger::console("No brake object available");
-		}
-	} else if (cmdString == String("B1MX")) {
-		if (brake != NULL) {
-			Logger::console("Setting Brake Max to %i", newValue);
-			brakeConfig->maximumLevel1 = newValue;
-			brake->saveConfiguration();
-		} else {
-			Logger::console("No brake object available");
-		}
-	} else if (cmdString == String("B1MN")) {
-		if (brake != NULL) {
-			Logger::console("Setting Brake Min to %i", newValue);
-			brakeConfig->minimumLevel1 = newValue;
-			brake->saveConfiguration();
-		} else {
-			Logger::console("No brake object available");
-		}
-	} else if (cmdString == String("PREC")) {
+		motorConfig->reversePercent = newValue;
+		motorController->saveConfiguration();
+	} else if (cmdString == String("TPOT") && acceleratorConfig) {
+		Logger::console("Setting # of Throttle Pots to %i", newValue);
+		acceleratorConfig->numberPotMeters = newValue;
+		accelerator->saveConfiguration();
+	} else if (cmdString == String("TTYPE") && acceleratorConfig) {
+		Logger::console("Setting Throttle Subtype to %i", newValue);
+		acceleratorConfig->throttleSubType = newValue;
+		accelerator->saveConfiguration();
+	} else if (cmdString == String("T1MN") && acceleratorConfig) {
+		Logger::console("Setting Throttle1 Min to %i", newValue);
+		acceleratorConfig->minimumLevel1 = newValue;
+		accelerator->saveConfiguration();
+	} else if (cmdString == String("T1MX") && acceleratorConfig) {
+		Logger::console("Setting Throttle1 Max to %i", newValue);
+		acceleratorConfig->maximumLevel1 = newValue;
+		accelerator->saveConfiguration();
+	} else if (cmdString == String("T2MN") && acceleratorConfig) {
+		Logger::console("Setting Throttle2 Min to %i", newValue);
+		acceleratorConfig->minimumLevel2 = newValue;
+		accelerator->saveConfiguration();
+	} else if (cmdString == String("T2MX") && acceleratorConfig) {
+		Logger::console("Setting Throttle2 Max to %i", newValue);
+		acceleratorConfig->maximumLevel2 = newValue;
+		accelerator->saveConfiguration();
+	} else if (cmdString == String("TRGNMAX") && acceleratorConfig) {
+		Logger::console("Setting Throttle Regen maximum to %i", newValue);
+		acceleratorConfig->positionRegenMaximum = newValue;
+		accelerator->saveConfiguration();
+	} else if (cmdString == String("TRGNMIN") && acceleratorConfig) {
+		Logger::console("Setting Throttle Regen minimum to %i", newValue);
+		acceleratorConfig->positionRegenMinimum = newValue;
+		accelerator->saveConfiguration();
+	} else if (cmdString == String("TFWD") && acceleratorConfig) {
+		Logger::console("Setting Throttle Forward Start to %i", newValue);
+		acceleratorConfig->positionForwardMotionStart = newValue;
+		accelerator->saveConfiguration();
+	} else if (cmdString == String("TMAP") && acceleratorConfig) {
+		Logger::console("Setting Throttle MAP Point to %i", newValue);
+		acceleratorConfig->positionHalfPower = newValue;
+		accelerator->saveConfiguration();
+	} else if (cmdString == String("TMINRN") && acceleratorConfig) {
+		Logger::console("Setting Throttle Regen Minimum Strength to %i", newValue);
+		acceleratorConfig->minimumRegen = newValue;
+		accelerator->saveConfiguration();
+	} else if (cmdString == String("TMAXRN") && acceleratorConfig) {
+		Logger::console("Setting Throttle Regen Maximum Strength to %i", newValue);
+		acceleratorConfig->maximumRegen = newValue;
+		accelerator->saveConfiguration();
+	} else if (cmdString == String("TCREEP") && acceleratorConfig) {
+		Logger::console("Setting Throttle Creep Strength to %i", newValue);
+		acceleratorConfig->creep = newValue;
+		accelerator->saveConfiguration();
+	} else if (cmdString == String("BMAXR") && brakeConfig) {
+		Logger::console("Setting Max Brake Regen to %i", newValue);
+		brakeConfig->maximumRegen = newValue;
+		brake->saveConfiguration();
+	} else if (cmdString == String("BMINR") && brakeConfig) {
+		Logger::console("Setting Min Brake Regen to %i", newValue);
+		brakeConfig->minimumRegen = newValue;
+		brake->saveConfiguration();
+	} else if (cmdString == String("B1MX") && brakeConfig) {
+		Logger::console("Setting Brake Max to %i", newValue);
+		brakeConfig->maximumLevel1 = newValue;
+		brake->saveConfiguration();
+	} else if (cmdString == String("B1MN") && brakeConfig) {
+		Logger::console("Setting Brake Min to %i", newValue);
+		brakeConfig->minimumLevel1 = newValue;
+		brake->saveConfiguration();
+	} else if (cmdString == String("PREC") && motorConfig) {
 		Logger::console("Setting Precharge Capacitance to %i", newValue);
-		DeviceManager::getInstance()->getMotorController()->setPrechargeC(newValue);
-		DeviceManager::getInstance()->getMotorController()->saveEEPROM();
-	} else if (cmdString == String("PRER")) {
+		motorConfig->prechargeC = newValue;
+		motorController->saveConfiguration();
+	} else if (cmdString == String("PRER") && motorConfig) {
 		Logger::console("Setting Precharge Resistance to %i", newValue);
-		DeviceManager::getInstance()->getMotorController()->setPrechargeR(newValue);
-		DeviceManager::getInstance()->getMotorController()->saveEEPROM();
-	} else if (cmdString == String("NOMV")) {
+		motorConfig->prechargeR = newValue;
+		motorController->saveConfiguration();
+	} else if (cmdString == String("NOMV") && motorConfig) {
 		Logger::console("Setting Nominal Voltage to %i", newValue);
-		DeviceManager::getInstance()->getMotorController()->setNominalV(newValue);
-		DeviceManager::getInstance()->getMotorController()->saveEEPROM();
-	} else if (cmdString == String("MRELAY")) {
+		motorConfig->nominalVolt = newValue;
+		motorController->saveConfiguration();
+	} else if (cmdString == String("MRELAY") && motorConfig) {
 		Logger::console("Setting Main Contactor relay to %i", newValue);
-		DeviceManager::getInstance()->getMotorController()->setMainRelay(newValue);
-		DeviceManager::getInstance()->getMotorController()->saveEEPROM();
-	} else if (cmdString == String("PRELAY")) {
+		motorConfig->mainContactorRelay = newValue;
+		motorController->saveConfiguration();
+	} else if (cmdString == String("PRELAY") && motorConfig) {
 		Logger::console("Setting Precharge Relay to %i", newValue);
-		DeviceManager::getInstance()->getMotorController()->setPrechargeRelay(newValue);
-		DeviceManager::getInstance()->getMotorController()->saveEEPROM();
+		motorConfig->prechargeRelay = newValue;
+		motorController->saveConfiguration();
 	} else if (cmdString == String("ENABLE")) {
 		if (PrefHandler::setDeviceStatus(newValue, true)) {
 			sysPrefs->forceCacheWrite(); //just in case someone takes us literally and power cycles quickly
 			Logger::console("Successfully enabled device. Power cycle to activate.");
 		}
 		else {
-			Logger::console("Invalid device ID");
+			Logger::console("Invalid device ID (%X, %d)", newValue, newValue);
 		}
 	} else if (cmdString == String("DISABLE")) {
 		if (PrefHandler::setDeviceStatus(newValue, true)) {
@@ -415,9 +356,13 @@ void SerialConsole::handleConfigCmd() {
 			Logger::setLoglevel(Logger::Off);
 			break;
 		}
+
+		// send updates to ichip wifi
+		// send updates to ichip wifi
 	} else {
 		Logger::console("Unknown command");
 	}
+	DeviceManager::getInstance()->sendMessage(DEVICE_WIFI, ICHIP2128, MSG_CONFIG_CHANGE, NULL);
 }
 
 void SerialConsole::handleShortCmd() {
@@ -524,15 +469,15 @@ void SerialConsole::handleShortCmd() {
 		//think to change that. Otherwise you must remember to update here or
 		//nobody will know your device exists. Additionally, these values are
 		//decoded into decimal from their hex specification in DeviceTypes.h
-		Logger::console("DMOC645 = 4096");
-		Logger::console("Brusa DMC5 = 4097");
-		Logger::console("Brusa Charger = 4112");
-		Logger::console("TCCH Charger = 4128");
-		Logger::console("Pot based accelerator = 4144");
-		Logger::console("Pot based brake = 4145");
-		Logger::console("CANBus accelerator = 4146");
-		Logger::console("WIFI (iChip2128) = 4160");
-		Logger::console("Th!nk City BMS = 8192");
+		Logger::console("DMOC645 = %X", DMOC645);
+		Logger::console("Brusa DMC5 = %X", BRUSA_DMC5);
+		Logger::console("Brusa Charger = %X", BRUSACHARGE);
+		Logger::console("TCCH Charger = %X", TCCHCHARGE);
+		Logger::console("Pot based accelerator = %X", POTACCELPEDAL);
+		Logger::console("Pot based brake = %X", POTBRAKEPEDAL);
+		Logger::console("CANBus accelerator = %X", CANACCELPEDAL);
+		Logger::console("WIFI (iChip2128) = %X", ICHIP2128);
+		Logger::console("Th!nk City BMS = %X", THINKBMS);
 		break;
 	}
 }
