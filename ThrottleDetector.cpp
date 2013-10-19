@@ -77,7 +77,7 @@ void ThrottleDetector::handleTick() {
  * Step 1. Kick it off
  */
 void ThrottleDetector::detect() {
-	SerialUSB.println("Throttle detection starting. Do NOT press the pedal until instructed.");
+	Logger::console("Throttle detection starting. Do NOT press the pedal until instructed.");
 
 	resetValues();
 
@@ -85,9 +85,9 @@ void ThrottleDetector::detect() {
 	sampleCount = 0;
 	linearCount = 0;
 	inverseCount = 0;
-	for (int i=0; i<200; i++) {
-		throttle1Values[i]=0;
-		throttle2Values[i]=0;
+	for (int i = 0; i < 200; i++) {
+		throttle1Values[i] = 0;
+		throttle2Values[i] = 0;
 	}
 
 	// we wait for 2 seconds so kick this off
@@ -117,7 +117,7 @@ void ThrottleDetector::detectMinWait() {
  * Step 3. Take MIN readings for 2 seconds then start waiting again
  */
 void ThrottleDetector::detectMinCalibrate() {
-	if ((millis() - startTime) < 2000 || sampleCount < maxSamples/3 ) {
+	if ((millis() - startTime) < 2000 || sampleCount < maxSamples / 3) {
 		readThrottleValues();
 	} else {
 		displayCalibratedValues(true);
@@ -127,9 +127,8 @@ void ThrottleDetector::detectMinCalibrate() {
 		throttle2MinRest = throttle2Min;  // minimum sensor value at rest
 		throttle2MaxRest = throttle2Max;  // maximum sensor value at rest
 
-		SerialUSB.println("");
-		SerialUSB.println("Smoothly depress the pedal to full acceleration");
-		SerialUSB.println("and hold the pedal until complete");
+		Logger::console("\nSmoothly depress the pedal to full acceleration");
+		Logger::console("and hold the pedal until complete");
 
 		// wait for 5 seconds so they can react and then still get some readings
 		startTime = millis();
@@ -141,7 +140,7 @@ void ThrottleDetector::detectMinCalibrate() {
  * Step 4. Wait for 5 seconds then start taking MAX readings
  */
 void ThrottleDetector::detectMaxWait() {
-	if ((millis() - startTime) >= 5000 || sampleCount >= maxSamples*2/3) {
+	if ((millis() - startTime) >= 5000 || sampleCount >= maxSamples * 2 / 3) {
 		// drop initial readings as they seem to be invalid
 		readThrottleValues();
 		resetValues();
@@ -176,8 +175,7 @@ void ThrottleDetector::detectMaxCalibrate() {
 		// restore the true min
 		throttle1Min = throttle1MinRest;
 
-		if ((throttle1HighLow && !throttle2HighLow)
-				|| (throttle2HighLow && !throttle1HighLow)) {
+		if ((throttle1HighLow && !throttle2HighLow) || (throttle2HighLow && !throttle1HighLow)) {
 			throttle2Inverse = true;
 		}
 
@@ -185,10 +183,8 @@ void ThrottleDetector::detectMaxCalibrate() {
 		// If the values deviate by more than 15% we assume floating
 		int restDiff = abs(throttle2MaxRest-throttle2MinRest) * 100 / throttle2MaxRest;
 		int maxDiff = abs(throttle2Max-throttle2Min) * 100 / throttle2Max;
-		if ((throttle2MinRest == 0 && throttle2MaxRest == 0
-				&& throttle2Min == INT16_MAX && throttle2Max == 0)
-				|| (restDiff > maxThrottleReadingDeviationPercent
-					&& maxDiff > maxThrottleReadingDeviationPercent)) {
+		if ((throttle2MinRest == 0 && throttle2MaxRest == 0 && throttle2Min == INT16_MAX && throttle2Max == 0)
+				|| (restDiff > maxThrottleReadingDeviationPercent && maxDiff > maxThrottleReadingDeviationPercent)) {
 			potentiometerCount = 1;
 		} else {
 			potentiometerCount = 2;
@@ -198,13 +194,11 @@ void ThrottleDetector::detectMaxCalibrate() {
 		throttle2Min = throttle2MinRest;
 
 		// Determine throttle subtype by examining the data sampled
-		for (int i=0; i<sampleCount; i++) {
+		for (int i = 0; i < sampleCount; i++) {
 			// normalize the values to a 0-1000 scale using the found min/max
 			uint16_t value1 = normalize(throttle1Values[i], throttle1Min, throttle1Max, 0, 1000);
-			uint16_t value2 = normalize(throttle2Values[i],
-									throttle2Inverse ? throttle2Max : throttle2Min,
-									throttle2Inverse ? throttle2Min : throttle2Max,
-									0,1000);
+			uint16_t value2 = normalize(throttle2Values[i], throttle2Inverse ? throttle2Max : throttle2Min,
+					throttle2Inverse ? throttle2Min : throttle2Max, 0, 1000);
 
 			// see if they match known subtypes
 			linearCount += checkLinear(value1, value2);
@@ -216,70 +210,55 @@ void ThrottleDetector::detectMaxCalibrate() {
 		throttleSubType = 0;
 		if (potentiometerCount > 1) {
 			// For dual pots, we trust the detection of >75%
-			if ( linearCount/sampleCount*100 > 75 ) {
+			if (linearCount / sampleCount * 100 > 75) {
 				throttleSubType = 1;
-			} else if ( inverseCount/sampleCount*100 > 75 ) {
-				throttleSubType =  2;
+			} else if (inverseCount / sampleCount * 100 > 75) {
+				throttleSubType = 2;
 			}
 		} else {
 			// For single pots we use the high/low
 			if (throttle1HighLow) {
-				throttleSubType =  2;
+				throttleSubType = 2;
 			} else {
 				throttleSubType = 1;
 			}
 		}
 
-		SerialUSB.println("");
-		SerialUSB.println("=======================================");
-		SerialUSB.println("Detection complete");
-		SerialUSB.print("Num samples taken: ");
-		SerialUSB.println(sampleCount);
-		SerialUSB.print("Num potentiometers found: ");
-		SerialUSB.println(potentiometerCount);
-		SerialUSB.print("T1: ");
-		SerialUSB.print(throttle1Min, DEC);
-		SerialUSB.print(" to ");
-		SerialUSB.print(throttle1Max, DEC);
-		SerialUSB.println(throttle1HighLow ? " HIGH-LOW" : " LOW-HIGH");
+		Logger::console("\n=======================================");
+		Logger::console("Detection complete");
+		Logger::console("Num samples taken: %d", sampleCount);
+		Logger::console("Num potentiometers found: %d", potentiometerCount);
+		Logger::console("T1: %d to %d %s", throttle1Min, throttle1Max, (throttle1HighLow ? "HIGH-LOW" : "LOW-HIGH"));
 
 		if (potentiometerCount > 1) {
-			SerialUSB.print("T2: ");
-			SerialUSB.print(throttle2Inverse ? throttle2Max : throttle2Min, DEC);
-			SerialUSB.print(" to ");
-			SerialUSB.print(throttle2Inverse ? throttle2Min : throttle2Max, DEC);
-			SerialUSB.print(throttle2HighLow ? " HIGH-LOW" : " LOW-HIGH");
-			SerialUSB.println(throttle2Inverse ? " (Inverse of T1)" : "");
-			SerialUSB.print("Num linear throttle matches: ");
-			SerialUSB.println(linearCount);
-			SerialUSB.print("Num inverse throttle matches: ");
-			SerialUSB.println(inverseCount);
+			Logger::console("T2: %d to %d %s %s", (throttle2Inverse ? throttle2Max : throttle2Min), (throttle2Inverse ? throttle2Min : throttle2Max),
+					(throttle2HighLow ? "HIGH-LOW" : "LOW-HIGH"), (throttle2Inverse ? " (Inverse of T1)" : ""));
+			Logger::console("Num linear throttle matches: %d", linearCount);
+			Logger::console("Num inverse throttle matches: %d", inverseCount);
 		}
 
-		SerialUSB.print("Throttle type: ");
-		if (throttleSubType == 0) {
-			SerialUSB.println("UNKNOWN");
-		} else if (throttleSubType == 1) {
-			SerialUSB.println("Linear");
+		char *type = "UNKNOWN";
+		if (throttleSubType == 1) {
+			type = "Linear";
 		} else if (throttleSubType == 2) {
-			SerialUSB.println("Inverse");
+			type = "Inverse";
+		}
+		Logger::console("Throttle type: %s", type);
+
+		Logger::console("\n----- RAW values ----");
+		for (int i = 0; i < sampleCount; i++) {
+			Logger::console("T1: %d, T2: %d", throttle1Values[i], throttle2Values[i]);
 		}
 
-		SerialUSB.println();
-		SerialUSB.println("----- RAW values ----");
-		for (int i=0; i<sampleCount; i++) {
-			SerialUSB.println("T1: " + String(throttle1Values[i]) + ", T2: " + String(throttle2Values[i]));
-		}
-
-		SerialUSB.println("========================================");
+		Logger::console("========================================");
 
 		// update the throttle's configuration (without storing it yet)
-		config->minimumLevel1 = throttle1Min;
-		config->maximumLevel1 = throttle1Max;
+		config->minimumLevel1 = (throttle1HighLow ? throttle1Max : throttle1Min);
+		config->maximumLevel1 = (throttle1HighLow ? throttle1Min : throttle1Max);
 		config->numberPotMeters = potentiometerCount;
 		if (config->numberPotMeters > 1) {
-			config->minimumLevel2 = throttle2Min;
-			config->maximumLevel2 = throttle2Max;
+			config->minimumLevel2 = (throttle2HighLow ? throttle2Max : throttle2Min);
+			config->maximumLevel2 = (throttle2HighLow ? throttle2Min : throttle2Max);
 		} else {
 			config->minimumLevel2 = 0;
 			config->maximumLevel2 = 0;
@@ -310,7 +289,6 @@ void ThrottleDetector::resetValues() {
 	throttle2Inverse = false;
 }
 
-
 /*
  * Reads values from the throttles.
  */
@@ -330,16 +308,14 @@ void ThrottleDetector::readThrottleValues() {
 		throttle1Max = rawSignal->input1;
 	}
 
-	if (potentiometerCount > 1) {
-		// record the minimum sensor value
-		if (rawSignal->input2 < throttle2Min) {
-			throttle2Min = rawSignal->input2;
-		}
+	// record the minimum sensor value
+	if (rawSignal->input2 < throttle2Min) {
+		throttle2Min = rawSignal->input2;
+	}
 
-		// record the maximum sensor value
-		if (rawSignal->input2 > throttle2Max) {
-			throttle2Max = rawSignal->input2;
-		}
+	// record the maximum sensor value
+	if (rawSignal->input2 > throttle2Max) {
+		throttle2Max = rawSignal->input2;
 	}
 }
 
@@ -349,12 +325,10 @@ void ThrottleDetector::readThrottleValues() {
  * Assumes the values are already mapped to a 0-1000 scale
  */
 int ThrottleDetector::checkLinear(uint16_t throttle1Value, uint16_t throttle2Value) {
-	int match = 0;
+	if ( abs(throttle1Value-throttle2Value) < maxThrottleReadingDeviationPercent)
+		return 1;
 
-	if ( abs(throttle1Value-throttle2Value) < maxThrottleReadingDeviationPercent) {
-		match = 1;
-	}
-	return match;
+	return 0;
 }
 
 /*
@@ -363,40 +337,23 @@ int ThrottleDetector::checkLinear(uint16_t throttle1Value, uint16_t throttle2Val
  * Assumes the values are already mapped to a 0-1000 scale
  */
 int ThrottleDetector::checkInverse(uint16_t throttle1Value, uint16_t throttle2Value) {
-	int match = 0;
+	if (abs(1000 - (throttle1Value+throttle2Value)) < maxThrottleReadingDeviationPercent)
+		return 1;
 
-	if (abs(1000 - (throttle1Value+throttle2Value)) <  maxThrottleReadingDeviationPercent) {
-		match = 1;
-	}
-
-	return match;
+	return 0;
 }
 
 void ThrottleDetector::displayCalibratedValues(bool minPedal) {
-	SerialUSB.println("");
-	SerialUSB.print("At ");
-	if (minPedal) {
-		SerialUSB.print("MIN");
-	} else {
-		SerialUSB.print("MAX");
-	}
-	SerialUSB.print(" T1: ");
-	SerialUSB.print(throttle1Min, DEC);
-	SerialUSB.print(" to ");
-	SerialUSB.print(throttle1Max, DEC);
-	if (potentiometerCount > 1) {
-		SerialUSB.print(" T2: ");
-		SerialUSB.print(throttle2Min, DEC);
-		SerialUSB.print(" to ");
-		SerialUSB.print(throttle2Max, DEC);
-	}
-	SerialUSB.println("");
+	Logger::console("\nAt %s T1: %d to %d", (minPedal ? "MIN" : "MAX"), throttle1Min, throttle1Max);
+	if (potentiometerCount > 1)
+		Logger::console(" T2: %d to %d", throttle2Min, throttle2Max);
+	Logger::console("");
 }
 
 /**
  * Map and constrain the value to the given range
  */
 uint16_t ThrottleDetector::normalize(uint16_t sensorValue, uint16_t sensorMin, uint16_t sensorMax, uint16_t constrainMin, uint16_t constrainMax) {
-  int value = map(sensorValue, sensorMin, sensorMax, constrainMin, constrainMax);
-  return constrain(value, constrainMin, constrainMax);
+	int value = map(sensorValue, sensorMin, sensorMax, constrainMin, constrainMax);
+	return constrain(value, constrainMin, constrainMax);
 }

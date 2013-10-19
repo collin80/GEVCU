@@ -66,13 +66,10 @@ void PotThrottle::handleTick() {
  * Retrieve raw input signals from the throttle hardware.
  */
 RawSignalData *PotThrottle::acquireRawSignal() {
-	PotThrottleConfiguration *config = (PotThrottleConfiguration *) getConfiguration();
-
 	sys_io_adc_poll();
 
 	rawSignal.input1 = getAnalog(throttle1AdcPin);
 	rawSignal.input2 = getAnalog(throttle2AdcPin);
-
 	return &rawSignal;
 }
 
@@ -107,10 +104,10 @@ bool PotThrottle::validateSignal(RawSignalData *rawSignal) {
 			return false;
 		}
 
-		calcThrottle1 = map(constrain(rawSignal->input1, config->minimumLevel1, config->maximumLevel1), config->minimumLevel1, config->maximumLevel1,
-				(uint16_t) 0, (uint16_t) 1000);
-		calcThrottle2 = map(constrain(rawSignal->input2, config->minimumLevel2, config->maximumLevel2), config->minimumLevel2, config->maximumLevel2,
-				(uint16_t) 0, (uint16_t) 1000);
+		calcThrottle1 = normalizeInput(rawSignal->input1, config->minimumLevel1, config->maximumLevel1);
+		calcThrottle2 = normalizeInput(rawSignal->input2, config->minimumLevel2, config->maximumLevel2);
+		if (config->throttleSubType == 2) // inverted
+			calcThrottle2 = 1000 - calcThrottle2;
 		if ((calcThrottle1 - ThrottleMaxErrValue) > calcThrottle2) { //then throttle1 is too large compared to 2
 			throttleStatus = ERR_MISMATCH;
 			Logger::error(POTACCELPEDAL, "throttle 1 too high (%l) compared to 2 (%l)", calcThrottle1, calcThrottle2);
@@ -118,7 +115,7 @@ bool PotThrottle::validateSignal(RawSignalData *rawSignal) {
 		}
 		if ((calcThrottle2 - ThrottleMaxErrValue) > calcThrottle1) { //then throttle2 is too large compared to 1
 			throttleStatus = ERR_MISMATCH;
-			Logger::error(POTACCELPEDAL, "throttle 2 too high (%l) compared to 1 (%l)", calcThrottle1, calcThrottle2);
+			Logger::error(POTACCELPEDAL, "throttle 2 too high (%l) compared to 1 (%l)", calcThrottle2, calcThrottle1);
 			return false;
 		}
 	}
@@ -131,17 +128,25 @@ bool PotThrottle::validateSignal(RawSignalData *rawSignal) {
  */
 uint16_t PotThrottle::calculatePedalPosition(RawSignalData *rawSignal) {
 	PotThrottleConfiguration *config = (PotThrottleConfiguration *) getConfiguration();
-	uint16_t calcThrottle1, calcThrottle2, clampedLevel;
+	uint16_t calcThrottle1, calcThrottle2;
 
-	clampedLevel = constrain(rawSignal->input1, config->minimumLevel1, config->maximumLevel1);
-	calcThrottle1 = map(clampedLevel, config->minimumLevel1, config->maximumLevel1, (uint16_t) 0, (uint16_t) 1000);
+	calcThrottle1 = normalizeInput(rawSignal->input1, config->minimumLevel1, config->maximumLevel1);
 
 	if (config->numberPotMeters > 1) {
-		clampedLevel = constrain(rawSignal->input2, config->minimumLevel2, config->maximumLevel2);
-		calcThrottle2 = map(clampedLevel, config->minimumLevel2, config->maximumLevel2, (uint16_t) 0, (uint16_t) 1000);
+		calcThrottle2 = normalizeInput(rawSignal->input2, config->minimumLevel2, config->maximumLevel2);
+		if (config->throttleSubType == 2) // inverted
+			calcThrottle2 = 1000 - calcThrottle2;
 		calcThrottle1 = (calcThrottle1 + calcThrottle2) / 2; // now the average of the two
 	}
 	return calcThrottle1;
+}
+
+/*
+ * Make sure input level stays within margins (min/max) then map the constrained
+ * level linearly to a value from 0 to 1000.
+ */
+uint16_t PotThrottle::normalizeInput(uint16_t input, uint16_t min, uint16_t max) {
+	return map(constrain(input, min, max), min, max, (uint16_t) 0, (uint16_t) 1000);
 }
 
 /*
@@ -200,13 +205,6 @@ void PotThrottle::loadConfiguration() {
 		if (config->numberPotMeters == 0 && config->throttleSubType == 0) {
 			Logger::debug(POTACCELPEDAL, "THROTTLE APPEARS TO NEED CALIBRATION/DETECTION - choose 'z' on the serial console menu");
 			config->numberPotMeters = 2;
-		}
-
-		// some safety precautions for new values (depending on eeprom, they might be completely off).
-		if (config->creep > 100 || config->positionRegenMaximum > 1000 || config->minimumRegen > 100) {
-			config->creep = ThrottleCreepValue;
-			config->positionRegenMaximum = ThrottleRegenMaxValue;
-			config->minimumRegen = ThrottleMinRegenValue;
 		}
 	} else { //checksum invalid. Reinitialize values and store to EEPROM
 		Logger::warn(POTACCELPEDAL, "Invalid checksum so using hard coded throttle config values");

@@ -90,9 +90,9 @@ int16_t Throttle::mapPedalPosition(int16_t pedalPosition) {
 	} else if (pedalPosition <= config->positionRegenMinimum) {
 		if (pedalPosition >= config->positionRegenMaximum) {
 			range = config->positionRegenMinimum - config->positionRegenMaximum;
-			value = pedalPosition - config->positionRegenMinimum;
+			value = pedalPosition - config->positionRegenMaximum;
 			if (range != 0) // prevent div by zero, should result in 0 throttle if min==max
-				throttleLevel = -10 * config->minimumRegen + value / range * (config->maximumRegen - config->minimumRegen) * 10;
+				throttleLevel = -10 * config->minimumRegen + (config->maximumRegen - config->minimumRegen) * (100 - value * 100 / range) / -10;
 		} else {
 			range = config->positionRegenMaximum;
 			value = pedalPosition;
@@ -169,13 +169,6 @@ void Throttle::loadConfiguration() {
 		prefsHandler->read(EETH_CREEP, &config->creep);
 		prefsHandler->read(EETH_MIN_ACCEL_REGEN, &config->minimumRegen);
 		prefsHandler->read(EETH_MAX_ACCEL_REGEN, &config->maximumRegen);
-
-		// some safety precautions for new values (depending on eeprom, they might be completely off).
-		if (config->creep > 100 || config->positionRegenMaximum > 1000 || config->minimumRegen > 100) {
-			config->creep = ThrottleCreepValue;
-			config->positionRegenMaximum = ThrottleRegenMaxValue;
-			config->minimumRegen = ThrottleMinRegenValue;
-		}
 	} else { //checksum invalid. Reinitialize values, leave storing them to the subclasses
 		config->positionRegenMinimum = ThrottleRegenMinValue;
 		config->positionRegenMaximum = ThrottleRegenMaxValue;

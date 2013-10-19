@@ -70,19 +70,19 @@ RawSignalData *PotBrake::acquireRawSignal() {
 /*
  * Perform sanity check on the ADC input values.
  */
-bool PotBrake::validateSignal(RawSignalData *rawValues) {
+bool PotBrake::validateSignal(RawSignalData *rawSignal) {
 	PotBrakeConfiguration *config = (PotBrakeConfiguration *) getConfiguration();
 	brakeStatus = OK;
 
-	if (rawSignal.input1 > (config->maximumLevel1 + CFG_THROTTLE_TOLERANCE)) {
+	if (rawSignal->input1 > (config->maximumLevel1 + CFG_THROTTLE_TOLERANCE)) {
 		brakeStatus = ERR_HIGH_T1;
-		Logger::error(POTBRAKEPEDAL, "ERR_HIGH_T1: brake 1 value out of range: %l", rawSignal.input1);
+		Logger::error(POTBRAKEPEDAL, "ERR_HIGH_T1: brake 1 value out of range: %l", rawSignal->input1);
 		// even if it's too high, let it process and apply full regen
 		// return false;
 	}
-	if (rawSignal.input1 < (config->minimumLevel1 - CFG_THROTTLE_TOLERANCE)) {
+	if (rawSignal->input1 < (config->minimumLevel1 - CFG_THROTTLE_TOLERANCE)) {
 			brakeStatus = ERR_LOW_T1;
-		Logger::error(POTBRAKEPEDAL, "ERR_LOW_T1: brake 1 value out of range: %l ", rawSignal.input1);
+		Logger::error(POTBRAKEPEDAL, "ERR_LOW_T1: brake 1 value out of range: %l ", rawSignal->input1);
 		return false;
 		}
 
@@ -93,14 +93,14 @@ bool PotBrake::validateSignal(RawSignalData *rawValues) {
  * Convert the raw ADC values to a range from 0 to 1000 (per mille) according
  * to the specified range and the type of potentiometer.
  */
-uint16_t PotBrake::calculatePedalPosition(RawSignalData *rawValues) {
+uint16_t PotBrake::calculatePedalPosition(RawSignalData *rawSignal) {
 	PotBrakeConfiguration *config = (PotBrakeConfiguration *) getConfiguration();
 	uint16_t calcBrake1, clampedLevel;
 
 	if (config->maximumLevel1 == 0) //brake processing disabled if max is 0
 		return 0;
 
-	clampedLevel = constrain(rawSignal.input1, config->minimumLevel1, config->maximumLevel1);
+	clampedLevel = constrain(rawSignal->input1, config->minimumLevel1, config->maximumLevel1);
 	calcBrake1 = map(clampedLevel, config->minimumLevel1, config->maximumLevel1, (uint16_t) 0, (uint16_t) 1000);
 
 	//This prevents flutter in the ADC readings of the brake from slamming regen on intermittently
