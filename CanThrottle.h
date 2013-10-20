@@ -33,12 +33,19 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include "TickHandler.h"
 #include "CanHandler.h"
 
+enum CanCarType {
+	unknowkn = 0x00,
+	Volvo_S80_Gas = 0x01,
+	Volvo_V50_Diesel = 0x02
+};
+
+class CanThrottleConfiguration : public ThrottleConfiguration {
+	uint16_t minimumLevel1, maximumLevel1; // values for when the pedal is at its min and max
+	uint16_t carType; // the type of car, so we know how to interpret which bytes
+};
+
 class CanThrottle: public Throttle, CanObserver {
 public:
-	enum CarType {
-		Volvo_S80_Gas,
-		Volvo_V50_Diesel
-	};
 	CanThrottle();
 	void setup();
 	void handleTick();
@@ -46,16 +53,21 @@ public:
 	DeviceId getId();
 	bool isFaulted();
 
-//	void loadConfiguration();
-//	void saveConfiguration();
+	RawSignalData *acquireRawSignal();
+	void loadConfiguration();
+	void saveConfiguration();
 
 protected:
+	bool validateSignal(RawSignalData *);
+	uint16_t calculatePedalPosition(RawSignalData *);
 
 private:
-	CarType carType;
-	TX_CAN_FRAME txFrame;
-	int32_t rxId;
-	int32_t rxMask;
+	TX_CAN_FRAME requestFrame; // the request frame sent to the car
+	RawSignalData rawSignal; // raw signal
+	uint8_t ticksNoResponse; // number of ticks no response was received
+	uint32_t responseId; // the CAN id with which the response is sent;
+	uint32_t responseMask; // the mask for the responseId
+	bool responseExtended; // if the response is expected as an extended frame
 };
 
 #endif /* CAN_THROTTLE_H_ */

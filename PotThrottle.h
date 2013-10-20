@@ -80,7 +80,6 @@ protected:
 	uint16_t calculatePedalPosition(RawSignalData *);
 
 private:
-	uint16_t normalizeInput(uint16_t, uint16_t, uint16_t);
 	uint8_t throttle1AdcPin, throttle2AdcPin; //which ADC pin each are on
 	ThrottleStatus throttleStatus;
 	RawSignalData rawSignal;

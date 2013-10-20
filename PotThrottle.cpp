@@ -142,14 +142,6 @@ uint16_t PotThrottle::calculatePedalPosition(RawSignalData *rawSignal) {
 }
 
 /*
- * Make sure input level stays within margins (min/max) then map the constrained
- * level linearly to a value from 0 to 1000.
- */
-uint16_t PotThrottle::normalizeInput(uint16_t input, uint16_t min, uint16_t max) {
-	return map(constrain(input, min, max), min, max, (uint16_t) 0, (uint16_t) 1000);
-}
-
-/*
  * Is the throttle faulted?
  */
 bool PotThrottle::isFaulted() {

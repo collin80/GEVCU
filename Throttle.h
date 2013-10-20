@@ -78,6 +78,7 @@ protected:
 	virtual bool validateSignal(RawSignalData *);
 	virtual uint16_t calculatePedalPosition(RawSignalData *);
 	virtual int16_t mapPedalPosition(int16_t);
+	uint16_t normalizeInput(int32_t, int32_t, int32_t);
 
 private:
 	int16_t level; // the final signed throttle level. [-1000, 1000] in permille of maximum
