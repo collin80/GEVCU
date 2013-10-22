@@ -320,12 +320,12 @@ void SerialConsole::handleConfigCmd() {
 			Logger::console("Invalid device ID (%X, %d)", newValue, newValue);
 		}
 	} else if (cmdString == String("DISABLE")) {
-		if (PrefHandler::setDeviceStatus(newValue, true)) {
+		if (PrefHandler::setDeviceStatus(newValue, false)) {
 			sysPrefs->forceCacheWrite(); //just in case someone takes us literally and power cycles quickly
 			Logger::console("Successfully disabled device. Power cycle to deactivate.");
 		}
 		else {
-			Logger::console("Invalid device ID");
+			Logger::console("Invalid device ID (%X, %d)", newValue, newValue);
 		}
 	} else if (cmdString == String("SYSTYPE")) {
 		if (newValue < 4) {
@@ -476,6 +476,7 @@ void SerialConsole::handleShortCmd() {
 		Logger::console("Pot based accelerator = %X", POTACCELPEDAL);
 		Logger::console("Pot based brake = %X", POTBRAKEPEDAL);
 		Logger::console("CANBus accelerator = %X", CANACCELPEDAL);
+		Logger::console("CANBus brake = %X", CANBRAKEPEDAL);
 		Logger::console("WIFI (iChip2128) = %X", ICHIP2128);
 		Logger::console("Th!nk City BMS = %X", THINKBMS);
 		break;

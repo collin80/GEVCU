@@ -1,5 +1,5 @@
 /*
- * CanThrottle.h
+ * CanBrake.h
  *
 Copyright (c) 2013 Collin Kidder, Michael Neuweiler, Charles Galpin
 
@@ -24,34 +24,30 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
  */
 
-#ifndef CAN_THROTTLE_H_
-#define CAN_THROTTLE_H_
+#ifndef CAN_BRAKE_H_
+#define CAN_BRAKE_H_
 
 #include <Arduino.h>
 #include "config.h"
 #include "Throttle.h"
 #include "TickHandler.h"
 #include "CanHandler.h"
+#include "CanThrottle.h"
 
-enum CanCarType {
-	unknowkn = 0x00,
-	Volvo_S80_Gas = 0x01,
-	Volvo_V50_Diesel = 0x02
-};
-
-class CanThrottleConfiguration : public ThrottleConfiguration {
+class CanBrakeConfiguration : public ThrottleConfiguration {
 public:
 	uint16_t minimumLevel1, maximumLevel1; // values for when the pedal is at its min and max
 	uint16_t carType; // the type of car, so we know how to interpret which bytes
 };
 
-class CanThrottle: public Throttle, CanObserver {
+class CanBrake: public Throttle, CanObserver {
 public:
-	CanThrottle();
+	CanBrake();
 	void setup();
 	void handleTick();
 	void handleCanFrame(RX_CAN_FRAME *frame);
 	DeviceId getId();
+	DeviceType getType();
 	bool isFaulted();
 
 	RawSignalData *acquireRawSignal();
@@ -61,6 +57,7 @@ public:
 protected:
 	bool validateSignal(RawSignalData *);
 	uint16_t calculatePedalPosition(RawSignalData *);
+	int16_t mapPedalPosition(int16_t);
 
 private:
 	TX_CAN_FRAME requestFrame; // the request frame sent to the car
@@ -71,4 +68,4 @@ private:
 	bool responseExtended; // if the response is expected as an extended frame
 };
 
-#endif /* CAN_THROTTLE_H_ */
+#endif /* CAN_BRAKE_H_ */

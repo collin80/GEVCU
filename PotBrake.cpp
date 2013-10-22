@@ -81,10 +81,10 @@ bool PotBrake::validateSignal(RawSignalData *rawSignal) {
 		// return false;
 	}
 	if (rawSignal->input1 < (config->minimumLevel1 - CFG_THROTTLE_TOLERANCE)) {
-			brakeStatus = ERR_LOW_T1;
+		brakeStatus = ERR_LOW_T1;
 		Logger::error(POTBRAKEPEDAL, "ERR_LOW_T1: brake 1 value out of range: %l ", rawSignal->input1);
 		return false;
-		}
+	}
 
 	return true;
 }
@@ -112,6 +112,7 @@ uint16_t PotBrake::calculatePedalPosition(RawSignalData *rawSignal) {
 
 	return calcBrake1;
 }
+
 /*
  * Overrides the standard implementation of throttle mapping as different rules apply to
  * brake based regen.
