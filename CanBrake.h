@@ -48,7 +48,6 @@ public:
 	void handleCanFrame(RX_CAN_FRAME *frame);
 	DeviceId getId();
 	DeviceType getType();
-	bool isFaulted();
 
 	RawSignalData *acquireRawSignal();
 	void loadConfiguration();

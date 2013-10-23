@@ -86,6 +86,7 @@ function loadData(pageId) {
 					}
 				}
 			}
+			refreshThrottleVisualization();
 		}
 	};
 	xmlhttp.open("GET", pageId + ".xml", true);
@@ -175,6 +176,14 @@ function updateRangeValue(id, source) {
 		
 	document.getElementById(id).value = val;
 	source.value = val;
+	refreshThrottleVisualization();
+}
+
+function refreshThrottleVisualization() {
+	if (!canvas) {
+		canvas = new ThrottleSettingsCanvas();
+	}
+	canvas.draw();
 }
 
 function getIntValue(id) {

@@ -3,10 +3,20 @@
 	<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
 	<title>GEVCU</title>
 	<link rel="stylesheet" type="text/css" href="styles.css" />
+	<script type='text/javascript' src='throttleSettingsCanvas.js'></script>
 	<script type='text/javascript' src='control.js'></script>
 	<script type='text/javascript' src='annunciator.js'></script>
+	<script>
+		var canvas; // global canvas object
+		function init() {
+			loadPage("status");
+			loadPage("config");
+			loadPage("about");
+			showTab('status');
+		}
+	</script>
 </head>
-<body>
+<body onload="init()">
 	<h1>GEVCU</h1>
 
 	<div class="tabHeader" id="tabHeader">
@@ -20,11 +30,5 @@
 		<div class="tab" id="config"></div>
 		<div class="tab" id="about"></div>
 	</div>
-	<script>
-		loadPage("status");
-		loadPage("config");
-		loadPage("about");
-		showTab('status');
-	</script>
 </body>
 </html>

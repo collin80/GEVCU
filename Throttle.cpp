@@ -30,9 +30,9 @@
 /*
  * Constructor
  */
-Throttle::Throttle() :
-		Device() {
+Throttle::Throttle() : Device() {
 	level = 0;
+	status = OK;
 }
 
 /*
@@ -94,9 +94,10 @@ int16_t Throttle::mapPedalPosition(int16_t pedalPosition) {
 			if (range != 0) // prevent div by zero, should result in 0 throttle if min==max
 				throttleLevel = -10 * config->minimumRegen + (config->maximumRegen - config->minimumRegen) * (100 - value * 100 / range) / -10;
 		} else {
-			range = config->positionRegenMaximum;
-			value = pedalPosition;
-			throttleLevel = -10 * config->maximumRegen * value / range;
+			// no ramping yet below positionRegenMaximum, just drop to 0
+//			range = config->positionRegenMaximum;
+//			value = pedalPosition;
+//			throttleLevel = -10 * config->maximumRegen * value / range;
 		}
 	}
 
@@ -132,10 +133,17 @@ int16_t Throttle::getLevel() {
 }
 
 /*
+ * Return the throttle's current status
+ */
+Throttle::ThrottleStatus Throttle::getStatus() {
+	return status;
+}
+
+/*
  * Is the throttle faulted?
  */
 bool Throttle::isFaulted() {
-	return true;
+	return status != OK;
 }
 
 /*
