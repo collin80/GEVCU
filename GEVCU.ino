@@ -226,9 +226,9 @@ void initializeDevices() {
 		deviceManager->addDevice(pbrake);
 	}
 
-	Throttle *cbrake = new CanThrottle();
+	Throttle *cbrake = new CanBrake();
 	if (cbrake->isEnabled()) {
-		Logger::info("add device: CanThrottle brake (id: %X, %X)", CANACCELPEDAL, cbrake);
+		Logger::info("add device: CanBrake (id: %X, %X)", CANBRAKEPEDAL, cbrake);
 		deviceManager->addDevice(cbrake);
 	}
 
