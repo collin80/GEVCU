@@ -39,8 +39,10 @@ function loadPage(pageId) {
 	xmlhttp.onreadystatechange = function() {
 		if (xmlhttp.readyState == 4 && xmlhttp.status == 200) {
 			document.getElementById(pageId).innerHTML = xmlhttp.responseText;
-			if (pageId == 'config')
+			if (pageId == 'config') {
 				generateRangeControls();
+				refreshThrottleVisualization();
+			}
 			if (pageId == 'status')
 				loadPage("annunciator");
 		}
@@ -175,7 +177,13 @@ function updateRangeValue(id, source) {
 		
 	document.getElementById(id).value = val;
 	source.value = val;
-	// refresh the visualization
+	refreshThrottleVisualization();
+}
+
+function refreshThrottleVisualization() {
+	if (!canvas) {
+		canvas = new ThrottleSettingsCanvas();
+	}
 	canvas.draw();
 }
 
