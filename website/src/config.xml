@@ -19,4 +19,5 @@
 	<brakeMaxRegen>~brakeMaxRegen~</brakeMaxRegen>
 	<speedMax>~speedMax~</speedMax>
 	<torqueMax>~torqueMax~</torqueMax>
+	<logLevel>~logLevel~</logLevel>
 </config>

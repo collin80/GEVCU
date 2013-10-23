@@ -1,4 +1,4 @@
-<form method="get" action="">
+<form method="POST" action="">
 	<table width="100%">
 		<tr>
 			<td colspan="5"><h2>Throttle</h2></td>
@@ -60,6 +60,9 @@
 			<td><span id="throttleMaxRegenSpan" title="Percent of maximum torque to apply for maximum throttle regen"></span> %</td>
 		</tr>
 		<tr>
+			<td colspan="5"><canvas id="throttleCanvas" width="860" height="400" style="border:1px solid #d3d3d3;" >Your browser does not support the HTML5 canvas tag.</canvas></td>
+		</tr>
+		<tr>
 			<td colspan="5"><h2>Brake</h2></td>
 		</tr>
 		<tr>
@@ -85,6 +88,22 @@
 			<td></td>
 			<td>Maximum Torque</td>
 			<td><input name="torqueMax" type="text" title="Maximum torque or power controller will apply to motor"/> Nm</td>
+		</tr>
+		<tr>
+			<td colspan="5"><h2>System</h2></td>
+		</tr>
+		<tr>
+			<td>Log Level</td>
+			<td><select name="logLevel" title="The level of log messages written">
+				<option value="0">Debug</option>
+				<option value="1">Info</option>
+				<option value="2">Warning</option>
+				<option value="3">Error</option>
+				<option value="4">Off</option>
+			</select></td>
+			<td></td>
+			<td></td>
+			<td></td>
 		</tr>
 <!--		<tr>
 			<td>Active High</td>
@@ -178,8 +197,5 @@
  	<center>
 		<input type="submit" value="Save" />
 	</center>
-	<h2>Legend</h2>
-	<canvas id="throttleCanvas" width="860" height="400" style="border:1px solid #d3d3d3;" >
-Your browser does not support the HTML5 canvas tag.</canvas>
 </form>
 
