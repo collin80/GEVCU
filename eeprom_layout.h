@@ -110,7 +110,8 @@ the end of the stardard data. The below numbers are offsets from the device's ee
 #define EETH_MIN_BRAKE_REGEN	44 //2 bytes - the starting level for brake regen as a percentage of throttle
 #define EETH_MIN_ACCEL_REGEN	46 //2 bytes - the starting level for accelerator regen as a percentage of throttle
 #define EETH_REGEN_MAX	        48 //2 bytes - unsigned int - tenths of a percent (0-1000) of pedal position where regen is at maximum
-#define EETH_CREEP		        48 //2 bytes - percentage of throttle used to simulate creep
+#define EETH_CREEP		        50 //2 bytes - percentage of throttle used to simulate creep
+#define EETH_CAR_TYPE			52 //1 byte - type of car for querying the throttle position via CAN bus
 
 //System Data
 #define EESYS_SYSTEM_TYPE        10  //1 byte - 1 = Old school protoboards 2 = GEVCU2/DUED 3 = GEVCU3 - Defaults to 2 if invalid or not set up

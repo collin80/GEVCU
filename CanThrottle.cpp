@@ -31,39 +31,48 @@ CanThrottle::CanThrottle() : Throttle() {
 
 	prefsHandler = new PrefHandler(CANACCELPEDAL);
 
-	carType = Volvo_S80_Gas; //TODO: find a better way to configure the car type
-
-	txFrame.dlc = 0x08;
-	txFrame.ide = 0x00;
-	txFrame.priority = 10;
-	txFrame.rtr = 0x00;
-	uint8_t txData[8];
-
-	switch (Volvo_S80_Gas) {
-	case Volvo_S80_Gas:
-		// Request: dlc=0x08 fid=0x7e0 id=0x7e0 ide=0x00 rtr=0x00 data=0x03,0x22,0xEE,0xCB,0x00,0x00,0x00,0x00 (vida: [0x00, 0x00, 0x07, 0xe0, 0x22, 0xee, 0xcb])
-		// Raw response: dlc=0x08 fid=0x7e8 id=0x7e8 ide=0x00 rtr=0x00 data=0x04,0x62,0xEE,0xCB,0x14,0x00,0x00,0x00 (vida: [0x00, 0x00, 0x07, 0xe8, 0x62, 0xee, 0xcb, 0x14])
-		txFrame.id = 0x7e0;
-		txData = { 0x03, 0x22, 0xee, 0xcb, 0x00, 0x00, 0x00, 0x00 };
-		rxMask = rxId = 0x7e8;
-		break;
-	case Volvo_V50_Diesel:
-		// Request: dlc=0x08 fid=0xFFFFE id=0x3FFFE ide=0x01 rtr=0x00 data=0xCD,0x11,0xA6,0x00,0x24,0x01,0x00,0x00 ([0x00, 0xf, 0xff, 0xfe, 0xcd, 0x11, 0xa6, 0x00, 0x24, 0x01, 0x00, 0x00])
-		// Response: dlc=0x08 fid=0x400021 id=0x21 ide=0x01 rtr=0x00 data=0xCE,0x11,0xE6,0x00,0x24,0x03,0xFD,0x00 (vida: [0x00, 0x40, 0x00, 0x21, 0xce, 0x11, 0xe6, 0x00, 0x24, 0x03, 0xfd, 0x00])
-		txFrame.ide = 0x01;
-		txFrame.id = 0x3FFFE;
-		txData = { 0xce, 0x11, 0xe6, 0x00, 0x24, 0x03, 0xfd, 0x00 };
-		rxMask = rxId = 0x21;
-		break;
-	default:
-		Logger::error(CANACCELPEDAL, "no valid car type defined.");
-	}
-	memcpy(txFrame.data, txData, 8);
+	rawSignal.input1 = 0;
+	rawSignal.input2 = 0;
+	rawSignal.input3 = 0;
+	ticksNoResponse = 255; // invalidate input signal until response is received
+	responseId = 0;
+	responseMask = 0x7ff;
+	responseExtended = false;
 }
 
 void CanThrottle::setup() {
 	TickHandler::getInstance()->detach(this);
-	CanHandler::getInstanceCar()->attach(this, rxId, rxMask, txFrame.ide > 0 ? true : false);
+
+	loadConfiguration();
+	Throttle::setup();
+
+	requestFrame.dlc = 0x08;
+	requestFrame.rtr = 0x00;
+	requestFrame.ide = 0x00;
+
+	CanThrottleConfiguration *config = (CanThrottleConfiguration *)getConfiguration();
+	switch (config->carType) {
+	case Volvo_S80_Gas:
+		// Request: dlc=0x08 fid=0x7e0 id=0x7e0 ide=0x00 rtr=0x00 data=0x03,0x22,0xEE,0xCB,0x00,0x00,0x00,0x00 (vida: [0x00, 0x00, 0x07, 0xe0, 0x22, 0xee, 0xcb])
+		// Raw response: dlc=0x08 fid=0x7e8 id=0x7e8 ide=0x00 rtr=0x00 data=0x04,0x62,0xEE,0xCB,0x14,0x00,0x00,0x00 (vida: [0x00, 0x00, 0x07, 0xe8, 0x62, 0xee, 0xcb, 0x14])
+		requestFrame.id = 0x7e0;
+		memcpy(requestFrame.data, (uint8_t[]){ 0x03, 0x22, 0xee, 0xcb, 0x00, 0x00, 0x00, 0x00 }, 8);
+		responseId = 0x7e8;
+		break;
+	case Volvo_V50_Diesel:
+		// Request: dlc=0x08 fid=0xFFFFE id=0x3FFFE ide=0x01 rtr=0x00 data=0xCD,0x11,0xA6,0x00,0x24,0x01,0x00,0x00 ([0x00, 0xf, 0xff, 0xfe, 0xcd, 0x11, 0xa6, 0x00, 0x24, 0x01, 0x00, 0x00])
+		// Response: dlc=0x08 fid=0x400021 id=0x21 ide=0x01 rtr=0x00 data=0xCE,0x11,0xE6,0x00,0x24,0x03,0xFD,0x00 (vida: [0x00, 0x40, 0x00, 0x21, 0xce, 0x11, 0xe6, 0x00, 0x24, 0x03, 0xfd, 0x00])
+		requestFrame.id = 0x3FFFE;
+		requestFrame.ide = 0x01;
+		memcpy(requestFrame.data, (uint8_t[]){ 0xce, 0x11, 0xe6, 0x00, 0x24, 0x03, 0xfd, 0x00 }, 8);
+		responseId = 0x21;
+		responseExtended = true;
+		break;
+	default:
+		Logger::error(CANACCELPEDAL, "no valid car type defined.");
+	}
+
+	CanHandler::getInstanceCar()->attach(this, responseId, responseMask, responseExtended);
 	TickHandler::getInstance()->attach(this, CFG_TICK_INTERVAL_CAN_THROTTLE);
 }
 
@@ -72,10 +81,12 @@ void CanThrottle::setup() {
  *
  */
 void CanThrottle::handleTick() {
-	// Call parent handleTick
-	Throttle::handleTick();
+	Throttle::handleTick(); // Call parent handleTick
 
-	CanHandler::getInstanceCar()->sendFrame(txFrame);
+	CanHandler::getInstanceCar()->sendFrame(requestFrame);
+
+	if (ticksNoResponse < 255) // make sure it doesn't overflow
+		ticksNoResponse++;
 }
 
 /*
@@ -83,17 +94,45 @@ void CanThrottle::handleTick() {
  *
  */
 void CanThrottle::handleCanFrame(RX_CAN_FRAME *frame) {
-	int rawLevel;
-	if (frame->id == rxId) {
-		switch (carType) {
+	CanThrottleConfiguration *config = (CanThrottleConfiguration *)getConfiguration();
+
+	if (frame->id == responseId) {
+		switch (config->carType) {
 			case Volvo_S80_Gas:
-				rawLevel = frame->data[4] * 1000 / 255;
+				rawSignal.input1 = frame->data[4];
 				break;
 			case Volvo_V50_Diesel:
-				rawLevel = (frame->data[5] + 1) * frame->data[6] * 1000 / 1020;
+				rawSignal.input1 = (frame->data[5] + 1) * frame->data[6];
 				break;
 		}
+		ticksNoResponse = 0;
 	}
+}
+
+RawSignalData* CanThrottle::acquireRawSignal() {
+	return &rawSignal; // should have already happened in the background
+}
+
+bool CanThrottle::validateSignal(RawSignalData* rawSignal) {
+	CanThrottleConfiguration *config = (CanThrottleConfiguration *) getConfiguration();
+
+	if (ticksNoResponse >= CFG_CANTHROTTLE_MAX_NUM_LOST_MSG) {
+		Logger::error(CANACCELPEDAL, "no response on throttle position request received: %d ", ticksNoResponse);
+		return false;
+	}
+
+	if (rawSignal->input1 > (config->maximumLevel1 + CFG_THROTTLE_TOLERANCE) ||
+			rawSignal->input1 < (config->minimumLevel1 - CFG_THROTTLE_TOLERANCE)) {
+		Logger::error(CANACCELPEDAL, "throttle value out of range: %l ", rawSignal->input1);
+		return false;
+	}
+	return true;
+}
+
+uint16_t CanThrottle::calculatePedalPosition(RawSignalData* rawSignal) {
+	CanThrottleConfiguration *config = (CanThrottleConfiguration *) getConfiguration();
+
+	return normalizeInput(rawSignal->input1, config->minimumLevel1, config->maximumLevel1);
 }
 
 DeviceId CanThrottle::getId() {
@@ -101,6 +140,48 @@ DeviceId CanThrottle::getId() {
 }
 
 bool CanThrottle::isFaulted() {
-	return false;
+	return ticksNoResponse >= CFG_CANTHROTTLE_MAX_NUM_LOST_MSG;
 }
 
+void CanThrottle::loadConfiguration() {
+	CanThrottleConfiguration *config = (CanThrottleConfiguration *) getConfiguration();
+
+	if (!config) { // as lowest sub-class make sure we have a config object
+		config = new CanThrottleConfiguration();
+		setConfiguration(config);
+	}
+
+	Throttle::loadConfiguration(); // call parent
+
+#ifdef USE_HARD_CODED
+	if (false) {
+#else
+	if (prefsHandler->checksumValid()) { //checksum is good, read in the values stored in EEPROM
+#endif
+		Logger::debug(CANACCELPEDAL, "Valid checksum so using stored throttle config values");
+		prefsHandler->read(EETH_MIN_ONE, &config->minimumLevel1);
+		prefsHandler->read(EETH_MAX_ONE, &config->maximumLevel1);
+		prefsHandler->read(EETH_CAR_TYPE, &config->carType);
+	} else { //checksum invalid. Reinitialize values and store to EEPROM
+		Logger::warn(CANACCELPEDAL, "Invalid checksum so using hard coded throttle config values");
+		config->minimumLevel1 = Throttle1MinValue;
+		config->maximumLevel1 = Throttle1MaxValue;
+		config->carType = Volvo_S80_Gas;
+		saveConfiguration();
+	}
+	Logger::debug(CANACCELPEDAL, "T1 MIN: %l MAX: %l Type: %d", config->minimumLevel1, config->maximumLevel1, config->carType);
+}
+
+/*
+ * Store the current configuration to EEPROM
+ */
+void CanThrottle::saveConfiguration() {
+	CanThrottleConfiguration *config = (CanThrottleConfiguration *) getConfiguration();
+
+	Throttle::saveConfiguration(); // call parent
+
+	prefsHandler->write(EETH_MIN_ONE, config->minimumLevel1);
+	prefsHandler->write(EETH_MAX_ONE, config->maximumLevel1);
+	prefsHandler->write(EETH_CAR_TYPE, config->carType);
+	prefsHandler->saveChecksum();
+}
