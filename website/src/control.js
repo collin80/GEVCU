@@ -175,6 +175,8 @@ function updateRangeValue(id, source) {
 		
 	document.getElementById(id).value = val;
 	source.value = val;
+	// refresh the visualization
+	canvas.draw();
 }
 
 function getIntValue(id) {
