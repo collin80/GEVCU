@@ -117,15 +117,28 @@ bool CanThrottle::validateSignal(RawSignalData* rawSignal) {
 	CanThrottleConfiguration *config = (CanThrottleConfiguration *) getConfiguration();
 
 	if (ticksNoResponse >= CFG_CANTHROTTLE_MAX_NUM_LOST_MSG) {
-		Logger::error(CANACCELPEDAL, "no response on throttle position request received: %d ", ticksNoResponse);
+		if (status == OK)
+			Logger::error(CANACCELPEDAL, "no response on position request received: %d ", ticksNoResponse);
+		status = ERR_MISC;
+		return false;
+	}
+	if (rawSignal->input1 > (config->maximumLevel1 + CFG_THROTTLE_TOLERANCE)) {
+		if (status == OK)
+			Logger::error(CANACCELPEDAL, "value out of range: %l ", rawSignal->input1);
+		status = ERR_HIGH_T1;
+		return false;
+	}
+	if (rawSignal->input1 < (config->minimumLevel1 - CFG_THROTTLE_TOLERANCE)) {
+		if (status == OK)
+			Logger::error(CANACCELPEDAL, "value out of range: %l ", rawSignal->input1);
+		status = ERR_LOW_T1;
 		return false;
 	}
 
-	if (rawSignal->input1 > (config->maximumLevel1 + CFG_THROTTLE_TOLERANCE) ||
-			rawSignal->input1 < (config->minimumLevel1 - CFG_THROTTLE_TOLERANCE)) {
-		Logger::error(CANACCELPEDAL, "throttle value out of range: %l ", rawSignal->input1);
-		return false;
-	}
+	// all checks passed -> throttle seems to be ok
+	if (status != OK)
+		Logger::info(CANACCELPEDAL, "normal operation restored");
+	status = OK;
 	return true;
 }
 
@@ -137,10 +150,6 @@ uint16_t CanThrottle::calculatePedalPosition(RawSignalData* rawSignal) {
 
 DeviceId CanThrottle::getId() {
 	return CANACCELPEDAL;
-}
-
-bool CanThrottle::isFaulted() {
-	return ticksNoResponse >= CFG_CANTHROTTLE_MAX_NUM_LOST_MSG;
 }
 
 void CanThrottle::loadConfiguration() {

@@ -47,18 +47,10 @@ public:
 
 class PotBrake: public Throttle {
 public:
-	enum BrakeStatus {
-		OK,
-		ERR_LOW_T1,
-		ERR_HIGH_T1,
-		ERR_MISC
-	};
-
 	PotBrake(uint8_t throttle1);
 	void setup();
 	void handleTick();
 	DeviceId getId();
-	BrakeStatus getStatus();
 	DeviceType getType();
 
 	RawSignalData *acquireRawSignal();
@@ -73,7 +65,6 @@ protected:
 
 private:
 	uint8_t brake1AdcPin; //which ADC pin each are on
-	BrakeStatus brakeStatus;
 	RawSignalData rawSignal;
 };
 

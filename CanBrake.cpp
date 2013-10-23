@@ -117,15 +117,28 @@ bool CanBrake::validateSignal(RawSignalData* rawSignal) {
 	CanBrakeConfiguration *config = (CanBrakeConfiguration *) getConfiguration();
 
 	if (ticksNoResponse >= CFG_CANTHROTTLE_MAX_NUM_LOST_MSG) {
-		Logger::error(CANBRAKEPEDAL, "no response on throttle position request received: %d ", ticksNoResponse);
+		if (status == OK)
+			Logger::error(CANBRAKEPEDAL, "no response on position request received: %d ", ticksNoResponse);
+		status = ERR_MISC;
+		return false;
+	}
+	if (rawSignal->input1 > (config->maximumLevel1 + CFG_THROTTLE_TOLERANCE)) {
+		if (status == OK)
+			Logger::error(CANBRAKEPEDAL, "value out of range: %l ", rawSignal->input1);
+		status = ERR_HIGH_T1;
+		return false;
+	}
+	if (rawSignal->input1 < (config->minimumLevel1 - CFG_THROTTLE_TOLERANCE)) {
+		if (status == OK)
+			Logger::error(CANBRAKEPEDAL, "value out of range: %l ", rawSignal->input1);
+		status = ERR_LOW_T1;
 		return false;
 	}
 
-	if (rawSignal->input1 > (config->maximumLevel1 + CFG_THROTTLE_TOLERANCE) ||
-			rawSignal->input1 < (config->minimumLevel1 - CFG_THROTTLE_TOLERANCE)) {
-		Logger::error(CANBRAKEPEDAL, "throttle value out of range: %l ", rawSignal->input1);
-		return false;
-	}
+	// all checks passed -> brake is working
+	if (status != OK)
+		Logger::info(CANBRAKEPEDAL, "normal operation restored");
+	status = OK;
 	return true;
 }
 
@@ -165,10 +178,6 @@ DeviceId CanBrake::getId() {
  */
 DeviceType CanBrake::getType() {
 	return (DEVICE_BRAKE);
-}
-
-bool CanBrake::isFaulted() {
-	return ticksNoResponse >= CFG_CANTHROTTLE_MAX_NUM_LOST_MSG;
 }
 
 void CanBrake::loadConfiguration() {
