@@ -356,7 +356,7 @@ void SerialConsole::handleConfigCmd() {
 			Logger::setLoglevel(Logger::Off);
 			break;
 		}
-
+		sysPrefs->write(EESYS_LOG_LEVEL, (uint8_t)newValue);
 		// send updates to ichip wifi
 		// send updates to ichip wifi
 	} else {
