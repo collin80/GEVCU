@@ -64,7 +64,10 @@ void sys_early_setup() {
 
 	uint8_t rawadc;
 	sysPrefs->read(EESYS_RAWADC, &rawadc);
-	if (rawadc != 0) useRawADC = true;
+	if (rawadc != 0) {
+		useRawADC = true;
+		Logger::info("Using raw ADC mode");
+	}
 	else useRawADC = false;
 
 	uint8_t sys_type;
@@ -74,16 +77,16 @@ void sys_early_setup() {
 		dig[0]=9; dig[1]=11; dig[2]=12; dig[3]=13;
 		adc[0][0] = 1; adc[0][1] = 0;
 		adc[1][0] = 3; adc[1][1] = 2;
-		adc[1][0] = 5; adc[1][1] = 4;
-		adc[1][0] = 7; adc[1][1] = 6;
+		adc[2][0] = 5; adc[2][1] = 4;
+		adc[3][0] = 7; adc[3][1] = 6;
 		out[0] = 52; out[1] = 22; out[2] = 48; out[3] = 32;
 	} else if (sys_type == 3) {
 		Logger::info("Running on GEVCU3 hardware");
 		dig[0]=48; dig[1]=49; dig[2]=50; dig[3]=51;
 		adc[0][0] = 3; adc[0][1] = 255;
 		adc[1][0] = 2; adc[1][1] = 255;
-		adc[1][0] = 1; adc[1][1] = 255;
-		adc[1][0] = 0; adc[1][1] = 255;
+		adc[2][0] = 1; adc[2][1] = 255;
+		adc[3][0] = 0; adc[3][1] = 255;
 		out[0] = 9; out[1] = 8; out[2] = 7; out[3] = 6;
 		useRawADC = true; //this board does require raw adc so force it.
 	} else {
@@ -91,8 +94,8 @@ void sys_early_setup() {
 		dig[0]=11; dig[1]=9; dig[2]=13; dig[3]=12;
 		adc[0][0] = 1; adc[0][1] = 0;
 		adc[1][0] = 2; adc[1][1] = 3;
-		adc[1][0] = 4; adc[1][1] = 5;
-		adc[1][0] = 7; adc[1][1] = 6;
+		adc[2][0] = 4; adc[2][1] = 5;
+		adc[3][0] = 7; adc[3][1] = 6;
 		out[0] = 52; out[1] = 22; out[2] = 48; out[3] = 32;
 	}
 	
