@@ -8,27 +8,30 @@ function ThrottleSettingsCanvas() {
     this.throttleMinRegenId = "throttleMinRegen";
     this.throttleMaxRegenId = "throttleMaxRegen";
     this.throttleCreepId = "throttleCreep";
-
-    var canvas=document.getElementById(this.canvasId);
+    
+    // default to white lines/text
+    this.lineColor = "#FFFFFF";
+}
+ 
+ThrottleSettingsCanvas.prototype.draw = function() {
+	// get canvas size
+	var canvas=document.getElementById(this.canvasId);
+	this.context=canvas.getContext("2d");
     this.height=canvas.height;
     this.width=canvas.width;
-	this.context=canvas.getContext("2d");
+
 	this.xOffset = 150;
 	this.xRightOffset = 25;
 	this.yOffset = this.height - 40;
-	this.yTopOffset = 60;
+	this.yTopOffset = 15;
 	this.xLength = this.width - this.xOffset - this.xRightOffset;
 	this.xZeroOffset = this.xOffset + this.xLength;
 	this.yLength = (this.yOffset - this.yTopOffset)/2;
 	this.yZeroOffset = this.yOffset - this.yLength;
-}
- 
-ThrottleSettingsCanvas.prototype.draw = function() {
-
-	// we need a white background
-	this.context.fillStyle="white";
-	this.context.fillRect(0,0, this.width, this.height);
-
+	
+	// reset
+	this.context.clearRect(0,0, this.width, this.height);
+	
 	this.drawXAxis();
 	this.drawYAxis();
 	this.drawCoastArea();
@@ -44,7 +47,7 @@ ThrottleSettingsCanvas.prototype.drawXAxis = function(){
 	
 	// 0% line
 	this.context.beginPath();
-	this.context.strokeStyle="#000000";
+	this.context.strokeStyle=this.lineColor;
 	this.context.lineWidth=1;
 	this.context.moveTo(this.xOffset,                this.yZeroOffset);
 	this.context.lineTo(this.xOffset + this.xLength, this.yZeroOffset);
@@ -67,7 +70,7 @@ ThrottleSettingsCanvas.prototype.drawXAxis = function(){
 	
 	// X axis
 	this.context.beginPath();
-	this.context.strokeStyle="#000000";
+	this.context.strokeStyle=this.lineColor;
 	this.context.lineWidth=3;
   	this.context.moveTo(this.xOffset,                this.yOffset);
 	this.context.lineTo(this.xOffset + this.xLength, this.yOffset);
@@ -75,7 +78,7 @@ ThrottleSettingsCanvas.prototype.drawXAxis = function(){
 	
 	// scale
 	this.context.font="12px Arial";
-	this.context.fillStyle="#000000";
+	this.context.fillStyle=this.lineColor;
 	this.context.fillText("0%", this.xOffset-10, this.yOffset + labelOffset);
 	this.context.fillText("25%", this.xOffset-10 + (this.xLength/4), this.yOffset + labelOffset);
 	this.context.fillText("50%", this.xOffset-10 + (this.xLength/2), this.yOffset + labelOffset);
@@ -96,7 +99,7 @@ ThrottleSettingsCanvas.prototype.drawYAxis = function() {
 	// axis
 	this.context.beginPath();
 	this.context.lineWidth=3;
-	this.context.strokeStyle="#000000";
+	this.context.strokeStyle=this.lineColor;
   	this.context.moveTo(this.xOffset, this.yOffset + 2); // +2 to overlap x line
 	this.context.lineTo(this.xOffset, this.yOffset-this.yLength*2 - 5); // -5 to go past the 100% a bit
 	this.context.stroke();
@@ -105,7 +108,7 @@ ThrottleSettingsCanvas.prototype.drawYAxis = function() {
 	this.context.save();
 	this.context.textAlign="end";
 	this.context.font="12px Arial";
-	this.context.fillStyle="#000000";
+	this.context.fillStyle=this.lineColor;
 	this.context.fillText("-100%", this.xOffset-labelOffset, this.yOffset); // keep this higher for looks
 	this.context.fillText("-50%", this.xOffset-labelOffset, this.yOffset - this.yLength/2 + labelHeightOffset);
 	this.context.fillText("0%", this.xOffset-labelOffset, this.yOffset - this.yLength + labelHeightOffset);
@@ -116,11 +119,11 @@ ThrottleSettingsCanvas.prototype.drawYAxis = function() {
 	this.context.font="14px Arial";
 	this.context.fillStyle="green";
 	this.context.fillText("Motor",  5, this.height/2 - 10);
-	this.context.fillStyle="#000000";
+	this.context.fillStyle=this.lineColor;
 	this.context.fillText(" / ",  40, this.height/2 - 10);
 	this.context.fillStyle="red";
 	this.context.fillText("Regen",  50, this.height/2 - 10);
-	this.context.fillStyle="#000000";
+	this.context.fillStyle=this.lineColor;
 	this.context.fillText("Power",  5, this.height/2 + 10);
 }
 
@@ -135,7 +138,7 @@ ThrottleSettingsCanvas.prototype.drawForwardLines = function() {
 	// gradient for forward throttle
 	var grd=this.context.createLinearGradient(this.xOffset + this.xLength, this.yOffset, this.xOffset, this.yOffset);
 	grd.addColorStop(0,"green");
-	grd.addColorStop(1,"white");
+	grd.addColorStop(1,"transparent");
 	this.context.fillStyle=grd;
 	this.context.beginPath();
 	this.context.moveTo(this.xOffset + this.xLength*minPercent, this.yZeroOffset - this.yLength*0 - 1); // -1 to not overwrite the X axis
@@ -149,7 +152,7 @@ ThrottleSettingsCanvas.prototype.drawForwardLines = function() {
 	this.context.save();
 	this.context.font="14px Arial";
 	this.context.textAlign="center";
-	this.context.fillStyle="#000000";
+	this.context.fillStyle=this.lineColor;
 	this.context.fillText("Forward", this.xOffset + this.xLength*minPercent + (this.xLength-this.xLength*minPercent)*3/4, this.yZeroOffset - this.yLength*0.25);
 	this.context.restore();
 	
@@ -184,7 +187,7 @@ ThrottleSettingsCanvas.prototype.drawRegenLines = function() {
 	// max to min/start
 	var grd=this.context.createLinearGradient(this.xOffset + this.xLength*maxThrottlePos, this.yOffset, this.xOffset + this.xLength*minThrottlePos, this.yOffset);
 	grd.addColorStop(0,"red");
-	grd.addColorStop(1,"white");
+	grd.addColorStop(1,"transparent");
 	this.context.fillStyle=grd;
 	this.context.beginPath();
 	this.context.moveTo(this.xOffset + this.xLength*minThrottlePos, this.yZeroOffset);
@@ -197,7 +200,7 @@ ThrottleSettingsCanvas.prototype.drawRegenLines = function() {
 	// max to zero
 	grd=this.context.createLinearGradient(this.xOffset + this.xLength*maxThrottlePos, this.yOffset, this.xOffset, this.yOffset);
 	grd.addColorStop(0,"red");
-	grd.addColorStop(1,"white");
+	grd.addColorStop(1,"transparent");
 	this.context.fillStyle=grd;
 	this.context.beginPath();
 	this.context.moveTo(this.xOffset + this.xLength*maxThrottlePos, this.yZeroOffset);
@@ -210,7 +213,7 @@ ThrottleSettingsCanvas.prototype.drawRegenLines = function() {
 	this.context.save();
 	this.context.font="14px Arial";
 	this.context.textAlign="center";
-	this.context.fillStyle="#000000";
+	this.context.fillStyle=this.lineColor;
 	this.context.fillText("Regen", this.xOffset + this.xLength*maxThrottlePos + this.xLength*minThrottlePos/4 , this.yZeroOffset - this.yLength*maxPercent*0.4);
 	this.context.restore();
 	
@@ -265,21 +268,21 @@ ThrottleSettingsCanvas.prototype.drawCoastArea = function() {
 	// gradient above the X axis
 	var grd=this.context.createLinearGradient(this.xOffset, this.yZeroOffset, this.xOffset, this.yZeroOffset-height);
 	grd.addColorStop(0,"yellow");
-	grd.addColorStop(1,"white");
+	grd.addColorStop(1,"transparent");
 	this.context.fillStyle=grd;
 	this.context.fillRect(this.xOffset + this.xLength*minRegenPercent ,this.yZeroOffset-height, width, height);
 	
 	// and below
 	grd=this.context.createLinearGradient(this.xOffset, this.yZeroOffset, this.xOffset, this.yZeroOffset+height);
 	grd.addColorStop(0,"yellow");
-	grd.addColorStop(1,"white");
+	grd.addColorStop(1,"transparent");
 	this.context.fillStyle=grd;
 	this.context.fillRect(this.xOffset + this.xLength*minRegenPercent ,this.yZeroOffset, width, height);
 	
 	if ( width > 25 ) {
 		this.context.save();
 		this.context.font="14px Arial";
-		this.context.fillStyle="#000000";
+		this.context.fillStyle=this.lineColor;
 		this.context.textAlign="center";
 		degrees = -90;
 		if ( width < 60 ) {
