@@ -333,6 +333,8 @@ void ICHIPWIFI::processParameterChange(char *key) {
 	Throttle *brake = DeviceManager::getInstance()->getBrake();
 	MotorController *motorController = DeviceManager::getInstance()->getMotorController();
 
+	Logger::info(ICHIP2128, "parameter change: %s", key);
+
 	if (accelerator)
 		acceleratorConfig = (PotThrottleConfiguration *)accelerator->getConfiguration();
 	if (brake)
@@ -405,6 +407,11 @@ void ICHIPWIFI::processParameterChange(char *key) {
 		} else if (!strcmp(key, "torqueMax") && motorConfig) {
 			motorConfig->torqueMax = atol(value) * 10;
 			motorController->saveConfiguration();
+		} else if (!strcmp(key, "logLevel")) {
+			extern PrefHandler *sysPrefs;
+			uint8_t loglevel = atol(value);
+			Logger::setLoglevel((Logger::LogLevel)loglevel);
+			sysPrefs->write(EESYS_LOG_LEVEL, loglevel);
 		}
 	}
 	getNextParam(); // try to get another one immediately
@@ -456,6 +463,7 @@ void ICHIPWIFI::loadParameters() {
 		setParam("speedMax", motorConfig->speedMax);
 		setParam("torqueMax", (uint16_t)(motorConfig->torqueMax / 10)); // skip the tenth's
 	}
+	setParam("logLevel", (uint8_t)Logger::getLogLevel());
 }
 
 DeviceType ICHIPWIFI::getType() {
