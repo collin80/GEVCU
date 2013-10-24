@@ -195,6 +195,9 @@ void initSysEEPROM() {
 	sysPrefs->write(EESYS_WIFI2_KEY, thirtytwo);
 	sysPrefs->write(EESYS_WIFIX_KEY, thirtytwo);
 
+	eight = 1;
+	sysPrefs->write(EESYS_LOG_LEVEL, eight);
+
 	sysPrefs->saveChecksum();
 }
 
@@ -226,9 +229,9 @@ void initializeDevices() {
 		deviceManager->addDevice(pbrake);
 	}
 
-	Throttle *cbrake = new CanThrottle();
+	Throttle *cbrake = new CanBrake();
 	if (cbrake->isEnabled()) {
-		Logger::info("add device: CanThrottle brake (id: %X, %X)", CANACCELPEDAL, cbrake);
+		Logger::info("add device: CanBrake (id: %X, %X)", CANBRAKEPEDAL, cbrake);
 		deviceManager->addDevice(cbrake);
 	}
 
@@ -291,6 +294,10 @@ void setup() {
 	} else {  //checksum is good, read in the values stored in EEPROM
 		Logger::info("Using existing EEPROM values");
 	}
+
+	uint8_t loglevel;
+	sysPrefs->read(EESYS_LOG_LEVEL, &loglevel);
+	Logger::setLoglevel((Logger::LogLevel)loglevel);
 
 	sys_early_setup();
         

@@ -39,10 +39,8 @@ function loadPage(pageId) {
 	xmlhttp.onreadystatechange = function() {
 		if (xmlhttp.readyState == 4 && xmlhttp.status == 200) {
 			document.getElementById(pageId).innerHTML = xmlhttp.responseText;
-			if (pageId == 'config') {
+			if (pageId == 'config')
 				generateRangeControls();
-				refreshThrottleVisualization();
-			}
 			if (pageId == 'status')
 				loadPage("annunciator");
 		}
@@ -88,6 +86,7 @@ function loadData(pageId) {
 					}
 				}
 			}
+			refreshThrottleVisualization();
 		}
 	};
 	xmlhttp.open("GET", pageId + ".xml", true);

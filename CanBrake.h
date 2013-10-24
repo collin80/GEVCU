@@ -1,5 +1,5 @@
 /*
- * GEVCU.h
+ * CanBrake.h
  *
 Copyright (c) 2013 Collin Kidder, Michael Neuweiler, Charles Galpin
 
@@ -24,43 +24,47 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
  */
 
-#ifndef GEVCU_H_
-#define GEVCU_H_
+#ifndef CAN_BRAKE_H_
+#define CAN_BRAKE_H_
 
 #include <Arduino.h>
 #include "config.h"
-#include "Device.h"
 #include "Throttle.h"
-#include "CanThrottle.h"
-#include "CanBrake.h"
-#include "PotThrottle.h"
-#include "PotBrake.h"
-#include "BatteryManager.h"
-#include "ThinkBatteryManager.h"
-#include "MotorController.h"
-#include "DmocMotorController.h"
-#include "BrusaMotorController.h"
-#include "Heartbeat.h"
-#include "sys_io.h"
+#include "TickHandler.h"
 #include "CanHandler.h"
-#include "MemCache.h"
-#include "ThrottleDetector.h"
-#include "DeviceManager.h"
-#include "SerialConsole.h"
-#include "ichip_2128.h"
-#include "Sys_Messages.h"
+#include "CanThrottle.h"
 
-#ifdef __cplusplus
-extern "C" {
-#endif
-void loop();
-void setup();
-#ifdef __cplusplus
-} // extern "C"
-#endif
+class CanBrakeConfiguration : public ThrottleConfiguration {
+public:
+	uint16_t minimumLevel1, maximumLevel1; // values for when the pedal is at its min and max
+	uint16_t carType; // the type of car, so we know how to interpret which bytes
+};
 
-#define SYSTEM_PROTO	1
-#define SYSTEM_DUED		2
-#define SYSTEM_GEVCU3	3
+class CanBrake: public Throttle, CanObserver {
+public:
+	CanBrake();
+	void setup();
+	void handleTick();
+	void handleCanFrame(RX_CAN_FRAME *frame);
+	DeviceId getId();
+	DeviceType getType();
 
-#endif /* GEVCU_H_ */
+	RawSignalData *acquireRawSignal();
+	void loadConfiguration();
+	void saveConfiguration();
+
+protected:
+	bool validateSignal(RawSignalData *);
+	uint16_t calculatePedalPosition(RawSignalData *);
+	int16_t mapPedalPosition(int16_t);
+
+private:
+	TX_CAN_FRAME requestFrame; // the request frame sent to the car
+	RawSignalData rawSignal; // raw signal
+	uint8_t ticksNoResponse; // number of ticks no response was received
+	uint32_t responseId; // the CAN id with which the response is sent;
+	uint32_t responseMask; // the mask for the responseId
+	bool responseExtended; // if the response is expected as an extended frame
+};
+
+#endif /* CAN_BRAKE_H_ */

@@ -34,7 +34,6 @@
 PotBrake::PotBrake(uint8_t brake1) : Throttle() {
 	prefsHandler = new PrefHandler(POTBRAKEPEDAL);
 	brake1AdcPin = brake1;
-	brakeStatus = OK;
 }
 
 /*
@@ -72,20 +71,24 @@ RawSignalData *PotBrake::acquireRawSignal() {
  */
 bool PotBrake::validateSignal(RawSignalData *rawSignal) {
 	PotBrakeConfiguration *config = (PotBrakeConfiguration *) getConfiguration();
-	brakeStatus = OK;
 
 	if (rawSignal->input1 > (config->maximumLevel1 + CFG_THROTTLE_TOLERANCE)) {
-		brakeStatus = ERR_HIGH_T1;
-		Logger::error(POTBRAKEPEDAL, "ERR_HIGH_T1: brake 1 value out of range: %l", rawSignal->input1);
-		// even if it's too high, let it process and apply full regen
-		// return false;
+		if (status == OK)
+			Logger::error(POTBRAKEPEDAL, "ERR_HIGH_T1: value out of range: %l", rawSignal->input1);
+		status = ERR_HIGH_T1;
+		return true; // even if it's too high, let it process and apply full regen !
 	}
 	if (rawSignal->input1 < (config->minimumLevel1 - CFG_THROTTLE_TOLERANCE)) {
-			brakeStatus = ERR_LOW_T1;
-		Logger::error(POTBRAKEPEDAL, "ERR_LOW_T1: brake 1 value out of range: %l ", rawSignal->input1);
+		if (status == OK)
+			Logger::error(POTBRAKEPEDAL, "ERR_LOW_T1: value out of range: %l ", rawSignal->input1);
+		status = ERR_LOW_T1;
 		return false;
-		}
+	}
 
+	// all checks passed -> brake is OK
+	if (status != OK)
+		Logger::info(POTBRAKEPEDAL, "normal operation restored");
+	status = OK;
 	return true;
 }
 
@@ -112,6 +115,7 @@ uint16_t PotBrake::calculatePedalPosition(RawSignalData *rawSignal) {
 
 	return calcBrake1;
 }
+
 /*
  * Overrides the standard implementation of throttle mapping as different rules apply to
  * brake based regen.
@@ -126,13 +130,6 @@ int16_t PotBrake::mapPedalPosition(int16_t pedalPosition) {
 	//Logger::debug(POTBRAKEPEDAL, "level: %d", level);
 
 	return brakeLevel;
-}
-
-/*
- * Return the brake's current status
- */
-PotBrake::BrakeStatus PotBrake::getStatus() {
-	return brakeStatus;
 }
 
 /*

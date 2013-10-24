@@ -31,12 +31,10 @@
  * Constructor
  * Set which two ADC channels to use (or set channel 2 to 255 to disable)
  */
-PotThrottle::PotThrottle(uint8_t throttle1Pin, uint8_t throttle2Pin) :
-		Throttle() {
+PotThrottle::PotThrottle(uint8_t throttle1Pin, uint8_t throttle2Pin) : Throttle() {
 	prefsHandler = new PrefHandler(POTACCELPEDAL);
 	throttle1AdcPin = throttle1Pin;
 	throttle2AdcPin = throttle2Pin;
-	throttleStatus = OK;
 }
 
 /*
@@ -79,28 +77,31 @@ RawSignalData *PotThrottle::acquireRawSignal() {
 bool PotThrottle::validateSignal(RawSignalData *rawSignal) {
 	PotThrottleConfiguration *config = (PotThrottleConfiguration *) getConfiguration();
 	uint16_t calcThrottle1, calcThrottle2;
-	throttleStatus = OK;
 
 	if (rawSignal->input1 > (config->maximumLevel1 + CFG_THROTTLE_TOLERANCE)) {
-		throttleStatus = ERR_HIGH_T1;
-		Logger::error(POTACCELPEDAL, "ERR_HIGH_T1: throttle 1 value out of range: %l", rawSignal->input1);
+		if (status == OK)
+			Logger::error(POTACCELPEDAL, "ERR_HIGH_T1: throttle 1 value out of range: %l", rawSignal->input1);
+		status = ERR_HIGH_T1;
 		return false;
 	}
 	if (rawSignal->input1 < (config->minimumLevel1 - CFG_THROTTLE_TOLERANCE)) {
-		throttleStatus = ERR_LOW_T1;
-		Logger::error(POTACCELPEDAL, "ERR_LOW_T1: throttle 1 value out of range: %l ", rawSignal->input1);
+		if (status == OK)
+			Logger::error(POTACCELPEDAL, "ERR_LOW_T1: throttle 1 value out of range: %l ", rawSignal->input1);
+		status = ERR_LOW_T1;
 		return false;
 	}
 
 	if (config->numberPotMeters > 1) {
 		if (rawSignal->input2 > (config->maximumLevel2 + CFG_THROTTLE_TOLERANCE)) {
-			throttleStatus = ERR_HIGH_T2;
-			Logger::error(POTACCELPEDAL, "ERR_HIGH_T2: throttle 2 value out of range: %l", rawSignal->input2);
+			if (status == OK)
+				Logger::error(POTACCELPEDAL, "ERR_HIGH_T2: throttle 2 value out of range: %l", rawSignal->input2);
+			status = ERR_HIGH_T2;
 			return false;
 		}
 		if (rawSignal->input2 < (config->minimumLevel2 - CFG_THROTTLE_TOLERANCE)) {
-			throttleStatus = ERR_LOW_T2;
-			Logger::error(POTACCELPEDAL, "ERR_LOW_T2: throttle 2 value out of range: %l", rawSignal->input2);
+			if (status == OK)
+				Logger::error(POTACCELPEDAL, "ERR_LOW_T2: throttle 2 value out of range: %l", rawSignal->input2);
+			status = ERR_LOW_T2;
 			return false;
 		}
 
@@ -109,16 +110,23 @@ bool PotThrottle::validateSignal(RawSignalData *rawSignal) {
 		if (config->throttleSubType == 2) // inverted
 			calcThrottle2 = 1000 - calcThrottle2;
 		if ((calcThrottle1 - ThrottleMaxErrValue) > calcThrottle2) { //then throttle1 is too large compared to 2
-			throttleStatus = ERR_MISMATCH;
-			Logger::error(POTACCELPEDAL, "throttle 1 too high (%l) compared to 2 (%l)", calcThrottle1, calcThrottle2);
+			if (status == OK)
+				Logger::error(POTACCELPEDAL, "throttle 1 too high (%l) compared to 2 (%l)", calcThrottle1, calcThrottle2);
+			status = ERR_MISMATCH;
 			return false;
 		}
 		if ((calcThrottle2 - ThrottleMaxErrValue) > calcThrottle1) { //then throttle2 is too large compared to 1
-			throttleStatus = ERR_MISMATCH;
-			Logger::error(POTACCELPEDAL, "throttle 2 too high (%l) compared to 1 (%l)", calcThrottle2, calcThrottle1);
+			if (status == OK)
+				Logger::error(POTACCELPEDAL, "throttle 2 too high (%l) compared to 1 (%l)", calcThrottle2, calcThrottle1);
+			status = ERR_MISMATCH;
 			return false;
 		}
 	}
+
+	// all checks passed -> throttle is ok
+	if (status != OK)
+		Logger::info(POTACCELPEDAL, "normal operation restored");
+	status = OK;
 	return true;
 }
 
@@ -139,20 +147,6 @@ uint16_t PotThrottle::calculatePedalPosition(RawSignalData *rawSignal) {
 		calcThrottle1 = (calcThrottle1 + calcThrottle2) / 2; // now the average of the two
 	}
 	return calcThrottle1;
-}
-
-/*
- * Is the throttle faulted?
- */
-bool PotThrottle::isFaulted() {
-	return throttleStatus != OK;
-}
-
-/*
- * Return the throttle's current status
- */
-PotThrottle::ThrottleStatus PotThrottle::getStatus() {
-	return throttleStatus;
 }
 
 /*

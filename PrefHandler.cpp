@@ -127,7 +127,7 @@ bool PrefHandler::setDeviceStatus(uint16_t device, bool enabled)
 	uint16_t id;
 	for (int x = 1; x < 64; x++) {
 		memCache->Read(EE_DEVICE_TABLE + (2 * x), &id);
-		if (id == (device & 0x7FFF)) {
+		if ((id & 0x7FFF) == (device & 0x7FFF)) {
 			Logger::debug("Found a device record to edit");
 			if (enabled) {
 				id |= 0x8000;

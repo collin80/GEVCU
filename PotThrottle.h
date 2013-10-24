@@ -54,22 +54,10 @@ public:
 
 class PotThrottle: public Throttle {
 public:
-	enum ThrottleStatus {
-		OK,
-		ERR_LOW_T1,
-		ERR_LOW_T2,
-		ERR_HIGH_T1,
-		ERR_HIGH_T2,
-		ERR_MISMATCH,
-		ERR_MISC
-	};
-
 	PotThrottle(uint8_t throttle1, uint8_t throttle2);
 	void setup();
 	void handleTick();
 	DeviceId getId();
-	bool isFaulted();
-	ThrottleStatus getStatus();
 	RawSignalData *acquireRawSignal();
 
 	void loadConfiguration();
@@ -81,7 +69,6 @@ protected:
 
 private:
 	uint8_t throttle1AdcPin, throttle2AdcPin; //which ADC pin each are on
-	ThrottleStatus throttleStatus;
 	RawSignalData rawSignal;
 };
 
