@@ -281,6 +281,8 @@ void setup() {
 	SerialUSB.print("Build number: ");
 	SerialUSB.println(CFG_BUILD_NUM);
 
+	Logger::setLoglevel((Logger::LogLevel)1); //force info logging on until proper value is loaded from EEPROM
+
 	Wire.begin();
 	Logger::info("TWI init ok");
 
