@@ -8,11 +8,25 @@
 	<script type='text/javascript' src='annunciator.js'></script>
 	<script>
 		var canvas; // global canvas object
+		
+		// resize the canvas to fill browser window dynamically
+        window.addEventListener('resize', resizeCanvas, false);
+
+		function resizeCanvas() {
+			// adjust the width to the page width
+			var canvasElement=document.getElementById("throttleCanvas");
+			if ( canvasElement ) {
+				canvasElement.width = window.innerWidth - 15;
+			}
+			refreshThrottleVisualization();
+        }
+        
 		function init() {
 			loadPage("status");
 			loadPage("config");
 			loadPage("about");
 			showTab('status');
+			resizeCanvas();
 		}
 	</script>
 </head>
