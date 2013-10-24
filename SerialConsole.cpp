@@ -330,6 +330,7 @@ void SerialConsole::handleConfigCmd() {
 	} else if (cmdString == String("SYSTYPE")) {
 		if (newValue < 4) {
 			sysPrefs->write(EESYS_SYSTEM_TYPE, (uint8_t)(newValue));
+			sysPrefs->saveChecksum();
 			sysPrefs->forceCacheWrite(); //just in case someone takes us literally and power cycles quickly
 			Logger::console("System type updated. Power cycle to apply.");
 		}
@@ -357,6 +358,7 @@ void SerialConsole::handleConfigCmd() {
 			break;
 		}
 		sysPrefs->write(EESYS_LOG_LEVEL, (uint8_t)newValue);
+		sysPrefs->saveChecksum();
 		// send updates to ichip wifi
 		// send updates to ichip wifi
 	} else {
