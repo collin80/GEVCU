@@ -16,6 +16,9 @@ function ThrottleSettingsCanvas() {
 ThrottleSettingsCanvas.prototype.draw = function() {
 	// get canvas size
 	var canvas=document.getElementById(this.canvasId);
+	if ( !canvas ) {
+		return; // no canvas found by this id
+	}
 	this.context=canvas.getContext("2d");
     this.height=canvas.height;
     this.width=canvas.width;
