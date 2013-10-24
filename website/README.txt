@@ -2,7 +2,11 @@ The GEVCU uses the Mini Socket iWifi module from ConnectOne. Documentation can b
 
 http://www.connectone.com/?page_id=217
 
-To update the website on the iChip, you have to use their packing tool which is part of their iChipConfig utility and only runs on Windows XP.  Download and install the following:
+To update the website on the iChip, you have to use their packing tool which is part of their iChipConfig utility and only runs on Windows XP.  If you use Windows 7 you can use Windows XP mode:
+
+http://windows.microsoft.com/en-us/windows7/install-and-use-windows-xp-mode-in-windows-7
+
+Download and install the following:
 
 http://www.connectone.com/wp-content/uploads/2012/06/iChipConfigExternal_2.4.95_setup7.zip
 
