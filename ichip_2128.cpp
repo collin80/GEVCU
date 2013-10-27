@@ -43,9 +43,11 @@ void ICHIPWIFI::setup() {
 	loadParams = 5; // wait 5 seconds before loading parameters (required after resetting ichip)
 	serialInterface->begin(115200);
 
-#ifdef GEVCU3
-	digitalWrite(18, HIGH);
-#endif
+	uint8_t sys_type;
+	sysPrefs->read(EESYS_SYSTEM_TYPE, &sys_type);
+	if (sys_type == 3) {
+		digitalWrite(18, HIGH);
+	}
 
 	sendCmd("FD");
 	delay(500);
@@ -276,11 +278,12 @@ void ICHIPWIFI::setParam(String paramName, float value, int precision) {
 ICHIPWIFI::ICHIPWIFI() {
 	prefsHandler = new PrefHandler(ICHIP2128);
 
-#ifdef GEVCU3
-	serialInterface = &Serial2;
-#else
-	serialInterface = &Serial3; //default is serial 3 because that should be what our shield really uses
-#endif
+	uint8_t sys_type;
+	sysPrefs->read(EESYS_SYSTEM_TYPE, &sys_type);
+	if (sys_type == 3)
+		serialInterface = &Serial2;
+	else
+		serialInterface = &Serial3; //default is serial 3 because that should be what our shield really uses
 }
 
 /*
