@@ -83,6 +83,8 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include "Sys_Messages.h"
 #include "DeviceTypes.h"
 
+extern PrefHandler *sysPrefs;
+
 /*
  * The extended configuration class with additional parameters for ichip WLAN
  */
