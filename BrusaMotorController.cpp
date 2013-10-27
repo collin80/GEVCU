@@ -35,6 +35,9 @@
  ing torque that can't be controlled.
  */
 
+/*
+ * Constructor
+ */
 BrusaMotorController::BrusaMotorController() : MotorController() {
 
 	prefsHandler = new PrefHandler(BRUSA_DMC5);
@@ -47,6 +50,9 @@ BrusaMotorController::BrusaMotorController() : MotorController() {
 	tickCounter = 0;
 }
 
+/*
+ * Setup the device if it is enabled in configuration.
+ */
 void BrusaMotorController::setup() {
 	TickHandler::getInstance()->detach(this);
 
@@ -60,7 +66,14 @@ void BrusaMotorController::setup() {
 	TickHandler::getInstance()->attach(this, CFG_TICK_INTERVAL_MOTOR_CONTROLLER_BRUSA);
 }
 
+/*
+ * Process event from the tick handler.
+ *
+ * The super-class requests desired levels from the throttle and
+ * brake and decides which one to apply.
+ */
 void BrusaMotorController::handleTick() {
+	MotorController::handleTick(); // call parent
 	tickCounter++;
 
 	sendControl();	// send CTRL every 20ms
@@ -71,47 +84,60 @@ void BrusaMotorController::handleTick() {
 	}
 }
 
+/*
+ * Send DMC_CTRL message to the motor controller.
+ *
+ * This message controls the power-stage in the controller, clears the error latch
+ * in case errors were detected and requests the desired torque / speed.
+ */
 void BrusaMotorController::sendControl() {
+	BrusaMotorControllerConfiguration *config = (BrusaMotorControllerConfiguration *)getConfiguration();
 	prepareOutputFrame(CAN_ID_CONTROL);
 
+	speedRequested = 0;
+	torqueRequested = 0;
 
-	//TODO: remove ramp testing
-//	torqueRequested = 20;
-//	if (speedActual < 100)
-//		speedRequested = 1000;
-//	if (speedActual > 950)
-//		speedRequested = 50;
-
-
-
-	outputFrame.data[0] = enablePositiveTorqueSpeed | enableNegativeTorqueSpeed;
+	outputFrame.data[0] = enablePositiveTorqueSpeed; // | enableNegativeTorqueSpeed;
 	if (faulted) {
 		outputFrame.data[0] |= clearErrorLatch;
 	} else {
-		if (running || speedActual > 1000) { // see warning about field weakening current to prevent uncontrollable regen
+		if ((running || speedActual > 1000) && !getDigital(1)) { // see warning about field weakening current to prevent uncontrollable regen
 			outputFrame.data[0] |= enablePowerStage;
-			if (running) {
-				// outputFrame.data[0] |= enableOscillationLimiter;
-				if (powerMode == modeSpeed)
-					outputFrame.data[0] |= enableSpeedMode;
+		}
+		if (running) {
+			if (config->enableOscillationLimiter)
+				outputFrame.data[0] |= enableOscillationLimiter;
 
-				// TODO: differ between torque/speed mode
-				// TODO: check for maxRPM and maxTorque
-
-				// set the speed in rpm
-				outputFrame.data[2] = (speedRequested & 0xFF00) >> 8;
-				outputFrame.data[3] = (speedRequested & 0x00FF);
-
-				// set the torque in 0.01Nm (GEVCU uses 0.1Nm -> multiply by 10)
-				outputFrame.data[4] = ((torqueRequested * 10) & 0xFF00) >> 8;
-				outputFrame.data[5] = ((torqueRequested * 10) & 0x00FF);
+			if (powerMode == modeSpeed) {
+				outputFrame.data[0] |= enableSpeedMode;
+				speedRequested = throttleRequested * config->speedMax / 1000;
+				torqueRequested = config->torqueMax; // positive number used for both speed directions
+			} else { // torque mode
+				speedRequested = config->speedMax; // positive number used for both torque directions
+				torqueRequested = throttleRequested * config->torqueMax / 1000;
 			}
+
+			// set the speed in rpm
+			outputFrame.data[2] = (speedRequested & 0xFF00) >> 8;
+			outputFrame.data[3] = (speedRequested & 0x00FF);
+
+			// set the torque in 0.01Nm (GEVCU uses 0.1Nm -> multiply by 10)
+			outputFrame.data[4] = ((torqueRequested * 10) & 0xFF00) >> 8;
+			outputFrame.data[5] = ((torqueRequested * 10) & 0x00FF);
 		}
 	}
+
+	if (Logger::isDebug())
+		Logger::debug(BRUSA_DMC5, "requested Speed: %l rpm, requested Torque: %f Nm", speedRequested, (float)torqueRequested/10.0F);
 
 	CanHandler::getInstanceEV()->sendFrame(outputFrame);
 }
 
+/*
+ * Send DMC_CTRL2 message to the motor controller.
+ *
+ * This message controls the mechanical power limits for motor- and regen-mode.
+ */
 void BrusaMotorController::sendControl2() {
 	BrusaMotorControllerConfiguration *config = (BrusaMotorControllerConfiguration *)getConfiguration();
 
@@ -128,6 +154,11 @@ void BrusaMotorController::sendControl2() {
 	CanHandler::getInstanceEV()->sendFrame(outputFrame);
 }
 
+/*
+ * Send DMC_LIM message to the motor controller.
+ *
+ * This message controls the electrical limits in the controller.
+ */
 void BrusaMotorController::sendLimits() {
 	BrusaMotorControllerConfiguration *config = (BrusaMotorControllerConfiguration *)getConfiguration();
 
@@ -144,6 +175,10 @@ void BrusaMotorController::sendLimits() {
 	CanHandler::getInstanceEV()->sendFrame(outputFrame);
 }
 
+/*
+ * Prepare the CAN transmit frame.
+ * Re-sets all parameters in the re-used frame.
+ */
 void BrusaMotorController::prepareOutputFrame(uint32_t id) {
 	outputFrame.dlc = 8;
 	outputFrame.id = id;
@@ -159,6 +194,13 @@ void BrusaMotorController::prepareOutputFrame(uint32_t id) {
 	outputFrame.data[7] = 0;
 }
 
+/*
+ * Processes an event from the CanHandler.
+ *
+ * In case a CAN message was received which pass the masking and id filtering,
+ * this method is called. Depending on the ID of the CAN message, the data of
+ * the incoming message is processed.
+ */
 void BrusaMotorController::handleCanFrame(RX_CAN_FRAME *frame) {
 	switch (frame->id) {
 	case CAN_ID_STATUS:
@@ -181,6 +223,12 @@ void BrusaMotorController::handleCanFrame(RX_CAN_FRAME *frame) {
 	}
 }
 
+/*
+ * Process a DMC_TRQS message which was received from the motor controller.
+ *
+ * This message provides the general status of the controller as well as
+ * available and current torque and speed.
+ */
 void BrusaMotorController::processStatus(uint8_t data[]) {
 	statusBitfield1 = (uint32_t)(data[1] | (data[0] << 8));
 	torqueAvailable = (int16_t)(data[3] | (data[2] << 8)) / 10;
@@ -196,6 +244,12 @@ void BrusaMotorController::processStatus(uint8_t data[]) {
 	warning = (statusBitfield1 & warningFlag) != 0 ? true : false;
 }
 
+/*
+ * Process a DMC_ACTV message which was received from the motor controller.
+ *
+ * This message provides information about current electrical conditions and
+ * applied mechanical power.
+ */
 void BrusaMotorController::processActualValues(uint8_t data[]) {
 	dcVoltage = (uint16_t)(data[1] | (data[0] << 8));
 	dcCurrent = (int16_t)(data[3] | (data[2] << 8));
@@ -206,6 +260,13 @@ void BrusaMotorController::processActualValues(uint8_t data[]) {
 		Logger::debug(BRUSA_DMC5, "actual values: DC Volts: %fV, DC current: %fA, AC current: %fA, mechPower: %fkW", (float)dcVoltage / 10.0F, (float)dcCurrent / 10.0F, (float)acCurrent / 10.0F, (float)mechanicalPower / 10.0F);
 }
 
+/*
+ * Process a DMC_ERRS message which was received from the motor controller.
+ *
+ * This message provides various error and warning status flags in a bitfield.
+ * The bitfield is not processed here but it is made available for other components
+ * (e.g. the webserver to display the various status flags)
+ */
 void BrusaMotorController::processErrors(uint8_t data[]) {
 	statusBitfield3 = (uint32_t)(data[1] | (data[0] << 8) | (data[5] << 16) | (data[4] << 24));
 	statusBitfield2 = (uint32_t)(data[7] | (data[6] << 8));
@@ -214,6 +275,11 @@ void BrusaMotorController::processErrors(uint8_t data[]) {
 		Logger::debug(BRUSA_DMC5, "errors: %X, warning: %X", statusBitfield3, statusBitfield2);
 }
 
+/*
+ * Process a DMC_TRQS2 message which was received from the motor controller.
+ *
+ * This message provides information about available torque.
+ */
 void BrusaMotorController::processTorqueLimit(uint8_t data[]) {
 	maxPositiveTorque = (int16_t)(data[1] | (data[0] << 8)) / 10;
 	minNegativeTorque = (int16_t)(data[3] | (data[2] << 8)) / 10;
@@ -223,6 +289,11 @@ void BrusaMotorController::processTorqueLimit(uint8_t data[]) {
 		Logger::debug(BRUSA_DMC5, "torque limit: max positive: %fNm, min negative: %fNm", (float) maxPositiveTorque / 10.0F, (float) minNegativeTorque / 10.0F, limiterStateNumber);
 }
 
+/*
+ * Process a DMC_TEMP message which was received from the motor controller.
+ *
+ * This message provides information about motor and inverter temperatures.
+ */
 void BrusaMotorController::processTemperature(uint8_t data[]) {
 	temperatureInverter = (int16_t)(data[1] | (data[0] << 8)) * 5;
 	temperatureMotor = (int16_t)(data[3] | (data[2] << 8)) * 5;
@@ -232,14 +303,25 @@ void BrusaMotorController::processTemperature(uint8_t data[]) {
 		Logger::debug(BRUSA_DMC5, "temperature: inverter: %fC, motor: %fC, system: %fC", (float)temperatureInverter / 10.0F, (float)temperatureMotor / 10.0F, (float)temperatureSystem / 10.0F);
 }
 
+/*
+ * Return the device id of this device
+ */
 DeviceId BrusaMotorController::getId() {
 	return BRUSA_DMC5;
 }
 
+/*
+ * Expose the tick interval of this controller
+ */
 uint32_t BrusaMotorController::getTickInterval() {
 	return CFG_TICK_INTERVAL_MOTOR_CONTROLLER_BRUSA;
 }
 
+/*
+ * Load configuration data from EEPROM.
+ *
+ * If not available or the checksum is invalid, default values are chosen.
+ */
 void BrusaMotorController::loadConfiguration() {
 	BrusaMotorControllerConfiguration *config = (BrusaMotorControllerConfiguration *)getConfiguration();
 
@@ -261,12 +343,13 @@ void BrusaMotorController::loadConfiguration() {
 	} else { //checksum invalid. Reinitialize values and store to EEPROM
 		Logger::warn(BRUSA_DMC5, "Invalid checksum so using hard coded config values");
 		config->maxMechanicalPowerMotor = 50000;
-		config->maxMechanicalPowerRegen = 50000;
+		config->maxMechanicalPowerRegen = 0; //TODO: 50000; don't want regen yet !
 
 		config->dcVoltLimitMotor = 1000;
-		config->dcVoltLimitRegen = 1000;
+		config->dcVoltLimitRegen =  0;//TODO: 1000; don't want regen yet !;
 		config->dcCurrentLimitMotor = 0;
 		config->dcCurrentLimitRegen = 0;
+		config->enableOscillationLimiter = false;
 		saveConfiguration();
 	}
 	Logger::debug(BRUSA_DMC5, "Max mech power motor: %d kW, max mech power regen: %d ", config->maxMechanicalPowerMotor, config->maxMechanicalPowerRegen);
@@ -274,6 +357,9 @@ void BrusaMotorController::loadConfiguration() {
 	Logger::debug(BRUSA_DMC5, "DC limit motor: %d Amps, DC limit regen: %d Amps", config->dcCurrentLimitMotor, config->dcCurrentLimitRegen);
 }
 
+/*
+ * Store the current configuration parameters to EEPROM.
+ */
 void BrusaMotorController::saveConfiguration() {
 	BrusaMotorControllerConfiguration *config = (BrusaMotorControllerConfiguration *)getConfiguration();
 
@@ -286,5 +372,6 @@ void BrusaMotorController::saveConfiguration() {
 //	prefsHandler->write(EEMC_, config->dcVoltLimitRegen);
 //	prefsHandler->write(EEMC_, config->dcCurrentLimitMotor);
 //	prefsHandler->write(EEMC_, config->dcCurrentLimitRegen);
+//	prefsHandler->write(EEMC_, config->enableOscillationLimiter);
 	prefsHandler->saveChecksum();
 }
