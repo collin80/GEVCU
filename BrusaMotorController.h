@@ -68,6 +68,8 @@ public:
 	uint16_t dcVoltLimitRegen; //  maximum DC voltage limit for regen in 0.1V
 	uint16_t dcCurrentLimitMotor; // current limit for motoring in 0.1A
 	uint16_t dcCurrentLimitRegen; // current limit for regen in 0.1A
+
+	bool enableOscillationLimiter; // this will enable the DMC5 oscillation limiter (if also enabled by parameter)
 };
 
 class BrusaMotorController: public MotorController, CanObserver {
