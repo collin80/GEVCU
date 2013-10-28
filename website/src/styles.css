@@ -110,3 +110,18 @@ h2 {
 	margin-bottom: 5px;
 	padding: 0px 0px 0px 0px;
 }
+
+/* for safari  */
+input[type="range"]{
+   -webkit-appearance:none !important;
+   background: rgb(FF, FF, FF);
+    width: 200px;
+    height: 6px;
+    border-radius: 8px;
+    -moz-border-radius: 8px;
+    -wekkit-border-radius: 8px;
+    -webkit-box-shadow: inset 0px 0px 1px 1px rgba(0, 0, 0, 0.9), 0px 1px 1px 0px rgba(255, 255, 255, 0.13);
+    -moz-box-shadow: inset 0px 0px 1px 1px rgba(0, 0, 0, 0.9), 0px 1px 1px 0px rgba(255, 255, 255, 0.13);
+    box-shadow: inset 0px 0px 1px 1px rgba(0, 0, 0, 0.9), 0px 1px 1px 0px rgba(255, 255, 255, 0.13);
+}
+ }
