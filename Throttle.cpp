@@ -215,4 +215,6 @@ void Throttle::saveConfiguration() {
 	prefsHandler->write(EETH_MIN_ACCEL_REGEN, config->minimumRegen);
 	prefsHandler->write(EETH_MAX_ACCEL_REGEN, config->maximumRegen);
 	prefsHandler->saveChecksum();
+
+	Logger::console("Throttle configuration saved");
 }
