@@ -3,6 +3,7 @@ GEVCU
 
 Generalized Electric Vehicle Control Unit
 
+Our website can be found at : http://www.gevcu.org
 
 A project to create a fairly Arduino compatible ECU firmware
 to interface with various electric vehicle hardware over canbus
