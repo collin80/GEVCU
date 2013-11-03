@@ -24,7 +24,6 @@
 
  */
 
-#include "config.h"
 #include "Heartbeat.h"
 
 Heartbeat::Heartbeat() {

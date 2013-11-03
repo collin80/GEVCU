@@ -84,6 +84,7 @@ void SerialConsole::printMenu() {
 	SerialUSB.println("B = save brake values");
 	SerialUSB.println("p = enable wifi passthrough (reboot required to resume normal operation)");
 	SerialUSB.println("S = show possible device IDs");
+	SerialUSB.println("w = reset wifi to factory defaults, setup GEVCU ad-hoc network");
 	SerialUSB.println();
 	SerialUSB.println("Config Commands (enter command=newvalue). Current values shown in parenthesis:");
 	SerialUSB.println("ENABLE - Enable the given device by ID");
@@ -132,6 +133,7 @@ void SerialConsole::printMenu() {
 		Logger::console("MRELAY=%i - Which output to use for main contactor (255 to disable)", config->mainContactorRelay);
 	}
 	Logger::console("LOGLEVEL=%i - set log level (0=debug, 1=info, 2=warn, 3=error, 4=off)", Logger::getLogLevel());
+	Logger::console("WLAN - send a AT+i command to the wlan device");
 }
 
 /*	There is a help menu (press H or h or ?)
@@ -180,9 +182,10 @@ void SerialConsole::handleConfigCmd() {
 	Throttle *accelerator = DeviceManager::getInstance()->getAccelerator();
 	Throttle *brake = DeviceManager::getInstance()->getBrake();
 	MotorController *motorController = DeviceManager::getInstance()->getMotorController();
-
 	int i;
 	int newValue;
+	bool updateWifi = true;
+
 	//Logger::debug("Cmd size: %i", ptrBuffer);
 	if (ptrBuffer < 6)
 		return; //4 digit command, =, value is at least 6 characters
@@ -359,12 +362,16 @@ void SerialConsole::handleConfigCmd() {
 		}
 		sysPrefs->write(EESYS_LOG_LEVEL, (uint8_t)newValue);
 		sysPrefs->saveChecksum();
-		// send updates to ichip wifi
-		// send updates to ichip wifi
+	} else if (cmdString == String("WLAN")) {
+		DeviceManager::getInstance()->sendMessage(DEVICE_WIFI, ICHIP2128, MSG_COMMAND, (void *)(cmdBuffer + i));
+		updateWifi = false;
 	} else {
 		Logger::console("Unknown command");
+		updateWifi = false;
 	}
-	DeviceManager::getInstance()->sendMessage(DEVICE_WIFI, ICHIP2128, MSG_CONFIG_CHANGE, NULL);
+	// send updates to ichip wifi
+	if (updateWifi)
+		DeviceManager::getInstance()->sendMessage(DEVICE_WIFI, ICHIP2128, MSG_CONFIG_CHANGE, NULL);
 }
 
 void SerialConsole::handleShortCmd() {
@@ -481,6 +488,33 @@ void SerialConsole::handleShortCmd() {
 		Logger::console("CANBus brake = %X", CANBRAKEPEDAL);
 		Logger::console("WIFI (iChip2128) = %X", ICHIP2128);
 		Logger::console("Th!nk City BMS = %X", THINKBMS);
+		break;
+
+	case 'w':
+		Logger::console("Reseting wifi to factory defaults and setting up GEVCU ad-hoc network, please wait 6 seconds");
+		DeviceManager *deviceManager = DeviceManager::getInstance();
+		// restore factory defaults and give it some time
+		deviceManager->sendMessage(DEVICE_WIFI, ICHIP2128, MSG_COMMAND, (void *)"FD");
+		delay(200);
+		// set-up specific ad-hoc network
+		deviceManager->sendMessage(DEVICE_WIFI, ICHIP2128, MSG_COMMAND, (void *)"WLCH=6"); //use WIFI channel 6
+		deviceManager->sendMessage(DEVICE_WIFI, ICHIP2128, MSG_COMMAND, (void *)"WLSI=!GEVCU"); //name our ADHOC network GEVCU (the ! indicates a ad-hoc network)
+		deviceManager->sendMessage(DEVICE_WIFI, ICHIP2128, MSG_COMMAND, (void *)"DIP=192.168.3.10"); //IP of GEVCU is this
+		deviceManager->sendMessage(DEVICE_WIFI, ICHIP2128, MSG_COMMAND, (void *)"DPSZ=10"); //serve up 10 more addresses (11 - 20)
+		deviceManager->sendMessage(DEVICE_WIFI, ICHIP2128, MSG_COMMAND, (void *)"RPG=secret"); // set the configuration password for /ichip
+		deviceManager->sendMessage(DEVICE_WIFI, ICHIP2128, MSG_COMMAND, (void *)"WPWD=secret"); // set the password to update config params
+
+		//	deviceManager->sendMessage(DEVICE_WIFI, ICHIP2128, MSG_COMMAND, (void *)"WSI1=AndroidAP"); // hotspot SSID
+		//	deviceManager->sendMessage(DEVICE_WIFI, ICHIP2128, MSG_COMMAND, (void *)"WST1=4"); //wpa2
+		//	deviceManager->sendMessage(DEVICE_WIFI, ICHIP2128, MSG_COMMAND, (void *)"WPP1=verysecret"); //wpa2 password
+
+		deviceManager->sendMessage(DEVICE_WIFI, ICHIP2128, MSG_COMMAND, (void *)"AWS=1"); //turn on web server for three clients
+		deviceManager->sendMessage(DEVICE_WIFI, ICHIP2128, MSG_COMMAND, (void *)"DOWN"); //cause a reset to allow it to come up with the settings
+
+		delay(5000); // a 5 second delay is required for the chip to come back up ! Otherwise commands will be lost
+
+		deviceManager->sendMessage(DEVICE_WIFI, ICHIP2128, MSG_CONFIG_CHANGE, NULL); // reload configuration params as they were lost
+		Logger::console("Wifi initialized");
 		break;
 	}
 }

@@ -41,7 +41,6 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  and I'll bet  other controllers do as well. The rest can feel free to ignore it.
  */
 
-#include "config.h"
 #include "DmocMotorController.h"
 
 extern bool runThrottle; //TODO: remove use of global variables !
