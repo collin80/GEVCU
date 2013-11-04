@@ -327,7 +327,6 @@ void setup() {
 	initializeDevices();
 
     serialConsole = new SerialConsole(memCache, heartbeat);
-    Logger::info("Serial console Ready");
         
 	Logger::info("System Ready");
 	serialConsole->printMenu();

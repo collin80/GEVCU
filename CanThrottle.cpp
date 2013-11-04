@@ -24,7 +24,6 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
  */
 
-#include "config.h"
 #include "CanThrottle.h"
 
 CanThrottle::CanThrottle() : Throttle() {
@@ -124,20 +123,20 @@ bool CanThrottle::validateSignal(RawSignalData* rawSignal) {
 	}
 	if (rawSignal->input1 > (config->maximumLevel1 + CFG_THROTTLE_TOLERANCE)) {
 		if (status == OK)
-			Logger::error(CANACCELPEDAL, "value out of range: %l ", rawSignal->input1);
+			Logger::error(CANACCELPEDAL, (char *)Constants::valueOutOfRange, rawSignal->input1);
 		status = ERR_HIGH_T1;
 		return false;
 	}
 	if (rawSignal->input1 < (config->minimumLevel1 - CFG_THROTTLE_TOLERANCE)) {
 		if (status == OK)
-			Logger::error(CANACCELPEDAL, "value out of range: %l ", rawSignal->input1);
+			Logger::error(CANACCELPEDAL, (char *)Constants::valueOutOfRange, rawSignal->input1);
 		status = ERR_LOW_T1;
 		return false;
 	}
 
 	// all checks passed -> throttle seems to be ok
 	if (status != OK)
-		Logger::info(CANACCELPEDAL, "normal operation restored");
+		Logger::info(CANACCELPEDAL, (char *)Constants::normalOperation);
 	status = OK;
 	return true;
 }
@@ -167,12 +166,12 @@ void CanThrottle::loadConfiguration() {
 #else
 	if (prefsHandler->checksumValid()) { //checksum is good, read in the values stored in EEPROM
 #endif
-		Logger::debug(CANACCELPEDAL, "Valid checksum so using stored throttle config values");
+		Logger::debug(CANACCELPEDAL, (char *)Constants::validChecksum);
 		prefsHandler->read(EETH_MIN_ONE, &config->minimumLevel1);
 		prefsHandler->read(EETH_MAX_ONE, &config->maximumLevel1);
 		prefsHandler->read(EETH_CAR_TYPE, &config->carType);
 	} else { //checksum invalid. Reinitialize values and store to EEPROM
-		Logger::warn(CANACCELPEDAL, "Invalid checksum so using hard coded throttle config values");
+		Logger::warn(CANACCELPEDAL, (char *)Constants::invalidChecksum);
 		config->minimumLevel1 = Throttle1MinValue;
 		config->maximumLevel1 = Throttle1MaxValue;
 		config->carType = Volvo_S80_Gas;

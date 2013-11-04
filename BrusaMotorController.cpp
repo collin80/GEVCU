@@ -25,7 +25,6 @@
 
  */
 
-#include "config.h"
 #include "BrusaMotorController.h"
 
 /*
@@ -338,10 +337,10 @@ void BrusaMotorController::loadConfiguration() {
 //	if (prefsHandler->checksumValid()) { //checksum is good, read in the values stored in EEPROM
 	if (false) { //TODO: use eeprom, not fixed values
 #endif
-		Logger::debug(BRUSA_DMC5, "Valid checksum so using stored config values");
+		Logger::debug(BRUSA_DMC5, (char *)Constants::validChecksum);
 //		prefsHandler->read(EEMC_, &config->minimumLevel1);
 	} else { //checksum invalid. Reinitialize values and store to EEPROM
-		Logger::warn(BRUSA_DMC5, "Invalid checksum so using hard coded config values");
+		Logger::warn(BRUSA_DMC5, (char *)Constants::invalidChecksum);
 		config->maxMechanicalPowerMotor = 50000;
 		config->maxMechanicalPowerRegen = 0; //TODO: 50000; don't want regen yet !
 

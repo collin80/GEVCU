@@ -30,6 +30,7 @@
 #include <Arduino.h>
 #include "config.h"
 #include "DeviceTypes.h"
+#include "constants.h"
 
 class Logger {
 public:

@@ -24,7 +24,6 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
  */
 
-#include "config.h"
 #include "CanBrake.h"
 
 CanBrake::CanBrake() : Throttle() {
@@ -124,20 +123,20 @@ bool CanBrake::validateSignal(RawSignalData* rawSignal) {
 	}
 	if (rawSignal->input1 > (config->maximumLevel1 + CFG_THROTTLE_TOLERANCE)) {
 		if (status == OK)
-			Logger::error(CANBRAKEPEDAL, "value out of range: %l ", rawSignal->input1);
+			Logger::error(CANBRAKEPEDAL, (char *)Constants::valueOutOfRange, rawSignal->input1);
 		status = ERR_HIGH_T1;
 		return false;
 	}
 	if (rawSignal->input1 < (config->minimumLevel1 - CFG_THROTTLE_TOLERANCE)) {
 		if (status == OK)
-			Logger::error(CANBRAKEPEDAL, "value out of range: %l ", rawSignal->input1);
+			Logger::error(CANBRAKEPEDAL, (char *)Constants::valueOutOfRange, rawSignal->input1);
 		status = ERR_LOW_T1;
 		return false;
 	}
 
 	// all checks passed -> brake is working
 	if (status != OK)
-		Logger::info(CANBRAKEPEDAL, "normal operation restored");
+		Logger::info(CANBRAKEPEDAL, (char *)Constants::normalOperation);
 	status = OK;
 	return true;
 }
@@ -195,12 +194,12 @@ void CanBrake::loadConfiguration() {
 #else
 	if (prefsHandler->checksumValid()) { //checksum is good, read in the values stored in EEPROM
 #endif
-		Logger::debug(CANBRAKEPEDAL, "Valid checksum so using stored brake config values");
+		Logger::debug(CANBRAKEPEDAL, (char *)Constants::validChecksum);
 		prefsHandler->read(EETH_MIN_ONE, &config->minimumLevel1);
 		prefsHandler->read(EETH_MAX_ONE, &config->maximumLevel1);
 		prefsHandler->read(EETH_CAR_TYPE, &config->carType);
 	} else { //checksum invalid. Reinitialize values and store to EEPROM
-		Logger::warn(CANBRAKEPEDAL, "Invalid checksum so using hard coded brake config values");
+		Logger::warn(CANBRAKEPEDAL, (char *)Constants::invalidChecksum);
 		config->minimumLevel1 = 2;
 		config->maximumLevel1 = 255;
 		config->carType = Volvo_S80_Gas;
