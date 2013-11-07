@@ -303,9 +303,9 @@ void Logger::logMessage(char *format, va_list args) {
 			}
 			if (*format == 'T') {
 				if (va_arg( args, int ) == 1) {
-					SerialUSB.print("true");
+					SerialUSB.print(Constants::trueStr);
 				} else {
-					SerialUSB.print("false");
+					SerialUSB.print(Constants::falseStr);
 				}
 				continue;
 			}

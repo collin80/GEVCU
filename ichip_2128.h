@@ -78,6 +78,7 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 #include <Arduino.h>
 #include "config.h"
+#include "constants.h"
 #include "DeviceManager.h"
 #include "PotThrottle.h"
 #include "Sys_Messages.h"
@@ -103,8 +104,6 @@ class ICHIPWIFI : public Device {
 	DeviceType getType();
     DeviceId getId();
     void loop();
-    void enableServer(); //turn on the web server
-    void disableServer(); //turn off the web server
     char *getTimeRunning();
 
 	void loadConfiguration();
@@ -117,7 +116,6 @@ class ICHIPWIFI : public Device {
     int ibWritePtr;
 	int currReply;
 	char buffer[30]; // a buffer for various string conversions
-	int loadParams; // a counter to wait x seconds before loading the parameters
 
     void getNextParam(); //get next changed parameter
     void getParamById(String paramName); //try to retrieve the value of the given parameter

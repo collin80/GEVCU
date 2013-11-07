@@ -24,7 +24,6 @@
 
  */
 
-#include "config.h"
 #include "PotThrottle.h"
 
 /*
@@ -125,7 +124,7 @@ bool PotThrottle::validateSignal(RawSignalData *rawSignal) {
 
 	// all checks passed -> throttle is ok
 	if (status != OK)
-		Logger::info(POTACCELPEDAL, "normal operation restored");
+		Logger::info(POTACCELPEDAL, (char *)Constants::normalOperation);
 	status = OK;
 	return true;
 }
@@ -176,7 +175,7 @@ void PotThrottle::loadConfiguration() {
 #else
 	if (prefsHandler->checksumValid()) { //checksum is good, read in the values stored in EEPROM
 #endif
-		Logger::debug(POTACCELPEDAL, "Valid checksum so using stored throttle config values");
+		Logger::debug(POTACCELPEDAL, (char *)Constants::validChecksum);
 		prefsHandler->read(EETH_MIN_ONE, &config->minimumLevel1);
 		prefsHandler->read(EETH_MAX_ONE, &config->maximumLevel1);
 		prefsHandler->read(EETH_MIN_TWO, &config->minimumLevel2);
@@ -193,7 +192,7 @@ void PotThrottle::loadConfiguration() {
 			config->numberPotMeters = 2;
 		}
 	} else { //checksum invalid. Reinitialize values and store to EEPROM
-		Logger::warn(POTACCELPEDAL, "Invalid checksum so using hard coded throttle config values");
+		Logger::warn(POTACCELPEDAL, (char *)Constants::invalidChecksum);
 
 		config->minimumLevel1 = Throttle1MinValue;
 		config->maximumLevel1 = Throttle1MaxValue;

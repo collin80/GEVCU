@@ -1,4 +1,6 @@
-html {
+body {
+	color: #ffffff;
+	font-family: arial, verdana, sans-serif;
 	background: #0F0F0F;
 	background: linear-gradient(bottom, rgb(2, 44, 84) 1%, rgb(15, 15, 16) 70%);
 	background: -o-linear-gradient(bottom, rgb(2, 44, 84) 1%, rgb(15, 15, 16) 70%);
@@ -6,11 +8,6 @@ html {
 	background: -webkit-linear-gradient(bottom, rgb(2, 44, 84) 1%, rgb(15, 15, 16) 70%);
 	background: -ms-linear-gradient(bottom, rgb(2, 44, 84) 1%, rgb(15, 15, 16) 70%);
 	background-attachment: fixed;
-}
-
-body {
-	color: #ffffff;
-	font-family: arial, verdana, sans-serif;
 }
 
 div.tabHeader {

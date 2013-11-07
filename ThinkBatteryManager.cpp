@@ -26,7 +26,6 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
  */
 
-#include "config.h"
 #include "ThinkBatteryManager.h"
 
 ThinkBatteryManager::ThinkBatteryManager() : BatteryManager() {

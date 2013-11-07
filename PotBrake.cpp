@@ -24,7 +24,6 @@
 
  */
 
-#include "config.h"
 #include "PotBrake.h"
 
 /*
@@ -74,20 +73,20 @@ bool PotBrake::validateSignal(RawSignalData *rawSignal) {
 
 	if (rawSignal->input1 > (config->maximumLevel1 + CFG_THROTTLE_TOLERANCE)) {
 		if (status == OK)
-			Logger::error(POTBRAKEPEDAL, "ERR_HIGH_T1: value out of range: %l", rawSignal->input1);
+			Logger::error(POTBRAKEPEDAL, (char *)Constants::valueOutOfRange, rawSignal->input1);
 		status = ERR_HIGH_T1;
 		return true; // even if it's too high, let it process and apply full regen !
 	}
 	if (rawSignal->input1 < (config->minimumLevel1 - CFG_THROTTLE_TOLERANCE)) {
 		if (status == OK)
-			Logger::error(POTBRAKEPEDAL, "ERR_LOW_T1: value out of range: %l ", rawSignal->input1);
+			Logger::error(POTBRAKEPEDAL, (char *)Constants::valueOutOfRange, rawSignal->input1);
 		status = ERR_LOW_T1;
 		return false;
 	}
 
 	// all checks passed -> brake is OK
 	if (status != OK)
-		Logger::info(POTBRAKEPEDAL, "normal operation restored");
+		Logger::info(POTBRAKEPEDAL, (char *)Constants::normalOperation);
 	status = OK;
 	return true;
 }
