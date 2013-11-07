@@ -1,7 +1,21 @@
 var intervalId=null;
 
+var canvas; // global throttle canvas object
+		
+// resize the canvas to fill browser window dynamically
+window.addEventListener('resize', resizeThrottleCanvas, false);
+
+function resizeThrottleCanvas() {
+	// adjust the width to the page width
+	var canvasElement=document.getElementById("throttleCanvas");
+	if ( canvasElement ) {
+		canvasElement.width = window.innerWidth - 60; // needs to be slightly narrower than the page width
+	}
+	refreshThrottleVisualization();
+}
+
 function showTab(pageId) {
-	// show the correct dif and hide the others
+	// show the correct div and hide the others
 	var tabs = document.getElementById('tabs');
 	for (var i = 0; i < tabs.childNodes.length; i++) {
 		var node = tabs.childNodes[i];
@@ -28,6 +42,10 @@ function showTab(pageId) {
 			clearInterval(intervalId);
 			intervalId = null;
 		}
+		
+		if ( pageId == 'config' ) {
+			resizeThrottleCanvas();
+		}
 	}
 	loadData(pageId);
 }
@@ -41,8 +59,10 @@ function loadPage(pageId) {
 			document.getElementById(pageId).innerHTML = xmlhttp.responseText;
 			if (pageId == 'config')
 				generateRangeControls();
-			if (pageId == 'status')
+			if (pageId == 'status') {
+				generateGauges();
 				loadPage("annunciator");
+			}
 		}
 	};
 	xmlhttp.open("GET", pageId + ".htm", true);
@@ -184,6 +204,17 @@ function refreshThrottleVisualization() {
 		canvas = new ThrottleSettingsCanvas();
 	}
 	canvas.draw();
+	refreshGaugeValue('throttle');
+	refreshGaugeValue('torqueActual');
+	refreshGaugeValue('speedActual');
+}
+
+function refreshGaugeValue(gauge) {
+	var id = gauge + 'Gauge';
+	var canvas = document.getElementById(gauge);
+	if ( canvas ) {
+		Gauge.Collection.get(id).setValue(canvas.innerHTML);
+	}
 }
 
 function getIntValue(id) {
