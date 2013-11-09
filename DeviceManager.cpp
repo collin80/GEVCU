@@ -193,7 +193,7 @@ Throttle *DeviceManager::getAccelerator() {
 Throttle *DeviceManager::getBrake() {
 	if (!brake) 
 	{
-		Logger::debug("getBrake() called but there is no registered brake!");
+		//Logger::debug("getBrake() called but there is no registered brake!");
 		return 0; //NULL!		
 	}
 	return brake;
