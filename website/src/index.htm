@@ -3,24 +3,12 @@
 	<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
 	<title>GEVCU</title>
 	<link rel="stylesheet" type="text/css" href="styles.css" />
+	<script type="text/javascript" src="gauge.js"></script>
+	<script type="text/javascript" src="gauges.js"></script>
 	<script type='text/javascript' src='throttleSettingsCanvas.js'></script>
 	<script type='text/javascript' src='control.js'></script>
 	<script type='text/javascript' src='annunciator.js'></script>
 	<script>
-		var canvas; // global canvas object
-		
-		// resize the canvas to fill browser window dynamically
-        window.addEventListener('resize', resizeCanvas, false);
-
-		function resizeCanvas() {
-			// adjust the width to the page width
-			var canvasElement=document.getElementById("throttleCanvas");
-			if ( canvasElement ) {
-				canvasElement.width = window.innerWidth - 60; // needs to be slightly narrower than the page width
-			}
-			refreshThrottleVisualization();
-        }
-        
 		function init() {
 			loadPage("status");
 			loadPage("config");

@@ -19,4 +19,4 @@ Then to update the website after changes,
 5. Select all the parameters, enter 20 for the max length value to fill and click "Fill"
 6. Click "Save" and point it to website.img
 
-At this point you upload the image to the GEVCU using http://192.168.3.10/ichip
+At this point you upload the image to the GEVCU using http://192.168.3.10/ichip and power cycle the GEVCU to have it activated.
