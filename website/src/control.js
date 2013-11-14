@@ -34,8 +34,11 @@ function showTab(pageId) {
 		}
 	}
 
-	// on the status page, set a 500ms repeating interval to load the data
-	if (pageId == 'status' && intervalId == null) {
+	// on the status && dashboard pages, set a 500ms repeating interval to load the data
+	if (pageId == 'status' || pageId == 'dashboard') {
+		if ( intervalId ) {
+			clearInterval(intervalId);
+		}
 		intervalId = setInterval(function(){loadData(pageId)}, 500);
 	} else {
 		if (intervalId) {
@@ -60,8 +63,10 @@ function loadPage(pageId) {
 			if (pageId == 'config')
 				generateRangeControls();
 			if (pageId == 'status') {
-				generateGauges();
 				loadPage("annunciator");
+			}
+			if (pageId == 'dashboard') {
+				generateGauges();
 			}
 		}
 	};
@@ -71,46 +76,53 @@ function loadPage(pageId) {
 
 // load data from dynamic xml and replace values in div's
 function loadData(pageId) {
-	var xmlhttp = new XMLHttpRequest();
-	xmlhttp.onreadystatechange = function() {
-		if (xmlhttp.readyState == 4 && xmlhttp.status == 200) {
-			var root = xmlhttp.responseXML.firstChild;
-			for (var i = 0; i < root.childNodes.length; i++) {
-				var node = root.childNodes[i]; // scan through the nodes
-				if (node.nodeType == 1 && node.childNodes[0]) {
-					var name = node.nodeName;
-					var value = node.childNodes[0].nodeValue;
-					if (name.indexOf('bitfield') == -1) { // a normal div/span to update
-						var target = document.getElementById(name);
-						if (!target) { // id not found, try to find by name
-							var namedElements = document.getElementsByName(name);
-							if (namedElements && namedElements.length)
-								target = namedElements[0];
-						}
-						if (target) { // found an element, update according to its type
-							if (target.nodeName.toUpperCase() == 'DIV' || target.nodeName.toUpperCase() == 'SPAN')
-								target.innerHTML = value;
-							if (target.nodeName.toUpperCase() == 'INPUT') {
-								target.value = value;
-								var slider = document.getElementById(name + "Level");
-								if (slider)
-									slider.value = value;
+	try {
+		var xmlhttp = new XMLHttpRequest();
+		xmlhttp.onreadystatechange = function() {
+			if (xmlhttp.readyState == 4 && xmlhttp.status == 200) {
+				var root = xmlhttp.responseXML.firstChild;
+				for (var i = 0; i < root.childNodes.length; i++) {
+					var node = root.childNodes[i]; // scan through the nodes
+					if (node.nodeType == 1 && node.childNodes[0]) {
+						var name = node.nodeName;
+						var value = node.childNodes[0].nodeValue;
+						refreshGaugeValue(name, value);
+						if (name.indexOf('bitfield') == -1) { // a normal div/span to update
+							var target = document.getElementById(name);
+							if (!target) { // id not found, try to find by name
+								var namedElements = document.getElementsByName(name);
+								if (namedElements && namedElements.length)
+									target = namedElements[0];
 							}
-							if (target.nodeName.toUpperCase() == 'SELECT') {
-								selectItemByValue(target, value);
+							if (target) { // found an element, update according to its type
+								if (target.nodeName.toUpperCase() == 'DIV' || target.nodeName.toUpperCase() == 'SPAN')
+									target.innerHTML = value;
+								if (target.nodeName.toUpperCase() == 'INPUT') {
+									target.value = value;
+									var slider = document.getElementById(name + "Level");
+									if (slider)
+										slider.value = value;
+								}
+								if (target.nodeName.toUpperCase() == 'SELECT') {
+									selectItemByValue(target, value);
+								}
 							}
+						} else { // an annunciator field of a bitfield value
+							updateAnnunciatorFields(name, value);
+	//						updateAnnunciatorFields(name, Math.round(Math.random() * 100000));
 						}
-					} else { // an annunciator field of a bitfield value
-						updateAnnunciatorFields(name, value);
-//						updateAnnunciatorFields(name, Math.round(Math.random() * 100000));
 					}
 				}
+				if (pageId == 'config') {
+					refreshThrottleVisualization();
+				}
 			}
-			refreshThrottleVisualization();
-		}
-	};
-	xmlhttp.open("GET", pageId + ".xml", true);
-	xmlhttp.send();
+		};
+		xmlhttp.open("GET", pageId + ".xml", true);
+		xmlhttp.send();
+	} catch (err) {
+		//
+	}
 }
 
 // scan through the options of a select input field and activate the one with the given value
@@ -204,16 +216,11 @@ function refreshThrottleVisualization() {
 		canvas = new ThrottleSettingsCanvas();
 	}
 	canvas.draw();
-	refreshGaugeValue('throttle');
-	refreshGaugeValue('torqueActual');
-	refreshGaugeValue('speedActual');
-}
-
-function refreshGaugeValue(gauge) {
-	var id = gauge + 'Gauge';
-	var canvas = document.getElementById(gauge);
-	if ( canvas ) {
-		Gauge.Collection.get(id).setValue(canvas.innerHTML);
+	
+	var throttleRegenMin = document.getElementById('throttleRegenMin');
+	var throttleFwd = document.getElementById('throttleFwd');
+	if ( throttleRegenMin && throttleFwd ) {
+		updateThrottleGaugeHighlights(throttleRegenMin.innerHTML, throttleFwd.innerHTML);
 	}
 }
 

@@ -11,10 +11,10 @@
 	<script>
 		function init() {
 			loadPage("status");
+			loadPage("dashboard");
 			loadPage("config");
 			loadPage("about");
 			showTab('status');
-			resizeCanvas();
 		}
 	</script>
 </head>
@@ -23,12 +23,14 @@
 
 	<div class="tabHeader" id="tabHeader">
 		<a href="javascript:showTab('status')" id="statuslink">Status</a>
+		<a href="javascript:showTab('dashboard')" id="dashboardlink">Dashboard</a>
 		<a href="javascript:showTab('config')" id="configlink">Config</a>
 		<a href="javascript:showTab('about')" id="aboutlink">About</a>
 	</div>
 
 	<div class="tabs" id="tabs">
 		<div class="tab" id="status"></div>
+		<div class="tab" id="dashboard"></div>
 		<div class="tab" id="config"></div>
 		<div class="tab" id="about"></div>
 	</div>
