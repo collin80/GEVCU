@@ -839,7 +839,7 @@ Gauge.initialized = false;
 		d = document,
 		h = d.getElementsByTagName('head')[0],
 		ie = navigator.userAgent.toLocaleLowerCase().indexOf( 'msie') != -1,
-		url = 'http://smart-ip.net/styles/fonts/digital-7-mono.' + (ie ? 'eot' : 'ttf'),
+		url = 'fonts/digital-7-mono.' + (ie ? 'eot' : 'ttf'),
 		text = "@font-face {" +
 					"font-family: 'Led';" +
 					"src: url('" + url + "');" +
@@ -901,7 +901,7 @@ Gauge.Collection.get = function( id) {
 	if (typeof(id) == 'string') {
 		for (var i = 0, s = self.length; i < s; i++) {
 			var canvas = self[i].config.renderTo.tagName ? self[i].config.renderTo : document.getElementById( self[i].config.renderTo);
-			if (canvas.getAttribute( 'id') == id) {
+			if (canvas.getAttribute('id') == id) {
 				return self[i];
 			}
 		}

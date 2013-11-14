@@ -224,6 +224,13 @@ void ThrottleDetector::detectMaxCalibrate() {
 			}
 		}
 
+		if ( Logger::isDebug()) {
+			Logger::console("\n----- RAW values ----");
+			for (int i = 0; i < sampleCount; i++) {
+				Logger::console("T1: %d, T2: %d", throttle1Values[i], throttle2Values[i]);
+			}
+		}
+
 		Logger::console("\n=======================================");
 		Logger::console("Detection complete");
 		Logger::console("Num samples taken: %d", sampleCount);
@@ -244,12 +251,6 @@ void ThrottleDetector::detectMaxCalibrate() {
 			type = "Inverse";
 		}
 		Logger::console("Throttle type: %s", type);
-
-		Logger::console("\n----- RAW values ----");
-		for (int i = 0; i < sampleCount; i++) {
-			Logger::console("T1: %d, T2: %d", throttle1Values[i], throttle2Values[i]);
-		}
-
 		Logger::console("========================================");
 
 		// update the throttle's configuration (without storing it yet)
