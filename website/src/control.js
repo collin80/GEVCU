@@ -220,7 +220,7 @@ function refreshThrottleVisualization() {
 	var throttleRegenMin = document.getElementById('throttleRegenMin');
 	var throttleFwd = document.getElementById('throttleFwd');
 	if ( throttleRegenMin && throttleFwd ) {
-		updateThrottleGaugeHighlights(throttleRegenMin.innerHTML, throttleFwd.innerHTML);
+		updateThrottleGaugeHighlights(throttleRegenMin.value, throttleFwd.value);
 	}
 }
 
