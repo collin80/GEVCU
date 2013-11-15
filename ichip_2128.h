@@ -93,6 +93,35 @@ class WifiConfiguration : public DeviceConfiguration {
 public:
 };
 
+/**
+ * Cache of param values to avoid sending an update unless changed
+ */
+struct ParamCache {
+	uint32_t timeRunning;
+	int16_t torqueRequested;
+	int16_t torqueActual;
+	int16_t throttle;
+	int16_t brake;
+	bool brakeNotAvailable;
+	int16_t speedRequested;
+	int16_t speedActual;
+	int16_t dcVoltage;
+	int16_t dcCurrent;
+	int16_t acCurrent;
+	uint32_t bitfield1;
+	uint32_t bitfield2;
+	uint32_t bitfield3;
+	uint32_t bitfield4;
+	bool running;
+	bool faulted;
+	bool warning;
+	MotorController::GearSwitch gear;
+	int16_t tempMotor;
+	int16_t tempInverter;
+	int16_t tempSystem;
+	int16_t mechPower;
+};
+
 class ICHIPWIFI : public Device {
     public:
     
@@ -116,6 +145,7 @@ class ICHIPWIFI : public Device {
     int ibWritePtr;
 	int currReply;
 	char buffer[30]; // a buffer for various string conversions
+	ParamCache paramCache;
 
     void getNextParam(); //get next changed parameter
     void getParamById(String paramName); //try to retrieve the value of the given parameter

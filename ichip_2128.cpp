@@ -41,6 +41,8 @@ void ICHIPWIFI::setup() {
 	ibWritePtr = 0;
 	serialInterface->begin(115200);
 
+	paramCache.brakeNotAvailable = true;
+
 	uint8_t sys_type;
 	sysPrefs->read(EESYS_SYSTEM_TYPE, &sys_type);
 	if (sys_type == 3) {
@@ -76,46 +78,120 @@ void ICHIPWIFI::handleTick() {
 	// make small slices so the main loop is not blocked for too long
 	if (tickCounter == 1) {
 		if (motorController) {
-			setParam(Constants::timeRunning, getTimeRunning());
-			setParam(Constants::torqueRequested, motorController->getTorqueRequested() / 10.0f, 1);
-			setParam(Constants::torqueActual, motorController->getTorqueActual() / 10.0f, 1);
+			uint32_t ms = millis();
+			// just update this every second or so
+			if ( ms > paramCache.timeRunning + 60000 ) {
+				paramCache.timeRunning = ms;
+				setParam(Constants::timeRunning, getTimeRunning());
+			}
+			if ( paramCache.torqueRequested != motorController->getTorqueRequested() ) {
+				paramCache.torqueRequested = motorController->getTorqueRequested();
+				setParam(Constants::torqueRequested, paramCache.torqueRequested / 10.0f, 1);
+			}
+			if ( paramCache.torqueActual != motorController->getTorqueActual() ) {
+				paramCache.torqueActual = motorController->getTorqueActual();
+				setParam(Constants::torqueActual, paramCache.torqueActual / 10.0f, 1);
+			}
 		}
-		if (accelerator)
-			setParam(Constants::throttle, accelerator->getLevel() / 10.0f, 1);
-		if (brake)
-			setParam(Constants::brake, brake->getLevel() / 10.0f, 1);
-		else
-			setParam(Constants::brake, Constants::notAvailable);
+		if (accelerator) {
+			if ( paramCache.throttle != accelerator->getLevel() ) {
+				paramCache.throttle = accelerator->getLevel();
+				setParam(Constants::throttle, paramCache.throttle / 10.0f, 1);
+			}
+		}
+		if (brake) {
+			if ( paramCache.brake != brake->getLevel() ) {
+				paramCache.brake = brake->getLevel();
+				paramCache.brakeNotAvailable = false;
+				setParam(Constants::brake, paramCache.brake / 10.0f, 1);
+			}
+		} else {
+			if ( paramCache.brakeNotAvailable == true ) {
+				paramCache.brakeNotAvailable = false; // no need to keep sending this
+				setParam(Constants::brake, Constants::notAvailable);
+			}
+		}
 	} else if (tickCounter == 2) {
 		if (motorController) {
-			setParam(Constants::speedRequested, motorController->getSpeedRequested());
-			setParam(Constants::speedActual, motorController->getSpeedActual());
-			setParam(Constants::dcVoltage, motorController->getDcVoltage() / 10.0f, 1);
-			setParam(Constants::dcCurrent, motorController->getDcCurrent() / 10.0f, 1);
+			if ( paramCache.speedRequested != motorController->getSpeedRequested() ) {
+				paramCache.speedRequested = motorController->getSpeedRequested();
+				setParam(Constants::speedRequested, paramCache.speedRequested);
+			}
+			if ( paramCache.speedActual != motorController->getSpeedActual() ) {
+				paramCache.speedActual = motorController->getSpeedActual();
+				setParam(Constants::speedActual, paramCache.speedActual);
+			}
+			if ( paramCache.dcVoltage != motorController->getDcVoltage() ) {
+				paramCache.dcVoltage = motorController->getDcVoltage();
+				setParam(Constants::dcVoltage, paramCache.dcVoltage / 10.0f, 1);
+			}
+			if ( paramCache.dcCurrent != motorController->getDcCurrent() ) {
+				paramCache.dcCurrent = motorController->getDcCurrent();
+				setParam(Constants::dcCurrent, paramCache.dcCurrent / 10.0f, 1);
+			}
 		}
 	} else if (tickCounter == 3) {
 		if (motorController) {
-			setParam(Constants::acCurrent, motorController->getAcCurrent() / 10.0f, 1);
-			setParam(Constants::bitfield1, motorController->getStatusBitfield1());
-			setParam(Constants::bitfield2, motorController->getStatusBitfield2());
-			setParam(Constants::bitfield3, motorController->getStatusBitfield3());
-			setParam(Constants::bitfield4, motorController->getStatusBitfield4());
+			if ( paramCache.acCurrent != motorController->getAcCurrent() ) {
+				paramCache.acCurrent = motorController->getAcCurrent();
+				setParam(Constants::acCurrent, paramCache.acCurrent / 10.0f, 1);
+			}
+			if ( paramCache.bitfield1 != motorController->getStatusBitfield1() ) {
+				paramCache.bitfield1 = motorController->getStatusBitfield1();
+				setParam(Constants::bitfield1, paramCache.bitfield1);
+			}
+			if ( paramCache.bitfield2 != motorController->getStatusBitfield2() ) {
+				paramCache.bitfield2 = motorController->getStatusBitfield2();
+				setParam(Constants::bitfield2, paramCache.bitfield2);
+			}
+			if ( paramCache.bitfield3 != motorController->getStatusBitfield3() ) {
+				paramCache.bitfield3 = motorController->getStatusBitfield3();
+				setParam(Constants::bitfield3, paramCache.bitfield3);
+			}
+			if ( paramCache.bitfield4 != motorController->getStatusBitfield4() ) {
+				paramCache.bitfield4 = motorController->getStatusBitfield4();
+				setParam(Constants::bitfield4, paramCache.bitfield4);
+			}
 		}
 	} else if (tickCounter == 4) {
 		if (motorController) {
-			setParam(Constants::running, (motorController->isRunning() ? Constants::trueStr : Constants::falseStr));
-			setParam(Constants::faulted, (motorController->isFaulted() ? Constants::trueStr : Constants::falseStr));
-			setParam(Constants::warning, (motorController->isWarning() ? Constants::trueStr : Constants::falseStr));
-			setParam(Constants::gear, (uint16_t) motorController->getGearSwitch());
+			if ( paramCache.running != motorController->isRunning() ) {
+				paramCache.running = motorController->isRunning();
+				setParam(Constants::running, (paramCache.running ? Constants::trueStr : Constants::falseStr));
+			}
+			if ( paramCache.faulted != motorController->isFaulted() ) {
+				paramCache.faulted = motorController->isFaulted();
+				setParam(Constants::faulted, (paramCache.faulted ? Constants::trueStr : Constants::falseStr));
+			}
+			if ( paramCache.warning != motorController->isWarning() ) {
+				paramCache.warning = motorController->isWarning();
+				setParam(Constants::warning, (paramCache.warning ? Constants::trueStr : Constants::falseStr));
+			}
+			if ( paramCache.gear != motorController->getGearSwitch() ) {
+				paramCache.gear = motorController->getGearSwitch();
+				setParam(Constants::gear, (uint16_t) paramCache.gear);
+			}
 		}
 	} else if (tickCounter > 4) {
 		if (motorController) {
-			setParam(Constants::tempMotor, motorController->getTemperatureMotor() / 10.0f, 1);
-			setParam(Constants::tempInverter, motorController->getTemperatureInverter() / 10.0f, 1);
-			setParam(Constants::tempSystem, motorController->getTemperatureSystem() / 10.0f, 1);
-			setParam(Constants::mechPower, motorController->getMechanicalPower() / 10.0f, 1);
-			tickCounter = 0;
+			if ( paramCache.tempMotor != motorController->getTemperatureMotor() ) {
+				paramCache.tempMotor = motorController->getTemperatureMotor();
+				setParam(Constants::tempMotor, paramCache.tempMotor / 10.0f, 1);
+			}
+			if ( paramCache.tempInverter != motorController->getTemperatureInverter() ) {
+				paramCache.tempInverter = motorController->getTemperatureInverter();
+				setParam(Constants::tempInverter, paramCache.tempInverter / 10.0f, 1);
+			}
+			if ( paramCache.tempSystem != motorController->getTemperatureSystem() ) {
+				paramCache.tempSystem = motorController->getTemperatureSystem();
+				setParam(Constants::tempSystem, paramCache.tempSystem / 10.0f, 1);
+			}
+			if ( paramCache.mechPower != motorController->getMechanicalPower() ) {
+				paramCache.mechPower = motorController->getMechanicalPower();
+				setParam(Constants::mechPower, paramCache.mechPower / 10.0f, 1);
+			}
 		}
+		tickCounter = 0;
 		getNextParam();
 	}
 }
