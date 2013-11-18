@@ -43,14 +43,6 @@ void ICHIPWIFI::setup() {
 
 	paramCache.brakeNotAvailable = true;
 
-	uint8_t sys_type;
-	sysPrefs->read(EESYS_SYSTEM_TYPE, &sys_type);
-	if (sys_type == 3) {
-		digitalWrite(18, HIGH);
-		delay(100); // give it some time to come up
-	}
-
-	loadParameters();
 	TickHandler::getInstance()->attach(this, CFG_TICK_INTERVAL_WIFI);
 }
 
@@ -72,13 +64,18 @@ void ICHIPWIFI::handleTick() {
 	MotorController* motorController = DeviceManager::getInstance()->getMotorController();
 	Throttle *accelerator = DeviceManager::getInstance()->getAccelerator();
 	Throttle *brake = DeviceManager::getInstance()->getBrake();
-
+	uint32_t ms = millis();
 	tickCounter++;
+
+	// Do a delayed parameter load once about a second after startup
+	if ( ms > 1000 && ms < 1500) {
+		loadParameters();
+	}
 
 	// make small slices so the main loop is not blocked for too long
 	if (tickCounter == 1) {
 		if (motorController) {
-			uint32_t ms = millis();
+
 			// just update this every second or so
 			if ( ms > paramCache.timeRunning + 60000 ) {
 				paramCache.timeRunning = ms;
