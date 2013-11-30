@@ -79,8 +79,13 @@ private:
 	bool throttle2HighLow; // true if throttle2 ranges from highest to lowest value as the pedal is pressed
 	bool throttle2Inverse; // true if throttle2 values are the opposite of the throttle1 values.
 	int throttle1MinRest;  // minimum sensor value at rest
+	int throttle1MaxRest;  // minimum sensor value at rest
 	int throttle2MinRest;  // minimum sensor value at rest
 	int throttle2MaxRest;  // maximum sensor value at rest
+	int throttle1MinFluctuationPercent;
+	int throttle1MaxFluctuationPercent;
+	int throttle2MinFluctuationPercent;
+	int throttle2MaxFluctuationPercent;
 	int maxThrottleReadingDeviationPercent;
 	// stats/counters when sampling
 	static const int maxSamples = 300;

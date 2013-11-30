@@ -147,7 +147,7 @@ uint16_t CanBrake::calculatePedalPosition(RawSignalData* rawSignal) {
 	if (config->maximumLevel1 == 0) //brake processing disabled if max is 0
 		return 0;
 
-	return normalizeInput(rawSignal->input1, config->minimumLevel1, config->maximumLevel1);
+	return normalizeAndConstrainInput(rawSignal->input1, config->minimumLevel1, config->maximumLevel1);
 }
 
 /*

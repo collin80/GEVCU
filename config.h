@@ -80,7 +80,7 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  * MISCELLANEOUS
  *
  */
-#define CFG_THROTTLE_TOLERANCE  30 //the max that things can go over or under the min/max without fault - 1/10% each #
+#define CFG_THROTTLE_TOLERANCE  150 //the max that things can go over or under the min/max without fault - 1/10% each #
 
 
 /*
@@ -99,7 +99,7 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #define ThrottleMinRegenValue	0		//how many percent of full power to use at minimal regen
 #define ThrottleMaxRegenValue	0		//how many percent of full power to use at maximum regen
 #define ThrottleCreepValue		0		//how many percent of full power to use at creep
-#define ThrottleMaxErrValue		75		//tenths of percentage allowable deviation between pedals
+#define ThrottleMaxErrValue		150		//tenths of percentage allowable deviation between pedals
 #define Throttle1MinValue		180		//Value ADC reads when pedal is up
 #define Throttle1MaxValue		930		//Value ADC reads when pedal fully depressed
 #define Throttle2MinValue		360		//Value ADC reads when pedal is up
