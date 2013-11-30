@@ -121,8 +121,15 @@ int16_t Throttle::mapPedalPosition(int16_t pedalPosition) {
  * Make sure input level stays within margins (min/max) then map the constrained
  * level linearly to a value from 0 to 1000.
  */
-uint16_t Throttle::normalizeInput(int32_t input, int32_t min, int32_t max) {
-	return map(constrain(input, min, max), min, max, (int32_t) 0, (int32_t) 1000);
+uint16_t Throttle::normalizeAndConstrainInput(int32_t input, int32_t min, int32_t max) {
+	return constrain(normalizeInput(input, min, max), (int32_t) 0, (int32_t) 1000);
+}
+
+/*
+ * Map the constrained level linearly to a signed value from 0 to 1000.
+ */
+int32_t Throttle::normalizeInput(int32_t input, int32_t min, int32_t max) {
+	return map(input, min, max, (int32_t) 0, (int32_t) 1000);
 }
 
 /*
