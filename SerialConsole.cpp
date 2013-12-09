@@ -87,6 +87,7 @@ void SerialConsole::printMenu() {
 	SerialUSB.println("S = show possible device IDs");
 	SerialUSB.println("w = reset wifi to factory defaults, setup GEVCU ad-hoc network");
 	SerialUSB.println("W = Set Wifi to WPS mode (try to automatically connect)");
+	SerialUSB.println("s = Scan WiFi for nearby access points");
 	SerialUSB.println();
 	SerialUSB.println("Config Commands (enter command=newvalue). Current values shown in parenthesis:");
 	SerialUSB.println("ENABLE - Enable the given device by ID");
@@ -405,6 +406,7 @@ void SerialConsole::handleConfigCmd() {
 		cmdString.concat('=');
 		cmdString.concat((char *)(cmdBuffer + i));
 		DeviceManager::getInstance()->sendMessage(DEVICE_WIFI, ICHIP2128, MSG_COMMAND, (void *)cmdString.c_str());
+		DeviceManager::getInstance()->sendMessage(DEVICE_WIFI, ICHIP2128, MSG_COMMAND, (void *)"DOWN");
 		updateWifi = false;
 	} else {
 		Logger::console("Unknown command");
@@ -530,6 +532,10 @@ void SerialConsole::handleShortCmd() {
 		Logger::console("CANBus brake = %X", CANBRAKEPEDAL);
 		Logger::console("WIFI (iChip2128) = %X", ICHIP2128);
 		Logger::console("Th!nk City BMS = %X", THINKBMS);
+		break;
+	case 's':
+		Logger::console("Finding and listing all nearby WiFi access points");
+		deviceManager->sendMessage(DEVICE_WIFI, ICHIP2128, MSG_COMMAND, (void *)"RP20");
 		break;
 	case 'W':
 		Logger::console("Setting Wifi Adapter to WPS mode (make sure you press the WPS button on your router)");
