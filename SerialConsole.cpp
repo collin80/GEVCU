@@ -59,6 +59,7 @@ void SerialConsole::printMenu() {
 	MotorController* motorController = (MotorController*) DeviceManager::getInstance()->getMotorController();
 	Throttle *accelerator = DeviceManager::getInstance()->getAccelerator();
 	Throttle *brake = DeviceManager::getInstance()->getBrake();
+	ICHIPWIFI *wifi = (ICHIPWIFI*) DeviceManager::getInstance()->getDeviceByType(DEVICE_WIFI);
 
 	//Show build # here as well in case people are using the native port and don't get to see the start up messages
 	SerialUSB.print("Build number: ");
@@ -85,6 +86,7 @@ void SerialConsole::printMenu() {
 	SerialUSB.println("p = enable wifi passthrough (reboot required to resume normal operation)");
 	SerialUSB.println("S = show possible device IDs");
 	SerialUSB.println("w = reset wifi to factory defaults, setup GEVCU ad-hoc network");
+	SerialUSB.println("W = Set Wifi to WPS mode (try to automatically connect)");
 	SerialUSB.println();
 	SerialUSB.println("Config Commands (enter command=newvalue). Current values shown in parenthesis:");
 	SerialUSB.println("ENABLE - Enable the given device by ID");
@@ -131,6 +133,16 @@ void SerialConsole::printMenu() {
 		Logger::console("NOMV=%i - Nominal system voltage (1/10 of a volt)", config->nominalVolt);
 		Logger::console("PRELAY=%i - Which output to use for precharge contactor (255 to disable)", config->prechargeRelay);
 		Logger::console("MRELAY=%i - Which output to use for main contactor (255 to disable)", config->mainContactorRelay);
+	}
+
+	if (wifi && wifi->getConfiguration()) {
+		WifiConfiguration *config = (WifiConfiguration *) wifi->getConfiguration();
+		Logger::console("WSSIDn= - Set SSID to connect to (n=0-9)");
+		Logger::console("WPASSn= - Set WEP/WPA password (n=0-9)");
+		Logger::console("WTYPEn= - Set type of Wifi AP (n=0-9)");
+		Logger::console("Types: 0 = No sec, 1 = WEP64, 2 = WEP128, 3 = WPA-PSK, 4 = WPA2-PSK");
+		Logger::console("Types: 5 = WPA-TKIP, 6 = WPA2-TKIP, 7=EAP/WEP64, 8=EAP/WEP128");
+
 	}
 	Logger::console("LOGLEVEL=%i - set log level (0=debug, 1=info, 2=warn, 3=error, 4=off)", Logger::getLogLevel());
 	Logger::console("WLAN - send a AT+i command to the wlan device");
@@ -191,9 +203,14 @@ void SerialConsole::handleConfigCmd() {
 		return; //4 digit command, =, value is at least 6 characters
 	cmdBuffer[ptrBuffer] = 0; //make sure to null terminate
 	String cmdString = String();
+	char whichEntry = '0';
 	i = 0;
-	while (cmdBuffer[i] != '=' && i < ptrBuffer)
-		cmdString.concat(String(cmdBuffer[i++]));
+	while (cmdBuffer[i] != '=' && i < ptrBuffer) {
+		if (cmdBuffer[i] >= '0' && cmdBuffer[i] <= '9') {
+			whichEntry = cmdBuffer[i];
+		}
+		else cmdString.concat(String(cmdBuffer[i++]));
+	}
 
 	i++; //skip the =
 
@@ -365,6 +382,30 @@ void SerialConsole::handleConfigCmd() {
 	} else if (cmdString == String("WLAN")) {
 		DeviceManager::getInstance()->sendMessage(DEVICE_WIFI, ICHIP2128, MSG_COMMAND, (void *)(cmdBuffer + i));
 		updateWifi = false;
+	} else if (cmdString == String("WSSID")) {
+		String cmdString = String();
+		cmdString.concat("WSI");
+		cmdString.concat(whichEntry);
+		cmdString.concat('=');
+		cmdString.concat((char *)(cmdBuffer + i));
+		DeviceManager::getInstance()->sendMessage(DEVICE_WIFI, ICHIP2128, MSG_COMMAND, (void *)cmdString.c_str());
+		updateWifi = false;
+	} else if (cmdString == String("WPASS")) {
+		String cmdString = String();
+		cmdString.concat("WPP");  //WKY for WEP so we should have a way to know the type first
+		cmdString.concat(whichEntry);
+		cmdString.concat('=');
+		cmdString.concat((char *)(cmdBuffer + i));
+		DeviceManager::getInstance()->sendMessage(DEVICE_WIFI, ICHIP2128, MSG_COMMAND, (void *)cmdString.c_str());
+		updateWifi = false;
+	} else if (cmdString == String("WTYPE")) {
+		String cmdString = String();
+		cmdString.concat("WST");
+		cmdString.concat(whichEntry);
+		cmdString.concat('=');
+		cmdString.concat((char *)(cmdBuffer + i));
+		DeviceManager::getInstance()->sendMessage(DEVICE_WIFI, ICHIP2128, MSG_COMMAND, (void *)cmdString.c_str());
+		updateWifi = false;
 	} else {
 		Logger::console("Unknown command");
 		updateWifi = false;
@@ -379,6 +420,7 @@ void SerialConsole::handleShortCmd() {
 	MotorController* motorController = (MotorController*) DeviceManager::getInstance()->getMotorController();
 	Throttle *accelerator = DeviceManager::getInstance()->getAccelerator();
 	Throttle *brake = DeviceManager::getInstance()->getBrake();
+	DeviceManager *deviceManager = DeviceManager::getInstance();
 
 	switch (cmdBuffer[0]) {
 	case 'h':
@@ -489,10 +531,13 @@ void SerialConsole::handleShortCmd() {
 		Logger::console("WIFI (iChip2128) = %X", ICHIP2128);
 		Logger::console("Th!nk City BMS = %X", THINKBMS);
 		break;
-
+	case 'W':
+		Logger::console("Setting Wifi Adapter to WPS mode (make sure you press the WPS button on your router)");
+		// restore factory defaults and give it some time
+		deviceManager->sendMessage(DEVICE_WIFI, ICHIP2128, MSG_COMMAND, (void *)"AWPS");
+		break;
 	case 'w':
 		Logger::console("Reseting wifi to factory defaults and setting up GEVCU ad-hoc network, please wait 6 seconds");
-		DeviceManager *deviceManager = DeviceManager::getInstance();
 		// restore factory defaults and give it some time
 		deviceManager->sendMessage(DEVICE_WIFI, ICHIP2128, MSG_COMMAND, (void *)"FD");
 		delay(200);
