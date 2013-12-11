@@ -136,8 +136,8 @@ void SerialConsole::printMenu() {
 		Logger::console("MRELAY=%i - Which output to use for main contactor (255 to disable)", config->mainContactorRelay);
 	}
 
-	if (wifi && wifi->getConfiguration()) {
-		WifiConfiguration *config = (WifiConfiguration *) wifi->getConfiguration();
+	if (wifi) {
+		//WifiConfiguration *config = (WifiConfiguration *) wifi->getConfiguration();
 		Logger::console("WSSIDn= - Set SSID to connect to (n=0-9)");
 		Logger::console("WPASSn= - Set WEP/WPA password (n=0-9)");
 		Logger::console("WTYPEn= - Set type of Wifi AP (n=0-9)");
@@ -204,11 +204,11 @@ void SerialConsole::handleConfigCmd() {
 		return; //4 digit command, =, value is at least 6 characters
 	cmdBuffer[ptrBuffer] = 0; //make sure to null terminate
 	String cmdString = String();
-	char whichEntry = '0';
+	unsigned char whichEntry = '0';
 	i = 0;
 	while (cmdBuffer[i] != '=' && i < ptrBuffer) {
 		if (cmdBuffer[i] >= '0' && cmdBuffer[i] <= '9') {
-			whichEntry = cmdBuffer[i];
+		    whichEntry = cmdBuffer[i++] - '0';
 		}
 		else cmdString.concat(String(cmdBuffer[i++]));
 	}
@@ -385,7 +385,7 @@ void SerialConsole::handleConfigCmd() {
 		updateWifi = false;
 	} else if (cmdString == String("WSSID")) {
 		String cmdString = String();
-		cmdString.concat("WSI");
+    	        cmdString.concat("WSI");
 		cmdString.concat(whichEntry);
 		cmdString.concat('=');
 		cmdString.concat((char *)(cmdBuffer + i));
@@ -543,15 +543,15 @@ void SerialConsole::handleShortCmd() {
 		deviceManager->sendMessage(DEVICE_WIFI, ICHIP2128, MSG_COMMAND, (void *)"AWPS");
 		break;
 	case 'w':
-		Logger::console("Reseting wifi to factory defaults and setting up GEVCU ad-hoc network, please wait 6 seconds");
+		Logger::console("Resetting wifi to factory defaults and setting up to auto connect to open APs");
 		// restore factory defaults and give it some time
 		deviceManager->sendMessage(DEVICE_WIFI, ICHIP2128, MSG_COMMAND, (void *)"FD");
 		delay(200);
 		// set-up specific ad-hoc network
-		deviceManager->sendMessage(DEVICE_WIFI, ICHIP2128, MSG_COMMAND, (void *)"WLCH=6"); //use WIFI channel 6
-		deviceManager->sendMessage(DEVICE_WIFI, ICHIP2128, MSG_COMMAND, (void *)"WLSI=!GEVCU"); //name our ADHOC network GEVCU (the ! indicates a ad-hoc network)
-		deviceManager->sendMessage(DEVICE_WIFI, ICHIP2128, MSG_COMMAND, (void *)"DIP=192.168.3.10"); //IP of GEVCU is this
-		deviceManager->sendMessage(DEVICE_WIFI, ICHIP2128, MSG_COMMAND, (void *)"DPSZ=10"); //serve up 10 more addresses (11 - 20)
+		deviceManager->sendMessage(DEVICE_WIFI, ICHIP2128, MSG_COMMAND, (void *)"WLCH=0"); //use whichever channel an AP wants to use
+		deviceManager->sendMessage(DEVICE_WIFI, ICHIP2128, MSG_COMMAND, (void *)"WLSI="); //set no SSID which enables auto searching for an open hotspot
+		deviceManager->sendMessage(DEVICE_WIFI, ICHIP2128, MSG_COMMAND, (void *)"DIP=0.0.0.0"); //enable searching for a proper IP via DHCP
+		deviceManager->sendMessage(DEVICE_WIFI, ICHIP2128, MSG_COMMAND, (void *)"DPSZ=0"); //turn off DHCP server
 		deviceManager->sendMessage(DEVICE_WIFI, ICHIP2128, MSG_COMMAND, (void *)"RPG=secret"); // set the configuration password for /ichip
 		deviceManager->sendMessage(DEVICE_WIFI, ICHIP2128, MSG_COMMAND, (void *)"WPWD=secret"); // set the password to update config params
 
