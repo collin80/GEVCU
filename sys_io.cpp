@@ -80,6 +80,7 @@ void sys_early_setup() {
 		adc[2][0] = 5; adc[2][1] = 4;
 		adc[3][0] = 7; adc[3][1] = 6;
 		out[0] = 52; out[1] = 22; out[2] = 48; out[3] = 32;
+		out[4] = 255; out[5] = 255; out[6] = 255; out[7] = 255;
 	} else if (sys_type == 3) {
 		Logger::info("Running on GEVCU3 hardware");
 		dig[0]=48; dig[1]=49; dig[2]=50; dig[3]=51;
@@ -88,6 +89,17 @@ void sys_early_setup() {
 		adc[2][0] = 1; adc[2][1] = 255;
 		adc[3][0] = 0; adc[3][1] = 255;
 		out[0] = 9; out[1] = 8; out[2] = 7; out[3] = 6;
+		out[4] = 255; out[5] = 255; out[6] = 255; out[7] = 255;
+		useRawADC = true; //this board does require raw adc so force it.
+	} else if (sys_type == 4) {
+		Logger::info("Running on GEVCU 4.x hardware");
+		dig[0]=4; dig[1]=5; dig[2]=6; dig[3]=7;
+		adc[0][0] = 3; adc[0][1] = 255;
+		adc[1][0] = 2; adc[1][1] = 255;
+		adc[2][0] = 1; adc[2][1] = 255;
+		adc[3][0] = 0; adc[3][1] = 255;
+		out[0] = 4; out[1] = 5; out[2] = 6; out[3] = 7;
+		out[4] = 2; out[5] = 3; out[6] = 8; out[7] = 9;
 		useRawADC = true; //this board does require raw adc so force it.
 	} else {
 		Logger::info("Running on legacy hardware?");
@@ -97,12 +109,15 @@ void sys_early_setup() {
 		adc[2][0] = 4; adc[2][1] = 5;
 		adc[3][0] = 7; adc[3][1] = 6;
 		out[0] = 52; out[1] = 22; out[2] = 48; out[3] = 32;
+		out[4] = 255; out[5] = 255; out[6] = 255; out[7] = 255;
 	}
 	
 	for (i = 0; i < NUM_DIGITAL; i++) pinMode(dig[i], INPUT);
 	for (i = 0; i < NUM_OUTPUT; i++) {
-		pinMode(out[i], OUTPUT);
-		digitalWrite(out[i], LOW);
+		if (out[i] != 255) {
+			pinMode(out[i], OUTPUT);
+			digitalWrite(out[i], LOW);
+		}
 	}
 }
 
@@ -201,7 +216,8 @@ boolean getDigital(uint8_t which) {
 
 //set output high or not
 void setOutput(uint8_t which, boolean active) {
-	if (which >= NUM_OUTPUT) which = 0;
+	if (which >= NUM_OUTPUT) return;
+	if (out[which] == 255) return;
 	if (active)
 		digitalWrite(out[which], HIGH);
 	else digitalWrite(out[which], LOW);
@@ -209,7 +225,8 @@ void setOutput(uint8_t which, boolean active) {
 
 //get current value of output state (high?)
 boolean getOutput(uint8_t which) {
-	if (which >= NUM_OUTPUT) which = 0;
+	if (which >= NUM_OUTPUT) return false;
+	if (out[which] == 255) return false;
 	return digitalRead(out[which]);
 }
 

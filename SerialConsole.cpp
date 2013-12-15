@@ -349,7 +349,7 @@ void SerialConsole::handleConfigCmd() {
 			Logger::console("Invalid device ID (%X, %d)", newValue, newValue);
 		}
 	} else if (cmdString == String("SYSTYPE")) {
-		if (newValue < 4) {
+		if (newValue < 5 && newValue > 0) {
 			sysPrefs->write(EESYS_SYSTEM_TYPE, (uint8_t)(newValue));
 			sysPrefs->saveChecksum();
 			sysPrefs->forceCacheWrite(); //just in case someone takes us literally and power cycles quickly
@@ -465,17 +465,11 @@ void SerialConsole::handleShortCmd() {
 		}
 		break;
 	case 'K': //set all outputs high
-		setOutput(0, true);
-		setOutput(1, true);
-		setOutput(2, true);
-		setOutput(3, true);
+		for (int tout = 0; tout < NUM_OUTPUT; tout++) setOutput(tout, true);
 		Logger::console("all outputs: ON");
 		break;
 	case 'J': //set the four outputs low
-		setOutput(0, false);
-		setOutput(1, false);
-		setOutput(2, false);
-		setOutput(3, false);
+		for (int tout = 0; tout < NUM_OUTPUT; tout++) setOutput(tout, false);
 		Logger::console("all outputs: OFF");
 		break;
 	case 'z': // detect throttle min/max & other details
