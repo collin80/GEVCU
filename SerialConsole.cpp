@@ -355,6 +355,7 @@ void SerialConsole::handleConfigCmd() {
 			sysPrefs->forceCacheWrite(); //just in case someone takes us literally and power cycles quickly
 			Logger::console("System type updated. Power cycle to apply.");
 		}
+		else Logger::console("Invalid system type. Please enter a value 1 - 4");
 	} else if (cmdString == String("LOGLEVEL")) {
 		switch (newValue) {
 		case 0:
