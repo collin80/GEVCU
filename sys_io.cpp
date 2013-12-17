@@ -93,7 +93,7 @@ void sys_early_setup() {
 		useRawADC = true; //this board does require raw adc so force it.
 	} else if (sys_type == 4) {
 		Logger::info("Running on GEVCU 4.x hardware");
-		dig[0]=4; dig[1]=5; dig[2]=6; dig[3]=7;
+		dig[0]=48; dig[1]=49; dig[2]=50; dig[3]=51;
 		adc[0][0] = 3; adc[0][1] = 255;
 		adc[1][0] = 2; adc[1][1] = 255;
 		adc[2][0] = 1; adc[2][1] = 255;
