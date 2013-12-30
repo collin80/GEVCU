@@ -1,5 +1,5 @@
 /*
- * Device.h
+ * CanPidListener.h
  *
 Copyright (c) 2013 Collin Kidder, Michael Neuweiler, Charles Galpin
 
@@ -24,39 +24,41 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
  */
 
-#ifndef DEVICE_TYPES_H_
-#define DEVICE_TYPES_H_
+#ifndef CAN_PID_H_
+#define CAN_PID_H_
 
-enum DeviceType {
-	DEVICE_ANY,
-	DEVICE_MOTORCTRL,
-	DEVICE_BMS,
-	DEVICE_CHARGER,
-	DEVICE_DISPLAY,
-	DEVICE_THROTTLE,
-	DEVICE_BRAKE,
-	DEVICE_MISC,
-	DEVICE_WIFI,
-	DEVICE_NONE
+#include <Arduino.h>
+#include "config.h"
+#include "Throttle.h"
+#include "TickHandler.h"
+#include "CanHandler.h"
+#include "constants.h"
+
+
+class CanPIDConfiguration {
+public:
+	uint32_t pidId; //what ID are we listening for?
+	uint32_t pidMask;
+	bool useExtended;
 };
 
-enum DeviceId { //unique device ID for every piece of hardware possible
-	DMOC645 = 0x1000,
-	BRUSA_DMC5 = 0x1001,
-	BRUSACHARGE = 0x1010,
-	TCCHCHARGE = 0x1020,
-	THROTTLE = 0x1030,
-	POTACCELPEDAL = 0x1031,
-	POTBRAKEPEDAL = 0x1032,
-	CANACCELPEDAL = 0x1033,
-	CANBRAKEPEDAL = 0x1034,
-	ICHIP2128 = 0x1040,
-	THINKBMS = 0x2000,
-	SYSTEM = 0x5000,
-	HEARTBEAT = 0x5001,
-	MEMCACHE = 0x5002,
-	PIDLISTENER = 0x6000,
-	INVALID = 0xFFFF
+class CanPIDListener: public Device, CanObserver {
+public:
+	CanPIDListener();
+	void setup();
+	void handleTick();
+	void handleCanFrame(RX_CAN_FRAME *frame);
+	DeviceId getId();
+
+	void loadConfiguration();
+	void saveConfiguration();
+
+protected:
+
+private:
+	uint32_t responseId; // the CAN id with which the response is sent;
+	uint32_t responseMask; // the mask for the responseId
+	bool responseExtended; // if the response is expected as an extended frame
 };
 
-#endif /* DEVICE_TYPES_H_ */
+#endif //CAN_PID_H_
