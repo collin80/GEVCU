@@ -30,12 +30,13 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include <Arduino.h>
 #include "config.h"
 #include "Throttle.h"
+#include "DeviceManager.h"
 #include "TickHandler.h"
 #include "CanHandler.h"
 #include "constants.h"
 
 
-class CanPIDConfiguration {
+class CanPIDConfiguration : public DeviceConfiguration {
 public:
 	uint32_t pidId; //what ID are we listening for?
 	uint32_t pidMask;
@@ -59,6 +60,8 @@ private:
 	uint32_t responseId; // the CAN id with which the response is sent;
 	uint32_t responseMask; // the mask for the responseId
 	bool responseExtended; // if the response is expected as an extended frame
+	bool processShowData(RX_CAN_FRAME* inFrame, TX_CAN_FRAME& outFrame);
+	bool processShowCustomData(RX_CAN_FRAME* inFrame, TX_CAN_FRAME& outFrame);
 };
 
 #endif //CAN_PID_H_
