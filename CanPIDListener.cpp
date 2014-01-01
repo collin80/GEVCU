@@ -47,6 +47,7 @@ void CanPIDListener::setup() {
 
 	//TODO: FIXME Quickly coded as hard coded values. This is naughty. 
 	CanHandler::getInstanceEV()->attach(this, 0x7DF, 0x7DF, false);
+	CanHandler::getInstanceEV()->attach(this, 0x7E0, 0x7E0, false);
 	//TickHandler::getInstance()->attach(this, CFG_TICK_INTERVAL_CAN_THROTTLE);
 }
 
@@ -100,7 +101,7 @@ void CanPIDListener::handleCanFrame(RX_CAN_FRAME *frame) {
 	TX_CAN_FRAME outputFrame;
 	bool ret;
 
-	if (frame->id == 0x7E0) {
+	if ((frame->id == 0x7E0) || (frame->id = 0x7DF)) {
 		//Do some common setup for our output - we won't pull the trigger unless we need to.
 		outputFrame.id = 0x7E8; //first ECU replying - TODO: Perhaps allow this to be configured from 0x7E8 - 0x7EF
 		outputFrame.data[1] = frame->data[1] + 0x40; //to show that this is a response
