@@ -36,7 +36,7 @@ ThinkBatteryManager::ThinkBatteryManager() : BatteryManager() {
 
 /*For all multibyte integers the format is MSB first, LSB last
 */
-void ThinkBatteryManager::handleCanFrame(RX_CAN_FRAME *frame) {
+void ThinkBatteryManager::handleCanFrame(CAN_FRAME *frame) {
 	switch (frame->id) {
 	case 0x300: //Start up message
 		//we're not really interested in much here except whether init worked.
@@ -121,16 +121,16 @@ void ThinkBatteryManager::handleTick() {
 //Contactors in pack will close if we sent these two frames with all zeros. 
 void ThinkBatteryManager::sendKeepAlive() 
 {
-	TX_CAN_FRAME output;
-	output.dlc = 3;
+	CAN_FRAME output;
+	output.length = 3;
 	output.id = 0x310;
-	output.ide = 0; //standard frame
+	output.extended = 0; //standard frame
 	output.rtr = 0;
 	for (int i = 0; i < 8; i++) output.data[i] = 0;
 	CanHandler::getInstanceEV()->sendFrame(output);
 
 	output.id = 0x311;
-	output.dlc = 2;
+	output.length = 2;
 	CanHandler::getInstanceEV()->sendFrame(output);
 }
 

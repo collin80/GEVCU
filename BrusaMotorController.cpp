@@ -179,9 +179,9 @@ void BrusaMotorController::sendLimits() {
  * Re-sets all parameters in the re-used frame.
  */
 void BrusaMotorController::prepareOutputFrame(uint32_t id) {
-	outputFrame.dlc = 8;
+	outputFrame.length = 8;
 	outputFrame.id = id;
-	outputFrame.ide = 0;
+	outputFrame.extended = 0;
 	outputFrame.rtr = 0;
 
 	outputFrame.data[1] = 0;
@@ -200,7 +200,7 @@ void BrusaMotorController::prepareOutputFrame(uint32_t id) {
  * this method is called. Depending on the ID of the CAN message, the data of
  * the incoming message is processed.
  */
-void BrusaMotorController::handleCanFrame(RX_CAN_FRAME *frame) {
+void BrusaMotorController::handleCanFrame( CAN_FRAME *frame) {
 	switch (frame->id) {
 	case CAN_ID_STATUS:
 		processStatus(frame->data);

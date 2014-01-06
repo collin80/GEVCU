@@ -73,7 +73,7 @@ public:
 
 public:
 	virtual void handleTick();
-	virtual void handleCanFrame(RX_CAN_FRAME *frame);
+	virtual void handleCanFrame(CAN_FRAME *frame);
 	virtual void setup();
 	void setOpState(OperationState op);
 	void setGear(Gears gear);
@@ -100,7 +100,7 @@ private:
 	void sendCmd3();
 	void sendCmd4();
 	void sendCmd5();
-	byte calcChecksum(TX_CAN_FRAME thisFrame);
+	byte calcChecksum(CAN_FRAME thisFrame);
 
 };
 

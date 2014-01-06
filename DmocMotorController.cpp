@@ -66,7 +66,7 @@ DmocMotorController::DmocMotorController() : MotorController() {
  everything has gone according to plan.
  */
 
-void DmocMotorController::handleCanFrame(RX_CAN_FRAME *frame) {
+void DmocMotorController::handleCanFrame(CAN_FRAME *frame) {
 	int RotorTemp, invTemp, StatorTemp;
 	int temp;
 	online = 1; //if a frame got to here then it passed the filter and must have been from the DMOC
@@ -198,12 +198,12 @@ void DmocMotorController::handleTick() {
 //Commanded RPM plus state of key and gear selector
 void DmocMotorController::sendCmd1() {
 	DmocMotorControllerConfiguration *config = (DmocMotorControllerConfiguration *)getConfiguration();
-	TX_CAN_FRAME output;
+	CAN_FRAME output;
 	OperationState newstate;
 	alive = (alive + 2) & 0x0F;
-	output.dlc = 8;
+	output.length = 8;
 	output.id = 0x232;
-	output.ide = 0; //standard frame
+	output.extended = 0; //standard frame
 	output.rtr = 0;
 
 	if (throttleRequested > 0 && operationState == ENABLE && selectedGear != NEUTRAL && powerMode == modeSpeed)
@@ -241,10 +241,10 @@ void DmocMotorController::sendCmd1() {
 //Torque limits
 void DmocMotorController::sendCmd2() {
 	DmocMotorControllerConfiguration *config = (DmocMotorControllerConfiguration *)getConfiguration();
-	TX_CAN_FRAME output;
-	output.dlc = 8;
+	CAN_FRAME output;
+	output.length = 8;
 	output.id = 0x233;
-	output.ide = 0; //standard frame
+	output.extended = 0; //standard frame
 	output.rtr = 0;
 	//30000 is the base point where torque = 0
 	//MaxTorque is in tenths like it should be.
@@ -287,10 +287,10 @@ void DmocMotorController::sendCmd2() {
 
 //Power limits plus setting ambient temp and whether to cool power train or go into limp mode
 void DmocMotorController::sendCmd3() {
-	TX_CAN_FRAME output;
-	output.dlc = 8;
+	CAN_FRAME output;
+	output.length = 8;
 	output.id = 0x234;
-	output.ide = 0; //standard frame
+	output.extended = 0; //standard frame
 	output.rtr = 0;
 
 	int regenCalc = 65000 - (MaxRegenWatts / 4);
@@ -309,10 +309,10 @@ void DmocMotorController::sendCmd3() {
 
 //challenge/response frame 1 - Really doesn't contain anything we need I dont think
 void DmocMotorController::sendCmd4() {
-	TX_CAN_FRAME output;
-	output.dlc = 8;
+	CAN_FRAME output;
+	output.length = 8;
 	output.id = 0x235;
-	output.ide = 0; //standard frame
+	output.extended = 0; //standard frame
 	output.rtr = 0;
 	output.data[0] = 37; //i don't know what all these values are
 	output.data[1] = 11; //they're just copied from real traffic
@@ -328,10 +328,10 @@ void DmocMotorController::sendCmd4() {
 
 //Another C/R frame but this one also specifies which shifter position we're in
 void DmocMotorController::sendCmd5() {
-	TX_CAN_FRAME output;
-	output.dlc = 8;
+	CAN_FRAME output;
+	output.length = 8;
 	output.id = 0x236;
-	output.ide = 0; //standard frame
+	output.extended = 0; //standard frame
 	output.rtr = 0;
 	output.data[0] = 2;
 	output.data[1] = 127;
@@ -370,7 +370,7 @@ void DmocMotorController::setGear(Gears gear) {
 
 //this might look stupid. You might not believe this is real. It is. This is how you
 //calculate the checksum for the DMOC frames.
-byte DmocMotorController::calcChecksum(TX_CAN_FRAME thisFrame) {
+byte DmocMotorController::calcChecksum(CAN_FRAME thisFrame) {
 	byte cs;
 	byte i;
 	cs = thisFrame.id;

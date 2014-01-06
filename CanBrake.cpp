@@ -45,9 +45,9 @@ void CanBrake::setup() {
 	loadConfiguration();
 	Throttle::setup();
 
-	requestFrame.dlc = 0x08;
+	requestFrame.length = 0x08;
 	requestFrame.rtr = 0x00;
-	requestFrame.ide = 0x00;
+	requestFrame.extended = 0x00;
 
 	CanBrakeConfiguration *config = (CanBrakeConfiguration *)getConfiguration();
 	switch (config->carType) {
@@ -92,7 +92,7 @@ void CanBrake::handleTick() {
  * Handle the response of the ECU and calculate the throttle value
  *
  */
-void CanBrake::handleCanFrame(RX_CAN_FRAME *frame) {
+void CanBrake::handleCanFrame(CAN_FRAME *frame) {
 	CanBrakeConfiguration *config = (CanBrakeConfiguration *)getConfiguration();
 
 	if (frame->id == responseId) {

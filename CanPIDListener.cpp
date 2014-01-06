@@ -97,8 +97,8 @@ void CanPIDListener::setup() {
 	
  *
  */
-void CanPIDListener::handleCanFrame(RX_CAN_FRAME *frame) {
-	TX_CAN_FRAME outputFrame;
+void CanPIDListener::handleCanFrame(CAN_FRAME *frame) {
+	CAN_FRAME outputFrame;
 	bool ret;
 
 	if ((frame->id == 0x7E0) || (frame->id = 0x7DF)) {
@@ -146,7 +146,7 @@ void CanPIDListener::handleCanFrame(RX_CAN_FRAME *frame) {
 
 
 //Process SAE standard PID requests. Function returns whether it handled the request or not.
-bool CanPIDListener::processShowData(RX_CAN_FRAME* inFrame, TX_CAN_FRAME& outFrame) {
+bool CanPIDListener::processShowData(CAN_FRAME* inFrame, CAN_FRAME& outFrame) {
 	MotorController* motorController = DeviceManager::getInstance()->getMotorController();
 	int temp;
 
@@ -278,7 +278,7 @@ bool CanPIDListener::processShowData(RX_CAN_FRAME* inFrame, TX_CAN_FRAME& outFra
 	return false;
 }
 
-bool CanPIDListener::processShowCustomData(RX_CAN_FRAME* inFrame, TX_CAN_FRAME& outFrame) {
+bool CanPIDListener::processShowCustomData(CAN_FRAME* inFrame, CAN_FRAME& outFrame) {
 	int pid = inFrame->data[2] * 256 + inFrame->data[3];
 	switch (pid) {
 	}

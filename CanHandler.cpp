@@ -79,19 +79,10 @@ CanHandler* CanHandler::getInstanceCar()
  */
 void CanHandler::initialize() {
 	// Initialize the canbus at the specified baudrate
-	bus->init(SystemCoreClock, (canBusNode == CAN_BUS_EV ? CFG_CAN0_SPEED : CFG_CAN1_SPEED));
+	bus->init(canBusNode == CAN_BUS_EV ? CFG_CAN0_SPEED : CFG_CAN1_SPEED);
 
-	// Disable all CAN0 & CAN1 interrupts
-	bus->disable_interrupt(CAN_DISABLE_ALL_INTERRUPT_MASK);
-	bus->reset_all_mailbox();
-
-	// prepare the last mailbox for transmission
-	bus->mailbox_init(7);
-	bus->mailbox_set_mode(7, CAN_MB_TX_MODE);
-	bus->mailbox_set_priority(7, 10);
-	bus->mailbox_set_accept_mask(7, 0x7FF, false);
-
-	NVIC_EnableIRQ(canBusNode == CAN_BUS_EV ? CAN0_IRQn : CAN1_IRQn); //tell the nested interrupt controller to turn on our interrupt
+	//Mailboxes are default set up initialized with one MB for TX and the rest for RX
+	//That's OK with us so no need to initialize those things there.
 
 	Logger::info("CAN%d init ok", (canBusNode == CAN_BUS_EV ? 0 : 1));
 }
@@ -113,7 +104,7 @@ void CanHandler::attach(CanObserver* observer, uint32_t id, uint32_t mask, bool 
 		return;
 	}
 
-	int8_t mailbox = findFreeMailbox();
+	int mailbox = bus->findFreeRXMailbox();
 	if (mailbox == -1) {
 		Logger::error("no free CAN mailbox on bus %d", canBusNode);
 		return;
@@ -125,11 +116,7 @@ void CanHandler::attach(CanObserver* observer, uint32_t id, uint32_t mask, bool 
 	observerData[pos].mailbox = mailbox;
 	observerData[pos].observer = observer;
 
-	bus->mailbox_set_mode(mailbox, CAN_MB_RX_MODE);
-	bus->mailbox_set_accept_mask(mailbox, mask, extended);
-	bus->mailbox_set_id(mailbox, id, extended);
-
-	bus->enable_interrupt(getMailboxIer(mailbox));
+	bus->setRXFilter((uint8_t)mailbox, id, mask, extended);
 
 	Logger::debug("attached CanObserver (%X) for id=%X, mask=%X, mailbox=%d", observer, id, mask, mailbox);
 }
@@ -158,10 +145,10 @@ void CanHandler::detach(CanObserver* observer, uint32_t id, uint32_t mask) {
  *
  * \param frame - the received can frame to log
  */
-void CanHandler::logFrame(RX_CAN_FRAME& frame) {
+void CanHandler::logFrame(CAN_FRAME& frame) {
 	if (Logger::isDebug()) {
 		Logger::debug("CAN: dlc=%X fid=%X id=%X ide=%X rtr=%X data=%X,%X,%X,%X,%X,%X,%X,%X",
-				frame.dlc, frame.fid, frame.id, frame.ide, frame.rtr,
+				frame.length, frame.fid, frame.id, frame.extended, frame.rtr,
 				frame.data[0], frame.data[1], frame.data[2], frame.data[3],
 				frame.data[4], frame.data[5], frame.data[6], frame.data[7]);
 	}
@@ -200,38 +187,10 @@ int8_t CanHandler::findFreeMailbox() {
 }
 
 /*
- * Get the IER (interrupt mask) for the specified mailbox index.
- *
- * \param mailbox - the index of the mailbox to get the IER for
- * \retval the IER of the specified mailbox
- */
-uint32_t CanHandler::getMailboxIer(int8_t mailbox) {
-	switch (mailbox) {
-	case 0:
-		return CAN_IER_MB0;
-	case 1:
-		return CAN_IER_MB1;
-	case 2:
-		return CAN_IER_MB2;
-	case 3:
-		return CAN_IER_MB3;
-	case 4:
-		return CAN_IER_MB4;
-	case 5:
-		return CAN_IER_MB5;
-	case 6:
-		return CAN_IER_MB6;
-	case 7:
-		return CAN_IER_MB7;
-	}
-	return 0;
-}
-
-/*
  * If a message is available, read it and forward it to registered observers.
  */
 void CanHandler::process() {
-	static RX_CAN_FRAME frame;
+	static CAN_FRAME frame;
 
 	if (bus->rx_avail()) {
 		bus->get_rx_buff(&frame);
@@ -249,7 +208,7 @@ void CanHandler::process() {
 
 //Allow the canbus driver to figure out the proper mailbox to use 
 //(whatever happens to be open) or queue it to send (if nothing is open)
-void CanHandler::sendFrame(TX_CAN_FRAME& frame) {
+void CanHandler::sendFrame(CAN_FRAME& frame) {
 	bus->sendFrame(frame);
 }
 
@@ -257,6 +216,6 @@ void CanHandler::sendFrame(TX_CAN_FRAME& frame) {
  * Default implementation of the CanObserver method. Must be overwritten
  * by every sub-class.
  */
-void CanObserver::handleCanFrame(RX_CAN_FRAME *frame) {
+void CanObserver::handleCanFrame(CAN_FRAME *frame) {
 	Logger::error("CanObserver does not implement handleCanFrame(), frame.id=%d", frame->id);
 }

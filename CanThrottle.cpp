@@ -45,9 +45,9 @@ void CanThrottle::setup() {
 	loadConfiguration();
 	Throttle::setup();
 
-	requestFrame.dlc = 0x08;
+	requestFrame.length = 0x08;
 	requestFrame.rtr = 0x00;
-	requestFrame.ide = 0x00;
+	requestFrame.extended = 0x00;
 
 	CanThrottleConfiguration *config = (CanThrottleConfiguration *)getConfiguration();
 	switch (config->carType) {
@@ -62,7 +62,7 @@ void CanThrottle::setup() {
 		// Request: dlc=0x08 fid=0xFFFFE id=0x3FFFE ide=0x01 rtr=0x00 data=0xCD,0x11,0xA6,0x00,0x24,0x01,0x00,0x00 ([0x00, 0xf, 0xff, 0xfe, 0xcd, 0x11, 0xa6, 0x00, 0x24, 0x01, 0x00, 0x00])
 		// Response: dlc=0x08 fid=0x400021 id=0x21 ide=0x01 rtr=0x00 data=0xCE,0x11,0xE6,0x00,0x24,0x03,0xFD,0x00 (vida: [0x00, 0x40, 0x00, 0x21, 0xce, 0x11, 0xe6, 0x00, 0x24, 0x03, 0xfd, 0x00])
 		requestFrame.id = 0x3FFFE;
-		requestFrame.ide = 0x01;
+		requestFrame.extended = 0x01;
 		memcpy(requestFrame.data, (uint8_t[]){ 0xce, 0x11, 0xe6, 0x00, 0x24, 0x03, 0xfd, 0x00 }, 8);
 		responseId = 0x21;
 		responseExtended = true;
@@ -92,7 +92,7 @@ void CanThrottle::handleTick() {
  * Handle the response of the ECU and calculate the throttle value
  *
  */
-void CanThrottle::handleCanFrame(RX_CAN_FRAME *frame) {
+void CanThrottle::handleCanFrame(CAN_FRAME *frame) {
 	CanThrottleConfiguration *config = (CanThrottleConfiguration *)getConfiguration();
 
 	if (frame->id == responseId) {

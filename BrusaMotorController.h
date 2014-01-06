@@ -154,7 +154,7 @@ public:
 
 	BrusaMotorController();
 	void handleTick();
-	void handleCanFrame(RX_CAN_FRAME *frame);
+	void handleCanFrame(CAN_FRAME *frame);
 	void setup();
 	DeviceId getId();
 	uint32_t getTickInterval();
@@ -171,7 +171,7 @@ private:
 	int tickCounter; // count how many times handleTick() was called
 	PowerMode powerMode; // the desired power mode
 	uint8_t controlBitField; // the control bit field to send via DMC_CTRL in data[0]
-	TX_CAN_FRAME outputFrame; // the output CAN frame;
+	CAN_FRAME outputFrame; // the output CAN frame;
 
 	void sendControl();
 	void sendControl2();
