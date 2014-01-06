@@ -73,9 +73,9 @@ void DmocMotorController::handleCanFrame(CAN_FRAME *frame) {
         //Logger::debug("dmoc msg: %i", frame->id);
 	switch (frame->id) {
 	case 0x651: //Temperature status
-		RotorTemp = frame->data[0];
-		invTemp = frame->data[1];
-		StatorTemp = frame->data[2];
+		RotorTemp = frame->data.bytes[0];
+		invTemp = frame->data.bytes[1];
+		StatorTemp = frame->data.bytes[2];
 		temperatureInverter = invTemp * 10;
 		//now pick highest of motor temps and report it
 		if (RotorTemp > StatorTemp) {
@@ -87,12 +87,12 @@ void DmocMotorController::handleCanFrame(CAN_FRAME *frame) {
 		activityCount++;
 		break;
 	case 0x23A: //torque report
-		torqueActual = ((frame->data[0] * 256) + frame->data[1]) - 30000;
+		torqueActual = ((frame->data.bytes[0] * 256) + frame->data.bytes[1]) - 30000;
 		activityCount++;
 		break;
 	case 0x23B: //speed and current operation status
-		speedActual = ((frame->data[0] * 256) + frame->data[1]) - 20000;
-		temp = (OperationState) (frame->data[6] >> 4);
+		speedActual = ((frame->data.bytes[0] * 256) + frame->data.bytes[1]) - 20000;
+		temp = (OperationState) (frame->data.bytes[6] >> 4);
 		//actually, the above is an operation status report which doesn't correspond
 		//to the state enum so translate here.
 		switch (temp) {
@@ -128,8 +128,8 @@ void DmocMotorController::handleCanFrame(CAN_FRAME *frame) {
 		//gives volts and amps for D and Q but does the firmware really care?
 		//break;
 	case 0x650: //HV bus status
-		dcVoltage = ((frame->data[0] * 256) + frame->data[1]);
-		dcCurrent = ((frame->data[2] * 256) + frame->data[3]) - 5000; //offset is 500A, unit = .1A
+		dcVoltage = ((frame->data.bytes[0] * 256) + frame->data.bytes[1]);
+		dcCurrent = ((frame->data.bytes[2] * 256) + frame->data.bytes[3]) - 5000; //offset is 500A, unit = .1A
 		activityCount++;
 		break;
 	}
@@ -210,12 +210,12 @@ void DmocMotorController::sendCmd1() {
 		speedRequested = 20000 + (((long) throttleRequested * (long) config->speedMax) / 1000);
 	else
 		speedRequested = 20000;
-	output.data[0] = (speedRequested & 0xFF00) >> 8;
-	output.data[1] = (speedRequested & 0x00FF);
-	output.data[2] = 0; //not used
-	output.data[3] = 0; //not used
-	output.data[4] = 0; //not used
-	output.data[5] = ON; //key state
+	output.data.bytes[0] = (speedRequested & 0xFF00) >> 8;
+	output.data.bytes[1] = (speedRequested & 0x00FF);
+	output.data.bytes[2] = 0; //not used
+	output.data.bytes[3] = 0; //not used
+	output.data.bytes[4] = 0; //not used
+	output.data.bytes[5] = ON; //key state
 
 	//handle proper state transitions
 	newstate = DISABLED;
@@ -227,13 +227,13 @@ void DmocMotorController::sendCmd1() {
 		newstate = POWERDOWN;
 
 	if (actualState == ENABLE) {
-		output.data[6] = alive + ((byte) selectedGear << 4) + ((byte) newstate << 6); //use new automatic state system.
+		output.data.bytes[6] = alive + ((byte) selectedGear << 4) + ((byte) newstate << 6); //use new automatic state system.
 	}
 	else { //force neutral gear until the system is enabled.
-		output.data[6] = alive + ((byte) NEUTRAL << 4) + ((byte) newstate << 6); //use new automatic state system.
+		output.data.bytes[6] = alive + ((byte) NEUTRAL << 4) + ((byte) newstate << 6); //use new automatic state system.
 	}
 
-	output.data[7] = calcChecksum(output);
+	output.data.bytes[7] = calcChecksum(output);
 
 	CanHandler::getInstanceEV()->sendFrame(output);
 }
@@ -260,23 +260,23 @@ void DmocMotorController::sendCmd2() {
 			if (selectedGear == REVERSE)
 				torqueRequested = 30000L - (((long) throttleRequested * (long) config->torqueMax) / 1000L);
 		}
-		output.data[0] = (torqueRequested & 0xFF00) >> 8;
-		output.data[1] = (torqueRequested & 0x00FF);
-		output.data[2] = output.data[0];
-		output.data[3] = output.data[1];
+		output.data.bytes[0] = (torqueRequested & 0xFF00) >> 8;
+		output.data.bytes[1] = (torqueRequested & 0x00FF);
+		output.data.bytes[2] = output.data.bytes[0];
+		output.data.bytes[3] = output.data.bytes[1];
 	}
 	else { //RPM mode so request max torque as upper limit and zero torque as lower limit
-		output.data[0] = ((30000L + config->torqueMax) & 0xFF00) >> 8;
-		output.data[1] = ((30000L + config->torqueMax) & 0x00FF);
-		output.data[2] = 0x75;
-		output.data[3] = 0x30;
+		output.data.bytes[0] = ((30000L + config->torqueMax) & 0xFF00) >> 8;
+		output.data.bytes[1] = ((30000L + config->torqueMax) & 0x00FF);
+		output.data.bytes[2] = 0x75;
+		output.data.bytes[3] = 0x30;
 	}
 
 	//what the hell is standby torque? Does it keep the transmission spinning for automatics? I don't know.
-	output.data[4] = 0x75; //msb standby torque. -3000 offset, 0.1 scale. These bytes give a standby of 0Nm
-	output.data[5] = 0x30; //lsb
-	output.data[6] = alive;
-	output.data[7] = calcChecksum(output);
+	output.data.bytes[4] = 0x75; //msb standby torque. -3000 offset, 0.1 scale. These bytes give a standby of 0Nm
+	output.data.bytes[5] = 0x30; //lsb
+	output.data.bytes[6] = alive;
+	output.data.bytes[7] = calcChecksum(output);
 
     //Logger::debug("max torque: %i", maxTorque);
         
@@ -295,14 +295,14 @@ void DmocMotorController::sendCmd3() {
 
 	int regenCalc = 65000 - (MaxRegenWatts / 4);
 	int accelCalc = (MaxAccelWatts / 4);
-	output.data[0] = ((regenCalc & 0xFF00) >> 8); //msb of regen watt limit
-	output.data[1] = (regenCalc & 0xFF); //lsb
-	output.data[2] = ((accelCalc & 0xFF00) >> 8); //msb of acceleration limit
-	output.data[3] = (accelCalc & 0xFF); //lsb
-	output.data[4] = 0; //not used
-	output.data[5] = 60; //20 degrees celsius
-	output.data[6] = alive;
-	output.data[7] = calcChecksum(output);
+	output.data.bytes[0] = ((regenCalc & 0xFF00) >> 8); //msb of regen watt limit
+	output.data.bytes[1] = (regenCalc & 0xFF); //lsb
+	output.data.bytes[2] = ((accelCalc & 0xFF00) >> 8); //msb of acceleration limit
+	output.data.bytes[3] = (accelCalc & 0xFF); //lsb
+	output.data.bytes[4] = 0; //not used
+	output.data.bytes[5] = 60; //20 degrees celsius
+	output.data.bytes[6] = alive;
+	output.data.bytes[7] = calcChecksum(output);
 
 	CanHandler::getInstanceEV()->sendFrame(output);
 }
@@ -314,14 +314,14 @@ void DmocMotorController::sendCmd4() {
 	output.id = 0x235;
 	output.extended = 0; //standard frame
 	output.rtr = 0;
-	output.data[0] = 37; //i don't know what all these values are
-	output.data[1] = 11; //they're just copied from real traffic
-	output.data[2] = 0;
-	output.data[3] = 0;
-	output.data[4] = 6;
-	output.data[5] = 1;
-	output.data[6] = alive;
-	output.data[7] = calcChecksum(output);
+	output.data.bytes[0] = 37; //i don't know what all these values are
+	output.data.bytes[1] = 11; //they're just copied from real traffic
+	output.data.bytes[2] = 0;
+	output.data.bytes[3] = 0;
+	output.data.bytes[4] = 6;
+	output.data.bytes[5] = 1;
+	output.data.bytes[6] = alive;
+	output.data.bytes[7] = calcChecksum(output);
 
 	CanHandler::getInstanceEV()->sendFrame(output);
 }
@@ -333,22 +333,22 @@ void DmocMotorController::sendCmd5() {
 	output.id = 0x236;
 	output.extended = 0; //standard frame
 	output.rtr = 0;
-	output.data[0] = 2;
-	output.data[1] = 127;
-	output.data[2] = 0;
+	output.data.bytes[0] = 2;
+	output.data.bytes[1] = 127;
+	output.data.bytes[2] = 0;
 	if (operationState == ENABLE && selectedGear != NEUTRAL) {
-		output.data[3] = 52;
-		output.data[4] = 26;
-		output.data[5] = 59; //drive
+		output.data.bytes[3] = 52;
+		output.data.bytes[4] = 26;
+		output.data.bytes[5] = 59; //drive
 	}
 	else {
-		output.data[3] = 39;
-		output.data[4] = 19;
-		output.data[5] = 55; //neutral
+		output.data.bytes[3] = 39;
+		output.data.bytes[4] = 19;
+		output.data.bytes[5] = 55; //neutral
 	}
 	//--PRND12
-	output.data[6] = alive;
-	output.data[7] = calcChecksum(output);
+	output.data.bytes[6] = alive;
+	output.data.bytes[7] = calcChecksum(output);
 
 	CanHandler::getInstanceEV()->sendFrame(output);
 }
@@ -375,7 +375,7 @@ byte DmocMotorController::calcChecksum(CAN_FRAME thisFrame) {
 	byte i;
 	cs = thisFrame.id;
 	for (i = 0; i < 7; i++)
-		cs += thisFrame.data[i];
+		cs += thisFrame.data.bytes[i];
 	i = cs + 3;
 	cs = ((int) 256 - i);
 	return cs;

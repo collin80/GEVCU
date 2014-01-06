@@ -149,8 +149,8 @@ void CanHandler::logFrame(CAN_FRAME& frame) {
 	if (Logger::isDebug()) {
 		Logger::debug("CAN: dlc=%X fid=%X id=%X ide=%X rtr=%X data=%X,%X,%X,%X,%X,%X,%X,%X",
 				frame.length, frame.fid, frame.id, frame.extended, frame.rtr,
-				frame.data[0], frame.data[1], frame.data[2], frame.data[3],
-				frame.data[4], frame.data[5], frame.data[6], frame.data[7]);
+				frame.data.bytes[0], frame.data.bytes[1], frame.data.bytes[2], frame.data.bytes[3],
+				frame.data.bytes[4], frame.data.bytes[5], frame.data.bytes[6], frame.data.bytes[7]);
 	}
 }
 

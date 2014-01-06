@@ -40,7 +40,7 @@ void ThinkBatteryManager::handleCanFrame(CAN_FRAME *frame) {
 	switch (frame->id) {
 	case 0x300: //Start up message
 		//we're not really interested in much here except whether init worked.
-		if ((frame->data[6] & 1) == 0)  //there was an initialization error!
+		if ((frame->data.bytes[6] & 1) == 0)  //there was an initialization error!
 		{
 			//set fault condition here
 		}
@@ -48,15 +48,15 @@ void ThinkBatteryManager::handleCanFrame(CAN_FRAME *frame) {
 	case 0x301: //System Data 0
 		//first two bytes = current, next two voltage, next two DOD, last two avg. temp 
 		//readings in tenths
-		packVoltage = (frame->data[0] * 256 + frame->data[1]);
-		packCurrent = (frame->data[2] * 256 + frame->data[3]);
+		packVoltage = (frame->data.bytes[0] * 256 + frame->data.bytes[1]);
+		packCurrent = (frame->data.bytes[2] * 256 + frame->data.bytes[3]);
 		break;
 	case 0x302: //System Data 1		 
-		if ((frame->data[0] & 1) == 1) //Byte 0 bit 0 = general error
+		if ((frame->data.bytes[0] & 1) == 1) //Byte 0 bit 0 = general error
 		{
 			//raise a fault
 		}
-		if ((frame->data[2] & 1) == 1) //Byte 2 bit 0 = general isolation error
+		if ((frame->data.bytes[2] & 1) == 1) //Byte 2 bit 0 = general isolation error
 		{
 			//raise a fault
 		}
@@ -74,8 +74,8 @@ void ThinkBatteryManager::handleCanFrame(CAN_FRAME *frame) {
 		//categories: 0 = no faults, 1 = Reserved, 2 = Warning, 3 = Delayed switch off, 4 = immediate switch off
 		//bytes 4-5 = Pack max temperature (tenths of degree C) - Signed
 		//byte 6-7 = Pack min temperature (tenths of a degree C) - Signed
-		lowestCellTemp = (S16)(frame->data[4] * 256 + frame->data[5]);
-		highestCellTemp = (S16)(frame->data[6] * 256 + frame->data[7]);
+		lowestCellTemp = (S16)(frame->data.bytes[4] * 256 + frame->data.bytes[5]);
+		highestCellTemp = (S16)(frame->data.bytes[6] * 256 + frame->data.bytes[7]);
 		break;
 	case 0x305: //System Data 4
 		//byte 2 bits 0-3 = BMS state
@@ -126,7 +126,7 @@ void ThinkBatteryManager::sendKeepAlive()
 	output.id = 0x310;
 	output.extended = 0; //standard frame
 	output.rtr = 0;
-	for (int i = 0; i < 8; i++) output.data[i] = 0;
+	for (int i = 0; i < 8; i++) output.data.bytes[i] = 0;
 	CanHandler::getInstanceEV()->sendFrame(output);
 
 	output.id = 0x311;
