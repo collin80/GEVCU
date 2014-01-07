@@ -55,6 +55,7 @@ public:
 	virtual DeviceId getId();
 	void handleTick();
 	bool isEnabled();
+	virtual uint32_t getTickInterval();
 
 	virtual void loadConfiguration();
 	virtual void saveConfiguration();

@@ -218,7 +218,7 @@ uint32_t MotorController::getStatusBitfield4() {
 }
 
 uint32_t MotorController::getTickInterval() {
-	return 0;
+        return CFG_TICK_INTERVAL_MOTOR_CONTROLLER;
 }
 
 bool MotorController::isReady() {

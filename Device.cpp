@@ -39,6 +39,10 @@ void Device::setup() {
 void Device::handleTick() {
 }
 
+uint32_t Device::getTickInterval() {
+	return 0;
+}
+
 //just bubbles up the value from the preference handler.
 bool Device::isEnabled() {
 	return prefsHandler->isEnabled();

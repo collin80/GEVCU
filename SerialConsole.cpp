@@ -94,7 +94,7 @@ void SerialConsole::printMenu() {
 	SerialUSB.println("DISABLE - Disable the given device by ID");
 	uint8_t systype;
 	sysPrefs->read(EESYS_SYSTEM_TYPE, &systype);
-	Logger::console("SYSTYPE=%i - Set board revision (Dued=2, GEVCU3=3)", systype);
+	Logger::console("SYSTYPE=%i - Set board revision (Dued=2, GEVCU3=3, GEVCU4=4)", systype);
 	if (motorController && motorController->getConfiguration()) {
 		MotorControllerConfiguration *config = (MotorControllerConfiguration *) motorController->getConfiguration();
 		Logger::console("TORQ=%i - Set torque upper limit (tenths of a Nm)", config->torqueMax);
