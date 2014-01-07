@@ -114,6 +114,12 @@ int16_t Throttle::mapPedalPosition(int16_t pedalPosition) {
 		}
 	}
 	//Logger::debug("throttle level: %d", throttleLevel);
+
+	//A bit of a kludge. Normally it isn't really possible to ever get to
+	//100% output. This next line just fudges the numbers a bit to make it
+	//more likely to get that last bit of power
+	if (throttleLevel > 979) throttleLevel = 1000;
+
 	return throttleLevel;
 }
 
