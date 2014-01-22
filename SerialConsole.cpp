@@ -206,11 +206,12 @@ void SerialConsole::handleConfigCmd() {
 	String cmdString = String();
 	unsigned char whichEntry = '0';
 	i = 0;
+
 	while (cmdBuffer[i] != '=' && i < ptrBuffer) {
-		if (cmdBuffer[i] >= '0' && cmdBuffer[i] <= '9') {
+		/*if (cmdBuffer[i] >= '0' && cmdBuffer[i] <= '9') {
 		    whichEntry = cmdBuffer[i++] - '0';
 		}
-		else cmdString.concat(String(cmdBuffer[i++]));
+		else */ cmdString.concat(String(cmdBuffer[i++]));
 	}
 
 	i++; //skip the =
