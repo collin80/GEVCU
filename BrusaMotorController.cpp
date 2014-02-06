@@ -96,19 +96,19 @@ void BrusaMotorController::sendControl() {
 	speedRequested = 0;
 	torqueRequested = 0;
 
-	outputFrame.data[0] = enablePositiveTorqueSpeed; // | enableNegativeTorqueSpeed;
+	outputFrame.data.bytes[0] = enablePositiveTorqueSpeed; // | enableNegativeTorqueSpeed;
 	if (faulted) {
-		outputFrame.data[0] |= clearErrorLatch;
+		outputFrame.data.bytes[0] |= clearErrorLatch;
 	} else {
 		if ((running || speedActual > 1000) && !getDigital(1)) { // see warning about field weakening current to prevent uncontrollable regen
-			outputFrame.data[0] |= enablePowerStage;
+			outputFrame.data.bytes[0] |= enablePowerStage;
 		}
 		if (running) {
 			if (config->enableOscillationLimiter)
-				outputFrame.data[0] |= enableOscillationLimiter;
+				outputFrame.data.bytes[0] |= enableOscillationLimiter;
 
 			if (powerMode == modeSpeed) {
-				outputFrame.data[0] |= enableSpeedMode;
+				outputFrame.data.bytes[0] |= enableSpeedMode;
 				speedRequested = throttleRequested * config->speedMax / 1000;
 				torqueRequested = config->torqueMax; // positive number used for both speed directions
 			} else { // torque mode
@@ -117,12 +117,12 @@ void BrusaMotorController::sendControl() {
 			}
 
 			// set the speed in rpm
-			outputFrame.data[2] = (speedRequested & 0xFF00) >> 8;
-			outputFrame.data[3] = (speedRequested & 0x00FF);
+			outputFrame.data.bytes[2] = (speedRequested & 0xFF00) >> 8;
+			outputFrame.data.bytes[3] = (speedRequested & 0x00FF);
 
 			// set the torque in 0.01Nm (GEVCU uses 0.1Nm -> multiply by 10)
-			outputFrame.data[4] = ((torqueRequested * 10) & 0xFF00) >> 8;
-			outputFrame.data[5] = ((torqueRequested * 10) & 0x00FF);
+			outputFrame.data.bytes[4] = ((torqueRequested * 10) & 0xFF00) >> 8;
+			outputFrame.data.bytes[5] = ((torqueRequested * 10) & 0x00FF);
 		}
 	}
 
@@ -141,14 +141,14 @@ void BrusaMotorController::sendControl2() {
 	BrusaMotorControllerConfiguration *config = (BrusaMotorControllerConfiguration *)getConfiguration();
 
 	prepareOutputFrame(CAN_ID_CONTROL_2);
-	outputFrame.data[0] = ((config->torqueSlewRate * 10) & 0xFF00) >> 8;
-	outputFrame.data[1] = ((config->torqueSlewRate * 10) & 0x00FF);
-	outputFrame.data[2] = (config->speedSlewRate & 0xFF00) >> 8;
-	outputFrame.data[3] = (config->speedSlewRate & 0x00FF);
-	outputFrame.data[4] = (config->maxMechanicalPowerMotor & 0xFF00) >> 8;
-	outputFrame.data[5] = (config->maxMechanicalPowerMotor & 0x00FF);
-	outputFrame.data[6] = (config->maxMechanicalPowerRegen & 0xFF00) >> 8;
-	outputFrame.data[7] = (config->maxMechanicalPowerRegen & 0x00FF);
+	outputFrame.data.bytes[0] = ((config->torqueSlewRate * 10) & 0xFF00) >> 8;
+	outputFrame.data.bytes[1] = ((config->torqueSlewRate * 10) & 0x00FF);
+	outputFrame.data.bytes[2] = (config->speedSlewRate & 0xFF00) >> 8;
+	outputFrame.data.bytes[3] = (config->speedSlewRate & 0x00FF);
+	outputFrame.data.bytes[4] = (config->maxMechanicalPowerMotor & 0xFF00) >> 8;
+	outputFrame.data.bytes[5] = (config->maxMechanicalPowerMotor & 0x00FF);
+	outputFrame.data.bytes[6] = (config->maxMechanicalPowerRegen & 0xFF00) >> 8;
+	outputFrame.data.bytes[7] = (config->maxMechanicalPowerRegen & 0x00FF);
 
 	CanHandler::getInstanceEV()->sendFrame(outputFrame);
 }
@@ -162,14 +162,14 @@ void BrusaMotorController::sendLimits() {
 	BrusaMotorControllerConfiguration *config = (BrusaMotorControllerConfiguration *)getConfiguration();
 
 	prepareOutputFrame(CAN_ID_LIMIT);
-	outputFrame.data[0] = (config->dcVoltLimitMotor & 0xFF00) >> 8;
-	outputFrame.data[1] = (config->dcVoltLimitMotor & 0x00FF);
-	outputFrame.data[2] = (config->dcVoltLimitRegen & 0xFF00) >> 8;
-	outputFrame.data[3] = (config->dcVoltLimitRegen & 0x00FF);
-	outputFrame.data[4] = (config->dcCurrentLimitMotor & 0xFF00) >> 8;
-	outputFrame.data[5] = (config->dcCurrentLimitMotor & 0x00FF);
-	outputFrame.data[6] = (config->dcCurrentLimitRegen & 0xFF00) >> 8;
-	outputFrame.data[7] = (config->dcCurrentLimitRegen & 0x00FF);
+	outputFrame.data.bytes[0] = (config->dcVoltLimitMotor & 0xFF00) >> 8;
+	outputFrame.data.bytes[1] = (config->dcVoltLimitMotor & 0x00FF);
+	outputFrame.data.bytes[2] = (config->dcVoltLimitRegen & 0xFF00) >> 8;
+	outputFrame.data.bytes[3] = (config->dcVoltLimitRegen & 0x00FF);
+	outputFrame.data.bytes[4] = (config->dcCurrentLimitMotor & 0xFF00) >> 8;
+	outputFrame.data.bytes[5] = (config->dcCurrentLimitMotor & 0x00FF);
+	outputFrame.data.bytes[6] = (config->dcCurrentLimitRegen & 0xFF00) >> 8;
+	outputFrame.data.bytes[7] = (config->dcCurrentLimitRegen & 0x00FF);
 
 	CanHandler::getInstanceEV()->sendFrame(outputFrame);
 }
@@ -179,18 +179,18 @@ void BrusaMotorController::sendLimits() {
  * Re-sets all parameters in the re-used frame.
  */
 void BrusaMotorController::prepareOutputFrame(uint32_t id) {
-	outputFrame.dlc = 8;
+	outputFrame.length = 8;
 	outputFrame.id = id;
-	outputFrame.ide = 0;
+	outputFrame.extended = 0;
 	outputFrame.rtr = 0;
 
-	outputFrame.data[1] = 0;
-	outputFrame.data[2] = 0;
-	outputFrame.data[3] = 0;
-	outputFrame.data[4] = 0;
-	outputFrame.data[5] = 0;
-	outputFrame.data[6] = 0;
-	outputFrame.data[7] = 0;
+	outputFrame.data.bytes[1] = 0;
+	outputFrame.data.bytes[2] = 0;
+	outputFrame.data.bytes[3] = 0;
+	outputFrame.data.bytes[4] = 0;
+	outputFrame.data.bytes[5] = 0;
+	outputFrame.data.bytes[6] = 0;
+	outputFrame.data.bytes[7] = 0;
 }
 
 /*
@@ -200,22 +200,22 @@ void BrusaMotorController::prepareOutputFrame(uint32_t id) {
  * this method is called. Depending on the ID of the CAN message, the data of
  * the incoming message is processed.
  */
-void BrusaMotorController::handleCanFrame(RX_CAN_FRAME *frame) {
+void BrusaMotorController::handleCanFrame( CAN_FRAME *frame) {
 	switch (frame->id) {
 	case CAN_ID_STATUS:
-		processStatus(frame->data);
+		processStatus(frame->data.bytes);
 		break;
 	case CAN_ID_ACTUAL_VALUES:
-		processActualValues(frame->data);
+		processActualValues(frame->data.bytes);
 		break;
 	case CAN_ID_ERRORS:
-		processErrors(frame->data);
+		processErrors(frame->data.bytes);
 		break;
 	case CAN_ID_TORQUE_LIMIT:
-		processTorqueLimit(frame->data);
+		processTorqueLimit(frame->data.bytes);
 		break;
 	case CAN_ID_TEMP:
-		processTemperature(frame->data);
+		processTemperature(frame->data.bytes);
 		break;
 	default:
 		Logger::warn(BRUSA_DMC5, "received unknown frame id %X", frame->id);

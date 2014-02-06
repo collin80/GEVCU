@@ -48,7 +48,7 @@ public:
 	CanPIDListener();
 	void setup();
 	void handleTick();
-	void handleCanFrame(RX_CAN_FRAME *frame);
+	void handleCanFrame(CAN_FRAME *frame);
 	DeviceId getId();
 
 	void loadConfiguration();
@@ -60,8 +60,8 @@ private:
 	uint32_t responseId; // the CAN id with which the response is sent;
 	uint32_t responseMask; // the mask for the responseId
 	bool responseExtended; // if the response is expected as an extended frame
-	bool processShowData(RX_CAN_FRAME* inFrame, TX_CAN_FRAME& outFrame);
-	bool processShowCustomData(RX_CAN_FRAME* inFrame, TX_CAN_FRAME& outFrame);
+	bool processShowData(CAN_FRAME* inFrame, CAN_FRAME& outFrame);
+	bool processShowCustomData(CAN_FRAME* inFrame, CAN_FRAME& outFrame);
 };
 
 #endif //CAN_PID_H_

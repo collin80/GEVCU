@@ -97,24 +97,24 @@ void CanPIDListener::setup() {
 	
  *
  */
-void CanPIDListener::handleCanFrame(RX_CAN_FRAME *frame) {
-	TX_CAN_FRAME outputFrame;
+void CanPIDListener::handleCanFrame(CAN_FRAME *frame) {
+	CAN_FRAME outputFrame;
 	bool ret;
 
 	if ((frame->id == 0x7E0) || (frame->id = 0x7DF)) {
 		//Do some common setup for our output - we won't pull the trigger unless we need to.
 		outputFrame.id = 0x7E8; //first ECU replying - TODO: Perhaps allow this to be configured from 0x7E8 - 0x7EF
-		outputFrame.data[1] = frame->data[1] + 0x40; //to show that this is a response
-		outputFrame.data[2] = frame->data[2]; //copy standard PID
-		outputFrame.data[0] = 2;
-		if (frame->data[1] > 0x50) {
-			outputFrame.data[3] = frame->data[3]; //if using proprietary PIDs then copy second byte too
-			outputFrame.data[0] = 3;
+		outputFrame.data.bytes[1] = frame->data.bytes[1] + 0x40; //to show that this is a response
+		outputFrame.data.bytes[2] = frame->data.bytes[2]; //copy standard PID
+		outputFrame.data.bytes[0] = 2;
+		if (frame->data.bytes[1] > 0x50) {
+			outputFrame.data.bytes[3] = frame->data.bytes[3]; //if using proprietary PIDs then copy second byte too
+			outputFrame.data.bytes[0] = 3;
 		}
 
 		ret = false;
 		
-		switch (frame->data[1]) {
+		switch (frame->data.bytes[1]) {
 			case 1: //show current data
 				ret = processShowData(frame, outputFrame);
 				break;
@@ -146,26 +146,26 @@ void CanPIDListener::handleCanFrame(RX_CAN_FRAME *frame) {
 
 
 //Process SAE standard PID requests. Function returns whether it handled the request or not.
-bool CanPIDListener::processShowData(RX_CAN_FRAME* inFrame, TX_CAN_FRAME& outFrame) {
+bool CanPIDListener::processShowData(CAN_FRAME* inFrame, CAN_FRAME& outFrame) {
 	MotorController* motorController = DeviceManager::getInstance()->getMotorController();
 	int temp;
 
-	switch (inFrame->data[2]) {
+	switch (inFrame->data.bytes[2]) {
 	case 0: //pids 1-0x20 that we support - bitfield
 		//returns 4 bytes so immediately indicate that.
-		outFrame.data[0] += 4;
-		outFrame.data[3] = 0b11011000; //pids 1 - 8 - starting with pid 1 in the MSB and going from there
-		outFrame.data[4] = 0b00010000; //pids 9 - 0x10
-		outFrame.data[5] = 0b10000000; //pids 0x11 - 0x18
-		outFrame.data[6] = 0b00010011; //pids 0x19 - 0x20
+		outFrame.data.bytes[0] += 4;
+		outFrame.data.bytes[3] = 0b11011000; //pids 1 - 8 - starting with pid 1 in the MSB and going from there
+		outFrame.data.bytes[4] = 0b00010000; //pids 9 - 0x10
+		outFrame.data.bytes[5] = 0b10000000; //pids 0x11 - 0x18
+		outFrame.data.bytes[6] = 0b00010011; //pids 0x19 - 0x20
 		return true;
 		break;
 	case 1: //Returns 32 bits but we really can only support the first byte which has bit 7 = Malfunction? Bits 0-6 = # of DTCs
-		outFrame.data[0] += 4;
-		outFrame.data[3] = 0; //TODO: We aren't properly keeping track of faults yet but when we do fix this. 
-		outFrame.data[3] = 0; //these next three are really related to ICE diagnostics
-		outFrame.data[3] = 0; //so ignore them.
-		outFrame.data[3] = 0;
+		outFrame.data.bytes[0] += 4;
+		outFrame.data.bytes[3] = 0; //TODO: We aren't properly keeping track of faults yet but when we do fix this. 
+		outFrame.data.bytes[3] = 0; //these next three are really related to ICE diagnostics
+		outFrame.data.bytes[3] = 0; //so ignore them.
+		outFrame.data.bytes[3] = 0;
 		return true;
 		break;
 	case 2: //Freeze DTC
@@ -173,8 +173,8 @@ bool CanPIDListener::processShowData(RX_CAN_FRAME* inFrame, TX_CAN_FRAME& outFra
 		break;
 	case 4: //Calculated engine load (A * 100 / 255) - Percentage
 		temp = (255 * motorController->getTorqueActual()) / motorController->getTorqueAvailable();
-		outFrame.data[0] += 1;
-		outFrame.data[3] = (uint8_t)(temp & 0xFF);
+		outFrame.data.bytes[0] += 1;
+		outFrame.data.bytes[3] = (uint8_t)(temp & 0xFF);
 		return true;
 		break;
 	case 5: //Engine Coolant Temp (A - 40) = Degrees Centigrade
@@ -183,103 +183,103 @@ bool CanPIDListener::processShowData(RX_CAN_FRAME* inFrame, TX_CAN_FRAME& outFra
 		if (temp < -40) temp = -40;
 		if (temp > 215) temp = 215;
 		temp += 40;
-		outFrame.data[0] += 1; //returning only one byte
-		outFrame.data[3] = (uint8_t)(temp);
+		outFrame.data.bytes[0] += 1; //returning only one byte
+		outFrame.data.bytes[3] = (uint8_t)(temp);
 		return true;
 		break;
 	case 0xC: //Engine RPM (A * 256 + B) / 4
 		temp = motorController->getSpeedActual() * 4; //we store in RPM while the PID code wants quarter rpms
-		outFrame.data[0] += 2;
-		outFrame.data[3] = (uint8_t)(temp / 256);
-		outFrame.data[4] = (uint8_t)(temp);
+		outFrame.data.bytes[0] += 2;
+		outFrame.data.bytes[3] = (uint8_t)(temp / 256);
+		outFrame.data.bytes[4] = (uint8_t)(temp);
 		return true;
 		break;
 	case 0x11: //Throttle position (A * 100 / 255) - Percentage
 		temp = motorController->getThrottle() / 10; //getThrottle returns in 10ths of a percent
 		if (temp < 0) temp = 0; //negative throttle can't be shown for OBDII
 		temp = (255 * temp) / 100;
-		outFrame.data[0] += 1;
-		outFrame.data[3] = (uint8_t)(temp);
+		outFrame.data.bytes[0] += 1;
+		outFrame.data.bytes[3] = (uint8_t)(temp);
 		return true;
 		break;
 	case 0x1C: //Standard supported (We return 1 = OBDII)
-		outFrame.data[0] += 1;
-		outFrame.data[3] = 1;
+		outFrame.data.bytes[0] += 1;
+		outFrame.data.bytes[3] = 1;
 		return true;
 		break;
 	case 0x1F: //runtime since engine start (A*256 + B)
-		outFrame.data[0] += 2;
-		outFrame.data[3] = 0; //TODO: Get the actual runtime.
-		outFrame.data[4] = 0;
+		outFrame.data.bytes[0] += 2;
+		outFrame.data.bytes[3] = 0; //TODO: Get the actual runtime.
+		outFrame.data.bytes[4] = 0;
 		return true;
 		break;
 	case 0x20: //pids supported (next 32 pids - formatted just like PID 0)
-		outFrame.data[0] += 4;
-		outFrame.data[3] = 0b00000000; //pids 0x21 - 0x28 - starting with pid 0x21 in the MSB and going from there
-		outFrame.data[4] = 0b00000000; //pids 0x29 - 0x30
-		outFrame.data[5] = 0b00000000; //pids 0x31 - 0x38
-		outFrame.data[6] = 0b00000001; //pids 0x39 - 0x40
+		outFrame.data.bytes[0] += 4;
+		outFrame.data.bytes[3] = 0b00000000; //pids 0x21 - 0x28 - starting with pid 0x21 in the MSB and going from there
+		outFrame.data.bytes[4] = 0b00000000; //pids 0x29 - 0x30
+		outFrame.data.bytes[5] = 0b00000000; //pids 0x31 - 0x38
+		outFrame.data.bytes[6] = 0b00000001; //pids 0x39 - 0x40
 		return true;
 		break;
 	case 0x21: //Distance traveled with fault light lit (A*256 + B) - In km
-		outFrame.data[0] += 2;
-		outFrame.data[3] = 0; //TODO: Can we get this information?
-		outFrame.data[4] = 0;
+		outFrame.data.bytes[0] += 2;
+		outFrame.data.bytes[3] = 0; //TODO: Can we get this information?
+		outFrame.data.bytes[4] = 0;
 		return true;
 		break;
 	case 0x2F: //Fuel level (A * 100 / 255) - Percentage
-		outFrame.data[0] += 1;
-		outFrame.data[3] = 0; //TODO: finish BMS interface and get this value
+		outFrame.data.bytes[0] += 1;
+		outFrame.data.bytes[3] = 0; //TODO: finish BMS interface and get this value
 		return true;
 		break;
 	case 0x40: //PIDs supported, next 32
-		outFrame.data[0] += 4;
-		outFrame.data[3] = 0b00000000; //pids 0x41 - 0x48 - starting with pid 0x41 in the MSB and going from there
-		outFrame.data[4] = 0b00000000; //pids 0x49 - 0x50
-		outFrame.data[5] = 0b10000000; //pids 0x51 - 0x58
-		outFrame.data[6] = 0b00000001; //pids 0x59 - 0x60
+		outFrame.data.bytes[0] += 4;
+		outFrame.data.bytes[3] = 0b00000000; //pids 0x41 - 0x48 - starting with pid 0x41 in the MSB and going from there
+		outFrame.data.bytes[4] = 0b00000000; //pids 0x49 - 0x50
+		outFrame.data.bytes[5] = 0b10000000; //pids 0x51 - 0x58
+		outFrame.data.bytes[6] = 0b00000001; //pids 0x59 - 0x60
 		return true;
 		break;
 	case 0x51: //What type of fuel do we use? (We use 8 = electric, presumably.)
-		outFrame.data[0] += 1;
-		outFrame.data[3] = 8;
+		outFrame.data.bytes[0] += 1;
+		outFrame.data.bytes[3] = 8;
 		return true;
 		break;
 	case 0x60: //PIDs supported, next 32
-		outFrame.data[0] += 4;
-		outFrame.data[3] = 0b11100000; //pids 0x61 - 0x68 - starting with pid 0x61 in the MSB and going from there
-		outFrame.data[4] = 0b00000000; //pids 0x69 - 0x70
-		outFrame.data[5] = 0b00000000; //pids 0x71 - 0x78
-		outFrame.data[6] = 0b00000000; //pids 0x79 - 0x80
+		outFrame.data.bytes[0] += 4;
+		outFrame.data.bytes[3] = 0b11100000; //pids 0x61 - 0x68 - starting with pid 0x61 in the MSB and going from there
+		outFrame.data.bytes[4] = 0b00000000; //pids 0x69 - 0x70
+		outFrame.data.bytes[5] = 0b00000000; //pids 0x71 - 0x78
+		outFrame.data.bytes[6] = 0b00000000; //pids 0x79 - 0x80
 		return true;
 		break;
 	case 0x61: //Driver requested torque (A-125) - Percentage
 		temp = (100 * motorController->getTorqueRequested()) / motorController->getTorqueAvailable();
 		temp += 125;
-		outFrame.data[0] += 1;
-		outFrame.data[3] = (uint8_t)temp;
+		outFrame.data.bytes[0] += 1;
+		outFrame.data.bytes[3] = (uint8_t)temp;
 		return true;
 		break;
 	case 0x62: //Actual Torque delivered (A-125) - Percentage
 		temp = (100 * motorController->getTorqueActual()) / motorController->getTorqueAvailable();
 		temp += 125;
-		outFrame.data[0] += 1;
-		outFrame.data[3] = (uint8_t)temp;
+		outFrame.data.bytes[0] += 1;
+		outFrame.data.bytes[3] = (uint8_t)temp;
 		return true;
 		break;
 	case 0x63: //Reference torque for engine - presumably max torque - A*256 + B - Nm
 		temp = motorController->getTorqueAvailable();
-		outFrame.data[0] += 2;
-		outFrame.data[3] = (uint8_t)(temp / 256);
-		outFrame.data[4] = (uint8_t)(temp & 0xFF);
+		outFrame.data.bytes[0] += 2;
+		outFrame.data.bytes[3] = (uint8_t)(temp / 256);
+		outFrame.data.bytes[4] = (uint8_t)(temp & 0xFF);
 		return true;
 		break;
 	}
 	return false;
 }
 
-bool CanPIDListener::processShowCustomData(RX_CAN_FRAME* inFrame, TX_CAN_FRAME& outFrame) {
-	int pid = inFrame->data[2] * 256 + inFrame->data[3];
+bool CanPIDListener::processShowCustomData(CAN_FRAME* inFrame, CAN_FRAME& outFrame) {
+	int pid = inFrame->data.bytes[2] * 256 + inFrame->data.bytes[3];
 	switch (pid) {
 	}
 }

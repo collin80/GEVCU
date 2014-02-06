@@ -39,7 +39,7 @@ class Device;
 
 class CanObserver {
 public:
-	virtual void handleCanFrame(RX_CAN_FRAME *frame);
+	virtual void handleCanFrame(CAN_FRAME *frame);
 };
 
 class CanHandler {
@@ -53,7 +53,7 @@ public:
 	void attach(CanObserver *observer, uint32_t id, uint32_t mask, bool extended);
 	void detach(CanObserver *observer, uint32_t id, uint32_t mask);
 	void process();
-	void sendFrame(TX_CAN_FRAME& frame);
+	void sendFrame(CAN_FRAME& frame);
 	static CanHandler *getInstanceCar();
 	static CanHandler *getInstanceEV();
 protected:
@@ -74,10 +74,9 @@ private:
 	CanObserverData observerData[CFG_CAN_NUM_OBSERVERS];	// Can observers
 
 	CanHandler(CanBusNode busNumber);
-	void logFrame(RX_CAN_FRAME& frame);
+	void logFrame(CAN_FRAME& frame);
 	int8_t findFreeObserverData();
 	int8_t findFreeMailbox();
-	uint32_t getMailboxIer(int8_t mailbox);
 };
 
 #endif /* CAN_HANDLER_H_ */

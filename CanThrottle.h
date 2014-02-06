@@ -51,7 +51,7 @@ public:
 	CanThrottle();
 	void setup();
 	void handleTick();
-	void handleCanFrame(RX_CAN_FRAME *frame);
+	void handleCanFrame(CAN_FRAME *frame);
 	DeviceId getId();
 
 	RawSignalData *acquireRawSignal();
@@ -63,7 +63,7 @@ protected:
 	uint16_t calculatePedalPosition(RawSignalData *);
 
 private:
-	TX_CAN_FRAME requestFrame; // the request frame sent to the car
+	CAN_FRAME requestFrame; // the request frame sent to the car
 	RawSignalData rawSignal; // raw signal
 	uint8_t ticksNoResponse; // number of ticks no response was received
 	uint32_t responseId; // the CAN id with which the response is sent;
