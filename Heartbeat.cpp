@@ -71,8 +71,11 @@ void Heartbeat::handleTick() {
 		if (motorController) {
 			Logger::console("Motor Controller Status: isRunning: %T isFaulted: %T", motorController->isRunning(), motorController->isFaulted());
 		}
-		Logger::console("A0: %d, A1: %d, A2: %d, A3: %d", getAnalog(0), getAnalog(1), getAnalog(2), getAnalog(3));
-		Logger::console("D0: %d, D1: %d, D2: %d, D3: %d", getDigital(0), getDigital(1), getDigital(2), getDigital(3));
+
+		Logger::console("AIN0: %d, AIN1: %d, AIN2: %d, AIN3: %d", getAnalog(0), getAnalog(1), getAnalog(2), getAnalog(3));
+        Logger::console("DIN0: %d, DIN1: %d, DIN2: %d, DIN3: %d", getDigital(0), getDigital(1), getDigital(2), getDigital(3));
+        Logger::console("DOUT0: %d, DOUT1: %d, DOUT2: %d, DOUT3: %d,DOUT4: %d, DOUT5: %d, DOUT6: %d, DOUT7: %d", getOutput(0), getOutput(1), getOutput(2), getOutput(3),getOutput(4), getOutput(5), getOutput(6), getOutput(7));
+
 		if (accelerator) {
 			Logger::console("Throttle Status: isFaulted: %T level: %i", accelerator->isFaulted(), accelerator->getLevel());
 			RawSignalData *rawSignal = accelerator->acquireRawSignal();

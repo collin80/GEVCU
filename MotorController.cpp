@@ -58,9 +58,13 @@ MotorController::MotorController() : Device() {
 	dcCurrent = 0;
 	acCurrent = 0;
 
-	prechargeTime = 0;
-	prechargeSoFar = 0;
-	donePrecharge = false;
+	donePrecharge = false;  
+    coolingfan=0;
+    cooloff=0;
+    coolon=0;
+    coolflag=false;
+    skipcounter=0;
+
 }
 
 DeviceType MotorController::getType() {
@@ -69,6 +73,7 @@ DeviceType MotorController::getType() {
 
 void MotorController::handleTick() {
 	uint8_t forwardSwitch, reverseSwitch;
+	MotorControllerConfiguration *config = (MotorControllerConfiguration *)getConfiguration();
 
 	gearSwitch = GS_FORWARD;
 
@@ -79,40 +84,85 @@ void MotorController::handleTick() {
 	if (brake && brake->getLevel() < -10 && brake->getLevel() < accelerator->getLevel()) //if the brake has been pressed it overrides the accelerator.
 		throttleRequested = brake->getLevel();
 
-	if (prechargeTime == 0) donePrecharge = true;
+	
 
 	if (!donePrecharge) 
 	{
-		if (prechargeSoFar < prechargeTime) 
-		{
-			prechargeSoFar += (getTickInterval() / 1000);
-		}
-		else {
-			MotorControllerConfiguration *config = (MotorControllerConfiguration *)getConfiguration();
-			Logger::info("Done with precharge.");
-			setOutput(config->mainContactorRelay, true);
-			setOutput(config->prechargeRelay, false);
-			donePrecharge = true;
-		}
+		throttleRequested = 0; //If we're not done precharging, reset throttle to zero no matter what it was.  We don't want to spin motor before
+                               //closing contactor.
+                               //Used just to watch it happen for testing.Logger::console("%i milliseconds since startup", millis());
+		if (millis()> config->prechargeR) //Check milliseconds since startup against our entered delay in milliseconds
+	    {
+			donePrecharge=true;
+            Logger::console("Precharge sequence complete after %i milliseconds", config->prechargeR);
+            setOutput(config->mainContactorRelay, true); //Main contactor on
+            setOutput(config->prechargeRelay, false); //ok.  Turn of precharge
+            //show our work
+            Logger::console("MAIN CONTACTOR ENABLED...DOUT0:%d, DOUT1:%d, DOUT2:%d, DOUT3:%d,DOUT4:%d, DOUT5:%d, DOUT6:%d, DOUT7:%d", getOutput(0), getOutput(1), getOutput(2), getOutput(3),getOutput(4), getOutput(5), getOutput(6), getOutput(7));
+        }
+
+		if(skipcounter++ > 23)    //As how fast we turn on cooling is very low priority, we only check cooling every 24th lap or about once per second
+			coolingcheck();
 	}
 
 	//Logger::debug("Throttle: %d", throttleRequested);
 
 }
 
+void MotorController::coolingcheck()
+ {
+	//This routine is used to set an optional cooling fan output to on if the current temperature exceeds a specified value.
+               
+	skipcounter=0; //Reset our laptimer
+               
+	if(coolingfan<8)    //We have 8 outputs 0-7 If they entered something else, there is no point in doing this check.
+	{          
+		//Logger::info("Current temp: %i", temperatureInverter/10);
+		//Logger::info("Cooling Fan Output: %i", coolingfan);
+		//Logger::info("ON temp: %i", coolon);
+		//Logger::info("OFF temp: %i", cooloff);
+ 
+		if(temperatureInverter/10>coolon)
+		{
+			if(!coolflag)
+			{
+				setOutput(coolingfan, true);
+				Logger::info("Inverter Temperature %i F exceeds %i F setting.", temperatureInverter/10, coolon);
+				Logger::info("Cooling Fan Output: %i set to ON", coolingfan);
+				coolflag=true;
+			} 
+		}
+		if(temperatureInverter/10<cooloff)
+		{
+			if(coolflag)
+			{
+				setOutput(coolingfan, false);
+				Logger::info("Inverter Temperature %i F below %i F setting", temperatureInverter/10, cooloff);
+				Logger::info("Cooling Fan Output: %i set to OFF", coolingfan);
+				coolflag=false;
+			} 
+		}
+	}
+ }
+
+
+
 void MotorController::setup() {
 	MotorControllerConfiguration *config = (MotorControllerConfiguration *)getConfiguration();
 
-	//first set up the appropriate digital pins. All are active low currently
-	/*
-	 pinMode(MOTORCTL_INPUT_DRIVE_EN, INPUT_PULLUP); //Drive Enable
-	 pinMode(MOTORCTL_INPUT_FORWARD, INPUT_PULLUP); //Forward gear
-	 pinMode(MOTORCTL_INPUT_REVERSE, INPUT_PULLUP); //Reverse Gear
-	 pinMode(MOTORCTL_INPUT_LIMP, INPUT_PULLUP); //Limp mode
-	 */
+    Logger::console("PRELAY=%i - Current PreCharge Relay output", config->prechargeRelay);
+    Logger::console("MRELAY=%i - Current Main Contactor Relay output", config->mainContactorRelay);
+    Logger::console("PREDELAY=%i - Precharge delay time", config->prechargeR);
+	 
+    setOutput(config->prechargeRelay, true); //start the precharge right now
+    setOutput(config->mainContactorRelay, false); //Make sure main contactor relay is off
+    //show our work
+    Logger::console("PRECHARGING...DOUT0:%d, DOUT1:%d, DOUT2:%d, DOUT3:%d,DOUT4:%d, DOUT5:%d, DOUT6:%d, DOUT7:%d", getOutput(0), getOutput(1), getOutput(2), getOutput(3),getOutput(4), getOutput(5), getOutput(6), getOutput(7));
+    coolflag=false;
+
 
 	Device::setup();
-
+	/*
 	if (config->prechargeC> 0 && config->prechargeRelay < NUM_OUTPUT) {
 		//precharge time is 5RC which is (R*C / 1000) ms * 5 = RC/200 but ohms is in tenths so divide by another 10 = RC/2000
 		prechargeTime = ((int)config->prechargeC * config->prechargeR) / 2000;
@@ -123,6 +173,7 @@ void MotorController::setup() {
 	else {
 		Logger::info("Not precharging in RC mode");
 	}
+	*/
 }
 
 bool MotorController::isRunning() {
@@ -245,6 +296,13 @@ void MotorController::loadConfiguration() {
 		prefsHandler->read(EEMC_NOMINAL_V, &config->nominalVolt);
 		prefsHandler->read(EEMC_PRECHARGE_RELAY, &config->prechargeRelay);
 		prefsHandler->read(EEMC_CONTACTOR_RELAY, &config->mainContactorRelay);
+
+		PrefHandler *sysPrefs;
+        sysPrefs = new PrefHandler(SYSTEM);
+        sysPrefs->read(EESYS_COOLFAN, &coolingfan);
+        sysPrefs->read(EESYS_COOLON, &coolon);
+        sysPrefs->read(EESYS_COOLOFF, &cooloff);
+
 	}
 	else { //checksum invalid. Reinitialize values and store to EEPROM
 		config->speedMax = MaxRPMValue;

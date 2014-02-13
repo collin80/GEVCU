@@ -44,6 +44,8 @@ void ICHIPWIFI::setup() {
 	paramCache.brakeNotAvailable = true;
 
 	TickHandler::getInstance()->attach(this, CFG_TICK_INTERVAL_WIFI);
+
+	loadParameters();
 }
 
 /*
@@ -83,6 +85,7 @@ void ICHIPWIFI::handleTick() {
 			}
 			if ( paramCache.torqueRequested != motorController->getTorqueRequested() ) {
 				paramCache.torqueRequested = motorController->getTorqueRequested();
+				paramCache.torqueRequested -= 30000;
 				setParam(Constants::torqueRequested, paramCache.torqueRequested / 10.0f, 1);
 			}
 			if ( paramCache.torqueActual != motorController->getTorqueActual() ) {
@@ -183,10 +186,10 @@ void ICHIPWIFI::handleTick() {
 				paramCache.tempSystem = motorController->getTemperatureSystem();
 				setParam(Constants::tempSystem, paramCache.tempSystem / 10.0f, 1);
 			}
-			if ( paramCache.mechPower != motorController->getMechanicalPower() ) {
+			//if ( paramCache.mechPower != motorController->getMechanicalPower() ) {
 				paramCache.mechPower = motorController->getMechanicalPower();
 				setParam(Constants::mechPower, paramCache.mechPower / 10.0f, 1);
-			}
+			//}
 		}
 		tickCounter = 0;
 		getNextParam();

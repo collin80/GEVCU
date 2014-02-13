@@ -73,12 +73,12 @@ void SerialConsole::printMenu() {
 	SerialUSB.println("Short Commands:");
 	SerialUSB.println("h = help (displays this message)");
 	if (heartbeat != NULL) {
-		SerialUSB.println("L = output raw input values (toggle)");
+		SerialUSB.println("L = show raw analog/digital input/output values (toggle)");
 	}
 	SerialUSB.println("K = set all outputs high");
 	SerialUSB.println("J = set all outputs low");
-	SerialUSB.println("U,I = test EEPROM routines");
-	SerialUSB.println("A = dump system eeprom values");
+	//SerialUSB.println("U,I = test EEPROM routines");
+	SerialUSB.println("E = dump system eeprom values");
 	SerialUSB.println("z = detect throttle min/max, num throttles and subtype");
 	SerialUSB.println("Z = save throttle values");
 	SerialUSB.println("b = detect brake min/max");
@@ -90,20 +90,52 @@ void SerialConsole::printMenu() {
 	SerialUSB.println("s = Scan WiFi for nearby access points");
 	SerialUSB.println();
 	SerialUSB.println("Config Commands (enter command=newvalue). Current values shown in parenthesis:");
-	SerialUSB.println("ENABLE - Enable the given device by ID");
-	SerialUSB.println("DISABLE - Disable the given device by ID");
+    SerialUSB.println();
+    Logger::console("LOGLEVEL=%i - set log level (0=debug, 1=info, 2=warn, 3=error, 4=off)", Logger::getLogLevel());
+   
 	uint8_t systype;
 	sysPrefs->read(EESYS_SYSTEM_TYPE, &systype);
 	Logger::console("SYSTYPE=%i - Set board revision (Dued=2, GEVCU3=3, GEVCU4=4)", systype);
+    SerialUSB.println("ENABLE - Enable the given device by ID");
+	SerialUSB.println("DISABLE - Disable the given device by ID");
+    Logger::console("     %X     DMOC645 Inverter", DMOC645);
+	Logger::console("     %X     Brusa DMC5 Inverter", BRUSA_DMC5);
+	//Logger::console("     Brusa Charger = %X", BRUSACHARGE);
+	//Logger::console("     TCCH Charger = %X", TCCHCHARGE);
+	Logger::console("     %X     Potentiometer (analog) accelerator", POTACCELPEDAL);
+	Logger::console("     %X     Potentiometer (analog) brake", POTBRAKEPEDAL);
+	Logger::console("     %X     CANBus accelerator", CANACCELPEDAL);
+	Logger::console("     %X     CANBus brake", CANBRAKEPEDAL);
+	Logger::console("     %X     WIFI (iChip2128)", ICHIP2128);
+      
+	
 	if (motorController && motorController->getConfiguration()) {
 		MotorControllerConfiguration *config = (MotorControllerConfiguration *) motorController->getConfiguration();
+         SerialUSB.println();
+         SerialUSB.println("MOTOR CONTROLS");
+         SerialUSB.println();
 		Logger::console("TORQ=%i - Set torque upper limit (tenths of a Nm)", config->torqueMax);
 		Logger::console("RPMS=%i - Set maximum RPMs", config->speedMax);
 		Logger::console("REVLIM=%i - How much torque to allow in reverse (Tenths of a percent)", config->reversePercent);
+              
+                 uint8_t coolfan;
+	        sysPrefs->read(EESYS_COOLFAN, &coolfan);
+	        Logger::console("COOLFAN=%i - Digital output to turn on cooling (0-7)", coolfan);
+                 uint8_t coolon;
+	        sysPrefs->read(EESYS_COOLON, &coolon);
+	        Logger::console("COOLON=%i - Inverter temperature to turn cooling on", coolon);
+                 uint8_t cooloff;
+	        sysPrefs->read(EESYS_COOLOFF, &cooloff);
+	        Logger::console("COOLOFF=%i - Inverter temperature to turn cooling off", cooloff);
 	}
+
 
 	if (accelerator && accelerator->getConfiguration()) {
 		PotThrottleConfiguration *config = (PotThrottleConfiguration *) accelerator->getConfiguration();
+         SerialUSB.println();
+         SerialUSB.println("THROTTLE CONTROLS");
+         SerialUSB.println();
+	
 		Logger::console("TPOT=%i - Number of pots to use (1 or 2)", config->numberPotMeters);
 		Logger::console("TTYPE=%i - Set throttle subtype (1=std linear, 2=inverse)", config->throttleSubType);
 		Logger::console("T1MN=%i - Set throttle 1 min value", config->minimumLevel1);
@@ -121,6 +153,9 @@ void SerialConsole::printMenu() {
 
 	if (brake && brake->getConfiguration()) {
 		PotThrottleConfiguration *config = (PotThrottleConfiguration *) brake->getConfiguration();
+                SerialUSB.println();
+                SerialUSB.println("BRAKE CONTROLS");
+	        SerialUSB.println();
 		Logger::console("B1MN=%i - Set brake min value", config->minimumLevel1);
 		Logger::console("B1MX=%i - Set brake max value", config->maximumLevel1);
 		Logger::console("BMINR=%i - Percent of full torque for start of brake regen", config->minimumRegen);
@@ -129,23 +164,26 @@ void SerialConsole::printMenu() {
 
 	if (motorController && motorController->getConfiguration()) {
 		MotorControllerConfiguration *config = (MotorControllerConfiguration *) motorController->getConfiguration();
-		Logger::console("PREC=%i - Precharge capacitance (uf)", config->prechargeC);
-		Logger::console("PRER=%i - Precharge resistance (1/10 of ohm)", config->prechargeR);
-		Logger::console("NOMV=%i - Nominal system voltage (1/10 of a volt)", config->nominalVolt);
+                SerialUSB.println();
+                SerialUSB.println("PRECHARGE CONTROLS");
+	        SerialUSB.println();
+	      //Logger::console("PREC=%i - Precharge capacitance (uf)", config->prechargeC);
+		Logger::console("PREDELAY=%i - Precharge delay time in milliseconds ", config->prechargeR);
+	      //Logger::console("NOMV=%i - Nominal system voltage (1/10 of a volt)", config->nominalVolt);
 		Logger::console("PRELAY=%i - Which output to use for precharge contactor (255 to disable)", config->prechargeRelay);
 		Logger::console("MRELAY=%i - Which output to use for main contactor (255 to disable)", config->mainContactorRelay);
 	}
 
 	if (wifi) {
 		//WifiConfiguration *config = (WifiConfiguration *) wifi->getConfiguration();
-		Logger::console("WSSIDn= - Set SSID to connect to (n=0-9)");
-		Logger::console("WPASSn= - Set WEP/WPA password (n=0-9)");
-		Logger::console("WTYPEn= - Set type of Wifi AP (n=0-9)");
-		Logger::console("Types: 0 = No sec, 1 = WEP64, 2 = WEP128, 3 = WPA-PSK, 4 = WPA2-PSK");
-		Logger::console("Types: 5 = WPA-TKIP, 6 = WPA2-TKIP, 7=EAP/WEP64, 8=EAP/WEP128");
+		//Logger::console("WSSIDn= - Set SSID to connect to (n=0-9)");
+		//Logger::console("WPASSn= - Set WEP/WPA password (n=0-9)");
+		//Logger::console("WTYPEn= - Set type of Wifi AP (n=0-9)");
+		//Logger::console("Types: 0 = No sec, 1 = WEP64, 2 = WEP128, 3 = WPA-PSK, 4 = WPA2-PSK");
+		//Logger::console("Types: 5 = WPA-TKIP, 6 = WPA2-TKIP, 7=EAP/WEP64, 8=EAP/WEP128");
 
 	}
-	Logger::console("LOGLEVEL=%i - set log level (0=debug, 1=info, 2=warn, 3=error, 4=off)", Logger::getLogLevel());
+
 	Logger::console("WLAN - send a AT+i command to the wlan device");
 }
 
@@ -217,7 +255,11 @@ void SerialConsole::handleConfigCmd() {
 	i++; //skip the =
 
 	if (i >= ptrBuffer)
+	{
+		Logger::console("Command needs a value..ie TORQ=3000");
+		Logger::console("");
 		return; //or, we could use this to display the parameter instead of setting
+	}
 
 	if (accelerator)
 		acceleratorConfig = (PotThrottleConfiguration *) accelerator->getConfiguration();
@@ -226,9 +268,6 @@ void SerialConsole::handleConfigCmd() {
 	if (motorController)
 		motorConfig = (MotorControllerConfiguration *) motorController->getConfiguration();
 
-	//Go ahead and move this here. It was previously reiterated in every single config handler.
-	//If you need another style of input (say, for floats) then do it yourself in your config
-	//handling block. Otherwise, this is done for you.
 	// strtol() is able to parse also hex values (e.g. a string "0xCAFE"), useful for enable/disable by device id
 	newValue = strtol((char *) (cmdBuffer + i), NULL, 0);
 
@@ -317,8 +356,8 @@ void SerialConsole::handleConfigCmd() {
 		Logger::console("Setting Precharge Capacitance to %i", newValue);
 		motorConfig->prechargeC = newValue;
 		motorController->saveConfiguration();
-	} else if (cmdString == String("PRER") && motorConfig) {
-		Logger::console("Setting Precharge Resistance to %i", newValue);
+	} else if (cmdString == String("PREDELAY") && motorConfig) {
+		Logger::console("Setting Precharge Time Delay to %i ms", newValue);
 		motorConfig->prechargeR = newValue;
 		motorController->saveConfiguration();
 	} else if (cmdString == String("NOMV") && motorConfig) {
@@ -336,7 +375,7 @@ void SerialConsole::handleConfigCmd() {
 	} else if (cmdString == String("ENABLE")) {
 		if (PrefHandler::setDeviceStatus(newValue, true)) {
 			sysPrefs->forceCacheWrite(); //just in case someone takes us literally and power cycles quickly
-			Logger::console("Successfully enabled device. Power cycle to activate.");
+			Logger::console("Successfully enabled device.(%X, %d) Power cycle to activate.", newValue, newValue);
 		}
 		else {
 			Logger::console("Invalid device ID (%X, %d)", newValue, newValue);
@@ -411,6 +450,27 @@ void SerialConsole::handleConfigCmd() {
 		DeviceManager::getInstance()->sendMessage(DEVICE_WIFI, ICHIP2128, MSG_COMMAND, (void *)cmdString.c_str());
 		DeviceManager::getInstance()->sendMessage(DEVICE_WIFI, ICHIP2128, MSG_COMMAND, (void *)"DOWN");
 		updateWifi = false;
+	} else if (cmdString == String("COOLFAN")) {		
+			sysPrefs->write(EESYS_COOLFAN, (uint8_t)(newValue));
+			sysPrefs->saveChecksum();
+			sysPrefs->forceCacheWrite(); //just in case someone takes us literally and power cycles quickly
+			Logger::console("Cooling fan output updated to: %i", newValue);
+	} else if (cmdString == String("COOLON")) {
+		if (newValue <= 200 && newValue >= 0) {
+			sysPrefs->write(EESYS_COOLON, (uint8_t)(newValue));
+			sysPrefs->saveChecksum();
+			sysPrefs->forceCacheWrite(); //just in case someone takes us literally and power cycles quickly
+			Logger::console("Cooling fan ON temperature updated to: %i degrees fahrenheit", newValue);
+		}
+		else Logger::console("Invalid cooling ON temperature. Please enter a value 0 - 200F");
+	} else if (cmdString == String("COOLOFF")) {
+		if (newValue <= 200 && newValue >= 0) {
+			sysPrefs->write(EESYS_COOLOFF, (uint8_t)(newValue));
+			sysPrefs->saveChecksum();
+			sysPrefs->forceCacheWrite(); //just in case someone takes us literally and power cycles quickly
+			Logger::console("Cooling fan OFF temperature updated to: %i degrees fahrenheit", newValue);
+		}
+		else Logger::console("Invalid cooling OFF temperature. Please enter a value 0 - 200F");
 	} else {
 		Logger::console("Unknown command");
 		updateWifi = false;
@@ -460,8 +520,8 @@ void SerialConsole::handleShortCmd() {
 			Logger::console("%d: %d", i, val);
 		}
 		break;
-	case 'A':
-		Logger::console("Retrieving System EEPROM values");
+	case 'E':
+		Logger::console("Reading System EEPROM values");
 		for (int i = 0; i < 256; i++) {
 			memCache->Read(EE_SYSTEM_START + i, &val);
 			Logger::console("%d: %d", i, val);

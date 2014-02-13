@@ -80,6 +80,7 @@ public:
 	void loadConfiguration();
 	void saveConfiguration();
 
+	void coolingcheck();
 	bool isReady();
 	bool isRunning();
 	bool isFaulted();
@@ -114,6 +115,7 @@ protected:
 	bool running; // indicates if the power stage of the inverter is operative
 	bool faulted; // indicates a error condition is present in the controller
 	bool warning; // indicates a warning condition is present in the controller
+	bool coolflag;
 
 	PowerMode powerMode;
 	int16_t throttleRequested; // -1000 to 1000 (per mille of throttle level)
@@ -139,8 +141,12 @@ protected:
 	uint32_t statusBitfield4;
 
 	uint16_t prechargeTime; //time in ms that precharge should last
-	uint16_t prechargeSoFar; //how long we have precharged so far
+	uint32_t prechargeSoFar; //how long we have precharged so far
 	bool donePrecharge; //already completed the precharge cycle?
+	uint8_t coolingfan;
+	uint8_t coolon;
+	uint8_t cooloff;
+	uint32_t skipcounter;
 };
 
 #endif

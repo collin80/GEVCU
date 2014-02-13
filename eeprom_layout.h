@@ -191,6 +191,9 @@ the end of the stardard data. The below numbers are offsets from the device's ee
 #define EESYS_WIFIX_KEY         618 //40 bytes - the security key (13 bytes for WEP, 8 - 83 for WPA but only up to 40 here
 
 #define EESYS_LOG_LEVEL         658 //1 byte - the log level
+#define EESYS_COOLFAN			659 //1 byte - Digital output to turn on for cooling
+#define EESYS_COOLON			660 //1 byte - when to start cooling - degrees C
+#define EESYS_COOLOFF			661 //1 byte - when to stop cooling - degrees C
 
 #endif
 
