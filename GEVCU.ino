@@ -32,32 +32,8 @@ TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
 SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
  */
-
-
-
-
-/*
-Changelog (Update with very brief message along with build # - Dates wouldn't hurt either
-Sept 9 2013:
-1000 - First build # enabled build - Comment out hard coded line for # of throttles
-1001 - Proper fix for issue corrected by build 1000
-1002 - Show build # on startup and in menu
-1003 - Implementation of RC precharging mode for motor controller
-Sept 12 2013:
-1004 - Change some variables in brake to 32 bit
-1005 - bug fix in in ichip routines
-Sept 19 2013:
-1006 - Added ability to configure debugging output - switched DeviceManager to not create null objects
-1007 - Allow the DMOC to start up ready to go. It now must be explicitly disabled via the second digital input
-1008 - Implement (initial support) reverse limit, switch brake to using indep. min value, get existing values settable with serial console
-1009 - Implemented message passing and hooked up the rest of the code to use it.
-1010 - Support for GEVCU3 boards
-1011 - Added support for Think City battery packs with BMS
-1012 - Tons of changes to MotorController and SerialConsole
-1013 - New release in master - Addition of Wifi configuration pages, throttle changes
-1014 - Brand new system in place that allows devices to be configured based on EEPROM instead of compiler defines.
-*/
-
+ 
+/*Changelog removed. All changes are logged to GIT */
 
 /*
 Random comments on things that should be coded up soon:
