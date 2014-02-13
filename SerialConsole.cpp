@@ -384,6 +384,7 @@ void SerialConsole::handleConfigCmd() {
 		sysPrefs->saveChecksum();
 	} else if (cmdString == String("WLAN")) {
 		DeviceManager::getInstance()->sendMessage(DEVICE_WIFI, ICHIP2128, MSG_COMMAND, (void *)(cmdBuffer + i));
+		Logger::info("sent \"AT+i%s\" to wlan device", (cmdBuffer + i));
 		updateWifi = false;
 	} else if (cmdString == String("WSSID")) {
 		String cmdString = String();
