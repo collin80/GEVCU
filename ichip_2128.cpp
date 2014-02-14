@@ -44,8 +44,6 @@ void ICHIPWIFI::setup() {
 	paramCache.brakeNotAvailable = true;
 
 	TickHandler::getInstance()->attach(this, CFG_TICK_INTERVAL_WIFI);
-
-	loadParameters();
 }
 
 /*
