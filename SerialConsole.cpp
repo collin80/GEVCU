@@ -624,5 +624,8 @@ void SerialConsole::handleShortCmd() {
 		deviceManager->sendMessage(DEVICE_WIFI, ICHIP2128, MSG_CONFIG_CHANGE, NULL); // reload configuration params as they were lost
 		Logger::console("Wifi initialized");
 		break;
+	case 'X':
+		setup(); //this is probably a bad idea. Do not do this while connected to anything you care about - only for debugging in safety!
+		break;
 	}
 }
