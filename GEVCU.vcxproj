@@ -92,6 +92,7 @@
     </ClInclude>
     <ClInclude Include="DmocMotorController.h" />
     <ClInclude Include="eeprom_layout.h" />
+    <ClInclude Include="ELM327_Emu.h" />
     <ClInclude Include="FaultHandler.h" />
     <ClInclude Include="GEVCU.h" />
     <ClInclude Include="Heartbeat.h">
@@ -132,6 +133,7 @@
     <ClCompile Include="Device.cpp" />
     <ClCompile Include="DeviceManager.cpp" />
     <ClCompile Include="DmocMotorController.cpp" />
+    <ClCompile Include="ELM327_Emu.cpp" />
     <ClCompile Include="FaultHandler.cpp" />
     <ClCompile Include="Heartbeat.cpp" />
     <ClCompile Include="ichip_2128.cpp" />

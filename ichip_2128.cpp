@@ -317,8 +317,8 @@ ICHIPWIFI::ICHIPWIFI() {
 	sysPrefs->read(EESYS_SYSTEM_TYPE, &sys_type);
 	if (sys_type == 3 || sys_type == 4)
 		serialInterface = &Serial2;
-	else
-		serialInterface = &Serial3; //default is serial 3 because that should be what our shield really uses
+	else //older hardware used this instead
+		serialInterface = &Serial3; 
 }
 
 /*

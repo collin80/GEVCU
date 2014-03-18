@@ -56,6 +56,7 @@ enum DeviceId { //unique device ID for every piece of hardware possible
 	HEARTBEAT = 0x5001,
 	MEMCACHE = 0x5002,
 	PIDLISTENER = 0x6000,
+	ELM327EMU = 0x6500,
 	INVALID = 0xFFFF
 };
 
