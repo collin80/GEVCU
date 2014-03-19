@@ -234,6 +234,11 @@ void initializeDevices() {
 		deviceManager->addDevice(BMS);
 	}
 
+	ELM327Emu *emu = new ELM327Emu();
+	if (emu->isEnabled()) {
+		Logger::info("add device: ELM327 emulator (id: %X, %X", ELM327EMU, emu);
+		deviceManager->addDevice(emu);
+	}
 // add wifi as last device, because ICHIPWIFI::loadParameters() depends on pre-loaded preferences
 	Logger::info("Trying WIFI");
 	ICHIPWIFI *iChip = new ICHIPWIFI();

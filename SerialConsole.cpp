@@ -107,8 +107,8 @@ void SerialConsole::printMenu() {
 	Logger::console("     %X     CANBus accelerator", CANACCELPEDAL);
 	Logger::console("     %X     CANBus brake", CANBRAKEPEDAL);
 	Logger::console("     %X     WIFI (iChip2128)", ICHIP2128);
+	Logger::console("     %X     ELM327 Emulator over Bluetooth", ELM327EMU);
       
-	
 	if (motorController && motorController->getConfiguration()) {
 		MotorControllerConfiguration *config = (MotorControllerConfiguration *) motorController->getConfiguration();
          SerialUSB.println();

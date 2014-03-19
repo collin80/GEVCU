@@ -35,7 +35,7 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 /*
  * Initialization of hardware and parameters
  */
-void ICHIPWIFI::setup() {
+void ELM327Emu::setup() {
 
 	prefsHandler = new PrefHandler(ELM327EMU);
 
@@ -61,8 +61,7 @@ void ELM327Emu::sendCmd(String cmd) {
 }
 
 /*
- * Periodic updates of parameters to ichip RAM.
- * Also query for changed parameters of the config page.
+
  */
 void ELM327Emu::handleTick() {
 
@@ -70,8 +69,6 @@ void ELM327Emu::handleTick() {
 
 /*
  * Handle a message sent by the DeviceManager.
- * Currently MSG_SET_PARAM is supported. A array of two char * has to be included
- * in the message.
  */
 void ELM327Emu::handleMessage(uint32_t messageType, void* message) {
 	Device::handleMessage(messageType, message);
@@ -125,14 +122,10 @@ void ELM327Emu::loop() {
 			if (incoming == 13 || ibWritePtr > 126) { // on CR or full buffer, process the line
 				incomingBuffer[ibWritePtr] = 0; //null terminate the string
 				ibWritePtr = 0; //reset the write pointer
-				/*
-				if (strchr(incomingBuffer, '=') && (strncmp(incomingBuffer, Constants::ichipCommandPrefix, 4) != 0))
-					processParameterChange(incomingBuffer);
-				else if (strchr(incomingBuffer, ','))
-					Logger::info(ICHIP2128, incomingBuffer);
-				else if (Logger::isDebug())
+				
+				if (Logger::isDebug())
 					Logger::debug(ICHIP2128, incomingBuffer);
-					*/
+					
 			} else { // add more characters
 				if (incoming != 10) // don't add a LF character
 					incomingBuffer[ibWritePtr++] = (char) incoming;
