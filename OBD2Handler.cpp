@@ -35,7 +35,7 @@ OBD2Handler::OBD2Handler() {
 	motorController = (MotorController*) DeviceManager::getInstance()->getMotorController();
 	accelPedal = (Throttle*) DeviceManager::getInstance()->getAccelerator();
 	brakePedal = (Throttle*) DeviceManager::getInstance()->getBrake();
-	BMS = (*BatteryManager) DeviceManager::getInstance()->getDeviceByType(DEVICE_BMS);
+	BMS = (BatteryManager*) DeviceManager::getInstance()->getDeviceByType(DEVICE_BMS);
 }
 
 OBD2Handler *OBD2Handler::getInstance() {

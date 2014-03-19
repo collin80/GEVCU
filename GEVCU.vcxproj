@@ -83,6 +83,7 @@
       <FileType>CppCode</FileType>
     </ClInclude>
     <ClInclude Include="CanHandler.h" />
+    <ClInclude Include="CanPIDListener.h" />
     <ClInclude Include="CanThrottle.h" />
     <ClInclude Include="config.h" />
     <ClInclude Include="Device.h" />
@@ -102,6 +103,7 @@
     <ClInclude Include="Logger.h" />
     <ClInclude Include="MemCache.h" />
     <ClInclude Include="MotorController.h" />
+    <ClInclude Include="OBD2Handler.h" />
     <ClInclude Include="PotBrake.h">
       <FileType>CppCode</FileType>
     </ClInclude>
@@ -129,6 +131,7 @@
     <ClCompile Include="BatteryManager.cpp" />
     <ClCompile Include="BrusaMotorController.cpp" />
     <ClCompile Include="CanHandler.cpp" />
+    <ClCompile Include="CanPIDListener.cpp" />
     <ClCompile Include="CanThrottle.cpp" />
     <ClCompile Include="Device.cpp" />
     <ClCompile Include="DeviceManager.cpp" />
@@ -140,6 +143,7 @@
     <ClCompile Include="Logger.cpp" />
     <ClCompile Include="MemCache.cpp" />
     <ClCompile Include="MotorController.cpp" />
+    <ClCompile Include="OBD2Handler.cpp" />
     <ClCompile Include="PotBrake.cpp" />
     <ClCompile Include="PotThrottle.cpp" />
     <ClCompile Include="PrefHandler.cpp" />

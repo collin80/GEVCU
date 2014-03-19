@@ -39,7 +39,7 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 class OBD2Handler {
 public:
-	bool processRequest(uint8_t mode, uint8_t pid, char *inData, char *outData)
+	bool processRequest(uint8_t mode, uint8_t pid, char *inData, char *outData);
 	static OBD2Handler *getInstance();
 
 protected:

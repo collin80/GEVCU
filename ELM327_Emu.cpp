@@ -48,6 +48,8 @@ void ELM327Emu::setup() {
 	//this isn't a wifi link but the timer interval can be the same
 	//because it serves a similar function and has similar timing requirements
 	TickHandler::getInstance()->attach(this, CFG_TICK_INTERVAL_WIFI);
+
+	obd2Handler = OBD2Handler::getInstance();
 }
 
 /*
@@ -215,7 +217,28 @@ void ELM327Emu::processCmd() {
 		}
 	}
 	else { //if no AT then assume it is a PID request. This takes the form of four bytes which form the alpha hex digit encoding for two bytes
-
+		//there should be four or six characters here forming the ascii representation of the PID request. Easiest for now is to turn the ascii into
+		//a 16 bit number and mask off to get the bytes
+		if (strlen(incomingBuffer) == 4) {
+			uint32_t valu = strtol((char *) incomingBuffer, NULL, 16); //the pid format is always in hex
+			uint8_t pidnum = (uint8_t)(valu & 0xFF);
+			uint8_t mode = (uint8_t)((valu >> 8) & 0xFF);
+			Logger::debug(ELM327EMU, "Mode: %i, PID: %i", mode, pidnum);
+			char out[6];
+			char buff[10];
+			if (obd2Handler->processRequest(mode, pidnum, NULL, out)) {
+				mode += 0x40;
+				sprintf(buff, "%02X", mode);
+				retString.concat(buff);
+				sprintf(buff, "%02X", pidnum);
+				retString.concat(buff);
+				for (int i = 1; i <= out[0]; i++) {
+					sprintf(buff, "%02X", out[i]);
+					retString.concat(buff);
+				}
+				retString.concat("\r");
+			}
+		}
 	}
 
 	retString.concat(">"); //prompt to show we're ready to receive again
