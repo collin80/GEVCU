@@ -124,15 +124,109 @@ void ELM327Emu::loop() {
 				ibWritePtr = 0; //reset the write pointer
 				
 				if (Logger::isDebug())
-					Logger::debug(ICHIP2128, incomingBuffer);
+					Logger::debug(ELM327EMU, incomingBuffer);
+				processCmd();
 					
 			} else { // add more characters
-				if (incoming != 10) // don't add a LF character
-					incomingBuffer[ibWritePtr++] = (char) incoming;
+				if (incoming != 10 && incoming != ' ') // don't add a LF character or spaces. Strip them right out
+					incomingBuffer[ibWritePtr++] = (char)tolower(incoming); //force lowercase to make processing easier
 			}
 		} else
-			return;
+		return;
 	}
+}
+
+/*
+*	There is no need to pass the string in here because it is local to the class so this function can grab it by default
+*	But, for reference, this cmd processes the command in incomingBuffer
+
+AT E0 (turn echo off)
+AT H (0/1) - Turn headers on or off - headers are used to determine how many ECU’s present (hint: only send one response to 0100 and emulate a single ECU system to save time coding)
+AT L0 (Turn linefeeds off - just use CR)
+AT Z (reset)
+AT SH - Set header address - seems to set the ECU address to send to (though you may be able to ignore this if you wish)
+AT @1 - Display device description - ELM327 returns: Designed by Andy Honecker 2011
+AT I - Cause chip to output its ID: ELM327 says: ELM327 v1.3a
+AT AT (0/1/2) - Set adaptive timing (though you can ignore this)
+AT SP (set protocol) - you can ignore this
+AT DP (get protocol by name) - (always return can11/500)
+AT DPN (get protocol by number) - (always return 6)
+AT RV (adapter voltage) - Send something like 14.4V
+
+
+*/
+void ELM327Emu::processCmd() {
+	String retString = String();
+
+	if (!strncmp(incomingBuffer, "at", 2)) {
+
+		if (!strcmp(incomingBuffer, "atz")) {
+	 		retString.concat("\r\nELM327 v1.3a\r");
+		}
+		else if (!strncmp(incomingBuffer, "atsh",4)) {
+			//ignore this - just say OK
+			retString.concat("OK\r");
+		}
+		else if (!strncmp(incomingBuffer, "ate",3)) {
+			//could support echo but I don't see the need, just ignore this
+			retString.concat("OK\r");
+		}
+		else if (!strncmp(incomingBuffer, "ath",3)) {
+			//turn headers on/off - try to ignore for now
+			retString.concat("OK\r");
+		}
+		else if (!strncmp(incomingBuffer, "atl",3)) {
+			//whether or not to send linefeeds as well. Can we ignore this?
+			retString.concat("OK\r");
+		}
+		else if (!strcmp(incomingBuffer, "at@1")) {
+			retString.concat("ELM327 Emulator\r");
+		}
+		else if (!strcmp(incomingBuffer, "ati")) {
+			retString.concat("ELM327 v1.3a\r");
+		}
+		else if (!strncmp(incomingBuffer, "atat",4)) {
+			//don't intend to support adaptive timing at all
+			retString.concat("OK\r");
+		}
+		else if (!strncmp(incomingBuffer, "atsp",4)) {
+			//theoretically we can ignore this
+			retString.concat("OK\r");
+		}
+		else if (!strcmp(incomingBuffer, "atdp")) {
+			retString.concat("can11/500\r");
+		}
+		else if (!strcmp(incomingBuffer, "atdpn")) {
+			retString.concat("6\r");
+		}
+		else if (!strcmp(incomingBuffer, "atd")) {
+			retString.concat("OK\r");
+		}
+		else if (!strncmp(incomingBuffer, "atm", 3)) {
+			retString.concat("OK\r");
+		}
+		else if (!strcmp(incomingBuffer, "atrv")) {
+			//TODO: the system should actually have this value so it wouldn't hurt to
+			//look it up and report the real value.
+			retString.concat("14.2V\r");
+		}
+		else { //by default respond to anything not specifically handled by just saying OK and pretending.
+			retString.concat("OK\r");
+		}
+	}
+	else { //if no AT then assume it is a PID request. This takes the form of four bytes which form the alpha hex digit encoding for two bytes
+
+	}
+
+	retString.concat(">"); //prompt to show we're ready to receive again
+
+	serialInterface->print(retString);
+	if (Logger::isDebug()) {
+		char buff[30];
+		retString.toCharArray(buff, 30);
+		Logger::debug(ELM327EMU, buff);
+	}
+	
 }
 
 DeviceType ELM327Emu::getType() {
@@ -160,3 +254,4 @@ void ELM327Emu::saveConfiguration() {
 //	prefsHandler->write(EESYS_WIFI0_SSID, config->ssid);
 //	prefsHandler->saveChecksum();
 }
+ 

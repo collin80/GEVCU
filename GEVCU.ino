@@ -75,6 +75,8 @@ PrefHandler *sysPrefs;
 MemCache *memCache;
 Heartbeat *heartbeat;
 SerialConsole *serialConsole;
+Device *wifiDevice;
+Device *btDevice;
 
 byte i = 0;
 
@@ -316,16 +318,16 @@ void setup() {
         
 	Logger::info("System Ready");
 	serialConsole->printMenu();
+
+	wifiDevice = DeviceManager::getInstance()->getDeviceByID(ICHIP2128);
+	btDevice = DeviceManager::getInstance()->getDeviceByID(ELM327EMU);
+
 #ifdef CFG_TIMER_USE_QUEUING
 	//tickHandler->cleanBuffer(); // remove buffered tick events which clogged up already (might not be necessary)
 #endif
 }
 
 void loop() {
-
-	Device *tempDevice;
-	tempDevice = DeviceManager::getInstance()->getDeviceByID(ICHIP2128);
-
 
 #ifdef CFG_TIMER_USE_QUEUING
 	tickHandler->process();
@@ -337,8 +339,13 @@ void loop() {
 
 	serialConsole->loop();
 
-	if ( tempDevice != NULL ) {
-		((ICHIPWIFI*)tempDevice)->loop();
+	//TODO: this is dumb... shouldn't have to manually do this. Devices should be able to register loop functions
+	if ( wifiDevice != NULL ) {
+		((ICHIPWIFI*)wifiDevice)->loop();
+	}
+
+	if (btDevice != NULL) {
+		((ELM327Emu*)btDevice)->loop();
 	}
 
 	//this should still be here. It checks for a flag set during an interrupt
