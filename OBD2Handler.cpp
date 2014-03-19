@@ -56,6 +56,8 @@ bool OBD2Handler::processRequest(uint8_t mode, uint8_t pid, char *inData, char *
 	switch (mode) {
 		case 1: //show current data
 			ret = processShowData(pid, inData, outData);
+			outData[1] = mode + 0x40;
+			outData[2] = pid;
 			break;
 		case 2: //show freeze frame data - not sure we'll be supporting this
 			break;
@@ -81,22 +83,23 @@ bool OBD2Handler::processRequest(uint8_t mode, uint8_t pid, char *inData, char *
 bool OBD2Handler::processShowData(uint8_t pid, char *inData, char *outData) {
 	int temp;
 
+
 	switch (pid) {
 	case 0: //pids 1-0x20 that we support - bitfield
 		//returns 4 bytes so immediately indicate that.
 		outData[0] = 4;
-		outData[1] = 0b11011000; //pids 1 - 8 - starting with pid 1 in the MSB and going from there
-		outData[2] = 0b00010000; //pids 9 - 0x10
-		outData[3] = 0b10000000; //pids 0x11 - 0x18
-		outData[4] = 0b00010011; //pids 0x19 - 0x20
+		outData[3] = 0b11011000; //pids 1 - 8 - starting with pid 1 in the MSB and going from there
+		outData[4] = 0b00010000; //pids 9 - 0x10
+		outData[5] = 0b10000000; //pids 0x11 - 0x18
+		outData[6] = 0b00010011; //pids 0x19 - 0x20
 		return true;
 		break;
 	case 1: //Returns 32 bits but we really can only support the first byte which has bit 7 = Malfunction? Bits 0-6 = # of DTCs
 		outData[0] = 4;
-		outData[1] = 0; //TODO: We aren't properly keeping track of faults yet but when we do fix this. 
-		outData[2] = 0; //these next three are really related to ICE diagnostics
-		outData[3] = 0; //so ignore them.
-		outData[4] = 0;
+		outData[3] = 0; //TODO: We aren't properly keeping track of faults yet but when we do fix this. 
+		outData[4] = 0; //these next three are really related to ICE diagnostics
+		outData[5] = 0; //so ignore them.
+		outData[6] = 0;
 		return true;
 		break;
 	case 2: //Freeze DTC
@@ -105,7 +108,7 @@ bool OBD2Handler::processShowData(uint8_t pid, char *inData, char *outData) {
 	case 4: //Calculated engine load (A * 100 / 255) - Percentage
 		temp = (255 * motorController->getTorqueActual()) / motorController->getTorqueAvailable();
 		outData[0] = 1;
-		outData[1] = (uint8_t)(temp & 0xFF);
+		outData[3] = (uint8_t)(temp & 0xFF);
 		return true;
 		break;
 	case 5: //Engine Coolant Temp (A - 40) = Degrees Centigrade
@@ -115,14 +118,14 @@ bool OBD2Handler::processShowData(uint8_t pid, char *inData, char *outData) {
 		if (temp > 215) temp = 215;
 		temp += 40;
 		outData[0] = 1; //returning only one byte
-		outData[1] = (uint8_t)(temp);
+		outData[3] = (uint8_t)(temp);
 		return true;
 		break;
 	case 0xC: //Engine RPM (A * 256 + B) / 4
 		temp = motorController->getSpeedActual() * 4; //we store in RPM while the PID code wants quarter rpms
 		outData[0] = 2;
-		outData[1] = (uint8_t)(temp / 256);
-		outData[2] = (uint8_t)(temp);
+		outData[3] = (uint8_t)(temp / 256);
+		outData[4] = (uint8_t)(temp);
 		return true;
 		break;
 	case 0x11: //Throttle position (A * 100 / 255) - Percentage
@@ -130,79 +133,79 @@ bool OBD2Handler::processShowData(uint8_t pid, char *inData, char *outData) {
 		if (temp < 0) temp = 0; //negative throttle can't be shown for OBDII
 		temp = (255 * temp) / 100;
 		outData[0] = 1;
-		outData[1] = (uint8_t)(temp);
+		outData[3] = (uint8_t)(temp);
 		return true;
 		break;
 	case 0x1C: //Standard supported (We return 1 = OBDII)
 		outData[0] = 1;
-		outData[1] = 1;
+		outData[3] = 1;
 		return true;
 		break;
 	case 0x1F: //runtime since engine start (A*256 + B)
 		outData[0] = 2;
-		outData[1] = 0; //TODO: Get the actual runtime.
-		outData[2] = 0;
+		outData[3] = 0; //TODO: Get the actual runtime.
+		outData[4] = 0;
 		return true;
 		break;
 	case 0x20: //pids supported (next 32 pids - formatted just like PID 0)
 		outData[0] = 4;
-		outData[1] = 0b00000000; //pids 0x21 - 0x28 - starting with pid 0x21 in the MSB and going from there
-		outData[2] = 0b00000000; //pids 0x29 - 0x30
-		outData[3] = 0b00000000; //pids 0x31 - 0x38
-		outData[4] = 0b00000001; //pids 0x39 - 0x40
+		outData[3] = 0b00000000; //pids 0x21 - 0x28 - starting with pid 0x21 in the MSB and going from there
+		outData[4] = 0b00000000; //pids 0x29 - 0x30
+		outData[5] = 0b00000000; //pids 0x31 - 0x38
+		outData[6] = 0b00000001; //pids 0x39 - 0x40
 		return true;
 		break;
 	case 0x21: //Distance traveled with fault light lit (A*256 + B) - In km
 		outData[0] = 2;
-		outData[1] = 0; //TODO: Can we get this information?
-		outData[2] = 0;
+		outData[3] = 0; //TODO: Can we get this information?
+		outData[4] = 0;
 		return true;
 		break;
 	case 0x2F: //Fuel level (A * 100 / 255) - Percentage
 		outData[0] = 1;
-		outData[1] = 0; //TODO: finish BMS interface and get this value
+		outData[3] = 0; //TODO: finish BMS interface and get this value
 		return true;
 		break;
 	case 0x40: //PIDs supported, next 32
 		outData[0] = 4;
-		outData[1] = 0b00000000; //pids 0x41 - 0x48 - starting with pid 0x41 in the MSB and going from there
-		outData[2] = 0b00000000; //pids 0x49 - 0x50
-		outData[3] = 0b10000000; //pids 0x51 - 0x58
-		outData[4] = 0b00000001; //pids 0x59 - 0x60
+		outData[3] = 0b00000000; //pids 0x41 - 0x48 - starting with pid 0x41 in the MSB and going from there
+		outData[4] = 0b00000000; //pids 0x49 - 0x50
+		outData[5] = 0b10000000; //pids 0x51 - 0x58
+		outData[6] = 0b00000001; //pids 0x59 - 0x60
 		return true;
 		break;
 	case 0x51: //What type of fuel do we use? (We use 8 = electric, presumably.)
 		outData[0] = 1;
-		outData[1] = 8;
+		outData[3] = 8;
 		return true;
 		break;
 	case 0x60: //PIDs supported, next 32
 		outData[0] = 4;
-		outData[1] = 0b11100000; //pids 0x61 - 0x68 - starting with pid 0x61 in the MSB and going from there
-		outData[2] = 0b00000000; //pids 0x69 - 0x70
-		outData[3] = 0b00000000; //pids 0x71 - 0x78
-		outData[4] = 0b00000000; //pids 0x79 - 0x80
+		outData[3] = 0b11100000; //pids 0x61 - 0x68 - starting with pid 0x61 in the MSB and going from there
+		outData[4] = 0b00000000; //pids 0x69 - 0x70
+		outData[5] = 0b00000000; //pids 0x71 - 0x78
+		outData[6] = 0b00000000; //pids 0x79 - 0x80
 		return true;
 		break;
 	case 0x61: //Driver requested torque (A-125) - Percentage
 		temp = (100 * motorController->getTorqueRequested()) / motorController->getTorqueAvailable();
 		temp += 125;
 		outData[0] = 1;
-		outData[1] = (uint8_t)temp;
+		outData[3] = (uint8_t)temp;
 		return true;
 		break;
 	case 0x62: //Actual Torque delivered (A-125) - Percentage
 		temp = (100 * motorController->getTorqueActual()) / motorController->getTorqueAvailable();
 		temp += 125;
 		outData[0] = 1;
-		outData[1] = (uint8_t)temp;
+		outData[3] = (uint8_t)temp;
 		return true;
 		break;
 	case 0x63: //Reference torque for engine - presumably max torque - A*256 + B - Nm
 		temp = motorController->getTorqueAvailable();
 		outData[0] = 2;
-		outData[1] = (uint8_t)(temp / 256);
-		outData[2] = (uint8_t)(temp & 0xFF);
+		outData[3] = (uint8_t)(temp / 256);
+		outData[4] = (uint8_t)(temp & 0xFF);
 		return true;
 		break;
 	}

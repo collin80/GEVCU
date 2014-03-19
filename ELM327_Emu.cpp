@@ -227,15 +227,25 @@ void ELM327Emu::processCmd() {
 			char out[6];
 			char buff[10];
 			if (obd2Handler->processRequest(mode, pidnum, NULL, out)) {
+				/* //version for ATH1
+				retString.concat("7E8");
+				for (int i = 0; i <= out[0]; i++) {
+					sprintf(buff, "%02X", out[i]);
+					retString.concat(buff);
+				}
+				*/
+
+				//version for ATH0
 				mode += 0x40;
 				sprintf(buff, "%02X", mode);
 				retString.concat(buff);
 				sprintf(buff, "%02X", pidnum);
 				retString.concat(buff);
 				for (int i = 1; i <= out[0]; i++) {
-					sprintf(buff, "%02X", out[i]);
+					sprintf(buff, "%02X", out[i+2]);
 					retString.concat(buff);
 				}
+
 				retString.concat("\r");
 			}
 		}
