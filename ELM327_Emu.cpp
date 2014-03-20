@@ -223,6 +223,7 @@ void ELM327Emu::processCmd() {
 			if (obd2Handler->processRequest(mode, pidnum, NULL, out)) {
 				if (bHeader) {
 					retString.concat("7E8");
+					out[0] += 2; //not sending only data bits but mode and pid too
 					for (int i = 0; i <= out[0]; i++) {
 						sprintf(buff, "%02X", out[i]);
 						retString.concat(buff);

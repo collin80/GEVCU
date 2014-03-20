@@ -30,6 +30,8 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 #include "OBD2Handler.h"
 
+OBD2Handler *OBD2Handler::instance = NULL;
+
 OBD2Handler::OBD2Handler() {
 
 	motorController = (MotorController*) DeviceManager::getInstance()->getMotorController();
