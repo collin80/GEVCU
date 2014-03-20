@@ -49,6 +49,9 @@ void ELM327Emu::setup() {
 	//because it serves a similar function and has similar timing requirements
 	TickHandler::getInstance()->attach(this, CFG_TICK_INTERVAL_WIFI);
 
+	bLineFeed = false;
+	bHeader = false;
+
 	obd2Handler = OBD2Handler::getInstance();
 }
 
@@ -141,79 +144,70 @@ void ELM327Emu::loop() {
 /*
 *	There is no need to pass the string in here because it is local to the class so this function can grab it by default
 *	But, for reference, this cmd processes the command in incomingBuffer
-
-AT E0 (turn echo off)
-AT H (0/1) - Turn headers on or off - headers are used to determine how many ECU’s present (hint: only send one response to 0100 and emulate a single ECU system to save time coding)
-AT L0 (Turn linefeeds off - just use CR)
-AT Z (reset)
-AT SH - Set header address - seems to set the ECU address to send to (though you may be able to ignore this if you wish)
-AT @1 - Display device description - ELM327 returns: Designed by Andy Honecker 2011
-AT I - Cause chip to output its ID: ELM327 says: ELM327 v1.3a
-AT AT (0/1/2) - Set adaptive timing (though you can ignore this)
-AT SP (set protocol) - you can ignore this
-AT DP (get protocol by name) - (always return can11/500)
-AT DPN (get protocol by number) - (always return 6)
-AT RV (adapter voltage) - Send something like 14.4V
-
-
 */
 void ELM327Emu::processCmd() {
 	String retString = String();
+	String lineEnding;
+	if (bLineFeed) lineEnding = String("\r\n");
+		else lineEnding = String("\r");
 
 	if (!strncmp(incomingBuffer, "at", 2)) {
 
-		if (!strcmp(incomingBuffer, "atz")) {
-	 		retString.concat("\r\nELM327 v1.3a\r");
+		if (!strcmp(incomingBuffer, "atz")) { //reset hardware
+			retString.concat(lineEnding);
+	 		retString.concat("ELM327 v1.3a");
 		}
-		else if (!strncmp(incomingBuffer, "atsh",4)) {
+		else if (!strncmp(incomingBuffer, "atsh",4)) { //set header address
 			//ignore this - just say OK
-			retString.concat("OK\r");
+			retString.concat("OK");
 		}
-		else if (!strncmp(incomingBuffer, "ate",3)) {
+		else if (!strncmp(incomingBuffer, "ate",3)) { //turn echo on/off
 			//could support echo but I don't see the need, just ignore this
-			retString.concat("OK\r");
+			retString.concat("OK");
 		}
-		else if (!strncmp(incomingBuffer, "ath",3)) {
-			//turn headers on/off - try to ignore for now
-			retString.concat("OK\r");
+		else if (!strncmp(incomingBuffer, "ath",3)) { //turn headers on/off
+			if (incomingBuffer[3] == '1') bHeader = true;
+				else bHeader = false;
+			retString.concat("OK");
 		}
-		else if (!strncmp(incomingBuffer, "atl",3)) {
-			//whether or not to send linefeeds as well. Can we ignore this?
-			retString.concat("OK\r");
+		else if (!strncmp(incomingBuffer, "atl",3)) { //turn linefeeds on/off
+			if (incomingBuffer[3] == '1') bLineFeed = true;
+				else bLineFeed = false;
+			retString.concat("OK");
 		}
-		else if (!strcmp(incomingBuffer, "at@1")) {
-			retString.concat("ELM327 Emulator\r");
+		else if (!strcmp(incomingBuffer, "at@1")) { //send device description
+			retString.concat("ELM327 Emulator");
 		}
-		else if (!strcmp(incomingBuffer, "ati")) {
-			retString.concat("ELM327 v1.3a\r");
+		else if (!strcmp(incomingBuffer, "ati")) { //send chip ID
+			retString.concat("ELM327 v1.3a");
 		}
-		else if (!strncmp(incomingBuffer, "atat",4)) {
+		else if (!strncmp(incomingBuffer, "atat",4)) { //set adaptive timing
 			//don't intend to support adaptive timing at all
-			retString.concat("OK\r");
+			retString.concat("OK");
 		}
-		else if (!strncmp(incomingBuffer, "atsp",4)) {
+		else if (!strncmp(incomingBuffer, "atsp",4)) { //set protocol 
 			//theoretically we can ignore this
-			retString.concat("OK\r");
+			retString.concat("OK");
 		}
-		else if (!strcmp(incomingBuffer, "atdp")) {
-			retString.concat("can11/500\r");
+		else if (!strcmp(incomingBuffer, "atdp")) { //show description of protocol
+			retString.concat("can11/500");
 		}
-		else if (!strcmp(incomingBuffer, "atdpn")) {
-			retString.concat("6\r");
+		else if (!strcmp(incomingBuffer, "atdpn")) { //show protocol number (same as passed to sp)
+			retString.concat("6");
 		}
-		else if (!strcmp(incomingBuffer, "atd")) {
-			retString.concat("OK\r");
+		else if (!strcmp(incomingBuffer, "atd")) { //set to defaults
+			retString.concat("OK");
 		}
-		else if (!strncmp(incomingBuffer, "atm", 3)) {
-			retString.concat("OK\r");
+		else if (!strncmp(incomingBuffer, "atm", 3)) { //turn memory on/off
+			retString.concat("OK");
 		}
-		else if (!strcmp(incomingBuffer, "atrv")) {
+		else if (!strcmp(incomingBuffer, "atrv")) { //show 12v rail voltage
 			//TODO: the system should actually have this value so it wouldn't hurt to
 			//look it up and report the real value.
-			retString.concat("14.2V\r");
+			retString.concat("14.2V");
 		}
 		else { //by default respond to anything not specifically handled by just saying OK and pretending.
-			retString.concat("OK\r");
+			retString.concat("OK");
 		}
 	}
 	else { //if no AT then assume it is a PID request. This takes the form of four bytes which form the alpha hex digit encoding for two bytes
@@ -227,30 +221,29 @@ void ELM327Emu::processCmd() {
 			char out[6];
 			char buff[10];
 			if (obd2Handler->processRequest(mode, pidnum, NULL, out)) {
-				/* //version for ATH1
-				retString.concat("7E8");
-				for (int i = 0; i <= out[0]; i++) {
-					sprintf(buff, "%02X", out[i]);
-					retString.concat(buff);
+				if (bHeader) {
+					retString.concat("7E8");
+					for (int i = 0; i <= out[0]; i++) {
+						sprintf(buff, "%02X", out[i]);
+						retString.concat(buff);
+					}
 				}
-				*/
-
-				//version for ATH0
-				mode += 0x40;
-				sprintf(buff, "%02X", mode);
-				retString.concat(buff);
-				sprintf(buff, "%02X", pidnum);
-				retString.concat(buff);
-				for (int i = 1; i <= out[0]; i++) {
-					sprintf(buff, "%02X", out[i+2]);
+				else {
+					mode += 0x40;
+					sprintf(buff, "%02X", mode);
 					retString.concat(buff);
+					sprintf(buff, "%02X", pidnum);
+					retString.concat(buff);
+					for (int i = 1; i <= out[0]; i++) {
+						sprintf(buff, "%02X", out[i+2]);
+						retString.concat(buff);
+					}
 				}
-
-				retString.concat("\r");
 			}
 		}
 	}
 
+	retString.concat(lineEnding);
 	retString.concat(">"); //prompt to show we're ready to receive again
 
 	serialInterface->print(retString);

@@ -91,6 +91,8 @@ class ELM327Emu : public Device {
     int ibWritePtr;
 	int currReply;
 	char buffer[30]; // a buffer for various string conversions
+	bool bLineFeed;
+	bool bHeader;
 
 	void processCmd();
 };
