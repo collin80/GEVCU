@@ -151,8 +151,8 @@ bool OBD2Handler::processShowData(uint8_t pid, char *inData, char *outData) {
 		break;
 	case 0x20: //pids supported (next 32 pids - formatted just like PID 0)
 		outData[0] = 4;
-		outData[3] = 0b00000000; //pids 0x21 - 0x28 - starting with pid 0x21 in the MSB and going from there
-		outData[4] = 0b00000000; //pids 0x29 - 0x30
+		outData[3] = 0b10000000; //pids 0x21 - 0x28 - starting with pid 0x21 in the MSB and going from there
+		outData[4] = 0b00000010; //pids 0x29 - 0x30
 		outData[5] = 0b00000000; //pids 0x31 - 0x38
 		outData[6] = 0b00000001; //pids 0x39 - 0x40
 		return true;
