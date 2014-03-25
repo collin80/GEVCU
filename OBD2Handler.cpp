@@ -51,6 +51,7 @@ Public method to process OBD2 requests.
 	inData is whatever payload the request might need to have sent - it's OK to be NULL if this is a run of the mill PID request with no payload
 	outData should be a preallocated buffer of at least 6 bytes. The format is as follows:
 	outData[0] is the length of the data actually returned
+	outData[1] is the returned mode (input mode + 0x40) 
 	there after, the rest of the bytes are the data requested. This should be 1-5 bytes
 */
 bool OBD2Handler::processRequest(uint8_t mode, uint8_t pid, char *inData, char *outData) {
