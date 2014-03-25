@@ -86,6 +86,8 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 extern PrefHandler *sysPrefs;
 
+enum ICHIP_COMM_STATE {IDLE, GET_PARAM, SET_PARAM, START_TCP_LISTENER, GET_ACTIVE_SOCKETS, POLL_SOCKET, SEND_SOCKET, GET_SOCKET};
+
 /*
  * The extended configuration class with additional parameters for ichip WLAN
  */
@@ -122,6 +124,11 @@ struct ParamCache {
 	int16_t mechPower;
 };
 
+struct ParamSendBuff {
+	String paramName;
+	String value;
+};
+
 class ICHIPWIFI : public Device {
     public:
     
@@ -134,6 +141,7 @@ class ICHIPWIFI : public Device {
     DeviceId getId();
     void loop();
     char *getTimeRunning();
+	
 
 	void loadConfiguration();
 	void saveConfiguration();
@@ -141,11 +149,19 @@ class ICHIPWIFI : public Device {
     private:
     USARTClass* serialInterface; //Allows for retargetting which serial port we use
     char incomingBuffer[128]; //storage for one incoming line
-    int tickCounter;
-    int ibWritePtr;
+    int ibWritePtr; //write position into above buffer
+	ParamSendBuff paramSendingBuffer[32];
+	int psWritePtr;
+	int psReadPtr;
+	int tickCounter;
 	int currReply;
 	char buffer[30]; // a buffer for various string conversions
 	ParamCache paramCache;
+	ICHIP_COMM_STATE state;
+	bool didParamLoad;
+	bool didTCPListener;
+	int listeningSocket;
+	int activeSockets[4]; //support for four sockets. Lowest byte is socket #, next byte is size of data waiting in that socket
 
     void getNextParam(); //get next changed parameter
     void getParamById(String paramName); //try to retrieve the value of the given parameter

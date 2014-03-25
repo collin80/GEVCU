@@ -39,6 +39,15 @@ void ICHIPWIFI::setup() {
 
 	tickCounter = 0;
 	ibWritePtr = 0;
+	psWritePtr = 0;
+	psReadPtr = 0;
+	listeningSocket = 0;
+
+	state = IDLE;
+
+	didParamLoad = false;
+	didTCPListener = false;
+
 	serialInterface->begin(115200);
 
 	paramCache.brakeNotAvailable = true;
@@ -60,6 +69,7 @@ void ICHIPWIFI::sendCmd(String cmd) {
  * Periodic updates of parameters to ichip RAM.
  * Also query for changed parameters of the config page.
  */
+//TODO: See the processing function below for a more detailed explanation - can't send so many setParam commands in a row
 void ICHIPWIFI::handleTick() {
 	MotorController* motorController = DeviceManager::getInstance()->getMotorController();
 	Throttle *accelerator = DeviceManager::getInstance()->getAccelerator();
@@ -68,8 +78,16 @@ void ICHIPWIFI::handleTick() {
 	tickCounter++;
 
 	// Do a delayed parameter load once about a second after startup
-	if ( ms > 1000 && ms < 1500) {
+	if (!didParamLoad && ms > 1000) {
 		loadParameters();
+		didParamLoad = true;
+	}
+
+	//At 2 seconds start up a listening socket for OBDII
+	if (!didTCPListener && ms > 2000) {
+		sendCmd("LTCP:2000,4");
+		state = START_TCP_LISTENER;
+		didTCPListener = true;
 	}
 
 	// make small slices so the main loop is not blocked for too long
@@ -196,6 +214,8 @@ void ICHIPWIFI::handleTick() {
 
 /*
  * Calculate the runtime in hh:mm:ss
+   This runtime calculation is good for about 50 days of uptime.
+   Of course, the sprintf is only good to 99 hours so that's a bit less time.
  */
 char *ICHIPWIFI::getTimeRunning() {
 	uint32_t ms = millis();
@@ -234,28 +254,44 @@ void ICHIPWIFI::handleMessage(uint32_t messageType, void* message) {
  * The result will be processed in loop() -> processParameterChange()
  */
 void ICHIPWIFI::getNextParam() {
+	if (state != IDLE) return; //don't interrupt a pending request to the ichip module
 	sendCmd("WNXT"); //send command to get next changed parameter
+	state = GET_PARAM;
 }
 
 /*
  * Try to retrieve the value of the given parameter.
  */
 void ICHIPWIFI::getParamById(String paramName) {
+	if (state != IDLE) return; //don't interrupt a pending request to the ichip module
 	serialInterface->write(Constants::ichipCommandPrefix);
 	serialInterface->print(paramName);
 	serialInterface->print("?");
 	serialInterface->write(13);
+	state = GET_PARAM;
 }
 
 /*
  * Set a parameter to the given string value
  */
+//TODO: Watch out! The buffer directly references String values. The problem is, I have no idea how the ARM compiler
+//handles this. Do the assignments below invoke the copy constructor? Do they just copy the reference over? This might
+//not work. It should use the copy constructor but verify this!
 void ICHIPWIFI::setParam(String paramName, String value) {
-	serialInterface->write(Constants::ichipCommandPrefix);
-	serialInterface->print(paramName);
-	serialInterface->write("=\"");
-	serialInterface->print(value);
-	serialInterface->write("\"\r");
+
+	if (state != IDLE) { //if the comm is tied up then buffer this parameter for sending later
+		paramSendingBuffer[psWritePtr].paramName = paramName;
+		paramSendingBuffer[psWritePtr].value = value;
+		psWritePtr = (psWritePtr + 1) & 31;
+	}
+	else { //otherwise, go ahead and blast away
+		serialInterface->write(Constants::ichipCommandPrefix);
+		serialInterface->print(paramName);
+		serialInterface->write("=\"");
+		serialInterface->print(value);
+		serialInterface->write("\"\r");
+		state = SET_PARAM;
+	}
 }
 
 /*
@@ -275,7 +311,7 @@ void ICHIPWIFI::setParam(String paramName, uint32_t value) {
 }
 
 /*
- * Set a parameter to the given int16 value
+ * Set a parameter to the given sint16 value
  */
 void ICHIPWIFI::setParam(String paramName, int16_t value) {
 	sprintf(buffer, "%d", value);
@@ -283,7 +319,7 @@ void ICHIPWIFI::setParam(String paramName, int16_t value) {
 }
 
 /*
- * Set a parameter to the given unit16 value
+ * Set a parameter to the given uint16 value
  */
 void ICHIPWIFI::setParam(String paramName, uint16_t value) {
 	sprintf(buffer, "%d", value);
@@ -291,7 +327,7 @@ void ICHIPWIFI::setParam(String paramName, uint16_t value) {
 }
 
 /*
- * Set a parameter to the given unit16 value
+ * Set a parameter to the given uint8 value
  */
 void ICHIPWIFI::setParam(String paramName, uint8_t value) {
 	sprintf(buffer, "%d", value);
@@ -333,7 +369,7 @@ ICHIPWIFI::ICHIPWIFI(USARTClass *which) {
  * Called in the main loop (hopefully) in order to process serial input waiting for us
  * from the wifi module. It should always terminate its answers with 13 so buffer
  * until we get 13 (CR) and then process it.
- * But, for now just echo stuff to our serial port for debugging
+ * 
  */
 
 void ICHIPWIFI::loop() {
@@ -344,12 +380,49 @@ void ICHIPWIFI::loop() {
 			if (incoming == 13 || ibWritePtr > 126) { // on CR or full buffer, process the line
 				incomingBuffer[ibWritePtr] = 0; //null terminate the string
 				ibWritePtr = 0; //reset the write pointer
-				if (strchr(incomingBuffer, '=') && (strncmp(incomingBuffer, Constants::ichipCommandPrefix, 4) != 0))
-					processParameterChange(incomingBuffer);
-				else if (strchr(incomingBuffer, ','))
+				//what we do with the input depends on what state the ICHIP comm was set to.
+				switch (state) {
+				case GET_PARAM: //reply from an attempt to read changed parameters from ichip
+					if (strchr(incomingBuffer, '=') && (strncmp(incomingBuffer, Constants::ichipCommandPrefix, 4) != 0))
+						processParameterChange(incomingBuffer);
+					break;
+				case SET_PARAM: //reply from sending parameters to the ichip
+					break;
+				case START_TCP_LISTENER: //reply from turning on a listening socket
+					   //reply hopefully has the listening socket #.
+					   if (strcmp(incomingBuffer, Constants::ichipErrorString)) {
+						   listeningSocket = atoi(&incomingBuffer[2]);
+						   if (listeningSocket < 10) listeningSocket = 0;
+						   if (listeningSocket > 11) listeningSocket = 0;
+					   }
+					break;
+				case GET_ACTIVE_SOCKETS: //reply from asking for active connections
+					break;
+				case POLL_SOCKET: //reply from asking about state of socket and how much data it has
+					break;
+				case SEND_SOCKET: //reply from sending data over a socket
+					break;
+				case GET_SOCKET: //reply requesting the data pending on a socket
+					break;
+				case IDLE: //not sure whether to leave this info or go to debug. The ichip shouldn't be sending things in idle state
+				default:
 					Logger::info(ICHIP2128, incomingBuffer);
-				else if (Logger::isDebug())
+					break;
+
+				}		
+				if (Logger::isDebug())
 					Logger::debug(ICHIP2128, incomingBuffer);
+				//no matter what we got a reply so always set back to IDLE state since the previous command is done.
+				state = IDLE;
+				if (psReadPtr != psWritePtr) { //if there is a parameter to send then do it
+					serialInterface->write(Constants::ichipCommandPrefix);
+					serialInterface->print(paramSendingBuffer[psReadPtr].paramName);
+					serialInterface->write("=\"");
+					serialInterface->print(paramSendingBuffer[psReadPtr].value);
+					serialInterface->write("\"\r");
+					state = SET_PARAM;
+					psReadPtr = (psReadPtr + 1) & 31;
+				}
 			} else { // add more characters
 				if (incoming != 10) // don't add a LF character
 					incomingBuffer[ibWritePtr++] = (char) incoming;
@@ -464,7 +537,7 @@ void ICHIPWIFI::processParameterChange(char *key) {
 
 /*
  * Get parameters from devices and forward them to ichip.
- * This is required to initially set-up the
+ * This is required to initially set-up the ichip
  */
 void ICHIPWIFI::loadParameters() {
 	MotorController *motorController = DeviceManager::getInstance()->getMotorController();
