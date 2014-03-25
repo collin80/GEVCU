@@ -55,15 +55,29 @@ void ICHIPWIFI::setup() {
 	TickHandler::getInstance()->attach(this, CFG_TICK_INTERVAL_WIFI);
 }
 
+//A version of sendCmd that defaults to SET_PARAM which is what most of the code used to assume.
+void ICHIPWIFI::sendCmd(String cmd) {
+	sendCmd(cmd, SET_PARAM);
+}
+
 /*
  * Send a command to ichip. The "AT+i" part will be added.
+ * If the comm channel is busy it buffers the command
  */
-void ICHIPWIFI::sendCmd(String cmd) {
-	serialInterface->write(Constants::ichipCommandPrefix);
-	serialInterface->print(cmd);
-	serialInterface->write(13);
-	loop(); // parse the response
+void ICHIPWIFI::sendCmd(String cmd, ICHIP_COMM_STATE cmdstate) {
+	if (state != IDLE) { //if the comm is tied up then buffer this parameter for sending later
+		sendingBuffer[psWritePtr].cmd = cmd;
+		sendingBuffer[psWritePtr].state = cmdstate;
+		psWritePtr = (psWritePtr + 1) & 31;
+	}
+	else { //otherwise, go ahead and blast away
+		serialInterface->write(Constants::ichipCommandPrefix);
+		serialInterface->print(cmd);
+		serialInterface->write(13);
+		state = cmdstate;
+	}
 }
+
 
 /*
  * Periodic updates of parameters to ichip RAM.
@@ -85,8 +99,7 @@ void ICHIPWIFI::handleTick() {
 
 	//At 2 seconds start up a listening socket for OBDII
 	if (!didTCPListener && ms > 2000) {
-		sendCmd("LTCP:2000,4");
-		state = START_TCP_LISTENER;
+		sendCmd("LTCP:2000,4", START_TCP_LISTENER);
 		didTCPListener = true;
 	}
 
@@ -254,44 +267,21 @@ void ICHIPWIFI::handleMessage(uint32_t messageType, void* message) {
  * The result will be processed in loop() -> processParameterChange()
  */
 void ICHIPWIFI::getNextParam() {
-	if (state != IDLE) return; //don't interrupt a pending request to the ichip module
-	sendCmd("WNXT"); //send command to get next changed parameter
-	state = GET_PARAM;
+	sendCmd("WNXT", GET_PARAM); //send command to get next changed parameter
 }
 
 /*
  * Try to retrieve the value of the given parameter.
  */
 void ICHIPWIFI::getParamById(String paramName) {
-	if (state != IDLE) return; //don't interrupt a pending request to the ichip module
-	serialInterface->write(Constants::ichipCommandPrefix);
-	serialInterface->print(paramName);
-	serialInterface->print("?");
-	serialInterface->write(13);
-	state = GET_PARAM;
+	sendCmd(paramName + "?", GET_PARAM);
 }
 
 /*
  * Set a parameter to the given string value
  */
-//TODO: Watch out! The buffer directly references String values. The problem is, I have no idea how the ARM compiler
-//handles this. Do the assignments below invoke the copy constructor? Do they just copy the reference over? This might
-//not work. It should use the copy constructor but verify this!
 void ICHIPWIFI::setParam(String paramName, String value) {
-
-	if (state != IDLE) { //if the comm is tied up then buffer this parameter for sending later
-		paramSendingBuffer[psWritePtr].paramName = paramName;
-		paramSendingBuffer[psWritePtr].value = value;
-		psWritePtr = (psWritePtr + 1) & 31;
-	}
-	else { //otherwise, go ahead and blast away
-		serialInterface->write(Constants::ichipCommandPrefix);
-		serialInterface->print(paramName);
-		serialInterface->write("=\"");
-		serialInterface->print(value);
-		serialInterface->write("\"\r");
-		state = SET_PARAM;
-	}
+    sendCmd(paramName + "=\"" + value + "\"", SET_PARAM);
 }
 
 /*
@@ -415,12 +405,7 @@ void ICHIPWIFI::loop() {
 				//no matter what we got a reply so always set back to IDLE state since the previous command is done.
 				state = IDLE;
 				if (psReadPtr != psWritePtr) { //if there is a parameter to send then do it
-					serialInterface->write(Constants::ichipCommandPrefix);
-					serialInterface->print(paramSendingBuffer[psReadPtr].paramName);
-					serialInterface->write("=\"");
-					serialInterface->print(paramSendingBuffer[psReadPtr].value);
-					serialInterface->write("\"\r");
-					state = SET_PARAM;
+					sendCmd(sendingBuffer[psReadPtr].cmd, sendingBuffer[psReadPtr].state);
 					psReadPtr = (psReadPtr + 1) & 31;
 				}
 			} else { // add more characters

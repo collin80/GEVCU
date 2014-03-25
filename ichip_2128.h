@@ -124,9 +124,9 @@ struct ParamCache {
 	int16_t mechPower;
 };
 
-struct ParamSendBuff {
-	String paramName;
-	String value;
+struct SendBuff {
+	String cmd;
+	ICHIP_COMM_STATE state; 
 };
 
 class ICHIPWIFI : public Device {
@@ -150,7 +150,7 @@ class ICHIPWIFI : public Device {
     USARTClass* serialInterface; //Allows for retargetting which serial port we use
     char incomingBuffer[128]; //storage for one incoming line
     int ibWritePtr; //write position into above buffer
-	ParamSendBuff paramSendingBuffer[32];
+	SendBuff sendingBuffer[32];
 	int psWritePtr;
 	int psReadPtr;
 	int tickCounter;
@@ -173,6 +173,7 @@ class ICHIPWIFI : public Device {
     void setParam(String paramName, uint8_t value);
     void setParam(String paramName, float value, int precision);
     void sendCmd(String cmd);
+	void sendCmd(String cmd, ICHIP_COMM_STATE cmdstate);
     void processParameterChange(char *response);
     void loadParameters();
 };
