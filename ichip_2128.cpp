@@ -43,6 +43,11 @@ void ICHIPWIFI::setup() {
 	psReadPtr = 0;
 	listeningSocket = 0;
 
+	activeSockets[0] = -1;
+	activeSockets[1] = -1;
+	activeSockets[2] = -1;
+	activeSockets[3] = -1;
+
 	state = IDLE;
 
 	didParamLoad = false;
@@ -69,12 +74,20 @@ void ICHIPWIFI::sendCmd(String cmd, ICHIP_COMM_STATE cmdstate) {
 		sendingBuffer[psWritePtr].cmd = cmd;
 		sendingBuffer[psWritePtr].state = cmdstate;
 		psWritePtr = (psWritePtr + 1) & 31;
+		if (Logger::isDebug()) {
+			String temp = "Buffer cmd: " + cmd;
+			Logger::debug(ICHIP2128, (char *)temp.c_str());
+		}
 	}
 	else { //otherwise, go ahead and blast away
 		serialInterface->write(Constants::ichipCommandPrefix);
 		serialInterface->print(cmd);
 		serialInterface->write(13);
 		state = cmdstate;
+		if (Logger::isDebug()) {
+			String temp = "Send to ichip cmd: " + cmd;
+			Logger::debug(ICHIP2128, (char *)temp.c_str());
+		}
 	}
 }
 
@@ -88,12 +101,14 @@ void ICHIPWIFI::handleTick() {
 	MotorController* motorController = DeviceManager::getInstance()->getMotorController();
 	Throttle *accelerator = DeviceManager::getInstance()->getAccelerator();
 	Throttle *brake = DeviceManager::getInstance()->getBrake();
+	static int pollListening = 0;
 	uint32_t ms = millis();
+	char buff[6];
 	tickCounter++;
 
 	// Do a delayed parameter load once about a second after startup
 	if (!didParamLoad && ms > 1000) {
-		loadParameters();
+		//loadParameters();
 		didParamLoad = true;
 	}
 
@@ -102,6 +117,29 @@ void ICHIPWIFI::handleTick() {
 		sendCmd("LTCP:2000,4", START_TCP_LISTENER);
 		didTCPListener = true;
 	}
+
+	if (listeningSocket > 9) {
+		pollListening++;
+		if (pollListening > 8) {
+			pollListening = 0;
+			char buff[5];
+			sprintf(buff, "%u", listeningSocket);
+			String temp = "LSST:" + String(buff);
+			sendCmd(temp, GET_ACTIVE_SOCKETS);
+		}
+	}
+
+	//read any information waiting on active sockets
+	for (int c = 0; c < 4; c++) 
+		if (activeSockets[c] != -1) {
+			sprintf(buff, "%03i", activeSockets[c]);
+			String temp = "SRCV:" + String(buff) + ",80";
+			sendCmd(temp, GET_SOCKET);
+		}
+
+	//TODO:Testing line below. Remove it.
+	return;
+
 
 	// make small slices so the main loop is not blocked for too long
 	if (tickCounter == 1) {
@@ -364,6 +402,7 @@ ICHIPWIFI::ICHIPWIFI(USARTClass *which) {
 
 void ICHIPWIFI::loop() {
 	int incoming;
+	char buff[6];
 	while (serialInterface->available()) {
 		incoming = serialInterface->read();
 		if (incoming != -1) { //and there is no reason it should be -1
@@ -371,42 +410,79 @@ void ICHIPWIFI::loop() {
 				incomingBuffer[ibWritePtr] = 0; //null terminate the string
 				ibWritePtr = 0; //reset the write pointer
 				//what we do with the input depends on what state the ICHIP comm was set to.
-				switch (state) {
-				case GET_PARAM: //reply from an attempt to read changed parameters from ichip
-					if (strchr(incomingBuffer, '=') && (strncmp(incomingBuffer, Constants::ichipCommandPrefix, 4) != 0))
-						processParameterChange(incomingBuffer);
-					break;
-				case SET_PARAM: //reply from sending parameters to the ichip
-					break;
-				case START_TCP_LISTENER: //reply from turning on a listening socket
+				if (Logger::isDebug()) {
+					sprintf(buff, "%u", state);
+					String temp = "In Data, state: " + String(buff);
+					Logger::debug(ICHIP2128, (char *)temp.c_str());
+					temp = "Data from ichip: " + String(incomingBuffer);
+					Logger::debug(ICHIP2128, (char *)temp.c_str());
+
+				}
+
+				//The ichip echoes our commands back at us. The safer option might be to verify that the command
+				//we think we're about to process is really proper by validating the echo here. But, for now
+				//just ignore echoes.
+				if (strncmp(incomingBuffer, Constants::ichipCommandPrefix, 4) != 0) {
+					switch (state) {
+					case GET_PARAM: //reply from an attempt to read changed parameters from ichip
+						if (strchr(incomingBuffer, '='))
+							processParameterChange(incomingBuffer);
+						break;	
+					case SET_PARAM: //reply from sending parameters to the ichip
+						break;
+					case START_TCP_LISTENER: //reply from turning on a listening socket
 					   //reply hopefully has the listening socket #.
 					   if (strcmp(incomingBuffer, Constants::ichipErrorString)) {
 						   listeningSocket = atoi(&incomingBuffer[2]);
 						   if (listeningSocket < 10) listeningSocket = 0;
 						   if (listeningSocket > 11) listeningSocket = 0;
+						   if (Logger::isDebug()) {
+							   sprintf(buff, "%u", listeningSocket);
+							   Logger::debug(ICHIP2128, buff);
+						   }
 					   }
-					break;
-				case GET_ACTIVE_SOCKETS: //reply from asking for active connections
-					break;
-				case POLL_SOCKET: //reply from asking about state of socket and how much data it has
-					break;
-				case SEND_SOCKET: //reply from sending data over a socket
-					break;
-				case GET_SOCKET: //reply requesting the data pending on a socket
-					break;
-				case IDLE: //not sure whether to leave this info or go to debug. The ichip shouldn't be sending things in idle state
-				default:
-					Logger::info(ICHIP2128, incomingBuffer);
-					break;
+						break;
+					case GET_ACTIVE_SOCKETS: //reply from asking for active connections
+					    if (strcmp(incomingBuffer, Constants::ichipErrorString)) {
+						   activeSockets[0] = atoi(strtok(&incomingBuffer[3], ","));
+						   activeSockets[1] = atoi(strtok(NULL, ","));
+						   activeSockets[2] = atoi(strtok(NULL, ","));
+						   activeSockets[3] = atoi(strtok(NULL, ","));
+						   if (Logger::isDebug()) {
+							   sprintf(buff, "%i", activeSockets[0]);
+							   Logger::debug(ICHIP2128, buff);
+							   sprintf(buff, "%i", activeSockets[1]);
+							   Logger::debug(ICHIP2128, buff);
+							   sprintf(buff, "%i", activeSockets[2]);
+							   Logger::debug(ICHIP2128, buff);
+							   sprintf(buff, "%i", activeSockets[3]);
+							   Logger::debug(ICHIP2128, buff);
+						   }
+					    }
+					    break;
+					case POLL_SOCKET: //reply from asking about state of socket and how much data it has
+						break;
+					case SEND_SOCKET: //reply from sending data over a socket
+						break;
+					case GET_SOCKET: //reply requesting the data pending on a socket
+						break;
+					case IDLE: //not sure whether to leave this info or go to debug. The ichip shouldn't be sending things in idle state
+					default:
+						//Logger::info(ICHIP2128, incomingBuffer);
+						break;
 
-				}		
-				if (Logger::isDebug())
-					Logger::debug(ICHIP2128, incomingBuffer);
-				//no matter what we got a reply so always set back to IDLE state since the previous command is done.
-				state = IDLE;
-				if (psReadPtr != psWritePtr) { //if there is a parameter to send then do it
-					sendCmd(sendingBuffer[psReadPtr].cmd, sendingBuffer[psReadPtr].state);
-					psReadPtr = (psReadPtr + 1) & 31;
+					}
+
+					//if we got an I/ reply then the command is done sending data. So, see if there is a buffered cmd to send.
+					if (strncmp(incomingBuffer, "I/", 2) == 0) {
+						state = IDLE;
+						if (psReadPtr != psWritePtr) { //if there is a parameter to send then do it
+							String temp = "Sending buffered cmd: " + sendingBuffer[psReadPtr].cmd;
+							if (Logger::isDebug()) Logger::debug(ICHIP2128, (char *)temp.c_str());
+							sendCmd(sendingBuffer[psReadPtr].cmd, sendingBuffer[psReadPtr].state);
+							psReadPtr = (psReadPtr + 1) & 31;
+						}
+					}
 				}
 			} else { // add more characters
 				if (incoming != 10) // don't add a LF character
