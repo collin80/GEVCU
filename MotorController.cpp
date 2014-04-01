@@ -52,7 +52,6 @@ MotorController::MotorController() : Device() {
 	torqueAvailable = 0;
 	mechanicalPower = 0;
 
-	gearSwitch = GS_FAULT;
 	selectedGear = NEUTRAL;
 
 	dcVoltage = 0;
@@ -76,7 +75,7 @@ void MotorController::handleTick() {
 	uint8_t forwardSwitch, reverseSwitch;
 	MotorControllerConfiguration *config = (MotorControllerConfiguration *)getConfiguration();
 
-	gearSwitch = GS_FORWARD;
+	//gearSwitch = GS_FORWARD;
 
 	//Initializing annunciator panel
     // ready=0;
@@ -295,10 +294,6 @@ int16_t MotorController::getTorqueActual() {
 
 MotorController::Gears MotorController::getSelectedGear() {
 	return selectedGear;
-}
-
-MotorController::GearSwitch MotorController::getGearSwitch() {
-	return gearSwitch;
 }
 
 int16_t MotorController::getTorqueAvailable() {

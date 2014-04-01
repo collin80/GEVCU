@@ -80,7 +80,6 @@ public:
 	virtual void saveConfiguration();
 
 private:
-	Gears selectedGear;
 	Gears actualGear;
 	OperationState operationState; //the op state we want
 	OperationState actualState; //what the controller is reporting it is

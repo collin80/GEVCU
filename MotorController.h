@@ -62,18 +62,11 @@ public:
 class MotorController: public Device {
 
 public:
-    enum GearSwitch {
-        GS_NEUTRAL,
-        GS_FORWARD,
-        GS_REVERSE,
-        GS_FAULT
-    };
-	/*TODO: This duplicates GearSwitch above. There is no reason to have both so remove one of them*/
 	enum Gears {
 		NEUTRAL = 0,
 		DRIVE = 1,
 		REVERSE = 2,
-		ERROR = 3
+		ERROR = 3,
 	};
 
 	enum PowerMode {
@@ -128,7 +121,6 @@ public:
 	uint32_t getStatusBitfield3();
 	uint32_t getStatusBitfield4();
 
-	GearSwitch getGearSwitch();
 	Gears getSelectedGear();
 
 protected:
@@ -147,8 +139,6 @@ protected:
 	int16_t torqueRequested; // in 0.1 Nm
 	int16_t torqueActual; // in 0.1 Nm
 	int16_t torqueAvailable; // the maximum available torque in 0.1Nm
-
-    GearSwitch gearSwitch;
 
 	uint16_t dcVoltage; // DC voltage in 0.1 Volts
 	int16_t dcCurrent; // DC current in 0.1 Amps
