@@ -81,17 +81,16 @@ the end of the stardard data. The below numbers are offsets from the device's ee
 //#define EEMC_REGEN_SCALE		28 //1 byte - percentage - reduces all regen related values (throttle, brake, maximum above)
 #define EEMC_PRECHARGE_RELAY	29 //1 byte - 255 = no precharge relay 0-3 = yes, there is one (and the output is the number stored)
 #define EEMC_CONTACTOR_RELAY	30 //1 byte - 255 = no contactor relay 0-3 = yes there is
-//#define EEMC_COOLING			31 //1 byte - set point in C for starting up cooling relay
-//#define EEMC_MIN_TEMP_MOTOR		32 //2 bytes - signed int - Smallest value on temp gauge (1% PWM output)
-//#define EEMC_MAX_TEMP_MOTOR		34 //2 bytes - signed int - Highest value on temp gauge (99% PWM output)
-//#define EEMC_MIN_TEMP_INV		36 //2 bytes - signed int - Smallest value on temp gauge (1% PWM output)
+#define EEMC_COOL_FAN			31 //1 byte output controlling external cooling relay
+#define EEMC_COOL_ON	  		32 //1 bytes temperature at which external cooling is switched on
+#define EEMC_COOL_OFF			33 //1 byte temperature at which external cooling is switched off
 //#define EEMC_MAX_TEMP_INV		38 //2 bytes - signed int - Highest value on temp gauge (99% PWM output)
-#define EEMC_PRECHARGE_C		40 //2 bytes - capacitance of controller capacitor bank in micro farads (uf) - set to zero to disable RC precharge
-#define EEMC_PRECHARGE_R		42 //2 bytes - Resistance of precharge resistor in tenths of an ohm
-#define EEMC_NOMINAL_V			44 //2 bytes - nominal system voltage to expect (in tenths of a volt)
-#define EEMC_REVERSE_LIMIT		46 //2 bytes - a percentage to knock the requested torque down by while in reverse.
-#define EEMC_RPM_SLEW_RATE		48 //2 bytes - slew rate (rpm/sec) at which speed should change (only in speed mode)
-#define EEMC_TORQUE_SLEW_RATE	50 //2 bytes - slew rate (0.1Nm/sec) at which the torque should change
+#define EEMC_KILOWATTHRS		40 //4 bytes - capacitance of controller capacitor bank in micro farads (uf) - set to zero to disable RC precharge
+#define EEMC_PRECHARGE_R		44 //2 bytes - Resistance of precharge resistor in tenths of an ohm
+#define EEMC_NOMINAL_V			46 //2 bytes - nominal system voltage to expect (in tenths of a volt)
+#define EEMC_REVERSE_LIMIT		48 //2 bytes - a percentage to knock the requested torque down by while in reverse.
+#define EEMC_RPM_SLEW_RATE		50 //2 bytes - slew rate (rpm/sec) at which speed should change (only in speed mode)
+#define EEMC_TORQUE_SLEW_RATE	52 //2 bytes - slew rate (0.1Nm/sec) at which the torque should change
 
 //throttle data
 #define EETH_MIN_ONE			20 //2 bytes - ADC value of minimum value for first channel
@@ -191,9 +190,9 @@ the end of the stardard data. The below numbers are offsets from the device's ee
 #define EESYS_WIFIX_KEY         618 //40 bytes - the security key (13 bytes for WEP, 8 - 83 for WPA but only up to 40 here
 
 #define EESYS_LOG_LEVEL         658 //1 byte - the log level
-#define EESYS_COOLFAN			659 //1 byte - Digital output to turn on for cooling
-#define EESYS_COOLON			660 //1 byte - when to start cooling - degrees C
-#define EESYS_COOLOFF			661 //1 byte - when to stop cooling - degrees C
+#define EESYS_AMPHOURS			659 //1 byte - ???
+#define EESYS_xxx				660 //1 byte - 
+#define EESYS_xxxx				661 //1 byte - 
 
 #endif
 

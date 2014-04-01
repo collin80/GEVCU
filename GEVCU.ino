@@ -123,11 +123,6 @@ void initSysEEPROM() {
 	eight = 5; //how many RX mailboxes
 	sysPrefs->write(EESYS_CAN_RX_COUNT, eight);
 
-	eight = 0;
-	sysPrefs->write(EESYS_COOLFAN, eight);
-    sysPrefs->write(EESYS_COOLON, eight);
-    sysPrefs->write(EESYS_COOLOFF, eight);
-
 	thirtytwo = 0x7f0; //standard frame, ignore bottom 4 bits
 	sysPrefs->write(EESYS_CAN_MASK0, thirtytwo);
 	sysPrefs->write(EESYS_CAN_MASK1, thirtytwo);

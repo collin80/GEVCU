@@ -45,12 +45,6 @@ public:
 
 class DmocMotorController: public MotorController, CanObserver {
 public:
-	enum Gears {
-		NEUTRAL = 0,
-		DRIVE = 1,
-		REVERSE = 2,
-		ERROR = 3
-	};
 
 	enum Step {
 		SPEED_TORQUE,

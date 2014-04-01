@@ -115,12 +115,15 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #define	MaxRPMValue			6000 //DMOC will ignore this but we can use it ourselves for limiting
 #define RPMSlewRateValue	10000 // rpm/sec the requested speed should change (speed mode)
 #define TorqueSlewRateValue	6000 // 0.1Nm/sec the requested torque output should change (torque mode)
-#define PrechargeC			11000 //approximate C of DMOC input - in uF
-#define PrechargeR			500 //a stupidly high resistance just to make sure we precharge long enough
+#define KilowattHrs			11000 //not currently used
+#define PrechargeR			3000 //a stupidly high resistance just to make sure we precharge long enough
 #define NominalVolt			3300 //a reasonable figure for a lithium cell pack driving the DMOC (in tenths of a volt)
-#define PrechargeRelay		3 //third output
-#define MainContactorRelay	4 //fourth output
+#define PrechargeRelay		0 //third output
+#define MainContactorRelay	1 //fourth output
 #define ReversePercent		50
+#define CoolFan				7  //output to use for cooling fan
+#define CoolOn				70 //temperature (in C) to turn on cooling fan
+#define CoolOff				60 //temperature to turn it off
 
 #define MaxRegenWatts	20000 //in actual watts, there is no scale here
 #define MaxAccelWatts	150000

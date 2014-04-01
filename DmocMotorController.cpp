@@ -50,7 +50,6 @@ DmocMotorController::DmocMotorController() : MotorController() {
 	prefsHandler = new PrefHandler(DMOC645);
 
 	step = SPEED_TORQUE;
-	selectedGear = NEUTRAL;
 	operationState = DISABLED;
 	actualState = DISABLED;
 	online = 0;
@@ -104,6 +103,7 @@ void DmocMotorController::handleCanFrame(CAN_FRAME *frame) {
 			break;
 		case 2: //ready (standby)
 			actualState = STANDBY;
+			ready = true;
 			break;
 		case 3: //enabled
 			actualState = ENABLE;
@@ -146,6 +146,7 @@ void DmocMotorController::setup() {
 	CanHandler::getInstanceEV()->attach(this, 0x650, 0x7f0, false);
 
 	actualGear = NEUTRAL;
+	running = true;
 
 	TickHandler::getInstance()->attach(this, CFG_TICK_INTERVAL_MOTOR_CONTROLLER_DMOC);
 }

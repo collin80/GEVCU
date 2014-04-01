@@ -108,7 +108,14 @@ void ICHIPWIFI::handleTick() {
 
 	// Do a delayed parameter load once about a second after startup
 	if (!didParamLoad && ms > 1000) {
-		//loadParameters();
+		/*
+		loadParameters();
+        Logger::console("Wifi Parameters loaded...");
+        paramCache.bitfield1 = motorController->getStatusBitfield1();
+		setParam(Constants::bitfield1, paramCache.bitfield1);
+	    paramCache.bitfield2 = motorController->getStatusBitfield2();
+	    setParam(Constants::bitfield2, paramCache.bitfield2);
+		*/
 		didParamLoad = true;
 	}
 
@@ -144,6 +151,7 @@ void ICHIPWIFI::handleTick() {
 	// make small slices so the main loop is not blocked for too long
 	if (tickCounter == 1) {
 		if (motorController) {
+			//Logger::console("Wifi tick counter 1...");
 
 			// just update this every second or so
 			if ( ms > paramCache.timeRunning + 60000 ) {
@@ -180,6 +188,7 @@ void ICHIPWIFI::handleTick() {
 		}
 	} else if (tickCounter == 2) {
 		if (motorController) {
+			//Logger::console("Wifi tick counter 2...");
 			if ( paramCache.speedRequested != motorController->getSpeedRequested() ) {
 				paramCache.speedRequested = motorController->getSpeedRequested();
 				setParam(Constants::speedRequested, paramCache.speedRequested);
@@ -196,13 +205,41 @@ void ICHIPWIFI::handleTick() {
 				paramCache.dcCurrent = motorController->getDcCurrent();
 				setParam(Constants::dcCurrent, paramCache.dcCurrent / 10.0f, 1);
 			}
+			if ( paramCache.prechargeR != motorController->getprechargeR() ) {
+				paramCache.prechargeR = motorController->getprechargeR();
+				setParam(Constants::prechargeR, (uint16_t)paramCache.prechargeR);
+			}
+
+            if ( paramCache.prechargeRelay != motorController->getprechargeRelay() ) {
+				paramCache.prechargeRelay = motorController->getprechargeRelay();
+				setParam(Constants::prechargeRelay, (uint8_t) paramCache.prechargeRelay);
+				//Logger::console("Precharge Relay %i", paramCache.prechargeRelay);
+				//Logger::console("motorController:prechargeRelay:%d, paramCache.prechargeRelay:%d, Constants:prechargeRelay:%s", motorController->getprechargeRelay(),paramCache.prechargeRelay, Constants::prechargeRelay);
+			}
+
+            if ( paramCache.mainContactorRelay != motorController->getmainContactorRelay() ) {
+				paramCache.mainContactorRelay = motorController->getmainContactorRelay();
+				setParam(Constants::mainContactorRelay, (uint8_t) paramCache.mainContactorRelay);
+			}
 		}
 	} else if (tickCounter == 3) {
 		if (motorController) {
+			//Logger::console("Wifi tick counter 2...");
 			if ( paramCache.acCurrent != motorController->getAcCurrent() ) {
 				paramCache.acCurrent = motorController->getAcCurrent();
 				setParam(Constants::acCurrent, paramCache.acCurrent / 10.0f, 1);
 			}
+
+			//if ( paramCache.kiloWattHours != motorController->getkiloWattHours()/3600000 ) {
+				paramCache.kiloWattHours = motorController->getKiloWattHours()/3600000;
+				setParam(Constants::kiloWattHours, paramCache.kiloWattHours / 10.0f, 1);
+			//}
+                       
+            if ( paramCache.nominalVolt != motorController->getnominalVolt()/10 ){
+				paramCache.nominalVolt = motorController->getnominalVolt()/10;
+				setParam(Constants::nominalVolt, paramCache.nominalVolt);
+			}
+
 			if ( paramCache.bitfield1 != motorController->getStatusBitfield1() ) {
 				paramCache.bitfield1 = motorController->getStatusBitfield1();
 				setParam(Constants::bitfield1, paramCache.bitfield1);
@@ -222,6 +259,7 @@ void ICHIPWIFI::handleTick() {
 		}
 	} else if (tickCounter == 4) {
 		if (motorController) {
+			// Logger::console("Wifi tick counter 4...");
 			if ( paramCache.running != motorController->isRunning() ) {
 				paramCache.running = motorController->isRunning();
 				setParam(Constants::running, (paramCache.running ? Constants::trueStr : Constants::falseStr));
@@ -234,13 +272,28 @@ void ICHIPWIFI::handleTick() {
 				paramCache.warning = motorController->isWarning();
 				setParam(Constants::warning, (paramCache.warning ? Constants::trueStr : Constants::falseStr));
 			}
-			if ( paramCache.gear != motorController->getGearSwitch() ) {
-				paramCache.gear = motorController->getGearSwitch();
-				setParam(Constants::gear, (uint16_t) paramCache.gear);
+			if ( paramCache.gear != motorController->getSelectedGear() ) {
+				paramCache.gear = motorController->getSelectedGear();
+				setParam(Constants::gear, (uint16_t)paramCache.gear);
+			}
+
+			if ( paramCache.coolFan != motorController->getCoolFan() ) {
+				paramCache.coolFan = motorController->getCoolFan();
+				setParam(Constants::coolFan, (uint8_t) paramCache.coolFan);
+			}
+
+            if ( paramCache.coolOn != motorController->getCoolOn() ) {
+				paramCache.coolOn = motorController->getCoolOn();
+				setParam(Constants::coolOn, (uint8_t) paramCache.coolOn);
+			}
+            if ( paramCache.coolOff != motorController->getCoolOff() ) {
+				paramCache.coolOff = motorController->getCoolOff();
+				setParam(Constants::coolOff, (uint8_t) paramCache.coolOff);
 			}
 		}
 	} else if (tickCounter > 4) {
 		if (motorController) {
+			// Logger::console("Wifi tick counter 5...");
 			if ( paramCache.tempMotor != motorController->getTemperatureMotor() ) {
 				paramCache.tempMotor = motorController->getTemperatureMotor();
 				setParam(Constants::tempMotor, paramCache.tempMotor / 10.0f, 1);
@@ -582,6 +635,30 @@ void ICHIPWIFI::processParameterChange(char *key) {
 	} else if (!strcmp(key, Constants::torqueMax) && motorConfig) {
 		motorConfig->torqueMax = atol(value) * 10;
 		motorController->saveConfiguration();
+    } else if (!strcmp(key, Constants::coolFan) && motorConfig) {
+		motorConfig->coolFan = atol(value);
+		motorController->saveConfiguration();
+	} else if (!strcmp(key, Constants::coolOn) && motorConfig) {
+		motorConfig->coolOn = atol(value);
+		motorController->saveConfiguration();
+	} else if (!strcmp(key, Constants::coolOff) && motorConfig) {
+		motorConfig->coolOff = atol(value);
+		motorController->saveConfiguration();
+    } else if (!strcmp(key, Constants::prechargeR) && motorConfig) {
+		motorConfig->prechargeR = atol(value);
+		motorController->saveConfiguration(); 
+    } else if (!strcmp(key, Constants::nominalVolt) && motorConfig) {
+		motorConfig->nominalVolt = (atol(value))*10;
+        motorController->saveConfiguration();
+    } else if (!strcmp(key, Constants::prechargeRelay) && motorConfig) {
+		motorConfig->prechargeRelay = atol(value);
+		motorController->saveConfiguration();
+    } else if (!strcmp(key, Constants::nominalVolt) && motorConfig) {
+        motorConfig->nominalVolt = atol(value);
+		motorController->saveConfiguration();
+    } else if (!strcmp(key, Constants::mainContactorRelay) && motorConfig) {
+		motorConfig->mainContactorRelay = atol(value);
+		motorController->saveConfiguration();
 	} else if (!strcmp(key, Constants::logLevel)) {
 		extern PrefHandler *sysPrefs;
 		uint8_t loglevel = atol(value);
@@ -640,6 +717,14 @@ void ICHIPWIFI::loadParameters() {
 	}
 	if (motorConfig) {
 		setParam(Constants::speedMax, motorConfig->speedMax);
+		setParam(Constants::coolFan, motorConfig->coolFan);
+        setParam(Constants::coolOn, motorConfig->coolOn);
+        setParam(Constants::coolOff, motorConfig->coolOff);
+        setParam(Constants::prechargeR, motorConfig->prechargeR);
+        setParam(Constants::prechargeRelay, motorConfig->prechargeRelay);
+        setParam(Constants::mainContactorRelay, motorConfig->mainContactorRelay);
+        uint16_t nmvlt = motorConfig->nominalVolt/10;
+        setParam(Constants::nominalVolt, nmvlt);
 		setParam(Constants::torqueMax, (uint16_t)(motorConfig->torqueMax / 10)); // skip the tenth's
 	}
 	setParam(Constants::logLevel, (uint8_t)Logger::getLogLevel());

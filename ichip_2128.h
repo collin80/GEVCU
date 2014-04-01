@@ -110,6 +110,8 @@ struct ParamCache {
 	int16_t dcVoltage;
 	int16_t dcCurrent;
 	int16_t acCurrent;
+	int16_t nominalVolt;
+	int16_t kiloWattHours;
 	uint32_t bitfield1;
 	uint32_t bitfield2;
 	uint32_t bitfield3;
@@ -117,11 +119,17 @@ struct ParamCache {
 	bool running;
 	bool faulted;
 	bool warning;
-	MotorController::GearSwitch gear;
+	MotorController::Gears gear;
 	int16_t tempMotor;
 	int16_t tempInverter;
 	int16_t tempSystem;
 	int16_t mechPower;
+    int16_t prechargeR;
+    int8_t prechargeRelay;
+    int8_t mainContactorRelay;
+    int8_t coolFan;
+    int8_t coolOn;
+    int8_t coolOff;
 };
 
 struct SendBuff {
