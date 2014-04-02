@@ -35,8 +35,6 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include "eeprom_layout.h"
 #include "PrefHandler.h"
 
-#define NUM_ADC_SAMPLES  16
-
 typedef struct {
   uint16_t offset;
   uint16_t gain;
@@ -45,6 +43,7 @@ typedef struct {
 void setup_sys_io();
 uint16_t getAnalog(uint8_t which); //get value of one of the 4 analog inputs
 uint16_t getDiffADC(uint8_t which);
+uint16_t getRawADC(uint8_t which);
 boolean getDigital(uint8_t which); //get value of one of the 4 digital inputs
 void setOutput(uint8_t which, boolean active); //set output high or not
 boolean getOutput(uint8_t which); //get current value of output state (high?)
