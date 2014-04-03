@@ -56,7 +56,7 @@ AT RV (adapter voltage) - Send something like 14.4V
 #include "DeviceManager.h"
 #include "Sys_Messages.h"
 #include "DeviceTypes.h"
-#include "OBD2Handler.h"
+#include "ELM327Processor.h"
 
 extern PrefHandler *sysPrefs;
 
@@ -85,14 +85,12 @@ class ELM327Emu : public Device {
 
     private:
     USARTClass *serialInterface; //Allows for retargetting which serial port we use
-	OBD2Handler *obd2Handler;
+	ELM327Processor *elmProc;
     char incomingBuffer[128]; //storage for one incoming line
     int tickCounter;
     int ibWritePtr;
 	int currReply;
 	char buffer[30]; // a buffer for various string conversions
-	bool bLineFeed;
-	bool bHeader;
 
 	void processCmd();
 };

@@ -83,6 +83,7 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include "PotThrottle.h"
 #include "Sys_Messages.h"
 #include "DeviceTypes.h"
+#include "ELM327Processor.h"
 
 extern PrefHandler *sysPrefs;
 
@@ -155,6 +156,7 @@ class ICHIPWIFI : public Device {
 	void saveConfiguration();
 
     private:
+	ELM327Processor *elmProc;
     USARTClass* serialInterface; //Allows for retargetting which serial port we use
     char incomingBuffer[128]; //storage for one incoming line
     int ibWritePtr; //write position into above buffer
@@ -182,6 +184,7 @@ class ICHIPWIFI : public Device {
     void setParam(String paramName, float value, int precision);
     void sendCmd(String cmd);
 	void sendCmd(String cmd, ICHIP_COMM_STATE cmdstate);
+	void sendToSocket(int socket, String data);
     void processParameterChange(char *response);
     void loadParameters();
 };

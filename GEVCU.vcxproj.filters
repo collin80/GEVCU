@@ -108,7 +108,7 @@
     <ClInclude Include="OBD2Handler.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="constants.h">
+    <ClInclude Include="ELM327Processor.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
@@ -189,6 +189,9 @@
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="OBD2Handler.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="ELM327Processor.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>

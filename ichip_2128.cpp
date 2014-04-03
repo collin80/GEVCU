@@ -57,6 +57,8 @@ void ICHIPWIFI::setup() {
 
 	paramCache.brakeNotAvailable = true;
 
+	elmProc = new ELM327Processor();
+
 	TickHandler::getInstance()->attach(this, CFG_TICK_INTERVAL_WIFI);
 }
 
@@ -91,6 +93,14 @@ void ICHIPWIFI::sendCmd(String cmd, ICHIP_COMM_STATE cmdstate) {
 	}
 }
 
+void ICHIPWIFI::sendToSocket(int socket, String data) {
+	char buff[6];
+	sprintf(buff, "%03i", socket);
+	String temp = "SSND%:" + String(buff);
+	sprintf(buff, ",%i:", data.length());
+	temp = temp + String(buff) + data;
+	sendCmd(temp, SEND_SOCKET);
+}
 
 /*
  * Periodic updates of parameters to ichip RAM.
@@ -102,20 +112,19 @@ void ICHIPWIFI::handleTick() {
 	Throttle *accelerator = DeviceManager::getInstance()->getAccelerator();
 	Throttle *brake = DeviceManager::getInstance()->getBrake();
 	static int pollListening = 0;
+	static int pollSocket = 0;
 	uint32_t ms = millis();
 	char buff[6];
 	tickCounter++;
 
 	// Do a delayed parameter load once about a second after startup
 	if (!didParamLoad && ms > 1000) {
-		/*
 		loadParameters();
         Logger::console("Wifi Parameters loaded...");
         paramCache.bitfield1 = motorController->getStatusBitfield1();
 		setParam(Constants::bitfield1, paramCache.bitfield1);
 	    paramCache.bitfield2 = motorController->getStatusBitfield2();
 	    setParam(Constants::bitfield2, paramCache.bitfield2);
-		*/
 		didParamLoad = true;
 	}
 
@@ -145,7 +154,7 @@ void ICHIPWIFI::handleTick() {
 		}
 
 	//TODO:Testing line below. Remove it.
-	return;
+	//return;
 
 
 	// make small slices so the main loop is not blocked for too long
@@ -514,10 +523,20 @@ void ICHIPWIFI::loop() {
 					    }
 					    break;
 					case POLL_SOCKET: //reply from asking about state of socket and how much data it has
+
 						break;
 					case SEND_SOCKET: //reply from sending data over a socket
 						break;
 					case GET_SOCKET: //reply requesting the data pending on a socket
+						//reply is I/<size>:data
+						int dLen;
+						if (strcmp(incomingBuffer, Constants::ichipErrorString)) {
+							dLen = atoi( strtok(&incomingBuffer[2], ":") );
+							String datastr = strtok(0, ":"); //get the rest of the string
+							datastr.toLowerCase();
+							String ret = elmProc->processELMCmd((char *)datastr.c_str());
+							sendToSocket(0, ret); //TODO: need to actually track which socket requested this data
+						}
 						break;
 					case IDLE: //not sure whether to leave this info or go to debug. The ichip shouldn't be sending things in idle state
 					default:
