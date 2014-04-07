@@ -29,11 +29,33 @@
 #include "ichip_2128.h"
 
 /*
+ * Constructor. Assign serial interface to use for ichip communication
+ */
+ICHIPWIFI::ICHIPWIFI() {
+	prefsHandler = new PrefHandler(ICHIP2128);
+
+	uint8_t sys_type;
+	sysPrefs->read(EESYS_SYSTEM_TYPE, &sys_type);
+	if (sys_type == 3 || sys_type == 4)
+		serialInterface = &Serial2;
+	else //older hardware used this instead
+		serialInterface = &Serial3; 
+}
+
+/*
+ * Constructor. Pass serial interface to use for ichip communication
+ */
+ICHIPWIFI::ICHIPWIFI(USARTClass *which) {
+	prefsHandler = new PrefHandler(ICHIP2128);
+	serialInterface = which;
+}
+
+/*
  * Initialization of hardware and parameters
  */
 void ICHIPWIFI::setup() {
 
-	prefsHandler = new PrefHandler(ICHIP2128);
+	Logger::info("add device: iChip 2128 WiFi (id: %X, %X)", ICHIP2128, this);
 
 	TickHandler::getInstance()->detach(this);
 
@@ -431,28 +453,6 @@ void ICHIPWIFI::setParam(String paramName, float value, int precision) {
 	sprintf(format, "%%.%df", precision);
 	sprintf(buffer, format, value);
 	setParam(paramName, buffer);
-}
-
-/*
- * Constructor. Assign serial interface to use for ichip communication
- */
-ICHIPWIFI::ICHIPWIFI() {
-	prefsHandler = new PrefHandler(ICHIP2128);
-
-	uint8_t sys_type;
-	sysPrefs->read(EESYS_SYSTEM_TYPE, &sys_type);
-	if (sys_type == 3 || sys_type == 4)
-		serialInterface = &Serial2;
-	else //older hardware used this instead
-		serialInterface = &Serial3; 
-}
-
-/*
- * Constructor. Pass serial interface to use for ichip communication
- */
-ICHIPWIFI::ICHIPWIFI(USARTClass *which) {
-	prefsHandler = new PrefHandler(ICHIP2128);
-	serialInterface = which;
 }
 
 /*

@@ -111,6 +111,9 @@
     <ClInclude Include="ELM327Processor.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="CanBrake.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <Text Include="GEVCU.ino" />
@@ -192,6 +195,9 @@
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="ELM327Processor.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="CanBrake.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>

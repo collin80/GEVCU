@@ -172,6 +172,18 @@ void initSysEEPROM() {
 	sysPrefs->saveChecksum();
 }
 
+void createObjects() {
+	PotThrottle *paccelerator = new PotThrottle();
+	CanThrottle *caccelerator = new CanThrottle();
+	PotBrake *pbrake = new PotBrake();
+	CanBrake *cbrake = new CanBrake();
+	DmocMotorController *dmotorController = new DmocMotorController();
+	BrusaMotorController *bmotorController = new BrusaMotorController();
+	ThinkBatteryManager *BMS = new ThinkBatteryManager();
+	ELM327Emu *emu = new ELM327Emu();
+	ICHIPWIFI *iChip = new ICHIPWIFI();
+}
+
 void initializeDevices() {
 	DeviceManager *deviceManager = DeviceManager::getInstance();
 
@@ -180,62 +192,12 @@ void initializeDevices() {
 	Logger::info("add: Heartbeat (id: %X, %X)", HEARTBEAT, heartbeat);
 	heartbeat->setup();
 
-	// Specify the shield ADC port(s) to use for throttle
-	// CFG_THROTTLE_NONE = not used (valid only for second value and should not be needed due to calibration/detection)
-	Throttle *paccelerator = new PotThrottle();
-	if (paccelerator->isEnabled()) {
-		Logger::info("add device: PotThrottle (id: %X, %X)", POTACCELPEDAL, paccelerator);
-		deviceManager->addDevice(paccelerator);
-	}
-
-	Throttle *caccelerator = new CanThrottle();
-	if (caccelerator->isEnabled()) {
-		Logger::info("add device: CanThrottle (id: %X, %X)", CANACCELPEDAL, caccelerator);
-		deviceManager->addDevice(caccelerator);
-	}
-
-	Throttle *pbrake = new PotBrake(); //set up the brake input as the third ADC input from the shield.
-	if (pbrake->isEnabled()) {
-		Logger::info("add device: PotBrake (id: %X, %X)", POTBRAKEPEDAL, pbrake);
-		deviceManager->addDevice(pbrake);
-	}
-
-	Throttle *cbrake = new CanBrake();
-	if (cbrake->isEnabled()) {
-		Logger::info("add device: CanBrake (id: %X, %X)", CANBRAKEPEDAL, cbrake);
-		deviceManager->addDevice(cbrake);
-	}
-
-	MotorController *dmotorController = new DmocMotorController(); //instantiate a DMOC645 device controller as our motor controller
-	if (dmotorController->isEnabled()) {
-		Logger::info("add device: DMOC645 (id:%X, %X)", DMOC645, dmotorController);
-		deviceManager->addDevice(dmotorController);
-	}
-
-	MotorController *bmotorController = new BrusaMotorController(); //instantiate a Brusa DMC5 device controller as our motor controller
-	if (bmotorController->isEnabled()) {
-		Logger::info("add device: Brusa DMC5 (id: %X, %X)", BRUSA_DMC5, bmotorController);
-		deviceManager->addDevice(bmotorController);
-	}
-
-	BatteryManager *BMS = new ThinkBatteryManager();
-	if (BMS->isEnabled()) {
-		Logger::info("add device: Th!nk City BMS (id: %X, %X)", THINKBMS, BMS);
-		deviceManager->addDevice(BMS);
-	}
-
-	ELM327Emu *emu = new ELM327Emu();
-	if (emu->isEnabled()) {
-		Logger::info("add device: ELM327 emulator (id: %X, %X", ELM327EMU, emu);
-		deviceManager->addDevice(emu);
-	}
-// add wifi as last device, because ICHIPWIFI::loadParameters() depends on pre-loaded preferences
-	Logger::info("Trying WIFI");
-	ICHIPWIFI *iChip = new ICHIPWIFI();
-	if (iChip->isEnabled()) {
-		Logger::info("add device: iChip 2128 WiFi (id: %X, %X)", ICHIP2128, iChip);
-		deviceManager->addDevice(iChip);
-	}
+	/*
+	We used to instantiate all the objects here along with other code. To simplify things this is done somewhat
+	automatically now. Just instantiate your new device object in createObjects above. This takes care of the details
+	so long as you follow the template of how other devices were coded.
+	*/
+	createObjects(); 
 
 	/*
 	 *	We defer setting up the devices until here. This allows all objects to be instantiated

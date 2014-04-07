@@ -27,7 +27,6 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include "CanBrake.h"
 
 CanBrake::CanBrake() : Throttle() {
-
 	prefsHandler = new PrefHandler(CANBRAKEPEDAL);
 
 	rawSignal.input1 = 0;
@@ -41,6 +40,8 @@ CanBrake::CanBrake() : Throttle() {
 
 void CanBrake::setup() {
 	TickHandler::getInstance()->detach(this);
+
+	Logger::info("add device: CanBrake (id: %X, %X)", CANBRAKEPEDAL, this);
 
 	loadConfiguration();
 	Throttle::setup();

@@ -33,6 +33,7 @@
 #include "sys_io.h"
 #include "TickHandler.h"
 #include "Logger.h"
+#include "DeviceManager.h"
 
 #define THROTTLE_INPUT_BRAKELIGHT  2
 

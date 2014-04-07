@@ -38,9 +38,7 @@
  * Constructor
  */
 BrusaMotorController::BrusaMotorController() : MotorController() {
-
 	prefsHandler = new PrefHandler(BRUSA_DMC5);
-
 	torqueAvailable = 0;
 	maxPositiveTorque = 0;
 	minNegativeTorque = 0;
@@ -54,6 +52,8 @@ BrusaMotorController::BrusaMotorController() : MotorController() {
  */
 void BrusaMotorController::setup() {
 	TickHandler::getInstance()->detach(this);
+
+	Logger::info("add device: Brusa DMC5 (id: %X, %X)", BRUSA_DMC5, this);
 
 	loadConfiguration();
 	MotorController::setup(); // run the parent class version of this function

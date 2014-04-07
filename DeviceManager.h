@@ -32,6 +32,7 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include "CanHandler.h"
 #include "Device.h"
 #include "Sys_Messages.h"
+#include "DeviceTypes.h"
 
 class MotorController; // cyclic reference between MotorController and DeviceManager
 

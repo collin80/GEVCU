@@ -25,10 +25,13 @@
  */
 
 #include "Device.h"
+#include "DeviceManager.h"
 
 Device::Device() {
 	deviceConfiguration = NULL;
 	prefsHandler = NULL;
+	//since all derived classes eventually call this base method this will cause every device to auto register itself with the device manager
+	DeviceManager::getInstance()->addDevice(this); 
 }
 
 //Empty functions to handle these callbacks if the derived classes don't

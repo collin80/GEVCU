@@ -32,12 +32,36 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 #include "ELM327_Emu.h"
 
+
+/*
+ * Constructor. Assign serial interface to use for comm with bluetooth adapter we're emulating with
+ */
+ELM327Emu::ELM327Emu() {
+	prefsHandler = new PrefHandler(ELM327EMU);
+
+	uint8_t sys_type;
+	sysPrefs->read(EESYS_SYSTEM_TYPE, &sys_type);
+	if (sys_type == 3 || sys_type == 4)
+		serialInterface = &Serial2;
+	else //older hardware used this instead
+		serialInterface = &Serial3; 
+}
+
+/*
+ * Constructor. Pass serial interface to use
+ */
+ELM327Emu::ELM327Emu(USARTClass *which) {
+	prefsHandler = new PrefHandler(ELM327EMU);
+	serialInterface = which;
+}
+
+
 /*
  * Initialization of hardware and parameters
  */
 void ELM327Emu::setup() {
 
-	prefsHandler = new PrefHandler(ELM327EMU);
+	Logger::info("add device: ELM327 emulator (id: %X, %X", ELM327EMU, this);
 
 	TickHandler::getInstance()->detach(this);
 
@@ -85,28 +109,6 @@ void ELM327Emu::handleMessage(uint32_t messageType, void* message) {
 		sendCmd((char *)message);
 		break;
 	}
-}
-
-/*
- * Constructor. Assign serial interface to use for comm with bluetooth adapter we're emulating with
- */
-ELM327Emu::ELM327Emu() {
-	prefsHandler = new PrefHandler(ELM327EMU);
-
-	uint8_t sys_type;
-	sysPrefs->read(EESYS_SYSTEM_TYPE, &sys_type);
-	if (sys_type == 3 || sys_type == 4)
-		serialInterface = &Serial2;
-	else //older hardware used this instead
-		serialInterface = &Serial3; 
-}
-
-/*
- * Constructor. Pass serial interface to use
- */
-ELM327Emu::ELM327Emu(USARTClass *which) {
-	prefsHandler = new PrefHandler(ELM327EMU);
-	serialInterface = which;
 }
 
 /*

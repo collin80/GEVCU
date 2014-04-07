@@ -82,6 +82,7 @@
     <ClInclude Include="BrusaMotorController.h">
       <FileType>CppCode</FileType>
     </ClInclude>
+    <ClInclude Include="CanBrake.h" />
     <ClInclude Include="CanHandler.h" />
     <ClInclude Include="CanPIDListener.h" />
     <ClInclude Include="CanThrottle.h" />
@@ -131,6 +132,7 @@
   <ItemGroup>
     <ClCompile Include="BatteryManager.cpp" />
     <ClCompile Include="BrusaMotorController.cpp" />
+    <ClCompile Include="CanBrake.cpp" />
     <ClCompile Include="CanHandler.cpp" />
     <ClCompile Include="CanPIDListener.cpp" />
     <ClCompile Include="CanThrottle.cpp" />

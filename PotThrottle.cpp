@@ -28,7 +28,6 @@
 
 /*
  * Constructor
- * Set which two ADC channels to use (or set channel 2 to 255 to disable)
  */
 PotThrottle::PotThrottle() : Throttle() {
 	prefsHandler = new PrefHandler(POTACCELPEDAL);
@@ -39,6 +38,8 @@ PotThrottle::PotThrottle() : Throttle() {
  */
 void PotThrottle::setup() {
 	TickHandler::getInstance()->detach(this); // unregister from TickHandler first
+	
+	Logger::info("add device: PotThrottle (id: %X, %X)", POTACCELPEDAL, this);
 
 	loadConfiguration();
 
