@@ -298,7 +298,7 @@ void setupFastADC(){
   If, for instance, someone wanted to average over 6ms instead then the prescaler could be set to 24x instead.
   */
   ADC->ADC_MR = (1 << 7) //free running
-              + (11 << 8) //12x MCLK divider ((This value + 1) * 2) = divisor
+              + (5 << 8) //12x MCLK divider ((This value + 1) * 2) = divisor
 			  + (1 << 16) //8 periods start up time (0=0clks, 1=8clks, 2=16clks, 3=24, 4=64, 5=80, 6=96, etc)
               + (1 << 20) //settling time (0=3clks, 1=5clks, 2=9clks, 3=17clks)
               + (4 << 24) //tracking time (Value + 1) clocks
@@ -375,8 +375,9 @@ void sys_io_adc_poll() {
 			int val;
 			if (useRawADC) val = getRawADC(i); 
 				else val = getDiffADC(i);
-			addNewADCVal(i, val);
-			adc_out_vals[i] = getADCAvg(i);
+//			addNewADCVal(i, val);
+//			adc_out_vals[i] = getADCAvg(i);
+			adc_out_vals[i] = val;
 		}
 
 		obufn = bufn;    
