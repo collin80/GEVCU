@@ -47,7 +47,7 @@ public:
 
 class PotBrake: public Throttle {
 public:
-	PotBrake(uint8_t throttle1);
+	PotBrake();
 	void setup();
 	void handleTick();
 	DeviceId getId();
@@ -64,7 +64,6 @@ protected:
 	int16_t mapPedalPosition(int16_t);
 
 private:
-	uint8_t brake1AdcPin; //which ADC pin each are on
 	RawSignalData rawSignal;
 };
 

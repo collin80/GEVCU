@@ -30,10 +30,8 @@
  * Constructor
  * Set which two ADC channels to use (or set channel 2 to 255 to disable)
  */
-PotThrottle::PotThrottle(uint8_t throttle1Pin, uint8_t throttle2Pin) : Throttle() {
+PotThrottle::PotThrottle() : Throttle() {
 	prefsHandler = new PrefHandler(POTACCELPEDAL);
-	throttle1AdcPin = throttle1Pin;
-	throttle2AdcPin = throttle2Pin;
 }
 
 /*
@@ -63,10 +61,11 @@ void PotThrottle::handleTick() {
  * Retrieve raw input signals from the throttle hardware.
  */
 RawSignalData *PotThrottle::acquireRawSignal() {
+	PotThrottleConfiguration *config = (PotThrottleConfiguration *) getConfiguration();
 	sys_io_adc_poll();
 
-	rawSignal.input1 = getAnalog(throttle1AdcPin);
-	rawSignal.input2 = getAnalog(throttle2AdcPin);
+	rawSignal.input1 = getAnalog(config->AdcPin1);
+	rawSignal.input2 = getAnalog(config->AdcPin2);
 	return &rawSignal;
 }
 
@@ -196,6 +195,8 @@ void PotThrottle::loadConfiguration() {
 		prefsHandler->read(EETH_MAX_TWO, &config->maximumLevel2);
 		prefsHandler->read(EETH_NUM_THROTTLES, &config->numberPotMeters);
 		prefsHandler->read(EETH_THROTTLE_TYPE, &config->throttleSubType);
+		prefsHandler->read(EETH_ADC_1, &config->AdcPin1);
+		prefsHandler->read(EETH_ADC_2, &config->AdcPin2);
 
 		// ** This is potentially a condition that is only met if you don't have the EEPROM hardware **
 		// If preferences have never been set before, numThrottlePots and throttleSubType
@@ -214,6 +215,8 @@ void PotThrottle::loadConfiguration() {
 		config->maximumLevel2 = Throttle2MaxValue;
 		config->numberPotMeters = ThrottleNumPots;
 		config->throttleSubType = ThrottleSubtype;
+		config->AdcPin1 = ThrottleADC1;
+		config->AdcPin2 = ThrottleADC2;
 
 		saveConfiguration();
 	}
@@ -236,5 +239,7 @@ void PotThrottle::saveConfiguration() {
 	prefsHandler->write(EETH_MAX_TWO, config->maximumLevel2);
 	prefsHandler->write(EETH_NUM_THROTTLES, config->numberPotMeters);
 	prefsHandler->write(EETH_THROTTLE_TYPE, config->throttleSubType);
+	prefsHandler->write(EETH_ADC_1, config->AdcPin1);
+	prefsHandler->write(EETH_ADC_2, config->AdcPin2);
 	prefsHandler->saveChecksum();
 }

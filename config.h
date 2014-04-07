@@ -35,8 +35,8 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 #include <due_can.h>
 
-#define CFG_BUILD_NUM	1014        //increment this every time a git commit is done. 
-#define CFG_VERSION "GEVCU alpha 2013-10-16"
+#define CFG_BUILD_NUM	1040        //increment this every time a git commit is done. 
+#define CFG_VERSION "GEVCU alpha 2014-04-07"
 
 
 /*
@@ -92,6 +92,8 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 //#define USE_HARD_CODED
 #define ThrottleNumPots			1		//# of pots to use by default
+#define ThrottleADC1			0		//Which pin to use
+#define ThrottleADC2			1		//Which pin to use
 #define ThrottleSubtype			1		//subtype 1 is a standard linear pot throttle
 #define ThrottleRegenMinValue	0		//where does Regen stop (1/10 of percent)
 #define ThrottleRegenMaxValue	0		//where Regen is at maximum (1/10 of percent)
@@ -109,6 +111,7 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #define BrakeMaxValue			500		//Value ADC reads when brake is pushed all of the way down
 #define BrakeMinRegenValue		20		//percent of full power to use for brake regen (min)
 #define BrakeMaxRegenValue		40		//percent of full power to use for brake regen (max)
+#define BrakeADC				2       //which ADC pin to use
 
 
 #define MaxTorqueValue		2000 //in tenths of a Nm
@@ -145,9 +148,6 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  * PIN ASSIGNMENT
  */
 #define CFG_THROTTLE_NONE	255
-#define CFG_THROTTLE1_PIN	0
-#define CFG_THROTTLE2_PIN	1
-#define CFG_BRAKE_PIN		2
 #define BLINK_LED          73 //13 is L, 73 is TX, 72 is RX
 
 #define NUM_ANALOG	4

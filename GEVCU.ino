@@ -37,13 +37,6 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 /*
 Random comments on things that should be coded up soon:
-1. Wifi code needs to be finished. It should read in settings from EEPROM, etc. And start up a webserver. Then
-the code should scan for changed parameters occassionally and set them in eeprom
-2. Serial console needs to be able to set the wifi stuff
-3. Most of the support code for precharge based on RC is done. But, it still must be tested. Also, it should
-	check to see if the motor controller reports voltage and make sure the voltage is reported at least up
-	to the set nominal voltage before closing the main contactor. If it takes too long then fault and open
-	everything. Also, open contactors in case of a serious fault (but not for just any fault. Opening contactors under load can be nasty!)
 4. It is a possibility that there should be support for actually controlling the power to some of the devices.
 	For instance, power could be controlled to the +12V connection at the DMOC so that it can be power cycled
 	in software. But, that uses up an input and people can just cycle the key (though that resets the GEVCU too)
@@ -189,7 +182,7 @@ void initializeDevices() {
 
 	// Specify the shield ADC port(s) to use for throttle
 	// CFG_THROTTLE_NONE = not used (valid only for second value and should not be needed due to calibration/detection)
-	Throttle *paccelerator = new PotThrottle(CFG_THROTTLE1_PIN, CFG_THROTTLE2_PIN);
+	Throttle *paccelerator = new PotThrottle();
 	if (paccelerator->isEnabled()) {
 		Logger::info("add device: PotThrottle (id: %X, %X)", POTACCELPEDAL, paccelerator);
 		deviceManager->addDevice(paccelerator);
@@ -201,7 +194,7 @@ void initializeDevices() {
 		deviceManager->addDevice(caccelerator);
 	}
 
-	Throttle *pbrake = new PotBrake(CFG_BRAKE_PIN); //set up the brake input as the third ADC input from the shield.
+	Throttle *pbrake = new PotBrake(); //set up the brake input as the third ADC input from the shield.
 	if (pbrake->isEnabled()) {
 		Logger::info("add device: PotBrake (id: %X, %X)", POTBRAKEPEDAL, pbrake);
 		deviceManager->addDevice(pbrake);

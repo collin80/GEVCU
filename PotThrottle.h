@@ -50,11 +50,12 @@ public:
 	uint8_t throttleSubType;
 	uint16_t minimumLevel1, maximumLevel1, minimumLevel2, maximumLevel2; // values for when the pedal is at its min and max for each input
 	uint8_t numberPotMeters; // the number of potentiometers to be used. Should support three as well since some pedals really do have that many
+	uint8_t AdcPin1, AdcPin2; //which ADC pins to use for the throttle
 };
 
 class PotThrottle: public Throttle {
 public:
-	PotThrottle(uint8_t throttle1, uint8_t throttle2);
+	PotThrottle();
 	void setup();
 	void handleTick();
 	DeviceId getId();
@@ -68,7 +69,6 @@ protected:
 	uint16_t calculatePedalPosition(RawSignalData *);
 
 private:
-	uint8_t throttle1AdcPin, throttle2AdcPin; //which ADC pin each are on
 	RawSignalData rawSignal;
 };
 
