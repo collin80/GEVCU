@@ -35,6 +35,8 @@ CanThrottle::CanThrottle() : Throttle() {
 	responseId = 0;
 	responseMask = 0x7ff;
 	responseExtended = false;
+
+	commonName = "CANBus accelerator";
 }
 
 void CanThrottle::setup() {

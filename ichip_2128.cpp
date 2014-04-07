@@ -40,6 +40,8 @@ ICHIPWIFI::ICHIPWIFI() {
 		serialInterface = &Serial2;
 	else //older hardware used this instead
 		serialInterface = &Serial3; 
+
+	commonName = "WIFI (iChip2128)";
 }
 
 /*

@@ -96,19 +96,9 @@ void SerialConsole::printMenu() {
 	uint8_t systype;
 	sysPrefs->read(EESYS_SYSTEM_TYPE, &systype);
 	Logger::console("SYSTYPE=%i - Set board revision (Dued=2, GEVCU3=3, GEVCU4=4)", systype);
-    SerialUSB.println("ENABLE - Enable the given device by ID");
-	SerialUSB.println("DISABLE - Disable the given device by ID");
-    Logger::console("     %X     DMOC645 Inverter", DMOC645);
-	Logger::console("     %X     Brusa DMC5 Inverter", BRUSA_DMC5);
-	//Logger::console("     Brusa Charger = %X", BRUSACHARGE);
-	//Logger::console("     TCCH Charger = %X", TCCHCHARGE);
-	Logger::console("     %X     Potentiometer (analog) accelerator", POTACCELPEDAL);
-	Logger::console("     %X     Potentiometer (analog) brake", POTBRAKEPEDAL);
-	Logger::console("     %X     CANBus accelerator", CANACCELPEDAL);
-	Logger::console("     %X     CANBus brake", CANBRAKEPEDAL);
-	Logger::console("     %X     WIFI (iChip2128)", ICHIP2128);
-	Logger::console("     %X     ELM327 Emulator over Bluetooth", ELM327EMU);
-      
+
+	DeviceManager::getInstance()->printDeviceList();
+
 	if (motorController && motorController->getConfiguration()) {
 		MotorControllerConfiguration *config = (MotorControllerConfiguration *) motorController->getConfiguration();
          SerialUSB.println();

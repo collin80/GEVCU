@@ -43,14 +43,14 @@
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <ClCompile>
-      <PreprocessorDefinitions>__SAM3X8E__;USB_VID=0x2341;USB_PID=0x003e;USBCON;ARDUINO=154;ARDUINO_MAIN;printf=iprintf;__SAM__;F_CPU=84000000L;__cplusplus;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>__SAM3X8E__;USB_VID=0x2341;USB_PID=0x003e;USBCON;USB_MANUFACTURER="Unknown";USB_PRODUCT="Arduino Due";ARDUINO=154;ARDUINO_MAIN;printf=iprintf;__SAM__;__sam__;F_CPU=84000000L;__cplusplus;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <RuntimeLibrary>MultiThreadedDebugDLL</RuntimeLibrary>
       <WarningLevel>Level3</WarningLevel>
       <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
       <Optimization>Disabled</Optimization>
       <BrowseInformation>true</BrowseInformation>
-      <AdditionalIncludeDirectories>c:\arduino\hardware\arduino\sam\cores\arduino;c:\arduino\hardware\arduino\sam\variants\arduino_due_x;C:\Users\Collin\Documents\Arduino\libraries\due_rtc;C:\Users\Collin\Documents\Arduino\libraries\due_rtc\utility;C:\Users\Collin\Documents\Arduino\libraries\due_can;C:\Users\Collin\Documents\Arduino\libraries\due_can\utility;C:\Users\Collin\Documents\Arduino\libraries\due_wire;C:\Users\Collin\Documents\Arduino\libraries\due_wire\utility;C:\Users\Collin\Documents\Arduino\libraries\DueTimer;C:\Users\Collin\Documents\Arduino\libraries\DueTimer\utility;c:\arduino\hardware\arduino\sam\system\CMSIS\CMSIS\Include\;c:\arduino\hardware\arduino\sam\system\CMSIS\Device\ATMEL\;c:\arduino\hardware\arduino\sam\system\libsam;c:\arduino\hardware\arduino\sam\system\libsam\include;c:\arduino/hardware/tools/g++_arm_none_eabi\arm-none-eabi\include;c:\arduino/hardware/tools/g++_arm_none_eabi\arm_none_eabi\include\;c:\arduino/hardware/tools/g++_arm_none_eabi\lib\gcc\arm-none-eabi\4.4.1\include;c:\arduino/hardware/tools/g++_arm_none_eabi\lib\gcc\arm-none-eabi\4.4.1\include\;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
-      <ForcedIncludeFiles>C:\Users\Collin\Desktop\GEVCU\Visual Micro\.GEVCU.vsarduino.h;%(ForcedIncludeFiles)</ForcedIncludeFiles>
+      <AdditionalIncludeDirectories>c:\arduino-1.5.4\hardware\arduino\sam\cores\arduino;c:\arduino-1.5.4\hardware\arduino\sam\variants\arduino_due_x;C:\Users\collin\Documents\Arduino\libraries\due_rtc;C:\Users\collin\Documents\Arduino\libraries\due_rtc\utility;C:\Users\collin\Documents\Arduino\libraries\due_can;C:\Users\collin\Documents\Arduino\libraries\due_can\utility;C:\Users\collin\Documents\Arduino\libraries\due_wire;C:\Users\collin\Documents\Arduino\libraries\due_wire\utility;C:\Users\collin\Documents\Arduino\libraries\DueTimer;C:\Users\collin\Documents\Arduino\libraries\DueTimer\utility;c:\arduino-1.5.4\libraries;c:\arduino-1.5.4\hardware\arduino\sam\libraries;C:\Program Files (x86)\Visual Micro\Visual Micro for Arduino\Micro Platforms\default\debuggers;C:\Users\collin\Documents\Arduino\libraries;c:\arduino-1.5.4\hardware\arduino\sam\system\CMSIS\CMSIS\Include\;c:\arduino-1.5.4\hardware\arduino\sam\system\CMSIS\Device\ATMEL\;c:\arduino-1.5.4\hardware\arduino\sam\system\libsam;c:\arduino-1.5.4\hardware\arduino\sam\system\libsam\include;c:\arduino-1.5.4/hardware/tools/g++_arm_none_eabi\arm-none-eabi\include;c:\arduino-1.5.4/hardware/tools/g++_arm_none_eabi\arm_none_eabi\include\;c:\arduino-1.5.4/hardware/tools/g++_arm_none_eabi\lib\gcc\arm-none-eabi\4.4.1\include;c:\arduino-1.5.4/hardware/tools/g++_arm_none_eabi\lib\gcc\arm-none-eabi\4.4.1\include\;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <ForcedIncludeFiles>C:\Users\collin\Desktop\GEVCU\Visual Micro\.GEVCU.vsarduino.h;%(ForcedIncludeFiles)</ForcedIncludeFiles>
       <IgnoreStandardIncludePath>true</IgnoreStandardIncludePath>
     </ClCompile>
     <Link>
@@ -87,6 +87,9 @@
     <ClInclude Include="CanPIDListener.h" />
     <ClInclude Include="CanThrottle.h" />
     <ClInclude Include="config.h" />
+    <ClInclude Include="constants.h">
+      <FileType>CppCode</FileType>
+    </ClInclude>
     <ClInclude Include="Device.h" />
     <ClInclude Include="DeviceManager.h" />
     <ClInclude Include="DeviceTypes.h">

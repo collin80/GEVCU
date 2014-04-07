@@ -45,6 +45,8 @@ BrusaMotorController::BrusaMotorController() : MotorController() {
 	limiterStateNumber = 0;
 
 	tickCounter = 0;
+
+	commonName = "Brusa DMC5 Inverter";
 }
 
 /*

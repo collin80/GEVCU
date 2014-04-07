@@ -45,6 +45,8 @@ ELM327Emu::ELM327Emu() {
 		serialInterface = &Serial2;
 	else //older hardware used this instead
 		serialInterface = &Serial3; 
+
+	commonName = "ELM327 Emulator over Bluetooth";
 }
 
 /*

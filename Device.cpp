@@ -32,11 +32,16 @@ Device::Device() {
 	prefsHandler = NULL;
 	//since all derived classes eventually call this base method this will cause every device to auto register itself with the device manager
 	DeviceManager::getInstance()->addDevice(this); 
+	commonName = "Generic Device";
 }
 
 //Empty functions to handle these callbacks if the derived classes don't
 
 void Device::setup() {
+}
+
+char* Device::getCommonName() {
+	return commonName;
 }
 
 void Device::handleTick() {

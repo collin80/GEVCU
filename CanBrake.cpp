@@ -36,6 +36,8 @@ CanBrake::CanBrake() : Throttle() {
 	responseId = 0;
 	responseMask = 0x7ff;
 	responseExtended = false;
+
+	commonName = "CANBus brake";
 }
 
 void CanBrake::setup() {

@@ -56,6 +56,7 @@ public:
 	MotorController *getMotorController();
 	Device *getDeviceByID(DeviceId);
 	Device *getDeviceByType(DeviceType);
+	void printDeviceList();
 
 protected:
 

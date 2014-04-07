@@ -53,6 +53,7 @@ DmocMotorController::DmocMotorController() : MotorController() {
 	online = 0;
 	activityCount = 0;
 //	maxTorque = 2000;
+	commonName = "DMOC645 Inverter";
 }
 
 void DmocMotorController::setup() {
