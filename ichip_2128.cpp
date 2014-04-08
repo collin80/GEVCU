@@ -139,6 +139,7 @@ void ICHIPWIFI::handleTick() {
 	static int pollSocket = 0;
 	uint32_t ms = millis();
 	char buff[6];
+	uint8_t brklt;
 	tickCounter++;
 
 	// Do a delayed parameter load once about a second after startup
@@ -289,6 +290,8 @@ void ICHIPWIFI::handleTick() {
 				paramCache.bitfield4 = motorController->getStatusBitfield4();
 				setParam(Constants::bitfield4, paramCache.bitfield4);
 			}
+			sysPrefs->read(EESYS_BRAKELIGHT, &paramCache.brakeLight);
+            setParam(Constants::brakeLight, paramCache.brakeLight);
 		}
 	} else if (tickCounter == 4) {
 		if (motorController) {
@@ -680,6 +683,9 @@ void ICHIPWIFI::processParameterChange(char *key) {
     } else if (!strcmp(key, Constants::mainContactorRelay) && motorConfig) {
 		motorConfig->mainContactorRelay = atol(value);
 		motorController->saveConfiguration();
+	} else if (!strcmp(key, Constants::brakeLight) ) {
+        sysPrefs->write(EESYS_BRAKELIGHT, (uint8_t)(atol(value)));
+		//sysPrefs->saveChecksum();
 	} else if (!strcmp(key, Constants::logLevel)) {
 		extern PrefHandler *sysPrefs;
 		uint8_t loglevel = atol(value);
@@ -749,6 +755,9 @@ void ICHIPWIFI::loadParameters() {
 		setParam(Constants::torqueMax, (uint16_t)(motorConfig->torqueMax / 10)); // skip the tenth's
 	}
 	setParam(Constants::logLevel, (uint8_t)Logger::getLogLevel());
+
+	sysPrefs->read(EESYS_BRAKELIGHT, &paramCache.brakeLight);
+	setParam(Constants::brakeLight, paramCache.brakeLight);		
 }
 
 DeviceType ICHIPWIFI::getType() {

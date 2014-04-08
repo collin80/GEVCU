@@ -193,7 +193,7 @@ the end of the stardard data. The below numbers are offsets from the device's ee
 
 #define EESYS_LOG_LEVEL         658 //1 byte - the log level
 #define EESYS_AMPHOURS			659 //1 byte - ???
-#define EESYS_xxx				660 //1 byte - 
+#define EESYS_BRAKELIGHT		660 //1 byte - 
 #define EESYS_xxxx				661 //1 byte - 
 
 #endif

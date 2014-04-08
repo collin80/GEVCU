@@ -108,46 +108,64 @@ void MotorController::handleTick() {
 	if (brake && brake->getLevel() < -10 && brake->getLevel() < accelerator->getLevel()) //if the brake has been pressed it overrides the accelerator.
 		throttleRequested = brake->getLevel();
 
-	if (!donePrecharge) 
+	if (!donePrecharge && config->prechargeR>0) 
 	{
 		if (millis()> config->prechargeR) //Check milliseconds since startup against our entered delay in milliseconds
-	    {
-			donePrecharge=1;
-            setOutput(config->mainContactorRelay, 1); //Main contactor on
-            statusBitfield2 |=1 << 17; //set bit to turn on MAIN CONTACTOR annunciator
-            statusBitfield1 |=1 << config->mainContactorRelay;//setbit to Turn on main contactor output annunciator
- 
-            setOutput(config->prechargeRelay, 0); //ok.  Turn off precharge output
-            statusBitfield2 &= ~(1 << 19); //clearbit to turn off PRECHARGE annunciator
-            statusBitfield1 &= ~(1<< config->prechargeRelay); //clear bit to turn off PRECHARGE output annunciator
+		{           
+			donePrecharge=1; //Time's up.  Let's don't do ANY of this on future ticks.
+			if (config->mainContactorRelay!=255) //If we HAVE a main contactor, turn it on.
+			{
+			setOutput(config->mainContactorRelay, 1); //Main contactor on
+			statusBitfield2 |=1 << 17; //set bit to turn on MAIN CONTACTOR annunciator
+			statusBitfield1 |=1 << config->mainContactorRelay;//setbit to Turn on main contactor output annunciator
+			//I've commented the below out to leave the precharge relay ON after precharge..see user guide for why.
+            //setOutput(config->prechargeRelay, 0); //ok.  Turn off precharge output
+            // statusBitfield2 &= ~(1 << 19); //clearbit to turn off PRECHARGE annunciator
+            //statusBitfield1 &= ~(1<< config->prechargeRelay); //clear bit to turn off PRECHARGE output annunciator
             Logger::console("Precharge sequence complete after %i milliseconds", config->prechargeR);
             Logger::console("MAIN CONTACTOR ENABLED...DOUT0:%d, DOUT1:%d, DOUT2:%d, DOUT3:%d,DOUT4:%d, DOUT5:%d, DOUT6:%d, DOUT7:%d", getOutput(0), getOutput(1), getOutput(2), getOutput(3),getOutput(4), getOutput(5), getOutput(6), getOutput(7));
-		}
-        else
+            }
+        }
+        else  //If time is not up and maybe this is our first tick, let's set the precharge relay IF we have one
+             //and clear the main contactor IF we have one.We'll set PRELAY so we only have to do this once.
         {
-			if (!prelay) 
-			{
-				setOutput(config->prechargeRelay, 1); //ok.  Turn on precharge
-				statusBitfield2 |=1 << 19; //set bit to turn on  PRECHARGE RELAY annunciator
-                statusBitfield1 |=1 << config->prechargeRelay; //set bit to turn ON precharge OUTPUT annunciator
-                throttleRequested = 0; //Keep throttle at zero during precharge    
-                setOutput(config->mainContactorRelay, 0); //Main contactor off
-                statusBitfield2 &= ~(1 << 17); //clear bitTurn off MAIN CONTACTOR annunciator
-                statusBitfield1 &= ~(1 << config->mainContactorRelay);//clear bitTurn off main contactor output annunciator
-                prelay=true;
+			if (config->prechargeRelay==255 || config->mainContactorRelay==255){donePrecharge=1;}
+			if(!prelay)
+            {
+				if (config->prechargeRelay!=255) 
+                {
+					setOutput(config->prechargeRelay, 1); //ok.  Turn on precharge
+                    statusBitfield2 |=1 << 19; //set bit to turn on  PRECHARGE RELAY annunciator
+                    statusBitfield1 |=1 << config->prechargeRelay; //set bit to turn ON precharge OUTPUT annunciator
+                    throttleRequested = 0; //Keep throttle at zero during precharge
+                    prelay=true;
+                }
+                if (config->mainContactorRelay!=255) 
+                {
+					setOutput(config->mainContactorRelay, 0); //Main contactor off
+                    statusBitfield2 &= ~(1 << 17); //clear bitTurn off MAIN CONTACTOR annunciator
+                    statusBitfield1 &= ~(1 << config->mainContactorRelay);//clear bitTurn off main contactor output annunciator
+                    prelay=true;
+                }
             }
         }
     }
 	//Logger::debug("Throttle: %d", throttleRequested);
 	if(skipcounter++ > 30)    //As how fast we turn on cooling is very low priority, we only check cooling every 24th lap or about once per second
 	{
-		if(config->prechargeR=12345){dcVoltage--;}	
-			//      Logger::console("New voltage: %d", dcVoltage);
-           //  Logger::console("Nominal voltage: %d", config->nominalVolt);
-          // Logger::console("KiloWattHours: %d", kiloWattHours);
+		if(config->prechargeR==12345)
+        {
+			dcVoltage--;  
+	        if (torqueActual < -500)
+				{torqueActual=20;}
+            else {torqueActual=-650;}
+		}	
+//      Logger::console("New voltage: %d", dcVoltage);
+//		Logger::console("Nominal voltage: %d", config->nominalVolt);
+//		Logger::console("KiloWattHours: %d", kiloWattHours);
         coolingcheck();
         prefsHandler->write(EEMC_KILOWATTHRS, kiloWattHours);
-        prefsHandler->saveChecksum();
+		prefsHandler->saveChecksum();
 	}
 }
 
@@ -206,14 +224,6 @@ void MotorController::setup() {
     Logger::console("MRELAY=%i - Current Main Contactor Relay output", config->mainContactorRelay);
     Logger::console("PREDELAY=%i - Precharge delay time", config->prechargeR);
 	 
-    setOutput(config->prechargeRelay, true); //start the precharge right now
-	statusBitfield2 |=1 << 19; //Turn on PRECHARGE annunciator
-    statusBitfield1 |=1 << config->prechargeRelay;//Turn on precharge output annunciator
-
-    setOutput(config->mainContactorRelay, false); //Make sure main contactor relay is off
-    statusBitfield2 &= ~(1 << 17); //clearbit to turn off MAINCONTACTOR annunciator
-    statusBitfield1 &= ~(1 << config->mainContactorRelay); //clearbit to turn off main contactor OUT annunciator
-
     //show our work
     Logger::console("PRECHARGING...DOUT0:%d, DOUT1:%d, DOUT2:%d, DOUT3:%d,DOUT4:%d, DOUT5:%d, DOUT6:%d, DOUT7:%d", getOutput(0), getOutput(1), getOutput(2), getOutput(3),getOutput(4), getOutput(5), getOutput(6), getOutput(7));
     coolflag=false;

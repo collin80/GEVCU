@@ -56,6 +56,7 @@ namespace Constants {
 	static const char* brakeMax = "brakeMax";
 	static const char* brakeMinRegen = "brakeMinRegen";
 	static const char* brakeMaxRegen = "brakeMaxRegen";
+	static const char* brakeLight = "brakeLight";
 	static const char* speedMax = "speedMax";
 	static const char* torqueMax = "torqueMax";
 	static const char* logLevel = "logLevel";

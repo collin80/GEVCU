@@ -151,6 +151,7 @@ void SerialConsole::printMenu() {
                 SerialUSB.println();
                 SerialUSB.println("PRECHARGE CONTROLS");
 	        SerialUSB.println();
+		Logger::console("kWh=%d - kiloWatt Hours of energy used", config->kilowattHrs/3600000);
 		Logger::console("PREDELAY=%i - Precharge delay time in milliseconds ", config->prechargeR);
 	      //Logger::console("NOMV=%i - Nominal system voltage (1/10 of a volt)", config->nominalVolt);
 		Logger::console("PRELAY=%i - Which output to use for precharge contactor (255 to disable)", config->prechargeRelay);
@@ -346,11 +347,11 @@ void SerialConsole::handleConfigCmd() {
 		motorController->saveConfiguration();
 	} else if (cmdString == String("NOMV") && motorConfig) {
 		Logger::console("Setting fully charged voltage to %d vdc", newValue);
-		motorConfig->nominalVolt = newValue;
+		motorConfig->nominalVolt = newValue * 10;
 		motorController->saveConfiguration();
 	} else if (cmdString == String("MRELAY") && motorConfig) {
 		Logger::console("Setting Main Contactor relay to %i", newValue);
-		motorConfig->mainContactorRelay = newValue * 10;
+		motorConfig->mainContactorRelay = newValue;
 		motorController->saveConfiguration();
 	} else if (cmdString == String("PRELAY") && motorConfig) {
 		Logger::console("Setting Precharge Relay to %i", newValue);
@@ -380,6 +381,11 @@ void SerialConsole::handleConfigCmd() {
 			Logger::console("System type updated. Power cycle to apply.");
 		}
 		else Logger::console("Invalid system type. Please enter a value 1 - 4");
+    } else if (cmdString == String("BRAKELT")) {
+			sysPrefs->write(EESYS_BRAKELIGHT, (uint8_t)(newValue));
+			sysPrefs->saveChecksum();
+			sysPrefs->forceCacheWrite(); //just in case someone takes us literally and power cycles quickly
+			Logger::console("Brake light output set to %i.",newValue);
 	} else if (cmdString == String("LOGLEVEL")) {
 		switch (newValue) {
 		case 0:
