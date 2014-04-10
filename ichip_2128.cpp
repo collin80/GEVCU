@@ -67,6 +67,10 @@ void ICHIPWIFI::setup() {
 	psReadPtr = 0;
 	listeningSocket = 0;
 
+	lastSentTime = millis();
+	lastSentState = IDLE;
+	lastSentCmd = String("");
+
 	activeSockets[0] = -1;
 	activeSockets[1] = -1;
 	activeSockets[2] = -1;
@@ -110,6 +114,10 @@ void ICHIPWIFI::sendCmd(String cmd, ICHIP_COMM_STATE cmdstate) {
 		serialInterface->print(cmd);
 		serialInterface->write(13);
 		state = cmdstate;
+		lastSentTime = millis();
+		lastSentCmd = String(cmd);
+		lastSentState = cmdstate;
+
 		if (Logger::isDebug()) {
 			String temp = "Send to ichip cmd: " + cmd;
 			Logger::debug(ICHIP2128, (char *)temp.c_str());
@@ -120,7 +128,7 @@ void ICHIPWIFI::sendCmd(String cmd, ICHIP_COMM_STATE cmdstate) {
 void ICHIPWIFI::sendToSocket(int socket, String data) {
 	char buff[6];
 	sprintf(buff, "%03i", socket);
-	String temp = "SSND%:" + String(buff);
+	String temp = "SSND%%:" + String(buff);
 	sprintf(buff, ",%i:", data.length());
 	temp = temp + String(buff) + data;
 	sendCmd(temp, SEND_SOCKET);
@@ -142,8 +150,10 @@ void ICHIPWIFI::handleTick() {
 	uint8_t brklt;
 	tickCounter++;
 
+	if (ms < 10000) return; //wait 10 seconds for things to settle before doing a thing
+
 	// Do a delayed parameter load once about a second after startup
-	if (!didParamLoad && ms > 1000) {
+	if (!didParamLoad && ms > 10000) {
 		loadParameters();
         Logger::console("Wifi Parameters loaded...");
         paramCache.bitfield1 = motorController->getStatusBitfield1();
@@ -154,7 +164,7 @@ void ICHIPWIFI::handleTick() {
 	}
 
 	//At 2 seconds start up a listening socket for OBDII
-	if (!didTCPListener && ms > 2000) {
+	if (!didTCPListener && ms > 12000) {
 		sendCmd("LTCP:2000,4", START_TCP_LISTENER);
 		didTCPListener = true;
 	}
@@ -535,12 +545,15 @@ void ICHIPWIFI::loop() {
 					case GET_SOCKET: //reply requesting the data pending on a socket
 						//reply is I/<size>:data
 						int dLen;
-						if (strcmp(incomingBuffer, Constants::ichipErrorString)) {
-							dLen = atoi( strtok(&incomingBuffer[2], ":") );
-							String datastr = strtok(0, ":"); //get the rest of the string
-							datastr.toLowerCase();
-							String ret = elmProc->processELMCmd((char *)datastr.c_str());
-							sendToSocket(0, ret); //TODO: need to actually track which socket requested this data
+						//do not do anything if the socket read returned an error.
+						if (strstr(incomingBuffer, "ERROR") == NULL) {
+							if (strcmp(incomingBuffer, Constants::ichipErrorString)) {
+								dLen = atoi( strtok(&incomingBuffer[2], ":") );
+								String datastr = strtok(0, ":"); //get the rest of the string
+								datastr.toLowerCase();
+								String ret = elmProc->processELMCmd((char *)datastr.c_str());
+								sendToSocket(0, ret); //TODO: need to actually track which socket requested this data
+							}
 						}
 						break;
 					case IDLE: //not sure whether to leave this info or go to debug. The ichip shouldn't be sending things in idle state
@@ -551,7 +564,7 @@ void ICHIPWIFI::loop() {
 					}
 
 					//if we got an I/ reply then the command is done sending data. So, see if there is a buffered cmd to send.
-					if (strncmp(incomingBuffer, "I/", 2) == 0) {
+					if (strstr(incomingBuffer, "I/") != NULL) {
 						state = IDLE;
 						if (psReadPtr != psWritePtr) { //if there is a parameter to send then do it
 							String temp = "Sending buffered cmd: " + sendingBuffer[psReadPtr].cmd;
@@ -565,8 +578,14 @@ void ICHIPWIFI::loop() {
 				if (incoming != 10) // don't add a LF character
 					incomingBuffer[ibWritePtr++] = (char) incoming;
 			}
-		} else
-			return;
+		} 
+		else return;
+	}
+	
+	if (millis() > lastSentTime + 1000) { //if the last sent command hasn't gotten a reply in 1 second
+		state = IDLE; //something went wrong so reset state
+		//sendCmd(lastSentCmd, lastSentState); //try to resend it
+		//The sendCmd call resets lastSentTime so this will at most be called every second until the iChip interface decides to cooperate.
 	}
 }
 

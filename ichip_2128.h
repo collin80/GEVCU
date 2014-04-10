@@ -173,6 +173,9 @@ class ICHIPWIFI : public Device {
 	bool didTCPListener;
 	int listeningSocket;
 	int activeSockets[4]; //support for four sockets. Lowest byte is socket #, next byte is size of data waiting in that socket
+	uint32_t lastSentTime;
+	String lastSentCmd;
+	ICHIP_COMM_STATE lastSentState;
 
     void getNextParam(); //get next changed parameter
     void getParamById(String paramName); //try to retrieve the value of the given parameter
