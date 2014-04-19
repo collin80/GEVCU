@@ -1,7 +1,7 @@
 /*
- * Device.h
+ * OBD2Handler.h - Handles OBD2 PID requests
  *
-Copyright (c) 2013 Collin Kidder, Michael Neuweiler, Charles Galpin
+Copyright (c) 2013-14 Collin Kidder, Michael Neuweiler, Charles Galpin
 
 Permission is hereby granted, free of charge, to any person obtaining
 a copy of this software and associated documentation files (the
@@ -24,40 +24,36 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
  */
 
-#ifndef DEVICE_TYPES_H_
-#define DEVICE_TYPES_H_
+#ifndef OBD2_H_
+#define OBD2_H_
 
-enum DeviceType {
-	DEVICE_ANY,
-	DEVICE_MOTORCTRL,
-	DEVICE_BMS,
-	DEVICE_CHARGER,
-	DEVICE_DISPLAY,
-	DEVICE_THROTTLE,
-	DEVICE_BRAKE,
-	DEVICE_MISC,
-	DEVICE_WIFI,
-	DEVICE_NONE
+#include <Arduino.h>
+#include "config.h"
+#include "Throttle.h"
+#include "MotorController.h"
+#include "BatteryManager.h"
+#include "DeviceManager.h"
+#include "TickHandler.h"
+#include "CanHandler.h"
+#include "constants.h"
+
+class OBD2Handler {
+public:
+	bool processRequest(uint8_t mode, uint8_t pid, char *inData, char *outData);
+	static OBD2Handler *getInstance();
+
+protected:
+
+private:
+	OBD2Handler(); //it's not right to try to directly instantiate this class
+	bool processShowData(uint8_t pid, char *inData, char *outData);
+	bool processShowCustomData(uint16_t pid, char *inData, char *outData);
+
+	static OBD2Handler *instance;
+	MotorController* motorController;
+	Throttle* accelPedal;
+	Throttle* brakePedal;
+	BatteryManager *BMS;
 };
 
-enum DeviceId { //unique device ID for every piece of hardware possible
-	DMOC645 = 0x1000,
-	BRUSA_DMC5 = 0x1001,
-	BRUSACHARGE = 0x1010,
-	TCCHCHARGE = 0x1020,
-	THROTTLE = 0x1030,
-	POTACCELPEDAL = 0x1031,
-	POTBRAKEPEDAL = 0x1032,
-	CANACCELPEDAL = 0x1033,
-	CANBRAKEPEDAL = 0x1034,
-	ICHIP2128 = 0x1040,
-	THINKBMS = 0x2000,
-	SYSTEM = 0x5000,
-	HEARTBEAT = 0x5001,
-	MEMCACHE = 0x5002,
-	PIDLISTENER = 0x6000,
-	ELM327EMU = 0x6500,
-	INVALID = 0xFFFF
-};
-
-#endif /* DEVICE_TYPES_H_ */
+#endif

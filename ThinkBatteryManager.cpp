@@ -34,6 +34,19 @@ ThinkBatteryManager::ThinkBatteryManager() : BatteryManager() {
 	allowDischarge = false;
 }
 
+void ThinkBatteryManager::setup() {
+	TickHandler::getInstance()->detach(this);
+
+	Logger::info("add device: Th!nk City BMS (id: %X, %X)", THINKBMS, this);
+
+	BatteryManager::setup(); // run the parent class version of this function
+
+	//Relevant BMS messages are 0x300 - 0x30F
+	CanHandler::getInstanceEV()->attach(this, 0x300, 0x7f0, false);	
+
+	TickHandler::getInstance()->attach(this, CFG_TICK_INTERVAL_BMS_THINK);
+}
+
 /*For all multibyte integers the format is MSB first, LSB last
 */
 void ThinkBatteryManager::handleCanFrame(CAN_FRAME *frame) {
@@ -99,16 +112,6 @@ void ThinkBatteryManager::handleCanFrame(CAN_FRAME *frame) {
 	case 0x30B: //Serial # part 2
 */
 	}
-}
-
-void ThinkBatteryManager::setup() {
-	TickHandler::getInstance()->detach(this);
-	BatteryManager::setup(); // run the parent class version of this function
-
-	//Relevant BMS messages are 0x300 - 0x30F
-	CanHandler::getInstanceEV()->attach(this, 0x300, 0x7f0, false);	
-
-	TickHandler::getInstance()->attach(this, CFG_TICK_INTERVAL_BMS_THINK);
 }
 
 void ThinkBatteryManager::handleTick() {

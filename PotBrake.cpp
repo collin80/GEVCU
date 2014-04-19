@@ -30,9 +30,9 @@
  * Constructor
  * Set which ADC channel to use
  */
-PotBrake::PotBrake(uint8_t brake1) : Throttle() {
+PotBrake::PotBrake() : Throttle() {
 	prefsHandler = new PrefHandler(POTBRAKEPEDAL);
-	brake1AdcPin = brake1;
+	commonName = "Potentiometer (analog) brake";
 }
 
 /*
@@ -40,6 +40,9 @@ PotBrake::PotBrake(uint8_t brake1) : Throttle() {
  */
 void PotBrake::setup() {
 	TickHandler::getInstance()->detach(this); // unregister from TickHandler first
+
+	Logger::info("add device: PotBrake (id: %X, %X)", POTBRAKEPEDAL, this);	
+
 	Throttle::setup(); //call base class
 
 	//set digital ports to inputs and pull them up all inputs currently active low
@@ -60,8 +63,9 @@ void PotBrake::handleTick() {
  * Retrieve raw input signals from the brake hardware.
  */
 RawSignalData *PotBrake::acquireRawSignal() {
+	PotBrakeConfiguration *config = (PotBrakeConfiguration *) getConfiguration();
 	sys_io_adc_poll();
-	rawSignal.input1 = getAnalog(brake1AdcPin);
+	rawSignal.input1 = getAnalog(config->AdcPin1);
 	return &rawSignal;
 }
 
@@ -165,6 +169,10 @@ void PotBrake::loadConfiguration() {
 		prefsHandler->read(EETH_BRAKE_MAX, &config->maximumLevel1);
 		prefsHandler->read(EETH_MAX_BRAKE_REGEN, &config->maximumRegen);
 		prefsHandler->read(EETH_MIN_BRAKE_REGEN, &config->minimumRegen);
+		prefsHandler->read(EETH_ADC_1, &config->AdcPin1);
+
+		config->AdcPin1 = BrakeADC; //TODO: This is hard coded because of old defaults. Fix this soon.
+
 		Logger::debug(POTBRAKEPEDAL, "BRAKE MIN: %l MAX: %l", config->minimumLevel1, config->maximumLevel1);
 		Logger::debug(POTBRAKEPEDAL, "Min: %l MaxRegen: %l", config->minimumRegen, config->maximumRegen);
 	} else { //checksum invalid. Reinitialize values and store to EEPROM
@@ -175,6 +183,7 @@ void PotBrake::loadConfiguration() {
 		config->minimumRegen = BrakeMinRegenValue;
 		config->minimumLevel1 = BrakeMinValue;
 		config->maximumLevel1 = BrakeMaxValue;
+		config->AdcPin1 = BrakeADC;
 		saveConfiguration();
 	}
 }
@@ -191,6 +200,7 @@ void PotBrake::saveConfiguration() {
 	prefsHandler->write(EETH_BRAKE_MAX, config->maximumLevel1);
 	prefsHandler->write(EETH_MAX_BRAKE_REGEN, config->maximumRegen);
 	prefsHandler->write(EETH_MIN_BRAKE_REGEN, config->minimumRegen);
+	prefsHandler->write(EETH_ADC_1, config->AdcPin1);
 	prefsHandler->saveChecksum();
 }
 

@@ -27,9 +27,7 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include "CanThrottle.h"
 
 CanThrottle::CanThrottle() : Throttle() {
-
 	prefsHandler = new PrefHandler(CANACCELPEDAL);
-
 	rawSignal.input1 = 0;
 	rawSignal.input2 = 0;
 	rawSignal.input3 = 0;
@@ -37,10 +35,14 @@ CanThrottle::CanThrottle() : Throttle() {
 	responseId = 0;
 	responseMask = 0x7ff;
 	responseExtended = false;
+
+	commonName = "CANBus accelerator";
 }
 
 void CanThrottle::setup() {
 	TickHandler::getInstance()->detach(this);
+
+	Logger::info("add device: CanThrottle (id: %X, %X)", CANACCELPEDAL, this);
 
 	loadConfiguration();
 	Throttle::setup();

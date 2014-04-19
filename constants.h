@@ -36,6 +36,7 @@ namespace Constants {
 	static const char* falseStr = "false";
 	static const char* notAvailable = "n/a";
 	static const char* ichipCommandPrefix = "AT+i";
+	static const char* ichipErrorString = "I/ERROR";
 
 	// configuration
 	static const char* numThrottlePots = "numThrottlePots";
@@ -55,6 +56,7 @@ namespace Constants {
 	static const char* brakeMax = "brakeMax";
 	static const char* brakeMinRegen = "brakeMinRegen";
 	static const char* brakeMaxRegen = "brakeMaxRegen";
+	static const char* brakeLight = "brakeLight";
 	static const char* speedMax = "speedMax";
 	static const char* torqueMax = "torqueMax";
 	static const char* logLevel = "logLevel";
@@ -68,8 +70,10 @@ namespace Constants {
 	static const char* speedRequested = "speedRequested";
 	static const char* speedActual = "speedActual";
 	static const char* dcVoltage = "dcVoltage";
+	static const char* nominalVolt = "nominalVolt";
 	static const char* dcCurrent = "dcCurrent";
 	static const char* acCurrent = "acCurrent";
+	static const char* kiloWattHours = "kiloWattHours";
 	static const char* bitfield1 = "bitfield1";
 	static const char* bitfield2 = "bitfield2";
 	static const char* bitfield3 = "bitfield3";
@@ -82,6 +86,12 @@ namespace Constants {
 	static const char* tempInverter = "tempInverter";
 	static const char* tempSystem = "tempSystem";
 	static const char* mechPower = "mechPower";
+	static const char* prechargeR = "prechargeR";
+    static const char* prechargeRelay = "prechargeRelay";
+    static const char* mainContactorRelay = "mainContactorRelay";
+	static const char* coolFan = "coolFan";
+	static const char* coolOn = "coolOn";
+	static const char* coolOff = "coolOff";
 
 	// messages
 	static const char* validChecksum = "Valid checksum, using stored config values";

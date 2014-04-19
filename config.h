@@ -35,8 +35,8 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 #include <due_can.h>
 
-#define CFG_BUILD_NUM	1014        //increment this every time a git commit is done. 
-#define CFG_VERSION "GEVCU alpha 2013-10-16"
+#define CFG_BUILD_NUM	1040        //increment this every time a git commit is done. 
+#define CFG_VERSION "GEVCU alpha 2014-04-07"
 
 
 /*
@@ -92,6 +92,8 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 //#define USE_HARD_CODED
 #define ThrottleNumPots			1		//# of pots to use by default
+#define ThrottleADC1			0		//Which pin to use
+#define ThrottleADC2			1		//Which pin to use
 #define ThrottleSubtype			1		//subtype 1 is a standard linear pot throttle
 #define ThrottleRegenMinValue	0		//where does Regen stop (1/10 of percent)
 #define ThrottleRegenMaxValue	0		//where Regen is at maximum (1/10 of percent)
@@ -109,18 +111,22 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #define BrakeMaxValue			500		//Value ADC reads when brake is pushed all of the way down
 #define BrakeMinRegenValue		20		//percent of full power to use for brake regen (min)
 #define BrakeMaxRegenValue		40		//percent of full power to use for brake regen (max)
+#define BrakeADC				2       //which ADC pin to use
 
 
 #define MaxTorqueValue		2000 //in tenths of a Nm
 #define	MaxRPMValue			6000 //DMOC will ignore this but we can use it ourselves for limiting
 #define RPMSlewRateValue	10000 // rpm/sec the requested speed should change (speed mode)
 #define TorqueSlewRateValue	6000 // 0.1Nm/sec the requested torque output should change (torque mode)
-#define PrechargeC			11000 //approximate C of DMOC input - in uF
-#define PrechargeR			500 //a stupidly high resistance just to make sure we precharge long enough
+#define KilowattHrs			11000 //not currently used
+#define PrechargeR			3000 //a stupidly high resistance just to make sure we precharge long enough
 #define NominalVolt			3300 //a reasonable figure for a lithium cell pack driving the DMOC (in tenths of a volt)
-#define PrechargeRelay		3 //third output
-#define MainContactorRelay	4 //fourth output
+#define PrechargeRelay		0 //third output
+#define MainContactorRelay	1 //fourth output
 #define ReversePercent		50
+#define CoolFan				7  //output to use for cooling fan
+#define CoolOn				70 //temperature (in C) to turn on cooling fan
+#define CoolOff				60 //temperature to turn it off
 
 #define MaxRegenWatts	20000 //in actual watts, there is no scale here
 #define MaxAccelWatts	150000
@@ -132,7 +138,7 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  * Define the maximum number of various object lists.
  * These values should normally not be changed.
  */
-#define CFG_DEV_MGR_MAX_DEVICES 9 // the maximum number of devices supported by the DeviceManager
+#define CFG_DEV_MGR_MAX_DEVICES 20 // the maximum number of devices supported by the DeviceManager
 #define CFG_CAN_NUM_OBSERVERS 10 // maximum number of device subscriptions per CAN bus
 #define CFG_TIMER_NUM_OBSERVERS 9 // the maximum number of supported observers per timer
 #define CFG_TIMER_USE_QUEUING // if defined, TickHandler uses a queuing buffer instead of direct calls from interrupts
@@ -142,9 +148,6 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  * PIN ASSIGNMENT
  */
 #define CFG_THROTTLE_NONE	255
-#define CFG_THROTTLE1_PIN	0
-#define CFG_THROTTLE2_PIN	1
-#define CFG_BRAKE_PIN		2
 #define BLINK_LED          73 //13 is L, 73 is TX, 72 is RX
 
 #define NUM_ANALOG	4

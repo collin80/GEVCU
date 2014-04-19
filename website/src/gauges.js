@@ -33,8 +33,8 @@ function refreshGaugeValue(setting, value) {
 function generateGauges() {
 	var throttleGauge = new Gauge({
 		renderTo    : 'throttleGauge',
-		width       : 300,
-		height      : 300,
+		width       : 200,
+		height      : 200,
 		glow        : true,
 		units       : 'Percent',
 		title       : "Throttle",
@@ -43,11 +43,11 @@ function generateGauges() {
 		majorTicks  : ['0','10','20','30','40','50','60','70','80','90','100'],
 		minorTicks  : 2,
 		strokeTicks : false,
+		valueFormat      : { "int" : 3, "dec" : 1 },
+
 	
 		highlights  : [
-			{ from : 0,   to : 15, color : 'rgba(255, 0, 0, .75)' },
-			{ from : 15, to : 30, color : 'rgba(255, 255, 0, .75)' },
-			{ from : 30, to : 100, color : 'rgba(0, 255,  0, .75)' }
+				{ from : 0, to : 100, color : 'rgba(0, 255,  0, .75)' }
 		],
 	
 		colors      : {
@@ -74,20 +74,22 @@ function generateGauges() {
 
 	var torqueGauge = new Gauge({
 		renderTo    : 'torqueActualGauge',
-		width       : 250,
-		height      : 250,
+		width       : 300,
+		height      : 300,
 		glow        : true,
 		units       : 'Nm',
 		title       : "Torque",
-		minValue    : -400,
-		maxValue    : 400,
-		majorTicks  : ['-400','-300','-200','-100','0','100','200','300','400'],
-		minorTicks  : 2,
+		minValue    : -100,
+		maxValue    : 300,
+		majorTicks  : ['-100','-50','0','50','100','150','200','250','300'],
+		minorTicks  : 5,
 		strokeTicks : false,
+		valueFormat      : { "int" : 3, "dec" : 0 },
+
 	
 		highlights  : [
-			{ from : -400,   to : 0, color : 'rgba(255, 0, 0, .75)' },
-			{ from : 0, to : 400, color : 'rgba(0, 255,  0, .75)' }
+			{ from : -100,   to : 0, color : 'rgba(255, 0, 0, .75)' },
+			{ from : 0, to : 300, color : 'rgba(0, 255,  0, .75)' }
 		],
 	
 		colors      : {
@@ -114,8 +116,8 @@ function generateGauges() {
 
 	var rpmGauge = new Gauge({
 		renderTo    : 'speedActualGauge',
-		width       : 250,
-		height      : 250,
+		width       : 200,
+		height      : 200,
 		glow        : true,
 		units       : 'x1000',
 		title       : "RPM",
@@ -124,9 +126,10 @@ function generateGauges() {
 		majorTicks  : ['0','1','2','3','4','5','6','7','8','9','10'],
 		minorTicks  : 2,
 		strokeTicks : false,
-		valueFormat      : { "int" : 4, "dec" : 0 },
+		valueFormat      : { "int" : 5, "dec" : 0 },
 		highlights  : [
-			{ from : 5000, to : 7000, color : 'rgba(255, 255, 0, .75)' },
+			{ from : 0, to : 6000, color : 'rgba(0, 255,  0, .75)' },
+			{ from : 6000, to : 7000, color : 'rgba(255, 255, 0, .75)' },
 			{ from : 7000, to : 10000, color : 'rgba(255, 0, 0, .75)' }
 		],
 	
@@ -154,17 +157,17 @@ function generateGauges() {
 
 	var temperatureMotorGauge = new Gauge({
 		renderTo    : 'temperatureMotorGauge',
-		width       : 175,
-		height      : 175,
+		width       : 200,
+		height      : 200,
 		glow        : true,
-		units       : 'degrees F',
+		units       : 'degrees C',
 		title       : "Motor Temp",
 		minValue    : 0,
 		maxValue    : 250,
 		majorTicks  : ['0','25','50','75','100','125','150','175','200','225','250'],
 		minorTicks  : 2,
 		strokeTicks : false,
-		valueFormat      : { "int" : 4, "dec" : 0 },
+		valueFormat      : { "int" : 3, "dec" : 0 },
 		highlights  : [
 			{ from : 0,   to : 180, color : 'rgba(0, 255,  0, .75)' },
 			{ from : 180, to : 220, color : 'rgba(255, 255, 0, .75)' },
@@ -195,21 +198,21 @@ function generateGauges() {
 	
 	var temperatureInverterGauge = new Gauge({
 		renderTo    : 'temperatureInverterGauge',
-		width       : 175,
-		height      : 175,
+		width       : 200,
+		height      : 200,
 		glow        : true,
-		units       : 'degrees F',
+		units       : 'degrees C',
 		title       : "Inverter Temp",
 		minValue    : 0,
-		maxValue    : 250,
-		majorTicks  : ['0','25','50','75','100','125','150','175','200','225','250'],
+		maxValue    : 120,
+		majorTicks  : ['0','10','20','30','40','50','60','70','80','90','100','110','120'],
 		minorTicks  : 2,
 		strokeTicks : false,
-		valueFormat      : { "int" : 4, "dec" : 0 },
+		valueFormat      : { "int" : 3, "dec" : 0 },
 		highlights  : [
-			{ from : 0,   to : 180, color : 'rgba(0, 255,  0, .75)' },
-			{ from : 180, to : 220, color : 'rgba(255, 255, 0, .75)' },
-			{ from : 220, to : 250, color : 'rgba(255, 0, 0, .75)' }
+			{ from : 0,   to : 70, color : 'rgba(0, 255,  0, .75)' },
+			{ from : 70, to : 80, color : 'rgba(255, 255, 0, .75)' },
+			{ from : 80, to : 120, color : 'rgba(255, 0, 0, .75)' }
 		],
 
 		colors      : {
@@ -236,21 +239,22 @@ function generateGauges() {
 	
 	var dcVoltageGauge = new Gauge({
 		renderTo    : 'dcVoltageGauge',
-		width       : 175,
-		height      : 175,
+		width       : 200,
+		height      : 200,
 		glow        : true,
 		units       : 'Volts',
 		title       : "DC Voltage",
 		minValue    : 0,
 		maxValue    : 450,
 		majorTicks  : ['0','50','100','150','200','250','300','350','400','450'],
-		minorTicks  : 2,
+		minorTicks  : 5,
 		strokeTicks : false,
-		valueFormat      : { "int" : 4, "dec" : 0 },
+		valueFormat      : { "int" : 3, "dec" : 0 },
 		highlights  : [
-			{ from : 0,   to : 280, color : 'rgba(255, 0, 0, .75)' },
-			{ from : 280, to : 300, color : 'rgba(255, 255, 0, .75)' },
-			{ from : 300, to : 450, color : 'rgba(0, 255,  0, .75)' }
+			{ from : 0,   to : 220, color : 'rgba(255, 255, 0, .75)' },
+			{ from : 220, to : 400, color : 'rgba(0, 255,  0, .75)' },
+			{ from : 400, to : 450, color :  'rgba(255, 0, 0, .75)'}
+		
 		],
 
 		colors      : {
@@ -277,21 +281,22 @@ function generateGauges() {
 	
 	var dcCurrentGauge = new Gauge({
 		renderTo    : 'dcCurrentGauge',
-		width       : 175,
-		height      : 175,
+		width       : 300,
+		height      : 300,
 		glow        : true,
 		units       : 'Amps',
 		title       : "DC Current",
-		minValue    : 0,
+		minValue    : -100,
 		maxValue    : 450,
-		majorTicks  : ['0','50','100','150','200','250','300','350','400','450'],
-		minorTicks  : 2,
+		majorTicks  : ['-100','-50','0','50','100','150','200','250','300','350','400','450'],
+		minorTicks  : 5,
 		strokeTicks : false,
-		valueFormat      : { "int" : 4, "dec" : 0 },
+		valueFormat      : { "int" : 3, "dec" : 0 },
 		highlights  : [
-			{ from : 0,   to : 280, color : 'rgba(0, 255,  0, .75)' },
-			{ from : 280, to : 300, color : 'rgba(255, 255, 0, .75)' },
-			{ from : 300, to : 450, color : 'rgba(255, 0, 0, .75)' }
+		{ from : -100, to : 0, color : 'rgba(255, 0, 0, .75)' },
+			{ from : 0,   to :350, color : 'rgba(0, 255,  0, .75)' },
+			{ from : 350, to : 400, color : 'rgba(255, 255, 0, .75)' },
+			{ from : 400, to : 450, color : 'rgba(255, 0, 0, .75)' }
 		],
 
 		colors      : {
@@ -316,23 +321,22 @@ function generateGauges() {
 
 	dcCurrentGauge.draw();
 	
-	var acCurrentGauge = new Gauge({
-		renderTo    : 'acCurrentGauge',
-		width       : 175,
-		height      : 175,
+	var kiloWattHoursGauge = new Gauge({
+		renderTo    : 'kiloWattHoursGauge',
+		width       : 200,
+		height      : 200,
 		glow        : true,
-		units       : 'Amps',
-		title       : "AC Current",
+		units       : 'kWh',
+		title       : "kiloWatt Hours",
 		minValue    : 0,
-		maxValue    : 450,
-		majorTicks  : ['0','50','100','150','200','250','300','350','400','450'],
-		minorTicks  : 2,
+		maxValue    : 30,
+		majorTicks  : ['0','5','10','15','20','25','30'],
+		minorTicks  : 5,
 		strokeTicks : false,
-		valueFormat      : { "int" : 4, "dec" : 0 },
+		valueFormat      : { "int" : 2, "dec" : 1 },
 		highlights  : [
-			{ from : 0,   to : 280, color : 'rgba(0, 255,  0, .75)' },
-			{ from : 280, to : 300, color : 'rgba(255, 255, 0, .75)' },
-			{ from : 300, to : 450, color : 'rgba(255, 0, 0, .75)' }
+			{ from : 0,   to : 30, color : 'rgba(0, 255,  0, .75)' }
+			
 		],
 
 		colors      : {
@@ -348,30 +352,30 @@ function generateGauges() {
 
 	// testing
 	/*
-	acCurrentGauge.onready = function() {
+	kiloWattHoursGauge.onready = function() {
 		setInterval( function() {
-			acCurrentGauge.setValue( Math.random() * 10000);
+			kiloWattHoursGauge.setValue( Math.random() * 10000);
 		}, 1000);
 	};
 	*/
 
-	acCurrentGauge.draw();
+	kiloWattHoursGauge.draw();
 	
 	var mechanicalPowerGauge = new Gauge({
 		renderTo    : 'mechanicalPowerGauge',
-		width       : 175,
-		height      : 175,
+		width       : 200,
+		height      : 200,
 		glow        : true,
 		units       : 'Kw',
 		title       : "Power",
 		minValue    : 0,
-		maxValue    : 450,
+		maxValue    : 150,
 		majorTicks  : ['0','25','50','75','100','125','150'],
-		minorTicks  : 2,
+		minorTicks  : 5,
 		strokeTicks : false,
-		valueFormat      : { "int" : 4, "dec" : 0 },
+		valueFormat      : { "int" : 3, "dec" : 0 },
 		highlights  : [
-			{ from : 0, to : 450, color : 'rgba(0, 255,  0, .75)' }
+			{ from : 0, to : 150, color : 'rgba(0, 255,  0, .75)' }
 		],
 
 		colors      : {

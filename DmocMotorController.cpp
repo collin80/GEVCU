@@ -46,16 +46,32 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 extern bool runThrottle; //TODO: remove use of global variables !
 
 DmocMotorController::DmocMotorController() : MotorController() {
-
 	prefsHandler = new PrefHandler(DMOC645);
-
 	step = SPEED_TORQUE;
-	selectedGear = NEUTRAL;
 	operationState = DISABLED;
 	actualState = DISABLED;
 	online = 0;
 	activityCount = 0;
 //	maxTorque = 2000;
+	commonName = "DMOC645 Inverter";
+}
+
+void DmocMotorController::setup() {
+	TickHandler::getInstance()->detach(this);
+
+	Logger::info("add device: DMOC645 (id:%X, %X)", DMOC645, this);
+
+	loadConfiguration();
+	MotorController::setup(); // run the parent class version of this function
+
+	// register ourselves as observer of 0x23x and 0x65x can frames
+	CanHandler::getInstanceEV()->attach(this, 0x230, 0x7f0, false);
+	CanHandler::getInstanceEV()->attach(this, 0x650, 0x7f0, false);
+
+	actualGear = NEUTRAL;
+	running = true;
+
+	TickHandler::getInstance()->attach(this, CFG_TICK_INTERVAL_MOTOR_CONTROLLER_DMOC);
 }
 
 /*
@@ -104,6 +120,7 @@ void DmocMotorController::handleCanFrame(CAN_FRAME *frame) {
 			break;
 		case 2: //ready (standby)
 			actualState = STANDBY;
+			ready = true;
 			break;
 		case 3: //enabled
 			actualState = ENABLE;
@@ -133,21 +150,6 @@ void DmocMotorController::handleCanFrame(CAN_FRAME *frame) {
 		activityCount++;
 		break;
 	}
-}
-
-void DmocMotorController::setup() {
-	TickHandler::getInstance()->detach(this);
-
-	loadConfiguration();
-	MotorController::setup(); // run the parent class version of this function
-
-	// register ourselves as observer of 0x23x and 0x65x can frames
-	CanHandler::getInstanceEV()->attach(this, 0x230, 0x7f0, false);
-	CanHandler::getInstanceEV()->attach(this, 0x650, 0x7f0, false);
-
-	actualGear = NEUTRAL;
-
-	TickHandler::getInstance()->attach(this, CFG_TICK_INTERVAL_MOTOR_CONTROLLER_DMOC);
 }
 
 /*Do note that the DMOC expects all three command frames and it expect them to happen at least twice a second. So, probably it'd be ok to essentially

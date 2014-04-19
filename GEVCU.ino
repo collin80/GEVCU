@@ -37,13 +37,6 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 /*
 Random comments on things that should be coded up soon:
-1. Wifi code needs to be finished. It should read in settings from EEPROM, etc. And start up a webserver. Then
-the code should scan for changed parameters occassionally and set them in eeprom
-2. Serial console needs to be able to set the wifi stuff
-3. Most of the support code for precharge based on RC is done. But, it still must be tested. Also, it should
-	check to see if the motor controller reports voltage and make sure the voltage is reported at least up
-	to the set nominal voltage before closing the main contactor. If it takes too long then fault and open
-	everything. Also, open contactors in case of a serious fault (but not for just any fault. Opening contactors under load can be nasty!)
 4. It is a possibility that there should be support for actually controlling the power to some of the devices.
 	For instance, power could be controlled to the +12V connection at the DMOC so that it can be power cycled
 	in software. But, that uses up an input and people can just cycle the key (though that resets the GEVCU too)
@@ -75,6 +68,8 @@ PrefHandler *sysPrefs;
 MemCache *memCache;
 Heartbeat *heartbeat;
 SerialConsole *serialConsole;
+Device *wifiDevice;
+Device *btDevice;
 
 byte i = 0;
 
@@ -120,11 +115,6 @@ void initSysEEPROM() {
 
 	eight = 5; //how many RX mailboxes
 	sysPrefs->write(EESYS_CAN_RX_COUNT, eight);
-
-	eight = 0;
-	sysPrefs->write(EESYS_COOLFAN, eight);
-    sysPrefs->write(EESYS_COOLON, eight);
-    sysPrefs->write(EESYS_COOLOFF, eight);
 
 	thirtytwo = 0x7f0; //standard frame, ignore bottom 4 bits
 	sysPrefs->write(EESYS_CAN_MASK0, thirtytwo);
@@ -182,6 +172,18 @@ void initSysEEPROM() {
 	sysPrefs->saveChecksum();
 }
 
+void createObjects() {
+	PotThrottle *paccelerator = new PotThrottle();
+	CanThrottle *caccelerator = new CanThrottle();
+	PotBrake *pbrake = new PotBrake();
+	CanBrake *cbrake = new CanBrake();
+	DmocMotorController *dmotorController = new DmocMotorController();
+	BrusaMotorController *bmotorController = new BrusaMotorController();
+	ThinkBatteryManager *BMS = new ThinkBatteryManager();
+	ELM327Emu *emu = new ELM327Emu();
+	ICHIPWIFI *iChip = new ICHIPWIFI();
+}
+
 void initializeDevices() {
 	DeviceManager *deviceManager = DeviceManager::getInstance();
 
@@ -190,57 +192,12 @@ void initializeDevices() {
 	Logger::info("add: Heartbeat (id: %X, %X)", HEARTBEAT, heartbeat);
 	heartbeat->setup();
 
-	// Specify the shield ADC port(s) to use for throttle
-	// CFG_THROTTLE_NONE = not used (valid only for second value and should not be needed due to calibration/detection)
-	Throttle *paccelerator = new PotThrottle(CFG_THROTTLE1_PIN, CFG_THROTTLE2_PIN);
-	if (paccelerator->isEnabled()) {
-		Logger::info("add device: PotThrottle (id: %X, %X)", POTACCELPEDAL, paccelerator);
-		deviceManager->addDevice(paccelerator);
-	}
-
-	Throttle *caccelerator = new CanThrottle();
-	if (caccelerator->isEnabled()) {
-		Logger::info("add device: CanThrottle (id: %X, %X)", CANACCELPEDAL, caccelerator);
-		deviceManager->addDevice(caccelerator);
-	}
-
-	Throttle *pbrake = new PotBrake(CFG_BRAKE_PIN); //set up the brake input as the third ADC input from the shield.
-	if (pbrake->isEnabled()) {
-		Logger::info("add device: PotBrake (id: %X, %X)", POTBRAKEPEDAL, pbrake);
-		deviceManager->addDevice(pbrake);
-	}
-
-	Throttle *cbrake = new CanBrake();
-	if (cbrake->isEnabled()) {
-		Logger::info("add device: CanBrake (id: %X, %X)", CANBRAKEPEDAL, cbrake);
-		deviceManager->addDevice(cbrake);
-	}
-
-	MotorController *dmotorController = new DmocMotorController(); //instantiate a DMOC645 device controller as our motor controller
-	if (dmotorController->isEnabled()) {
-		Logger::info("add device: DMOC645 (id:%X, %X)", DMOC645, dmotorController);
-		deviceManager->addDevice(dmotorController);
-	}
-
-	MotorController *bmotorController = new BrusaMotorController(); //instantiate a Brusa DMC5 device controller as our motor controller
-	if (bmotorController->isEnabled()) {
-		Logger::info("add device: Brusa DMC5 (id: %X, %X)", BRUSA_DMC5, bmotorController);
-		deviceManager->addDevice(bmotorController);
-	}
-
-	BatteryManager *BMS = new ThinkBatteryManager();
-	if (BMS->isEnabled()) {
-		Logger::info("add device: Th!nk City BMS (id: %X, %X)", THINKBMS, BMS);
-		deviceManager->addDevice(BMS);
-	}
-
-// add wifi as last device, because ICHIPWIFI::loadParameters() depends on pre-loaded preferences
-	Logger::info("Trying WIFI");
-	ICHIPWIFI *iChip = new ICHIPWIFI();
-	if (iChip->isEnabled()) {
-		Logger::info("add device: iChip 2128 WiFi (id: %X, %X)", ICHIP2128, iChip);
-		deviceManager->addDevice(iChip);
-	}
+	/*
+	We used to instantiate all the objects here along with other code. To simplify things this is done somewhat
+	automatically now. Just instantiate your new device object in createObjects above. This takes care of the details
+	so long as you follow the template of how other devices were coded.
+	*/
+	createObjects(); 
 
 	/*
 	 *	We defer setting up the devices until here. This allows all objects to be instantiated
@@ -311,16 +268,16 @@ void setup() {
         
 	Logger::info("System Ready");
 	serialConsole->printMenu();
+
+	wifiDevice = DeviceManager::getInstance()->getDeviceByID(ICHIP2128);
+	btDevice = DeviceManager::getInstance()->getDeviceByID(ELM327EMU);
+
 #ifdef CFG_TIMER_USE_QUEUING
 	//tickHandler->cleanBuffer(); // remove buffered tick events which clogged up already (might not be necessary)
 #endif
 }
 
 void loop() {
-
-	Device *tempDevice;
-	tempDevice = DeviceManager::getInstance()->getDeviceByID(ICHIP2128);
-
 
 #ifdef CFG_TIMER_USE_QUEUING
 	tickHandler->process();
@@ -332,8 +289,13 @@ void loop() {
 
 	serialConsole->loop();
 
-	if ( tempDevice != NULL ) {
-		((ICHIPWIFI*)tempDevice)->loop();
+	//TODO: this is dumb... shouldn't have to manually do this. Devices should be able to register loop functions
+	if ( wifiDevice != NULL ) {
+		((ICHIPWIFI*)wifiDevice)->loop();
+	}
+
+	if (btDevice != NULL) {
+		((ELM327Emu*)btDevice)->loop();
 	}
 
 	//this should still be here. It checks for a flag set during an interrupt

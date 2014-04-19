@@ -39,7 +39,7 @@ function showTab(pageId) {
 		if ( intervalId ) {
 			clearInterval(intervalId);
 		}
-		intervalId = setInterval(function(){loadData(pageId)}, 500);
+		intervalId = setInterval(function(){loadData(pageId)}, 300);
 	} else {
 		if (intervalId) {
 			clearInterval(intervalId);
@@ -247,6 +247,10 @@ function generateRangeControls() {
 	addRangeControl("brakeMinRegen", 0, 100);
 	addRangeControl("brakeMax", 0, 4095);
 	addRangeControl("brakeMaxRegen", 0, 100);
+	addRangeControl("coolOn", 0, 200);
+	addRangeControl("coolOff", 0, 200);
+
+
 }
 
 function addRangeControl(id, min, max) {

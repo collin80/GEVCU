@@ -33,6 +33,7 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include "TickHandler.h"
 #include "CanHandler.h"
 #include "constants.h"
+#include "DeviceManager.h"
 
 enum CanCarType {
 	unknowkn = 0x00,

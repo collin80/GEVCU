@@ -16,10 +16,12 @@
 	<speedActual>~speedActual~</speedActual>
 	<dcVoltage>~dcVoltage~</dcVoltage>
 	<dcCurrent>~dcCurrent~</dcCurrent>
-	<acCurrent>~acCurrent~</acCurrent>
+	<kiloWattHours>~kiloWattHours~</kiloWattHours>
 	<mechanicalPower>~mechPower~</mechanicalPower>
 	<bitfield1>~bitfield1~</bitfield1>
 	<bitfield2>~bitfield2~</bitfield2>
 	<bitfield3>~bitfield3~</bitfield3>
 	<bitfield4>~bitfield4~</bitfield4>
+		
+
 </status>
