@@ -36,40 +36,42 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 #define NUM_TIMERS 9
 
-class TickObserver {
+class TickObserver
+{
 public:
-	virtual void handleTick();
+    virtual void handleTick();
 };
 
 
-class TickHandler {
+class TickHandler
+{
 public:
-	static TickHandler *getInstance();
-	void attach(TickObserver *observer, uint32_t interval);
-	void detach(TickObserver *observer);
-	void handleInterrupt(int timerNumber); // must be public when from the non-class functions
+    static TickHandler *getInstance();
+    void attach(TickObserver *observer, uint32_t interval);
+    void detach(TickObserver *observer);
+    void handleInterrupt(int timerNumber);  // must be public when from the non-class functions
 #ifdef CFG_TIMER_USE_QUEUING
-	void cleanBuffer();
-	void process();
+    void cleanBuffer();
+    void process();
 #endif
 
 protected:
 
 private:
-	struct TimerEntry {
-		long interval; // interval of timer
-		TickObserver *observer[CFG_TIMER_NUM_OBSERVERS]; // array of pointers to observers with this interval
-	};
-	TimerEntry timerEntry[NUM_TIMERS]; // array of timer entries (9 as there are 9 timers)
-	static TickHandler *tickHandler;
+    struct TimerEntry {
+        long interval; // interval of timer
+        TickObserver *observer[CFG_TIMER_NUM_OBSERVERS]; // array of pointers to observers with this interval
+    };
+    TimerEntry timerEntry[NUM_TIMERS]; // array of timer entries (9 as there are 9 timers)
+    static TickHandler *tickHandler;
 #ifdef CFG_TIMER_USE_QUEUING
-	TickObserver *tickBuffer[CFG_TIMER_BUFFER_SIZE];
-	volatile uint16_t bufferHead, bufferTail;
+    TickObserver *tickBuffer[CFG_TIMER_BUFFER_SIZE];
+    volatile uint16_t bufferHead, bufferTail;
 #endif
 
-	TickHandler();
-	int findTimer(long interval);
-	int findObserver(int timerNumber, TickObserver *observer);
+    TickHandler();
+    int findTimer(long interval);
+    int findObserver(int timerNumber, TickObserver *observer);
 };
 
 void timer0Interrupt();

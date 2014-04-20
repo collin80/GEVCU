@@ -39,12 +39,15 @@
 
 DeviceManager *DeviceManager::deviceManager = NULL;
 
-DeviceManager::DeviceManager() {
-	throttle = NULL;
-	brake = NULL;
-	motorController = NULL;
-	for (int i = 0; i < CFG_DEV_MGR_MAX_DEVICES; i++)
-		devices[i] = NULL;
+DeviceManager::DeviceManager()
+{
+    throttle = NULL;
+    brake = NULL;
+    motorController = NULL;
+
+    for (int i = 0; i < CFG_DEV_MGR_MAX_DEVICES; i++) {
+        devices[i] = NULL;
+    }
 }
 
 /*
@@ -54,57 +57,69 @@ DeviceManager::DeviceManager() {
  * thread-safety and memory-leaks, this object lives as long as the
  * Arduino has power.
  */
-DeviceManager *DeviceManager::getInstance() {
-	if (deviceManager == NULL)
-		deviceManager = new DeviceManager();
-	return deviceManager;
+DeviceManager *DeviceManager::getInstance()
+{
+    if (deviceManager == NULL) {
+        deviceManager = new DeviceManager();
+    }
+
+    return deviceManager;
 }
 
 /*
  * Add the specified device to the list of registered devices
  */
-void DeviceManager::addDevice(Device *device) {
-	if (findDevice(device) == -1) {
-		int8_t i = findDevice(NULL);
-		if (i != -1) {
-			devices[i] = device;
-		} else {
-			Logger::error("unable to register device, max number of devices reached.");
-		}
-	}
-	/*
-	switch (device->getType()) {
-	case DEVICE_THROTTLE:
-		throttle = (Throttle *) device;
-		break;
-	case DEVICE_BRAKE:
-		brake = (Throttle *) device;
-		break;
-	case DEVICE_MOTORCTRL:
-		motorController = (MotorController *) device;
-		break;
-	}
-	*/
+void DeviceManager::addDevice(Device *device)
+{
+    if (findDevice(device) == -1) {
+        int8_t i = findDevice(NULL);
+
+        if (i != -1) {
+            devices[i] = device;
+        } else {
+            Logger::error("unable to register device, max number of devices reached.");
+        }
+    }
+
+    /*
+    switch (device->getType()) {
+    case DEVICE_THROTTLE:
+        throttle = (Throttle *) device;
+        break;
+    case DEVICE_BRAKE:
+        brake = (Throttle *) device;
+        break;
+    case DEVICE_MOTORCTRL:
+        motorController = (MotorController *) device;
+        break;
+    }
+    */
 }
 
 /*
  * Remove the specified device from the list of registered devices
  */
-void DeviceManager::removeDevice(Device *device) {
-	int8_t i = findDevice(NULL);
-	if (i != -1)
-		devices[i] = NULL;
-	switch (device->getType()) {
-	case DEVICE_THROTTLE:
-		throttle = NULL;
-		break;
-	case DEVICE_BRAKE:
-		brake = NULL;
-		break;
-	case DEVICE_MOTORCTRL:
-		motorController = NULL;
-		break;
-	}
+void DeviceManager::removeDevice(Device *device)
+{
+    int8_t i = findDevice(NULL);
+
+    if (i != -1) {
+        devices[i] = NULL;
+    }
+
+    switch (device->getType()) {
+        case DEVICE_THROTTLE:
+            throttle = NULL;
+            break;
+
+        case DEVICE_BRAKE:
+            brake = NULL;
+            break;
+
+        case DEVICE_MOTORCTRL:
+            motorController = NULL;
+            break;
+    }
 }
 
 /*Add a new tick handler to the specified device. It should
@@ -134,106 +149,119 @@ void DeviceManager::removeDevice(Device *device) {
  */
 void DeviceManager::sendMessage(DeviceType devType, DeviceId devId, uint32_t msgType, void* message)
 {
-	for (int i = 0; i < CFG_DEV_MGR_MAX_DEVICES; i++)
-	{
-		if (devices[i] && devices[i]->isEnabled()) //does this object exist and is it enabled?
-		{
-			if (devType == DEVICE_ANY || devType == devices[i]->getType())
-			{
-				if (devId == INVALID || devId == devices[i]->getId())
-				{
-					Logger::debug("Sending msg to device with ID %X", devices[i]->getId());
-					devices[i]->handleMessage(msgType, message);
-				}
-			}
-		}
-	}
+    for (int i = 0; i < CFG_DEV_MGR_MAX_DEVICES; i++) {
+        if (devices[i] && devices[i]->isEnabled()) { //does this object exist and is it enabled?
+            if (devType == DEVICE_ANY || devType == devices[i]->getType()) {
+                if (devId == INVALID || devId == devices[i]->getId()) {
+                    Logger::debug("Sending msg to device with ID %X", devices[i]->getId());
+                    devices[i]->handleMessage(msgType, message);
+                }
+            }
+        }
+    }
 }
 
-void DeviceManager::setParameter(DeviceType deviceType, DeviceId deviceId, uint32_t msgType, char *key, char *value) {
-	char *params[] = { key, value };
-	sendMessage(deviceType, deviceId, msgType, params);
+void DeviceManager::setParameter(DeviceType deviceType, DeviceId deviceId, uint32_t msgType, char *key, char *value)
+{
+    char *params[] = { key, value };
+    sendMessage(deviceType, deviceId, msgType, params);
 }
 
-void DeviceManager::setParameter(DeviceType deviceType, DeviceId deviceId, uint32_t msgType, char *key, uint32_t value) {
-	char buffer[15];
-	sprintf(buffer, "%lu", value);
-	setParameter(deviceType, deviceId, msgType, key, buffer);
+void DeviceManager::setParameter(DeviceType deviceType, DeviceId deviceId, uint32_t msgType, char *key, uint32_t value)
+{
+    char buffer[15];
+    sprintf(buffer, "%lu", value);
+    setParameter(deviceType, deviceId, msgType, key, buffer);
 }
 
-uint8_t DeviceManager::getNumThrottles() {
-	return countDeviceType(DEVICE_THROTTLE);
+uint8_t DeviceManager::getNumThrottles()
+{
+    return countDeviceType(DEVICE_THROTTLE);
 }
 
-uint8_t DeviceManager::getNumControllers() {
-	return countDeviceType(DEVICE_MOTORCTRL);
+uint8_t DeviceManager::getNumControllers()
+{
+    return countDeviceType(DEVICE_MOTORCTRL);
 }
 
-uint8_t DeviceManager::getNumBMS() {
-	return countDeviceType(DEVICE_BMS);
+uint8_t DeviceManager::getNumBMS()
+{
+    return countDeviceType(DEVICE_BMS);
 }
 
-uint8_t DeviceManager::getNumChargers() {
-	return countDeviceType(DEVICE_CHARGER);
+uint8_t DeviceManager::getNumChargers()
+{
+    return countDeviceType(DEVICE_CHARGER);
 }
 
-uint8_t DeviceManager::getNumDisplays() {
-	return countDeviceType(DEVICE_DISPLAY);
+uint8_t DeviceManager::getNumDisplays()
+{
+    return countDeviceType(DEVICE_DISPLAY);
 }
 
-Throttle *DeviceManager::getAccelerator() {
-	//try to find one if nothing registered. Cache it if we find one
-	if (!throttle) throttle = (Throttle *)getDeviceByType(DEVICE_THROTTLE); 
+Throttle *DeviceManager::getAccelerator()
+{
+    //try to find one if nothing registered. Cache it if we find one
+    if (!throttle) {
+        throttle = (Throttle *) getDeviceByType(DEVICE_THROTTLE);
+    }
 
-	//if there is no throttle then instantiate a dummy throttle
-	//so down range code doesn't puke
-	if (!throttle) 
-	{ 
-		Logger::debug("getAccelerator() called but there is no registered accelerator!");
-		return 0; //NULL!
-	}
-	return throttle;
+    //if there is no throttle then instantiate a dummy throttle
+    //so down range code doesn't puke
+    if (!throttle) {
+        Logger::debug("getAccelerator() called but there is no registered accelerator!");
+        return 0; //NULL!
+    }
+
+    return throttle;
 }
 
-Throttle *DeviceManager::getBrake() {
+Throttle *DeviceManager::getBrake()
+{
 
-	if (!brake) brake = (Throttle *)getDeviceByType(DEVICE_BRAKE);
+    if (!brake) {
+        brake = (Throttle *) getDeviceByType(DEVICE_BRAKE);
+    }
 
-	if (!brake) 
-	{
-		//Logger::debug("getBrake() called but there is no registered brake!");
-		return 0; //NULL!		
-	}
-	return brake;
+    if (!brake) {
+        //Logger::debug("getBrake() called but there is no registered brake!");
+        return 0; //NULL!
+    }
+
+    return brake;
 }
 
-MotorController *DeviceManager::getMotorController() {
-	if (!motorController) motorController = (MotorController *)getDeviceByType(DEVICE_MOTORCTRL);
+MotorController *DeviceManager::getMotorController()
+{
+    if (!motorController) {
+        motorController = (MotorController *) getDeviceByType(DEVICE_MOTORCTRL);
+    }
 
-	if (!motorController) 
-	{
-		Logger::debug("getMotorController() called but there is no registered motor controller!");
-		return 0; //NULL!
-	}
-	return motorController;
+    if (!motorController) {
+        Logger::debug("getMotorController() called but there is no registered motor controller!");
+        return 0; //NULL!
+    }
+
+    return motorController;
 }
 
 /*
 Allows one to request a reference to a device with the given ID. This lets code specifically request a certain
 device. Normally this would be a bad idea because it sort of breaks the OOP design philosophy of polymorphism
-but sometimes you can't help it. 
+but sometimes you can't help it.
 */
 Device *DeviceManager::getDeviceByID(DeviceId id)
 {
-	for (int i = 0; i < CFG_DEV_MGR_MAX_DEVICES; i++)
-	{
-		if (devices[i]) 
-		{
-			if (devices[i]->getId() == id) return devices[i];
-		}
-	}
-	Logger::debug("getDeviceByID - No device with ID: %X", (int)id);
-	return 0; //NULL!
+    for (int i = 0; i < CFG_DEV_MGR_MAX_DEVICES; i++) {
+        if (devices[i]) {
+            if (devices[i]->getId() == id) {
+                return devices[i];
+            }
+        }
+    }
+
+    Logger::debug("getDeviceByID - No device with ID: %X", (int) id);
+    return 0; //NULL!
 }
 
 /*
@@ -242,53 +270,64 @@ a given type.
 */
 Device *DeviceManager::getDeviceByType(DeviceType type)
 {
-	for (int i = 0; i < CFG_DEV_MGR_MAX_DEVICES; i++)
-	{
-		if (devices[i]) 
-		{
-			if (devices[i]->getType() == type) return devices[i];
-		}
-	}
-	Logger::debug("getDeviceByType - No devices of type: %X", (int)type);
-	return 0; //NULL!
+    for (int i = 0; i < CFG_DEV_MGR_MAX_DEVICES; i++) {
+        if (devices[i]) {
+            if (devices[i]->getType() == type) {
+                return devices[i];
+            }
+        }
+    }
+
+    Logger::debug("getDeviceByType - No devices of type: %X", (int) type);
+    return 0; //NULL!
 }
 
 /*
  * Find the position of a device in the devices array
  * /retval the position of the device or -1 if not found.
  */
-int8_t DeviceManager::findDevice(Device *device) {
-	for (int i = 0; i < CFG_DEV_MGR_MAX_DEVICES; i++) {
-		if (device == devices[i])
-			return i;
-	}
-	return -1;
+int8_t DeviceManager::findDevice(Device *device)
+{
+    for (int i = 0; i < CFG_DEV_MGR_MAX_DEVICES; i++) {
+        if (device == devices[i]) {
+            return i;
+        }
+    }
+
+    return -1;
 }
 
 /*
  * Count the number of registered devices of a certain type.
  */
-uint8_t DeviceManager::countDeviceType(DeviceType deviceType) {
-	uint8_t count = 0;
-	for (int i = 0; i < CFG_DEV_MGR_MAX_DEVICES; i++) {
-		if (devices[i]->getType() == deviceType)
-			count++;
-	}
-	return count;
+uint8_t DeviceManager::countDeviceType(DeviceType deviceType)
+{
+    uint8_t count = 0;
+
+    for (int i = 0; i < CFG_DEV_MGR_MAX_DEVICES; i++) {
+        if (devices[i]->getType() == deviceType) {
+            count++;
+        }
+    }
+
+    return count;
 }
 
-void DeviceManager::printDeviceList() {
-	Logger::console("Currently enabled devices: (DISABLE= to disable)");
-	for (int i = 0; i < CFG_DEV_MGR_MAX_DEVICES; i++) {
-		if (devices[i] && devices[i]->isEnabled()) {
-			Logger::console("     %X     %s", devices[i]->getId(), devices[i]->getCommonName());
-		}	
-	}
+void DeviceManager::printDeviceList()
+{
+    Logger::console("Currently enabled devices: (DISABLE= to disable)");
 
-	Logger::console("Currently disabled devices: (ENABLE= to enable)");
-	for (int i = 0; i < CFG_DEV_MGR_MAX_DEVICES; i++) {
-		if (devices[i] && !devices[i]->isEnabled()) {
-			Logger::console("     %X     %s", devices[i]->getId(), devices[i]->getCommonName());
-		}	
-	}
+    for (int i = 0; i < CFG_DEV_MGR_MAX_DEVICES; i++) {
+        if (devices[i] && devices[i]->isEnabled()) {
+            Logger::console("     %X     %s", devices[i]->getId(), devices[i]->getCommonName());
+        }
+    }
+
+    Logger::console("Currently disabled devices: (ENABLE= to enable)");
+
+    for (int i = 0; i < CFG_DEV_MGR_MAX_DEVICES; i++) {
+        if (devices[i] && !devices[i]->isEnabled()) {
+            Logger::console("     %X     %s", devices[i]->getId(), devices[i]->getCommonName());
+        }
+    }
 }

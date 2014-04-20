@@ -35,37 +35,39 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include "CanThrottle.h"
 #include "constants.h"
 
-class CanBrakeConfiguration : public ThrottleConfiguration {
+class CanBrakeConfiguration : public ThrottleConfiguration
+{
 public:
-	uint16_t minimumLevel1, maximumLevel1; // values for when the pedal is at its min and max
-	uint16_t carType; // the type of car, so we know how to interpret which bytes
+    uint16_t minimumLevel1, maximumLevel1; // values for when the pedal is at its min and max
+    uint16_t carType; // the type of car, so we know how to interpret which bytes
 };
 
-class CanBrake: public Throttle, CanObserver {
+class CanBrake: public Throttle, CanObserver
+{
 public:
-	CanBrake();
-	void setup();
-	void handleTick();
-	void handleCanFrame(CAN_FRAME *frame);
-	DeviceId getId();
-	DeviceType getType();
+    CanBrake();
+    void setup();
+    void handleTick();
+    void handleCanFrame(CAN_FRAME *frame);
+    DeviceId getId();
+    DeviceType getType();
 
-	RawSignalData *acquireRawSignal();
-	void loadConfiguration();
-	void saveConfiguration();
+    RawSignalData *acquireRawSignal();
+    void loadConfiguration();
+    void saveConfiguration();
 
 protected:
-	bool validateSignal(RawSignalData *);
-	uint16_t calculatePedalPosition(RawSignalData *);
-	int16_t mapPedalPosition(int16_t);
+    bool validateSignal(RawSignalData *);
+    uint16_t calculatePedalPosition(RawSignalData *);
+    int16_t mapPedalPosition(int16_t);
 
 private:
-	CAN_FRAME requestFrame; // the request frame sent to the car
-	RawSignalData rawSignal; // raw signal
-	uint8_t ticksNoResponse; // number of ticks no response was received
-	uint32_t responseId; // the CAN id with which the response is sent;
-	uint32_t responseMask; // the mask for the responseId
-	bool responseExtended; // if the response is expected as an extended frame
+    CAN_FRAME requestFrame; // the request frame sent to the car
+    RawSignalData rawSignal; // raw signal
+    uint8_t ticksNoResponse; // number of ticks no response was received
+    uint32_t responseId; // the CAN id with which the response is sent;
+    uint32_t responseMask; // the mask for the responseId
+    bool responseExtended; // if the response is expected as an extended frame
 };
 
 #endif /* CAN_BRAKE_H_ */

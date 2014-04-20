@@ -42,30 +42,32 @@
  *
  * NOTE: Because of ThrottleDetector, this currently MUST be the same as PotThrottleConfiguratin !!!
  */
-class PotBrakeConfiguration: public PotThrottleConfiguration {
+class PotBrakeConfiguration: public PotThrottleConfiguration
+{
 public:
 };
 
-class PotBrake: public Throttle {
+class PotBrake: public Throttle
+{
 public:
-	PotBrake();
-	void setup();
-	void handleTick();
-	DeviceId getId();
-	DeviceType getType();
+    PotBrake();
+    void setup();
+    void handleTick();
+    DeviceId getId();
+    DeviceType getType();
 
-	RawSignalData *acquireRawSignal();
+    RawSignalData *acquireRawSignal();
 
-	void loadConfiguration();
-	void saveConfiguration();
+    void loadConfiguration();
+    void saveConfiguration();
 
 protected:
-	bool validateSignal(RawSignalData *);
-	uint16_t calculatePedalPosition(RawSignalData *);
-	int16_t mapPedalPosition(int16_t);
+    bool validateSignal(RawSignalData *);
+    uint16_t calculatePedalPosition(RawSignalData *);
+    int16_t mapPedalPosition(int16_t);
 
 private:
-	RawSignalData rawSignal;
+    RawSignalData rawSignal;
 };
 
 #endif /* POT_BRAKE_H_ */

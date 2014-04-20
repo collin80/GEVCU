@@ -41,60 +41,62 @@
  * E.g. for a three pot pedal, all signals could be used.
  */
 struct RawSignalData {
-	int32_t input1; // e.g. pot #1 or the signal from a can bus throttle
-	int32_t input2; // e.g. pot #2 (optional)
-	int32_t input3; // e.g. pot #3 (optional)
+    int32_t input1; // e.g. pot #1 or the signal from a can bus throttle
+    int32_t input2; // e.g. pot #2 (optional)
+    int32_t input3; // e.g. pot #3 (optional)
 };
 
 /*
  * A abstract class to hold throttle configuration parameters.
  * Can be extended by the subclass.
  */
-class ThrottleConfiguration: public DeviceConfiguration {
+class ThrottleConfiguration: public DeviceConfiguration
+{
 public:
-	uint16_t positionRegenMaximum, positionRegenMinimum; // throttle position where regen is highest and lowest
-	uint16_t positionForwardMotionStart, positionHalfPower; // throttle position where forward motion starts and the mid point of throttle
-	uint8_t maximumRegen; // percentage of max torque allowable for regen at maximum level
-	uint8_t minimumRegen; // percentage of max torque allowable for regen at minimum level
-	uint8_t creep; // percentage of torque used for creep function (imitate creep of automatic transmission, set 0 to disable)
+    uint16_t positionRegenMaximum, positionRegenMinimum; // throttle position where regen is highest and lowest
+    uint16_t positionForwardMotionStart, positionHalfPower; // throttle position where forward motion starts and the mid point of throttle
+    uint8_t maximumRegen; // percentage of max torque allowable for regen at maximum level
+    uint8_t minimumRegen; // percentage of max torque allowable for regen at minimum level
+    uint8_t creep; // percentage of torque used for creep function (imitate creep of automatic transmission, set 0 to disable)
 };
 
 /*
  * Abstract class for all throttle implementations.
  */
-class Throttle: public Device {
+class Throttle: public Device
+{
 public:
-	enum ThrottleStatus {
-		OK,
-		ERR_LOW_T1,
-		ERR_LOW_T2,
-		ERR_HIGH_T1,
-		ERR_HIGH_T2,
-		ERR_MISMATCH,
-		ERR_MISC
-	};
+    enum ThrottleStatus {
+        OK,
+        ERR_LOW_T1,
+        ERR_LOW_T2,
+        ERR_HIGH_T1,
+        ERR_HIGH_T2,
+        ERR_MISMATCH,
+        ERR_MISC
+    };
 
-	Throttle();
-	virtual int16_t getLevel();
-	void handleTick();
-	virtual ThrottleStatus getStatus();
-	virtual bool isFaulted();
-	virtual DeviceType getType();
+    Throttle();
+    virtual int16_t getLevel();
+    void handleTick();
+    virtual ThrottleStatus getStatus();
+    virtual bool isFaulted();
+    virtual DeviceType getType();
 
-	virtual RawSignalData *acquireRawSignal();
-	void loadConfiguration();
-	void saveConfiguration();
+    virtual RawSignalData *acquireRawSignal();
+    void loadConfiguration();
+    void saveConfiguration();
 
 protected:
-	ThrottleStatus status;
-	virtual bool validateSignal(RawSignalData *);
-	virtual uint16_t calculatePedalPosition(RawSignalData *);
-	virtual int16_t mapPedalPosition(int16_t);
-	uint16_t normalizeAndConstrainInput(int32_t, int32_t, int32_t);
-	int32_t normalizeInput(int32_t, int32_t, int32_t);
+    ThrottleStatus status;
+    virtual bool validateSignal(RawSignalData *);
+    virtual uint16_t calculatePedalPosition(RawSignalData *);
+    virtual int16_t mapPedalPosition(int16_t);
+    uint16_t normalizeAndConstrainInput(int32_t, int32_t, int32_t);
+    int32_t normalizeInput(int32_t, int32_t, int32_t);
 
 private:
-	int16_t level; // the final signed throttle level. [-1000, 1000] in permille of maximum
+    int16_t level; // the final signed throttle level. [-1000, 1000] in permille of maximum
 };
 
 #endif

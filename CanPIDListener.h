@@ -36,32 +36,34 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include "constants.h"
 
 
-class CanPIDConfiguration : public DeviceConfiguration {
+class CanPIDConfiguration : public DeviceConfiguration
+{
 public:
-	uint32_t pidId; //what ID are we listening for?
-	uint32_t pidMask;
-	bool useExtended;
+    uint32_t pidId; //what ID are we listening for?
+    uint32_t pidMask;
+    bool useExtended;
 };
 
-class CanPIDListener: public Device, CanObserver {
+class CanPIDListener: public Device, CanObserver
+{
 public:
-	CanPIDListener();
-	void setup();
-	void handleTick();
-	void handleCanFrame(CAN_FRAME *frame);
-	DeviceId getId();
+    CanPIDListener();
+    void setup();
+    void handleTick();
+    void handleCanFrame(CAN_FRAME *frame);
+    DeviceId getId();
 
-	void loadConfiguration();
-	void saveConfiguration();
+    void loadConfiguration();
+    void saveConfiguration();
 
 protected:
 
 private:
-	uint32_t responseId; // the CAN id with which the response is sent;
-	uint32_t responseMask; // the mask for the responseId
-	bool responseExtended; // if the response is expected as an extended frame
-	bool processShowData(CAN_FRAME* inFrame, CAN_FRAME& outFrame);
-	bool processShowCustomData(CAN_FRAME* inFrame, CAN_FRAME& outFrame);
+    uint32_t responseId; // the CAN id with which the response is sent;
+    uint32_t responseMask; // the mask for the responseId
+    bool responseExtended; // if the response is expected as an extended frame
+    bool processShowData(CAN_FRAME* inFrame, CAN_FRAME& outFrame);
+    bool processShowCustomData(CAN_FRAME* inFrame, CAN_FRAME& outFrame);
 };
 
 #endif //CAN_PID_H_

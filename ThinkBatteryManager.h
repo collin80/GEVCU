@@ -24,8 +24,8 @@ CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT,
 TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
 SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
- */ 
- 
+ */
+
 #ifndef THINKBATT_H_
 #define THINKBATT_H_
 
@@ -39,19 +39,19 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 class ThinkBatteryManager : public BatteryManager, CanObserver
 {
 public:
-	ThinkBatteryManager();
-	void setup();
-	void handleTick();
-	void handleCanFrame(CAN_FRAME *frame);
-	DeviceId getId();
-	bool hasPackVoltage();
-	bool hasPackCurrent();
-	bool hasTemperatures();
-	bool isChargeOK();
-	bool isDischargeOK();
+    ThinkBatteryManager();
+    void setup();
+    void handleTick();
+    void handleCanFrame(CAN_FRAME *frame);
+    DeviceId getId();
+    bool hasPackVoltage();
+    bool hasPackCurrent();
+    bool hasTemperatures();
+    bool isChargeOK();
+    bool isDischargeOK();
 protected:
 private:
-	void sendKeepAlive();
+    void sendKeepAlive();
 };
 
 #endif

@@ -24,7 +24,7 @@ CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT,
 TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
 SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
- */ 
+ */
 
 
 #ifndef SYS_IO_H_
@@ -36,17 +36,17 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include "PrefHandler.h"
 
 typedef struct {
-  uint16_t offset;
-  uint16_t gain;
+    uint16_t offset;
+    uint16_t gain;
 } ADC_COMP;
 
 void setup_sys_io();
-uint16_t getAnalog(uint8_t which); //get value of one of the 4 analog inputs
+uint16_t getAnalog(uint8_t which);  //get value of one of the 4 analog inputs
 uint16_t getDiffADC(uint8_t which);
 uint16_t getRawADC(uint8_t which);
-boolean getDigital(uint8_t which); //get value of one of the 4 digital inputs
-void setOutput(uint8_t which, boolean active); //set output high or not
-boolean getOutput(uint8_t which); //get current value of output state (high?)
+boolean getDigital(uint8_t which);  //get value of one of the 4 digital inputs
+void setOutput(uint8_t which, boolean active);  //set output high or not
+boolean getOutput(uint8_t which);  //get current value of output state (high?)
 void setupFastADC();
 void sys_io_adc_poll();
 void sys_early_setup();

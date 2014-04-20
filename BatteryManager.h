@@ -24,8 +24,8 @@ CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT,
 TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
 SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
- */ 
- 
+ */
+
 #ifndef BATTMANAGE_H_
 #define BATTMANAGE_H_
 
@@ -33,34 +33,35 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include "config.h"
 #include "Device.h"
 
-class BatteryManager : public Device {
+class BatteryManager : public Device
+{
 public:
-	BatteryManager();
-	~BatteryManager();
-	int getPackVoltage(); //in tenths of a volt
-	signed int getPackCurrent(); //in tenths of an amp
-	//bool allowCharging();
-	//bool allowDischarging();
-	DeviceType getType();
+    BatteryManager();
+    ~BatteryManager();
+    int getPackVoltage(); //in tenths of a volt
+    signed int getPackCurrent(); //in tenths of an amp
+    //bool allowCharging();
+    //bool allowDischarging();
+    DeviceType getType();
     void setup();
     void handleTick();
-	//a bunch of boolean functions. Derived classes must implment
-	//these functions to tell everyone else what they support
-	virtual bool hasPackVoltage() = 0;
-	virtual bool hasPackCurrent() = 0;
-	virtual bool hasTemperatures() = 0;
-	virtual bool isChargeOK() = 0;
-	virtual bool isDischargeOK() = 0;
+    //a bunch of boolean functions. Derived classes must implment
+    //these functions to tell everyone else what they support
+    virtual bool hasPackVoltage() = 0;
+    virtual bool hasPackCurrent() = 0;
+    virtual bool hasTemperatures() = 0;
+    virtual bool isChargeOK() = 0;
+    virtual bool isDischargeOK() = 0;
 protected:
-	int packVoltage; //tenths of a volt
-	signed int packCurrent; //tenths of an amp
-	int SOC; //state of charge in percent
-	int lowestCellV, highestCellV; //in mv
-	int lowestCellTemp, highestCellTemp;
-	//should be some form of discharge and charge limit. I don't know if it should be % or amps
-	//some BMS systems will report one way and some the other. 
-	int dischargeLimit, chargeLimit;
-	bool allowCharge, allowDischarge;
+    int packVoltage; //tenths of a volt
+    signed int packCurrent; //tenths of an amp
+    int SOC; //state of charge in percent
+    int lowestCellV, highestCellV; //in mv
+    int lowestCellTemp, highestCellTemp;
+    //should be some form of discharge and charge limit. I don't know if it should be % or amps
+    //some BMS systems will report one way and some the other.
+    int dischargeLimit, chargeLimit;
+    bool allowCharge, allowDischarge;
 
 private:
 };
