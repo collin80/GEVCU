@@ -439,4 +439,6 @@ boolean MemCache::cache_writepage(uint8_t page)
     Wire.beginTransmission(i2c_id);
     Wire.write(buffer, 258);
     Wire.endTransmission(true);
+    
+    return true;
 }

@@ -61,7 +61,6 @@ public:
     bool checksumValid();
     void forceCacheWrite();
     bool isEnabled();
-    void setEnabledStatus(bool en);
     static bool setDeviceStatus(uint16_t device, bool enabled);
 
 private:

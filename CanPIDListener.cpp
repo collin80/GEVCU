@@ -104,7 +104,7 @@ void CanPIDListener::handleCanFrame(CAN_FRAME *frame)
     CAN_FRAME outputFrame;
     bool ret;
 
-    if ((frame->id == 0x7E0) || (frame->id = 0x7DF)) {
+    if ((frame->id == 0x7E0) || (frame->id == 0x7DF)) {
         //Do some common setup for our output - we won't pull the trigger unless we need to.
         outputFrame.id = 0x7E8; //first ECU replying - TODO: Perhaps allow this to be configured from 0x7E8 - 0x7EF
         outputFrame.data.bytes[1] = frame->data.bytes[1] + 0x40; //to show that this is a response
@@ -326,6 +326,8 @@ bool CanPIDListener::processShowCustomData(CAN_FRAME* inFrame, CAN_FRAME& outFra
 
     switch (pid) {
     }
+    
+    return false;
 }
 
 DeviceId CanPIDListener::getId()

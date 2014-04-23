@@ -76,7 +76,7 @@ String ELM327Processor::processELMCmd(char *cmd)
             uint8_t pidnum = (uint8_t)(valu & 0xFF);
             uint8_t mode = (uint8_t)((valu >> 8) & 0xFF);
             Logger::debug(ELM327EMU, "Mode: %i, PID: %i", mode, pidnum);
-            char out[6];
+            char out[7];
             char buff[10];
 
             if (obd2Handler->processRequest(mode, pidnum, NULL, out)) {

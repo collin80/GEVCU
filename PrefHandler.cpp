@@ -40,22 +40,6 @@ bool PrefHandler::isEnabled()
     return enabled;
 }
 
-void PrefHandler::setEnabledStatus(bool en)
-{
-    uint16_t id;
-
-    enabled = en;
-
-    if (enabled) {
-        id |= 0x8000; //set enabled bit
-    } else {
-        id &= 0x7FFF; //clear enabled bit
-    }
-
-    memCache->Write(EE_DEVICE_TABLE + (2 * position), id);
-}
-
-
 void PrefHandler::initDevTable()
 {
     uint16_t id;

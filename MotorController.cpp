@@ -132,12 +132,12 @@ void MotorController::handleTick()
     Throttle *accelerator = DeviceManager::getInstance()->getAccelerator();
     Throttle *brake = DeviceManager::getInstance()->getBrake();
 
+    throttleRequested = 0; //force to zero in case no accelerator exists
     if (accelerator) {
         throttleRequested = accelerator->getLevel();
-    }
-
-    if (brake && brake->getLevel() < -10 && brake->getLevel() < accelerator->getLevel()) { //if the brake has been pressed it overrides the accelerator.
-        throttleRequested = brake->getLevel();
+        if (brake && brake->getLevel() < -10 && brake->getLevel() < accelerator->getLevel()) { //if the brake has been pressed it overrides the accelerator.
+            throttleRequested = brake->getLevel();
+        }
     }
 
     if (!donePrecharge && config->prechargeR > 0) {
@@ -242,7 +242,7 @@ void MotorController::setup()
     prefsHandler->read(EEMC_KILOWATTHRS, &kiloWattHours);  //retrieve kilowatt hours from EEPROM
     nominalVolts = config->nominalVolt;
 
-    if (config->prechargeR = 12345) {
+    if (config->prechargeR == 12345) {
         torqueActual = 2;
         dcCurrent = 1501;
         dcVoltage = 3320;

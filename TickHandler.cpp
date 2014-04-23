@@ -48,6 +48,7 @@ TickHandler::TickHandler()
 #ifdef CFG_TIMER_USE_QUEUING
     bufferHead = bufferTail = 0;
 #endif
+    
 }
 
 /*
