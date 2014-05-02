@@ -12,7 +12,7 @@
  * If none of those networks can be found then the device will automatically try to form an
  * adhoc network with the 4th entry which is dedicated to that purpose.
  * All commands to the wifi start with "AT+i" and end with CR (ascii 13)
- * 
+ *
  * Commands:
  * RP11 - get list of access points in range
  * RP7 - Status report (bit 10 if remote has changed a param)
@@ -42,13 +42,13 @@
  * WSIx - x=0-9 = set SSIDs to associate with
  * WPPx - x=0-9 WPA pass phrases
  * WKYx - x=0-9 WEP keys
- * WSTx - x=0-9 security type = (0=none, 1=wep64, 2=WEP128,3=WPA/TKIP 4=WPA2 
- * 
- * 
+ * WSTx - x=0-9 security type = (0=none, 1=wep64, 2=WEP128,3=WPA/TKIP 4=WPA2
+ *
+ *
  * Web Parameters getting/setting
- * <param>=<value> 	 set 
- * <param>?		get
- * 
+ * <param>=<value>   set
+ * <param>?     get
+ *
 
  Copyright (c) 2013 Collin Kidder, Michael Neuweiler, Charles Galpin
 
@@ -92,7 +92,8 @@ enum ICHIP_COMM_STATE {IDLE, GET_PARAM, SET_PARAM, START_TCP_LISTENER, GET_ACTIV
 /*
  * The extended configuration class with additional parameters for ichip WLAN
  */
-class WifiConfiguration : public DeviceConfiguration {
+class WifiConfiguration : public DeviceConfiguration
+{
 public:
 };
 
@@ -100,32 +101,32 @@ public:
  * Cache of param values to avoid sending an update unless changed
  */
 struct ParamCache {
-	uint32_t timeRunning;
-	int16_t torqueRequested;
-	int16_t torqueActual;
-	int16_t throttle;
-	int16_t brake;
-	uint8_t brakeLight;
-	bool brakeNotAvailable;
-	int16_t speedRequested;
-	int16_t speedActual;
-	int16_t dcVoltage;
-	int16_t dcCurrent;
-	int16_t acCurrent;
-	int16_t nominalVolt;
-	int16_t kiloWattHours;
-	uint32_t bitfield1;
-	uint32_t bitfield2;
-	uint32_t bitfield3;
-	uint32_t bitfield4;
-	bool running;
-	bool faulted;
-	bool warning;
-	MotorController::Gears gear;
-	int16_t tempMotor;
-	int16_t tempInverter;
-	int16_t tempSystem;
-	int16_t mechPower;
+    uint32_t timeRunning;
+    int16_t torqueRequested;
+    int16_t torqueActual;
+    int16_t throttle;
+    int16_t brake;
+    uint8_t brakeLight;
+    bool brakeNotAvailable;
+    int16_t speedRequested;
+    int16_t speedActual;
+    int16_t dcVoltage;
+    int16_t dcCurrent;
+    int16_t acCurrent;
+    int16_t nominalVolt;
+    int16_t kiloWattHours;
+    uint32_t bitfield1;
+    uint32_t bitfield2;
+    uint32_t bitfield3;
+    uint32_t bitfield4;
+    bool running;
+    bool faulted;
+    bool warning;
+    MotorController::Gears gear;
+    int16_t tempMotor;
+    int16_t tempInverter;
+    int16_t tempSystem;
+    int16_t mechPower;
     int16_t prechargeR;
     int8_t prechargeRelay;
     int8_t mainContactorRelay;
@@ -135,51 +136,52 @@ struct ParamCache {
 };
 
 struct SendBuff {
-	String cmd;
-	ICHIP_COMM_STATE state; 
+    String cmd;
+    ICHIP_COMM_STATE state;
 };
 
-class ICHIPWIFI : public Device {
-    public:
-    
+class ICHIPWIFI : public Device
+{
+public:
+
     ICHIPWIFI();
     ICHIPWIFI(USARTClass *which);
     void setup(); //initialization on start up
     void handleTick(); //periodic processes
     void handleMessage(uint32_t messageType, void* message);
-	DeviceType getType();
+    DeviceType getType();
     DeviceId getId();
     void loop();
     char *getTimeRunning();
-	
 
-	void loadConfiguration();
-	void saveConfiguration();
 
-    private:
-	ELM327Processor *elmProc;
+    void loadConfiguration();
+    void saveConfiguration();
+
+private:
+    ELM327Processor *elmProc;
     USARTClass* serialInterface; //Allows for retargetting which serial port we use
     char incomingBuffer[128]; //storage for one incoming line
     int ibWritePtr; //write position into above buffer
-	SendBuff sendingBuffer[32];
-	int psWritePtr;
-	int psReadPtr;
-	int tickCounter;
-	int currReply;
-	char buffer[30]; // a buffer for various string conversions
-	ParamCache paramCache;
-	ICHIP_COMM_STATE state;
-	bool didParamLoad;
-	bool didTCPListener;
-	int listeningSocket;
-	int activeSockets[4]; //support for four sockets. Lowest byte is socket #, next byte is size of data waiting in that socket
-	uint32_t lastSentTime;
-	String lastSentCmd;
-	ICHIP_COMM_STATE lastSentState;
+    SendBuff sendingBuffer[32];
+    int psWritePtr;
+    int psReadPtr;
+    int tickCounter;
+    int currReply;
+    char buffer[30]; // a buffer for various string conversions
+    ParamCache paramCache;
+    ICHIP_COMM_STATE state;
+    bool didParamLoad;
+    bool didTCPListener;
+    int listeningSocket;
+    int activeSockets[4]; //support for four sockets. Lowest byte is socket #, next byte is size of data waiting in that socket
+    uint32_t lastSentTime;
+    String lastSentCmd;
+    ICHIP_COMM_STATE lastSentState;
 
     void getNextParam(); //get next changed parameter
-    void getParamById(String paramName); //try to retrieve the value of the given parameter
-    void setParam(String paramName, String value); //set the given parameter with the given string
+    void getParamById(String paramName);  //try to retrieve the value of the given parameter
+    void setParam(String paramName, String value);  //set the given parameter with the given string
     void setParam(String paramName, int32_t value);
     void setParam(String paramName, int16_t value);
     void setParam(String paramName, uint32_t value);
@@ -187,8 +189,8 @@ class ICHIPWIFI : public Device {
     void setParam(String paramName, uint8_t value);
     void setParam(String paramName, float value, int precision);
     void sendCmd(String cmd);
-	void sendCmd(String cmd, ICHIP_COMM_STATE cmdstate);
-	void sendToSocket(int socket, String data);
+    void sendCmd(String cmd, ICHIP_COMM_STATE cmdstate);
+    void sendToSocket(int socket, String data);
     void processParameterChange(char *response);
     void loadParameters();
 };

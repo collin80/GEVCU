@@ -39,31 +39,31 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include "ThrottleDetector.h"
 #include "ichip_2128.h"
 
-class SerialConsole {
+class SerialConsole
+{
 public:
     SerialConsole(MemCache* memCache);
-	SerialConsole(MemCache* memCache, Heartbeat* heartbeat);
-	void loop();
-	void printMenu();
+    SerialConsole(MemCache* memCache, Heartbeat* heartbeat);
+    void loop();
+    void printMenu();
 
 protected:
-	enum CONSOLE_STATE
-	{
-		STATE_ROOT_MENU
-	};
+    enum CONSOLE_STATE {
+        STATE_ROOT_MENU
+    };
 
 private:
     Heartbeat* heartbeat;
     MemCache* memCache;
     bool handlingEvent;
-	char cmdBuffer[80];
-	int ptrBuffer;
-	int state;
-    
+    char cmdBuffer[80];
+    int ptrBuffer;
+    int state;
+
     void init();
     void serialEvent();
-	void handleConsoleCmd();
-	void handleShortCmd();
+    void handleConsoleCmd();
+    void handleShortCmd();
     void handleConfigCmd();
 };
 

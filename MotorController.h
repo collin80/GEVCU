@@ -41,59 +41,61 @@
 #define MOTORCTL_INPUT_REVERSE     5
 #define MOTORCTL_INPUT_LIMP        6
 
-class MotorControllerConfiguration : public DeviceConfiguration {
+class MotorControllerConfiguration : public DeviceConfiguration
+{
 public:
-	uint16_t speedMax; // in rpm
-	uint16_t torqueMax;	// maximum torque in 0.1 Nm
-	uint16_t torqueSlewRate; // for torque mode only: slew rate of torque value, 0=disabled, in 0.1Nm/sec
-	uint16_t speedSlewRate; //  for speed mode only: slew rate of speed value, 0=disabled, in rpm/sec
-	uint8_t reversePercent;
+    uint16_t speedMax; // in rpm
+    uint16_t torqueMax; // maximum torque in 0.1 Nm
+    uint16_t torqueSlewRate; // for torque mode only: slew rate of torque value, 0=disabled, in 0.1Nm/sec
+    uint16_t speedSlewRate; //  for speed mode only: slew rate of speed value, 0=disabled, in rpm/sec
+    uint8_t reversePercent;
 
-	uint16_t kilowattHrs;
-	uint16_t prechargeR; //resistance of precharge resistor in tenths of ohm
-	uint16_t nominalVolt; //nominal pack voltage in tenths of a volt
-	uint8_t prechargeRelay; //# of output to use for this relay or 255 if there is no relay
-	uint8_t mainContactorRelay; //# of output to use for this relay or 255 if there is no relay
-	uint8_t coolFan;
-	uint8_t coolOn;
-	uint8_t coolOff;
+    uint16_t kilowattHrs;
+    uint16_t prechargeR; //resistance of precharge resistor in tenths of ohm
+    uint16_t nominalVolt; //nominal pack voltage in tenths of a volt
+    uint8_t prechargeRelay; //# of output to use for this relay or 255 if there is no relay
+    uint8_t mainContactorRelay; //# of output to use for this relay or 255 if there is no relay
+    uint8_t coolFan;
+    uint8_t coolOn;
+    uint8_t coolOff;
 };
 
-class MotorController: public Device {
+class MotorController: public Device
+{
 
 public:
-	enum Gears {
-		NEUTRAL = 0,
-		DRIVE = 1,
-		REVERSE = 2,
-		ERROR = 3,
-	};
+    enum Gears {
+        NEUTRAL = 0,
+        DRIVE = 1,
+        REVERSE = 2,
+        ERROR = 3,
+    };
 
-	enum PowerMode {
-		modeTorque,
-		modeSpeed
-	};
+    enum PowerMode {
+        modeTorque,
+        modeSpeed
+    };
 
     MotorController();
-	DeviceType getType();
+    DeviceType getType();
     void setup();
     void handleTick();
-	uint32_t getTickInterval();
+    uint32_t getTickInterval();
 
-	void loadConfiguration();
-	void saveConfiguration();
+    void loadConfiguration();
+    void saveConfiguration();
 
-	void coolingcheck();
-	void setStatusBits();
-	bool isReady();
-	bool isRunning();
-	bool isFaulted();
-	bool isWarning();
+    void coolingcheck();
+    void setStatusBits();
+    bool isReady();
+    bool isRunning();
+    bool isFaulted();
+    bool isWarning();
 
-	void setPowerMode(PowerMode mode);
-	PowerMode getPowerMode();
-	int16_t getThrottle();
-	int8_t getCoolFan();
+    void setPowerMode(PowerMode mode);
+    PowerMode getPowerMode();
+    int16_t getThrottle();
+    int8_t getCoolFan();
     int8_t getCoolOn();
     int8_t getCoolOff();
     int16_t getselectedGear();
@@ -101,66 +103,66 @@ public:
     int16_t getnominalVolt();
     int8_t getprechargeRelay();
     int8_t getmainContactorRelay();
-	int16_t getSpeedRequested();
-	int16_t getSpeedActual();
-	int16_t getTorqueRequested();
-	int16_t getTorqueActual();
-	int16_t getTorqueAvailable();
+    int16_t getSpeedRequested();
+    int16_t getSpeedActual();
+    int16_t getTorqueRequested();
+    int16_t getTorqueActual();
+    int16_t getTorqueAvailable();
 
-	uint16_t getDcVoltage();
-	int16_t getDcCurrent();
-	uint16_t getAcCurrent();
-	uint32_t getKiloWattHours();
-	int16_t getMechanicalPower();
-	int16_t getTemperatureMotor();
-	int16_t getTemperatureInverter();
-	int16_t getTemperatureSystem();
+    uint16_t getDcVoltage();
+    int16_t getDcCurrent();
+    uint16_t getAcCurrent();
+    uint32_t getKiloWattHours();
+    int16_t getMechanicalPower();
+    int16_t getTemperatureMotor();
+    int16_t getTemperatureInverter();
+    int16_t getTemperatureSystem();
 
-	uint32_t getStatusBitfield1();
-	uint32_t getStatusBitfield2();
-	uint32_t getStatusBitfield3();
-	uint32_t getStatusBitfield4();
+    uint32_t getStatusBitfield1();
+    uint32_t getStatusBitfield2();
+    uint32_t getStatusBitfield3();
+    uint32_t getStatusBitfield4();
 
-	Gears getSelectedGear();
+    Gears getSelectedGear();
 
 protected:
-	bool ready; // indicates if the controller is ready to enable the power stage
-	bool running; // indicates if the power stage of the inverter is operative
-	bool faulted; // indicates a error condition is present in the controller
-	bool warning; // indicates a warning condition is present in the controller
-	bool coolflag;
+    bool ready; // indicates if the controller is ready to enable the power stage
+    bool running; // indicates if the power stage of the inverter is operative
+    bool faulted; // indicates a error condition is present in the controller
+    bool warning; // indicates a warning condition is present in the controller
+    bool coolflag;
 
-	Gears selectedGear;
+    Gears selectedGear;
 
-	PowerMode powerMode;
-	int16_t throttleRequested; // -1000 to 1000 (per mille of throttle level)
-	int16_t speedRequested; // in rpm
-	int16_t speedActual; // in rpm
-	int16_t torqueRequested; // in 0.1 Nm
-	int16_t torqueActual; // in 0.1 Nm
-	int16_t torqueAvailable; // the maximum available torque in 0.1Nm
+    PowerMode powerMode;
+    int16_t throttleRequested; // -1000 to 1000 (per mille of throttle level)
+    int16_t speedRequested; // in rpm
+    int16_t speedActual; // in rpm
+    int16_t torqueRequested; // in 0.1 Nm
+    int16_t torqueActual; // in 0.1 Nm
+    int16_t torqueAvailable; // the maximum available torque in 0.1Nm
 
-	uint16_t dcVoltage; // DC voltage in 0.1 Volts
-	int16_t dcCurrent; // DC current in 0.1 Amps
-	uint16_t acCurrent; // AC current in 0.1 Amps
-	uint32_t kiloWattHours;
-	int16_t mechanicalPower; // mechanical power of the motor 0.1 kW
-	int16_t temperatureMotor; // temperature of motor in 0.1 degree C
-	int16_t temperatureInverter; // temperature of inverter power stage in 0.1 degree C
-	int16_t temperatureSystem; // temperature of controller in 0.1 degree C
+    uint16_t dcVoltage; // DC voltage in 0.1 Volts
+    int16_t dcCurrent; // DC current in 0.1 Amps
+    uint16_t acCurrent; // AC current in 0.1 Amps
+    uint32_t kiloWattHours;
+    int16_t mechanicalPower; // mechanical power of the motor 0.1 kW
+    int16_t temperatureMotor; // temperature of motor in 0.1 degree C
+    int16_t temperatureInverter; // temperature of inverter power stage in 0.1 degree C
+    int16_t temperatureSystem; // temperature of controller in 0.1 degree C
 
-	uint32_t statusBitfield1; // bitfield variable for use of the specific implementation
-	uint32_t statusBitfield2;
-	uint32_t statusBitfield3;
-	uint32_t statusBitfield4;
+    uint32_t statusBitfield1; // bitfield variable for use of the specific implementation
+    uint32_t statusBitfield2;
+    uint32_t statusBitfield3;
+    uint32_t statusBitfield4;
 
-	uint16_t nominalVolts; //nominal pack voltage in 1/10 of a volt
+    uint16_t nominalVolts; //nominal pack voltage in 1/10 of a volt
 
-	uint16_t prechargeTime; //time in ms that precharge should last
-	uint32_t milliStamp; //how long we have precharged so far
-	bool donePrecharge; //already completed the precharge cycle?
-	bool prelay;
-	uint32_t skipcounter;
+    uint16_t prechargeTime; //time in ms that precharge should last
+    uint32_t milliStamp; //how long we have precharged so far
+    bool donePrecharge; //already completed the precharge cycle?
+    bool prelay;
+    uint32_t skipcounter;
 };
 
 #endif

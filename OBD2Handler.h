@@ -37,23 +37,24 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include "CanHandler.h"
 #include "constants.h"
 
-class OBD2Handler {
+class OBD2Handler
+{
 public:
-	bool processRequest(uint8_t mode, uint8_t pid, char *inData, char *outData);
-	static OBD2Handler *getInstance();
+    bool processRequest(uint8_t mode, uint8_t pid, char *inData, char *outData);
+    static OBD2Handler *getInstance();
 
 protected:
 
 private:
-	OBD2Handler(); //it's not right to try to directly instantiate this class
-	bool processShowData(uint8_t pid, char *inData, char *outData);
-	bool processShowCustomData(uint16_t pid, char *inData, char *outData);
+    OBD2Handler(); //it's not right to try to directly instantiate this class
+    bool processShowData(uint8_t pid, char *inData, char *outData);
+    bool processShowCustomData(uint16_t pid, char *inData, char *outData);
 
-	static OBD2Handler *instance;
-	MotorController* motorController;
-	Throttle* accelPedal;
-	Throttle* brakePedal;
-	BatteryManager *BMS;
+    static OBD2Handler *instance;
+    MotorController* motorController;
+    Throttle* accelPedal;
+    Throttle* brakePedal;
+    BatteryManager *BMS;
 };
 
 #endif

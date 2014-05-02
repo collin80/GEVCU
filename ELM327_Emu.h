@@ -63,36 +63,38 @@ extern PrefHandler *sysPrefs;
 /*
  * The extended configuration class with additional parameters for ichip WLAN
  */
-class ELM327Configuration : public DeviceConfiguration {
+class ELM327Configuration : public DeviceConfiguration
+{
 public:
 };
 
-class ELM327Emu : public Device {
-    public:
-    
+class ELM327Emu : public Device
+{
+public:
+
     ELM327Emu();
     ELM327Emu(USARTClass *which);
     void setup(); //initialization on start up
     void handleTick(); //periodic processes
     void handleMessage(uint32_t messageType, void* message);
-	DeviceType getType();
+    DeviceType getType();
     DeviceId getId();
     void loop();
-	void sendCmd(String cmd);
+    void sendCmd(String cmd);
 
-	void loadConfiguration();
-	void saveConfiguration();
+    void loadConfiguration();
+    void saveConfiguration();
 
-    private:
+private:
     USARTClass *serialInterface; //Allows for retargetting which serial port we use
-	ELM327Processor *elmProc;
+    ELM327Processor *elmProc;
     char incomingBuffer[128]; //storage for one incoming line
     int tickCounter;
     int ibWritePtr;
-	int currReply;
-	char buffer[30]; // a buffer for various string conversions
+    int currReply;
+    char buffer[30]; // a buffer for various string conversions
 
-	void processCmd();
+    void processCmd();
 };
 
 #endif

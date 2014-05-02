@@ -1,19 +1,15 @@
 A textfile with various notes to whoever else is interested 
 in what's coming down the pike and possibly what they could do:
 
-Much of what was in here has been done or rendered moot. Instead here is the current
-lay of the land:
+Several device drivers are already done and coded. The codebase is stable enough that
+more can be added easily enough. So, one of the big things to do right now is to
+find new devices and support them.
 
--There are observers for ticks and canbus but canbus is not yet done. So, one thing
-on the agenda is to complete canbus observer (This has now been submitted but
-is being held back from master until after EVCCON.)
+However, really only some sorts of devices are stable and supported. Motor controllers,
+throttles, brakes are all fairly mature. BMS systems and chargers, not so much.
 
--The new board has wifi but we're not using it. A big problem currently is that
-we have no good way to set parameter so, while EEPROM is working, it is worthless
-because the only way to set it is to change code. So, why use it? For this reason
-we don't really read much of anything from EEPROM right now. Suitable code and
-webpages need to be constructed to make this all work.
+Wifi works and bluetooth devices are somewhat supported as well. OBDII support has been
+added over wifi and bluetooth but there is still work to do in making the interface
+more robust and generic. Also, canbus based OBDII still has to be fixed up.
 
-Allow Wifi to remote control all sorts of stuff, connect to internet and send
-notifications, etc.
 

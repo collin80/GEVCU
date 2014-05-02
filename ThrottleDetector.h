@@ -37,63 +37,64 @@
 
 class Throttle;
 
-class ThrottleDetector : public TickObserver {
+class ThrottleDetector : public TickObserver
+{
 
 public:
-	ThrottleDetector(Throttle *throttle);
-	~ThrottleDetector();
-	void handleTick();
-	void detect();
+    ThrottleDetector(Throttle *throttle);
+    ~ThrottleDetector();
+    void handleTick();
+    void detect();
 
 private:
-	enum DetectionState {
-		DoNothing,
-		DetectMinWait,
-		DetectMinCalibrate,
-		DetectMaxWait,
-		DetectMaxCalibrate
-	};
+    enum DetectionState {
+        DoNothing,
+        DetectMinWait,
+        DetectMinCalibrate,
+        DetectMaxWait,
+        DetectMaxCalibrate
+    };
 
-	void detectMinWait();
-	void detectMinCalibrate();
-	void detectMaxWait();
-	void detectMaxCalibrate();
-	void displayCalibratedValues(bool minPedal);
-	void resetValues();
-	void readThrottleValues();
-	int checkLinear(uint16_t, uint16_t);
-	int checkInverse(uint16_t, uint16_t);
-	uint16_t normalize(uint16_t sensorValue, uint16_t sensorMin, uint16_t sensorMax, uint16_t constrainMin, uint16_t constrainMax);
+    void detectMinWait();
+    void detectMinCalibrate();
+    void detectMaxWait();
+    void detectMaxCalibrate();
+    void displayCalibratedValues(bool minPedal);
+    void resetValues();
+    void readThrottleValues();
+    int checkLinear(uint16_t, uint16_t);
+    int checkInverse(uint16_t, uint16_t);
+    uint16_t normalize(uint16_t sensorValue, uint16_t sensorMin, uint16_t sensorMax, uint16_t constrainMin, uint16_t constrainMax);
 
-	Throttle *throttle;
-	PotThrottleConfiguration *config;
-	DetectionState state;
-	unsigned long startTime;
-	int potentiometerCount; // the number of potentiometers detected
-	uint16_t throttle1Min; // the minimum value of throttle1
-	uint16_t throttle1Max; // the maximum value of throttle1
-	uint16_t throttle2Min; // the minimum value of throttle2
-	uint16_t throttle2Max; // the maximum value of throttle2
-	uint8_t throttleSubType; // the throttle sub type
-	bool throttle1HighLow; // true if throttle1 ranges from highest to lowest value as the pedal is pressed
-	bool throttle2HighLow; // true if throttle2 ranges from highest to lowest value as the pedal is pressed
-	bool throttle2Inverse; // true if throttle2 values are the opposite of the throttle1 values.
-	int throttle1MinRest;  // minimum sensor value at rest
-	int throttle1MaxRest;  // minimum sensor value at rest
-	int throttle2MinRest;  // minimum sensor value at rest
-	int throttle2MaxRest;  // maximum sensor value at rest
-	int throttle1MinFluctuationPercent;
-	int throttle1MaxFluctuationPercent;
-	int throttle2MinFluctuationPercent;
-	int throttle2MaxFluctuationPercent;
-	int maxThrottleReadingDeviationPercent;
-	// stats/counters when sampling
-	static const int maxSamples = 300;
-	int sampleCount;
-	int linearCount;
-	int inverseCount;
-	uint16_t throttle1Values[maxSamples];
-	uint16_t throttle2Values[maxSamples];
+    Throttle *throttle;
+    PotThrottleConfiguration *config;
+    DetectionState state;
+    unsigned long startTime;
+    int potentiometerCount; // the number of potentiometers detected
+    uint16_t throttle1Min; // the minimum value of throttle1
+    uint16_t throttle1Max; // the maximum value of throttle1
+    uint16_t throttle2Min; // the minimum value of throttle2
+    uint16_t throttle2Max; // the maximum value of throttle2
+    uint8_t throttleSubType; // the throttle sub type
+    bool throttle1HighLow; // true if throttle1 ranges from highest to lowest value as the pedal is pressed
+    bool throttle2HighLow; // true if throttle2 ranges from highest to lowest value as the pedal is pressed
+    bool throttle2Inverse; // true if throttle2 values are the opposite of the throttle1 values.
+    int throttle1MinRest;  // minimum sensor value at rest
+    int throttle1MaxRest;  // minimum sensor value at rest
+    int throttle2MinRest;  // minimum sensor value at rest
+    int throttle2MaxRest;  // maximum sensor value at rest
+    int throttle1MinFluctuationPercent;
+    int throttle1MaxFluctuationPercent;
+    int throttle2MinFluctuationPercent;
+    int throttle2MaxFluctuationPercent;
+    int maxThrottleReadingDeviationPercent;
+    // stats/counters when sampling
+    static const int maxSamples = 300;
+    int sampleCount;
+    int linearCount;
+    int inverseCount;
+    uint16_t throttle1Values[maxSamples];
+    uint16_t throttle2Values[maxSamples];
 
 };
 
