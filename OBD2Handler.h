@@ -50,7 +50,6 @@ private:
     bool processShowData(uint8_t pid, char *inData, char *outData);
     bool processShowCustomData(uint16_t pid, char *inData, char *outData);
 
-    static OBD2Handler *instance;
     MotorController* motorController;
     Throttle* accelPedal;
     Throttle* brakePedal;

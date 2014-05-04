@@ -63,7 +63,6 @@ protected:
 
 private:
     DeviceManager();    // private constructor
-    static DeviceManager *deviceManager;
 
     Device *devices[CFG_DEV_MGR_MAX_DEVICES];
     Throttle *throttle;
