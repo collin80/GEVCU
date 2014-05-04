@@ -488,9 +488,9 @@ void SerialConsole::handleConfigCmd()
             Logger::console("Invalid cooling OFF temperature. Please enter a value 0 - 200F");
         }
     } else if (cmdString == String("OUTPUT") && newValue < 8) {
-        setOutput(newValue, !getOutput(newValue));   //Toggle output
-        //show our work
-        Logger::console("DOUT0:%d, DOUT1:%d, DOUT2:%d, DOUT3:%d,DOUT4:%d, DOUT5:%d, DOUT6:%d, DOUT7:%d", getOutput(0), getOutput(1), getOutput(2), getOutput(3), getOutput(4), getOutput(5), getOutput(6), getOutput(7));
+        SystemIO *sysIO = SystemIO::getInstance();
+        sysIO->setOutput(newValue, !sysIO->getOutput(newValue)); //Toggle output
+        sysIO->printIOStatus(); //show our work
     } else {
         Logger::console("Unknown command");
         updateWifi = false;
@@ -564,16 +564,16 @@ void SerialConsole::handleShortCmd()
             break;
 
         case 'K': //set all outputs high
-            for (int tout = 0; tout < NUM_OUTPUT; tout++) {
-                setOutput(tout, true);
+            for (int tout = 0; tout < CFG_NUMBER_DIGITAL_OUTPUTS; tout++) {
+                SystemIO::getInstance()->setOutput(tout, true);
             }
 
             Logger::console("all outputs: ON");
             break;
 
         case 'J': //set the four outputs low
-            for (int tout = 0; tout < NUM_OUTPUT; tout++) {
-                setOutput(tout, false);
+            for (int tout = 0; tout < CFG_NUMBER_DIGITAL_OUTPUTS; tout++) {
+                SystemIO::getInstance()->setOutput(tout, false);
             }
 
             Logger::console("all outputs: OFF");

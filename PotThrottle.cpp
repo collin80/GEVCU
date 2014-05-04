@@ -68,10 +68,10 @@ void PotThrottle::handleTick()
 RawSignalData *PotThrottle::acquireRawSignal()
 {
     PotThrottleConfiguration *config = (PotThrottleConfiguration *) getConfiguration();
-    sys_io_adc_poll();
+    SystemIO::getInstance()->ADCPoll();
 
-    rawSignal.input1 = getAnalog(config->AdcPin1);
-    rawSignal.input2 = getAnalog(config->AdcPin2);
+    rawSignal.input1 = SystemIO::getInstance()->getAnalog(config->AdcPin1);
+    rawSignal.input2 = SystemIO::getInstance()->getAnalog(config->AdcPin2);
     return &rawSignal;
 }
 

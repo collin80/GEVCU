@@ -145,7 +145,7 @@ void MotorController::handleTick()
             donePrecharge = 1; //Time's up.  Let's don't do ANY of this on future ticks.
 
             if (config->mainContactorRelay != 255) { //If we HAVE a main contactor, turn it on.
-                setOutput(config->mainContactorRelay, 1);  //Main contactor on
+                SystemIO::getInstance()->setOutput(config->mainContactorRelay, 1);  //Main contactor on
                 statusBitfield2 |= 1 << 17; //set bit to turn on MAIN CONTACTOR annunciator
                 statusBitfield1 |= 1 << config->mainContactorRelay; //setbit to Turn on main contactor output annunciator
                 //I've commented the below out to leave the precharge relay ON after precharge..see user guide for why.
@@ -153,7 +153,7 @@ void MotorController::handleTick()
                 // statusBitfield2 &= ~(1 << 19); //clearbit to turn off PRECHARGE annunciator
                 //statusBitfield1 &= ~(1<< config->prechargeRelay); //clear bit to turn off PRECHARGE output annunciator
                 Logger::console("Precharge sequence complete after %i milliseconds", config->prechargeR);
-                Logger::console("MAIN CONTACTOR ENABLED...DOUT0:%d, DOUT1:%d, DOUT2:%d, DOUT3:%d,DOUT4:%d, DOUT5:%d, DOUT6:%d, DOUT7:%d", getOutput(0), getOutput(1), getOutput(2), getOutput(3), getOutput(4), getOutput(5), getOutput(6), getOutput(7));
+                SystemIO::getInstance()->printIOStatus();
             }
         } else //If time is not up and maybe this is our first tick, let's set the precharge relay IF we have one
             //and clear the main contactor IF we have one.We'll set PRELAY so we only have to do this once.
@@ -164,7 +164,7 @@ void MotorController::handleTick()
 
             if (!prelay) {
                 if (config->prechargeRelay != 255) {
-                    setOutput(config->prechargeRelay, 1);  //ok.  Turn on precharge
+                    SystemIO::getInstance()->setOutput(config->prechargeRelay, 1);  //ok.  Turn on precharge
                     statusBitfield2 |= 1 << 19; //set bit to turn on  PRECHARGE RELAY annunciator
                     statusBitfield1 |= 1 << config->prechargeRelay; //set bit to turn ON precharge OUTPUT annunciator
                     throttleRequested = 0; //Keep throttle at zero during precharge
@@ -172,7 +172,7 @@ void MotorController::handleTick()
                 }
 
                 if (config->mainContactorRelay != 255) {
-                    setOutput(config->mainContactorRelay, 0);  //Main contactor off
+                    SystemIO::getInstance()->setOutput(config->mainContactorRelay, 0);  //Main contactor off
                     statusBitfield2 &= ~(1 << 17);  //clear bitTurn off MAIN CONTACTOR annunciator
                     statusBitfield1 &= ~(1 << config->mainContactorRelay);  //clear bitTurn off main contactor output annunciator
                     prelay = true;
@@ -213,7 +213,7 @@ void MotorController::coolingcheck()
         if (temperatureInverter / 10 > config->coolOn) {
             if (!coolflag) {
                 coolflag = 1;
-                setOutput(config->coolFan, 1);  //Turn on cooling fan output
+                SystemIO::getInstance()->setOutput(config->coolFan, 1);  //Turn on cooling fan output
                 statusBitfield1 |= 1 << config->coolFan; //set bit to turn on cooling fan output annunciator
                 statusBitfield3 |= 1 << 9; //Set bit to turn on OVERTEMP annunciator
             }
@@ -222,7 +222,7 @@ void MotorController::coolingcheck()
         if (temperatureInverter / 10 < config->coolOff) {
             if (coolflag) {
                 coolflag = 0;
-                setOutput(config->coolFan, 0);  //Set cooling fan output off
+                SystemIO::getInstance()->setOutput(config->coolFan, 0);  //Set cooling fan output off
                 statusBitfield1 &= ~(1 << config->coolFan);  //clear bit to turn off cooling fan output annunciator
                 statusBitfield3 &= ~(1 << 9);  //clear bit to turn off OVERTEMP annunciator
             }
@@ -253,7 +253,8 @@ void MotorController::setup()
     Logger::console("PREDELAY=%i - Precharge delay time", config->prechargeR);
 
     //show our work
-    Logger::console("PRECHARGING...DOUT0:%d, DOUT1:%d, DOUT2:%d, DOUT3:%d,DOUT4:%d, DOUT5:%d, DOUT6:%d, DOUT7:%d", getOutput(0), getOutput(1), getOutput(2), getOutput(3), getOutput(4), getOutput(5), getOutput(6), getOutput(7));
+    Logger::console("PRECHARGING...");
+    SystemIO::getInstance()->printIOStatus();
     coolflag = false;
 
     Device::setup();
@@ -496,5 +497,4 @@ void MotorController::saveConfiguration()
     prefsHandler->write(EEMC_COOL_ON, config->coolOn);
     prefsHandler->write(EEMC_COOL_OFF, config->coolOff);
     prefsHandler->saveChecksum();
-    loadConfiguration();
 }
