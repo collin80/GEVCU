@@ -108,7 +108,7 @@ void BrusaMotorController::sendControl()
     if (faulted) {
         outputFrame.data.bytes[0] |= clearErrorLatch;
     } else {
-        if ((running || speedActual > 1000) && !getDigital(1)) {   // see warning about field weakening current to prevent uncontrollable regen
+        if ((running || speedActual > 1000) && !SystemIO::getInstance()->getDigital(1)) {   // see warning about field weakening current to prevent uncontrollable regen
             outputFrame.data.bytes[0] |= enablePowerStage;
         }
 

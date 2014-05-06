@@ -33,8 +33,6 @@
 
 #include "TickHandler.h"
 
-TickHandler *TickHandler::tickHandler = NULL;
-
 TickHandler::TickHandler()
 {
     for (int i = 0; i < NUM_TIMERS; i++) {
@@ -56,10 +54,7 @@ TickHandler::TickHandler()
  */
 TickHandler *TickHandler::getInstance()
 {
-    if (tickHandler == NULL) {
-        tickHandler = new TickHandler();
-    }
-
+    static TickHandler *tickHandler = new TickHandler();
     return tickHandler;
 }
 

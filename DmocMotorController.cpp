@@ -201,7 +201,7 @@ void DmocMotorController::handleTick()
     //}
 
     //but, if the second input is high we cancel the whole thing and disable the drive.
-    if (getDigital(1) /*|| !getDigital(0)*/) {
+    if (SystemIO::getInstance()->getDigital(1) /*|| !SystemIO::getInstance()->getDigital(0)*/) {
         setOpState(DISABLED);
         //runThrottle = false;
     }

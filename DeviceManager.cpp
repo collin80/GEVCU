@@ -37,8 +37,6 @@
 
 #include "DeviceManager.h"
 
-DeviceManager *DeviceManager::deviceManager = NULL;
-
 DeviceManager::DeviceManager()
 {
     throttle = NULL;
@@ -59,10 +57,7 @@ DeviceManager::DeviceManager()
  */
 DeviceManager *DeviceManager::getInstance()
 {
-    if (deviceManager == NULL) {
-        deviceManager = new DeviceManager();
-    }
-
+    static DeviceManager* deviceManager = new DeviceManager();
     return deviceManager;
 }
 

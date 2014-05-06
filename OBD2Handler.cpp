@@ -30,8 +30,6 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 #include "OBD2Handler.h"
 
-OBD2Handler *OBD2Handler::instance = NULL;
-
 OBD2Handler::OBD2Handler()
 {
 
@@ -43,11 +41,8 @@ OBD2Handler::OBD2Handler()
 
 OBD2Handler *OBD2Handler::getInstance()
 {
-    if (instance == NULL) {
-        instance = new OBD2Handler();
-    }
-
-    return instance;
+    static OBD2Handler *obd2Handler = new OBD2Handler();
+    return obd2Handler;
 }
 
 /*

@@ -32,7 +32,7 @@
 #include <Arduino.h>
 #include "config.h"
 #include "MotorController.h"
-#include "sys_io.h"
+#include "SystemIO.h"
 #include "TickHandler.h"
 #include "CanHandler.h"
 

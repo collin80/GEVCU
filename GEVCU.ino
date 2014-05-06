@@ -214,7 +214,6 @@ void initializeDevices()
 
 void setup()
 {
-
     pinMode(BLINK_LED, OUTPUT);
     digitalWrite(BLINK_LED, LOW);
 
@@ -222,6 +221,8 @@ void setup()
     SerialUSB.println(CFG_VERSION);
     SerialUSB.print("Build number: ");
     SerialUSB.println(CFG_BUILD_NUM);
+
+    Status::setSystemState(Status::init);
 
     Wire.begin();
     Logger::info("TWI init ok");
@@ -242,7 +243,7 @@ void setup()
     sysPrefs->read(EESYS_LOG_LEVEL, &loglevel);
     Logger::setLoglevel((Logger::LogLevel) loglevel);
 
-    sys_early_setup();
+    SystemIO::getInstance()->earlySetup();
 
     tickHandler = TickHandler::getInstance();
 
@@ -264,7 +265,7 @@ void setup()
      Logger::info("RTC init ok");
      */
 
-    setup_sys_io(); //get calibration data for system IO
+    SystemIO::getInstance()->setupSysIO(); //get calibration data for system IO
     Logger::info("SYSIO init ok");
 
     initializeDevices();
@@ -305,7 +306,7 @@ void loop()
     }
 
     //this should still be here. It checks for a flag set during an interrupt
-    sys_io_adc_poll();
+    SystemIO::getInstance()->ADCPoll();
 }
 
 

@@ -29,6 +29,7 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 #include <Arduino.h>
 #include "config.h"
+#include "Status.h"
 #include "Device.h"
 #include "Throttle.h"
 #include "CanThrottle.h"
@@ -41,7 +42,7 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include "DmocMotorController.h"
 #include "BrusaMotorController.h"
 #include "Heartbeat.h"
-#include "sys_io.h"
+#include "SystemIO.h"
 #include "CanHandler.h"
 #include "MemCache.h"
 #include "ThrottleDetector.h"

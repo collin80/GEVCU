@@ -30,8 +30,9 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 #include <Arduino.h>
 #include "config.h"
+#include "Status.h"
 #include "MotorController.h"
-#include "sys_io.h"
+#include "SystemIO.h"
 #include "TickHandler.h"
 #include "CanHandler.h"
 #include "DeviceManager.h"
@@ -78,7 +79,7 @@ class BrusaMotorController: public MotorController, CanObserver
 public:
     // Message id=0x258, DMC_TRQS
     // The value is composed of 2 bytes: (data[1] << 0) | (data[0] << 8)
-    enum Status {
+    enum DMC5_Status {
         motorModelLimitation        = 1 << 0,  // 0x0001
         mechanicalPowerLimitation   = 1 << 1,  // 0x0002
         maxTorqueLimitation         = 1 << 2,  // 0x0004
@@ -98,7 +99,7 @@ public:
 
     // Message id=0x25a, DMC_ERR
     // The value is composed of 2 bytes: (data[7] << 0) | (data[6] << 8)
-    enum Warning {
+    enum DMC5_Warning {
         systemCheckActive                   = 1 << 0,  // 0x0001
         externalShutdownPathAw2Off          = 1 << 1,  // 0x0002
         externalShutdownPathAw1Off          = 1 << 2,  // 0x0004
@@ -113,7 +114,7 @@ public:
 
     // Message id=0x25a, DMC_ERR
     // The error value is composed of 4 bytes : (data[1] << 0) | (data[0] << 8) | (data[5] << 16) | (data[4] << 24)
-    enum Error {
+    enum DMC5_Error {
         speedSensorSupply           = 1 << 0,  // 0x00000001, data[1]
         speedSensor                 = 1 << 1,  // 0x00000002, data[1]
         canLimitMessageInvalid      = 1 << 2,  // 0x00000004, data[1]
@@ -145,7 +146,7 @@ public:
 
     // Message id=0x210, DMC_CTRL
     // The value is composed of 1 byte : data[0]
-    enum Control {
+    enum DMC5_Control {
         enablePositiveTorqueSpeed   = 1 << 0, // 0x01
         enableNegativeTorqueSpeed   = 1 << 1, // 0x02
         clearErrorLatch             = 1 << 3, // 0x08

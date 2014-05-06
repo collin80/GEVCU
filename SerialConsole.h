@@ -31,7 +31,7 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include "Heartbeat.h"
 #include "MemCache.h"
 #include "config.h"
-#include "sys_io.h"
+#include "SystemIO.h"
 #include "PotThrottle.h"
 #include "DeviceManager.h"
 #include "MotorController.h"

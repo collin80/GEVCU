@@ -34,7 +34,7 @@
 #include "Device.h"
 #include "Throttle.h"
 #include "DeviceManager.h"
-#include "sys_io.h"
+#include "SystemIO.h"
 
 #define MOTORCTL_INPUT_DRIVE_EN    3
 #define MOTORCTL_INPUT_FORWARD     4

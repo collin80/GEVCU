@@ -63,7 +63,6 @@ private:
         TickObserver *observer[CFG_TIMER_NUM_OBSERVERS]; // array of pointers to observers with this interval
     };
     TimerEntry timerEntry[NUM_TIMERS]; // array of timer entries (9 as there are 9 timers)
-    static TickHandler *tickHandler;
 #ifdef CFG_TIMER_USE_QUEUING
     TickObserver *tickBuffer[CFG_TIMER_BUFFER_SIZE];
     volatile uint16_t bufferHead, bufferTail;
