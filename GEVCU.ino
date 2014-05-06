@@ -71,6 +71,9 @@ SerialConsole *serialConsole;
 Device *wifiDevice;
 Device *btDevice;
 
+//Variables used only when efficiency calcs are enabled.
+int loopTimeMin = 100000, loopTimeMax = 0, loopTimeAvg[16], loopTimeAvgPos = 0;
+
 byte i = 0;
 
 //initializes all the system EEPROM values. Chances are this should be broken out a bit but
@@ -286,6 +289,21 @@ void setup()
 void loop()
 {
 
+/*
+SysTick has two members we'd be interested in for this: VAL and LOAD. VAL is the current value of the SysTick counter. The SysTick counter ticks
+once for every clock cycle. It counts from LOAD to zero, reloads to LOAD and does it again. So, one must check if the end reading is lower than the
+start reading then we overflowed and must add LOAD to the value of the ending reading.
+*/	
+#ifdef CFG_EFFICIENCY_CALCS
+    int startTick = SysTick->VAL;
+	static int counts = 0;
+	counts++;
+	if (counts > 200000) {
+		counts = 0;
+		displayLatencyCalcs();
+	}
+#endif
+
 #ifdef CFG_TIMER_USE_QUEUING
     tickHandler->process();
 #endif
@@ -307,6 +325,28 @@ void loop()
 
     //this should still be here. It checks for a flag set during an interrupt
     SystemIO::getInstance()->ADCPoll();
+
+#ifdef CFG_EFFICIENCY_CALCS
+    int endTick = SysTick->VAL;
+    if (endTick < startTick) endTick += SysTick->LOAD;
+    int len = endTick - startTick;
+    if (len < loopTimeMin) loopTimeMin = len;
+    if (len > loopTimeMax) loopTimeMax = len;
+    loopTimeAvg[loopTimeAvgPos] = len;
+    loopTimeAvgPos = (loopTimeAvgPos + 1) & 0xF;
+#endif
+
+}
+
+void displayLatencyCalcs() {
+	int avg = 0;
+
+	for (int i = 0; i < 16; i++) {
+		avg += loopTimeAvg[i];
+	}
+	avg /= 16;
+
+	Logger::console("Main Loop Time       Min: %i   Max: %i   Avg: %i", loopTimeMin, loopTimeMax, avg);
 }
 
 

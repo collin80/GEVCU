@@ -37,6 +37,10 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #define CFG_BUILD_NUM   1040        //increment this every time a git commit is done. 
 #define CFG_VERSION "GEVCU alpha 2014-04-07"
 
+//define this to add in latency and efficiency calculations. Comment it out for builds you're going to 
+//use in an actual car. No need to waste cycles for 99% of everyone using the code.
+#define CFG_EFFICIENCY_CALCS
+
 
 /*
  * SERIAL CONFIGURATION
