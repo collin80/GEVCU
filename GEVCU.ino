@@ -70,9 +70,7 @@ Heartbeat *heartbeat;
 SerialConsole *serialConsole;
 Device *wifiDevice;
 Device *btDevice;
-
-//Variables used only when efficiency calcs are enabled.
-int loopTimeMin = 100000, loopTimeMax = 0, loopTimeAvg[16], loopTimeAvgPos = 0;
+PerfTimer *mainLoopTimer;
 
 byte i = 0;
 
@@ -281,6 +279,10 @@ void setup()
     wifiDevice = DeviceManager::getInstance()->getDeviceByID(ICHIP2128);
     btDevice = DeviceManager::getInstance()->getDeviceByID(ELM327EMU);
 
+#ifdef CFG_EFFICIENCY_CALCS
+	mainLoopTimer = new PerfTimer();
+#endif
+
 #ifdef CFG_TIMER_USE_QUEUING
     //tickHandler->cleanBuffer(); // remove buffered tick events which clogged up already (might not be necessary)
 #endif
@@ -288,20 +290,15 @@ void setup()
 
 void loop()
 {
-
-/*
-SysTick has two members we'd be interested in for this: VAL and LOAD. VAL is the current value of the SysTick counter. The SysTick counter ticks
-once for every clock cycle. It counts from LOAD to zero, reloads to LOAD and does it again. So, one must check if the end reading is lower than the
-start reading then we overflowed and must add LOAD to the value of the ending reading.
-*/	
 #ifdef CFG_EFFICIENCY_CALCS
-    int startTick = SysTick->VAL;
 	static int counts = 0;
 	counts++;
 	if (counts > 200000) {
 		counts = 0;
-		displayLatencyCalcs();
+		mainLoopTimer->printValues();
 	}
+
+	mainLoopTimer->start();
 #endif
 
 #ifdef CFG_TIMER_USE_QUEUING
@@ -327,26 +324,10 @@ start reading then we overflowed and must add LOAD to the value of the ending re
     SystemIO::getInstance()->ADCPoll();
 
 #ifdef CFG_EFFICIENCY_CALCS
-    int endTick = SysTick->VAL;
-    if (endTick < startTick) endTick += SysTick->LOAD;
-    int len = endTick - startTick;
-    if (len < loopTimeMin) loopTimeMin = len;
-    if (len > loopTimeMax) loopTimeMax = len;
-    loopTimeAvg[loopTimeAvgPos] = len;
-    loopTimeAvgPos = (loopTimeAvgPos + 1) & 0xF;
+	mainLoopTimer->stop();
 #endif
 
 }
 
-void displayLatencyCalcs() {
-	int avg = 0;
-
-	for (int i = 0; i < 16; i++) {
-		avg += loopTimeAvg[i];
-	}
-	avg /= 16;
-
-	Logger::console("Main Loop Time       Min: %i   Max: %i   Avg: %i", loopTimeMin, loopTimeMax, avg);
-}
 
 
