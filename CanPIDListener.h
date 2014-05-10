@@ -57,6 +57,7 @@ public:
     void saveConfiguration();
 
 protected:
+    CanHandler *canHandlerEv;
 
 private:
     uint32_t responseId; // the CAN id with which the response is sent;

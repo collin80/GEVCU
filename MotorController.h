@@ -33,13 +33,14 @@
 #include "config.h"
 #include "Device.h"
 #include "Throttle.h"
-#include "DeviceManager.h"
-#include "SystemIO.h"
+#include "CanHandler.h"
 
 #define MOTORCTL_INPUT_DRIVE_EN    3
 #define MOTORCTL_INPUT_FORWARD     4
 #define MOTORCTL_INPUT_REVERSE     5
 #define MOTORCTL_INPUT_LIMP        6
+
+class CanHandler;
 
 class MotorControllerConfiguration : public DeviceConfiguration
 {
@@ -51,13 +52,7 @@ public:
     uint8_t reversePercent;
 
     uint16_t kilowattHrs;
-    uint16_t prechargeR; //resistance of precharge resistor in tenths of ohm
     uint16_t nominalVolt; //nominal pack voltage in tenths of a volt
-    uint8_t prechargeRelay; //# of output to use for this relay or 255 if there is no relay
-    uint8_t mainContactorRelay; //# of output to use for this relay or 255 if there is no relay
-    uint8_t coolFan;
-    uint8_t coolOn;
-    uint8_t coolOff;
 };
 
 class MotorController: public Device
@@ -85,24 +80,10 @@ public:
     void loadConfiguration();
     void saveConfiguration();
 
-    void coolingcheck();
-    void setStatusBits();
-    bool isReady();
-    bool isRunning();
-    bool isFaulted();
-    bool isWarning();
-
     void setPowerMode(PowerMode mode);
     PowerMode getPowerMode();
     int16_t getThrottle();
-    int8_t getCoolFan();
-    int8_t getCoolOn();
-    int8_t getCoolOff();
     int16_t getselectedGear();
-    int16_t getprechargeR();
-    int16_t getnominalVolt();
-    int8_t getprechargeRelay();
-    int8_t getmainContactorRelay();
     int16_t getSpeedRequested();
     int16_t getSpeedActual();
     int16_t getTorqueRequested();
@@ -115,26 +96,17 @@ public:
     uint32_t getKiloWattHours();
     int16_t getMechanicalPower();
     int16_t getTemperatureMotor();
-    int16_t getTemperatureInverter();
-    int16_t getTemperatureSystem();
-
-    uint32_t getStatusBitfield1();
-    uint32_t getStatusBitfield2();
-    uint32_t getStatusBitfield3();
-    uint32_t getStatusBitfield4();
+    int16_t getTemperatureController();
+    int16_t getnominalVolt();
 
     Gears getSelectedGear();
 
 protected:
-    bool ready; // indicates if the controller is ready to enable the power stage
-    bool running; // indicates if the power stage of the inverter is operative
-    bool faulted; // indicates a error condition is present in the controller
-    bool warning; // indicates a warning condition is present in the controller
-    bool coolflag;
+    CanHandler *canHandlerEv;
 
     Gears selectedGear;
-
     PowerMode powerMode;
+
     int16_t throttleRequested; // -1000 to 1000 (per mille of throttle level)
     int16_t speedRequested; // in rpm
     int16_t speedActual; // in rpm
@@ -148,21 +120,11 @@ protected:
     uint32_t kiloWattHours;
     int16_t mechanicalPower; // mechanical power of the motor 0.1 kW
     int16_t temperatureMotor; // temperature of motor in 0.1 degree C
-    int16_t temperatureInverter; // temperature of inverter power stage in 0.1 degree C
-    int16_t temperatureSystem; // temperature of controller in 0.1 degree C
-
-    uint32_t statusBitfield1; // bitfield variable for use of the specific implementation
-    uint32_t statusBitfield2;
-    uint32_t statusBitfield3;
-    uint32_t statusBitfield4;
+    int16_t temperatureController; // temperature of controller in 0.1 degree C
 
     uint16_t nominalVolts; //nominal pack voltage in 1/10 of a volt
-
-    uint16_t prechargeTime; //time in ms that precharge should last
-    uint32_t milliStamp; //how long we have precharged so far
-    bool donePrecharge; //already completed the precharge cycle?
-    bool prelay;
     uint32_t skipcounter;
+    uint32_t milliStamp;
 };
 
 #endif

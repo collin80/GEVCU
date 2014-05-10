@@ -77,16 +77,8 @@ the end of the stardard data. The below numbers are offsets from the device's ee
 // 2        Gear Select - Forward
 // 3        Gear Select - Reverse
 //#define EEMC_LIMP_SCALE           25 //1 byte - percentage of power to allow during limp mode
-//#define EEMC_MAX_REGEN            26 //1 byte - percentage of max torque to apply to regen
-//#define EEMC_REGEN_SCALE      28 //1 byte - percentage - reduces all regen related values (throttle, brake, maximum above)
-#define EEMC_PRECHARGE_RELAY    29 //1 byte - 255 = no precharge relay 0-3 = yes, there is one (and the output is the number stored)
-#define EEMC_CONTACTOR_RELAY    30 //1 byte - 255 = no contactor relay 0-3 = yes there is
-#define EEMC_COOL_FAN           31 //1 byte output controlling external cooling relay
-#define EEMC_COOL_ON            32 //1 bytes temperature at which external cooling is switched on
-#define EEMC_COOL_OFF           33 //1 byte temperature at which external cooling is switched off
 //#define EEMC_MAX_TEMP_INV     38 //2 bytes - signed int - Highest value on temp gauge (99% PWM output)
 #define EEMC_KILOWATTHRS        40 //4 bytes - capacitance of controller capacitor bank in micro farads (uf) - set to zero to disable RC precharge
-#define EEMC_PRECHARGE_R        44 //2 bytes - Resistance of precharge resistor in tenths of an ohm
 #define EEMC_NOMINAL_V          46 //2 bytes - nominal system voltage to expect (in tenths of a volt)
 #define EEMC_REVERSE_LIMIT      48 //2 bytes - a percentage to knock the requested torque down by while in reverse.
 #define EEMC_RPM_SLEW_RATE      50 //2 bytes - slew rate (rpm/sec) at which speed should change (only in speed mode)
@@ -125,6 +117,18 @@ the end of the stardard data. The below numbers are offsets from the device's ee
 #define EESYS_ADC2_OFFSET        40  //2 bytes - ADC offset from zero - ADC reads 12 bit so the offset will be [0,4095] - Offset is subtracted from read ADC value
 #define EESYS_ADC3_GAIN          42  //2 bytes - ADC gain centered at 1024 being 1 to 1 gain, thus 512 is 0.5 gain, 2048 is double, etc
 #define EESYS_ADC3_OFFSET        44  //2 bytes - ADC offset from zero - ADC reads 12 bit so the offset will be [0,4095] - Offset is subtracted from read ADC value
+
+#define EESYS_ENABLE_INPUT       45 //1 byte - 255 = no enable input required, digital input to enable GEVCU
+#define EESYS_PRECHARGE_MILLIS   46 //2 bytes - milliseconds for precharge cycle
+#define EESYS_HV_NEGATIVE_RELAY  47 //1 byte - 255 = no HV negative relay, digital output for HV negative contactor
+#define EESYS_PRECHARGE_RELAY    48 //1 byte - 255 = no precharge relay 0-3 = yes, there is one (and the output is the number stored)
+#define EESYS_HV_POSITIVE_RELAY  49 //1 byte - 255 = no contactor relay 0-3 = yes there is
+#define EESYS_ENABLE_RELAY       50 //1 byte - 255 = no enable relay output, digital output for enable signal/relay
+#define EESYS_COOLING_RELAY      51 //1 byte output controlling external cooling relay
+#define EESYS_COOLING_TEMP_ON    52 //1 bytes temperature at which external cooling is switched on
+#define EESYS_COOLING_TEMP_OFF   53 //1 byte temperature at which external cooling is switched off
+#define EESYS_BRAKE_LIGHT        54 //1 byte - 255 = no brake light output, digital output for brake light at regen
+#define EESYS_REVERSE_LIGHT      55 //1 byte - 255 = no reverse light output, digital output for reverse light
 
 #define EESYS_CAN0_BAUD          100 //2 bytes - Baud rate of CAN0 in 1000's of baud. So a value of 500 = 500k baud. Set to 0 to disable CAN0
 #define EESYS_CAN1_BAUD          102 //2 bytes - Baud rate of CAN1 in 1000's of baud. So a value of 500 = 500k baud. Set to 0 to disable CAN1

@@ -34,6 +34,19 @@
 
 #undef HID_ENABLED
 
+extern PrefHandler *sysPrefs;
+
+/*
+ * Constructor
+ */
+SystemIO::SystemIO() {
+    configuration = new SystemIOConfiguration();
+    prefsHandler = new PrefHandler(SYSTEM);
+    status = Status::getInstance();
+    preChargeStart = 0;
+    coolflag = false;
+}
+
 /*
  * Get the instance of the SystemIO (singleton pattern)
  */
@@ -43,11 +56,193 @@ SystemIO *SystemIO::getInstance() {
 }
 
 void SystemIO::setup() {
-    earlySetup();
-    setupSysIO();
+    TickHandler::getInstance()->detach(this);
+
+    loadConfiguration();
+
+    initializePinTables();
+    initializeDigitalIO();
+    initializeAnalogIO();
+    printIOStatus();
+
+    TickHandler::getInstance()->attach(this, CFG_TICK_INTERVAL_SYSTEM_IO);
 }
 
 void SystemIO::handleTick() {
+    if(status->getSystemState() == Status::preCharge) {
+        handlePreCharge();
+    }
+    if (configuration->coolingRelayOutput != CFG_OUTPUT_NONE) {
+        handleCooling();
+    }
+    updateDigitalInputStatus();
+}
+
+/*
+ * Update the status flags so the input signal can be monitored in the status web page.
+ */
+void SystemIO::updateDigitalInputStatus() {
+    status->digitalInput[0] = getDigitalIn(0);
+    status->digitalInput[1] = getDigitalIn(1);
+    status->digitalInput[2] = getDigitalIn(2);
+    status->digitalInput[3] = getDigitalIn(3);
+}
+
+/*
+ * Handle the pre-charge sequence.
+ *
+ * The sequence is defined the following way:
+ *
+ * 1. Activate pre-charge contactor / relay
+ * 2. Delay (optional)
+ * 3. Activate the HV negative contactor (optional)
+ * 4. Wait configured amount of time for pre-charge
+ * 5. Activate the HV positive contactor
+ * 6. Delay
+ * 7. De-Activate pre-charge contactor
+ */
+void SystemIO::handlePreCharge() {
+    if (configuration->prechargeMillis == 0) { // we don't want to pre-charge
+        Logger::info("Pre-charging not enabled");
+        status->setSystemState(Status::charged);
+        return;
+    }
+
+    if (preChargeStart == 0) {
+        Logger::info("Starting pre-charge sequence");
+        printIOStatus();
+
+        preChargeStart = millis();
+        setPrechargeRelayOutput(true); // step 1
+
+        if (configuration->hvNegativeRelayOutput != CFG_OUTPUT_NONE) {
+            delay(CFG_PRE_CHARGE_RELAY_DELAY); // step 2
+            setHvNegativeRelayOutput(true); // step 3
+        }
+    } else {
+        if ((millis() - preChargeStart) > configuration->prechargeMillis) { // step 4
+            setHvPositiveRelayOutput(true); // step 5
+            delay(CFG_PRE_CHARGE_RELAY_DELAY); // step 6
+            setPrechargeRelayOutput(false); // step 7
+
+            status->setSystemState(Status::charged);
+            Logger::info("Pre-charge sequence complete after %i milliseconds", millis() - preChargeStart);
+        }
+    }
+}
+
+/*
+ * Control an optional cooling fan output depending on the temperature of
+ * the motor controller
+ */
+void SystemIO::handleCooling() {
+    if (status->temperatureController / 10 > configuration->coolingTemperatureOn) {
+        if (!coolflag) {
+            coolflag = true;
+            setCoolingRelayOutput(true);
+            // enabling cooling does not necessarily mean overtemp, the motor controller object should set the overtemp status
+            // Status::getInstance()->overtempController = true;
+        }
+    }
+
+    if (status->temperatureController / 10 < configuration->coolingTemperatureOff) {
+        if (coolflag) {
+            coolflag = false;
+            setCoolingRelayOutput(false);
+            // enabling cooling does not necessarily mean overtemp, the motor controller object should set the overtemp status
+            // Status::getInstance()->overtempController = false;
+        }
+    }
+}
+
+/*
+ * Get the the input signal for the car's enable signal.
+ */
+bool SystemIO::getEnableInput() {
+    if (configuration->enableInput != CFG_OUTPUT_NONE) {
+        bool flag = getDigitalIn(configuration->enableInput);
+        status->enableIn = flag;
+        return flag;
+    }
+    return false;
+}
+
+/*
+ * Enable / disable the pre-charge relay output and set the status flag.
+ */
+void SystemIO::setPrechargeRelayOutput(bool enabled) {
+    if (configuration->prechargeRelayOutput != CFG_OUTPUT_NONE) {
+        setDigitalOut(configuration->prechargeRelayOutput, enabled);
+        status->preChargeRelay = enabled;
+        printIOStatus();
+    }
+}
+
+/*
+ * Enable / disable the HV positive relay output and set the status flag.
+ */
+void SystemIO::setHvPositiveRelayOutput(bool enabled) {
+    if (configuration->hvPositiveRelayOutput != CFG_OUTPUT_NONE) {
+        setDigitalOut(configuration->hvPositiveRelayOutput, enabled);
+        status->hvPositiveRelay = enabled;
+        printIOStatus();
+    }
+}
+
+/*
+ * Enable / disable the HV negative relay output and set the status flag.
+ */
+void SystemIO::setHvNegativeRelayOutput(bool enabled) {
+    if (configuration->hvNegativeRelayOutput != CFG_OUTPUT_NONE) {
+        setDigitalOut(configuration->hvNegativeRelayOutput, enabled);
+        status->hVNegativeRelay = enabled;
+        printIOStatus();
+    }
+}
+
+/*
+ * Enable / disable the 'enable' relay output and set the status flag.
+ */
+void SystemIO::setEnableRelayOutput(bool enabled) {
+    if (configuration->enableRelayOutput != CFG_OUTPUT_NONE) {
+        setDigitalOut(configuration->enableRelayOutput, enabled);
+        status->enableOut = enabled;
+        printIOStatus();
+    }
+}
+
+/*
+ * Enable / disable the brake light output and set the status flag.
+ */
+void SystemIO::setBrakeLightOutput(bool enabled) {
+    if (configuration->brakeLightOutput != CFG_OUTPUT_NONE) {
+        setDigitalOut(configuration->brakeLightOutput, enabled);
+        status->brakeLight = enabled;
+        printIOStatus();
+    }
+}
+
+/*
+ * Enable / disable the brake light output and set the status flag.
+ */
+void SystemIO::setReverseLightOutput(bool enabled) {
+    if (configuration->reverseLightOutput != CFG_OUTPUT_NONE) {
+        setDigitalOut(configuration->reverseLightOutput, enabled);
+        status->reverseLight = enabled;
+        printIOStatus();
+    }
+}
+
+
+/*
+ * Enable / disable the cooling realy output and set the status flag.
+ */
+void SystemIO::setCoolingRelayOutput(bool enabled) {
+    if (configuration->coolingRelayOutput != CFG_OUTPUT_NONE) {
+        setDigitalOut(configuration->coolingRelayOutput, enabled);
+        status->coolingRelay = enabled;
+        printIOStatus();
+    }
 }
 
 /*
@@ -107,12 +302,10 @@ void SystemIO::ADCPoll() {
             } else {
                 val = getDifferentialADC(i);
             }
-
 //          addNewADCVal(i, val);
 //          adc_out_vals[i] = getADCAvg(i);
             adcOutValues[i] = val;
         }
-
         obufn = bufn;
     }
 }
@@ -124,54 +317,45 @@ void SystemIO::ADCPoll() {
  * This call is very fast because the actual work is done via DMA and
  * then a separate polled step.
  */
-uint16_t SystemIO::getAnalog(uint8_t which) {
-    uint16_t val;
-
+uint16_t SystemIO::getAnalogIn(uint8_t which) {
     if (which >= CFG_NUMBER_ANALOG_INPUTS) {
         which = 0;
     }
-
     return adcOutValues[which];
 }
 
 /*
  * Get value of one of the 4 digital inputs.
  */
-boolean SystemIO::getDigital(uint8_t which) {
+boolean SystemIO::getDigitalIn(uint8_t which) {
     if (which >= CFG_NUMBER_DIGITAL_INPUTS) {
         which = 0;
     }
-
     return !(digitalRead(dig[which]));
 }
 
 /*
  * Set digital output to high or low.
  */
-void SystemIO::setOutput(uint8_t which, boolean active) {
+void SystemIO::setDigitalOut(uint8_t which, boolean active) {
     if (which >= CFG_NUMBER_DIGITAL_OUTPUTS) {
         return;
     }
-
     if (out[which] == 255) {
         return;
     }
 
-    if (active) {
-        digitalWrite(out[which], HIGH);
-    } else {
-        digitalWrite(out[which], LOW);
-    }
+    digitalWrite(out[which], active ? HIGH : LOW);
+    status->digitalOutput[which] = active;
 }
 
 /*
  * Get current state of digital output (high or low?)
  */
-boolean SystemIO::getOutput(uint8_t which) {
+boolean SystemIO::getDigitalOut(uint8_t which) {
     if (which >= CFG_NUMBER_DIGITAL_OUTPUTS) {
         return false;
     }
-
     if (out[which] == 255) {
         return false;
     }
@@ -255,15 +439,9 @@ uint16_t SystemIO::getRawADC(uint8_t which) {
 }
 
 /*
- * Forces the digital I/O ports to a safe state.
- * This is called very early in initialization.
+ *  Figure out what hardware we are running on and fill in the pin tables.
  */
-void SystemIO::earlySetup() {
-    int i;
-
-    // the first order of business is to figure out what hardware we are
-    // running on and fill in the pin tables.
-
+void SystemIO::initializePinTables() {
     uint8_t rawadc;
     sysPrefs->read(EESYS_RAWADC, &rawadc);
 
@@ -275,103 +453,124 @@ void SystemIO::earlySetup() {
     }
 
 //    numberADCSamples = 64;
-
     uint8_t sys_type;
     sysPrefs->read(EESYS_SYSTEM_TYPE, &sys_type);
-
     if (sys_type == 2) {
-        Logger::info("Running on GEVCU2/DUED hardware.");
-        dig[0] = 9;
-        dig[1] = 11;
-        dig[2] = 12;
-        dig[3] = 13;
-        adc[0][0] = 1;
-        adc[0][1] = 0;
-        adc[1][0] = 3;
-        adc[1][1] = 2;
-        adc[2][0] = 5;
-        adc[2][1] = 4;
-        adc[3][0] = 7;
-        adc[3][1] = 6;
-        out[0] = 52;
-        out[1] = 22;
-        out[2] = 48;
-        out[3] = 32;
-        out[4] = 255;
-        out[5] = 255;
-        out[6] = 255;
-        out[7] = 255;
-//        numberADCSamples = 32;
+        initGevcu2PinTable();
     } else if (sys_type == 3) {
-        Logger::info("Running on GEVCU3 hardware");
-        dig[0] = 48;
-        dig[1] = 49;
-        dig[2] = 50;
-        dig[3] = 51;
-        adc[0][0] = 3;
-        adc[0][1] = 255;
-        adc[1][0] = 2;
-        adc[1][1] = 255;
-        adc[2][0] = 1;
-        adc[2][1] = 255;
-        adc[3][0] = 0;
-        adc[3][1] = 255;
-        out[0] = 9;
-        out[1] = 8;
-        out[2] = 7;
-        out[3] = 6;
-        out[4] = 255;
-        out[5] = 255;
-        out[6] = 255;
-        out[7] = 255;
-        useRawADC = true; //this board does require raw adc so force it.
+        initGevcu3PinTable();
     } else if (sys_type == 4) {
-        Logger::info("Running on GEVCU 4.x hardware");
-        dig[0] = 48;
-        dig[1] = 49;
-        dig[2] = 50;
-        dig[3] = 51;
-        adc[0][0] = 3;
-        adc[0][1] = 255;
-        adc[1][0] = 2;
-        adc[1][1] = 255;
-        adc[2][0] = 1;
-        adc[2][1] = 255;
-        adc[3][0] = 0;
-        adc[3][1] = 255;
-        out[0] = 4;
-        out[1] = 5;
-        out[2] = 6;
-        out[3] = 7;
-        out[4] = 2;
-        out[5] = 3;
-        out[6] = 8;
-        out[7] = 9;
-        useRawADC = true; //this board does require raw adc so force it.
+        initGevcu4PinTable();
     } else {
-        Logger::info("Running on legacy hardware?");
-        dig[0] = 11;
-        dig[1] = 9;
-        dig[2] = 13;
-        dig[3] = 12;
-        adc[0][0] = 1;
-        adc[0][1] = 0;
-        adc[1][0] = 2;
-        adc[1][1] = 3;
-        adc[2][0] = 4;
-        adc[2][1] = 5;
-        adc[3][0] = 7;
-        adc[3][1] = 6;
-        out[0] = 52;
-        out[1] = 22;
-        out[2] = 48;
-        out[3] = 32;
-        out[4] = 255;
-        out[5] = 255;
-        out[6] = 255;
-        out[7] = 255;
-//        numberADCSamples = 32;
+        initGevcuLegacyPinTable();
     }
+}
+
+void SystemIO::initGevcu2PinTable() {
+    Logger::info("Running on GEVCU2/DUED hardware.");
+    dig[0] = 9;
+    dig[1] = 11;
+    dig[2] = 12;
+    dig[3] = 13;
+    adc[0][0] = 1;
+    adc[0][1] = 0;
+    adc[1][0] = 3;
+    adc[1][1] = 2;
+    adc[2][0] = 5;
+    adc[2][1] = 4;
+    adc[3][0] = 7;
+    adc[3][1] = 6;
+    out[0] = 52;
+    out[1] = 22;
+    out[2] = 48;
+    out[3] = 32;
+    out[4] = 255;
+    out[5] = 255;
+    out[6] = 255;
+    out[7] = 255;
+    //numberADCSamples = 32;
+}
+
+void SystemIO::initGevcu3PinTable() {
+    Logger::info("Running on GEVCU3 hardware");
+    dig[0] = 48;
+    dig[1] = 49;
+    dig[2] = 50;
+    dig[3] = 51;
+    adc[0][0] = 3;
+    adc[0][1] = 255;
+    adc[1][0] = 2;
+    adc[1][1] = 255;
+    adc[2][0] = 1;
+    adc[2][1] = 255;
+    adc[3][0] = 0;
+    adc[3][1] = 255;
+    out[0] = 9;
+    out[1] = 8;
+    out[2] = 7;
+    out[3] = 6;
+    out[4] = 255;
+    out[5] = 255;
+    out[6] = 255;
+    out[7] = 255;
+    useRawADC = true;
+}
+
+void SystemIO::initGevcu4PinTable() {
+    Logger::info("Running on GEVCU 4.x hardware");
+    dig[0] = 48;
+    dig[1] = 49;
+    dig[2] = 50;
+    dig[3] = 51;
+    adc[0][0] = 3;
+    adc[0][1] = 255;
+    adc[1][0] = 2;
+    adc[1][1] = 255;
+    adc[2][0] = 1;
+    adc[2][1] = 255;
+    adc[3][0] = 0;
+    adc[3][1] = 255;
+    out[0] = 4;
+    out[1] = 5;
+    out[2] = 6;
+    out[3] = 7;
+    out[4] = 2;
+    out[5] = 3;
+    out[6] = 8;
+    out[7] = 9;
+    useRawADC = true;
+}
+
+void SystemIO::initGevcuLegacyPinTable() {
+    Logger::info("Running on legacy hardware?");
+    dig[0] = 11;
+    dig[1] = 9;
+    dig[2] = 13;
+    dig[3] = 12;
+    adc[0][0] = 1;
+    adc[0][1] = 0;
+    adc[1][0] = 2;
+    adc[1][1] = 3;
+    adc[2][0] = 4;
+    adc[2][1] = 5;
+    adc[3][0] = 7;
+    adc[3][1] = 6;
+    out[0] = 52;
+    out[1] = 22;
+    out[2] = 48;
+    out[3] = 32;
+    out[4] = 255;
+    out[5] = 255;
+    out[6] = 255;
+    out[7] = 255;
+//    numberADCSamples = 32;
+}
+
+/*
+ * Forces the digital I/O ports to a safe state.
+ */
+void SystemIO::initializeDigitalIO() {
+    int i;
 
     for (i = 0; i < CFG_NUMBER_DIGITAL_INPUTS; i++) {
         pinMode(dig[i], INPUT);
@@ -383,18 +582,17 @@ void SystemIO::earlySetup() {
             digitalWrite(out[i], LOW);
         }
     }
-
 }
 
 /*
  * Initialize DMA driven ADC and read in gain/offset for each channel.
  */
-void SystemIO::setupSysIO() {
-    int i;
+void SystemIO::initializeAnalogIO() {
+
     setupFastADC();
 
     //requires the value to be contiguous in memory
-    for (i = 0; i < CFG_NUMBER_ANALOG_INPUTS; i++) {
+    for (int i = 0; i < CFG_NUMBER_ANALOG_INPUTS; i++) {
         sysPrefs->read(EESYS_ADC0_GAIN + 4 * i, &adcComp[i].gain);
         sysPrefs->read(EESYS_ADC0_OFFSET + 4 * i, &adcComp[i].offset);
 
@@ -458,14 +656,16 @@ void SystemIO::setupFastADC() {
 }
 
 void SystemIO::printIOStatus() {
-    Logger::console("AIN0: %d, AIN1: %d, AIN2: %d, AIN3: %d", getAnalog(0),
-            getAnalog(1), getAnalog(2), getAnalog(3));
-    Logger::console("DIN0: %d, DIN1: %d, DIN2: %d, DIN3: %d", getDigital(0),
-            getDigital(1), getDigital(2), getDigital(3));
-    Logger::console(
-            "DOUT0: %d, DOUT1: %d, DOUT2: %d, DOUT3: %d,DOUT4: %d, DOUT5: %d, DOUT6: %d, DOUT7: %d",
-            getOutput(0), getOutput(1), getOutput(2), getOutput(3),
-            getOutput(4), getOutput(5), getOutput(6), getOutput(7));
+    if (Logger::isDebug()) {
+        Logger::debug("AIN0: %d, AIN1: %d, AIN2: %d, AIN3: %d", getAnalogIn(0),
+                getAnalogIn(1), getAnalogIn(2), getAnalogIn(3));
+        Logger::debug("DIN0: %d, DIN1: %d, DIN2: %d, DIN3: %d", getDigitalIn(0),
+                getDigitalIn(1), getDigitalIn(2), getDigitalIn(3));
+        Logger::debug(
+                "DOUT0: %d, DOUT1: %d, DOUT2: %d, DOUT3: %d,DOUT4: %d, DOUT5: %d, DOUT6: %d, DOUT7: %d",
+                getDigitalOut(0), getDigitalOut(1), getDigitalOut(2), getDigitalOut(3),
+                getDigitalOut(4), getDigitalOut(5), getDigitalOut(6), getDigitalOut(7));
+    }
 }
 
 /*
@@ -517,3 +717,54 @@ void ADC_Handler() {
 //    sum = sum / numberADCSamples;
 //    return ((uint16_t) sum);
 //}
+
+SystemIOConfiguration *SystemIO::getConfiguration() {
+    return configuration;
+}
+
+void SystemIO::loadConfiguration() {
+#ifdef USE_HARD_CODED
+    if (false) {
+#else
+    if (prefsHandler->checksumValid()) { //checksum is good, read in the values stored in EEPROM
+#endif
+        prefsHandler->read(EESYS_ENABLE_INPUT, &configuration->enableInput);
+        prefsHandler->read(EESYS_PRECHARGE_MILLIS, &configuration->prechargeMillis);
+        prefsHandler->read(EESYS_PRECHARGE_RELAY, &configuration->prechargeRelayOutput);
+        prefsHandler->read(EESYS_HV_POSITIVE_RELAY, &configuration->hvPositiveRelayOutput);
+        prefsHandler->read(EESYS_HV_NEGATIVE_RELAY, &configuration->hvNegativeRelayOutput);
+        prefsHandler->read(EESYS_ENABLE_RELAY, &configuration->enableRelayOutput);
+        prefsHandler->read(EESYS_COOLING_RELAY, &configuration->coolingRelayOutput);
+        prefsHandler->read(EESYS_COOLING_TEMP_ON, &configuration->coolingTemperatureOn);
+        prefsHandler->read(EESYS_COOLING_TEMP_OFF, &configuration->coolingTemperatureOff);
+        prefsHandler->read(EESYS_BRAKE_LIGHT, &configuration->brakeLightOutput);
+        prefsHandler->read(EESYS_REVERSE_LIGHT, &configuration->reverseLightOutput);
+    } else { //checksum invalid. Reinitialize values and store to EEPROM
+        configuration->enableInput = EnableInput;
+        configuration->prechargeMillis = PrechargeMillis;
+        configuration->prechargeRelayOutput = PrechargeRelayOutput;
+        configuration->hvPositiveRelayOutput = HvPositiveRelayOutput;
+        configuration->hvNegativeRelayOutput = HvNegativeRelayOutput;
+        configuration->enableRelayOutput = EnableRelayOutput;
+        configuration->coolingRelayOutput = CoolingRelayOutput;
+        configuration->coolingTemperatureOn = CoolingTemperatureOn;
+        configuration->coolingTemperatureOff = CoolingTemperatureOff;
+        configuration->brakeLightOutput = BrakeLightOutput;
+        configuration->reverseLightOutput = ReverseLightOutput;
+    }
+}
+
+void SystemIO::saveConfiguration() {
+    prefsHandler->write(EESYS_ENABLE_INPUT, configuration->enableInput);
+    prefsHandler->write(EESYS_PRECHARGE_MILLIS, configuration->prechargeMillis);
+    prefsHandler->write(EESYS_PRECHARGE_RELAY, configuration->prechargeRelayOutput);
+    prefsHandler->write(EESYS_HV_POSITIVE_RELAY, configuration->hvPositiveRelayOutput);
+    prefsHandler->write(EESYS_HV_NEGATIVE_RELAY, configuration->hvNegativeRelayOutput);
+    prefsHandler->write(EESYS_ENABLE_RELAY, configuration->enableRelayOutput);
+    prefsHandler->write(EESYS_COOLING_RELAY, configuration->coolingRelayOutput);
+    prefsHandler->write(EESYS_COOLING_TEMP_ON, configuration->coolingTemperatureOn);
+    prefsHandler->write(EESYS_COOLING_TEMP_OFF, configuration->coolingTemperatureOff);
+    prefsHandler->write(EESYS_BRAKE_LIGHT, configuration->brakeLightOutput);
+    prefsHandler->write(EESYS_REVERSE_LIGHT, configuration->reverseLightOutput);
+    prefsHandler->saveChecksum();
+}

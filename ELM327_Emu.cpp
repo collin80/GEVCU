@@ -70,7 +70,7 @@ void ELM327Emu::setup()
 
     Logger::info("add device: ELM327 emulator (id: %X, %X", ELM327EMU, this);
 
-    TickHandler::getInstance()->detach(this);
+    tickHandler->detach(this);
 
     tickCounter = 0;
     ibWritePtr = 0;
@@ -80,7 +80,7 @@ void ELM327Emu::setup()
 
     //this isn't a wifi link but the timer interval can be the same
     //because it serves a similar function and has similar timing requirements
-    TickHandler::getInstance()->attach(this, CFG_TICK_INTERVAL_WIFI);
+    tickHandler->attach(this, CFG_TICK_INTERVAL_WIFI);
 }
 
 /*

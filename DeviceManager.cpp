@@ -261,19 +261,17 @@ Device *DeviceManager::getDeviceByID(DeviceId id)
 
 /*
 The more object oriented version of the above function. Allows one to find the first device that matches
-a given type.
+a given type and that is enabled.
 */
 Device *DeviceManager::getDeviceByType(DeviceType type)
 {
     for (int i = 0; i < CFG_DEV_MGR_MAX_DEVICES; i++) {
         if (devices[i]) {
-            if (devices[i]->getType() == type) {
+            if (devices[i]->getType() == type && devices[i]->isEnabled()) {
                 return devices[i];
             }
         }
     }
-
-    Logger::debug("getDeviceByType - No devices of type: %X", (int) type);
     return 0; //NULL!
 }
 

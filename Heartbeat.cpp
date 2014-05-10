@@ -28,6 +28,8 @@
 
 Heartbeat::Heartbeat()
 {
+    systemIO = SystemIO::getInstance();
+    status = Status::getInstance();
     led = false;
     throttleDebug = false;
 }
@@ -77,10 +79,8 @@ void Heartbeat::handleTick()
 
         Logger::console("");
 
-        if (motorController) {
-            Logger::console("Motor Controller Status: isRunning: %T isFaulted: %T", motorController->isRunning(), motorController->isFaulted());
-        }
-        SystemIO::getInstance()->printIOStatus();
+        Logger::console("System State: %s", status->systemStateToStr(status->getSystemState()));
+        systemIO->printIOStatus();
 
         if (accelerator) {
             Logger::console("Throttle Status: isFaulted: %T level: %i", accelerator->isFaulted(), accelerator->getLevel());

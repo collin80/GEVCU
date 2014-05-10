@@ -30,10 +30,10 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include "Throttle.h"
 #include "MotorController.h"
 #include "CanHandler.h"
-#include "Device.h"
 #include "Sys_Messages.h"
 #include "DeviceTypes.h"
 
+class Device;
 class MotorController; // cyclic reference between MotorController and DeviceManager
 
 class DeviceManager

@@ -55,7 +55,7 @@ BrusaMotorController::BrusaMotorController() : MotorController()
  */
 void BrusaMotorController::setup()
 {
-    TickHandler::getInstance()->detach(this);
+    tickHandler->detach(this);
 
     Logger::info("add device: Brusa DMC5 (id: %X, %X)", BRUSA_DMC5, this);
 
@@ -63,10 +63,10 @@ void BrusaMotorController::setup()
     MotorController::setup(); // run the parent class version of this function
 
     // register ourselves as observer of 0x258-0x268 and 0x458 can frames
-    CanHandler::getInstanceEV()->attach(this, CAN_MASKED_ID_1, CAN_MASK_1, false);
-    CanHandler::getInstanceEV()->attach(this, CAN_MASKED_ID_2, CAN_MASK_2, false);
+    canHandlerEv->attach(this, CAN_MASKED_ID_1, CAN_MASK_1, false);
+    canHandlerEv->attach(this, CAN_MASKED_ID_2, CAN_MASK_2, false);
 
-    TickHandler::getInstance()->attach(this, CFG_TICK_INTERVAL_MOTOR_CONTROLLER_BRUSA);
+    tickHandler->attach(this, CFG_TICK_INTERVAL_MOTOR_CONTROLLER_BRUSA);
 }
 
 /*
@@ -105,14 +105,14 @@ void BrusaMotorController::sendControl()
 
     outputFrame.data.bytes[0] = enablePositiveTorqueSpeed; // | enableNegativeTorqueSpeed;
 
-    if (faulted) {
-        outputFrame.data.bytes[0] |= clearErrorLatch;
-    } else {
-        if ((running || speedActual > 1000) && !SystemIO::getInstance()->getDigital(1)) {   // see warning about field weakening current to prevent uncontrollable regen
+//    if (faulted) {
+//        outputFrame.data.bytes[0] |= clearErrorLatch;
+//    } else {
+        if ((status->getSystemState() == Status::running || speedActual > 1000) && systemIO->getEnableInput()) {   // see warning about field weakening current to prevent uncontrollable regen
             outputFrame.data.bytes[0] |= enablePowerStage;
         }
 
-        if (running) {
+        if (status->getSystemState() == Status::running) {
             if (config->enableOscillationLimiter) {
                 outputFrame.data.bytes[0] |= enableOscillationLimiter;
             }
@@ -134,13 +134,13 @@ void BrusaMotorController::sendControl()
             outputFrame.data.bytes[4] = ((torqueRequested * 10) & 0xFF00) >> 8;
             outputFrame.data.bytes[5] = ((torqueRequested * 10) & 0x00FF);
         }
-    }
+//    }
 
     if (Logger::isDebug()) {
         Logger::debug(BRUSA_DMC5, "requested Speed: %l rpm, requested Torque: %f Nm", speedRequested, (float) torqueRequested / 10.0F);
     }
 
-    CanHandler::getInstanceEV()->sendFrame(outputFrame);
+    canHandlerEv->sendFrame(outputFrame);
 }
 
 /*
@@ -162,7 +162,7 @@ void BrusaMotorController::sendControl2()
     outputFrame.data.bytes[6] = (config->maxMechanicalPowerRegen & 0xFF00) >> 8;
     outputFrame.data.bytes[7] = (config->maxMechanicalPowerRegen & 0x00FF);
 
-    CanHandler::getInstanceEV()->sendFrame(outputFrame);
+    canHandlerEv->sendFrame(outputFrame);
 }
 
 /*
@@ -184,7 +184,7 @@ void BrusaMotorController::sendLimits()
     outputFrame.data.bytes[6] = (config->dcCurrentLimitRegen & 0xFF00) >> 8;
     outputFrame.data.bytes[7] = (config->dcCurrentLimitRegen & 0x00FF);
 
-    CanHandler::getInstanceEV()->sendFrame(outputFrame);
+    canHandlerEv->sendFrame(outputFrame);
 }
 
 /*
@@ -250,19 +250,36 @@ void BrusaMotorController::handleCanFrame(CAN_FRAME *frame)
  */
 void BrusaMotorController::processStatus(uint8_t data[])
 {
-    statusBitfield1 = (uint32_t)(data[1] | (data[0] << 8));
+    bitfield = (uint32_t)(data[1] | (data[0] << 8));
     torqueAvailable = (int16_t)(data[3] | (data[2] << 8)) / 10;
     torqueActual = (int16_t)(data[5] | (data[4] << 8)) / 10;
     speedActual = (int16_t)(data[7] | (data[6] << 8));
 
     if (Logger::isDebug()) {
-        Logger::debug(BRUSA_DMC5, "status: %X, torque avail: %fNm, actual torque: %fNm, speed actual: %drpm", statusBitfield1, (float) torqueAvailable / 100.0F, (float) torqueActual / 100.0F, speedActual);
+        Logger::debug(BRUSA_DMC5, "status: %X, torque avail: %fNm, actual torque: %fNm, speed actual: %drpm", bitfield, (float) torqueAvailable / 100.0F, (float) torqueActual / 100.0F, speedActual);
     }
 
-    ready = (statusBitfield1 & stateReady) != 0 ? true : false;
-    running = (statusBitfield1 & stateRunning) != 0 ? true : false;
-    faulted = (statusBitfield1 & errorFlag) != 0 ? true : false;
-    warning = (statusBitfield1 & warningFlag) != 0 ? true : false;
+    if ((bitfield & stateReady) && status->getSystemState() == Status::charged) {
+        status->setSystemState(Status::ready);
+    }
+    if ((bitfield & stateRunning) && status->getSystemState() == Status::ready) {
+        status->setSystemState(Status::running);
+    }
+    if ((bitfield & errorFlag) && status->getSystemState() != Status::error) {
+        status->setSystemState(Status::error);
+    }
+    status->warning = (bitfield & warningFlag) ? true : false;
+    status->limitationTorque = (bitfield & torqueLimitation) ? true : false;
+    status->limitationMotorModel = (bitfield & motorModelLimitation) ? true : false;
+    status->limitationMechanicalPower = (bitfield & mechanicalPowerLimitation) ? true : false;
+    status->limitationMaxTorque = (bitfield & maxTorqueLimitation) ? true : false;
+    status->limitationAcCurrent = (bitfield & acCurrentLimitation) ? true : false;
+    status->limitationControllerTemperature = (bitfield & temperatureLimitation) ? true : false;
+    status->limitationSpeed = (bitfield & speedLimitation) ? true : false;
+    status->limitationDcVoltage = (bitfield & voltageLimitation) ? true : false;
+    status->limitationDcCurrent = (bitfield & currentLimitation) ? true : false;
+    status->limitationSlewRate = (bitfield & slewRateLimitation) ? true : false;
+    status->limitationMotorTemperature = (bitfield & motorTemperatureLimitation) ? true : false;
 }
 
 /*
@@ -292,11 +309,55 @@ void BrusaMotorController::processActualValues(uint8_t data[])
  */
 void BrusaMotorController::processErrors(uint8_t data[])
 {
-    statusBitfield3 = (uint32_t)(data[1] | (data[0] << 8) | (data[5] << 16) | (data[4] << 24));
-    statusBitfield2 = (uint32_t)(data[7] | (data[6] << 8));
+    bitfield = (uint32_t)(data[1] | (data[0] << 8) | (data[5] << 16) | (data[4] << 24));
+
+    status->speedSensorSupply = (bitfield & speedSensorSupply) ? true : false;
+    status->speedSensor = (bitfield & speedSensor) ? true : false;
+    status->canLimitMessageInvalid = (bitfield & canLimitMessageInvalid) ? true : false;
+    status->canControlMessageInvalid = (bitfield & canControlMessageInvalid) ? true : false;
+    status->canLimitMessageLost = (bitfield & canLimitMessageLost) ? true : false;
+    status->overvoltageInternalSupply = (bitfield & overvoltageSkyConverter) ? true : false;
+    status->voltageMeasurement = (bitfield & voltageMeasurement) ? true : false;
+    status->shortCircuit = (bitfield & shortCircuit) ? true : false;
+    status->canControlMessageLost = (bitfield & canControlMessageLost) ? true : false;
+    status->overtempController = (bitfield & overtemp) ? true : false;
+    status->overtempMotor = (bitfield & overtempMotor) ? true : false;
+    status->overspeed = (bitfield & overspeed) ? true : false;
+    status->hvUndervoltage = (bitfield & undervoltage) ? true : false;
+    status->hvOvervoltage = (bitfield & overvoltage) ? true : false;
+    status->hvOvercurrent = (bitfield & overcurrent) ? true : false;
+    status->initalisation = (bitfield & initalisation) ? true : false;
+    status->analogInput = (bitfield & analogInput) ? true : false;
+    status->unexpectedShutdown = (bitfield & driverShutdown) ? true : false;
+    status->powerMismatch = (bitfield & powerMismatch) ? true : false;
+    status->canControl2MessageLost = (bitfield & canControl2MessageLost) ? true : false;
+    status->motorEeprom = (bitfield & motorEeprom) ? true : false;
+    status->storage = (bitfield & storage) ? true : false;
+    status->enableSignalLost = (bitfield & enablePinSignalLost) ? true : false;
+    status->canCommunicationStartup = (bitfield & canCommunicationStartup) ? true : false;
+    status->internalSupply = (bitfield & internalSupply) ? true : false;
+    status->acOvercurrent = (bitfield & acOvercurrent) ? true : false;
+    status->osTrap = (bitfield & osTrap) ? true : false;
 
     if (Logger::isDebug()) {
-        Logger::debug(BRUSA_DMC5, "errors: %X, warning: %X", statusBitfield3, statusBitfield2);
+        Logger::debug(BRUSA_DMC5, "errors: %X", bitfield);
+    }
+
+    bitfield = (uint32_t)(data[7] | (data[6] << 8));
+
+//    status-> systemCheckActive = (bitfield & systemCheckActive) ? true : false;
+    status-> externalShutdownPath2Off = (bitfield & externalShutdownPathAw2Off) ? true : false;
+    status-> externalShutdownPath1Off = (bitfield & externalShutdownPathAw1Off) ? true : false;
+    status-> oscillationLimitControllerActive = (bitfield & oscillationLimitControllerActive) ? true : false;
+    status-> driverShutdownPathActive = (bitfield & driverShutdownPathActive) ? true : false;
+    status-> powerMismatch = (bitfield & powerMismatchDetected) ? true : false;
+    status-> speedSensorSignal = (bitfield & speedSensorSignal) ? true : false;
+    status-> hvUndervoltage = (bitfield & hvUndervoltage) ? true : false;
+    status-> maximumModulationLimiter = (bitfield & maximumModulationLimiter) ? true : false;
+    status-> temperatureSensor = (bitfield & temperatureSensor) ? true : false;
+
+    if (Logger::isDebug()) {
+        Logger::debug(BRUSA_DMC5, "warning: %X", bitfield);
     }
 }
 
@@ -323,12 +384,15 @@ void BrusaMotorController::processTorqueLimit(uint8_t data[])
  */
 void BrusaMotorController::processTemperature(uint8_t data[])
 {
-    temperatureInverter = (int16_t)(data[1] | (data[0] << 8)) * 5;
+    int16_t temperaturePowerStage;
+    temperaturePowerStage = (int16_t)(data[1] | (data[0] << 8)) * 5;
     temperatureMotor = (int16_t)(data[3] | (data[2] << 8)) * 5;
-    temperatureSystem = (int16_t)(data[4] - 50) * 10;
-
+    temperatureController = (int16_t)(data[4] - 50) * 10;
     if (Logger::isDebug()) {
-        Logger::debug(BRUSA_DMC5, "temperature: inverter: %fC, motor: %fC, system: %fC", (float) temperatureInverter / 10.0F, (float) temperatureMotor / 10.0F, (float) temperatureSystem / 10.0F);
+        Logger::debug(BRUSA_DMC5, "temperature: powerStage: %fC, motor: %fC, system: %fC", (float) temperaturePowerStage / 10.0F, (float) temperatureMotor / 10.0F, (float) temperatureController / 10.0F);
+    }
+    if (temperaturePowerStage > temperatureController) {
+        temperatureController = temperaturePowerStage;
     }
 }
 

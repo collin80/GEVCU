@@ -28,6 +28,7 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 CanBrake::CanBrake() : Throttle()
 {
+    canHandlerCar = CanHandler::getInstanceCar();
     prefsHandler = new PrefHandler(CANBRAKEPEDAL);
 
     rawSignal.input1 = 0;
@@ -43,7 +44,7 @@ CanBrake::CanBrake() : Throttle()
 
 void CanBrake::setup()
 {
-    TickHandler::getInstance()->detach(this);
+    tickHandler->detach(this);
 
     Logger::info("add device: CanBrake (id: %X, %X)", CANBRAKEPEDAL, this);
 
@@ -81,8 +82,8 @@ void CanBrake::setup()
             Logger::error(CANBRAKEPEDAL, "no valid car type defined.");
     }
 
-    CanHandler::getInstanceCar()->attach(this, responseId, responseMask, responseExtended);
-    TickHandler::getInstance()->attach(this, CFG_TICK_INTERVAL_CAN_THROTTLE);
+    canHandlerCar->attach(this, responseId, responseMask, responseExtended);
+    tickHandler->attach(this, CFG_TICK_INTERVAL_CAN_THROTTLE);
 }
 
 /*
@@ -93,7 +94,7 @@ void CanBrake::handleTick()
 {
     Throttle::handleTick(); // Call parent handleTick
 
-    CanHandler::getInstanceCar()->sendFrame(requestFrame);
+    canHandlerCar->sendFrame(requestFrame);
 
     if (ticksNoResponse < 255) { // make sure it doesn't overflow
         ticksNoResponse++;

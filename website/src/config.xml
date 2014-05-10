@@ -1,8 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
 <config>
-	<coolOn>~coolOn~</coolOn>
-	<coolOff>~coolOff~</coolOff>
-	<coolFan>~coolFan~</coolFan>
 	<numThrottlePots>~numThrottlePots~</numThrottlePots>
 	<throttleSubType>~throttleSubType~</throttleSubType>
 	<throttleMin1>~throttleMin1~</throttleMin1>
@@ -23,12 +20,15 @@
 	<speedMax>~speedMax~</speedMax>
 	<torqueMax>~torqueMax~</torqueMax>
 	<logLevel>~logLevel~</logLevel>
-	<prechargeRelay>~prechargeRelay~</prechargeRelay>
-	<mainContactorRelay>~mainContactorRelay~</mainContactorRelay>
-	<prechargeR>~prechargeR~</prechargeR>
+	<prechargeRelayOutput>~prechargeRelayOutput~</prechargeRelayOutput>
+	<hvPositiveRelayOutput>~hvPositiveRelayOutput~</hvPositiveRelayOutput>
+	<hvNegativeRelayOutput>~hvNegativeRelayOutput~</hvNegativeRelayOutput>
+	<enableRelayOutput>~enableRelayOutput~</enableRelayOutput>
+	<prechargeMillis>~prechargeMillis~</prechargeMillis>
+	<coolingTemperatureOn>~coolingTemperatureOn~</coolingTemperatureOn>
+	<coolingTemperatureOff>~coolingTemperatureOff~</coolingTemperatureOff>
+	<coolingRelayOutput>~coolingRelayOutput~</coolingRelayOutput>
+	<brakeLightOutput>~brakeLightOutput~</brakeLightOutput>
+	<reverseLightOutput>~reverseLightOutput~</reverseLightOutput>
 	<nominalVolt>~nominalVolt~</nominalVolt>
-	<brakeLight>~brakeLight~</brakeLight>
-	
-	
-	
 </config>

@@ -31,6 +31,7 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include "TickHandler.h"
 #include "DeviceManager.h"
 #include "SystemIO.h"
+#include "Status.h"
 
 class Heartbeat: public TickObserver
 {
@@ -42,6 +43,8 @@ public:
     bool getThrottleDebug();
 
 protected:
+    Status *status;
+    SystemIO *systemIO;
 
 private:
     bool led;

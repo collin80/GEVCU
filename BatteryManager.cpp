@@ -49,6 +49,8 @@ void BatteryManager::handleTick()
 
 void BatteryManager::setup()
 {
+    //tickHandler->detach(this);
+
 #ifndef USE_HARD_CODED
 
     if (prefsHandler->checksumValid()) { //checksum is good, read in the values stored in EEPROM
@@ -59,8 +61,7 @@ void BatteryManager::setup()
 #else
 #endif
 
-//TickHandler::getInstance()->detach(this);
-//TickHandler::getInstance()->attach(this, CFG_TICK_INTERVAL_MOTOR_CONTROLLER_DMOC);
+//tickHandler->attach(this, CFG_TICK_INTERVAL_MOTOR_CONTROLLER_DMOC);
 
 }
 

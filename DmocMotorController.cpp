@@ -43,8 +43,6 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 #include "DmocMotorController.h"
 
-extern bool runThrottle; //TODO: remove use of global variables !
-
 DmocMotorController::DmocMotorController() : MotorController()
 {
     prefsHandler = new PrefHandler(DMOC645);
@@ -53,13 +51,12 @@ DmocMotorController::DmocMotorController() : MotorController()
     actualState = DISABLED;
     online = 0;
     activityCount = 0;
-//  maxTorque = 2000;
     commonName = "DMOC645 Inverter";
 }
 
 void DmocMotorController::setup()
 {
-    TickHandler::getInstance()->detach(this);
+    tickHandler->detach(this);
 
     Logger::info("add device: DMOC645 (id:%X, %X)", DMOC645, this);
 
@@ -67,13 +64,13 @@ void DmocMotorController::setup()
     MotorController::setup(); // run the parent class version of this function
 
     // register ourselves as observer of 0x23x and 0x65x can frames
-    CanHandler::getInstanceEV()->attach(this, 0x230, 0x7f0, false);
-    CanHandler::getInstanceEV()->attach(this, 0x650, 0x7f0, false);
+    canHandlerEv->attach(this, 0x230, 0x7f0, false);
+    canHandlerEv->attach(this, 0x650, 0x7f0, false);
 
     actualGear = NEUTRAL;
-    running = true;
+//    running = true;
 
-    TickHandler::getInstance()->attach(this, CFG_TICK_INTERVAL_MOTOR_CONTROLLER_DMOC);
+    tickHandler->attach(this, CFG_TICK_INTERVAL_MOTOR_CONTROLLER_DMOC);
 }
 
 /*
@@ -86,23 +83,23 @@ void DmocMotorController::setup()
 
 void DmocMotorController::handleCanFrame(CAN_FRAME *frame)
 {
-    int RotorTemp, invTemp, StatorTemp;
+    int rotorTemp, invTemp, statorTemp;
     int temp;
     online = 1; //if a frame got to here then it passed the filter and must have been from the DMOC
 
     //Logger::debug("dmoc msg: %i", frame->id);
     switch (frame->id) {
         case 0x651: //Temperature status
-            RotorTemp = frame->data.bytes[0];
+            rotorTemp = frame->data.bytes[0];
             invTemp = frame->data.bytes[1];
-            StatorTemp = frame->data.bytes[2];
-            temperatureInverter = invTemp * 10;
+            statorTemp = frame->data.bytes[2];
+            temperatureController = invTemp * 10;
 
             //now pick highest of motor temps and report it
-            if (RotorTemp > StatorTemp) {
-                temperatureMotor = RotorTemp * 10;
+            if (rotorTemp > statorTemp) {
+                temperatureMotor = rotorTemp * 10;
             } else {
-                temperatureMotor = StatorTemp * 10;
+                temperatureMotor = statorTemp * 10;
             }
 
             activityCount++;
@@ -130,7 +127,7 @@ void DmocMotorController::handleCanFrame(CAN_FRAME *frame)
 
                 case 2: //ready (standby)
                     actualState = STANDBY;
-                    ready = true;
+ //                   ready = true;
                     break;
 
                 case 3: //enabled
@@ -201,7 +198,7 @@ void DmocMotorController::handleTick()
     //}
 
     //but, if the second input is high we cancel the whole thing and disable the drive.
-    if (SystemIO::getInstance()->getDigital(1) /*|| !SystemIO::getInstance()->getDigital(0)*/) {
+    if (systemIO->getEnableInput() /*|| !systemIO->getDigital(0)*/) {
         setOpState(DISABLED);
         //runThrottle = false;
     }
@@ -266,7 +263,7 @@ void DmocMotorController::sendCmd1()
 
     output.data.bytes[7] = calcChecksum(output);
 
-    CanHandler::getInstanceEV()->sendFrame(output);
+    canHandlerEv->sendFrame(output);
 }
 
 //Torque limits
@@ -318,7 +315,7 @@ void DmocMotorController::sendCmd2()
 
     //Logger::debug("requested torque: %i",(((long) throttleRequested * (long) maxTorque) / 1000L));
 
-    CanHandler::getInstanceEV()->sendFrame(output);
+    canHandlerEv->sendFrame(output);
 }
 
 //Power limits plus setting ambient temp and whether to cool power train or go into limp mode
@@ -341,7 +338,7 @@ void DmocMotorController::sendCmd3()
     output.data.bytes[6] = alive;
     output.data.bytes[7] = calcChecksum(output);
 
-    CanHandler::getInstanceEV()->sendFrame(output);
+    canHandlerEv->sendFrame(output);
 }
 
 //challenge/response frame 1 - Really doesn't contain anything we need I dont think
@@ -361,7 +358,7 @@ void DmocMotorController::sendCmd4()
     output.data.bytes[6] = alive;
     output.data.bytes[7] = calcChecksum(output);
 
-    CanHandler::getInstanceEV()->sendFrame(output);
+    canHandlerEv->sendFrame(output);
 }
 
 //Another C/R frame but this one also specifies which shifter position we're in
@@ -390,7 +387,7 @@ void DmocMotorController::sendCmd5()
     output.data.bytes[6] = alive;
     output.data.bytes[7] = calcChecksum(output);
 
-    CanHandler::getInstanceEV()->sendFrame(output);
+    canHandlerEv->sendFrame(output);
 }
 
 void DmocMotorController::setOpState(OperationState op)

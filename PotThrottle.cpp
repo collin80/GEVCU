@@ -40,7 +40,7 @@ PotThrottle::PotThrottle() : Throttle()
  */
 void PotThrottle::setup()
 {
-    TickHandler::getInstance()->detach(this);  // unregister from TickHandler first
+    tickHandler->detach(this);  // unregister from TickHandler first
 
     Logger::info("add device: PotThrottle (id: %X, %X)", POTACCELPEDAL, this);
 
@@ -51,7 +51,7 @@ void PotThrottle::setup()
     //set digital ports to inputs and pull them up all inputs currently active low
     //pinMode(THROTTLE_INPUT_BRAKELIGHT, INPUT_PULLUP); //Brake light switch
 
-    TickHandler::getInstance()->attach(this, CFG_TICK_INTERVAL_POT_THROTTLE);
+    tickHandler->attach(this, CFG_TICK_INTERVAL_POT_THROTTLE);
 }
 
 /*
@@ -68,10 +68,10 @@ void PotThrottle::handleTick()
 RawSignalData *PotThrottle::acquireRawSignal()
 {
     PotThrottleConfiguration *config = (PotThrottleConfiguration *) getConfiguration();
-    SystemIO::getInstance()->ADCPoll();
+    systemIO->ADCPoll();
 
-    rawSignal.input1 = SystemIO::getInstance()->getAnalog(config->AdcPin1);
-    rawSignal.input2 = SystemIO::getInstance()->getAnalog(config->AdcPin2);
+    rawSignal.input1 = systemIO->getAnalogIn(config->AdcPin1);
+    rawSignal.input2 = systemIO->getAnalogIn(config->AdcPin2);
     return &rawSignal;
 }
 
