@@ -71,6 +71,7 @@ Heartbeat *heartbeat;
 SerialConsole *serialConsole;
 Device *wifiDevice;
 Device *btDevice;
+PerfTimer *mainLoopTimer;
 
 byte i = 0;
 
@@ -277,10 +278,25 @@ void setup()
 
     wifiDevice = DeviceManager::getInstance()->getDeviceByID(ICHIP2128);
     btDevice = DeviceManager::getInstance()->getDeviceByID(ELM327EMU);
+
+#ifdef CFG_EFFICIENCY_CALCS
+	mainLoopTimer = new PerfTimer();
+#endif
 }
 
 void loop()
 {
+#ifdef CFG_EFFICIENCY_CALCS
+	static int counts = 0;
+	counts++;
+	if (counts > 200000) {
+		counts = 0;
+		mainLoopTimer->printValues();
+	}
+
+	mainLoopTimer->start();
+#endif
+
     tickHandler->process();
 
     // check if incoming frames are available in the can buffer and process them
@@ -300,4 +316,8 @@ void loop()
 
     //this should still be here. It checks for a flag set during an interrupt
     systemIO->ADCPoll();
+
+#ifdef CFG_EFFICIENCY_CALCS
+	mainLoopTimer->stop();
+#endif
 }

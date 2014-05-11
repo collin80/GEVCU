@@ -1,7 +1,9 @@
 /*
- * GEVCU.h
+ * PerfTimer.h
  *
-Copyright (c) 2013 Collin Kidder, Michael Neuweiler, Charles Galpin
+ * Provides the ability to track performance of a code section in terms of runtime.
+ *
+Copyright (c) 2014 Collin Kidder, Michael Neuweiler, Charles Galpin
 
 Permission is hereby granted, free of charge, to any person obtaining
 a copy of this software and associated documentation files (the
@@ -24,46 +26,32 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
  */
 
-#ifndef GEVCU_H_
-#define GEVCU_H_
+
+#ifndef PERF_TIME_H_
+#define PERF_TIME_H_
 
 #include <Arduino.h>
 #include "config.h"
-#include "Status.h"
-#include "Device.h"
-#include "Throttle.h"
-#include "CanThrottle.h"
-#include "CanBrake.h"
-#include "PotThrottle.h"
-#include "PotBrake.h"
-#include "BatteryManager.h"
-#include "ThinkBatteryManager.h"
-#include "MotorController.h"
-#include "DmocMotorController.h"
-#include "BrusaMotorController.h"
-#include "Heartbeat.h"
-#include "SystemIO.h"
-#include "CanHandler.h"
-#include "MemCache.h"
-#include "ThrottleDetector.h"
-#include "DeviceManager.h"
-#include "SerialConsole.h"
-#include "ELM327_Emu.h"
-#include "ichip_2128.h"
-#include "Sys_Messages.h"
-#include "PerfTimer.h"
 
-#ifdef __cplusplus
-extern "C" {
+class PerfTimer {
+public:
+	PerfTimer();
+	void start();
+	void stop();
+	uint32_t getMin();
+	uint32_t getMax();
+	uint32_t getAvg();
+	void condenseAvg();
+	void reset();
+	void printValues();
+protected:
+private:
+	uint32_t timeMin; //the lowest time we've seen
+	uint32_t timeMax;  //the highest time we've seen
+	uint32_t timeAccum; //accumulation of all the values we've stored
+	uint32_t accumVals; //total # of values accumulated so far
+	uint32_t startTime;
+	uint32_t endTime;
+};
+
 #endif
-void loop();
-void setup();
-#ifdef __cplusplus
-} // extern "C"
-#endif
-
-#define SYSTEM_PROTO    1
-#define SYSTEM_DUED     2
-#define SYSTEM_GEVCU3   3
-
-#endif /* GEVCU_H_ */
