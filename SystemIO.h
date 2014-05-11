@@ -43,14 +43,14 @@ class SystemIOConfiguration
 public:
     uint8_t enableInput; // # of input for enable signal - required so that GEVCU enables the controller and requests torque/speed > 0
     uint16_t prechargeMillis; // milliseconds required for the pre-charge cycle
-    uint8_t prechargeRelayOutput; // # of output to use for the pre-charge relay or 255 if not used
-    uint8_t hvPositiveRelayOutput; // # of output to use for the HV positive relay (main contactor) or 255 if not used
-    uint8_t hvNegativeRelayOutput; // # of output to use for the HV negative relay or 255 if not used
-    uint8_t enableRelayOutput; // # of output to use for the enable signal/relay or 255 if not used
+    uint8_t prechargeOutput; // # of output to use for the pre-charge relay or 255 if not used
+    uint8_t hvPositiveOutput; // # of output to use for the HV positive relay (main contactor) or 255 if not used
+    uint8_t hvNegativeOutput; // # of output to use for the HV negative relay or 255 if not used
+    uint8_t enableOutput; // # of output to use for the enable signal/relay or 255 if not used
 
-    uint8_t coolingRelayOutput; // # of output to use for the cooling fan relay or 255 if not used
-    uint8_t coolingTemperatureOn; // temperature in degree celsius to start cooling
-    uint8_t coolingTemperatureOff; // temperature in degree celsius to stop cooling
+    uint8_t coolingOutput; // # of output to use for the cooling fan relay or 255 if not used
+    uint8_t coolingTempOn; // temperature in degree celsius to start cooling
+    uint8_t coolingTempOff; // temperature in degree celsius to stop cooling
 
     uint8_t brakeLightOutput; // #of output for brake light at regen or 255 if not used
     uint8_t reverseLightOutput; // #of output for reverse light or 255 if not used

@@ -120,15 +120,15 @@ the end of the stardard data. The below numbers are offsets from the device's ee
 
 #define EESYS_ENABLE_INPUT       45 //1 byte - 255 = no enable input required, digital input to enable GEVCU
 #define EESYS_PRECHARGE_MILLIS   46 //2 bytes - milliseconds for precharge cycle
-#define EESYS_HV_NEGATIVE_RELAY  47 //1 byte - 255 = no HV negative relay, digital output for HV negative contactor
-#define EESYS_PRECHARGE_RELAY    48 //1 byte - 255 = no precharge relay 0-3 = yes, there is one (and the output is the number stored)
-#define EESYS_HV_POSITIVE_RELAY  49 //1 byte - 255 = no contactor relay 0-3 = yes there is
-#define EESYS_ENABLE_RELAY       50 //1 byte - 255 = no enable relay output, digital output for enable signal/relay
-#define EESYS_COOLING_RELAY      51 //1 byte output controlling external cooling relay
-#define EESYS_COOLING_TEMP_ON    52 //1 bytes temperature at which external cooling is switched on
-#define EESYS_COOLING_TEMP_OFF   53 //1 byte temperature at which external cooling is switched off
-#define EESYS_BRAKE_LIGHT        54 //1 byte - 255 = no brake light output, digital output for brake light at regen
-#define EESYS_REVERSE_LIGHT      55 //1 byte - 255 = no reverse light output, digital output for reverse light
+#define EESYS_HV_NEGATIVE_OUTPUT 48 //1 byte - 255 = no HV negative relay, digital output for HV negative contactor
+#define EESYS_PRECHARGE_OUTPUT   49 //1 byte - 255 = no precharge relay 0-3 = yes, there is one (and the output is the number stored)
+#define EESYS_HV_POSITIVE_OUTPUT 50 //1 byte - 255 = no contactor relay 0-3 = yes there is
+#define EESYS_ENABLE_OUTPUT      51 //1 byte - 255 = no enable relay output, digital output for enable signal/relay
+#define EESYS_COOLING_RELAY      52 //1 byte output controlling external cooling relay
+#define EESYS_COOLING_TEMP_ON    53 //1 bytes temperature at which external cooling is switched on
+#define EESYS_COOLING_TEMP_OFF   54 //1 byte temperature at which external cooling is switched off
+#define EESYS_BRAKE_LIGHT        55 //1 byte - 255 = no brake light output, digital output for brake light at regen
+#define EESYS_REVERSE_LIGHT      56 //1 byte - 255 = no reverse light output, digital output for reverse light
 
 #define EESYS_CAN0_BAUD          100 //2 bytes - Baud rate of CAN0 in 1000's of baud. So a value of 500 = 500k baud. Set to 0 to disable CAN0
 #define EESYS_CAN1_BAUD          102 //2 bytes - Baud rate of CAN1 in 1000's of baud. So a value of 500 = 500k baud. Set to 0 to disable CAN1

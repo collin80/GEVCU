@@ -142,14 +142,14 @@ void SerialConsole::printMenu()
         Logger::console("\nPRECHARGE CONTROLS\n");
         Logger::console("ENABLEI=%i - Digital input to use for enable signal", config->enableInput);
         Logger::console("PREDELAY=%d - Precharge delay time in milliseconds ", config->prechargeMillis);
-        Logger::console("PRELAY=%i - Digital output to use for precharge contactor (255 to disable)", config->prechargeRelayOutput);
-        Logger::console("MRELAY=%i - Digital output to use for HV positive / main contactor (255 to disable)", config->hvPositiveRelayOutput);
-        Logger::console("NRELAY=%i - Digital output to use for HV negative contactor (255 to disable)", config->hvNegativeRelayOutput);
-        Logger::console("ERELAY=%i - Digital output to use for enable signal relay (255 to disable)", config->enableRelayOutput);
-        Logger::console("COOLRELAY=%i - Digital output to turn on cooling (255 to disable)", config->coolingRelayOutput);
-        Logger::console("COOLON=%i - Inverter temperature to turn cooling on (deg celsius)", config->coolingTemperatureOn);
-        Logger::console("COOLOFF=%i - Inverter temperature to turn cooling off (deg celsius)", config->coolingTemperatureOff);
-        Logger::console("COOLOFF=%i - Inverter temperature to turn cooling off (deg celsius)", config->coolingTemperatureOff);
+        Logger::console("PRELAY=%i - Digital output to use for precharge contactor (255 to disable)", config->prechargeOutput);
+        Logger::console("MRELAY=%i - Digital output to use for HV positive / main contactor (255 to disable)", config->hvPositiveOutput);
+        Logger::console("NRELAY=%i - Digital output to use for HV negative contactor (255 to disable)", config->hvNegativeOutput);
+        Logger::console("ERELAY=%i - Digital output to use for enable signal relay (255 to disable)", config->enableOutput);
+        Logger::console("COOLRELAY=%i - Digital output to turn on cooling (255 to disable)", config->coolingOutput);
+        Logger::console("COOLON=%i - Inverter temperature to turn cooling on (deg celsius)", config->coolingTempOn);
+        Logger::console("COOLOFF=%i - Inverter temperature to turn cooling off (deg celsius)", config->coolingTempOff);
+        Logger::console("COOLOFF=%i - Inverter temperature to turn cooling off (deg celsius)", config->coolingTempOff);
         Logger::console("BRAKELT=%i - Digital output to use for brake light", config->brakeLightOutput);
         Logger::console("REVLT=%i - Digital output to use for reverse light", config->reverseLightOutput);
     }
@@ -366,28 +366,28 @@ void SerialConsole::handleConfigCmd()
         systemIO->saveConfiguration();
     } else if (cmdString == String("MRELAY") && systemIOConfig) {
         Logger::console("Setting HV Positive Contactor relay to output %i", newValue);
-        systemIOConfig->hvPositiveRelayOutput = newValue;
+        systemIOConfig->hvPositiveOutput = newValue;
         systemIO->saveConfiguration();
     } else if (cmdString == String("NRELAY") && systemIOConfig) {
         Logger::console("Setting HV Negative Contactor relay to output %i", newValue);
-        systemIOConfig->hvNegativeRelayOutput = newValue;
+        systemIOConfig->hvNegativeOutput = newValue;
         systemIO->saveConfiguration();
     } else if (cmdString == String("PRELAY") && systemIOConfig) {
         Logger::console("Setting Precharge Relay to output %i", newValue);
-        systemIOConfig->prechargeRelayOutput = newValue;
+        systemIOConfig->prechargeOutput = newValue;
         systemIO->saveConfiguration();
     } else if (cmdString == String("ERELAY") && systemIOConfig) {
         Logger::console("Setting Enable Relay to output %i", newValue);
-        systemIOConfig->enableRelayOutput = newValue;
+        systemIOConfig->enableOutput = newValue;
         systemIO->saveConfiguration();
     } else if (cmdString == String("COOLRELAY") && systemIOConfig) {
         Logger::console("Setting Cooling Relay to output %i", newValue);
-        systemIOConfig->coolingRelayOutput = newValue;
+        systemIOConfig->coolingOutput = newValue;
         systemIO->saveConfiguration();
     } else if (cmdString == String("COOLON") && systemIOConfig) {
         if (newValue <= 200 && newValue >= 0) {
             Logger::console("Cooling ON temperature updated to: %i degrees", newValue);
-            systemIOConfig->coolingTemperatureOn = newValue;
+            systemIOConfig->coolingTempOn = newValue;
             systemIO->saveConfiguration();
         } else {
             Logger::console("Invalid cooling ON temperature. Please enter a value 0 - 200");
@@ -395,7 +395,7 @@ void SerialConsole::handleConfigCmd()
     } else if (cmdString == String("COOLOFF") && systemIOConfig) {
         if (newValue <= 200 && newValue >= 0) {
             Logger::console("Cooling OFF temperature updated to: %i degrees", newValue);
-            systemIOConfig->coolingTemperatureOff = newValue;
+            systemIOConfig->coolingTempOff = newValue;
             systemIO->saveConfiguration();
         } else {
             Logger::console("Invalid cooling OFF temperature. Please enter a value 0 - 200");

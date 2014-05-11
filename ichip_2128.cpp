@@ -666,26 +666,26 @@ void ICHIPWIFI::processParameterChange(char *key)
     } else if (!strcmp(key, Constants::prechargeMillis)) {
         systemIOConfig->prechargeMillis = atol(value);
         systemIO->saveConfiguration();
-    } else if (!strcmp(key, Constants::prechargeRelayOutput)) {
-        systemIOConfig->prechargeRelayOutput = atol(value);
+    } else if (!strcmp(key, Constants::prechargeOutput)) {
+        systemIOConfig->prechargeOutput = atol(value);
         systemIO->saveConfiguration();
-    } else if (!strcmp(key, Constants::hvPositiveRelayOutput)) {
-        systemIOConfig->hvPositiveRelayOutput = atol(value);
+    } else if (!strcmp(key, Constants::hvPositiveOutput)) {
+        systemIOConfig->hvPositiveOutput = atol(value);
         systemIO->saveConfiguration();
-    } else if (!strcmp(key, Constants::hvNegativeRelayOutput)) {
-        systemIOConfig->hvNegativeRelayOutput = atol(value);
+    } else if (!strcmp(key, Constants::hvNegativeOutput)) {
+        systemIOConfig->hvNegativeOutput = atol(value);
         systemIO->saveConfiguration();
-    } else if (!strcmp(key, Constants::enableRelayOutput)) {
-        systemIOConfig->enableRelayOutput = atol(value);
+    } else if (!strcmp(key, Constants::enableOutput)) {
+        systemIOConfig->enableOutput = atol(value);
         systemIO->saveConfiguration();
-    } else if (!strcmp(key, Constants::coolingRelayOutput)) {
-        systemIOConfig->coolingRelayOutput = atol(value);
+    } else if (!strcmp(key, Constants::coolingOutput)) {
+        systemIOConfig->coolingOutput = atol(value);
         systemIO->saveConfiguration();
-    } else if (!strcmp(key, Constants::coolingTemperatureOn)) {
-        systemIOConfig->coolingTemperatureOn = atol(value);
+    } else if (!strcmp(key, Constants::coolingTempOn)) {
+        systemIOConfig->coolingTempOn = atol(value);
         systemIO->saveConfiguration();
-    } else if (!strcmp(key, Constants::coolingTemperatureOff)) {
-        systemIOConfig->coolingTemperatureOff = atol(value);
+    } else if (!strcmp(key, Constants::coolingTempOff)) {
+        systemIOConfig->coolingTempOff = atol(value);
         systemIO->saveConfiguration();
     } else if (!strcmp(key, Constants::brakeLightOutput)) {
         systemIOConfig->brakeLightOutput = atol(value);
@@ -765,16 +765,17 @@ void ICHIPWIFI::loadParameters()
         setParam(Constants::torqueMax, (uint16_t)(motorConfig->torqueMax / 10));   // skip the tenth's
     }
 
-    setParam(Constants::coolingRelayOutput, systemIOConfig->coolingRelayOutput);
-    setParam(Constants::coolingTemperatureOn, systemIOConfig->coolingTemperatureOn);
-    setParam(Constants::coolingTemperatureOff, systemIOConfig->coolingTemperatureOff);
+    setParam(Constants::enableInput, systemIOConfig->enableInput);
     setParam(Constants::prechargeMillis, systemIOConfig->prechargeMillis);
-    setParam(Constants::prechargeRelayOutput, systemIOConfig->prechargeRelayOutput);
-    setParam(Constants::hvPositiveRelayOutput, systemIOConfig->hvPositiveRelayOutput);
-    setParam(Constants::hvNegativeRelayOutput, systemIOConfig->hvNegativeRelayOutput);
-    setParam(Constants::enableRelayOutput, systemIOConfig->enableRelayOutput);
+    setParam(Constants::prechargeOutput, systemIOConfig->prechargeOutput);
+    setParam(Constants::hvPositiveOutput, systemIOConfig->hvPositiveOutput);
+    setParam(Constants::hvNegativeOutput, systemIOConfig->hvNegativeOutput);
+    setParam(Constants::enableOutput, systemIOConfig->enableOutput);
     setParam(Constants::brakeLightOutput, systemIOConfig->brakeLightOutput);
     setParam(Constants::reverseLightOutput, systemIOConfig->reverseLightOutput);
+    setParam(Constants::coolingOutput, systemIOConfig->coolingOutput);
+    setParam(Constants::coolingTempOn, systemIOConfig->coolingTempOn);
+    setParam(Constants::coolingTempOff, systemIOConfig->coolingTempOff);
 
     setParam(Constants::logLevel, (uint8_t) Logger::getLogLevel());
     setParam(Constants::bitfield1, status->getBitField1());

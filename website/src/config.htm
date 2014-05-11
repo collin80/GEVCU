@@ -102,12 +102,46 @@
 				<option value="4">Off</option>
 			</select></td>
 			<td></td>
-			<td>Battery Voltage</td>
-			<td><input name="nominalVolt" type="text" title="Fully charged pack voltage"/> vdc</td>
+			<td>Enable Input</td>
+			<td><select name="enableInput" title="Input port for the enable signal">
+				<option value="0">0</option>
+				<option value="1">1</option>
+				<option value="2">2</option>
+				<option value="3">3</option>
+			</select></td>
+			<td></td>
 		</tr>
 		<tr>
 			<td>Precharge Relay</td>
-			<td><select name="prechargeRelayOutput" title="Output port to set precharge relay">
+			<td><select name="prechargeOutput" title="Output port to set precharge relay">
+				<option value="255">None</option>
+				<option value="0">0</option>
+				<option value="1">1</option>
+				<option value="2">2</option>
+				<option value="3">3</option>
+				<option value="4">4</option>
+				<option value="5">5</option>
+				<option value="6">6</option>
+				<option value="7">7</option>
+			</select></td>
+			<td></td>
+			<td>HV- Contactor Relay</td>
+			<td><select name="hvNegativeOutput" title="Output port to set HV- contactor">
+				<option value="255">None</option>
+				<option value="0">0</option>
+				<option value="1">1</option>
+				<option value="2">2</option>
+				<option value="3">3</option>
+				<option value="4">4</option>
+				<option value="5">5</option>
+				<option value="6">6</option>
+				<option value="7">7</option>
+				</select></td>
+			<td></td>
+		</tr>
+		<tr>
+			<td>HV+/Main Contactor Relay</td>
+			<td><select name="hvPositiveOutput" title="Output port to set HV+ contactor">
 				<option value="255">None</option>
 				<option value="0">0</option>
 				<option value="1">1</option>
@@ -124,21 +158,8 @@
 			<td></td>
 		</tr>
 		<tr>
-			<td>HV+/Main Contactor Relay</td>
-			<td><select name="hvPositiveRelayOutput" title="Output port to set HV+ contactor">
-				<option value="255">None</option>
-				<option value="0">0</option>
-				<option value="1">1</option>
-				<option value="2">2</option>
-				<option value="3">3</option>
-				<option value="4">4</option>
-				<option value="5">5</option>
-				<option value="6">6</option>
-				<option value="7">7</option>
-			</select></td>
-			<td></td>
-			<td>HV- Contactor Relay</td>
-			<td><select name="hvNegativeRelayOutput" title="Output port to set HV- contactor">
+			<td>Enable Relay</td>
+			<td><select name="enableOutput" title="Output port to turn on enable signal on motor controller">
 				<option value="255">None</option>
 				<option value="0">0</option>
 				<option value="1">1</option>
@@ -150,10 +171,13 @@
 				<option value="7">7</option>
 				</select></td>
 			<td></td>
+			<td>Battery Voltage</td>
+			<td><input name="nominalVolt" type="text" title="Fully charged pack voltage"/> vdc</td>
+			<td></td>
 		</tr>
 		<tr>
-			<td>Enable Relay</td>
-			<td><select name="enableRelayOutput" title="Output port to turn on enable signal on motor controller">
+			<td>Cooling Relay</td>
+			<td><select name="coolingOutput" title="Output port to set cooling relay">
 				<option value="255">None</option>
 				<option value="0">0</option>
 				<option value="1">1</option>
@@ -166,27 +190,10 @@
 				</select></td>
 			<td></td>
 			<td>Cooling ON Temperature</td>
-			<td><input name="coolingTemperatureOn" type="text"  title="Temp degree Celsius to turn cooling ON"/> &#176;C</td>
+			<td><input name="coolingTempOn" type="text"  title="Temp degree Celsius to turn cooling ON"/> &#176;C</td>
 			<td></td>
 		</tr>
 		<tr>
-			<td>Cooling Relay</td>
-			<td><select name="coolingRelayOutput" title="Output port to set cooling relay">
-				<option value="255">None</option>
-				<option value="0">0</option>
-				<option value="1">1</option>
-				<option value="2">2</option>
-				<option value="3">3</option>
-				<option value="4">4</option>
-				<option value="5">5</option>
-				<option value="6">6</option>
-				<option value="7">7</option>
-				</select></td>
-			<td></td>
-			<td>Cooling OFF Temperature</td>
-			<td><input name="coolingTemperatureOff" type="text" title="Temp degree Celsius to turn cooling OFF"/> &#176;C</td>
-			<td></td>
-		</tr>
 			<td>Brake Light</td>
 			<td><select name="brakeLightOutput" title="Output port to turn on brake light">
 				<option value="255">None</option>
@@ -200,6 +207,11 @@
 				<option value="7">7</option>
 				</select></td>
 			<td></td>
+			<td>Cooling OFF Temperature</td>
+			<td><input name="coolingTempOff" type="text" title="Temp degree Celsius to turn cooling OFF"/> &#176;C</td>
+			<td></td>
+		</tr>
+		<tr>
 			<td>Reverse Light</td>
 			<td><select name="reverseLightOutput" title="Output port to turn on reverse light">
 				<option value="255">None</option>
@@ -213,7 +225,10 @@
 				<option value="7">7</option>
 				</select></td>
 			<td></td>
-		<tr>
+			<td></td>
+			<td></td>
+			<td></td>
+		</tr>
 	</table>
  	<center>
 		<input type="submit" value="Save"> </input>

@@ -270,6 +270,8 @@ void setup()
 
     initializeDevices();
 
+    Status::getInstance()->setSystemState(Status::preCharge);
+
     serialConsole = new SerialConsole(memCache, heartbeat);
     serialConsole->printMenu();
 

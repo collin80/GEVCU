@@ -105,6 +105,7 @@ void BrusaMotorController::sendControl()
 
     outputFrame.data.bytes[0] = enablePositiveTorqueSpeed; // | enableNegativeTorqueSpeed;
 
+//TODO: clarify how to handle the "clear error latch" function
 //    if (faulted) {
 //        outputFrame.data.bytes[0] |= clearErrorLatch;
 //    } else {

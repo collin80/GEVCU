@@ -62,14 +62,15 @@ static const char* reverseLightOutput = "reverseLightOutput";
 static const char* speedMax = "speedMax";
 static const char* torqueMax = "torqueMax";
 static const char* logLevel = "logLevel";
+static const char* enableInput = "enableInput";
 static const char* prechargeMillis = "prechargeMillis";
-static const char* prechargeRelayOutput = "prechargeRelayOutput";
-static const char* hvPositiveRelayOutput = "hvPositiveRelayOutput";
-static const char* hvNegativeRelayOutput = "hvNegativeRelayOutput";
-static const char* enableRelayOutput = "enableRelayOutput";
-static const char* coolingRelayOutput = "coolingRelayOutput";
-static const char* coolingTemperatureOn = "coolingTemperatureOn";
-static const char* coolingTemperatureOff = "coolingTemperatureOff";
+static const char* prechargeOutput = "prechargeOutput";
+static const char* hvPositiveOutput = "hvPositiveOutput";
+static const char* hvNegativeOutput = "hvNegativeOutput";
+static const char* enableOutput = "enableOutput";
+static const char* coolingOutput = "coolingOutput";
+static const char* coolingTempOn = "coolingTempOn";
+static const char* coolingTempOff = "coolingTempOff";
 static const char* nominalVolt = "nominalVolt";
 
 // status

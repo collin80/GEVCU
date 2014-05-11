@@ -127,27 +127,33 @@ void DmocMotorController::handleCanFrame(CAN_FRAME *frame)
 
                 case 2: //ready (standby)
                     actualState = STANDBY;
+                    status->setSystemState(Status::ready);
  //                   ready = true;
                     break;
 
                 case 3: //enabled
                     actualState = ENABLE;
+                    status->setSystemState(Status::running);
                     break;
 
                 case 4: //Power Down
                     actualState = POWERDOWN;
+                    status->setSystemState(Status::ready);
                     break;
 
                 case 5: //Fault
                     actualState = DISABLED;
+                    status->setSystemState(Status::error);
                     break;
 
                 case 6: //Critical Fault
                     actualState = DISABLED;
+                    status->setSystemState(Status::error);
                     break;
 
                 case 7: //LOS
                     actualState = DISABLED;
+                    status->setSystemState(Status::error);
                     break;
             }
 

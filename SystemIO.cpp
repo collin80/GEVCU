@@ -72,7 +72,7 @@ void SystemIO::handleTick() {
     if(status->getSystemState() == Status::preCharge) {
         handlePreCharge();
     }
-    if (configuration->coolingRelayOutput != CFG_OUTPUT_NONE) {
+    if (configuration->coolingOutput != CFG_OUTPUT_NONE) {
         handleCooling();
     }
     updateDigitalInputStatus();
@@ -100,11 +100,13 @@ void SystemIO::updateDigitalInputStatus() {
  * 5. Activate the HV positive contactor
  * 6. Delay
  * 7. De-Activate pre-charge contactor
+ * 8. Activate the enable output signal to enable the motor controller
  */
 void SystemIO::handlePreCharge() {
     if (configuration->prechargeMillis == 0) { // we don't want to pre-charge
         Logger::info("Pre-charging not enabled");
         status->setSystemState(Status::charged);
+        setEnableRelayOutput(true);
         return;
     }
 
@@ -115,7 +117,7 @@ void SystemIO::handlePreCharge() {
         preChargeStart = millis();
         setPrechargeRelayOutput(true); // step 1
 
-        if (configuration->hvNegativeRelayOutput != CFG_OUTPUT_NONE) {
+        if (configuration->hvNegativeOutput != CFG_OUTPUT_NONE) {
             delay(CFG_PRE_CHARGE_RELAY_DELAY); // step 2
             setHvNegativeRelayOutput(true); // step 3
         }
@@ -127,6 +129,8 @@ void SystemIO::handlePreCharge() {
 
             status->setSystemState(Status::charged);
             Logger::info("Pre-charge sequence complete after %i milliseconds", millis() - preChargeStart);
+
+            setEnableRelayOutput(true); // step 8
         }
     }
 }
@@ -136,7 +140,7 @@ void SystemIO::handlePreCharge() {
  * the motor controller
  */
 void SystemIO::handleCooling() {
-    if (status->temperatureController / 10 > configuration->coolingTemperatureOn) {
+    if (status->temperatureController / 10 > configuration->coolingTempOn) {
         if (!coolflag) {
             coolflag = true;
             setCoolingRelayOutput(true);
@@ -145,7 +149,7 @@ void SystemIO::handleCooling() {
         }
     }
 
-    if (status->temperatureController / 10 < configuration->coolingTemperatureOff) {
+    if (status->temperatureController / 10 < configuration->coolingTempOff) {
         if (coolflag) {
             coolflag = false;
             setCoolingRelayOutput(false);
@@ -171,8 +175,8 @@ bool SystemIO::getEnableInput() {
  * Enable / disable the pre-charge relay output and set the status flag.
  */
 void SystemIO::setPrechargeRelayOutput(bool enabled) {
-    if (configuration->prechargeRelayOutput != CFG_OUTPUT_NONE) {
-        setDigitalOut(configuration->prechargeRelayOutput, enabled);
+    if (configuration->prechargeOutput != CFG_OUTPUT_NONE) {
+        setDigitalOut(configuration->prechargeOutput, enabled);
         status->preChargeRelay = enabled;
         printIOStatus();
     }
@@ -182,8 +186,8 @@ void SystemIO::setPrechargeRelayOutput(bool enabled) {
  * Enable / disable the HV positive relay output and set the status flag.
  */
 void SystemIO::setHvPositiveRelayOutput(bool enabled) {
-    if (configuration->hvPositiveRelayOutput != CFG_OUTPUT_NONE) {
-        setDigitalOut(configuration->hvPositiveRelayOutput, enabled);
+    if (configuration->hvPositiveOutput != CFG_OUTPUT_NONE) {
+        setDigitalOut(configuration->hvPositiveOutput, enabled);
         status->hvPositiveRelay = enabled;
         printIOStatus();
     }
@@ -193,8 +197,8 @@ void SystemIO::setHvPositiveRelayOutput(bool enabled) {
  * Enable / disable the HV negative relay output and set the status flag.
  */
 void SystemIO::setHvNegativeRelayOutput(bool enabled) {
-    if (configuration->hvNegativeRelayOutput != CFG_OUTPUT_NONE) {
-        setDigitalOut(configuration->hvNegativeRelayOutput, enabled);
+    if (configuration->hvNegativeOutput != CFG_OUTPUT_NONE) {
+        setDigitalOut(configuration->hvNegativeOutput, enabled);
         status->hVNegativeRelay = enabled;
         printIOStatus();
     }
@@ -204,8 +208,8 @@ void SystemIO::setHvNegativeRelayOutput(bool enabled) {
  * Enable / disable the 'enable' relay output and set the status flag.
  */
 void SystemIO::setEnableRelayOutput(bool enabled) {
-    if (configuration->enableRelayOutput != CFG_OUTPUT_NONE) {
-        setDigitalOut(configuration->enableRelayOutput, enabled);
+    if (configuration->enableOutput != CFG_OUTPUT_NONE) {
+        setDigitalOut(configuration->enableOutput, enabled);
         status->enableOut = enabled;
         printIOStatus();
     }
@@ -238,8 +242,8 @@ void SystemIO::setReverseLightOutput(bool enabled) {
  * Enable / disable the cooling realy output and set the status flag.
  */
 void SystemIO::setCoolingRelayOutput(bool enabled) {
-    if (configuration->coolingRelayOutput != CFG_OUTPUT_NONE) {
-        setDigitalOut(configuration->coolingRelayOutput, enabled);
+    if (configuration->coolingOutput != CFG_OUTPUT_NONE) {
+        setDigitalOut(configuration->coolingOutput, enabled);
         status->coolingRelay = enabled;
         printIOStatus();
     }
@@ -730,25 +734,25 @@ void SystemIO::loadConfiguration() {
 #endif
         prefsHandler->read(EESYS_ENABLE_INPUT, &configuration->enableInput);
         prefsHandler->read(EESYS_PRECHARGE_MILLIS, &configuration->prechargeMillis);
-        prefsHandler->read(EESYS_PRECHARGE_RELAY, &configuration->prechargeRelayOutput);
-        prefsHandler->read(EESYS_HV_POSITIVE_RELAY, &configuration->hvPositiveRelayOutput);
-        prefsHandler->read(EESYS_HV_NEGATIVE_RELAY, &configuration->hvNegativeRelayOutput);
-        prefsHandler->read(EESYS_ENABLE_RELAY, &configuration->enableRelayOutput);
-        prefsHandler->read(EESYS_COOLING_RELAY, &configuration->coolingRelayOutput);
-        prefsHandler->read(EESYS_COOLING_TEMP_ON, &configuration->coolingTemperatureOn);
-        prefsHandler->read(EESYS_COOLING_TEMP_OFF, &configuration->coolingTemperatureOff);
+        prefsHandler->read(EESYS_PRECHARGE_OUTPUT, &configuration->prechargeOutput);
+        prefsHandler->read(EESYS_HV_POSITIVE_OUTPUT, &configuration->hvPositiveOutput);
+        prefsHandler->read(EESYS_HV_NEGATIVE_OUTPUT, &configuration->hvNegativeOutput);
+        prefsHandler->read(EESYS_ENABLE_OUTPUT, &configuration->enableOutput);
+        prefsHandler->read(EESYS_COOLING_RELAY, &configuration->coolingOutput);
+        prefsHandler->read(EESYS_COOLING_TEMP_ON, &configuration->coolingTempOn);
+        prefsHandler->read(EESYS_COOLING_TEMP_OFF, &configuration->coolingTempOff);
         prefsHandler->read(EESYS_BRAKE_LIGHT, &configuration->brakeLightOutput);
         prefsHandler->read(EESYS_REVERSE_LIGHT, &configuration->reverseLightOutput);
     } else { //checksum invalid. Reinitialize values and store to EEPROM
         configuration->enableInput = EnableInput;
         configuration->prechargeMillis = PrechargeMillis;
-        configuration->prechargeRelayOutput = PrechargeRelayOutput;
-        configuration->hvPositiveRelayOutput = HvPositiveRelayOutput;
-        configuration->hvNegativeRelayOutput = HvNegativeRelayOutput;
-        configuration->enableRelayOutput = EnableRelayOutput;
-        configuration->coolingRelayOutput = CoolingRelayOutput;
-        configuration->coolingTemperatureOn = CoolingTemperatureOn;
-        configuration->coolingTemperatureOff = CoolingTemperatureOff;
+        configuration->prechargeOutput = PrechargeRelayOutput;
+        configuration->hvPositiveOutput = HvPositiveRelayOutput;
+        configuration->hvNegativeOutput = HvNegativeRelayOutput;
+        configuration->enableOutput = EnableRelayOutput;
+        configuration->coolingOutput = CoolingRelayOutput;
+        configuration->coolingTempOn = CoolingTemperatureOn;
+        configuration->coolingTempOff = CoolingTemperatureOff;
         configuration->brakeLightOutput = BrakeLightOutput;
         configuration->reverseLightOutput = ReverseLightOutput;
     }
@@ -757,13 +761,13 @@ void SystemIO::loadConfiguration() {
 void SystemIO::saveConfiguration() {
     prefsHandler->write(EESYS_ENABLE_INPUT, configuration->enableInput);
     prefsHandler->write(EESYS_PRECHARGE_MILLIS, configuration->prechargeMillis);
-    prefsHandler->write(EESYS_PRECHARGE_RELAY, configuration->prechargeRelayOutput);
-    prefsHandler->write(EESYS_HV_POSITIVE_RELAY, configuration->hvPositiveRelayOutput);
-    prefsHandler->write(EESYS_HV_NEGATIVE_RELAY, configuration->hvNegativeRelayOutput);
-    prefsHandler->write(EESYS_ENABLE_RELAY, configuration->enableRelayOutput);
-    prefsHandler->write(EESYS_COOLING_RELAY, configuration->coolingRelayOutput);
-    prefsHandler->write(EESYS_COOLING_TEMP_ON, configuration->coolingTemperatureOn);
-    prefsHandler->write(EESYS_COOLING_TEMP_OFF, configuration->coolingTemperatureOff);
+    prefsHandler->write(EESYS_PRECHARGE_OUTPUT, configuration->prechargeOutput);
+    prefsHandler->write(EESYS_HV_POSITIVE_OUTPUT, configuration->hvPositiveOutput);
+    prefsHandler->write(EESYS_HV_NEGATIVE_OUTPUT, configuration->hvNegativeOutput);
+    prefsHandler->write(EESYS_ENABLE_OUTPUT, configuration->enableOutput);
+    prefsHandler->write(EESYS_COOLING_RELAY, configuration->coolingOutput);
+    prefsHandler->write(EESYS_COOLING_TEMP_ON, configuration->coolingTempOn);
+    prefsHandler->write(EESYS_COOLING_TEMP_OFF, configuration->coolingTempOff);
     prefsHandler->write(EESYS_BRAKE_LIGHT, configuration->brakeLightOutput);
     prefsHandler->write(EESYS_REVERSE_LIGHT, configuration->reverseLightOutput);
     prefsHandler->saveChecksum();

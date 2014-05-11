@@ -20,14 +20,15 @@
 	<speedMax>~speedMax~</speedMax>
 	<torqueMax>~torqueMax~</torqueMax>
 	<logLevel>~logLevel~</logLevel>
-	<prechargeRelayOutput>~prechargeRelayOutput~</prechargeRelayOutput>
-	<hvPositiveRelayOutput>~hvPositiveRelayOutput~</hvPositiveRelayOutput>
-	<hvNegativeRelayOutput>~hvNegativeRelayOutput~</hvNegativeRelayOutput>
-	<enableRelayOutput>~enableRelayOutput~</enableRelayOutput>
+	<enableInput>~enableInput~</enableInput>
+	<prechargeOutput>~prechargeOutput~</prechargeOutput>
+	<hvPositiveOutput>~hvPositiveOutput~</hvPositiveOutput>
+	<hvNegativeOutput>~hvNegativeOutput~</hvNegativeOutput>
+	<enableOutput>~enableOutput~</enableOutput>
 	<prechargeMillis>~prechargeMillis~</prechargeMillis>
-	<coolingTemperatureOn>~coolingTemperatureOn~</coolingTemperatureOn>
-	<coolingTemperatureOff>~coolingTemperatureOff~</coolingTemperatureOff>
-	<coolingRelayOutput>~coolingRelayOutput~</coolingRelayOutput>
+	<coolingTempOn>~coolingTempOn~</coolingTempOn>
+	<coolingTempOff>~coolingTempOff~</coolingTempOff>
+	<coolingOutput>~coolingOutput~</coolingOutput>
 	<brakeLightOutput>~brakeLightOutput~</brakeLightOutput>
 	<reverseLightOutput>~reverseLightOutput~</reverseLightOutput>
 	<nominalVolt>~nominalVolt~</nominalVolt>
