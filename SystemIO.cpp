@@ -72,7 +72,7 @@ void SystemIO::handleTick() {
     if(status->getSystemState() == Status::preCharge) {
         handlePreCharge();
     }
-    if (configuration->coolingOutput != CFG_OUTPUT_NONE) {
+    if (configuration->coolingFanOutput != CFG_OUTPUT_NONE) {
         handleCooling();
     }
     updateDigitalInputStatus();
@@ -132,7 +132,7 @@ void SystemIO::handleCooling() {
     if (status->temperatureController / 10 > configuration->coolingTempOn) {
         if (!coolflag) {
             coolflag = true;
-            setCoolingRelayOutput(true);
+            setCoolingFanRelayOutput(true);
             // enabling cooling does not necessarily mean overtemp, the motor controller object should set the overtemp status
             // Status::getInstance()->overtempController = true;
         }
@@ -141,7 +141,7 @@ void SystemIO::handleCooling() {
     if (status->temperatureController / 10 < configuration->coolingTempOff) {
         if (coolflag) {
             coolflag = false;
-            setCoolingRelayOutput(false);
+            setCoolingFanRelayOutput(false);
             // enabling cooling does not necessarily mean overtemp, the motor controller object should set the overtemp status
             // Status::getInstance()->overtempController = false;
         }
@@ -230,10 +230,10 @@ void SystemIO::setReverseLightOutput(bool enabled) {
 /*
  * Enable / disable the cooling realy output and set the status flag.
  */
-void SystemIO::setCoolingRelayOutput(bool enabled) {
-    if (configuration->coolingOutput != CFG_OUTPUT_NONE) {
-        setDigitalOut(configuration->coolingOutput, enabled);
-        status->coolingRelay = enabled;
+void SystemIO::setCoolingFanRelayOutput(bool enabled) {
+    if (configuration->coolingFanOutput != CFG_OUTPUT_NONE) {
+        setDigitalOut(configuration->coolingFanOutput, enabled);
+        status->coolingFanRelay = enabled;
         printIOStatus();
     }
 }
@@ -727,7 +727,7 @@ void SystemIO::loadConfiguration() {
         prefsHandler->read(EESYS_MAIN_CONTACTOR_OUTPUT, &configuration->mainContactorOutput);
         prefsHandler->read(EESYS_SECONDARY_CONTACTOR_OUTPUT, &configuration->secondaryContactorOutput);
         prefsHandler->read(EESYS_ENABLE_OUTPUT, &configuration->enableOutput);
-        prefsHandler->read(EESYS_COOLING_RELAY, &configuration->coolingOutput);
+        prefsHandler->read(EESYS_COOLING_FAN_RELAY, &configuration->coolingFanOutput);
         prefsHandler->read(EESYS_COOLING_TEMP_ON, &configuration->coolingTempOn);
         prefsHandler->read(EESYS_COOLING_TEMP_OFF, &configuration->coolingTempOff);
         prefsHandler->read(EESYS_BRAKE_LIGHT, &configuration->brakeLightOutput);
@@ -739,7 +739,7 @@ void SystemIO::loadConfiguration() {
         configuration->mainContactorOutput = MainContactorRelayOutput;
         configuration->secondaryContactorOutput = SecondaryContactorRelayOutput;
         configuration->enableOutput = EnableRelayOutput;
-        configuration->coolingOutput = CoolingRelayOutput;
+        configuration->coolingFanOutput = CoolingFanRelayOutput;
         configuration->coolingTempOn = CoolingTemperatureOn;
         configuration->coolingTempOff = CoolingTemperatureOff;
         configuration->brakeLightOutput = BrakeLightOutput;
@@ -754,7 +754,7 @@ void SystemIO::saveConfiguration() {
     prefsHandler->write(EESYS_MAIN_CONTACTOR_OUTPUT, configuration->mainContactorOutput);
     prefsHandler->write(EESYS_SECONDARY_CONTACTOR_OUTPUT, configuration->secondaryContactorOutput);
     prefsHandler->write(EESYS_ENABLE_OUTPUT, configuration->enableOutput);
-    prefsHandler->write(EESYS_COOLING_RELAY, configuration->coolingOutput);
+    prefsHandler->write(EESYS_COOLING_FAN_RELAY, configuration->coolingFanOutput);
     prefsHandler->write(EESYS_COOLING_TEMP_ON, configuration->coolingTempOn);
     prefsHandler->write(EESYS_COOLING_TEMP_OFF, configuration->coolingTempOff);
     prefsHandler->write(EESYS_BRAKE_LIGHT, configuration->brakeLightOutput);

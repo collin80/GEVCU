@@ -678,8 +678,8 @@ void ICHIPWIFI::processParameterChange(char *key)
     } else if (!strcmp(key, Constants::enableOutput)) {
         systemIOConfig->enableOutput = atol(value);
         systemIO->saveConfiguration();
-    } else if (!strcmp(key, Constants::coolingOutput)) {
-        systemIOConfig->coolingOutput = atol(value);
+    } else if (!strcmp(key, Constants::coolingFanOutput)) {
+        systemIOConfig->coolingFanOutput = atol(value);
         systemIO->saveConfiguration();
     } else if (!strcmp(key, Constants::coolingTempOn)) {
         systemIOConfig->coolingTempOn = atol(value);
@@ -773,7 +773,7 @@ void ICHIPWIFI::loadParameters()
     setParam(Constants::enableOutput, systemIOConfig->enableOutput);
     setParam(Constants::brakeLightOutput, systemIOConfig->brakeLightOutput);
     setParam(Constants::reverseLightOutput, systemIOConfig->reverseLightOutput);
-    setParam(Constants::coolingOutput, systemIOConfig->coolingOutput);
+    setParam(Constants::coolingFanOutput, systemIOConfig->coolingFanOutput);
     setParam(Constants::coolingTempOn, systemIOConfig->coolingTempOn);
     setParam(Constants::coolingTempOff, systemIOConfig->coolingTempOff);
 

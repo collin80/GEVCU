@@ -87,7 +87,7 @@ Status::Status() {
     mainContactorRelay  = false;
     secondaryContactorRelay = false;
     enableOut           = false;
-    coolingRelay        = false;
+    coolingFanRelay     = false;
     brakeLight          = false;
     reverseLight        = false;
 
@@ -305,7 +305,7 @@ uint32_t Status::getBitField3() {
     bitfield |= (secondaryContactorRelay                    ? 1 << 3 : 0);  // 0x00000008
     bitfield |= (mainContactorRelay                    ? 1 << 4 : 0);  // 0x00000010
     bitfield |= (enableOut                          ? 1 << 5 : 0);  // 0x00000020
-    bitfield |= (coolingRelay                       ? 1 << 6 : 0);  // 0x00000040
+    bitfield |= (coolingFanRelay                       ? 1 << 6 : 0);  // 0x00000040
     bitfield |= (brakeLight                         ? 1 << 7 : 0);  // 0x00000080
     bitfield |= (reverseLight                       ? 1 << 8 : 0);  // 0x00000100
     bitfield |= (enableIn                           ? 1 << 9 : 0);  // 0x00000200

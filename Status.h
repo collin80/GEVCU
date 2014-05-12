@@ -101,7 +101,7 @@ public:
     bool mainContactorRelay; // is the main contactor relay activated ?
     bool secondaryContactorRelay; // is the secondary relay activated ?
     bool enableOut; // is the 'enable' output activated ?
-    bool coolingRelay; // is the cooling relay activated ?
+    bool coolingFanRelay; // is the cooling relay activated ?
     bool brakeLight; // is the brake light activated ?
     bool reverseLight; // is the reverse light activated ?
 

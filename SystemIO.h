@@ -48,7 +48,7 @@ public:
     uint8_t secondaryContactorOutput; // # of output to use for the secondary contactor relay or 255 if not used
     uint8_t enableOutput; // # of output to use for the enable signal/relay or 255 if not used
 
-    uint8_t coolingOutput; // # of output to use for the cooling fan relay or 255 if not used
+    uint8_t coolingFanOutput; // # of output to use for the cooling fan relay or 255 if not used
     uint8_t coolingTempOn; // temperature in degree celsius to start cooling
     uint8_t coolingTempOff; // temperature in degree celsius to stop cooling
 
@@ -128,7 +128,7 @@ private:
     void setMainContactorRelayOutput(bool);
     void setSecondaryContactorRelayOutput(bool);
     void setEnableRelayOutput(bool);
-    void setCoolingRelayOutput(bool);
+    void setCoolingFanRelayOutput(bool);
     void setBrakeLightOutput(bool);
     void setReverseLightOutput(bool);
 };

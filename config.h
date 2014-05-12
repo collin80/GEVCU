@@ -127,7 +127,7 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #define BrakeLightOutput    4
 #define ReverseLightOutput  5
 #define ReversePercent      50
-#define CoolingRelayOutput  7  //output to use for cooling fan
+#define CoolingFanRelayOutput  7  //output to use for cooling fan
 #define CoolingTemperatureOn 70 //temperature (in C) to turn on cooling fan
 #define CoolingTemperatureOff 60 //temperature to turn it off
 

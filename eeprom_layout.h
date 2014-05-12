@@ -124,7 +124,7 @@ the end of the stardard data. The below numbers are offsets from the device's ee
 #define EESYS_PRECHARGE_OUTPUT   49 //1 byte - 255 = no precharge relay 0-3 = yes, there is one (and the output is the number stored)
 #define EESYS_MAIN_CONTACTOR_OUTPUT 50 //1 byte - 255 = no contactor relay 0-3 = digital output for main contactor
 #define EESYS_ENABLE_OUTPUT      51 //1 byte - 255 = no enable relay output, digital output for enable signal/relay
-#define EESYS_COOLING_RELAY      52 //1 byte output controlling external cooling relay
+#define EESYS_COOLING_FAN_RELAY  52 //1 byte output controlling external cooling relay
 #define EESYS_COOLING_TEMP_ON    53 //1 bytes temperature at which external cooling is switched on
 #define EESYS_COOLING_TEMP_OFF   54 //1 byte temperature at which external cooling is switched off
 #define EESYS_BRAKE_LIGHT        55 //1 byte - 255 = no brake light output, digital output for brake light at regen

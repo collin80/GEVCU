@@ -28,7 +28,7 @@
 	<prechargeMillis>~prechargeMillis~</prechargeMillis>
 	<coolingTempOn>~coolingTempOn~</coolingTempOn>
 	<coolingTempOff>~coolingTempOff~</coolingTempOff>
-	<coolingOutput>~coolingOutput~</coolingOutput>
+	<coolingFanOutput>~coolingFanOutput~</coolingFanOutput>
 	<brakeLightOutput>~brakeLightOutput~</brakeLightOutput>
 	<reverseLightOutput>~reverseLightOutput~</reverseLightOutput>
 	<nominalVolt>~nominalVolt~</nominalVolt>

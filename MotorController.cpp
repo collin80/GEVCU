@@ -97,7 +97,7 @@ void MotorController::handleTick()
         throttleRequested = 0; //force to zero in case not in operational condition
     }
 
-    // transfer temperature to status object (so cooling can use it and we have no circular references)
+    // transfer temperature to status object (so cooling fan can use it and we have no circular references)
     status->temperatureController = temperatureController;
     status->temperatureMotor = temperatureMotor;
 

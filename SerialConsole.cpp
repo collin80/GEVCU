@@ -146,7 +146,7 @@ void SerialConsole::printMenu()
         Logger::console("MRELAY=%i - Digital output to use for main contactor (255 to disable)", config->mainContactorOutput);
 //        Logger::console("NRELAY=%i - Digital output to use for secondary contactor (255 to disable)", config->secondaryContactorOutput);
         Logger::console("ERELAY=%i - Digital output to use for enable signal relay (255 to disable)", config->enableOutput);
-        Logger::console("COOLRELAY=%i - Digital output to turn on cooling (255 to disable)", config->coolingOutput);
+        Logger::console("COOLFAN=%i - Digital output to turn on cooling fan (255 to disable)", config->coolingFanOutput);
         Logger::console("COOLON=%i - Inverter temperature to turn cooling on (deg celsius)", config->coolingTempOn);
         Logger::console("COOLOFF=%i - Inverter temperature to turn cooling off (deg celsius)", config->coolingTempOff);
         Logger::console("COOLOFF=%i - Inverter temperature to turn cooling off (deg celsius)", config->coolingTempOff);
@@ -380,9 +380,9 @@ void SerialConsole::handleConfigCmd()
         Logger::console("Setting Enable Relay to output %i", newValue);
         systemIOConfig->enableOutput = newValue;
         systemIO->saveConfiguration();
-    } else if (cmdString == String("COOLRELAY") && systemIOConfig) {
-        Logger::console("Setting Cooling Relay to output %i", newValue);
-        systemIOConfig->coolingOutput = newValue;
+    } else if (cmdString == String("COOLFAN") && systemIOConfig) {
+        Logger::console("Setting Cooling Fan Relay to output %i", newValue);
+        systemIOConfig->coolingFanOutput = newValue;
         systemIO->saveConfiguration();
     } else if (cmdString == String("COOLON") && systemIOConfig) {
         if (newValue <= 200 && newValue >= 0) {
