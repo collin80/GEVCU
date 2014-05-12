@@ -84,8 +84,8 @@ Status::Status() {
 
     enableIn            = false;
     preChargeRelay      = false;
-    hVNegativeRelay     = false;
-    hvPositiveRelay     = false;
+    mainContactorRelay  = false;
+    secondaryContactorRelay = false;
     enableOut           = false;
     coolingRelay        = false;
     brakeLight          = false;
@@ -302,8 +302,8 @@ uint32_t Status::getBitField3() {
     bitfield |= (systemState == ready               ? 1 << 0 : 0);  // 0x00000001
     bitfield |= (systemState == running             ? 1 << 1 : 0);  // 0x00000002
     bitfield |= (preChargeRelay                     ? 1 << 2 : 0);  // 0x00000004
-    bitfield |= (hVNegativeRelay                    ? 1 << 3 : 0);  // 0x00000008
-    bitfield |= (hvPositiveRelay                    ? 1 << 4 : 0);  // 0x00000010
+    bitfield |= (secondaryContactorRelay                    ? 1 << 3 : 0);  // 0x00000008
+    bitfield |= (mainContactorRelay                    ? 1 << 4 : 0);  // 0x00000010
     bitfield |= (enableOut                          ? 1 << 5 : 0);  // 0x00000020
     bitfield |= (coolingRelay                       ? 1 << 6 : 0);  // 0x00000040
     bitfield |= (brakeLight                         ? 1 << 7 : 0);  // 0x00000080

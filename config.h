@@ -121,8 +121,8 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #define PrechargeMillis     3000 // milliseconds for pre-charge cycle
 #define NominalVolt         3300 //a reasonable figure for a lithium cell pack driving the DMOC (in tenths of a volt)
 #define PrechargeRelayOutput 0
-#define HvPositiveRelayOutput 1
-#define HvNegativeRelayOutput 2
+#define MainContactorRelayOutput 1
+#define SecondaryContactorRelayOutput 2
 #define EnableRelayOutput   3
 #define BrakeLightOutput    4
 #define ReverseLightOutput  5

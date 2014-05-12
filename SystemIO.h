@@ -44,8 +44,8 @@ public:
     uint8_t enableInput; // # of input for enable signal - required so that GEVCU enables the controller and requests torque/speed > 0
     uint16_t prechargeMillis; // milliseconds required for the pre-charge cycle
     uint8_t prechargeOutput; // # of output to use for the pre-charge relay or 255 if not used
-    uint8_t hvPositiveOutput; // # of output to use for the HV positive relay (main contactor) or 255 if not used
-    uint8_t hvNegativeOutput; // # of output to use for the HV negative relay or 255 if not used
+    uint8_t mainContactorOutput; // # of output to use for the main contactor relay (main contactor) or 255 if not used
+    uint8_t secondaryContactorOutput; // # of output to use for the secondary contactor relay or 255 if not used
     uint8_t enableOutput; // # of output to use for the enable signal/relay or 255 if not used
 
     uint8_t coolingOutput; // # of output to use for the cooling fan relay or 255 if not used
@@ -125,8 +125,8 @@ private:
     void handlePreCharge();
 
     void setPrechargeRelayOutput(bool);
-    void setHvPositiveRelayOutput(bool);
-    void setHvNegativeRelayOutput(bool);
+    void setMainContactorRelayOutput(bool);
+    void setSecondaryContactorRelayOutput(bool);
     void setEnableRelayOutput(bool);
     void setCoolingRelayOutput(bool);
     void setBrakeLightOutput(bool);

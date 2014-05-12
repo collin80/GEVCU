@@ -143,8 +143,8 @@ void SerialConsole::printMenu()
         Logger::console("ENABLEI=%i - Digital input to use for enable signal", config->enableInput);
         Logger::console("PREDELAY=%d - Precharge delay time in milliseconds ", config->prechargeMillis);
         Logger::console("PRELAY=%i - Digital output to use for precharge contactor (255 to disable)", config->prechargeOutput);
-        Logger::console("MRELAY=%i - Digital output to use for HV positive / main contactor (255 to disable)", config->hvPositiveOutput);
-        Logger::console("NRELAY=%i - Digital output to use for HV negative contactor (255 to disable)", config->hvNegativeOutput);
+        Logger::console("MRELAY=%i - Digital output to use for main contactor (255 to disable)", config->mainContactorOutput);
+//        Logger::console("NRELAY=%i - Digital output to use for secondary contactor (255 to disable)", config->secondaryContactorOutput);
         Logger::console("ERELAY=%i - Digital output to use for enable signal relay (255 to disable)", config->enableOutput);
         Logger::console("COOLRELAY=%i - Digital output to turn on cooling (255 to disable)", config->coolingOutput);
         Logger::console("COOLON=%i - Inverter temperature to turn cooling on (deg celsius)", config->coolingTempOn);
@@ -365,12 +365,12 @@ void SerialConsole::handleConfigCmd()
         systemIOConfig->prechargeMillis = newValue;
         systemIO->saveConfiguration();
     } else if (cmdString == String("MRELAY") && systemIOConfig) {
-        Logger::console("Setting HV Positive Contactor relay to output %i", newValue);
-        systemIOConfig->hvPositiveOutput = newValue;
+        Logger::console("Setting Main Contactor relay to output %i", newValue);
+        systemIOConfig->mainContactorOutput = newValue;
         systemIO->saveConfiguration();
     } else if (cmdString == String("NRELAY") && systemIOConfig) {
-        Logger::console("Setting HV Negative Contactor relay to output %i", newValue);
-        systemIOConfig->hvNegativeOutput = newValue;
+        Logger::console("Setting Secondary Contactor relay to output %i", newValue);
+        systemIOConfig->secondaryContactorOutput = newValue;
         systemIO->saveConfiguration();
     } else if (cmdString == String("PRELAY") && systemIOConfig) {
         Logger::console("Setting Precharge Relay to output %i", newValue);

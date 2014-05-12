@@ -90,17 +90,6 @@ void SystemIO::updateDigitalInputStatus() {
 
 /*
  * Handle the pre-charge sequence.
- *
- * The sequence is defined the following way:
- *
- * 1. Activate pre-charge contactor / relay
- * 2. Delay (optional)
- * 3. Activate the HV negative contactor (optional)
- * 4. Wait configured amount of time for pre-charge
- * 5. Activate the HV positive contactor
- * 6. Delay
- * 7. De-Activate pre-charge contactor
- * 8. Activate the enable output signal to enable the motor controller
  */
 void SystemIO::handlePreCharge() {
     if (configuration->prechargeMillis == 0) { // we don't want to pre-charge
@@ -115,22 +104,22 @@ void SystemIO::handlePreCharge() {
         printIOStatus();
 
         preChargeStart = millis();
-        setPrechargeRelayOutput(true); // step 1
+        setPrechargeRelayOutput(true);
 
-        if (configuration->hvNegativeOutput != CFG_OUTPUT_NONE) {
-            delay(CFG_PRE_CHARGE_RELAY_DELAY); // step 2
-            setHvNegativeRelayOutput(true); // step 3
-        }
+//        if (configuration->secondaryContactorOutput != CFG_OUTPUT_NONE) {
+//            delay(CFG_PRE_CHARGE_RELAY_DELAY);
+//            setsecondaryContactorRelayOutput(true);
+//        }
     } else {
-        if ((millis() - preChargeStart) > configuration->prechargeMillis) { // step 4
-            setHvPositiveRelayOutput(true); // step 5
-            delay(CFG_PRE_CHARGE_RELAY_DELAY); // step 6
-            setPrechargeRelayOutput(false); // step 7
+        if ((millis() - preChargeStart) > configuration->prechargeMillis) {
+            setMainContactorRelayOutput(true);
+//            delay(CFG_PRE_CHARGE_RELAY_DELAY);
+//            setPrechargeRelayOutput(false);
 
             status->setSystemState(Status::charged);
             Logger::info("Pre-charge sequence complete after %i milliseconds", millis() - preChargeStart);
 
-            setEnableRelayOutput(true); // step 8
+            setEnableRelayOutput(true);
         }
     }
 }
@@ -183,23 +172,23 @@ void SystemIO::setPrechargeRelayOutput(bool enabled) {
 }
 
 /*
- * Enable / disable the HV positive relay output and set the status flag.
+ * Enable / disable the main contactor relay output and set the status flag.
  */
-void SystemIO::setHvPositiveRelayOutput(bool enabled) {
-    if (configuration->hvPositiveOutput != CFG_OUTPUT_NONE) {
-        setDigitalOut(configuration->hvPositiveOutput, enabled);
-        status->hvPositiveRelay = enabled;
+void SystemIO::setMainContactorRelayOutput(bool enabled) {
+    if (configuration->mainContactorOutput != CFG_OUTPUT_NONE) {
+        setDigitalOut(configuration->mainContactorOutput, enabled);
+        status->mainContactorRelay = enabled;
         printIOStatus();
     }
 }
 
 /*
- * Enable / disable the HV negative relay output and set the status flag.
+ * Enable / disable the secondary contactor relay output and set the status flag.
  */
-void SystemIO::setHvNegativeRelayOutput(bool enabled) {
-    if (configuration->hvNegativeOutput != CFG_OUTPUT_NONE) {
-        setDigitalOut(configuration->hvNegativeOutput, enabled);
-        status->hVNegativeRelay = enabled;
+void SystemIO::setSecondaryContactorRelayOutput(bool enabled) {
+    if (configuration->secondaryContactorOutput != CFG_OUTPUT_NONE) {
+        setDigitalOut(configuration->secondaryContactorOutput, enabled);
+        status->secondaryContactorRelay = enabled;
         printIOStatus();
     }
 }
@@ -735,8 +724,8 @@ void SystemIO::loadConfiguration() {
         prefsHandler->read(EESYS_ENABLE_INPUT, &configuration->enableInput);
         prefsHandler->read(EESYS_PRECHARGE_MILLIS, &configuration->prechargeMillis);
         prefsHandler->read(EESYS_PRECHARGE_OUTPUT, &configuration->prechargeOutput);
-        prefsHandler->read(EESYS_HV_POSITIVE_OUTPUT, &configuration->hvPositiveOutput);
-        prefsHandler->read(EESYS_HV_NEGATIVE_OUTPUT, &configuration->hvNegativeOutput);
+        prefsHandler->read(EESYS_MAIN_CONTACTOR_OUTPUT, &configuration->mainContactorOutput);
+        prefsHandler->read(EESYS_SECONDARY_CONTACTOR_OUTPUT, &configuration->secondaryContactorOutput);
         prefsHandler->read(EESYS_ENABLE_OUTPUT, &configuration->enableOutput);
         prefsHandler->read(EESYS_COOLING_RELAY, &configuration->coolingOutput);
         prefsHandler->read(EESYS_COOLING_TEMP_ON, &configuration->coolingTempOn);
@@ -747,8 +736,8 @@ void SystemIO::loadConfiguration() {
         configuration->enableInput = EnableInput;
         configuration->prechargeMillis = PrechargeMillis;
         configuration->prechargeOutput = PrechargeRelayOutput;
-        configuration->hvPositiveOutput = HvPositiveRelayOutput;
-        configuration->hvNegativeOutput = HvNegativeRelayOutput;
+        configuration->mainContactorOutput = MainContactorRelayOutput;
+        configuration->secondaryContactorOutput = SecondaryContactorRelayOutput;
         configuration->enableOutput = EnableRelayOutput;
         configuration->coolingOutput = CoolingRelayOutput;
         configuration->coolingTempOn = CoolingTemperatureOn;
@@ -762,8 +751,8 @@ void SystemIO::saveConfiguration() {
     prefsHandler->write(EESYS_ENABLE_INPUT, configuration->enableInput);
     prefsHandler->write(EESYS_PRECHARGE_MILLIS, configuration->prechargeMillis);
     prefsHandler->write(EESYS_PRECHARGE_OUTPUT, configuration->prechargeOutput);
-    prefsHandler->write(EESYS_HV_POSITIVE_OUTPUT, configuration->hvPositiveOutput);
-    prefsHandler->write(EESYS_HV_NEGATIVE_OUTPUT, configuration->hvNegativeOutput);
+    prefsHandler->write(EESYS_MAIN_CONTACTOR_OUTPUT, configuration->mainContactorOutput);
+    prefsHandler->write(EESYS_SECONDARY_CONTACTOR_OUTPUT, configuration->secondaryContactorOutput);
     prefsHandler->write(EESYS_ENABLE_OUTPUT, configuration->enableOutput);
     prefsHandler->write(EESYS_COOLING_RELAY, configuration->coolingOutput);
     prefsHandler->write(EESYS_COOLING_TEMP_ON, configuration->coolingTempOn);

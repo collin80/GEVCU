@@ -22,8 +22,8 @@
 	<logLevel>~logLevel~</logLevel>
 	<enableInput>~enableInput~</enableInput>
 	<prechargeOutput>~prechargeOutput~</prechargeOutput>
-	<hvPositiveOutput>~hvPositiveOutput~</hvPositiveOutput>
-	<hvNegativeOutput>~hvNegativeOutput~</hvNegativeOutput>
+	<mainContactorOutput>~mainContactorOutput~</mainContactorOutput>
+	<secondaryContactorOutput>~secondaryContactorOutput~</secondaryContactorOutput>
 	<enableOutput>~enableOutput~</enableOutput>
 	<prechargeMillis>~prechargeMillis~</prechargeMillis>
 	<coolingTempOn>~coolingTempOn~</coolingTempOn>

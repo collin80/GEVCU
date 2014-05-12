@@ -98,8 +98,8 @@ public:
 
     bool enableIn; // is the 'enable' input signal active ?
     bool preChargeRelay; // is the pre-charge relay activated ?
-    bool hVNegativeRelay; // is the HV negative relay activated ?
-    bool hvPositiveRelay; // is the HV positive relay activated ?
+    bool mainContactorRelay; // is the main contactor relay activated ?
+    bool secondaryContactorRelay; // is the secondary relay activated ?
     bool enableOut; // is the 'enable' output activated ?
     bool coolingRelay; // is the cooling relay activated ?
     bool brakeLight; // is the brake light activated ?

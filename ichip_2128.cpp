@@ -669,11 +669,11 @@ void ICHIPWIFI::processParameterChange(char *key)
     } else if (!strcmp(key, Constants::prechargeOutput)) {
         systemIOConfig->prechargeOutput = atol(value);
         systemIO->saveConfiguration();
-    } else if (!strcmp(key, Constants::hvPositiveOutput)) {
-        systemIOConfig->hvPositiveOutput = atol(value);
+    } else if (!strcmp(key, Constants::mainContactorOutput)) {
+        systemIOConfig->mainContactorOutput = atol(value);
         systemIO->saveConfiguration();
-    } else if (!strcmp(key, Constants::hvNegativeOutput)) {
-        systemIOConfig->hvNegativeOutput = atol(value);
+    } else if (!strcmp(key, Constants::secondaryContactorOutput)) {
+        systemIOConfig->secondaryContactorOutput = atol(value);
         systemIO->saveConfiguration();
     } else if (!strcmp(key, Constants::enableOutput)) {
         systemIOConfig->enableOutput = atol(value);
@@ -768,8 +768,8 @@ void ICHIPWIFI::loadParameters()
     setParam(Constants::enableInput, systemIOConfig->enableInput);
     setParam(Constants::prechargeMillis, systemIOConfig->prechargeMillis);
     setParam(Constants::prechargeOutput, systemIOConfig->prechargeOutput);
-    setParam(Constants::hvPositiveOutput, systemIOConfig->hvPositiveOutput);
-    setParam(Constants::hvNegativeOutput, systemIOConfig->hvNegativeOutput);
+    setParam(Constants::mainContactorOutput, systemIOConfig->mainContactorOutput);
+    setParam(Constants::secondaryContactorOutput, systemIOConfig->secondaryContactorOutput);
     setParam(Constants::enableOutput, systemIOConfig->enableOutput);
     setParam(Constants::brakeLightOutput, systemIOConfig->brakeLightOutput);
     setParam(Constants::reverseLightOutput, systemIOConfig->reverseLightOutput);
