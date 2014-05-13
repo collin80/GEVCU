@@ -81,6 +81,7 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 #define CFG_THROTTLE_TOLERANCE  150 //the max that things can go over or under the min/max without fault - 1/10% each #
 #define CFG_PRE_CHARGE_RELAY_DELAY 100
+//#define THREE_CONTACTOR_PRECHARGE // do we use three contactors instead of two for pre-charge cycle ?
 
 /*
  * HARD CODED PARAMETERS

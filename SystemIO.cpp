@@ -106,15 +106,17 @@ void SystemIO::handlePreCharge() {
         preChargeStart = millis();
         setPrechargeRelayOutput(true);
 
-//        if (configuration->secondaryContactorOutput != CFG_OUTPUT_NONE) {
-//            delay(CFG_PRE_CHARGE_RELAY_DELAY);
-//            setsecondaryContactorRelayOutput(true);
-//        }
+#ifdef THREE_CONTACTOR_PRECHARGE
+        if (configuration->secondaryContactorOutput != CFG_OUTPUT_NONE) {
+            delay(CFG_PRE_CHARGE_RELAY_DELAY);
+            setSecondaryContactorRelayOutput(true);
+        }
+#endif
     } else {
         if ((millis() - preChargeStart) > configuration->prechargeMillis) {
             setMainContactorRelayOutput(true);
-//            delay(CFG_PRE_CHARGE_RELAY_DELAY);
-//            setPrechargeRelayOutput(false);
+            delay(CFG_PRE_CHARGE_RELAY_DELAY);
+            setPrechargeRelayOutput(false);
 
             status->setSystemState(Status::charged);
             Logger::info("Pre-charge sequence complete after %i milliseconds", millis() - preChargeStart);

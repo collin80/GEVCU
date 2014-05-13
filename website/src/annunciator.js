@@ -147,8 +147,8 @@ function updateAnnunciatorFields(name, bitfield) {
 		updateField("running", FieldClass.ok, bitfield & Status.running);
 		updateField("enableIn", FieldClass.ok, bitfield & Status.enableIn);
 		updateField("preChargeRelay", FieldClass.ok, bitfield & Status.preChargeRelay);
-		updateField("mainContactorRelay", FieldClass.ok, bitfield & Status.,mainContactorRelay);
-		updateField("secondaryContactorelay", FieldClass.ok, bitfield & Status.secondaryContactorRelay);
+		updateField("mainContactorRelay", FieldClass.ok, bitfield & Status.mainContactorRelay);
+		updateField("secondaryContactorRelay", FieldClass.ok, bitfield & Status.secondaryContactorRelay);
 		updateField("enableOut", FieldClass.ok, bitfield & Status.enableOut);
 		updateField("coolingRelay", FieldClass.ok, bitfield & Status.coolingRelay);
 		updateField("brakeLight", FieldClass.ok, bitfield & Status.brakeLight);

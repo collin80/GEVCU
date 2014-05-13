@@ -23,7 +23,7 @@
 	<enableInput>~enableInput~</enableInput>
 	<prechargeOutput>~prechargeOutput~</prechargeOutput>
 	<mainContactorOutput>~mainContactorOutput~</mainContactorOutput>
-	<secondaryContactorOutput>~secondaryContactorOutput~</secondaryContactorOutput>
+	<secContactorOutput>~secContactorOutput~</secContactorOutput>
 	<enableOutput>~enableOutput~</enableOutput>
 	<prechargeMillis>~prechargeMillis~</prechargeMillis>
 	<coolingTempOn>~coolingTempOn~</coolingTempOn>
