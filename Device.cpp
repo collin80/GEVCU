@@ -29,10 +29,15 @@
 
 Device::Device()
 {
+    status = Status::getInstance();
+    deviceManager = DeviceManager::getInstance();
+    tickHandler = TickHandler::getInstance();
+    systemIO = SystemIO::getInstance();
+
     deviceConfiguration = NULL;
     prefsHandler = NULL;
     //since all derived classes eventually call this base method this will cause every device to auto register itself with the device manager
-    DeviceManager::getInstance()->addDevice(this);
+    deviceManager->addDevice(this);
     commonName = "Generic Device";
 }
 

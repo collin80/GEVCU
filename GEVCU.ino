@@ -61,6 +61,7 @@ Random comments on things that should be coded up soon:
 //RTC_clock rtc_clock(XTAL); //init RTC with the external 32k crystal as a reference
 
 //Evil, global variables
+SystemIO *systemIO;
 CanHandler *canHandlerEV;
 CanHandler *canHandlerCar;
 TickHandler *tickHandler;
@@ -183,7 +184,7 @@ void createObjects()
     DmocMotorController *dmotorController = new DmocMotorController();
     BrusaMotorController *bmotorController = new BrusaMotorController();
     ThinkBatteryManager *BMS = new ThinkBatteryManager();
-    ELM327Emu *emu = new ELM327Emu();
+//    ELM327Emu *emu = new ELM327Emu();
     ICHIPWIFI *iChip = new ICHIPWIFI();
 }
 
@@ -223,7 +224,7 @@ void setup()
     SerialUSB.print("Build number: ");
     SerialUSB.println(CFG_BUILD_NUM);
 
-    Status::setSystemState(Status::init);
+    Status::getInstance()->setSystemState(Status::init);
 
     Wire.begin();
     Logger::info("TWI init ok");
@@ -243,8 +244,7 @@ void setup()
     uint8_t loglevel;
     sysPrefs->read(EESYS_LOG_LEVEL, &loglevel);
     Logger::setLoglevel((Logger::LogLevel) loglevel);
-
-    SystemIO::getInstance()->earlySetup();
+//    Logger::setLoglevel(Logger::Debug);
 
     tickHandler = TickHandler::getInstance();
 
@@ -266,14 +266,14 @@ void setup()
      Logger::info("RTC init ok");
      */
 
-    SystemIO::getInstance()->setupSysIO(); //get calibration data for system IO
-    Logger::info("SYSIO init ok");
+    systemIO = SystemIO::getInstance();
+    systemIO->setup();
 
     initializeDevices();
 
-    serialConsole = new SerialConsole(memCache, heartbeat);
+    Status::getInstance()->setSystemState(Status::preCharge);
 
-    Logger::info("System Ready");
+    serialConsole = new SerialConsole(memCache, heartbeat);
     serialConsole->printMenu();
 
     wifiDevice = DeviceManager::getInstance()->getDeviceByID(ICHIP2128);
@@ -281,10 +281,6 @@ void setup()
 
 #ifdef CFG_EFFICIENCY_CALCS
 	mainLoopTimer = new PerfTimer();
-#endif
-
-#ifdef CFG_TIMER_USE_QUEUING
-    //tickHandler->cleanBuffer(); // remove buffered tick events which clogged up already (might not be necessary)
 #endif
 }
 
@@ -301,9 +297,7 @@ void loop()
 	mainLoopTimer->start();
 #endif
 
-#ifdef CFG_TIMER_USE_QUEUING
     tickHandler->process();
-#endif
 
     // check if incoming frames are available in the can buffer and process them
     canHandlerEV->process();
@@ -316,18 +310,14 @@ void loop()
         ((ICHIPWIFI*) wifiDevice)->loop();
     }
 
-    if (btDevice != NULL) {
-        ((ELM327Emu*) btDevice)->loop();
-    }
+//    if (btDevice != NULL) {
+//        ((ELM327Emu*) btDevice)->loop();
+//    }
 
     //this should still be here. It checks for a flag set during an interrupt
-    SystemIO::getInstance()->ADCPoll();
+    systemIO->ADCPoll();
 
 #ifdef CFG_EFFICIENCY_CALCS
 	mainLoopTimer->stop();
 #endif
-
 }
-
-
-

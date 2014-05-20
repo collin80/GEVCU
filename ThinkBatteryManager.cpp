@@ -37,7 +37,7 @@ ThinkBatteryManager::ThinkBatteryManager() : BatteryManager()
 
 void ThinkBatteryManager::setup()
 {
-    TickHandler::getInstance()->detach(this);
+    tickHandler->detach(this);
 
     Logger::info("add device: Th!nk City BMS (id: %X, %X)", THINKBMS, this);
 
@@ -46,7 +46,7 @@ void ThinkBatteryManager::setup()
     //Relevant BMS messages are 0x300 - 0x30F
     CanHandler::getInstanceEV()->attach(this, 0x300, 0x7f0, false);
 
-    TickHandler::getInstance()->attach(this, CFG_TICK_INTERVAL_BMS_THINK);
+    tickHandler->attach(this, CFG_TICK_INTERVAL_BMS_THINK);
 }
 
 /*For all multibyte integers the format is MSB first, LSB last

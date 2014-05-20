@@ -109,7 +109,7 @@ function loadData(pageId) {
 							}
 						} else { // an annunciator field of a bitfield value
 							updateAnnunciatorFields(name, value);
-	//						updateAnnunciatorFields(name, Math.round(Math.random() * 100000));
+//							updateAnnunciatorFields(name, Math.round(Math.random() * 0x100000000));
 						}
 					}
 				}
@@ -249,8 +249,6 @@ function generateRangeControls() {
 	addRangeControl("brakeMaxRegen", 0, 100);
 	addRangeControl("coolOn", 0, 200);
 	addRangeControl("coolOff", 0, 200);
-
-
 }
 
 function addRangeControl(id, min, max) {

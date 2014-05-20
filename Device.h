@@ -33,6 +33,10 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include "eeprom_layout.h"
 #include "PrefHandler.h"
 #include "Sys_Messages.h"
+#include "Status.h"
+#include "SystemIO.h"
+
+class DeviceManager;
 
 /*
  * A abstract class to hold device configuration. It is to be accessed
@@ -66,6 +70,10 @@ public:
     void setConfiguration(DeviceConfiguration *);
 
 protected:
+    SystemIO *systemIO; // pointer to SystemIO singleton
+    Status *status; // pointer to Status singleton
+    DeviceManager *deviceManager; // pointer to DeviceManager singleton
+    TickHandler *tickHandler; // pointer to Tickhandler singleton
     PrefHandler *prefsHandler;
     char *commonName;
 

@@ -42,11 +42,7 @@ TickHandler::TickHandler()
             timerEntry[i].observer[j] = NULL;
         }
     }
-
-#ifdef CFG_TIMER_USE_QUEUING
     bufferHead = bufferTail = 0;
-#endif
-    
 }
 
 /*
@@ -174,7 +170,6 @@ int TickHandler::findObserver(int timer, TickObserver *observer)
     return -1;
 }
 
-#ifdef CFG_TIMER_USE_QUEUING
 /*
  * Check if a tick is available, forward it to registered observers.
  */
@@ -192,8 +187,6 @@ void TickHandler::cleanBuffer()
     bufferHead = bufferTail = 0;
 }
 
-#endif //CFG_TIMER_USE_QUEUING
-
 /*
  * Handle the interrupt of any timer.
  * All the registered TickObservers of the timer are called.
@@ -202,13 +195,9 @@ void TickHandler::handleInterrupt(int timerNumber)
 {
     for (int i = 0; i < CFG_TIMER_NUM_OBSERVERS; i++) {
         if (timerEntry[timerNumber].observer[i] != NULL) {
-#ifdef CFG_TIMER_USE_QUEUING
             tickBuffer[bufferHead] = timerEntry[timerNumber].observer[i];
             bufferHead = (bufferHead + 1) % CFG_TIMER_BUFFER_SIZE;
 //Logger::debug("bufferHead=%d, bufferTail=%d, observer=%d", bufferHead, bufferTail, timerEntry[timerNumber].observer[i]);
-#else
-            timerEntry[timerNumber].observer[i]->handleTick();
-#endif //CFG_TIMER_USE_QUEUING
         }
     }
 }

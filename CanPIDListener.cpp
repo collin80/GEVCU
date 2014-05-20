@@ -32,7 +32,7 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 CanPIDListener::CanPIDListener() : Device()
 {
-
+    canHandlerEv = CanHandler::getInstanceEV();
     prefsHandler = new PrefHandler(PIDLISTENER);
 
     responseId = 0;
@@ -42,15 +42,15 @@ CanPIDListener::CanPIDListener() : Device()
 
 void CanPIDListener::setup()
 {
-    //TickHandler::getInstance()->detach(this);
+    //tickHandler->detach(this);
 
     loadConfiguration();
     Device::setup();
 
     //TODO: FIXME Quickly coded as hard coded values. This is naughty.
-    CanHandler::getInstanceEV()->attach(this, 0x7DF, 0x7DF, false);
-    CanHandler::getInstanceEV()->attach(this, 0x7E0, 0x7E0, false);
-    //TickHandler::getInstance()->attach(this, CFG_TICK_INTERVAL_CAN_THROTTLE);
+    canHandlerEv->attach(this, 0x7DF, 0x7DF, false);
+    canHandlerEv->attach(this, 0x7E0, 0x7E0, false);
+    //tickHandler->attach(this, CFG_TICK_INTERVAL_CAN_THROTTLE);
 }
 
 /*
@@ -151,7 +151,7 @@ void CanPIDListener::handleCanFrame(CAN_FRAME *frame)
         //here is where we'd send out response. Right now it sends over canbus but when we support other
         //alteratives they'll be sending here too.
         if (ret) {
-            CanHandler::getInstanceEV()->sendFrame(outputFrame);
+            canHandlerEv->sendFrame(outputFrame);
         }
     }
 }
@@ -160,7 +160,7 @@ void CanPIDListener::handleCanFrame(CAN_FRAME *frame)
 //Process SAE standard PID requests. Function returns whether it handled the request or not.
 bool CanPIDListener::processShowData(CAN_FRAME* inFrame, CAN_FRAME& outFrame)
 {
-    MotorController* motorController = DeviceManager::getInstance()->getMotorController();
+    MotorController* motorController = deviceManager->getMotorController();
     int temp;
 
     switch (inFrame->data.bytes[2]) {
@@ -196,7 +196,7 @@ bool CanPIDListener::processShowData(CAN_FRAME* inFrame, CAN_FRAME& outFrame)
 
         case 5: //Engine Coolant Temp (A - 40) = Degrees Centigrade
             //our code stores temperatures as a signed integer for tenths of a degree so translate
-            temp =  motorController->getTemperatureSystem() / 10;
+            temp =  motorController->getTemperatureController() / 10;
 
             if (temp < -40) {
                 temp = -40;

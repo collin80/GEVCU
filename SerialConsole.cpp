@@ -65,70 +65,54 @@ void SerialConsole::printMenu()
     Throttle *accelerator = DeviceManager::getInstance()->getAccelerator();
     Throttle *brake = DeviceManager::getInstance()->getBrake();
     ICHIPWIFI *wifi = (ICHIPWIFI*) DeviceManager::getInstance()->getDeviceByType(DEVICE_WIFI);
+    Status *status = Status::getInstance();
+    SystemIO *systemIO = SystemIO::getInstance();
 
     //Show build # here as well in case people are using the native port and don't get to see the start up messages
-    SerialUSB.print("Build number: ");
-    SerialUSB.println(CFG_BUILD_NUM);
-    if (motorController) {
-        SerialUSB.println(
-            "Motor Controller Status: isRunning: " + String(motorController->isRunning()) + " isFaulted: " + String(motorController->isFaulted()));
-    }
-    SerialUSB.println("System Menu:");
-    SerialUSB.println();
-    SerialUSB.println("Enable line endings of some sort (LF, CR, CRLF)");
-    SerialUSB.println();
-    SerialUSB.println("Short Commands:");
-    SerialUSB.println("h = help (displays this message)");
-
+    Logger::console("\nBuild number: %i", CFG_BUILD_NUM);
+    Logger::console("System State: %s", status->systemStateToStr(status->getSystemState()));
+    Logger::console("System Menu:\n");
+    Logger::console("Enable line endings of some sort (LF, CR, CRLF)\n");
+    Logger::console("Short Commands:");
+    Logger::console("h = help (displays this message)");
     if (heartbeat != NULL) {
-        SerialUSB.println("L = show raw analog/digital input/output values (toggle)");
+        Logger::console("L = show raw analog/digital input/output values (toggle)");
     }
-
-    SerialUSB.println("K = set all outputs high");
-    SerialUSB.println("J = set all outputs low");
-    //SerialUSB.println("U,I = test EEPROM routines");
-    SerialUSB.println("E = dump system eeprom values");
-    SerialUSB.println("z = detect throttle min/max, num throttles and subtype");
-    SerialUSB.println("Z = save throttle values");
-    SerialUSB.println("b = detect brake min/max");
-    SerialUSB.println("B = save brake values");
-    SerialUSB.println("p = enable wifi passthrough (reboot required to resume normal operation)");
-    SerialUSB.println("S = show possible device IDs");
-    SerialUSB.println("w = reset wifi to factory defaults, setup GEVCU ad-hoc network");
-    SerialUSB.println("W = Set Wifi to WPS mode (try to automatically connect)");
-    SerialUSB.println("s = Scan WiFi for nearby access points");
-    SerialUSB.println();
-    SerialUSB.println("Config Commands (enter command=newvalue). Current values shown in parenthesis:");
-    SerialUSB.println();
+    Logger::console("K = set all outputs high");
+    Logger::console("J = set all outputs low");
+    //Logger::console("U,I = test EEPROM routines");
+    Logger::console("E = dump system eeprom values");
+    Logger::console("z = detect throttle min/max, num throttles and subtype");
+    Logger::console("Z = save throttle values");
+    Logger::console("b = detect brake min/max");
+    Logger::console("B = save brake values");
+    Logger::console("p = enable wifi passthrough (reboot required to resume normal operation)");
+    Logger::console("S = show possible device IDs");
+    Logger::console("w = reset wifi to factory defaults, setup GEVCU ad-hoc network");
+    Logger::console("W = Set Wifi to WPS mode (try to automatically connect)");
+    Logger::console("s = Scan WiFi for nearby access points");
+    Logger::console("\nConfig Commands (enter command=newvalue)\n");
     Logger::console("LOGLEVEL=%i - set log level (0=debug, 1=info, 2=warn, 3=error, 4=off)", Logger::getLogLevel());
 
     uint8_t systype;
     sysPrefs->read(EESYS_SYSTEM_TYPE, &systype);
-    Logger::console("SYSTYPE=%i - Set board revision (Dued=2, GEVCU3=3, GEVCU4=4)", systype);
+    Logger::console("SYSTYPE=%i - Set board revision (Dued=2, GEVCU3=3, GEVCU4=4)\n", systype);
 
     DeviceManager::getInstance()->printDeviceList();
 
     if (motorController && motorController->getConfiguration()) {
         MotorControllerConfiguration *config = (MotorControllerConfiguration *) motorController->getConfiguration();
-        SerialUSB.println();
-        SerialUSB.println("MOTOR CONTROLS");
-        SerialUSB.println();
+        Logger::console("\nMOTOR CONTROLS\n");
         Logger::console("TORQ=%i - Set torque upper limit (tenths of a Nm)", config->torqueMax);
         Logger::console("RPMS=%i - Set maximum RPMs", config->speedMax);
         Logger::console("REVLIM=%i - How much torque to allow in reverse (Tenths of a percent)", config->reversePercent);
-
-        Logger::console("COOLFAN=%i - Digital output to turn on cooling (0-7)", config->coolFan);
-        Logger::console("COOLON=%i - Inverter temperature to turn cooling on", config->coolOn);
-        Logger::console("COOLOFF=%i - Inverter temperature to turn cooling off", config->coolOff);
+        Logger::console("NOMV=%i - Fully charged pack voltage", config->nominalVolt / 10);
+        Logger::console("kWh=%d - kiloWatt Hours of energy used", config->kilowattHrs / 3600000);
     }
-
 
     if (accelerator && accelerator->getConfiguration()) {
         PotThrottleConfiguration *config = (PotThrottleConfiguration *) accelerator->getConfiguration();
-        SerialUSB.println();
-        SerialUSB.println("THROTTLE CONTROLS");
-        SerialUSB.println();
-
+        Logger::console("\nTHROTTLE CONTROLS\n");
         Logger::console("TPOT=%i - Number of pots to use (1 or 2)", config->numberPotMeters);
         Logger::console("TTYPE=%i - Set throttle subtype (1=std linear, 2=inverse)", config->throttleSubType);
         Logger::console("T1MN=%i - Set throttle 1 min value", config->minimumLevel1);
@@ -146,26 +130,28 @@ void SerialConsole::printMenu()
 
     if (brake && brake->getConfiguration()) {
         PotThrottleConfiguration *config = (PotThrottleConfiguration *) brake->getConfiguration();
-        SerialUSB.println();
-        SerialUSB.println("BRAKE CONTROLS");
-        SerialUSB.println();
+        Logger::console("\nBRAKE CONTROLS\n");
         Logger::console("B1MN=%i - Set brake min value", config->minimumLevel1);
         Logger::console("B1MX=%i - Set brake max value", config->maximumLevel1);
         Logger::console("BMINR=%i - Percent of full torque for start of brake regen", config->minimumRegen);
         Logger::console("BMAXR=%i - Percent of full torque for maximum brake regen", config->maximumRegen);
     }
 
-    if (motorController && motorController->getConfiguration()) {
-        MotorControllerConfiguration *config = (MotorControllerConfiguration *) motorController->getConfiguration();
-        SerialUSB.println();
-        SerialUSB.println("PRECHARGE CONTROLS");
-        SerialUSB.println();
-        Logger::console("kWh=%d - kiloWatt Hours of energy used", config->kilowattHrs / 3600000);
-        Logger::console("PREDELAY=%i - Precharge delay time in milliseconds ", config->prechargeR);
-        //Logger::console("NOMV=%i - Nominal system voltage (1/10 of a volt)", config->nominalVolt);
-        Logger::console("PRELAY=%i - Which output to use for precharge contactor (255 to disable)", config->prechargeRelay);
-        Logger::console("MRELAY=%i - Which output to use for main contactor (255 to disable)", config->mainContactorRelay);
-        Logger::console("NOMV=%i - Fully charged pack voltage", config->nominalVolt / 10);
+    if (systemIO && systemIO->getConfiguration()) {
+        SystemIOConfiguration *config = systemIO->getConfiguration();
+        Logger::console("\nPRECHARGE CONTROLS\n");
+        Logger::console("ENABLEI=%i - Digital input to use for enable signal", config->enableInput);
+        Logger::console("PREDELAY=%d - Precharge delay time in milliseconds ", config->prechargeMillis);
+        Logger::console("PRELAY=%i - Digital output to use for precharge contactor (255 to disable)", config->prechargeOutput);
+        Logger::console("MRELAY=%i - Digital output to use for main contactor (255 to disable)", config->mainContactorOutput);
+//        Logger::console("NRELAY=%i - Digital output to use for secondary contactor (255 to disable)", config->secondaryContactorOutput);
+        Logger::console("ERELAY=%i - Digital output to use for enable signal relay (255 to disable)", config->enableOutput);
+        Logger::console("COOLFAN=%i - Digital output to turn on cooling fan (255 to disable)", config->coolingFanOutput);
+        Logger::console("COOLON=%i - Inverter temperature to turn cooling on (deg celsius)", config->coolingTempOn);
+        Logger::console("COOLOFF=%i - Inverter temperature to turn cooling off (deg celsius)", config->coolingTempOff);
+        Logger::console("COOLOFF=%i - Inverter temperature to turn cooling off (deg celsius)", config->coolingTempOff);
+        Logger::console("BRAKELT=%i - Digital output to use for brake light", config->brakeLightOutput);
+        Logger::console("REVLT=%i - Digital output to use for reverse light", config->reverseLightOutput);
     }
 
     if (wifi) {
@@ -177,7 +163,6 @@ void SerialConsole::printMenu()
         //Logger::console("Types: 5 = WPA-TKIP, 6 = WPA2-TKIP, 7=EAP/WEP64, 8=EAP/WEP128");
 
     }
-
     Logger::console("WLAN - send a AT+i command to the wlan device");
 }
 
@@ -231,9 +216,12 @@ void SerialConsole::handleConfigCmd()
     PotThrottleConfiguration *acceleratorConfig = NULL;
     PotThrottleConfiguration *brakeConfig = NULL;
     MotorControllerConfiguration *motorConfig = NULL;
+    SystemIO *systemIO = SystemIO::getInstance();
+    SystemIOConfiguration *systemIOConfig = systemIO->getConfiguration();
     Throttle *accelerator = DeviceManager::getInstance()->getAccelerator();
     Throttle *brake = DeviceManager::getInstance()->getBrake();
     MotorController *motorController = DeviceManager::getInstance()->getMotorController();
+
     int i;
     int newValue;
     bool updateWifi = true;
@@ -291,6 +279,10 @@ void SerialConsole::handleConfigCmd()
     } else if (cmdString == String("REVLIM") && motorConfig) {
         Logger::console("Setting Reverse Limit to %i", newValue);
         motorConfig->reversePercent = newValue;
+        motorController->saveConfiguration();
+    } else if (cmdString == String("NOMV") && motorConfig) {
+        Logger::console("Setting fully charged voltage to %d vdc", newValue);
+        motorConfig->nominalVolt = newValue * 10;
         motorController->saveConfiguration();
     } else if (cmdString == String("TPOT") && acceleratorConfig) {
         Logger::console("Setting # of Throttle Pots to %i", newValue);
@@ -360,26 +352,66 @@ void SerialConsole::handleConfigCmd()
         Logger::console("Setting Brake Min to %i", newValue);
         brakeConfig->minimumLevel1 = newValue;
         brake->saveConfiguration();
-    } else if (cmdString == String("PREC") && motorConfig) {
-        Logger::console("Setting Precharge Capacitance to %i", newValue);
-        motorConfig->kilowattHrs = newValue;
-        motorController->saveConfiguration();
-    } else if (cmdString == String("PREDELAY") && motorConfig) {
+    } else if (cmdString == String("ENABLEI") && systemIOConfig) {
+        if (newValue <= CFG_NUMBER_DIGITAL_INPUTS && newValue >= 0) {
+            Logger::console("Enable input set to %i.", newValue);
+            systemIOConfig->enableInput = newValue;
+        } else {
+            Logger::console("Invalid enable signal input number. Please enter a value 0 - %d", CFG_NUMBER_DIGITAL_INPUTS - 1);
+        }
+        systemIO->saveConfiguration();
+    } else if (cmdString == String("PREDELAY") && systemIOConfig) {
         Logger::console("Setting Precharge Time Delay to %i ms", newValue);
-        motorConfig->prechargeR = newValue;
-        motorController->saveConfiguration();
-    } else if (cmdString == String("NOMV") && motorConfig) {
-        Logger::console("Setting fully charged voltage to %d vdc", newValue);
-        motorConfig->nominalVolt = newValue * 10;
-        motorController->saveConfiguration();
-    } else if (cmdString == String("MRELAY") && motorConfig) {
-        Logger::console("Setting Main Contactor relay to %i", newValue);
-        motorConfig->mainContactorRelay = newValue;
-        motorController->saveConfiguration();
-    } else if (cmdString == String("PRELAY") && motorConfig) {
-        Logger::console("Setting Precharge Relay to %i", newValue);
-        motorConfig->prechargeRelay = newValue;
-        motorController->saveConfiguration();
+        systemIOConfig->prechargeMillis = newValue;
+        systemIO->saveConfiguration();
+    } else if (cmdString == String("MRELAY") && systemIOConfig) {
+        Logger::console("Setting Main Contactor relay to output %i", newValue);
+        systemIOConfig->mainContactorOutput = newValue;
+        systemIO->saveConfiguration();
+    } else if (cmdString == String("NRELAY") && systemIOConfig) {
+        Logger::console("Setting Secondary Contactor relay to output %i", newValue);
+        systemIOConfig->secondaryContactorOutput = newValue;
+        systemIO->saveConfiguration();
+    } else if (cmdString == String("PRELAY") && systemIOConfig) {
+        Logger::console("Setting Precharge Relay to output %i", newValue);
+        systemIOConfig->prechargeOutput = newValue;
+        systemIO->saveConfiguration();
+    } else if (cmdString == String("ERELAY") && systemIOConfig) {
+        Logger::console("Setting Enable Relay to output %i", newValue);
+        systemIOConfig->enableOutput = newValue;
+        systemIO->saveConfiguration();
+    } else if (cmdString == String("COOLFAN") && systemIOConfig) {
+        Logger::console("Setting Cooling Fan Relay to output %i", newValue);
+        systemIOConfig->coolingFanOutput = newValue;
+        systemIO->saveConfiguration();
+    } else if (cmdString == String("COOLON") && systemIOConfig) {
+        if (newValue <= 200 && newValue >= 0) {
+            Logger::console("Cooling ON temperature updated to: %i degrees", newValue);
+            systemIOConfig->coolingTempOn = newValue;
+            systemIO->saveConfiguration();
+        } else {
+            Logger::console("Invalid cooling ON temperature. Please enter a value 0 - 200");
+        }
+    } else if (cmdString == String("COOLOFF") && systemIOConfig) {
+        if (newValue <= 200 && newValue >= 0) {
+            Logger::console("Cooling OFF temperature updated to: %i degrees", newValue);
+            systemIOConfig->coolingTempOff = newValue;
+            systemIO->saveConfiguration();
+        } else {
+            Logger::console("Invalid cooling OFF temperature. Please enter a value 0 - 200");
+        }
+    } else if (cmdString == String("BRAKELT") && systemIOConfig) {
+        Logger::console("Brake light output set to %i.", newValue);
+        systemIOConfig->brakeLightOutput = newValue;
+        systemIO->saveConfiguration();
+    } else if (cmdString == String("REVLT") && systemIOConfig) {
+        Logger::console("Reverse light output set to %i.", newValue);
+        systemIOConfig->reverseLightOutput = newValue;
+        systemIO->saveConfiguration();
+    } else if (cmdString == String("OUTPUT") && newValue < 8) {
+        SystemIO *sysIO = SystemIO::getInstance();
+        sysIO->setDigitalOut(newValue, !sysIO->getDigitalOut(newValue)); //Toggle output
+        sysIO->printIOStatus(); //show our work
     } else if (cmdString == String("ENABLE")) {
         if (PrefHandler::setDeviceStatus(newValue, true)) {
             sysPrefs->forceCacheWrite(); //just in case someone takes us literally and power cycles quickly
@@ -403,11 +435,6 @@ void SerialConsole::handleConfigCmd()
         } else {
             Logger::console("Invalid system type. Please enter a value 1 - 4");
         }
-    } else if (cmdString == String("BRAKELT")) {
-        sysPrefs->write(EESYS_BRAKELIGHT, (uint8_t)(newValue));
-        sysPrefs->saveChecksum();
-        sysPrefs->forceCacheWrite(); //just in case someone takes us literally and power cycles quickly
-        Logger::console("Brake light output set to %i.", newValue);
     } else if (cmdString == String("LOGLEVEL")) {
         switch (newValue) {
             case 0:
@@ -467,30 +494,6 @@ void SerialConsole::handleConfigCmd()
         DeviceManager::getInstance()->sendMessage(DEVICE_WIFI, ICHIP2128, MSG_COMMAND, (void *) cmdString.c_str());
         DeviceManager::getInstance()->sendMessage(DEVICE_WIFI, ICHIP2128, MSG_COMMAND, (void *) "DOWN");
         updateWifi = false;
-    } else if (cmdString == String("COOLFAN") && motorConfig) {
-        Logger::console("Cooling fan output updated to: %i", newValue);
-        motorConfig->coolFan = newValue;
-        motorController->saveConfiguration();
-    } else if (cmdString == String("COOLON") && motorConfig) {
-        if (newValue <= 200 && newValue >= 0) {
-            Logger::console("Cooling fan ON temperature updated to: %i degrees", newValue);
-            motorConfig->coolOn = newValue;
-            motorController->saveConfiguration();
-        } else {
-            Logger::console("Invalid cooling ON temperature. Please enter a value 0 - 200F");
-        }
-    } else if (cmdString == String("COOLOFF") && motorConfig) {
-        if (newValue <= 200 && newValue >= 0) {
-            Logger::console("Cooling fan OFF temperature updated to: %i degrees", newValue);
-            motorConfig->coolOff = newValue;
-            motorController->saveConfiguration();
-        } else {
-            Logger::console("Invalid cooling OFF temperature. Please enter a value 0 - 200F");
-        }
-    } else if (cmdString == String("OUTPUT") && newValue < 8) {
-        SystemIO *sysIO = SystemIO::getInstance();
-        sysIO->setOutput(newValue, !sysIO->getOutput(newValue)); //Toggle output
-        sysIO->printIOStatus(); //show our work
     } else {
         Logger::console("Unknown command");
         updateWifi = false;
@@ -565,7 +568,7 @@ void SerialConsole::handleShortCmd()
 
         case 'K': //set all outputs high
             for (int tout = 0; tout < CFG_NUMBER_DIGITAL_OUTPUTS; tout++) {
-                SystemIO::getInstance()->setOutput(tout, true);
+                SystemIO::getInstance()->setDigitalOut(tout, true);
             }
 
             Logger::console("all outputs: ON");
@@ -573,7 +576,7 @@ void SerialConsole::handleShortCmd()
 
         case 'J': //set the four outputs low
             for (int tout = 0; tout < CFG_NUMBER_DIGITAL_OUTPUTS; tout++) {
-                SystemIO::getInstance()->setOutput(tout, false);
+                SystemIO::getInstance()->setDigitalOut(tout, false);
             }
 
             Logger::console("all outputs: OFF");

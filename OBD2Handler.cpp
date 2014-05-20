@@ -32,11 +32,11 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 OBD2Handler::OBD2Handler()
 {
-
-    motorController = (MotorController*) DeviceManager::getInstance()->getMotorController();
-    accelPedal = (Throttle*) DeviceManager::getInstance()->getAccelerator();
-    brakePedal = (Throttle*) DeviceManager::getInstance()->getBrake();
-    BMS = (BatteryManager*) DeviceManager::getInstance()->getDeviceByType(DEVICE_BMS);
+    DeviceManager *deviceManager = DeviceManager::getInstance();
+    motorController = (MotorController*) deviceManager->getMotorController();
+    accelPedal = (Throttle*) deviceManager->getAccelerator();
+    brakePedal = (Throttle*) deviceManager->getBrake();
+    BMS = (BatteryManager*) deviceManager->getDeviceByType(DEVICE_BMS);
 }
 
 OBD2Handler *OBD2Handler::getInstance()
@@ -131,7 +131,7 @@ bool OBD2Handler::processShowData(uint8_t pid, char *inData, char *outData)
 
         case 5: //Engine Coolant Temp (A - 40) = Degrees Centigrade
             //our code stores temperatures as a signed integer for tenths of a degree so translate
-            temp =  motorController->getTemperatureSystem() / 10;
+            temp =  motorController->getTemperatureController() / 10;
 
             if (temp < -40) {
                 temp = -40;

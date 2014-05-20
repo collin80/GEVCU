@@ -170,6 +170,7 @@ private:
     int16_t maxPositiveTorque; // max positive available torque in 0.01Nm -> divide by 100 to get Nm
     int16_t minNegativeTorque; // minimum negative available torque in 0.01Nm
     uint8_t limiterStateNumber; // state number of active limiter
+    uint32_t bitfield; // various bit fields
 
     int tickCounter; // count how many times handleTick() was called
     PowerMode powerMode; // the desired power mode

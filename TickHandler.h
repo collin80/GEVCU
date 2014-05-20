@@ -50,10 +50,8 @@ public:
     void attach(TickObserver *observer, uint32_t interval);
     void detach(TickObserver *observer);
     void handleInterrupt(int timerNumber);  // must be public when from the non-class functions
-#ifdef CFG_TIMER_USE_QUEUING
     void cleanBuffer();
     void process();
-#endif
 
 protected:
 
@@ -63,10 +61,8 @@ private:
         TickObserver *observer[CFG_TIMER_NUM_OBSERVERS]; // array of pointers to observers with this interval
     };
     TimerEntry timerEntry[NUM_TIMERS]; // array of timer entries (9 as there are 9 timers)
-#ifdef CFG_TIMER_USE_QUEUING
     TickObserver *tickBuffer[CFG_TIMER_BUFFER_SIZE];
     volatile uint16_t bufferHead, bufferTail;
-#endif
 
     TickHandler();
     int findTimer(long interval);

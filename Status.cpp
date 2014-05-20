@@ -26,8 +26,86 @@
 
 #include "Status.h"
 
-// initialize the static system state variable to "unknown"
-Status::SystemState Status::systemState = Status::unknown;
+/*
+ * Constructor
+ */
+Status::Status() {
+    systemState = unknown;
+
+    limitationTorque                = false;
+    limitationMaxTorque             = false;
+    limitationSpeed                 = false;
+    limitationControllerTemperature = false;
+    limitationMotorTemperature      = false;
+    limitationSlewRate              = false;
+    limitationMotorModel            = false;
+    limitationMechanicalPower       = false;
+    limitationAcVoltage             = false;
+    limitationAcCurrent             = false;
+    limitationDcVoltage             = false;
+    limitationDcCurrent             = false;
+
+    warning                         = false;
+    driverShutdownPathActive        = false;
+    externalShutdownPath1Off        = false;
+    externalShutdownPath2Off        = false;
+    oscillationLimitControllerActive= false;
+    speedSensorSignal               = false;
+    maximumModulationLimiter        = false;
+    temperatureSensor               = false;
+
+    speedSensor                     = false;
+    speedSensorSupply               = false;
+    canLimitMessageInvalid          = false;
+    canControlMessageInvalid        = false;
+    canLimitMessageLost             = false;
+    overvoltageInternalSupply       = false;
+    voltageMeasurement              = false;
+    shortCircuit                    = false;
+    canControlMessageLost           = false;
+    canControl2MessageLost          = false;
+    overtempController              = false;
+    overtempMotor                   = false;
+    overspeed                       = false;
+    hvUndervoltage                  = false;
+    hvOvervoltage                   = false;
+    hvOvercurrent                   = false;
+    acOvercurrent                   = false;
+    initalisation                   = false;
+    analogInput                     = false;
+    unexpectedShutdown              = false;
+    powerMismatch                   = false;
+    motorEeprom                     = false;
+    storage                         = false;
+    enableSignalLost                = false;
+    canCommunicationStartup         = false;
+    internalSupply                  = false;
+    osTrap                          = false;
+
+    enableIn            = false;
+    preChargeRelay      = false;
+    mainContactorRelay  = false;
+    secondaryContactorRelay = false;
+    enableOut           = false;
+    coolingFanRelay     = false;
+    brakeLight          = false;
+    reverseLight        = false;
+
+    for (int i = 0; i < CFG_NUMBER_DIGITAL_OUTPUTS; i++) {
+        digitalOutput[i] = false;
+    }
+    for (int i = 0; i < CFG_NUMBER_DIGITAL_INPUTS; i++) {
+        digitalInput[i] = false;
+    }
+}
+
+/*
+ * Get the singleton instance of the class
+ */
+Status *Status::getInstance() {
+    static Status *status = new Status();
+    return status;
+}
 
 /*
  * Retrieve the current system state.
@@ -57,6 +135,11 @@ Status::SystemState Status::setSystemState(SystemState newSystemState) {
             }
             break;
         case preCharge:
+            if (newSystemState == charged) {
+                systemState = newSystemState;
+            }
+            break;
+        case charged:
             if (newSystemState == ready) {
                 systemState = newSystemState;
             }
@@ -79,9 +162,12 @@ Status::SystemState Status::setSystemState(SystemState newSystemState) {
         }
     }
     if (systemState == newSystemState) {
-        Logger::info("switched to system state '%s'", systemStateToStr(systemState));
+        Logger::info("switched to system state '%s'",
+                systemStateToStr(systemState));
     } else {
-        Logger::error("switching from system state '%s' to '%s' is not allowed", systemStateToStr(systemState), systemStateToStr(newSystemState));
+        Logger::error("switching from system state '%s' to '%s' is not allowed",
+                systemStateToStr(systemState),
+                systemStateToStr(newSystemState));
         systemState = error;
     }
     return systemState;
@@ -91,13 +177,15 @@ Status::SystemState Status::setSystemState(SystemState newSystemState) {
  * Convert the current state into a string.
  */
 char *Status::systemStateToStr(SystemState state) {
-    switch(state) {
+    switch (state) {
     case unknown:
         return "unknown";
     case init:
         return "init";
     case preCharge:
         return "pre-charge";
+    case charged:
+        return "charged";
     case ready:
         return "ready";
     case running:
@@ -112,11 +200,47 @@ char *Status::systemStateToStr(SystemState state) {
 /*
  * Calculate the bit field 1 from the respective flags for faster transmission
  * to the web site.
+ *
+ * Bitfield 1 contains warnings and torque limitation information
  */
 uint32_t Status::getBitField1() {
     uint32_t bitfield = 0;
 
-    //TODO: implement calculation logic
+    bitfield |= (warning                            ? 1 << 0 : 0);  // 0x00000001
+    bitfield |= (driverShutdownPathActive           ? 1 << 1 : 0);  // 0x00000002
+    bitfield |= (externalShutdownPath1Off           ? 1 << 2 : 0);  // 0x00000004
+    bitfield |= (externalShutdownPath2Off           ? 1 << 3 : 0);  // 0x00000008
+    bitfield |= (oscillationLimitControllerActive   ? 1 << 4 : 0);  // 0x00000010
+    bitfield |= (speedSensorSignal                  ? 1 << 5 : 0);  // 0x00000020
+    bitfield |= (maximumModulationLimiter           ? 1 << 6 : 0);  // 0x00000040
+    bitfield |= (temperatureSensor                  ? 1 << 7 : 0);  // 0x00000080
+
+//    bitfield |= (reserve                          ? 1 << 8 : 0);  // 0x00000100
+//    bitfield |= (reserve                          ? 1 << 9 : 0);  // 0x00000200
+//    bitfield |= (reserve                          ? 1 << 10 : 0); // 0x00000400
+//    bitfield |= (reserve                          ? 1 << 11 : 0); // 0x00000800
+
+    bitfield |= (limitationTorque                   ? 1 << 12 : 0); // 0x00001000
+    bitfield |= (limitationMaxTorque                ? 1 << 13 : 0); // 0x00002000
+    bitfield |= (limitationSpeed                    ? 1 << 14 : 0); // 0x00004000
+    bitfield |= (limitationControllerTemperature    ? 1 << 15 : 0); // 0x00008000
+    bitfield |= (limitationMotorTemperature         ? 1 << 16 : 0); // 0x00010000
+    bitfield |= (limitationSlewRate                 ? 1 << 17 : 0); // 0x00020000
+    bitfield |= (limitationMotorModel               ? 1 << 18 : 0); // 0x00040000
+    bitfield |= (limitationMechanicalPower          ? 1 << 19 : 0); // 0x00080000
+    bitfield |= (limitationAcVoltage                ? 1 << 20 : 0); // 0x00100000
+    bitfield |= (limitationAcCurrent                ? 1 << 21 : 0); // 0x00200000
+    bitfield |= (limitationDcVoltage                ? 1 << 22 : 0); // 0x00400000
+    bitfield |= (limitationDcCurrent                ? 1 << 23 : 0); // 0x00800000
+
+//    bitfield |= (reserve                          ? 1 << 24 : 0); // 0x01000000
+//    bitfield |= (reserve                          ? 1 << 25 : 0); // 0x02000000
+//    bitfield |= (reserve                          ? 1 << 26 : 0); // 0x04000000
+//    bitfield |= (reserve                          ? 1 << 27 : 0); // 0x08000000
+//    bitfield |= (reserve                          ? 1 << 28 : 0); // 0x10000000
+//    bitfield |= (reserve                          ? 1 << 29 : 0); // 0x20000000
+//    bitfield |= (reserve                          ? 1 << 30 : 0); // 0x40000000
+//    bitfield |= (reserve                          ? 1 << 31 : 0); // 0x80000000
 
     return bitfield;
 }
@@ -124,11 +248,44 @@ uint32_t Status::getBitField1() {
 /*
  * Calculate the bit field 2 from the respective flags for faster transmission
  * to the web site.
+ *
+ * Bitfield 2 containts error information
  */
 uint32_t Status::getBitField2() {
     uint32_t bitfield = 0;
 
-    //TODO: implement calculation logic
+    bitfield |= (systemState == error               ? 1 << 0 : 0);  // 0x00000001
+    bitfield |= (speedSensor                        ? 1 << 1 : 0);  // 0x00000002
+    bitfield |= (speedSensorSupply                  ? 1 << 2 : 0);  // 0x00000004
+    bitfield |= (canLimitMessageInvalid             ? 1 << 3 : 0);  // 0x00000008
+    bitfield |= (canControlMessageInvalid           ? 1 << 4 : 0);  // 0x00000010
+    bitfield |= (canLimitMessageLost                ? 1 << 5 : 0);  // 0x00000020
+    bitfield |= (overvoltageInternalSupply          ? 1 << 6 : 0);  // 0x00000040
+    bitfield |= (voltageMeasurement                 ? 1 << 7 : 0);  // 0x00000080
+    bitfield |= (shortCircuit                       ? 1 << 8 : 0);  // 0x00000100
+    bitfield |= (canControlMessageLost              ? 1 << 9 : 0);  // 0x00000200
+    bitfield |= (canControl2MessageLost             ? 1 << 10 : 0); // 0x00000400
+    bitfield |= (overtempController                 ? 1 << 11 : 0); // 0x00000800
+    bitfield |= (overtempMotor                      ? 1 << 12 : 0); // 0x00001000
+    bitfield |= (overspeed                          ? 1 << 13 : 0); // 0x00002000
+    bitfield |= (hvUndervoltage                     ? 1 << 14 : 0); // 0x00004000
+    bitfield |= (hvOvervoltage                      ? 1 << 15 : 0); // 0x00008000
+    bitfield |= (hvOvercurrent                      ? 1 << 16 : 0); // 0x00010000
+    bitfield |= (acOvercurrent                      ? 1 << 17 : 0); // 0x00020000
+    bitfield |= (initalisation                      ? 1 << 18 : 0); // 0x00040000
+    bitfield |= (analogInput                        ? 1 << 19 : 0); // 0x00080000
+    bitfield |= (unexpectedShutdown                 ? 1 << 20 : 0); // 0x00100000
+    bitfield |= (powerMismatch                      ? 1 << 21 : 0); // 0x00200000
+    bitfield |= (motorEeprom                        ? 1 << 22 : 0); // 0x00400000
+    bitfield |= (storage                            ? 1 << 23 : 0); // 0x00800000
+    bitfield |= (enableSignalLost                   ? 1 << 24 : 0); // 0x01000000
+    bitfield |= (canCommunicationStartup            ? 1 << 25 : 0); // 0x02000000
+    bitfield |= (internalSupply                     ? 1 << 26 : 0); // 0x04000000
+//    bitfield |= (reserve                          ? 1 << 27 : 0); // 0x08000000
+//    bitfield |= (reserve                          ? 1 << 28 : 0); // 0x10000000
+//    bitfield |= (reserve                          ? 1 << 29 : 0); // 0x20000000
+//    bitfield |= (reserve                          ? 1 << 30 : 0); // 0x40000000
+    bitfield |= (osTrap                             ? 1 << 31 : 0); // 0x80000000
 
     return bitfield;
 }
@@ -136,11 +293,44 @@ uint32_t Status::getBitField2() {
 /*
  * Calculate the bit field 3 from the respective flags for faster transmission
  * to the web site.
+ *
+ * Bitfield 3 containts information about the digital outputs
  */
 uint32_t Status::getBitField3() {
     uint32_t bitfield = 0;
 
-    //TODO: implement calculation logic
+    bitfield |= (systemState == ready               ? 1 << 0 : 0);  // 0x00000001
+    bitfield |= (systemState == running             ? 1 << 1 : 0);  // 0x00000002
+    bitfield |= (preChargeRelay                     ? 1 << 2 : 0);  // 0x00000004
+    bitfield |= (secondaryContactorRelay                    ? 1 << 3 : 0);  // 0x00000008
+    bitfield |= (mainContactorRelay                    ? 1 << 4 : 0);  // 0x00000010
+    bitfield |= (enableOut                          ? 1 << 5 : 0);  // 0x00000020
+    bitfield |= (coolingFanRelay                       ? 1 << 6 : 0);  // 0x00000040
+    bitfield |= (brakeLight                         ? 1 << 7 : 0);  // 0x00000080
+    bitfield |= (reverseLight                       ? 1 << 8 : 0);  // 0x00000100
+    bitfield |= (enableIn                           ? 1 << 9 : 0);  // 0x00000200
+//    bitfield |= (reserve                          ? 1 << 1 : 0);  // 0x00000400
+//    bitfield |= (reserve                          ? 1 << 11 : 0); // 0x00000800
+//    bitfield |= (reserve                          ? 1 << 12 : 0); // 0x00001000
+//    bitfield |= (reserve                          ? 1 << 13 : 0); // 0x00002000
+//    bitfield |= (reserve                          ? 1 << 14 : 0); // 0x00004000
+//    bitfield |= (reserve                          ? 1 << 15 : 0); // 0x00008000
+//    bitfield |= (reserve                          ? 1 << 16 : 0); // 0x00010000
+//    bitfield |= (reserve                          ? 1 << 17 : 0); // 0x00020000
+//    bitfield |= (reserve                          ? 1 << 18 : 0); // 0x00040000
+//    bitfield |= (reserve                          ? 1 << 19 : 0); // 0x00080000
+    bitfield |= (digitalOutput[0]                   ? 1 << 20 : 0); // 0x00100000
+    bitfield |= (digitalOutput[1]                   ? 1 << 21 : 0); // 0x00200000
+    bitfield |= (digitalOutput[2]                   ? 1 << 22 : 0); // 0x00400000
+    bitfield |= (digitalOutput[3]                   ? 1 << 23 : 0); // 0x00800000
+    bitfield |= (digitalOutput[4]                   ? 1 << 24 : 0); // 0x01000000
+    bitfield |= (digitalOutput[5]                   ? 1 << 25 : 0); // 0x02000000
+    bitfield |= (digitalOutput[6]                   ? 1 << 26 : 0); // 0x04000000
+    bitfield |= (digitalOutput[7]                   ? 1 << 27 : 0); // 0x08000000
+    bitfield |= (digitalInput[0]                    ? 1 << 28 : 0); // 0x10000000
+    bitfield |= (digitalInput[1]                    ? 1 << 29 : 0); // 0x20000000
+    bitfield |= (digitalInput[2]                    ? 1 << 30 : 0); // 0x40000000
+    bitfield |= (digitalInput[3]                    ? 1 << 31 : 0); // 0x80000000
 
     return bitfield;
 }

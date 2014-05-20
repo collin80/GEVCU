@@ -35,28 +35,47 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include "eeprom_layout.h"
 #include "PrefHandler.h"
 #include "Logger.h"
-#include "Device.h"
+#include "TickHandler.h"
+#include "Status.h"
 
-extern PrefHandler *sysPrefs; //TODO: replace with own prefs handler
+class SystemIOConfiguration
+{
+public:
+    uint8_t enableInput; // # of input for enable signal - required so that GEVCU enables the controller and requests torque/speed > 0
+    uint16_t prechargeMillis; // milliseconds required for the pre-charge cycle
+    uint8_t prechargeOutput; // # of output to use for the pre-charge relay or 255 if not used
+    uint8_t mainContactorOutput; // # of output to use for the main contactor relay (main contactor) or 255 if not used
+    uint8_t secondaryContactorOutput; // # of output to use for the secondary contactor relay or 255 if not used
+    uint8_t enableOutput; // # of output to use for the enable signal/relay or 255 if not used
 
-class SystemIO : public Device
+    uint8_t coolingFanOutput; // # of output to use for the cooling fan relay or 255 if not used
+    uint8_t coolingTempOn; // temperature in degree celsius to start cooling
+    uint8_t coolingTempOff; // temperature in degree celsius to stop cooling
+
+    uint8_t brakeLightOutput; // #of output for brake light at regen or 255 if not used
+    uint8_t reverseLightOutput; // #of output for reverse light or 255 if not used
+};
+
+class SystemIO : public TickObserver
 {
 public:
     static SystemIO *getInstance();
     void setup();
     void handleTick();
+
+    void loadConfiguration();
+    void saveConfiguration();
+    SystemIOConfiguration *getConfiguration();
+
+    bool getEnableInput();
+
+    uint16_t getAnalogIn(uint8_t which);
+    boolean getDigitalIn(uint8_t which);
+    void setDigitalOut(uint8_t which, boolean active);
+    boolean getDigitalOut(uint8_t which);
     void ADCPoll();
-    uint16_t getAnalog(uint8_t which);
-    boolean getDigital(uint8_t which);
-    void setOutput(uint8_t which, boolean active);
-    boolean getOutput(uint8_t which);
     uint32_t getNextADCBuffer();
     void printIOStatus();
-
-    //TODO: remove from public
-    void earlySetup();
-    void setupSysIO();
-
 
 protected:
 
@@ -74,22 +93,44 @@ private:
     volatile uint16_t adcBuffer[CFG_NUMBER_ANALOG_INPUTS][256]; // 4 buffers of 256 readings
     uint16_t adcValues[CFG_NUMBER_ANALOG_INPUTS * 2];
     uint16_t adcOutValues[CFG_NUMBER_ANALOG_INPUTS];
-
-//    int numberADCSamples;
     ADC_COMP adcComp[CFG_NUMBER_ANALOG_INPUTS];
 
     //the ADC values fluctuate a lot so smoothing is required.
+//    int numberADCSamples;
 //    uint16_t adcAverageBuffer[CFG_NUMBER_ANALOG_INPUTS][64];
 //    uint8_t adcPointer[CFG_NUMBER_ANALOG_INPUTS]; //pointer to next position to use
 
     bool useRawADC;
+    uint32_t preChargeStart; // time-stamp when pre-charge cycle has started
+    bool coolflag;
+    SystemIOConfiguration *configuration;
+    Status *status;
+    PrefHandler *prefsHandler;
+
+    SystemIO();
+    void initializePinTables();
+    void initGevcu2PinTable();
+    void initGevcu3PinTable();
+    void initGevcu4PinTable();
+    void initGevcuLegacyPinTable();
+    void initializeDigitalIO();
+    void initializeAnalogIO();
 
     uint16_t getDifferentialADC(uint8_t which);
     uint16_t getRawADC(uint8_t which);
-//    void earlySetup();
-//    void setupSysIO();
     void setupFastADC();
-};
 
+    void updateDigitalInputStatus();
+    void handleCooling();
+    void handlePreCharge();
+
+    void setPrechargeRelayOutput(bool);
+    void setMainContactorRelayOutput(bool);
+    void setSecondaryContactorRelayOutput(bool);
+    void setEnableRelayOutput(bool);
+    void setCoolingFanRelayOutput(bool);
+    void setBrakeLightOutput(bool);
+    void setReverseLightOutput(bool);
+};
 
 #endif

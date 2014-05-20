@@ -48,11 +48,6 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #define CFG_SERIAL_SPEED 115200
 //#define SerialUSB Serial // re-route serial-usb output to programming port ;) comment if output should go to std usb
 
-
-//The defines that used to be here to configure devices are gone now.
-//The EEPROM stores which devices to bring up at start up and all
-//devices are programmed into the firware at the same time.
-
 /*
  * TIMER INTERVALS
  *
@@ -69,7 +64,7 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #define CFG_TICK_INTERVAL_MEM_CACHE                 40000
 #define CFG_TICK_INTERVAL_BMS_THINK                 500000
 #define CFG_TICK_INTERVAL_WIFI                      200000
-
+#define CFG_TICK_INTERVAL_SYSTEM_IO                 200000
 
 /*
  * CAN BUS CONFIGURATION
@@ -85,7 +80,8 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  *
  */
 #define CFG_THROTTLE_TOLERANCE  150 //the max that things can go over or under the min/max without fault - 1/10% each #
-
+#define CFG_PRE_CHARGE_RELAY_DELAY 100
+//#define THREE_CONTACTOR_PRECHARGE // do we use three contactors instead of two for pre-charge cycle ?
 
 /*
  * HARD CODED PARAMETERS
@@ -122,14 +118,19 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #define RPMSlewRateValue    10000 // rpm/sec the requested speed should change (speed mode)
 #define TorqueSlewRateValue 6000 // 0.1Nm/sec the requested torque output should change (torque mode)
 #define KilowattHrs         11000 //not currently used
-#define PrechargeR          3000 //a stupidly high resistance just to make sure we precharge long enough
+#define EnableInput         1 // milliseconds for pre-charge cycle
+#define PrechargeMillis     3000 // milliseconds for pre-charge cycle
 #define NominalVolt         3300 //a reasonable figure for a lithium cell pack driving the DMOC (in tenths of a volt)
-#define PrechargeRelay      0 //third output
-#define MainContactorRelay  1 //fourth output
+#define PrechargeRelayOutput 0
+#define MainContactorRelayOutput 1
+#define SecondaryContactorRelayOutput 2
+#define EnableRelayOutput   3
+#define BrakeLightOutput    4
+#define ReverseLightOutput  5
 #define ReversePercent      50
-#define CoolFan             7  //output to use for cooling fan
-#define CoolOn              70 //temperature (in C) to turn on cooling fan
-#define CoolOff             60 //temperature to turn it off
+#define CoolingFanRelayOutput  7  //output to use for cooling fan
+#define CoolingTemperatureOn 70 //temperature (in C) to turn on cooling fan
+#define CoolingTemperatureOff 60 //temperature to turn it off
 
 #define MaxRegenWatts   20000 //in actual watts, there is no scale here
 #define MaxAccelWatts   150000
@@ -144,13 +145,13 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #define CFG_DEV_MGR_MAX_DEVICES 20 // the maximum number of devices supported by the DeviceManager
 #define CFG_CAN_NUM_OBSERVERS 10 // maximum number of device subscriptions per CAN bus
 #define CFG_TIMER_NUM_OBSERVERS 9 // the maximum number of supported observers per timer
-#define CFG_TIMER_USE_QUEUING // if defined, TickHandler uses a queuing buffer instead of direct calls from interrupts
 #define CFG_TIMER_BUFFER_SIZE 100 // the size of the queuing buffer for TickHandler
+#define CFG_SERIAL_SEND_BUFFER_SIZE 50
 
 /*
  * PIN ASSIGNMENT
  */
-#define CFG_THROTTLE_NONE   255
+#define CFG_OUTPUT_NONE    255
 #define BLINK_LED          73 //13 is L, 73 is TX, 72 is RX
 
 #define CFG_NUMBER_ANALOG_INPUTS  4
