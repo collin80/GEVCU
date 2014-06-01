@@ -638,9 +638,9 @@ void SerialConsole::handleShortCmd()
             //think to change that. Otherwise you must remember to update here or
             //nobody will know your device exists. Additionally, these values are
             //decoded into decimal from their hex specification in DeviceTypes.h
-            Logger::console("DMOC645 = %X", DMOC645);
-            Logger::console("Brusa DMC5 = %X", BRUSA_DMC5);
-            Logger::console("Brusa Charger = %X", BRUSACHARGE);
+            Logger::console("DMOC645 controller = %X", DMOC645);
+            Logger::console("Brusa controller DMC5 = %X", BRUSA_DMC5);
+            Logger::console("Brusa Charger NLG5 = %X", BRUSA_NLG5);
             Logger::console("TCCH Charger = %X", TCCHCHARGE);
             Logger::console("Pot based accelerator = %X", POTACCELPEDAL);
             Logger::console("Pot based brake = %X", POTBRAKEPEDAL);
@@ -648,6 +648,7 @@ void SerialConsole::handleShortCmd()
             Logger::console("CANBus brake = %X", CANBRAKEPEDAL);
             Logger::console("WIFI (iChip2128) = %X", ICHIP2128);
             Logger::console("Th!nk City BMS = %X", THINKBMS);
+            Logger::console("Brusa DCDC Converter BSC6 = %X", BRUSA_BSC6);
             break;
 
         case 's':

@@ -37,13 +37,14 @@ enum DeviceType {
     DEVICE_BRAKE,
     DEVICE_MISC,
     DEVICE_WIFI,
+    DEVICE_DCDC,
     DEVICE_NONE
 };
 
 enum DeviceId { //unique device ID for every piece of hardware possible
     DMOC645 = 0x1000,
     BRUSA_DMC5 = 0x1001,
-    BRUSACHARGE = 0x1010,
+    BRUSA_NLG5 = 0x1010,
     TCCHCHARGE = 0x1020,
     THROTTLE = 0x1030,
     POTACCELPEDAL = 0x1031,
@@ -52,6 +53,7 @@ enum DeviceId { //unique device ID for every piece of hardware possible
     CANBRAKEPEDAL = 0x1034,
     ICHIP2128 = 0x1040,
     THINKBMS = 0x2000,
+    BRUSA_BSC6 = 0x3000,
     SYSTEM = 0x5000,
     HEARTBEAT = 0x5001,
     MEMCACHE = 0x5002,

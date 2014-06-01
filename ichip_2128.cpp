@@ -153,8 +153,8 @@ void ICHIPWIFI::handleTick()
     uint32_t ms = millis();
     tickCounter++;
 
-    if (ms < 5000) {
-        return;    //wait 5 seconds for things to settle before doing a thing
+    if (ms < 1000) {
+        return;    //wait 1 seconds for things to settle before doing a thing
     }
 
     // Do a delayed parameter load once about a second after startup

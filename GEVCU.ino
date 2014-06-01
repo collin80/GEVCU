@@ -182,7 +182,9 @@ void createObjects()
     PotBrake *pbrake = new PotBrake();
     CanBrake *cbrake = new CanBrake();
     DmocMotorController *dmotorController = new DmocMotorController();
-    BrusaMotorController *bmotorController = new BrusaMotorController();
+    BrusaDMC5 *bmotorController = new BrusaDMC5();
+    BrusaBSC6 *bDcDcConverter = new BrusaBSC6();
+    BrusaNLG5 *bCharger = new BrusaNLG5();
     ThinkBatteryManager *BMS = new ThinkBatteryManager();
 //    ELM327Emu *emu = new ELM327Emu();
     ICHIPWIFI *iChip = new ICHIPWIFI();

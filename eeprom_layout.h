@@ -83,6 +83,13 @@ the end of the stardard data. The below numbers are offsets from the device's ee
 #define EEMC_REVERSE_LIMIT      48 //2 bytes - a percentage to knock the requested torque down by while in reverse.
 #define EEMC_RPM_SLEW_RATE      50 //2 bytes - slew rate (rpm/sec) at which speed should change (only in speed mode)
 #define EEMC_TORQUE_SLEW_RATE   52 //2 bytes - slew rate (0.1Nm/sec) at which the torque should change
+#define EEMC_MAX_MECH_POWER_MOTOR   54 // 2 bytes - max mechanical power motoring in 4W steps
+#define EEMC_MAX_MECH_POWER_REGEN   56 // 2 bytes - max mechanical power regen in 4W steps
+#define EEMC_DC_VOLT_LIMIT_MOTOR    58 // 2 bytes - DC volt limit for motoring in 0.1V
+#define EEMC_DC_VOLT_LIMIT_REGEN    60 // 2 bytes - DC volt limit for regen in 0.1V
+#define EEMC_DC_CURRENT_LIMIT_MOTOR 62 // 2 bytes - DC current limit for motoring in 0.1A
+#define EEMC_DC_CURRENT_LIMIT_REGEN 64 // 2 bytes - DC current limit for regen in 0.1A
+#define EEMC_OSCILATION_LIMITER     66 // 1 byte - flag to enable oscilation limiter (1=true/0=false)
 
 //throttle data
 #define EETH_MIN_ONE            20 //2 bytes - ADC value of minimum value for first channel
@@ -105,6 +112,29 @@ the end of the stardard data. The below numbers are offsets from the device's ee
 #define EETH_CAR_TYPE           52 //1 byte - type of car for querying the throttle position via CAN bus
 #define EETH_ADC_1              53 //1 byte - which ADC port to use for first throttle input
 #define EETH_ADC_2              54 //1 byte - which ADC port to use for second throttle input
+
+// DC-DC converter data
+
+#define DCDC_BOOST_MODE             20 // 1 byte, boost mode = 1, buck mode = 0
+#define DCDC_DEBUG_MODE             21 // 1 byte, debug mode enabled
+#define DCDC_LOW_VOLTAGE            22 // 1 byte, low voltage
+#define DCDC_HIGH_VOLTAGE           23 // 1 byte, hich voltage
+#define DCDC_HV_UNDERVOLTAGE_LIMIT  24 // 1 byte, HV undervoltage limit
+#define DCDC_LV_BUCK_CURRENT_LIMIT  25 // 1 byte, LV buck current limit
+#define DCDC_HV_BUCK_CURRENT_LIMIT  26 // 1 byte, HV buck current limit
+#define DCDC_LV_UNDERVOLTAGE_LIMIT  27 // 1 byte, LV undervoltage limit
+#define DCDC_LV_BOOST_CURRENT_LIMIT 28 // 1 byte, LV boost current limit
+#define DCDC_HV_BOOST_CURRENT_LIMIT 29 // 1 byte, HV boost current limit
+
+// Charger data
+
+#define CHRG_MAX_MAINS_CURRENT      20 // 2 bytes, max mains current in 0.1A
+#define CHRG_CONSTANT_CURRENT       22 // 2 bytes, constant current in 0.1A
+#define CHRG_CONSTANT_VOLTAGE       24 // 2 bytes, constant voltage in 0.1V
+#define CHRG_TERMINATE_CURRENT      26 // 2 bytes, terminate current in 0.1A
+#define CHRG_MIN_BATTERY_VOLTAGE    28 // 2 bytes, minimum battery voltage to start charging in 0.1V
+#define CHRG_MAX_BATTERY_VOLTAGE    30 // 2 bytes, maximum battery voltage to charge in 0.1V
+
 
 //System Data
 #define EESYS_SYSTEM_TYPE        10  //1 byte - 1 = Old school protoboards 2 = GEVCU2/DUED 3 = GEVCU3 - Defaults to 2 if invalid or not set up
