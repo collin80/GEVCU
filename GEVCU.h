@@ -52,6 +52,7 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include "ichip_2128.h"
 #include "Sys_Messages.h"
 #include "PerfTimer.h"
+#include "CodaMotorController.h"
 
 #ifdef __cplusplus
 extern "C" {

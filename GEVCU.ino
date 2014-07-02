@@ -182,6 +182,7 @@ void createObjects()
     PotBrake *pbrake = new PotBrake();
     CanBrake *cbrake = new CanBrake();
     DmocMotorController *dmotorController = new DmocMotorController();
+    CodaMotorController *cmotorController = new CodaMotorController();
     BrusaMotorController *bmotorController = new BrusaMotorController();
     ThinkBatteryManager *BMS = new ThinkBatteryManager();
 //    ELM327Emu *emu = new ELM327Emu();

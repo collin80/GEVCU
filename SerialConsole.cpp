@@ -639,6 +639,7 @@ void SerialConsole::handleShortCmd()
             //nobody will know your device exists. Additionally, these values are
             //decoded into decimal from their hex specification in DeviceTypes.h
             Logger::console("DMOC645 = %X", DMOC645);
+            Logger::console("CODA-UQM = %X", CODA_UQM);
             Logger::console("Brusa DMC5 = %X", BRUSA_DMC5);
             Logger::console("Brusa Charger = %X", BRUSACHARGE);
             Logger::console("TCCH Charger = %X", TCCHCHARGE);
