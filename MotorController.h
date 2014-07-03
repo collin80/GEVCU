@@ -84,6 +84,7 @@ public:
 	void saveConfiguration();
 
 	void coolingcheck();
+        void brakecheck();
 	void setStatusBits();
 	bool isReady();
 	bool isRunning();

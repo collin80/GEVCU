@@ -178,6 +178,7 @@ void createObjects() {
 	PotBrake *pbrake = new PotBrake();
 	CanBrake *cbrake = new CanBrake();
 	DmocMotorController *dmotorController = new DmocMotorController();
+        CodaMotorController *cmotorController = new CodaMotorController();
 	BrusaMotorController *bmotorController = new BrusaMotorController();
 	ThinkBatteryManager *BMS = new ThinkBatteryManager();
 	ELM327Emu *emu = new ELM327Emu();
@@ -210,6 +211,7 @@ void initializeDevices() {
 }
 
 void setup() {
+        delay(10000);
 
 	pinMode(BLINK_LED, OUTPUT);
 	digitalWrite(BLINK_LED, LOW);
@@ -294,9 +296,9 @@ void loop() {
 		((ICHIPWIFI*)wifiDevice)->loop();
 	}
 
-	if (btDevice != NULL) {
-		((ELM327Emu*)btDevice)->loop();
-	}
+	//if (btDevice != NULL) {
+	//	((ELM327Emu*)btDevice)->loop();
+	//}
 
 	//this should still be here. It checks for a flag set during an interrupt
 	sys_io_adc_poll();
