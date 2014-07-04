@@ -108,9 +108,9 @@ void SerialConsole::printMenu() {
 		Logger::console("RPM=%i - Set maximum RPM", config->speedMax);
 		Logger::console("REVLIM=%i - How much torque to allow in reverse (Tenths of a percent)", config->reversePercent);
                             
-	    Logger::console("COOLFAN=%i - Digital output to turn on cooling (0-7)", config->coolFan);
-        Logger::console("COOLON=%i - Inverter temperature to turn cooling on", config->coolOn);
-        Logger::console("COOLOFF=%i - Inverter temperature to turn cooling off", config->coolOff);  
+	    Logger::console("COOLFAN=%i - Digital output to turn on cooling fan(0-7, 255 for none)", config->coolFan);
+        Logger::console("COOLON=%i - Inverter temperature C to turn cooling on", config->coolOn);
+        Logger::console("COOLOFF=%i - Inverter temperature C to turn cooling off", config->coolOff);  
         Logger::console("BRAKELT = %i - Digital output to turn on brakelight (0-7, 255 for none)", config->brakeLight);
         Logger::console("REVLT=%i - Digital output to turn on reverse light (0-7, 255 for none)", config->revLight);
         Logger::console("ENABLEIN=%i - Digital input to enable motor controller (0-3, 255 for none)", config->enableIn);

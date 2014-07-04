@@ -705,16 +705,17 @@ void ICHIPWIFI::processParameterChange(char *key) {
 	} else if (!strcmp(key, Constants::coolOff) && motorConfig) {
 		motorConfig->coolOff = atol(value);
 		motorController->saveConfiguration();
-    } else if (!strcmp(key, Constants::prechargeR) && motorConfig) {
+      } else if (!strcmp(key, Constants::prechargeR) && motorConfig) {
 		motorConfig->prechargeR = atol(value);
 		motorController->saveConfiguration(); 
-    } else if (!strcmp(key, Constants::prechargeRelay) && motorConfig) {
+      } else if (!strcmp(key, Constants::prechargeRelay) && motorConfig) {
 		motorConfig->prechargeRelay = atol(value);
 		motorController->saveConfiguration();
-    } else if (!strcmp(key, Constants::nominalVolt) && motorConfig) {
-        motorConfig->nominalVolt = atol(value);
-		motorController->saveConfiguration();
-    } else if (!strcmp(key, Constants::mainContactorRelay) && motorConfig) {
+      } else if (!strcmp(key, Constants::nominalVolt) && motorConfig) {
+		motorConfig->nominalVolt = (atol(value))*10;
+                motorController->saveConfiguration();
+    
+      } else if (!strcmp(key, Constants::mainContactorRelay) && motorConfig) {
 		motorConfig->mainContactorRelay = atol(value);
 		motorController->saveConfiguration();
 	} else if (!strcmp(key, Constants::brakeLight) && motorConfig) {
