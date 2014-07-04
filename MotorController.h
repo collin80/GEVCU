@@ -57,6 +57,10 @@ public:
 	uint8_t coolFan;
 	uint8_t coolOn;
 	uint8_t coolOff;
+	uint8_t brakeLight;
+	uint8_t revLight;
+	uint8_t enableIn;
+	uint8_t reverseIn;
 };
 
 class MotorController: public Device {
@@ -97,6 +101,10 @@ public:
 	int8_t getCoolFan();
     int8_t getCoolOn();
     int8_t getCoolOff();
+    int8_t getBrakeLight();
+    int8_t getRevLight();
+    int8_t getEnableIn();
+    int8_t getReverseIn();
     int16_t getselectedGear();
     int16_t getprechargeR();
     int16_t getnominalVolt();

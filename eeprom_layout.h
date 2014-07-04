@@ -91,6 +91,10 @@ the end of the stardard data. The below numbers are offsets from the device's ee
 #define EEMC_REVERSE_LIMIT		48 //2 bytes - a percentage to knock the requested torque down by while in reverse.
 #define EEMC_RPM_SLEW_RATE		50 //2 bytes - slew rate (rpm/sec) at which speed should change (only in speed mode)
 #define EEMC_TORQUE_SLEW_RATE	52 //2 bytes - slew rate (0.1Nm/sec) at which the torque should change
+#define EEMC_BRAKE_LIGHT        54
+#define EEMC_REV_LIGHT    55
+#define EEMC_ENABLE_IN       56
+#define EEMC_REVERSE_IN        57
 
 //throttle data
 #define EETH_MIN_ONE			20 //2 bytes - ADC value of minimum value for first channel

@@ -105,7 +105,6 @@ struct ParamCache {
 	int16_t torqueActual;
 	int16_t throttle;
 	int16_t brake;
-	uint8_t brakeLight;
 	bool brakeNotAvailable;
 	int16_t speedRequested;
 	int16_t speedActual;
@@ -132,6 +131,10 @@ struct ParamCache {
     int8_t coolFan;
     int8_t coolOn;
     int8_t coolOff;
+    int8_t brakeLight;
+    int8_t revLight;
+    int8_t enableIn;
+    int8_t reverseIn;
 };
 
 struct SendBuff {

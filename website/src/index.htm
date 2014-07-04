@@ -1,7 +1,7 @@
 <html>
 <head>
 	<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
-	<title>GEVCU 4.02</title>
+	<title>GEVCU 4.04</title>
 	<link rel="stylesheet" type="text/css" href="styles.css" />
 	<script type="text/javascript" src="gauge.js"></script>
 	<script type="text/javascript" src="gauges.js"></script>
@@ -13,18 +13,22 @@
 			loadPage("status");
 			loadPage("dashboard");
 			loadPage("config");
+			loadPage("outputs");
+			loadPage("inputs");
 			loadPage("about");
 			showTab('status');
 		}
 	</script>
 </head>
 <body onload="init()">
-	<h1>GEVCU 4.02</h1>
+	<h1>GEVCU 4.04</h1>
 
 	<div class="tabHeader" id="tabHeader">
 		<a href="javascript:showTab('status')" id="statuslink">Status</a>
 		<a href="javascript:showTab('dashboard')" id="dashboardlink">Dashboard</a>
-		<a href="javascript:showTab('config')" id="configlink">Configuration</a>
+		<a href="javascript:showTab('config')" id="configlink">Throttle</a>
+		<a href="javascript:showTab('outputs')" id="outputslink">Outputs</a>
+		<a href="javascript:showTab('inputs')" id="inputslink">Inputs</a>
 		<a href="javascript:showTab('about')" id="aboutlink">About</a>
 	</div>
 
@@ -32,6 +36,8 @@
 		<div class="tab" id="status"></div>
 		<div class="tab" id="dashboard"></div>
 		<div class="tab" id="config"></div>
+		<div class="tab" id="outputs"></div>
+		<div class="tab" id="inputs"></div>
 		<div class="tab" id="about"></div>
 	</div>
 </body>

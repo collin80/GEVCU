@@ -105,12 +105,17 @@ void SerialConsole::printMenu() {
          SerialUSB.println("MOTOR CONTROLS");
          SerialUSB.println();
 		Logger::console("TORQ=%i - Set torque upper limit (tenths of a Nm)", config->torqueMax);
-		Logger::console("RPMS=%i - Set maximum RPMs", config->speedMax);
+		Logger::console("RPM=%i - Set maximum RPM", config->speedMax);
 		Logger::console("REVLIM=%i - How much torque to allow in reverse (Tenths of a percent)", config->reversePercent);
                             
 	    Logger::console("COOLFAN=%i - Digital output to turn on cooling (0-7)", config->coolFan);
         Logger::console("COOLON=%i - Inverter temperature to turn cooling on", config->coolOn);
         Logger::console("COOLOFF=%i - Inverter temperature to turn cooling off", config->coolOff);  
+        Logger::console("BRAKELT = %i - Digital output to turn on brakelight (0-7, 255 for none)", config->brakeLight);
+        Logger::console("REVLT=%i - Digital output to turn on reverse light (0-7, 255 for none)", config->revLight);
+        Logger::console("ENABLEIN=%i - Digital input to enable motor controller (0-3, 255 for none)", config->enableIn);
+        Logger::console("REVIN=%i - Digital input to reverse motor rotation (0-3, 255 for none)", config->reverseIn);
+       
 	}
 
 
@@ -261,7 +266,7 @@ void SerialConsole::handleConfigCmd() {
 		Logger::console("Setting Torque Limit to %i", newValue);
 		motorConfig->torqueMax = newValue;
 		motorController->saveConfiguration();
-	} else if (cmdString == String("RPMS") && motorConfig) {
+	} else if (cmdString == String("RPM") && motorConfig) {
 		Logger::console("Setting RPM Limit to %i", newValue);
 		motorConfig->speedMax = newValue;
 		motorController->saveConfiguration();
@@ -342,19 +347,35 @@ void SerialConsole::handleConfigCmd() {
 		motorConfig->kilowattHrs = newValue;
 		motorController->saveConfiguration();
 	} else if (cmdString == String("PREDELAY") && motorConfig) {
-		Logger::console("Setting Precharge Time Delay to %i ms", newValue);
+		Logger::console("Setting Precharge Time Delay to %i milliseconds", newValue);
 		motorConfig->prechargeR = newValue;
 		motorController->saveConfiguration();
 	} else if (cmdString == String("NOMV") && motorConfig) {
 		Logger::console("Setting fully charged voltage to %d vdc", newValue);
 		motorConfig->nominalVolt = newValue * 10;
 		motorController->saveConfiguration();
+        } else if (cmdString == String("BRAKELT") && motorConfig) {
+		motorConfig->brakeLight = newValue;
+		motorController->saveConfiguration();
+		Logger::console("Brake light output set to DOUT%i.",newValue);
+ } else if (cmdString == String("REVLT") && motorConfig) {
+		motorConfig->revLight = newValue;
+		motorController->saveConfiguration();
+		Logger::console("Reverse light output set to DOUT%i.",newValue);
+ } else if (cmdString == String("ENABLEIN") && motorConfig) {
+		motorConfig->enableIn = newValue;
+		motorController->saveConfiguration();
+		Logger::console("Motor Enable input set to DIN%i.",newValue);
+ } else if (cmdString == String("REVIN") && motorConfig) {
+		motorConfig->reverseIn = newValue;
+		motorController->saveConfiguration();
+		Logger::console("Motor Reverse input set to DIN%i.",newValue);
 	} else if (cmdString == String("MRELAY") && motorConfig) {
-		Logger::console("Setting Main Contactor relay to %i", newValue);
+		Logger::console("Setting Main Contactor relay output to DOUT%i", newValue);
 		motorConfig->mainContactorRelay = newValue;
 		motorController->saveConfiguration();
 	} else if (cmdString == String("PRELAY") && motorConfig) {
-		Logger::console("Setting Precharge Relay to %i", newValue);
+		Logger::console("Setting Precharge Relay output to DOUT%i", newValue);
 		motorConfig->prechargeRelay = newValue;
 		motorController->saveConfiguration();
 	} else if (cmdString == String("ENABLE")) {
@@ -381,11 +402,8 @@ void SerialConsole::handleConfigCmd() {
 			Logger::console("System type updated. Power cycle to apply.");
 		}
 		else Logger::console("Invalid system type. Please enter a value 1 - 4");
-    } else if (cmdString == String("BRAKELT")) {
-			sysPrefs->write(EESYS_BRAKELIGHT, (uint8_t)(newValue));
-			sysPrefs->saveChecksum();
-			sysPrefs->forceCacheWrite(); //just in case someone takes us literally and power cycles quickly
-			Logger::console("Brake light output set to %i.",newValue);
+
+       
 	} else if (cmdString == String("LOGLEVEL")) {
 		switch (newValue) {
 		case 0:

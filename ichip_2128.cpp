@@ -300,8 +300,7 @@ void ICHIPWIFI::handleTick() {
 				paramCache.bitfield4 = motorController->getStatusBitfield4();
 				setParam(Constants::bitfield4, paramCache.bitfield4);
 			}
-			sysPrefs->read(EESYS_BRAKELIGHT, &paramCache.brakeLight);
-            setParam(Constants::brakeLight, paramCache.brakeLight);
+			
 		}
 	} else if (tickCounter == 4) {
 		if (motorController) {
@@ -336,6 +335,25 @@ void ICHIPWIFI::handleTick() {
 				paramCache.coolOff = motorController->getCoolOff();
 				setParam(Constants::coolOff, (uint8_t) paramCache.coolOff);
 			}
+			 if ( paramCache.brakeLight != motorController->getBrakeLight() ) {
+				paramCache.brakeLight = motorController->getBrakeLight();
+				setParam(Constants::brakeLight, (uint8_t) paramCache.brakeLight);
+			}
+
+			if ( paramCache.revLight != motorController->getRevLight() ) {
+				paramCache.coolOff = motorController->getRevLight();
+				setParam(Constants::revLight, (uint8_t) paramCache.revLight);
+			}
+
+			if ( paramCache.enableIn != motorController->getEnableIn() ) {
+				paramCache.coolOff = motorController->getEnableIn();
+				setParam(Constants::enableIn, (uint8_t) paramCache.enableIn);
+			}
+			if ( paramCache.reverseIn != motorController->getReverseIn() ) {
+				paramCache.reverseIn = motorController->getReverseIn();
+				setParam(Constants::reverseIn, (uint8_t) paramCache.reverseIn);
+			}
+
 		}
 	} else if (tickCounter > 4) {
 		if (motorController) {
@@ -690,9 +708,6 @@ void ICHIPWIFI::processParameterChange(char *key) {
     } else if (!strcmp(key, Constants::prechargeR) && motorConfig) {
 		motorConfig->prechargeR = atol(value);
 		motorController->saveConfiguration(); 
-    } else if (!strcmp(key, Constants::nominalVolt) && motorConfig) {
-		motorConfig->nominalVolt = (atol(value))*10;
-        motorController->saveConfiguration();
     } else if (!strcmp(key, Constants::prechargeRelay) && motorConfig) {
 		motorConfig->prechargeRelay = atol(value);
 		motorController->saveConfiguration();
@@ -702,9 +717,19 @@ void ICHIPWIFI::processParameterChange(char *key) {
     } else if (!strcmp(key, Constants::mainContactorRelay) && motorConfig) {
 		motorConfig->mainContactorRelay = atol(value);
 		motorController->saveConfiguration();
-	} else if (!strcmp(key, Constants::brakeLight) ) {
-        sysPrefs->write(EESYS_BRAKELIGHT, (uint8_t)(atol(value)));
-		//sysPrefs->saveChecksum();
+	} else if (!strcmp(key, Constants::brakeLight) && motorConfig) {
+		motorConfig->brakeLight = atol(value);
+		motorController->saveConfiguration();
+	} else if (!strcmp(key, Constants::revLight) && motorConfig) {
+		motorConfig->revLight = atol(value);
+		motorController->saveConfiguration();
+	} else if (!strcmp(key, Constants::enableIn) && motorConfig) {
+		motorConfig->enableIn = atol(value);
+		motorController->saveConfiguration();
+	} else if (!strcmp(key, Constants::reverseIn) && motorConfig) {
+		motorConfig->reverseIn = atol(value);
+		motorController->saveConfiguration();
+	
 	} else if (!strcmp(key, Constants::logLevel)) {
 		extern PrefHandler *sysPrefs;
 		uint8_t loglevel = atol(value);
@@ -766,6 +791,11 @@ void ICHIPWIFI::loadParameters() {
 		setParam(Constants::coolFan, motorConfig->coolFan);
         setParam(Constants::coolOn, motorConfig->coolOn);
         setParam(Constants::coolOff, motorConfig->coolOff);
+        setParam(Constants::brakeLight, motorConfig->brakeLight);
+		setParam(Constants::revLight, motorConfig->revLight);
+		setParam(Constants::enableIn, motorConfig->enableIn);
+		setParam(Constants::reverseIn, motorConfig->reverseIn);
+
         setParam(Constants::prechargeR, motorConfig->prechargeR);
         setParam(Constants::prechargeRelay, motorConfig->prechargeRelay);
         setParam(Constants::mainContactorRelay, motorConfig->mainContactorRelay);
@@ -775,8 +805,7 @@ void ICHIPWIFI::loadParameters() {
 	}
 	setParam(Constants::logLevel, (uint8_t)Logger::getLogLevel());
 
-	sysPrefs->read(EESYS_BRAKELIGHT, &paramCache.brakeLight);
-	setParam(Constants::brakeLight, paramCache.brakeLight);		
+		
 }
 
 DeviceType ICHIPWIFI::getType() {

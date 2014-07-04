@@ -264,6 +264,22 @@ int8_t MotorController::getCoolOff() {
     MotorControllerConfiguration *config = (MotorControllerConfiguration *)getConfiguration();
 	return config->coolOff;
 }
+int8_t MotorController::getBrakeLight() {
+    MotorControllerConfiguration *config = (MotorControllerConfiguration *)getConfiguration();
+	return config->brakeLight;
+}
+int8_t MotorController::getRevLight() {
+    MotorControllerConfiguration *config = (MotorControllerConfiguration *)getConfiguration();
+	return config->revLight;
+}
+int8_t MotorController::getEnableIn() {
+    MotorControllerConfiguration *config = (MotorControllerConfiguration *)getConfiguration();
+	return config->enableIn;
+}
+int8_t MotorController::getReverseIn() {
+    MotorControllerConfiguration *config = (MotorControllerConfiguration *)getConfiguration();
+	return config->reverseIn;
+}
 
 int16_t MotorController::getprechargeR() {
     MotorControllerConfiguration *config = (MotorControllerConfiguration *)getConfiguration();
@@ -393,6 +409,11 @@ void MotorController::loadConfiguration() {
 		prefsHandler->read(EEMC_COOL_FAN, &config->coolFan);
         prefsHandler->read(EEMC_COOL_ON, &config->coolOn);
         prefsHandler->read(EEMC_COOL_OFF, &config->coolOff);
+        prefsHandler->read(EEMC_BRAKE_LIGHT, &config->brakeLight);
+		prefsHandler->read(EEMC_REV_LIGHT, &config->revLight);
+		prefsHandler->read(EEMC_ENABLE_IN, &config->enableIn);
+		prefsHandler->read(EEMC_REVERSE_IN, &config->reverseIn);
+
 	}
 	else { //checksum invalid. Reinitialize values and store to EEPROM
 		config->speedMax = MaxRPMValue;
@@ -408,6 +429,11 @@ void MotorController::loadConfiguration() {
 		config->coolFan = CoolFan;
 		config->coolOn = CoolOn;
 		config->coolOff = CoolOff;
+		config->brakeLight = BrakeLight;
+		config->revLight = RevLight;
+		config->enableIn = EnableIn;
+		config->reverseIn = ReverseIn;
+
 	}
 	Logger::info("MaxTorque: %i MaxRPM: %i", config->torqueMax, config->speedMax);
 }
@@ -430,6 +456,12 @@ void MotorController::saveConfiguration() {
 	prefsHandler->write(EEMC_COOL_FAN, config->coolFan);
 	prefsHandler->write(EEMC_COOL_ON, config->coolOn);
 	prefsHandler->write(EEMC_COOL_OFF, config->coolOff);
+	prefsHandler->write(EEMC_BRAKE_LIGHT, config->brakeLight);
+	prefsHandler->write(EEMC_REV_LIGHT, config->revLight);
+	prefsHandler->write(EEMC_ENABLE_IN, config->enableIn);
+	prefsHandler->write(EEMC_REVERSE_IN, config->reverseIn);
+
+
 	prefsHandler->saveChecksum();
 	loadConfiguration();
 }

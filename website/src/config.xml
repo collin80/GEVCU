@@ -28,6 +28,10 @@
 	<prechargeR>~prechargeR~</prechargeR>
 	<nominalVolt>~nominalVolt~</nominalVolt>
 	<brakeLight>~brakeLight~</brakeLight>
+	<revLight>~revLight~</revLight>
+	<enableIn>~enableIn~</enableIn>
+	<reverseIn>~reverseIn~</reverseIn>
+	
 	
 	
 	
