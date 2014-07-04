@@ -38,6 +38,7 @@ int milliseconds  ;
 int seconds;
 int minutes;
 int hours ;
+
 	
 CodaMotorController::CodaMotorController() : MotorController() 
 {
@@ -68,8 +69,10 @@ void CodaMotorController::setup()
     running=true;
 
 	TickHandler::getInstance()->attach(this, CFG_TICK_INTERVAL_MOTOR_CONTROLLER_CODAUQM);
+        dcVoltage=1000;
+        dcCurrent=0;
 
-       // sendCmd2();  //CAN watchdog reset command
+        sendCmd2();  //CAN watchdog reset command
 
 }
 
@@ -218,10 +221,10 @@ void CodaMotorController::sendCmd1()
        //Two byte torque request in 0.1NM Can be positive or negative and is 1/2 of the torque desired 
        //Inverter will deliver TWICE this torque value
 
-        torqueRequested = (((throttleRequested * config->torqueMax) / 1000)+32128); 
-      
-        output.data.bytes[3] = (torqueRequested & 0xFF00) >> 8;
-        output.data.bytes[2] = (torqueRequested & 0x00FF);
+        torqueRequested = ((throttleRequested * config->torqueMax) / 1000); 
+        torqueCommand = torqueRequested+32128;
+        output.data.bytes[3] = (torqueCommand & 0xFF00) >> 8;
+        output.data.bytes[2] = (torqueCommand & 0x00FF);
         output.data.bytes[4] = genCodaCRC(output.data.bytes[1], output.data.bytes[2], output.data.bytes[3]);
             
 	CanHandler::getInstanceEV()->sendFrame(output);

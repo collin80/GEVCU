@@ -44,6 +44,8 @@ void SerialConsole::init() {
 	//State variables for serial console
 	ptrBuffer = 0;
 	state = STATE_ROOT_MENU;
+        DeviceManager::getInstance()->sendMessage(DEVICE_WIFI, ICHIP2128, MSG_CONFIG_CHANGE, NULL);
+
 }
 
 void SerialConsole::loop() {
@@ -101,6 +103,7 @@ void SerialConsole::printMenu() {
 
 	if (motorController && motorController->getConfiguration()) {
 		MotorControllerConfiguration *config = (MotorControllerConfiguration *) motorController->getConfiguration();
+                  
          SerialUSB.println();
          SerialUSB.println("MOTOR CONTROLS");
          SerialUSB.println();

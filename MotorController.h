@@ -109,11 +109,11 @@ public:
     int16_t getnominalVolt();
     int8_t getprechargeRelay();
     int8_t getmainContactorRelay();
-	int16_t getSpeedRequested();
-	int16_t getSpeedActual();
-	int16_t getTorqueRequested();
-	int16_t getTorqueActual();
-	int16_t getTorqueAvailable();
+    int16_t getSpeedRequested();
+    int16_t getSpeedActual();
+    int16_t getTorqueRequested();
+    int16_t getTorqueActual();
+    int16_t getTorqueAvailable();
 
 	uint16_t getDcVoltage();
 	int16_t getDcCurrent();

@@ -77,6 +77,7 @@ private:
 	byte alive;
 	int activityCount;
 	byte sequence;
+        int16_t torqueCommand;
 
 	void sendCmd1();
 	void sendCmd2();

@@ -197,14 +197,11 @@ void ICHIPWIFI::handleTick() {
 		if (motorController) {
 			//Logger::console("Wifi tick counter 1...");
 
-			// just update this every second or so
-			if ( ms > paramCache.timeRunning + 60000 ) {
-				paramCache.timeRunning = ms;
-				setParam(Constants::timeRunning, getTimeRunning());
-			}
+			paramCache.timeRunning = ms;
+			setParam(Constants::timeRunning, getTimeRunning());
+			
 			if ( paramCache.torqueRequested != motorController->getTorqueRequested() ) {
 				paramCache.torqueRequested = motorController->getTorqueRequested();
-				paramCache.torqueRequested -= 30000;
 				setParam(Constants::torqueRequested, paramCache.torqueRequested / 10.0f, 1);
 			}
 			if ( paramCache.torqueActual != motorController->getTorqueActual() ) {
@@ -254,14 +251,14 @@ void ICHIPWIFI::handleTick() {
 				setParam(Constants::prechargeR, (uint16_t)paramCache.prechargeR);
 			}
 
-            if ( paramCache.prechargeRelay != motorController->getprechargeRelay() ) {
+                        if ( paramCache.prechargeRelay != motorController->getprechargeRelay() ) {
 				paramCache.prechargeRelay = motorController->getprechargeRelay();
 				setParam(Constants::prechargeRelay, (uint8_t) paramCache.prechargeRelay);
 				//Logger::console("Precharge Relay %i", paramCache.prechargeRelay);
 				//Logger::console("motorController:prechargeRelay:%d, paramCache.prechargeRelay:%d, Constants:prechargeRelay:%s", motorController->getprechargeRelay(),paramCache.prechargeRelay, Constants::prechargeRelay);
 			}
 
-            if ( paramCache.mainContactorRelay != motorController->getmainContactorRelay() ) {
+                         if ( paramCache.mainContactorRelay != motorController->getmainContactorRelay() ) {
 				paramCache.mainContactorRelay = motorController->getmainContactorRelay();
 				setParam(Constants::mainContactorRelay, (uint8_t) paramCache.mainContactorRelay);
 			}
@@ -279,7 +276,7 @@ void ICHIPWIFI::handleTick() {
 				setParam(Constants::kiloWattHours, paramCache.kiloWattHours / 10.0f, 1);
 			//}
                        
-            if ( paramCache.nominalVolt != motorController->getnominalVolt()/10 ){
+                        if ( paramCache.nominalVolt != motorController->getnominalVolt()/10 ){
 				paramCache.nominalVolt = motorController->getnominalVolt()/10;
 				setParam(Constants::nominalVolt, paramCache.nominalVolt);
 			}
@@ -327,11 +324,12 @@ void ICHIPWIFI::handleTick() {
 				setParam(Constants::coolFan, (uint8_t) paramCache.coolFan);
 			}
 
-            if ( paramCache.coolOn != motorController->getCoolOn() ) {
+                        if ( paramCache.coolOn != motorController->getCoolOn() ) {
 				paramCache.coolOn = motorController->getCoolOn();
 				setParam(Constants::coolOn, (uint8_t) paramCache.coolOn);
 			}
-            if ( paramCache.coolOff != motorController->getCoolOff() ) {
+
+                        if ( paramCache.coolOff != motorController->getCoolOff() ) {
 				paramCache.coolOff = motorController->getCoolOff();
 				setParam(Constants::coolOff, (uint8_t) paramCache.coolOff);
 			}
@@ -790,18 +788,17 @@ void ICHIPWIFI::loadParameters() {
 	if (motorConfig) {
 		setParam(Constants::speedMax, motorConfig->speedMax);
 		setParam(Constants::coolFan, motorConfig->coolFan);
-        setParam(Constants::coolOn, motorConfig->coolOn);
-        setParam(Constants::coolOff, motorConfig->coolOff);
-        setParam(Constants::brakeLight, motorConfig->brakeLight);
+                setParam(Constants::coolOn, motorConfig->coolOn);
+                setParam(Constants::coolOff, motorConfig->coolOff);
+                setParam(Constants::brakeLight, motorConfig->brakeLight);
 		setParam(Constants::revLight, motorConfig->revLight);
 		setParam(Constants::enableIn, motorConfig->enableIn);
 		setParam(Constants::reverseIn, motorConfig->reverseIn);
-
-        setParam(Constants::prechargeR, motorConfig->prechargeR);
-        setParam(Constants::prechargeRelay, motorConfig->prechargeRelay);
-        setParam(Constants::mainContactorRelay, motorConfig->mainContactorRelay);
-        uint16_t nmvlt = motorConfig->nominalVolt/10;
-        setParam(Constants::nominalVolt, nmvlt);
+                setParam(Constants::prechargeR, motorConfig->prechargeR);
+                setParam(Constants::prechargeRelay, motorConfig->prechargeRelay);
+                setParam(Constants::mainContactorRelay, motorConfig->mainContactorRelay);
+                uint16_t nmvlt = motorConfig->nominalVolt/10;
+                setParam(Constants::nominalVolt, nmvlt);
 		setParam(Constants::torqueMax, (uint16_t)(motorConfig->torqueMax / 10)); // skip the tenth's
 	}
 	setParam(Constants::logLevel, (uint8_t)Logger::getLogLevel());

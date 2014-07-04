@@ -48,7 +48,7 @@ MotorController::MotorController() : Device() {
 	speedRequested = 0;
 	speedActual = 0;
 	torqueRequested = 0;
-	torqueActual = 0;
+	torqueActual = 10;
 	torqueAvailable = 0;
 	mechanicalPower = 0;
 
@@ -153,9 +153,9 @@ void MotorController::handleTick() {
 	//Logger::debug("Throttle: %d", throttleRequested);
 	if(skipcounter++ > 30)    //As how fast we turn on cooling is very low priority, we only check cooling every 24th lap or about once per second
 	{
-		if(config->prechargeR==23456)
+		if(config->prechargeR==12345)
         {
-			dcVoltage--;  
+		dcVoltage--;  
 	        if (torqueActual < -500)
 				{torqueActual=20;}
             else {torqueActual=-650;}
@@ -213,12 +213,12 @@ void MotorController::setup() {
     prefsHandler->read(EEMC_KILOWATTHRS, &kiloWattHours); //retrieve kilowatt hours from EEPROM
     nominalVolts=config->nominalVolt;
 
-    if(config->prechargeR=12345)
-    {
-		torqueActual=2;
+    if(config->prechargeR==12345)
+      {  
+	torqueActual=2;
         dcCurrent=1501;
         dcVoltage=3320;
-    }
+      }
 
     Logger::console("PRELAY=%i - Current PreCharge Relay output", config->prechargeRelay);
     Logger::console("MRELAY=%i - Current Main Contactor Relay output", config->mainContactorRelay);
