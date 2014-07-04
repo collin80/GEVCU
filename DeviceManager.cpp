@@ -244,7 +244,7 @@ Device *DeviceManager::getDeviceByType(DeviceType type)
 {
 	for (int i = 0; i < CFG_DEV_MGR_MAX_DEVICES; i++)
 	{
-		if (devices[i]) 
+		if (devices[i] && devices[i]->isEnabled()) 
 		{
 			if (devices[i]->getType() == type) return devices[i];
 		}
