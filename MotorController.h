@@ -48,7 +48,6 @@ public:
 	uint16_t torqueSlewRate; // for torque mode only: slew rate of torque value, 0=disabled, in 0.1Nm/sec
 	uint16_t speedSlewRate; //  for speed mode only: slew rate of speed value, 0=disabled, in rpm/sec
 	uint8_t reversePercent;
-
 	uint16_t kilowattHrs;
 	uint16_t prechargeR; //resistance of precharge resistor in tenths of ohm
 	uint16_t nominalVolt; //nominal pack voltage in tenths of a volt

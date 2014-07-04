@@ -62,7 +62,7 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #define CFG_TICK_INTERVAL_CAN_THROTTLE				40000
 #define CFG_TICK_INTERVAL_MOTOR_CONTROLLER			40000
 #define CFG_TICK_INTERVAL_MOTOR_CONTROLLER_DMOC		40000
-#define CFG_TICK_INTERVAL_MOTOR_CONTROLLER_CODAUQM		10000
+#define CFG_TICK_INTERVAL_MOTOR_CONTROLLER_CODAUQM	20000
 #define CFG_TICK_INTERVAL_MOTOR_CONTROLLER_BRUSA	20000
 #define CFG_TICK_INTERVAL_MEM_CACHE					40000
 #define CFG_TICK_INTERVAL_BMS_THINK					500000
@@ -132,7 +132,7 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #define RevLight			255 //temperature to turn it off
 #define EnableIn			255//temperature to turn it off
 #define ReverseIn			255 //temperature to turn it off
-#define MaxRegenWatts	20000 //in actual watts, there is no scale here
+#define MaxRegenWatts	40000 //in actual watts, there is no scale here
 #define MaxAccelWatts	150000
 
 

@@ -341,12 +341,12 @@ void ICHIPWIFI::handleTick() {
 			}
 
 			if ( paramCache.revLight != motorController->getRevLight() ) {
-				paramCache.coolOff = motorController->getRevLight();
+				paramCache.revLight = motorController->getRevLight();
 				setParam(Constants::revLight, (uint8_t) paramCache.revLight);
 			}
 
 			if ( paramCache.enableIn != motorController->getEnableIn() ) {
-				paramCache.coolOff = motorController->getEnableIn();
+				paramCache.enableIn = motorController->getEnableIn();
 				setParam(Constants::enableIn, (uint8_t) paramCache.enableIn);
 			}
 			if ( paramCache.reverseIn != motorController->getReverseIn() ) {

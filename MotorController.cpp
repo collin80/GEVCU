@@ -153,7 +153,7 @@ void MotorController::handleTick() {
 	//Logger::debug("Throttle: %d", throttleRequested);
 	if(skipcounter++ > 30)    //As how fast we turn on cooling is very low priority, we only check cooling every 24th lap or about once per second
 	{
-		if(config->prechargeR==12345)
+		if(config->prechargeR==23456)
         {
 			dcVoltage--;  
 	        if (torqueActual < -500)
