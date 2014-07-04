@@ -56,14 +56,16 @@ void CodaMotorController::setup()
 {
 	TickHandler::getInstance()->detach(this);
 
+	Logger::info("add device: CODA UQM (id:%X, %X)", CODAUQM, this);
+
 	loadConfiguration();
+
 	MotorController::setup(); // run the parent class version of this function
 
 	// register ourselves as observer of all 0x20x can frames for UQM
-         CanHandler::getInstanceEV()->attach(this, 0x200, 0x7f0, false);
+    CanHandler::getInstanceEV()->attach(this, 0x200, 0x7f0, false);
      
-
-        running=true;
+    running=true;
 
 	TickHandler::getInstance()->attach(this, CFG_TICK_INTERVAL_MOTOR_CONTROLLER_CODAUQM);
 
@@ -298,6 +300,7 @@ void CodaMotorController::loadConfiguration() {
 	}
 
 	MotorController::loadConfiguration(); // call parent
+
 }
 
 void CodaMotorController::saveConfiguration() {
