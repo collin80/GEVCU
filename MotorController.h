@@ -77,6 +77,13 @@ public:
 		modeSpeed
 	};
 
+        enum OperationState {
+		DISABLED = 0,
+		STANDBY = 1,
+		ENABLE = 2,
+		POWERDOWN = 3
+	};
+
     MotorController();
 	DeviceType getType();
     void setup();
@@ -87,6 +94,12 @@ public:
 	void saveConfiguration();
 
 	void coolingcheck();
+        void checkBrakeLight();
+        void checkReverseLight();
+        void checkEnableInput();
+        void checkReverseInput();
+        void checkPrecharge();
+
         void brakecheck();
 	void setStatusBits();
 	bool isReady();
@@ -95,7 +108,12 @@ public:
 	bool isWarning();
 
 	void setPowerMode(PowerMode mode);
-	PowerMode getPowerMode();
+          PowerMode getPowerMode();
+        void setOpState(OperationState op) ;
+          OperationState getOpState() ;
+        void setSelectedGear(Gears gear);
+          Gears getSelectedGear();
+	
 	int16_t getThrottle();
 	int8_t getCoolFan();
     int8_t getCoolOn();
@@ -114,7 +132,7 @@ public:
     int16_t getTorqueRequested();
     int16_t getTorqueActual();
     int16_t getTorqueAvailable();
-
+   
 	uint16_t getDcVoltage();
 	int16_t getDcCurrent();
 	uint16_t getAcCurrent();
@@ -129,7 +147,7 @@ public:
 	uint32_t getStatusBitfield3();
 	uint32_t getStatusBitfield4();
 
-	Gears getSelectedGear();
+	
 
 protected:
 	bool ready; // indicates if the controller is ready to enable the power stage
@@ -141,6 +159,8 @@ protected:
 	Gears selectedGear;
 
 	PowerMode powerMode;
+        OperationState operationState; //the op state we want
+	
 	int16_t throttleRequested; // -1000 to 1000 (per mille of throttle level)
 	int16_t speedRequested; // in rpm
 	int16_t speedActual; // in rpm

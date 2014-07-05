@@ -44,7 +44,7 @@ CodaMotorController::CodaMotorController() : MotorController()
 {
 
     prefsHandler = new PrefHandler(CODAUQM);
-    operationState = DISABLE;
+    operationState = DISABLED;
     online = 0;
     activityCount = 0;
     sequence=0;
@@ -69,8 +69,10 @@ void CodaMotorController::setup()
     running=true;
 
 	TickHandler::getInstance()->attach(this, CFG_TICK_INTERVAL_MOTOR_CONTROLLER_CODAUQM);
-        dcVoltage=1000;
-        dcCurrent=0;
+        if(dcVoltage<1000){dcVoltage=1000;};  //Lowest value we can display on dashboard
+       // dcCurrent=0;
+       setOpState(ENABLE);
+       selectedGear=DRIVE;
 
         sendCmd2();  //CAN watchdog reset command
 
@@ -92,6 +94,7 @@ void CodaMotorController::handleCanFrame(CAN_FRAME *frame)
         
               torqueActual =  (((frame->data.bytes[1] * 256) + frame->data.bytes[0])-32128) ;
               dcVoltage = (((frame->data.bytes[3] * 256) + frame->data.bytes[2])-32128);
+                if(dcVoltage<1000){dcVoltage=1000;}//Lowest value we can display on dashboard
 	      dcCurrent = (((frame->data.bytes[5] * 256) + frame->data.bytes[4])-32128);
               speedActual = (((frame->data.bytes[7] * 256) + frame->data.bytes[6])-32128)/2;           
               Logger::debug("UQM Actual Torque: %d DC Voltage: %d Amps: %d RPM: %d", torqueActual/10,dcVoltage/10,dcCurrent/10,speedActual);
@@ -144,16 +147,6 @@ void CodaMotorController::handleCanFrame(CAN_FRAME *frame)
 void CodaMotorController::handleTick() {
 
 	MotorController::handleTick(); //kick the ball up to papa
-
-	//Defaults to ENABLED.  Set digital input 0 to 1 to DISABLE
-        if (getDigital(0)) {setOpState(DISABLE);}
-          else {setOpState(ENABLE);}
-          
-        //Defaults to DRIVE.  Set digital input 1 to 1 to set REVERSE
-        
-      	if (getDigital(1))  {setGear(REVERSE);}
-          else {setGear(DRIVE);}
-
         sendCmd1();   //Send our torque command
  
 }
@@ -166,7 +159,7 @@ Byte 1 - always set to 0
 
 Byte 2 - Command Byte   
 	Left four bits contain enable disable and forward reverse
-		Bits 7/6 DISABLE =01
+		Bits 7/6 DISABLED =01
 		Bits 7/6 ENABLE =10
 		Bits 5/4 REVERSE=01
 		Bits 5/4 FORWARD=10
@@ -265,23 +258,6 @@ Logger::debug("Watchdog reset: %X  %X  %X  %d:%d:%d.%d",output.data.bytes[0], ou
 output.data.bytes[2], hours, minutes, seconds, milliseconds);
   
         warning=false;
-}
-
-
-
-void CodaMotorController::setOpState(OperationState op) {
-	operationState = op;
-}
-
-void CodaMotorController::setGear(Gears gear) {
-	selectedGear = gear;
-        //Choices are NEUTRAL, DRIVE, REVERSE,ERROR
-	//if the gear was just set to drive or reverse and the DMOC is not currently in enabled
-	//op state then ask for it by name
-	if (selectedGear != NEUTRAL) {
-		operationState = ENABLE;
-	}
-	
 }
 
 

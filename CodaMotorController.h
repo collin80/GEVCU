@@ -44,21 +44,14 @@ public:
 };
 
 class CodaMotorController: public MotorController, CanObserver {
-public:
-	enum OperationState {
-		DISABLE = 0,
-		STANDBY = 1,
-		ENABLE = 2,
-		
-	};
+
+	
 
 public:
 	virtual void handleTick();
 	virtual void handleCanFrame(CAN_FRAME *frame);
 	virtual void setup();
-	void setOpState(OperationState op);
-	void setGear(Gears gear);
-
+	
 	CodaMotorController();
         void timestamp();
 	DeviceId getId();
@@ -69,17 +62,12 @@ public:
 	virtual void saveConfiguration();
 
 private:
-	Gears selectedGear;
-	
-	OperationState operationState; //the op state we want
-	
 	byte online; //counter for whether DMOC appears to be operating
 	byte alive;
 	int activityCount;
 	byte sequence;
         int16_t torqueCommand;
-
-	void sendCmd1();
+        void sendCmd1();
 	void sendCmd2();
         uint8_t genCodaCRC(uint8_t cmd, uint8_t torq_lsb, uint8_t torq_msb);
 

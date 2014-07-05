@@ -58,18 +58,12 @@ public:
 		NOACTION = 3
 	};
 
-	enum OperationState {
-		DISABLED = 0,
-		STANDBY = 1,
-		ENABLE = 2,
-		POWERDOWN = 3
-	};
+	
 
 public:
 	virtual void handleTick();
 	virtual void handleCanFrame(CAN_FRAME *frame);
 	virtual void setup();
-	void setOpState(OperationState op);
 	void setGear(Gears gear);
 
 	DmocMotorController();
@@ -81,12 +75,12 @@ public:
 
 private:
 	Gears actualGear;
-	OperationState operationState; //the op state we want
 	OperationState actualState; //what the controller is reporting it is
 	int step;
 	byte online; //counter for whether DMOC appears to be operating
 	byte alive;
 	int activityCount;
+        int16_t torqueCommand;
 
 	void sendCmd1();
 	void sendCmd2();

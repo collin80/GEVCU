@@ -698,10 +698,10 @@ void ICHIPWIFI::processParameterChange(char *key) {
 		motorConfig->coolFan = atol(value);
 		motorController->saveConfiguration();
 	} else if (!strcmp(key, Constants::coolOn) && motorConfig) {
-		motorConfig->coolOn = atol(value);
+		motorConfig->coolOn = (atol(value));
 		motorController->saveConfiguration();
 	} else if (!strcmp(key, Constants::coolOff) && motorConfig) {
-		motorConfig->coolOff = atol(value);
+		motorConfig->coolOff = (atol(value));
 		motorController->saveConfiguration();
       } else if (!strcmp(key, Constants::prechargeR) && motorConfig) {
 		motorConfig->prechargeR = atol(value);

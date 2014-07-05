@@ -179,11 +179,6 @@ void DmocMotorController::handleTick() {
 		setPowerMode(modeTorque);
 	//}
 
-	//but, if the second input is high we cancel the whole thing and disable the drive.
-	if (getDigital(1) /*|| !getDigital(0)*/) {
-		setOpState(DISABLED);
-		//runThrottle = false;
-	}
 
 	//if (online == 1) { //only send out commands if the controller is really there.
 	step = CHAL_RESP;
@@ -254,16 +249,18 @@ void DmocMotorController::sendCmd2() {
 	//data 0-1 is upper limit, 2-3 is lower limit. They are set to same value to lock torque to this value
 	//torqueRequested = 30000L + (((long)throttleRequested * (long)MaxTorque) / 1000L);
 
-	torqueRequested = 30000; //set upper torque to zero if not drive enabled
+	torqueCommand = 30000; //set offset  for zero torque commanded
 	if (powerMode == modeTorque) {
+                torqueRequested=0;
 		if (actualState == ENABLE) { //don't even try sending torque commands until the DMOC reports it is ready
 			if (selectedGear == DRIVE)
-                torqueRequested = 30000L + (((long) throttleRequested * (long) config->torqueMax) / 1000L);
+                            torqueRequested = (((long) throttleRequested * (long) config->torqueMax) / 1000L);
 			if (selectedGear == REVERSE)
-				torqueRequested = 30000L - (((long) throttleRequested * (long) config->torqueMax) / 1000L);
+				torqueRequested = (((long) throttleRequested * (long) config->torqueMax) / 1000L);
 		}
-		output.data.bytes[0] = (torqueRequested & 0xFF00) >> 8;
-		output.data.bytes[1] = (torqueRequested & 0x00FF);
+                torqueCommand+=torqueRequested;  //Add torqueRequested to offset
+		output.data.bytes[0] = (torqueCommand & 0xFF00) >> 8;
+		output.data.bytes[1] = (torqueCommand & 0x00FF);
 		output.data.bytes[2] = output.data.bytes[0];
 		output.data.bytes[3] = output.data.bytes[1];
 	}
@@ -355,9 +352,6 @@ void DmocMotorController::sendCmd5() {
 	CanHandler::getInstanceEV()->sendFrame(output);
 }
 
-void DmocMotorController::setOpState(OperationState op) {
-	operationState = op;
-}
 
 void DmocMotorController::setGear(Gears gear) {
 	selectedGear = gear;
