@@ -53,6 +53,7 @@ MotorController::MotorController() : Device() {
 	mechanicalPower = 0;
 
 	selectedGear = NEUTRAL;
+        operationState=ENABLE;
 
 	dcVoltage = 0;
 	dcCurrent = 0;
@@ -61,9 +62,10 @@ MotorController::MotorController() : Device() {
 	nominalVolts = 0;
 
 	donePrecharge = false;  
-    prelay = false;
-    coolflag = false;
-    skipcounter=0;
+        prelay = false;
+        coolflag = false;
+        skipcounter=0;
+        testenableinput=0;
 
 }
 
@@ -72,12 +74,10 @@ DeviceType MotorController::getType() {
 }
 
 void MotorController::handleTick() {
-	uint8_t forwardSwitch, reverseSwitch;
-	MotorControllerConfiguration *config = (MotorControllerConfiguration *)getConfiguration();
 
-	//gearSwitch = GS_FORWARD;
+  	MotorControllerConfiguration *config = (MotorControllerConfiguration *)getConfiguration();
 
-	//Initializing annunciator panel
+    //Initializing annunciator panel
     // ready=0;
      //running=0;
      //warning=0;
@@ -90,16 +90,12 @@ void MotorController::handleTick() {
      //killowatts and kilowatt hours 
      
      mechanicalPower=dcVoltage*dcCurrent/10000; //In kilowatts. DC voltage is x10
-     //Logger::console("POWER: %d", mechanicalPower);
-      //Logger::console("dcVoltage: %d", dcVoltage);
-      //Logger::console("nominalVolts: %d", nominalVolts);
-    //Logger::console("kilowatthours: %d", kiloWattHours);
- 
+   
   
-   if (dcVoltage>nominalVolts && torqueActual>0) {kiloWattHours=1;} //If our voltage is higher than fully charged with no regen, zero our kwh meter
+     if (dcVoltage>nominalVolts && torqueActual>0) {kiloWattHours=1;} //If our voltage is higher than fully charged with no regen, zero our kwh meter
      if (milliStamp>millis()) {milliStamp=0;} //In case millis rolls over to zero while running
      kiloWattHours+=(millis()-milliStamp)*mechanicalPower;//We assume here that power is at current level since last tick and accrue in kilowattmilliseconds.
-     milliStamp=millis();//reset our kwms timer for next check
+     milliStamp=millis();              //reset our kwms timer for next check
 
 	Throttle *accelerator = DeviceManager::getInstance()->getAccelerator();
 	Throttle *brake = DeviceManager::getInstance()->getBrake();
@@ -108,9 +104,11 @@ void MotorController::handleTick() {
 	if (brake && brake->getLevel() < -10 && brake->getLevel() < accelerator->getLevel()) //if the brake has been pressed it overrides the accelerator.
 		throttleRequested = brake->getLevel();
 
-	
+	  if (!donePrecharge)checkPrecharge();
+          
 	//Logger::debug("Throttle: %d", throttleRequested);
-	if(skipcounter++ > 30)    //As how fast we turn on cooling is very low priority, we only check cooling every 24th lap or about once per second
+
+	if(skipcounter++ > 30)    //A very low priority loop for checks that only need to be done once per second.
 	{  
             skipcounter=0; //Reset our laptimer
             
@@ -123,8 +121,11 @@ void MotorController::handleTick() {
                       else {temperatureInverter=(config->coolOff-2)*10;}
                     if (selectedGear!=REVERSE){selectedGear=REVERSE;}
                       else{selectedGear=DRIVE;}
+                    if (throttleRequested < 500){throttleRequested=500;}
+                      else {throttleRequested=0;}
+                    if(testenableinput)testenableinput=false;
+                      else testenableinput=true;
 		  }	
-            if (!donePrecharge)checkPrecharge();
             coolingcheck();
             checkBrakeLight();
             checkReverseLight();
@@ -133,6 +134,8 @@ void MotorController::handleTick() {
 	    prefsHandler->saveChecksum();
 	}
 }
+
+
 void MotorController::checkPrecharge()
 {
   	
@@ -206,6 +209,7 @@ void MotorController::coolingcheck()
 	  }
  }
 
+//If we have a brakelight output configured, this will set it anytime regen greater than 10 Newton meters
 void MotorController::checkBrakeLight()
 {
  
@@ -227,7 +231,7 @@ void MotorController::checkBrakeLight()
 
 }
 
-
+//If a reverse light output is configured, this will turn it on anytime the gear state is in REVERSE
 void MotorController::checkReverseLight()
 {
   
@@ -243,24 +247,29 @@ void MotorController::checkReverseLight()
        else
          {
            setOutput(reverseLight, 0); //Turn off reverse light output
-           statusBitfield1 &= ~(1 << reverseLight);//clear bit to turn off reverselight annunciator
+           statusBitfield1 &= ~(1 << reverseLight);//clear bit to turn off reverselight annunciatorget
          }
   }
 
 }
 
-
+//If we have an ENABLE input configured, this will set opstation to ENABLE anytime it is true (12v), DISABLED if not.
 void MotorController:: checkEnableInput()
 {
+  int enableinput=getEnableIn();
+   Logger::info("ENABLE INPUT:%i", enableinput);
+               
+  if(enableinput<4) //Do we even have an enable input configured ie NOT 255.
   
-  if(getEnableIn()<4) //Do we even have an enable input configured ie NOT 255.
     {
-      if(getDigital(getEnableIn())) setOpState(ENABLE);  //If it's ON let's setour opstate to ENABLE
-        else setOpState(DISABLED);                    //If it's off, lets set DISABLED.  These two could just as easily be reversed.
-    }
+      if(getDigital(enableinput)){ setOpState(ENABLE); } //If it's ON let's set our opstate to ENABLE
+        else {setOpState(DISABLED);}           //If it's off, lets set DISABLED.  These two could just as easily be reversed.
+      if(testenableinput)setOpState(ENABLE);  
+  }
   
 }
 
+//IF we have a reverse input configured, this will set our selected gear to REVERSE any time the input is true, DRIVE if not
 void MotorController:: checkReverseInput()
 {
   if(getReverseIn()<4)  //If we don't have a Reverse Input, do nothing

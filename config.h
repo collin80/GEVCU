@@ -96,39 +96,39 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #define ThrottleADC1			0		//Which pin to use
 #define ThrottleADC2			1		//Which pin to use
 #define ThrottleSubtype			1		//subtype 1 is a standard linear pot throttle
-#define ThrottleRegenMinValue	0		//where does Regen stop (1/10 of percent)
-#define ThrottleRegenMaxValue	0		//where Regen is at maximum (1/10 of percent)
-#define ThrottleFwdValue		175		//where does forward motion start
-#define ThrottleMapValue		665		//Where is the 1/2 way point for throttle
+#define ThrottleRegenMinValue	3		//where does Regen stop (1/10 of percent)
+#define ThrottleRegenMaxValue	27		//where Regen is at maximum (1/10 of percent)
+#define ThrottleFwdValue		300		//where does forward motion start
+#define ThrottleMapValue		750		//Where is the 1/2 way point for throttle
 #define ThrottleMinRegenValue	0		//how many percent of full power to use at minimal regen
-#define ThrottleMaxRegenValue	0		//how many percent of full power to use at maximum regen
+#define ThrottleMaxRegenValue	50		//how many percent of full power to use at maximum regen
 #define ThrottleCreepValue		0		//how many percent of full power to use at creep
 #define ThrottleMaxErrValue		150		//tenths of percentage allowable deviation between pedals
-#define Throttle1MinValue		180		//Value ADC reads when pedal is up
-#define Throttle1MaxValue		930		//Value ADC reads when pedal fully depressed
-#define Throttle2MinValue		360		//Value ADC reads when pedal is up
-#define Throttle2MaxValue		1900	//Value ADC reads when pedal fully depressed
+#define Throttle1MinValue		95		//Value ADC reads when pedal is up
+#define Throttle1MaxValue		3150		//Value ADC reads when pedal fully depressed
+#define Throttle2MinValue		0		//Value ADC reads when pedal is up
+#define Throttle2MaxValue		0	//Value ADC reads when pedal fully depressed
 #define BrakeMinValue			100		//Value ADC reads when brake is not pressed
-#define BrakeMaxValue			500		//Value ADC reads when brake is pushed all of the way down
-#define BrakeMinRegenValue		20		//percent of full power to use for brake regen (min)
-#define BrakeMaxRegenValue		40		//percent of full power to use for brake regen (max)
+#define BrakeMaxValue			3200		//Value ADC reads when brake is pushed all of the way down
+#define BrakeMinRegenValue		0		//percent of full power to use for brake regen (min)
+#define BrakeMaxRegenValue		50		//percent of full power to use for brake regen (max)
 #define BrakeADC				2       //which ADC pin to use
 
 
-#define MaxTorqueValue		2000 //in tenths of a Nm
+#define MaxTorqueValue		3000 //in tenths of a Nm
 #define	MaxRPMValue			6000 //DMOC will ignore this but we can use it ourselves for limiting
 #define RPMSlewRateValue	10000 // rpm/sec the requested speed should change (speed mode)
 #define TorqueSlewRateValue	6000 // 0.1Nm/sec the requested torque output should change (torque mode)
 #define KilowattHrs			11000 //not currently used
-#define PrechargeR			3000 //a stupidly high resistance just to make sure we precharge long enough
+#define PrechargeR			3000 //millliseconds precharge
 #define NominalVolt			3300 //a reasonable figure for a lithium cell pack driving the DMOC (in tenths of a volt)
 #define PrechargeRelay		4 //third output
 #define MainContactorRelay	5 //fourth output
 #define ReversePercent		50
 #define CoolFan				255  //output to use for cooling fan
-#define CoolOn				70 //temperature (in C) to turn on cooling fan
+#define CoolOn				40 //temperature (in C) to turn on cooling fan
 #define BrakeLight			255 //temperature to turn it off
-#define CoolOff				60 //temperature to turn it off
+#define CoolOff				35 //temperature to turn it off
 #define RevLight			255 //temperature to turn it off
 #define EnableIn			255//temperature to turn it off
 #define ReverseIn			255 //temperature to turn it off

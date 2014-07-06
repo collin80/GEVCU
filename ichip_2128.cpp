@@ -236,10 +236,15 @@ void ICHIPWIFI::handleTick() {
 			}
 			if ( paramCache.speedActual != motorController->getSpeedActual() ) {
 				paramCache.speedActual = motorController->getSpeedActual();
+                                if (paramCache.speedActual<0) paramCache.speedActual=0;
+                                if (paramCache.speedActual>10000) paramCache.speedActual=10000;
 				setParam(Constants::speedActual, paramCache.speedActual);
 			}
 			if ( paramCache.dcVoltage != motorController->getDcVoltage() ) {
 				paramCache.dcVoltage = motorController->getDcVoltage();
+                                if(paramCache.dcVoltage<1000) paramCache.dcVoltage=1000;  //Limits of the gage display
+                                 if(paramCache.dcVoltage>4500) paramCache.dcVoltage=4500;
+                               
 				setParam(Constants::dcVoltage, paramCache.dcVoltage / 10.0f, 1);
 			}
 			if ( paramCache.dcCurrent != motorController->getDcCurrent() ) {
@@ -273,7 +278,9 @@ void ICHIPWIFI::handleTick() {
 
 			//if ( paramCache.kiloWattHours != motorController->getkiloWattHours()/3600000 ) {
 				paramCache.kiloWattHours = motorController->getKiloWattHours()/3600000;
-				setParam(Constants::kiloWattHours, paramCache.kiloWattHours / 10.0f, 1);
+                                if(paramCache.kiloWattHours<0)paramCache.kiloWattHours = 0;
+                                if(paramCache.kiloWattHours>300)paramCache.kiloWattHours = 300;
+                        	setParam(Constants::kiloWattHours, paramCache.kiloWattHours / 10.0f, 1);
 			//}
                        
                         if ( paramCache.nominalVolt != motorController->getnominalVolt()/10 ){
@@ -370,6 +377,8 @@ void ICHIPWIFI::handleTick() {
 			}
 			//if ( paramCache.mechPower != motorController->getMechanicalPower() ) {
 				paramCache.mechPower = motorController->getMechanicalPower();
+                                if (paramCache.mechPower<-250)paramCache.mechPower=-250;
+                                if (paramCache.mechPower>1500)paramCache.mechPower=1500;
 				setParam(Constants::mechPower, paramCache.mechPower / 10.0f, 1);
 			//}
 		}
