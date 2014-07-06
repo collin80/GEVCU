@@ -129,7 +129,9 @@ void MotorController::handleTick() {
             coolingcheck();
             checkBrakeLight();
             checkReverseLight();
+            
             checkEnableInput();
+            checkReverseInput();
             prefsHandler->write(EEMC_KILOWATTHRS, kiloWattHours);
 	    prefsHandler->saveChecksum();
 	}
@@ -143,7 +145,7 @@ void MotorController::checkPrecharge()
         int contactor=getmainContactorRelay();
         int relay=getprechargeRelay();
           
-        if (relay>7 || contactor>7)  //We don't have a contactor and a precharge relay
+        if (relay>7 || relay<0 || contactor<0 || contactor>7)  //We don't have a contactor and a precharge relay
           {
             donePrecharge=1;         //Let's end this charade.
             return;
@@ -183,7 +185,7 @@ void MotorController::coolingcheck()
  {
 	int coolfan=getCoolFan();
 	            
-	if(coolfan<8)    //We have 8 outputs 0-7 If they entered something else, there is no point in doing this check.
+	if(coolfan>=0 and coolfan<8)    //We have 8 outputs 0-7 If they entered something else, there is no point in doing this check.
 	  {          
 	    if(temperatureInverter/10>getCoolOn())
 	      {
@@ -213,7 +215,7 @@ void MotorController::coolingcheck()
 void MotorController::checkBrakeLight()
 {
  
-  if(getBrakeLight()<8)  //If we have one configured ie NOT 255 but a valid output
+  if(getBrakeLight() >=0 && getBrakeLight()<8)  //If we have one configured ie NOT 255 but a valid output
   {
    int brakelight=getBrakeLight();  //Get brakelight output once
  
@@ -235,7 +237,7 @@ void MotorController::checkBrakeLight()
 void MotorController::checkReverseLight()
 {
   
-  if(getRevLight()<8) //255 means none selected.  We don't have a reverselight output configured.
+  if(getRevLight() >=0 && getRevLight() <8) //255 means none selected.  We don't have a reverselight output configured.
   
   {
    int reverseLight=getRevLight();    //Get our reverse light output into local variable once
@@ -257,11 +259,13 @@ void MotorController::checkReverseLight()
 void MotorController:: checkEnableInput()
 {
   int enableinput=getEnableIn();
-   Logger::info("ENABLE INPUT:%i", enableinput);
+  // Logger::info("ENABLE INPUT:%i", enableinput);
                
-  if(enableinput<4) //Do we even have an enable input configured ie NOT 255.
+  if(enableinput >= 0 && enableinput<4) //Do we even have an enable input configured ie NOT 255.
   
     {
+    //    Logger::info("ENABLE ACTIVE....");
+ 
       if(getDigital(enableinput)){ setOpState(ENABLE); } //If it's ON let's set our opstate to ENABLE
         else {setOpState(DISABLED);}           //If it's off, lets set DISABLED.  These two could just as easily be reversed.
       if(testenableinput)setOpState(ENABLE);  
@@ -272,10 +276,14 @@ void MotorController:: checkEnableInput()
 //IF we have a reverse input configured, this will set our selected gear to REVERSE any time the input is true, DRIVE if not
 void MotorController:: checkReverseInput()
 {
-  if(getReverseIn()<4)  //If we don't have a Reverse Input, do nothing
+ //  Logger::info("REVERSE INPUT:%i", getReverseIn());
+  
+  if(getReverseIn() >= 0 && getReverseIn()<4)  //If we don't have a Reverse Input, do nothing
     {
-      if(getDigital(getReverseIn())) setSelectedGear(REVERSE);  //If it's ON let's setour opstate to ENABLE
-        else setSelectedGear(DRIVE);                    //If it's off, lets set DISABLED.  These two could just as easily be reversed.
+ //      Logger::info("REVERSE ACTIVE....");
+ 
+      if(getDigital(getReverseIn())) {setSelectedGear(REVERSE); } //If it's ON let's setour opstate to ENABLE
+        else {setSelectedGear(DRIVE); }                   //If it's off, lets set DISABLED.  These two could just as easily be reversed.
     }
   
 }
