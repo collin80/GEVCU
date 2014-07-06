@@ -62,7 +62,7 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #define CFG_TICK_INTERVAL_CAN_THROTTLE				40000
 #define CFG_TICK_INTERVAL_MOTOR_CONTROLLER			40000
 #define CFG_TICK_INTERVAL_MOTOR_CONTROLLER_DMOC		40000
-#define CFG_TICK_INTERVAL_MOTOR_CONTROLLER_CODAUQM		10000
+#define CFG_TICK_INTERVAL_MOTOR_CONTROLLER_CODAUQM	10000
 #define CFG_TICK_INTERVAL_MOTOR_CONTROLLER_BRUSA	20000
 #define CFG_TICK_INTERVAL_MEM_CACHE					40000
 #define CFG_TICK_INTERVAL_BMS_THINK					500000
@@ -122,14 +122,17 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #define KilowattHrs			11000 //not currently used
 #define PrechargeR			3000 //a stupidly high resistance just to make sure we precharge long enough
 #define NominalVolt			3300 //a reasonable figure for a lithium cell pack driving the DMOC (in tenths of a volt)
-#define PrechargeRelay		0 //third output
-#define MainContactorRelay	1 //fourth output
+#define PrechargeRelay		4 //third output
+#define MainContactorRelay	5 //fourth output
 #define ReversePercent		50
-#define CoolFan				7  //output to use for cooling fan
+#define CoolFan				255  //output to use for cooling fan
 #define CoolOn				70 //temperature (in C) to turn on cooling fan
+#define BrakeLight			255 //temperature to turn it off
 #define CoolOff				60 //temperature to turn it off
-
-#define MaxRegenWatts	20000 //in actual watts, there is no scale here
+#define RevLight			255 //temperature to turn it off
+#define EnableIn			255//temperature to turn it off
+#define ReverseIn			255 //temperature to turn it off
+#define MaxRegenWatts	40000 //in actual watts, there is no scale here
 #define MaxAccelWatts	150000
 
 

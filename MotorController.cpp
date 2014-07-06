@@ -48,7 +48,7 @@ MotorController::MotorController() : Device() {
 	speedRequested = 0;
 	speedActual = 0;
 	torqueRequested = 0;
-	torqueActual = 0;
+	torqueActual = 10;
 	torqueAvailable = 0;
 	mechanicalPower = 0;
 
@@ -108,117 +108,186 @@ void MotorController::handleTick() {
 	if (brake && brake->getLevel() < -10 && brake->getLevel() < accelerator->getLevel()) //if the brake has been pressed it overrides the accelerator.
 		throttleRequested = brake->getLevel();
 
-	if (!donePrecharge && config->prechargeR>0) 
-	{
-		if (millis()> config->prechargeR) //Check milliseconds since startup against our entered delay in milliseconds
-		{           
-			donePrecharge=1; //Time's up.  Let's don't do ANY of this on future ticks.
-			if (config->mainContactorRelay!=255) //If we HAVE a main contactor, turn it on.
-			{
-			setOutput(config->mainContactorRelay, 1); //Main contactor on
-			statusBitfield2 |=1 << 17; //set bit to turn on MAIN CONTACTOR annunciator
-			statusBitfield1 |=1 << config->mainContactorRelay;//setbit to Turn on main contactor output annunciator
-			//I've commented the below out to leave the precharge relay ON after precharge..see user guide for why.
-            //setOutput(config->prechargeRelay, 0); //ok.  Turn off precharge output
-            // statusBitfield2 &= ~(1 << 19); //clearbit to turn off PRECHARGE annunciator
-            //statusBitfield1 &= ~(1<< config->prechargeRelay); //clear bit to turn off PRECHARGE output annunciator
-            Logger::console("Precharge sequence complete after %i milliseconds", config->prechargeR);
-            Logger::console("MAIN CONTACTOR ENABLED...DOUT0:%d, DOUT1:%d, DOUT2:%d, DOUT3:%d,DOUT4:%d, DOUT5:%d, DOUT6:%d, DOUT7:%d", getOutput(0), getOutput(1), getOutput(2), getOutput(3),getOutput(4), getOutput(5), getOutput(6), getOutput(7));
-            }
-        }
-        else  //If time is not up and maybe this is our first tick, let's set the precharge relay IF we have one
-             //and clear the main contactor IF we have one.We'll set PRELAY so we only have to do this once.
-        {
-			if (config->prechargeRelay==255 || config->mainContactorRelay==255){donePrecharge=1;}
-			if(!prelay)
-            {
-				if (config->prechargeRelay!=255) 
-                {
-					setOutput(config->prechargeRelay, 1); //ok.  Turn on precharge
-                    statusBitfield2 |=1 << 19; //set bit to turn on  PRECHARGE RELAY annunciator
-                    statusBitfield1 |=1 << config->prechargeRelay; //set bit to turn ON precharge OUTPUT annunciator
-                    throttleRequested = 0; //Keep throttle at zero during precharge
-                    prelay=true;
-                }
-                if (config->mainContactorRelay!=255) 
-                {
-					setOutput(config->mainContactorRelay, 0); //Main contactor off
-                    statusBitfield2 &= ~(1 << 17); //clear bitTurn off MAIN CONTACTOR annunciator
-                    statusBitfield1 &= ~(1 << config->mainContactorRelay);//clear bitTurn off main contactor output annunciator
-                    prelay=true;
-                }
-            }
-        }
-    }
+	
 	//Logger::debug("Throttle: %d", throttleRequested);
 	if(skipcounter++ > 30)    //As how fast we turn on cooling is very low priority, we only check cooling every 24th lap or about once per second
-	{
+	{  
+            skipcounter=0; //Reset our laptimer
+            
 		if(config->prechargeR==12345)
-        {
-			dcVoltage--;  
-	        if (torqueActual < -500)
-				{torqueActual=20;}
-            else {torqueActual=-650;}
-		}	
-//      Logger::console("New voltage: %d", dcVoltage);
-//		Logger::console("Nominal voltage: %d", config->nominalVolt);
-//		Logger::console("KiloWattHours: %d", kiloWattHours);
-        coolingcheck();
-        prefsHandler->write(EEMC_KILOWATTHRS, kiloWattHours);
-		prefsHandler->saveChecksum();
+                  {
+		    dcVoltage--;  
+	            if (torqueActual < -500){torqueActual=20;}
+                      else {torqueActual=-650;}
+                    if (temperatureInverter < config->coolOn*10){temperatureInverter=(config->coolOn+2)*10;}
+                      else {temperatureInverter=(config->coolOff-2)*10;}
+                    if (selectedGear!=REVERSE){selectedGear=REVERSE;}
+                      else{selectedGear=DRIVE;}
+		  }	
+            if (!donePrecharge)checkPrecharge();
+            coolingcheck();
+            checkBrakeLight();
+            checkReverseLight();
+            checkEnableInput();
+            prefsHandler->write(EEMC_KILOWATTHRS, kiloWattHours);
+	    prefsHandler->saveChecksum();
 	}
+}
+void MotorController::checkPrecharge()
+{
+  	
+        int prechargetime=getprechargeR();
+        int contactor=getmainContactorRelay();
+        int relay=getprechargeRelay();
+          
+        if (relay>7 || contactor>7)  //We don't have a contactor and a precharge relay
+          {
+            donePrecharge=1;         //Let's end this charade.
+            return;
+          }
+          
+	  if (millis()< prechargetime) //Check milliseconds since startup against our entered delay in milliseconds
+	    {           
+              if(!prelay)
+                {
+	          setOutput(contactor, 0); //Make sure main contactor off
+                  statusBitfield2 &= ~(1 << 17); //clear bitTurn off MAIN CONTACTOR annunciator
+                  statusBitfield1 &= ~(1 << contactor);//clear bitTurn off main contactor output annunciator
+                  setOutput(relay, 1); //ok.  Turn on precharge relay
+                  statusBitfield2 |=1 << 19; //set bit to turn on  PRECHARGE RELAY annunciator
+                  statusBitfield1 |=1 << relay; //set bit to turn ON precharge OUTPUT annunciator
+                  throttleRequested = 0; //Keep throttle at zero during precharge
+                  prelay=true;
+                  Logger::info("Starting precharge sequence - wait %i milliseconds", prechargetime);
+              
+                }
+            } 
+            else
+              {
+	        setOutput(contactor, 1); //Main contactor on
+	        statusBitfield2 |=1 << 17; //set bit to turn on MAIN CONTACTOR annunciator
+	        statusBitfield1 |=1 << contactor;//setbit to Turn on main contactor output annunciator
+		Logger::info("Precharge sequence complete after %i milliseconds", prechargetime);
+                Logger::info("MAIN CONTACTOR ENABLED...DOUT0:%d, DOUT1:%d, DOUT2:%d, DOUT3:%d,DOUT4:%d, DOUT5:%d, DOUT6:%d, DOUT7:%d", getOutput(0), getOutput(1), getOutput(2), getOutput(3),getOutput(4), getOutput(5), getOutput(6), getOutput(7));
+                donePrecharge=1; //Time's up.  Let's don't do ANY of this on future ticks.
+	       
+            }
 }
 
 //This routine is used to set an optional cooling fan output to on if the current temperature 
 //exceeds a specified value.  Annunciators are set on website to indicate status.
 void MotorController::coolingcheck()
  {
-	skipcounter=0; //Reset our laptimer
-	MotorControllerConfiguration *config = (MotorControllerConfiguration *)getConfiguration();
-                  
-	if(config->coolFan<8)    //We have 8 outputs 0-7 If they entered something else, there is no point in doing this check.
-	{          
-	    if(temperatureInverter/10>config->coolOn)
-	    {
-			if(!coolflag)
-			{
-				coolflag=1;
-	            setOutput(config->coolFan, 1); //Turn on cooling fan output
-                statusBitfield1 |=1 << config->coolFan; //set bit to turn on cooling fan output annunciator
-                statusBitfield3 |=1 << 9; //Set bit to turn on OVERTEMP annunciator    
-			} 
-		}
+	int coolfan=getCoolFan();
+	            
+	if(coolfan<8)    //We have 8 outputs 0-7 If they entered something else, there is no point in doing this check.
+	  {          
+	    if(temperatureInverter/10>getCoolOn())
+	      {
+		if(!coolflag)
+		  {
+		    coolflag=1;
+	            setOutput(coolfan, 1); //Turn on cooling fan output
+                    statusBitfield1 |=1 << coolfan; //set bit to turn on cooling fan output annunciator
+                    statusBitfield3 |=1 << 9; //Set bit to turn on OVERTEMP annunciator    
+		  } 
+	      }
 
-	    if(temperatureInverter/10<config->coolOff)
-	    {
-			if(coolflag)
-			{
-				coolflag=0;
-				setOutput(config->coolFan, 0); //Set cooling fan output off
-                statusBitfield1 &= ~(1 << config->coolFan); //clear bit to turn off cooling fan output annunciator
-                statusBitfield3 &= ~(1 << 9); //clear bit to turn off OVERTEMP annunciator  
-			} 
-		}
-	}
+	    if(temperatureInverter/10<getCoolOff())
+	      {
+		if(coolflag)
+		  {
+		    coolflag=0;
+		    setOutput(coolfan, 0); //Set cooling fan output off
+                    statusBitfield1 &= ~(1 << coolfan); //clear bit to turn off cooling fan output annunciator
+                    statusBitfield3 &= ~(1 << 9); //clear bit to turn off OVERTEMP annunciator  
+		  } 
+	      }
+	  }
  }
 
+void MotorController::checkBrakeLight()
+{
+ 
+  if(getBrakeLight()<8)  //If we have one configured ie NOT 255 but a valid output
+  {
+   int brakelight=getBrakeLight();  //Get brakelight output once
+ 
+   if(getTorqueActual() < -100)  //We only want to turn on brake light if we are have regen of more than 10 newton meters
+       {
+         setOutput(brakelight, 1); //Turn on brake light output
+         statusBitfield1 |=1 << brakelight; //set bit to turn on brake light output annunciator
+       }
+       else
+         {
+           setOutput(brakelight, 0); //Turn off brake light output
+           statusBitfield1 &= ~(1 << brakelight);//clear bit to turn off brake light output annunciator
+         }
+  }
+
+}
+
+
+void MotorController::checkReverseLight()
+{
+  
+  if(getRevLight()<8) //255 means none selected.  We don't have a reverselight output configured.
+  
+  {
+   int reverseLight=getRevLight();    //Get our reverse light output into local variable once
+   if(getSelectedGear()==REVERSE)  //If the selected gear IS reverse
+       {
+         setOutput(reverseLight, 1); //Turn on reverse light output
+         statusBitfield1 |=1 << reverseLight; //set bit to turn on reverse light output annunciator
+       }
+       else
+         {
+           setOutput(reverseLight, 0); //Turn off reverse light output
+           statusBitfield1 &= ~(1 << reverseLight);//clear bit to turn off reverselight annunciator
+         }
+  }
+
+}
+
+
+void MotorController:: checkEnableInput()
+{
+  
+  if(getEnableIn()<4) //Do we even have an enable input configured ie NOT 255.
+    {
+      if(getDigital(getEnableIn())) setOpState(ENABLE);  //If it's ON let's setour opstate to ENABLE
+        else setOpState(DISABLED);                    //If it's off, lets set DISABLED.  These two could just as easily be reversed.
+    }
+  
+}
+
+void MotorController:: checkReverseInput()
+{
+  if(getReverseIn()<4)  //If we don't have a Reverse Input, do nothing
+    {
+      if(getDigital(getReverseIn())) setSelectedGear(REVERSE);  //If it's ON let's setour opstate to ENABLE
+        else setSelectedGear(DRIVE);                    //If it's off, lets set DISABLED.  These two could just as easily be reversed.
+    }
+  
+}
 
 
 void MotorController::setup() {
+  
 	MotorControllerConfiguration *config = (MotorControllerConfiguration *)getConfiguration();
 	statusBitfield1 = 0;
 	statusBitfield2 = 0;
 	statusBitfield3 = 0;
 	statusBitfield4 = 0;
-    prefsHandler->read(EEMC_KILOWATTHRS, &kiloWattHours); //retrieve kilowatt hours from EEPROM
-    nominalVolts=config->nominalVolt;
+        prefsHandler->read(EEMC_KILOWATTHRS, &kiloWattHours); //retrieve kilowatt hours from EEPROM
+        nominalVolts=config->nominalVolt;
 
-    if(config->prechargeR=12345)
-    {
-		torqueActual=2;
+    if(config->prechargeR==12345)
+      {  
+	torqueActual=2;
         dcCurrent=1501;
         dcVoltage=3320;
-    }
+      }
 
     Logger::console("PRELAY=%i - Current PreCharge Relay output", config->prechargeRelay);
     Logger::console("MRELAY=%i - Current Main Contactor Relay output", config->mainContactorRelay);
@@ -228,7 +297,7 @@ void MotorController::setup() {
     Logger::console("PRECHARGING...DOUT0:%d, DOUT1:%d, DOUT2:%d, DOUT3:%d,DOUT4:%d, DOUT5:%d, DOUT6:%d, DOUT7:%d", getOutput(0), getOutput(1), getOutput(2), getOutput(3),getOutput(4), getOutput(5), getOutput(6), getOutput(7));
     coolflag=false;
 
-	Device::setup();
+    Device::setup();
 }
 
 bool MotorController::isRunning() {
@@ -242,7 +311,13 @@ bool MotorController::isFaulted() {
 bool MotorController::isWarning() {
 	return warning;
 }
+void MotorController::setOpState(OperationState op) {
+	operationState = op;
+}
 
+MotorController::OperationState MotorController::getOpState() {
+	return operationState;
+}
 MotorController::PowerMode MotorController::getPowerMode() {
 	return powerMode;
 }
@@ -263,6 +338,22 @@ int8_t MotorController::getCoolOn() {
 int8_t MotorController::getCoolOff() {
     MotorControllerConfiguration *config = (MotorControllerConfiguration *)getConfiguration();
 	return config->coolOff;
+}
+int8_t MotorController::getBrakeLight() {
+    MotorControllerConfiguration *config = (MotorControllerConfiguration *)getConfiguration();
+	return config->brakeLight;
+}
+int8_t MotorController::getRevLight() {
+    MotorControllerConfiguration *config = (MotorControllerConfiguration *)getConfiguration();
+	return config->revLight;
+}
+int8_t MotorController::getEnableIn() {
+    MotorControllerConfiguration *config = (MotorControllerConfiguration *)getConfiguration();
+	return config->enableIn;
+}
+int8_t MotorController::getReverseIn() {
+    MotorControllerConfiguration *config = (MotorControllerConfiguration *)getConfiguration();
+	return config->reverseIn;
 }
 
 int16_t MotorController::getprechargeR() {
@@ -305,6 +396,10 @@ int16_t MotorController::getTorqueActual() {
 MotorController::Gears MotorController::getSelectedGear() {
 	return selectedGear;
 }
+void MotorController::setSelectedGear(Gears gear) {
+	selectedGear=gear;
+}
+
 
 int16_t MotorController::getTorqueAvailable() {
 	return torqueAvailable;
@@ -393,6 +488,11 @@ void MotorController::loadConfiguration() {
 		prefsHandler->read(EEMC_COOL_FAN, &config->coolFan);
         prefsHandler->read(EEMC_COOL_ON, &config->coolOn);
         prefsHandler->read(EEMC_COOL_OFF, &config->coolOff);
+        prefsHandler->read(EEMC_BRAKE_LIGHT, &config->brakeLight);
+		prefsHandler->read(EEMC_REV_LIGHT, &config->revLight);
+		prefsHandler->read(EEMC_ENABLE_IN, &config->enableIn);
+		prefsHandler->read(EEMC_REVERSE_IN, &config->reverseIn);
+
 	}
 	else { //checksum invalid. Reinitialize values and store to EEPROM
 		config->speedMax = MaxRPMValue;
@@ -408,6 +508,11 @@ void MotorController::loadConfiguration() {
 		config->coolFan = CoolFan;
 		config->coolOn = CoolOn;
 		config->coolOff = CoolOff;
+		config->brakeLight = BrakeLight;
+		config->revLight = RevLight;
+		config->enableIn = EnableIn;
+		config->reverseIn = ReverseIn;
+
 	}
 	Logger::info("MaxTorque: %i MaxRPM: %i", config->torqueMax, config->speedMax);
 }
@@ -430,6 +535,12 @@ void MotorController::saveConfiguration() {
 	prefsHandler->write(EEMC_COOL_FAN, config->coolFan);
 	prefsHandler->write(EEMC_COOL_ON, config->coolOn);
 	prefsHandler->write(EEMC_COOL_OFF, config->coolOff);
+	prefsHandler->write(EEMC_BRAKE_LIGHT, config->brakeLight);
+	prefsHandler->write(EEMC_REV_LIGHT, config->revLight);
+	prefsHandler->write(EEMC_ENABLE_IN, config->enableIn);
+	prefsHandler->write(EEMC_REVERSE_IN, config->reverseIn);
+
+
 	prefsHandler->saveChecksum();
 	loadConfiguration();
 }
