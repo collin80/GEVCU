@@ -81,6 +81,7 @@ private:
 	byte alive;
 	int activityCount;
         int16_t torqueCommand;
+        void timestamp();
 
 	void sendCmd1();
 	void sendCmd2();

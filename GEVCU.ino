@@ -211,7 +211,7 @@ void initializeDevices() {
 }
 
 void setup() {
-        delay(10000);
+        delay(5000);
 
 	pinMode(BLINK_LED, OUTPUT);
 	digitalWrite(BLINK_LED, LOW);

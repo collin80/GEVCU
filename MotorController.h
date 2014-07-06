@@ -147,6 +147,11 @@ public:
 	uint32_t getStatusBitfield3();
 	uint32_t getStatusBitfield4();
 
+        int milliseconds  ;
+        int seconds;
+        int minutes;
+        int hours ;
+
 	
 
 protected:
@@ -155,6 +160,7 @@ protected:
 	bool faulted; // indicates a error condition is present in the controller
 	bool warning; // indicates a warning condition is present in the controller
 	bool coolflag;
+        bool testenableinput;
 
 	Gears selectedGear;
 

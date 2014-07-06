@@ -45,6 +45,7 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 extern bool runThrottle; //TODO: remove use of global variables !
 
+
 DmocMotorController::DmocMotorController() : MotorController() {
 	prefsHandler = new PrefHandler(DMOC645);
 	step = SPEED_TORQUE;
@@ -165,20 +166,14 @@ void DmocMotorController::handleTick() {
 		if (actualState == DISABLED && activityCount > 40) {
 			setOpState(ENABLE);
 			setGear(DRIVE);
-		}
-	}
+		    }
+	  }
 	else {
 		setGear(NEUTRAL);
 	}
 
-	//TODO: this check somehow duplicates functionality in MotorController !
-	//if the first digital input is high we'll enable drive so we can go!
-	//if (getDigital(0)) {
-		//setGear(DRIVE);
-		//runThrottle = true;
-		setPowerMode(modeTorque);
-	//}
-
+	setPowerMode(modeTorque);
+	
 
 	//if (online == 1) { //only send out commands if the controller is really there.
 	step = CHAL_RESP;
@@ -282,6 +277,10 @@ void DmocMotorController::sendCmd2() {
     //Logger::debug("requested torque: %i",(((long) throttleRequested * (long) maxTorque) / 1000L));
 
 	CanHandler::getInstanceEV()->sendFrame(output);
+        timestamp();
+        Logger::debug("Torque command: MSB: %X  LSB: %X  %X  %X  %X  %X  %X  CRC: %X  %d:%d:%d.%d",output.data.bytes[0],
+output.data.bytes[1],output.data.bytes[2],output.data.bytes[3],output.data.bytes[4],output.data.bytes[5],output.data.bytes[6],output.data.bytes[7], hours, minutes, seconds, milliseconds);
+ 
 }
 
 //Power limits plus setting ambient temp and whether to cool power train or go into limp mode
@@ -399,4 +398,17 @@ void DmocMotorController::loadConfiguration() {
 
 void DmocMotorController::saveConfiguration() {
 	MotorController::saveConfiguration();
+}
+
+void DmocMotorController::timestamp()
+{
+   milliseconds = (int) (millis()/1) %1000 ;
+   seconds = (int) (millis() / 1000) % 60 ;
+    minutes = (int) ((millis() / (1000*60)) % 60);
+    hours   = (int) ((millis() / (1000*60*60)) % 24);
+    // char buffer[9]; 
+    //sprintf(buffer,"%02d:%02d:%02d.%03d", hours, minutes, seconds, milliseconds);
+   // Serial<<buffer<<"\n";
+    
+
 }

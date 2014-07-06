@@ -34,17 +34,14 @@ template<class T> inline Print &operator <<(Print &obj, T arg) { obj.print(arg);
 
 extern bool runThrottle; 
 const uint8_t swizzleTable[] = { 0xAA, 0x7F, 0xFE, 0x29, 0x52, 0xA4, 0x9D, 0xEF, 0xB, 0x16, 0x2C, 0x58, 0xB0, 0x60, 0xC0, 1 };
-int milliseconds  ;
-int seconds;
-int minutes;
-int hours ;
+
 
 	
 CodaMotorController::CodaMotorController() : MotorController() 
 {
 
     prefsHandler = new PrefHandler(CODAUQM);
-    operationState = DISABLED;
+    operationState = ENABLE;
     online = 0;
     activityCount = 0;
     sequence=0;
@@ -71,7 +68,8 @@ void CodaMotorController::setup()
 	TickHandler::getInstance()->attach(this, CFG_TICK_INTERVAL_MOTOR_CONTROLLER_CODAUQM);
         if(dcVoltage<1000){dcVoltage=1000;};  //Lowest value we can display on dashboard
        // dcCurrent=0;
-       setOpState(ENABLE);
+       operationState=ENABLE;
+       //setOpState(ENABLE);
        selectedGear=DRIVE;
 
         sendCmd2();  //CAN watchdog reset command
@@ -187,8 +185,9 @@ void CodaMotorController::sendCmd1()
 	output.extended = 0; //standard frame
 	output.rtr = 0;
 	output.data.bytes[0] = 0x00; //First byte is always zero.
+      
 	
-      if(operationState==ENABLE && selectedGear != NEUTRAL)
+      if(operationState==ENABLE)
         	{ 
         	  output.data.bytes[1] = 0x80; //1000 0000
         	}
