@@ -44,8 +44,7 @@ void SerialConsole::init() {
 	//State variables for serial console
 	ptrBuffer = 0;
 	state = STATE_ROOT_MENU;
-        DeviceManager::getInstance()->sendMessage(DEVICE_WIFI, ICHIP2128, MSG_CONFIG_CHANGE, NULL);
-
+      
 }
 
 void SerialConsole::loop() {

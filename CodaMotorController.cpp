@@ -61,18 +61,16 @@ void CodaMotorController::setup()
 	MotorController::setup(); // run the parent class version of this function
 
 	// register ourselves as observer of all 0x20x can frames for UQM
-    CanHandler::getInstanceEV()->attach(this, 0x200, 0x7f0, false);
+       CanHandler::getInstanceEV()->attach(this, 0x200, 0x7f0, false);
      
-    running=true;
-
-	TickHandler::getInstance()->attach(this, CFG_TICK_INTERVAL_MOTOR_CONTROLLER_CODAUQM);
-        if(dcVoltage<1000){dcVoltage=1000;};  //Lowest value we can display on dashboard
-       // dcCurrent=0;
+    
+       TickHandler::getInstance()->attach(this, CFG_TICK_INTERVAL_MOTOR_CONTROLLER_CODAUQM);
+      
        operationState=ENABLE;
-       //setOpState(ENABLE);
        selectedGear=DRIVE;
+       running=true;
 
-        sendCmd2();  //CAN watchdog reset command
+       // sendCmd2();  //CAN watchdog reset command
 
 }
 

@@ -211,7 +211,7 @@ void initializeDevices() {
 }
 
 void setup() {
-        delay(5000);
+        //delay(5000);
 
 	pinMode(BLINK_LED, OUTPUT);
 	digitalWrite(BLINK_LED, LOW);
@@ -265,6 +265,7 @@ void setup() {
 	Logger::info("SYSIO init ok");
 
 	initializeDevices();
+       
 
     serialConsole = new SerialConsole(memCache, heartbeat);
         
@@ -273,6 +274,9 @@ void setup() {
 
 	wifiDevice = DeviceManager::getInstance()->getDeviceByID(ICHIP2128);
 	btDevice = DeviceManager::getInstance()->getDeviceByID(ELM327EMU);
+ DeviceManager::getInstance()->sendMessage(DEVICE_WIFI, ICHIP2128, MSG_CONFIG_CHANGE, NULL); //Load configuration 
+        //variables into WiFi Web Configuration screen
+
 
 #ifdef CFG_TIMER_USE_QUEUING
 	//tickHandler->cleanBuffer(); // remove buffered tick events which clogged up already (might not be necessary)
@@ -302,6 +306,7 @@ void loop() {
 
 	//this should still be here. It checks for a flag set during an interrupt
 	sys_io_adc_poll();
+
 }
 
 

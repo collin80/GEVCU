@@ -88,6 +88,7 @@ void ICHIPWIFI::setup() {
 	elmProc = new ELM327Processor();
 
 	TickHandler::getInstance()->attach(this, CFG_TICK_INTERVAL_WIFI);
+
 }
 
 //A version of sendCmd that defaults to SET_PARAM which is what most of the code used to assume.
@@ -150,17 +151,17 @@ void ICHIPWIFI::handleTick() {
 	uint8_t brklt;
 	tickCounter++;
 
-	if (ms < 10000) return; //wait 10 seconds for things to settle before doing a thing
+	if (ms < 1000) return; //wait 10 seconds for things to settle before doing a thing
 
 	// Do a delayed parameter load once about a second after startup
-	if (!didParamLoad && ms > 10000) {
-		loadParameters();
-        Logger::console("Wifi Parameters loaded...");
-        paramCache.bitfield1 = motorController->getStatusBitfield1();
+	if (!didParamLoad && ms > 5000) {
+	    loadParameters();
+                  Logger::console("Wifi Parameters loaded...");
+            paramCache.bitfield1 = motorController->getStatusBitfield1();
 		setParam(Constants::bitfield1, paramCache.bitfield1);
 	    paramCache.bitfield2 = motorController->getStatusBitfield2();
 	    setParam(Constants::bitfield2, paramCache.bitfield2);
-		didParamLoad = true;
+	    didParamLoad = true;
 	}
 
 	//At 2 seconds start up a listening socket for OBDII
@@ -212,6 +213,7 @@ void ICHIPWIFI::handleTick() {
 		if (accelerator) {
 			if ( paramCache.throttle != accelerator->getLevel() ) {
 				paramCache.throttle = accelerator->getLevel();
+                                if (paramCache.throttle<-600){paramCache.throttle=-600;}
 				setParam(Constants::throttle, paramCache.throttle / 10.0f, 1);
 			}
 		}
