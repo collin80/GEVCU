@@ -253,7 +253,9 @@ void DmocMotorController::sendCmd2() {
 			if (selectedGear == REVERSE)
 				torqueRequested = (((long) throttleRequested * (long) config->torqueMax) / 1000L);
 		}
-                torqueCommand+=torqueRequested;  //Add torqueRequested to offset
+                  
+                if(speedActual<config->speedMax){torqueCommand+=torqueRequested;} //If actual rpm is less than max rpm, add torque to offset
+                                                                                  // else torque is left set to zero.
 		output.data.bytes[0] = (torqueCommand & 0xFF00) >> 8;
 		output.data.bytes[1] = (torqueCommand & 0x00FF);
 		output.data.bytes[2] = output.data.bytes[0];

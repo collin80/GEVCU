@@ -1,8 +1,11 @@
 /*
  * CodaMotorController.cpp
  *
- * CAN Interface to the Coda flavoredUQM Powerphase 100 inverter - Handles sending of commands and reception 
- * of status frames to drive the inverter and thus motor.  Endianess is configurable in the firmware inside the UQM inverter.  This object module * uses little endian format - the least significant byte is the first in order with the MSB following.
+ * CAN Interface to the Coda flavored UQM Powerphase 100 inverter - 
+   Handles sending of commands and reception of status frames to drive
+   the inverter and thus motor.  Endianess is configurable in the firmware 
+   inside the UQM inverter.  This object module * uses little endian format 
+   - the least significant byte is the first in order with the MSB following.
  *
 Copyright (c) 2014 Jack Rickard
 
@@ -92,7 +95,7 @@ void CodaMotorController::handleCanFrame(CAN_FRAME *frame)
               dcVoltage = (((frame->data.bytes[3] * 256) + frame->data.bytes[2])-32128);
                 if(dcVoltage<1000){dcVoltage=1000;}//Lowest value we can display on dashboard
 	      dcCurrent = (((frame->data.bytes[5] * 256) + frame->data.bytes[4])-32128);
-              speedActual = (((frame->data.bytes[7] * 256) + frame->data.bytes[6])-32128)/2;           
+              speedActual = (((frame->data.bytes[7] * 256) + frame->data.bytes[6])-32128)/2;   
               Logger::debug("UQM Actual Torque: %d DC Voltage: %d Amps: %d RPM: %d", torqueActual/10,dcVoltage/10,dcCurrent/10,speedActual);
 	      break;
 
@@ -208,11 +211,12 @@ void CodaMotorController::sendCmd1()
 		output.data.bytes[1] |= sequence; //This should retain left four and add sequence count
 										  //to right four bits.
         //Requested throttle is [-1000, 1000]
-       //Two byte torque request in 0.1NM Can be positive or negative and is 1/2 of the torque desired 
-       //Inverter will deliver TWICE this torque value
+       //Two byte torque request in 0.1NM Can be positive or negative  
+      
+        torqueCommand=32128; //Set our zero offset value
+        torqueRequested = ((throttleRequested * config->torqueMax) / 1000); //Calculate torque command 
+        if(speedActual<config->speedMax){torqueCommand += torqueRequested;} //If actual rpm less than max rpm, add torque command to offset
 
-        torqueRequested = ((throttleRequested * config->torqueMax) / 1000); 
-        torqueCommand = torqueRequested+32128;
         output.data.bytes[3] = (torqueCommand & 0xFF00) >> 8;
         output.data.bytes[2] = (torqueCommand & 0x00FF);
         output.data.bytes[4] = genCodaCRC(output.data.bytes[1], output.data.bytes[2], output.data.bytes[3]);
