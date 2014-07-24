@@ -479,9 +479,21 @@ void SerialConsole::handleConfigCmd() {
 	    }
 		else Logger::console("Invalid cooling OFF temperature. Please enter a value 0 - 200F");
 	} else if (cmdString == String("OUTPUT") && newValue<8) {
-		setOutput(newValue, !getOutput(newValue)); //Toggle output
-        //show our work
-        Logger::console("DOUT0:%d, DOUT1:%d, DOUT2:%d, DOUT3:%d,DOUT4:%d, DOUT5:%d, DOUT6:%d, DOUT7:%d", getOutput(0), getOutput(1), getOutput(2), getOutput(3), getOutput(4), getOutput(5), getOutput(6), getOutput(7));
+                int outie = getOutput(newValue);
+                Logger::console("DOUT%d,  STATE: %d",newValue, outie);
+                if(outie)
+                  {
+                    setOutput(newValue,0);
+                    motorController->statusBitfield1 &= ~(1 << newValue);//Clear
+                  }
+                   else
+                     {
+                       setOutput(newValue,1);
+                        motorController->statusBitfield1 |=1 << newValue;//setbit to Turn on annunciator
+		      }
+                  
+             
+        Logger::console("DOUT0:%d, DOUT1:%d, DOUT2:%d, DOUT3:%d, DOUT4:%d, DOUT5:%d, DOUT6:%d, DOUT7:%d", getOutput(0), getOutput(1), getOutput(2), getOutput(3), getOutput(4), getOutput(5), getOutput(6), getOutput(7));
 	} else {
 		Logger::console("Unknown command");
 		updateWifi = false;

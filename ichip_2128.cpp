@@ -141,7 +141,7 @@ void ICHIPWIFI::sendToSocket(int socket, String data) {
  */
 //TODO: See the processing function below for a more detailed explanation - can't send so many setParam commands in a row
 void ICHIPWIFI::handleTick() {
-	MotorController* motorController = DeviceManager::getInstance()->getMotorController();
+        MotorController* motorController = DeviceManager::getInstance()->getMotorController();
 	Throttle *accelerator = DeviceManager::getInstance()->getAccelerator();
 	Throttle *brake = DeviceManager::getInstance()->getBrake();
 	static int pollListening = 0;

@@ -84,6 +84,8 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include "Sys_Messages.h"
 #include "DeviceTypes.h"
 #include "ELM327Processor.h"
+//#include "sys_io.h"
+
 
 extern PrefHandler *sysPrefs;
 

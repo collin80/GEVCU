@@ -75,43 +75,41 @@ DeviceType MotorController::getType() {
 
 void MotorController::handleTick() {
 
-  	MotorControllerConfiguration *config = (MotorControllerConfiguration *)getConfiguration();
-
-    //Initializing annunciator panel
-    // ready=0;
-     //running=0;
-     //warning=0;
-     //faulted=0;
+      MotorControllerConfiguration *config = (MotorControllerConfiguration *)getConfiguration();
+     
+    //Set status annunciators
      if(ready) statusBitfield1 |=1 << 15;else statusBitfield1 &= ~(1 <<15);
      if(running) statusBitfield1 |=1 << 14;else statusBitfield1 &= ~(1 <<14);
      if(warning) statusBitfield1 |=1 << 10;else statusBitfield1 &= ~(1 <<10);
      if(faulted) statusBitfield1 |=1 << 9;else statusBitfield1 &= ~(1 <<9);
      
-     //killowatts and kilowatt hours 
-     
-     mechanicalPower=dcVoltage*dcCurrent/10000; //In kilowatts. DC voltage is x10
-   
-  
-     if (dcVoltage>nominalVolts && torqueActual>0) {kiloWattHours=1;} //If our voltage is higher than fully charged with no regen, zero our kwh meter
-     if (milliStamp>millis()) {milliStamp=0;} //In case millis rolls over to zero while running
-     kiloWattHours+=(millis()-milliStamp)*mechanicalPower;//We assume here that power is at current level since last tick and accrue in kilowattmilliseconds.
-     milliStamp=millis();              //reset our kwms timer for next check
-
+     //Calculate killowatts and kilowatt hours 
+       mechanicalPower=dcVoltage*dcCurrent/10000; //In kilowatts. DC voltage is x10
+       if (dcVoltage>nominalVolts && torqueActual>0) {kiloWattHours=1;} //If our voltage is higher than fully charged with no regen, zero our kwh meter
+       if (milliStamp>millis()) {milliStamp=0;} //In case millis rolls over to zero while running
+       kiloWattHours+=(millis()-milliStamp)*mechanicalPower;//We assume here that power is at current level since last tick and accrue in kilowattmilliseconds.
+       milliStamp=millis();              //reset our kwms timer for next check
+       
+       
+     //Throttle check
 	Throttle *accelerator = DeviceManager::getInstance()->getAccelerator();
 	Throttle *brake = DeviceManager::getInstance()->getBrake();
 	if (accelerator)
 		throttleRequested = accelerator->getLevel();
 	if (brake && brake->getLevel() < -10 && brake->getLevel() < accelerator->getLevel()) //if the brake has been pressed it overrides the accelerator.
 		throttleRequested = brake->getLevel();
-
-	  if (!donePrecharge)checkPrecharge();
-          
 	//Logger::debug("Throttle: %d", throttleRequested);
+
+
+      if (!donePrecharge)checkPrecharge();
+          
 
 	if(skipcounter++ > 30)    //A very low priority loop for checks that only need to be done once per second.
 	{  
             skipcounter=0; //Reset our laptimer
-            
+              
+                
+                //Some test simulations if precharge time is set to 12345
 		if(config->prechargeR==12345)
                   {
 		    dcVoltage--;  
@@ -129,12 +127,13 @@ void MotorController::handleTick() {
             coolingcheck();
             checkBrakeLight();
             checkReverseLight();
-            
             checkEnableInput();
             checkReverseInput();
+            //Store kilowatt hours, but only once in awhile.
             prefsHandler->write(EEMC_KILOWATTHRS, kiloWattHours);
 	    prefsHandler->saveChecksum();
-	}
+
+   	}
 }
 
 
@@ -147,7 +146,7 @@ void MotorController::checkPrecharge()
           
         if (relay>7 || relay<0 || contactor<0 || contactor>7)  //We don't have a contactor and a precharge relay
           {
-            donePrecharge=1;         //Let's end this charade.
+            donePrecharge=true;         //Let's end this charade.
             return;
           }
           
@@ -174,7 +173,9 @@ void MotorController::checkPrecharge()
 	        statusBitfield1 |=1 << contactor;//setbit to Turn on main contactor output annunciator
 		Logger::info("Precharge sequence complete after %i milliseconds", prechargetime);
                 Logger::info("MAIN CONTACTOR ENABLED...DOUT0:%d, DOUT1:%d, DOUT2:%d, DOUT3:%d,DOUT4:%d, DOUT5:%d, DOUT6:%d, DOUT7:%d", getOutput(0), getOutput(1), getOutput(2), getOutput(3),getOutput(4), getOutput(5), getOutput(6), getOutput(7));
-                donePrecharge=1; //Time's up.  Let's don't do ANY of this on future ticks.
+                donePrecharge=true; //Time's up.  Let's don't do ANY of this on future ticks.
+                //Generally, we leave the precharge relay on.  This doesn't hurt much in any configuration.  But when using two contactors
+                //one positive with a precharge resistor and one on the negative leg to act as precharge, we need to leave precharge on.
 	       
             }
 }
@@ -187,7 +188,7 @@ void MotorController::coolingcheck()
 	            
 	if(coolfan>=0 and coolfan<8)    //We have 8 outputs 0-7 If they entered something else, there is no point in doing this check.
 	  {          
-	    if(temperatureInverter/10>getCoolOn())
+	    if(temperatureInverter/10>getCoolOn())  //If inverter temperature greater than COOLON, we want to turn on the coolingoutput
 	      {
 		if(!coolflag)
 		  {
@@ -198,7 +199,7 @@ void MotorController::coolingcheck()
 		  } 
 	      }
 
-	    if(temperatureInverter/10<getCoolOff())
+	    if(temperatureInverter/10<getCoolOff()) //If inverter temperature falls below COOLOFF, we want to turn cooling off.
 	      {
 		if(coolflag)
 		  {
@@ -298,12 +299,15 @@ void MotorController::setup() {
 	statusBitfield4 = 0;
         prefsHandler->read(EEMC_KILOWATTHRS, &kiloWattHours); //retrieve kilowatt hours from EEPROM
         nominalVolts=config->nominalVolt;
+        donePrecharge=false;
+        
 
     if(config->prechargeR==12345)
       {  
 	torqueActual=2;
         dcCurrent=1501;
         dcVoltage=3320;
+        
       }
 
     Logger::console("PRELAY=%i - Current PreCharge Relay output", config->prechargeRelay);
@@ -341,6 +345,24 @@ MotorController::PowerMode MotorController::getPowerMode() {
 
 void MotorController::setPowerMode(PowerMode mode) {
 	powerMode = mode;
+}
+
+
+
+uint32_t MotorController::getStatusBitfield1() {
+	return statusBitfield1;
+}
+
+uint32_t MotorController::getStatusBitfield2() {
+	return statusBitfield2;
+}
+
+uint32_t MotorController::getStatusBitfield3() {
+	return statusBitfield3;
+}
+
+uint32_t MotorController::getStatusBitfield4() {
+	return statusBitfield4;
 }
 
 int8_t MotorController::getCoolFan() {
@@ -458,21 +480,7 @@ int16_t MotorController::getTemperatureSystem() {
 	return temperatureSystem;
 }
 
-uint32_t MotorController::getStatusBitfield1() {
-	return statusBitfield1;
-}
 
-uint32_t MotorController::getStatusBitfield2() {
-	return statusBitfield2;
-}
-
-uint32_t MotorController::getStatusBitfield3() {
-	return statusBitfield3;
-}
-
-uint32_t MotorController::getStatusBitfield4() {
-	return statusBitfield4;
-}
 
 uint32_t MotorController::getTickInterval() {
         return CFG_TICK_INTERVAL_MOTOR_CONTROLLER;

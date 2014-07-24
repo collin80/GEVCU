@@ -71,6 +71,7 @@ SerialConsole *serialConsole;
 Device *wifiDevice;
 Device *btDevice;
 
+
 byte i = 0;
 
 //initializes all the system EEPROM values. Chances are this should be broken out a bit but
