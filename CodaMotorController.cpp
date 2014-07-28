@@ -225,7 +225,6 @@ void CodaMotorController::sendCmd1()
         timestamp();
         Logger::debug("Torque command: %X  ControlByte: %X  LSB %X  MSB: %X  CRC: %X  %d:%d:%d.%d",output.data.bytes[0],
 output.data.bytes[1],output.data.bytes[2],output.data.bytes[3],output.data.bytes[4], hours, minutes, seconds, milliseconds);
- 
           
 }
 

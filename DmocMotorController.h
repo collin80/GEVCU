@@ -80,7 +80,7 @@ private:
 	byte online; //counter for whether DMOC appears to be operating
 	byte alive;
 	int activityCount;
-        int16_t torqueCommand;
+        uint16_t torqueCommand;
         void timestamp();
 
 	void sendCmd1();

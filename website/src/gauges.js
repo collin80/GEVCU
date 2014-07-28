@@ -221,10 +221,9 @@ function generateGauges() {
 		valueFormat      : { "int" : 3, "dec" : 0 },
 		highlights  : [
 			{ from : 0,   to : 40, color : 'rgba(0, 255,  0, .75)' },
-			{ from : 40, to : 70, color : 'rgba(255, 0, 0, .75)' }
-
-			
-		],
+			{ from : 40, to : 50, color : 'rgba(255, 255, 0, .75)' },
+			{ from : 50, to : 70, color : 'rgba(255, 0, 0, .75)' }
+			],
 
 		colors      : {
 			plate      : '#222',
