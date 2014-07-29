@@ -73,7 +73,7 @@ void CodaMotorController::setup()
        selectedGear=DRIVE;
        running=true;
 
-       // sendCmd2();  //CAN watchdog reset command
+        sendCmd2();  //CAN watchdog reset command
 
 }
 
