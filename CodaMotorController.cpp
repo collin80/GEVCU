@@ -73,8 +73,7 @@ void CodaMotorController::setup()
        selectedGear=DRIVE;
        running=true;
 
-       // sendCmd2();  //CAN watchdog reset command
-
+     
 }
 
 
@@ -223,7 +222,7 @@ void CodaMotorController::sendCmd1()
             
 	CanHandler::getInstanceEV()->sendFrame(output);
         timestamp();
-        Logger::debug("Torque command: %X  ControlByte: %X  LSB %X  MSB: %X  CRC: %X  %d:%d:%d.%d",output.data.bytes[0],
+        Logger::debug("Torque command: %X   %X  ControlByte: %X  LSB %X  MSB: %X  CRC: %X  %d:%d:%d.%d",output.id, output.data.bytes[0],
 output.data.bytes[1],output.data.bytes[2],output.data.bytes[3],output.data.bytes[4], hours, minutes, seconds, milliseconds);
           
 }
@@ -286,56 +285,29 @@ void CodaMotorController::saveConfiguration() {
 	MotorController::saveConfiguration();
 }
 
-uint8_t CodaMotorController::genCodaCRC(uint8_t cmd, uint8_t torq_lsb, uint8_t torq_msb) {
-
-
+uint8_t CodaMotorController::genCodaCRC(uint8_t cmd, uint8_t torq_lsb, uint8_t torq_msb) 
+{
 	int counter;
-
 	uint8_t crc;
-
 	uint16_t temp_torq = torq_lsb + (256 * torq_msb);
-
-
-
 	crc = 0x7F; //7F is the answer if bytes 3 and 4 are zero. We build up from there.
 
-
-
 	//this can be done a little more efficiently but this is clearer to read
-
 	if (((cmd & 0xA0) == 0xA0) || ((cmd & 0x60) == 0x60)) temp_torq += 1;
 
-
-
 	//Not sure why this happens except to obfuscate the result
-
 	if ((temp_torq % 4) == 3) temp_torq += 4;
 
-
-
-	//increment over the bits within the torque command
-
+        //increment over the bits within the torque command
 	//and applies a particular XOR for each set bit.
-
 	for (counter = 0; counter < 16; counter++)
-
-	{
-
-		if ((temp_torq & (1 << counter)) == (1 << counter))
-
-		{
-
-			crc = (byte)(crc ^ swizzleTable[counter]);
-
-		}
-
-	}
-
-
-
+          {
+            if ((temp_torq & (1 << counter)) == (1 << counter)) crc = (byte)(crc ^ swizzleTable[counter]);
+          }
     return (crc);
-
 }
+
+
 
 void CodaMotorController::timestamp()
 {
@@ -346,7 +318,5 @@ void CodaMotorController::timestamp()
     // char buffer[9]; 
     //sprintf(buffer,"%02d:%02d:%02d.%03d", hours, minutes, seconds, milliseconds);
    // Serial<<buffer<<"\n";
-    
-
 }
 

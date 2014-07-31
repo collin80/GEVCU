@@ -3,7 +3,7 @@
  *
  * Note that the dmoc needs to have some form of input for gear selector (drive/neutral/reverse)
  *
- Copyright (c) 2013 Collin Kidder, Michael Neuweiler, Charles Galpin
+ Copyright (c) 2014 Jack Rickard
 
  Permission is hereby granted, free of charge, to any person obtaining
  a copy of this software and associated documentation files (the
