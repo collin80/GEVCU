@@ -73,12 +73,7 @@ void CodaMotorController::setup()
        selectedGear=DRIVE;
        running=true;
 
-<<<<<<< HEAD
      
-=======
-        sendCmd2();  //CAN watchdog reset command
-
->>>>>>> FETCH_HEAD
 }
 
 
@@ -227,11 +222,7 @@ void CodaMotorController::sendCmd1()
             
 	CanHandler::getInstanceEV()->sendFrame(output);
         timestamp();
-<<<<<<< HEAD
         Logger::debug("Torque command: %X   %X  ControlByte: %X  LSB %X  MSB: %X  CRC: %X  %d:%d:%d.%d",output.id, output.data.bytes[0],
-=======
-        Logger::debug("Torque command: %X  %X  ControlByte: %X  LSB %X  MSB: %X  CRC: %X  %d:%d:%d.%d",output.id, output.data.bytes[0],
->>>>>>> FETCH_HEAD
 output.data.bytes[1],output.data.bytes[2],output.data.bytes[3],output.data.bytes[4], hours, minutes, seconds, milliseconds);
           
 }
