@@ -35,8 +35,8 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 #include <due_can.h>
 
-#define CFG_BUILD_NUM	1040        //increment this every time a git commit is done. 
-#define CFG_VERSION "GEVCU alpha 2014-07-03"
+#define CFG_BUILD_NUM	1050        //increment this every time a git commit is done. 
+#define CFG_VERSION "GEVCU alpha 2014-08-19"
 
 
 /*
@@ -62,7 +62,7 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #define CFG_TICK_INTERVAL_CAN_THROTTLE				40000
 #define CFG_TICK_INTERVAL_MOTOR_CONTROLLER			40000
 #define CFG_TICK_INTERVAL_MOTOR_CONTROLLER_DMOC		40000
-#define CFG_TICK_INTERVAL_MOTOR_CONTROLLER_CODAUQM	10000
+#define CFG_TICK_INTERVAL_MOTOR_CONTROLLER_CODAUQM	20000
 #define CFG_TICK_INTERVAL_MOTOR_CONTROLLER_BRUSA	20000
 #define CFG_TICK_INTERVAL_MEM_CACHE					40000
 #define CFG_TICK_INTERVAL_BMS_THINK					500000
@@ -143,7 +143,7 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  * These values should normally not be changed.
  */
 #define CFG_DEV_MGR_MAX_DEVICES 20 // the maximum number of devices supported by the DeviceManager
-#define CFG_CAN_NUM_OBSERVERS 10 // maximum number of device subscriptions per CAN bus
+#define CFG_CAN_NUM_OBSERVERS 5 // maximum number of device subscriptions per CAN bus
 #define CFG_TIMER_NUM_OBSERVERS 9 // the maximum number of supported observers per timer
 #define CFG_TIMER_USE_QUEUING // if defined, TickHandler uses a queuing buffer instead of direct calls from interrupts
 #define CFG_TIMER_BUFFER_SIZE 100 // the size of the queuing buffer for TickHandler

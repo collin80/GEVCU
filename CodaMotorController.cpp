@@ -66,14 +66,14 @@ void CodaMotorController::setup()
 	// register ourselves as observer of all 0x20x can frames for UQM
        CanHandler::getInstanceEV()->attach(this, 0x200, 0x7f0, false);
      
-    
-       TickHandler::getInstance()->attach(this, CFG_TICK_INTERVAL_MOTOR_CONTROLLER_CODAUQM);
-      
-       operationState=ENABLE;
+    operationState=ENABLE;
        selectedGear=DRIVE;
        running=true;
+       TickHandler::getInstance()->attach(this, CFG_TICK_INTERVAL_MOTOR_CONTROLLER_CODAUQM);
+      
+       
 
-        sendCmd2();  //CAN watchdog reset command
+        //sendCmd2();  //CAN watchdog reset command
 
 }
 
@@ -84,14 +84,16 @@ void CodaMotorController::handleCanFrame(CAN_FRAME *frame)
 	int temp;
 	online = 1; //if a frame got to here then it passed the filter and must come from UQM
 
-        Logger::debug("UQM inverter msg: %X", frame->id);
+        Logger::debug("UQM inverter msg: %X   %X   %X   %X   %X   %X   %X   %X  %X", frame->id, frame->data.bytes[0],
+        frame->data.bytes[1],frame->data.bytes[2],frame->data.bytes[3],frame->data.bytes[4],
+        frame->data.bytes[5],frame->data.bytes[6],frame->data.bytes[7]);
         
 	switch (frame->id) 
         {
   
         case 0x209:  //Accurate Feedback Message 
         
-              torqueActual =  (((frame->data.bytes[1] * 256) + frame->data.bytes[0])-32128) ;
+              torqueActual =  ((((frame->data.bytes[1] * 256) + frame->data.bytes[0])-32128))/2 ;
               dcVoltage = (((frame->data.bytes[3] * 256) + frame->data.bytes[2])-32128);
                 if(dcVoltage<1000){dcVoltage=1000;}//Lowest value we can display on dashboard
 	      dcCurrent = (((frame->data.bytes[5] * 256) + frame->data.bytes[4])-32128);
@@ -223,7 +225,7 @@ void CodaMotorController::sendCmd1()
             
 	CanHandler::getInstanceEV()->sendFrame(output);
         timestamp();
-        Logger::debug("Torque command: %X  ControlByte: %X  LSB %X  MSB: %X  CRC: %X  %d:%d:%d.%d",output.data.bytes[0],
+        Logger::debug("Torque command: %X %X  ControlByte: %X  LSB %X  MSB: %X  CRC: %X  %d:%d:%d.%d",output.id, output.data.bytes[0],
 output.data.bytes[1],output.data.bytes[2],output.data.bytes[3],output.data.bytes[4], hours, minutes, seconds, milliseconds);
           
 }

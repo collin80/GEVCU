@@ -319,6 +319,7 @@ void MotorController::setup() {
     coolflag=false;
 
     Device::setup();
+   
 }
 
 bool MotorController::isRunning() {
@@ -539,6 +540,8 @@ void MotorController::loadConfiguration() {
 		config->reverseIn = ReverseIn;
 
 	}
+           //DeviceManager::getInstance()->sendMessage(DEVICE_WIFI, ICHIP2128, MSG_CONFIG_CHANGE, NULL);
+
 	Logger::info("MaxTorque: %i MaxRPM: %i", config->torqueMax, config->speedMax);
 }
 
