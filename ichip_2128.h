@@ -84,6 +84,8 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include "Sys_Messages.h"
 #include "DeviceTypes.h"
 #include "ELM327Processor.h"
+//#include "sys_io.h"
+
 
 extern PrefHandler *sysPrefs;
 
@@ -158,6 +160,8 @@ class ICHIPWIFI : public Device {
 
 	void loadConfiguration();
 	void saveConfiguration();
+        void loadParameters();
+       
 
     private:
 	ELM327Processor *elmProc;
@@ -193,7 +197,8 @@ class ICHIPWIFI : public Device {
 	void sendCmd(String cmd, ICHIP_COMM_STATE cmdstate);
 	void sendToSocket(int socket, String data);
     void processParameterChange(char *response);
-    void loadParameters();
+
+    
 };
 
 #endif

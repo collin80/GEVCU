@@ -1,8 +1,11 @@
 /*
  * CodaMotorController.cpp
  *
- * CAN Interface to the Coda flavoredUQM Powerphase 100 inverter - Handles sending of commands and reception 
- * of status frames to drive the inverter and thus motor.  Endianess is configurable in the firmware inside the UQM inverter.  This object module * uses little endian format - the least significant byte is the first in order with the MSB following.
+ * CAN Interface to the Coda flavored UQM Powerphase 100 inverter - 
+   Handles sending of commands and reception of status frames to drive
+   the inverter and thus motor.  Endianess is configurable in the firmware 
+   inside the UQM inverter.  This object module * uses little endian format 
+   - the least significant byte is the first in order with the MSB following.
  *
 Copyright (c) 2014 Jack Rickard
 
@@ -61,19 +64,13 @@ void CodaMotorController::setup()
 	MotorController::setup(); // run the parent class version of this function
 
 	// register ourselves as observer of all 0x20x can frames for UQM
-    CanHandler::getInstanceEV()->attach(this, 0x200, 0x7f0, false);
+       CanHandler::getInstanceEV()->attach(this, 0x200, 0x7f0, false);
      
-    running=true;
-
-	TickHandler::getInstance()->attach(this, CFG_TICK_INTERVAL_MOTOR_CONTROLLER_CODAUQM);
-        if(dcVoltage<1000){dcVoltage=1000;};  //Lowest value we can display on dashboard
-       // dcCurrent=0;
-       operationState=ENABLE;
-       //setOpState(ENABLE);
+    operationState=ENABLE;
        selectedGear=DRIVE;
-
-        sendCmd2();  //CAN watchdog reset command
-
+       running=true;
+       TickHandler::getInstance()->attach(this, CFG_TICK_INTERVAL_MOTOR_CONTROLLER_CODAUQM);
+  
 }
 
 
@@ -83,18 +80,20 @@ void CodaMotorController::handleCanFrame(CAN_FRAME *frame)
 	int temp;
 	online = 1; //if a frame got to here then it passed the filter and must come from UQM
 
-        Logger::debug("UQM inverter msg: %X", frame->id);
+        Logger::debug("UQM inverter msg: %X   %X   %X   %X   %X   %X   %X   %X  %X", frame->id, frame->data.bytes[0],
+        frame->data.bytes[1],frame->data.bytes[2],frame->data.bytes[3],frame->data.bytes[4],
+        frame->data.bytes[5],frame->data.bytes[6],frame->data.bytes[7]);
         
 	switch (frame->id) 
         {
   
         case 0x209:  //Accurate Feedback Message 
         
-              torqueActual =  (((frame->data.bytes[1] * 256) + frame->data.bytes[0])-32128) ;
+              torqueActual =  ((((frame->data.bytes[1] * 256) + frame->data.bytes[0])-32128))/2 ;
               dcVoltage = (((frame->data.bytes[3] * 256) + frame->data.bytes[2])-32128);
                 if(dcVoltage<1000){dcVoltage=1000;}//Lowest value we can display on dashboard
 	      dcCurrent = (((frame->data.bytes[5] * 256) + frame->data.bytes[4])-32128);
-              speedActual = (((frame->data.bytes[7] * 256) + frame->data.bytes[6])-32128)/2;           
+              speedActual = (((frame->data.bytes[7] * 256) + frame->data.bytes[6])-32128)/2;   
               Logger::debug("UQM Actual Torque: %d DC Voltage: %d Amps: %d RPM: %d", torqueActual/10,dcVoltage/10,dcCurrent/10,speedActual);
 	      break;
 
@@ -210,20 +209,21 @@ void CodaMotorController::sendCmd1()
 		output.data.bytes[1] |= sequence; //This should retain left four and add sequence count
 										  //to right four bits.
         //Requested throttle is [-1000, 1000]
-       //Two byte torque request in 0.1NM Can be positive or negative and is 1/2 of the torque desired 
-       //Inverter will deliver TWICE this torque value
+       //Two byte torque request in 0.1NM Can be positive or negative  
+      
+        torqueCommand=32128; //Set our zero offset value
+        torqueRequested = ((throttleRequested * config->torqueMax) / 1000); //Calculate torque command 
+        if(speedActual<config->speedMax){torqueCommand += torqueRequested;} //If actual rpm less than max rpm, add torque command to offset
 
-        torqueRequested = ((throttleRequested * config->torqueMax) / 1000); 
-        torqueCommand = torqueRequested+32128;
         output.data.bytes[3] = (torqueCommand & 0xFF00) >> 8;
         output.data.bytes[2] = (torqueCommand & 0x00FF);
         output.data.bytes[4] = genCodaCRC(output.data.bytes[1], output.data.bytes[2], output.data.bytes[3]);
             
 	CanHandler::getInstanceEV()->sendFrame(output);
         timestamp();
-        Logger::debug("Torque command: %X  ControlByte: %X  LSB %X  MSB: %X  CRC: %X  %d:%d:%d.%d",output.data.bytes[0],
+
+        Logger::debug("Torque command: %X   %X  ControlByte: %X  LSB %X  MSB: %X  CRC: %X  %d:%d:%d.%d",output.id, output.data.bytes[0],
 output.data.bytes[1],output.data.bytes[2],output.data.bytes[3],output.data.bytes[4], hours, minutes, seconds, milliseconds);
- 
           
 }
 
@@ -285,56 +285,29 @@ void CodaMotorController::saveConfiguration() {
 	MotorController::saveConfiguration();
 }
 
-uint8_t CodaMotorController::genCodaCRC(uint8_t cmd, uint8_t torq_lsb, uint8_t torq_msb) {
-
-
+uint8_t CodaMotorController::genCodaCRC(uint8_t cmd, uint8_t torq_lsb, uint8_t torq_msb) 
+{
 	int counter;
-
 	uint8_t crc;
-
 	uint16_t temp_torq = torq_lsb + (256 * torq_msb);
-
-
-
 	crc = 0x7F; //7F is the answer if bytes 3 and 4 are zero. We build up from there.
 
-
-
 	//this can be done a little more efficiently but this is clearer to read
-
 	if (((cmd & 0xA0) == 0xA0) || ((cmd & 0x60) == 0x60)) temp_torq += 1;
 
-
-
 	//Not sure why this happens except to obfuscate the result
-
 	if ((temp_torq % 4) == 3) temp_torq += 4;
 
-
-
-	//increment over the bits within the torque command
-
+        //increment over the bits within the torque command
 	//and applies a particular XOR for each set bit.
-
 	for (counter = 0; counter < 16; counter++)
-
-	{
-
-		if ((temp_torq & (1 << counter)) == (1 << counter))
-
-		{
-
-			crc = (byte)(crc ^ swizzleTable[counter]);
-
-		}
-
-	}
-
-
-
+          {
+            if ((temp_torq & (1 << counter)) == (1 << counter)) crc = (byte)(crc ^ swizzleTable[counter]);
+          }
     return (crc);
-
 }
+
+
 
 void CodaMotorController::timestamp()
 {
@@ -345,7 +318,5 @@ void CodaMotorController::timestamp()
     // char buffer[9]; 
     //sprintf(buffer,"%02d:%02d:%02d.%03d", hours, minutes, seconds, milliseconds);
    // Serial<<buffer<<"\n";
-    
-
 }
 

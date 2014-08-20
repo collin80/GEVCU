@@ -194,7 +194,7 @@ void CanHandler::process() {
 
 	if (bus->rx_avail()) {
 		bus->get_rx_buff(frame);
-//		logFrame(frame);
+		logFrame(frame);
 
 		for (int i = 0; i < CFG_CAN_NUM_OBSERVERS; i++) {
 			if (observerData[i].observer != NULL) {

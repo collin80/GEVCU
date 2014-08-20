@@ -3,7 +3,7 @@
  *
  * Note that the dmoc needs to have some form of input for gear selector (drive/neutral/reverse)
  *
- Copyright (c) 2013 Collin Kidder, Michael Neuweiler, Charles Galpin
+ Copyright (c) 2014 Jack Rickard
 
  Permission is hereby granted, free of charge, to any person obtaining
  a copy of this software and associated documentation files (the
@@ -66,7 +66,7 @@ private:
 	byte alive;
 	int activityCount;
 	byte sequence;
-        int16_t torqueCommand;
+        uint16_t torqueCommand;
         void sendCmd1();
 	void sendCmd2();
         uint8_t genCodaCRC(uint8_t cmd, uint8_t torq_lsb, uint8_t torq_msb);
