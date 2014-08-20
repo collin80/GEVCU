@@ -386,8 +386,12 @@ void Logger::printDeviceName(DeviceId deviceId)
             SerialUSB.print("DMC5");
             break;
 
-        case BRUSACHARGE:
+        case BRUSA_NLG5:
             SerialUSB.print("NLG5");
+            break;
+
+        case BRUSA_BSC6:
+            SerialUSB.print("BSC6");
             break;
 
         case TCCHCHARGE:

@@ -63,6 +63,8 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #define CFG_TICK_INTERVAL_MOTOR_CONTROLLER_BRUSA    20000
 #define CFG_TICK_INTERVAL_MEM_CACHE                 40000
 #define CFG_TICK_INTERVAL_BMS_THINK                 500000
+#define CFG_TICK_INTERVAL_DCDC_BSC6                 100000
+#define CFG_TICK_INTERVAL_CHARGE_NLG5               100000
 #define CFG_TICK_INTERVAL_WIFI                      200000
 #define CFG_TICK_INTERVAL_SYSTEM_IO                 200000
 
@@ -118,7 +120,7 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #define RPMSlewRateValue    10000 // rpm/sec the requested speed should change (speed mode)
 #define TorqueSlewRateValue 6000 // 0.1Nm/sec the requested torque output should change (torque mode)
 #define KilowattHrs         11000 //not currently used
-#define EnableInput         1 // milliseconds for pre-charge cycle
+#define EnableInput         1 // digital input port for enable signal
 #define PrechargeMillis     3000 // milliseconds for pre-charge cycle
 #define NominalVolt         3300 //a reasonable figure for a lithium cell pack driving the DMOC (in tenths of a volt)
 #define PrechargeRelayOutput 0

@@ -1,17 +1,81 @@
-Pin 1 - +12V Input
-Pin 3 - +12V output for first digital input
-Pin 7 - EXT GND connection to chassis ground / Battery - (in my case)
-Pins 9 & 10 - First canbus
-Pin 19 - Gnd connection for first and second analog inputs (Throttle)
-Pin 20 - First analog input (Throttle)
-Pin 21 - Second analog input (Throttle)
-Pin 22 - Third analog input (brake / testing input for me)
-Pin 23 - Fourth analog input (test pot on my wires)
-Pin 24 - +5V power for first and second analog inputs (Throttle)
-Pin 26 - +5V power for third and fourth analog inputs (test pots for me,
-probably brake transducer for you)
-Pin 30 - Gnd connection for third and fourth analog inputs (Brake / Testing)
-Pin 32 - First digital input. Tied to pin 3 above through a switch
+Pin Assignments
+===============
 
-I used a gnd at pin 19 for one of the gnds. It really doesn't matter
-which one you use. All four (19,29,30,31) are equivalent.
+Pin  | GEVCU 2                 | GEVCU 4                 | GEVCU 5                 |
+-----+-------------------------+-------------------------+-------------------------+
+  1  | +12V In                 | +12V In                 |                         |
+  2  | +12V Out (regulated)    | +12V Out (regulated)    |                         |
+  3  | +12V Out (regulated)    | Digital Out 0           |                         |
+  4  | +12V Out (regulated)    | Digital Out 1           |                         | 
+  5  | +12V Out (regulated)    | Digital Out 2           |                         |
+  6  | +12V Out (regulated)    | Digital Out 3           |                         |
+  7  | EXT GND (Chassis/Batt-) | GND                     |                         |
+  8  | GND (not external GND)  | GND                     |                         |
+  9  | CAN 0 HI                | CAN 0 HI                |                         |
+ 10  | CAN 0 LO                | CAN 0 LO                |                         |
+ 11  | CAN 1 HI                | CAN 1 HI                |                         |
+ 12  | CAN 1 LO                | CAN 1 LO                |                         |
+ 13  | EXT GND                 | GND                     |                         |
+ 14  | EXT GND                 | GND                     |                         |
+ 15  | Digital Out 0           | Digital Out 4           |                         |
+ 16  | Digital Out 1           | Digital Out 5           |                         |
+ 17  | Digital Out 2           | Digital Out 6           |                         |
+ 18  | Digital Out 3           | Digital Out 7           |                         |
+ 19  | GND                     | GND                     |                         |
+ 20  | Analog In 0             | Analog In 0             |                         |
+ 21  | Analog In 1             | Analog In 1             |                         |
+ 22  | Analog In 2             | Analog In 2             |                         |
+ 23  | Analog In 3             | Analog In 3             |                         |
+ 24  | +5V Out (isolated)      | +5V Out (isolated)      |                         |
+ 25  | +5V Out (isolated)      | +5V Out (isolated)      |                         |
+ 26  | +5V Out (isolated)      | +5V Out (isolated)      |                         |
+ 27  | +5V Out (isolated)      | +5V Out (isolated)      |                         |
+ 28  | +5V Out (isolated)      | +5V Out (isolated)      |                         |
+ 29  | GND                     | GND                     |                         |
+ 30  | GND                     | GND                     |                         |
+ 31  | GND                     | GND                     |                         |
+ 32  | Digital In 0            | Digital In 0            |                         |
+ 33  | Digital In 1            | Digital In 1            |                         |
+ 34  | Digital In 2            | Digital In 2            |                         |
+ 35  | Digital In 3            | Digital In 3            |                         |
+
+ 
+Ratings
+=======
+
+Parameter            | GEVCU 2                 | GEVCU 4                 | GEVCU 5                 |
+---------------------+-------------------------+-------------------------+-------------------------+
+ Supply Voltage      | +11 to +14.5 Volt       | +xx  to +15 Volt        |                         |
+ 12V Out (regulated) | max 1.5 Amp             | max 1.5 Amp             |                         |
+ 5V Out (regulated)  | max 1 Amp (all pins)    | max 1 Amp (all pins)    |                         |
+ Digital Out         | max 2 Amp (all pins)    | max 1.7 Amp (all pins)  |                         |
+ CAN HI/LO           | -27 to 40 Volt          | -27 to 40 Volt          |                         |
+ Analog In           | 0 to 5 Volt             | 0 to 5 Volt             |                         |
+ Digital In          | +xx  to +15 Volt        | +xx to +15 Volt         |                         |
+
+ 
+Recommended assignments
+=======================
+ 
+Signal                       | GEVCU 2   | GEVCU 4   | GEVCU 5   |
+-----------------------------+-----------+-----------+-----------+
+ Supply Voltage / Ignition   | Pin 1     | Pin 1     | Pin       |
+ Chassis / Battery Negative  | Pin 7     | Pin 7     | Pin       |
+ Primary / Main Contactor    | Pin 16    | Pin 4     | Pin       |
+ Pre-Charge Relay            | Pin 15    | Pin 3     | Pin       |
+ Secondary Contactor (opt)   | n/a       | Pin 5     | Pin       |
+ Enable Signal In            | Pin 33    | Pin 33    | Pin       |
+ Enable Signal Out (opt)     | n/a       | Pin 6     | Pin       |
+ CAN bus EV components       | Pin 9+10  | Pin 9+10  | Pin       |
+ CAN bus Car (opt)           | Pin 11+12 | Pin 11+12 | Pin       |
+ Throttle Signal             | Pin 20    | Pin 20    | Pin       |
+ Throttle 2nd Signal (opt)   | Pin 21    | Pin 21    | Pin       |
+ Brake Pressure Transducer   | Pin 22    | Pin 22    | Pin       |
+ +5V Source Throttle         | Pin 24    | Pin 24    | Pin       |
+ +5V Source Brake Transduc.  | Pin 25    | Pin 25    | Pin       |
+ GND Throttle                | Pin 29    | Pin 29    | Pin       |
+ GND Brake Transducer        | Pin 30    | Pin 30    | Pin       |
+ Brake Light (switched GND)  | Pin 17    | Pin 15    | Pin       |
+ Cooling Fan Relay (sw GND)  | Pin 18    | Pin 18    | Pin       |
+ Reverse Light (switched GND)| n/a       | Pin 16    | Pin       |
+ 
