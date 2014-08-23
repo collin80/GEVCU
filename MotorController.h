@@ -169,6 +169,8 @@ protected:
 	bool warning; // indicates a warning condition is present in the controller
 	bool coolflag;
         bool testenableinput;
+         bool testreverseinput;
+
 
 	Gears selectedGear;
 

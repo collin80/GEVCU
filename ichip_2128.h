@@ -1,5 +1,5 @@
 /*
- * ichip_2128.cpp
+ * ichip_2128.h
  *
  * Class to interface with the ichip 2128 based wifi adapter we're using on our board
  *

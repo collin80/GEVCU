@@ -66,6 +66,8 @@ MotorController::MotorController() : Device() {
         coolflag = false;
         skipcounter=0;
         testenableinput=0;
+        testreverseinput=0;
+
 
 }
 
@@ -113,22 +115,55 @@ void MotorController::handleTick() {
 		if(config->prechargeR==12345)
                   {
 		    dcVoltage--;  
-	            if (torqueActual < -500){torqueActual=20;}
-                      else {torqueActual=-650;}
-                    if (temperatureInverter < config->coolOn*10){temperatureInverter=(config->coolOn+2)*10;}
-                      else {temperatureInverter=(config->coolOff-2)*10;}
-                    if (selectedGear!=REVERSE){selectedGear=REVERSE;}
-                      else{selectedGear=DRIVE;}
-                    if (throttleRequested < 500){throttleRequested=500;}
-                      else {throttleRequested=0;}
-                    if(testenableinput)testenableinput=false;
-                      else testenableinput=true;
+	            if (torqueActual < -500)
+                      {
+                        torqueActual=20;
+                      }
+                     else 
+                       {
+                         torqueActual=-650;
+                       }
+                    if (temperatureInverter < config->coolOn*10)
+                      {
+                        temperatureInverter=(config->coolOn+2)*10;
+                      }
+                      else 
+                        {
+                          temperatureInverter=(config->coolOff-2)*10;
+                        }
+                
+                    if (throttleRequested < 500)
+                      {
+                        throttleRequested=500;
+                      }
+                      else 
+                      {
+                        throttleRequested=0;
+                      }
+                    if(testenableinput)
+                      {
+                        testenableinput=false;
+                      }
+                      else 
+                        {
+                          testenableinput=true;
+                        }
+                        
+                    if(testreverseinput)
+                      {
+                        testreverseinput=false;
+                      }
+                      else 
+                        {
+                          testreverseinput=true;
+                        }
 		  }	
             coolingcheck();
             checkBrakeLight();
-            checkReverseLight();
             checkEnableInput();
             checkReverseInput();
+            checkReverseLight();
+          
             //Store kilowatt hours, but only once in awhile.
             prefsHandler->write(EEMC_KILOWATTHRS, kiloWattHours);
 	    prefsHandler->saveChecksum();
@@ -237,56 +272,62 @@ void MotorController::checkBrakeLight()
 //If a reverse light output is configured, this will turn it on anytime the gear state is in REVERSE
 void MotorController::checkReverseLight()
 {
-  
-  if(getRevLight() >=0 && getRevLight() <8) //255 means none selected.  We don't have a reverselight output configured.
-  
-  {
-   int reverseLight=getRevLight();    //Get our reverse light output into local variable once
-   if(getSelectedGear()==REVERSE)  //If the selected gear IS reverse
+  uint16_t reverseLight=getRevLight(); 
+  if(reverseLight >=0 && reverseLight <8) //255 means none selected.  We don't have a reverselight output configured.
+   {
+     if(selectedGear==REVERSE)  //If the selected gear IS reverse
        {
-         setOutput(reverseLight, 1); //Turn on reverse light output
+         setOutput(reverseLight, true); //Turn on reverse light output
          statusBitfield1 |=1 << reverseLight; //set bit to turn on reverse light output annunciator
        }
        else
          {
-           setOutput(reverseLight, 0); //Turn off reverse light output
-           statusBitfield1 &= ~(1 << reverseLight);//clear bit to turn off reverselight annunciatorget
+           setOutput(reverseLight, false); //Turn off reverse light output
+           statusBitfield1 &= ~(1 << reverseLight);//clear bit to turn off reverselight OUTPUT annunciator
          }
-  }
-
+    }
 }
 
 //If we have an ENABLE input configured, this will set opstation to ENABLE anytime it is true (12v), DISABLED if not.
 void MotorController:: checkEnableInput()
 {
-  int enableinput=getEnableIn();
-  // Logger::info("ENABLE INPUT:%i", enableinput);
-               
+  uint16_t enableinput=getEnableIn();
   if(enableinput >= 0 && enableinput<4) //Do we even have an enable input configured ie NOT 255.
-  
     {
-    //    Logger::info("ENABLE ACTIVE....");
- 
-      if(getDigital(enableinput)){ setOpState(ENABLE); } //If it's ON let's set our opstate to ENABLE
-        else {setOpState(DISABLED);}           //If it's off, lets set DISABLED.  These two could just as easily be reversed.
-      if(testenableinput)setOpState(ENABLE);  
-  }
-  
+       if((getDigital(enableinput))||testenableinput) //If it's ON let's set our opstate to ENABLE
+        {
+          setOpState(ENABLE);
+          statusBitfield2 |=1 << enableinput; //set bit to turn on ENABLE annunciator
+	  statusBitfield2 |=1 << 18;//set bit to turn on enable input annunciator
+          } 
+        else 
+        {
+          setOpState(DISABLED);//If it's off, lets set DISABLED.  These two could just as easily be reversed
+          statusBitfield2 &= ~(1 << 18); //clear bit to turn off ENABLE annunciator
+          statusBitfield2 &= ~(1 << enableinput);//clear bit to turn off enable input annunciator
+         }           
+    }
 }
 
 //IF we have a reverse input configured, this will set our selected gear to REVERSE any time the input is true, DRIVE if not
 void MotorController:: checkReverseInput()
 {
- //  Logger::info("REVERSE INPUT:%i", getReverseIn());
-  
-  if(getReverseIn() >= 0 && getReverseIn()<4)  //If we don't have a Reverse Input, do nothing
+  uint16_t reverseinput=getReverseIn();
+  if(reverseinput >= 0 && reverseinput<4)  //If we don't have a Reverse Input, do nothing
     {
- //      Logger::info("REVERSE ACTIVE....");
- 
-      if(getDigital(getReverseIn())) {setSelectedGear(REVERSE); } //If it's ON let's setour opstate to ENABLE
-        else {setSelectedGear(DRIVE); }                   //If it's off, lets set DISABLED.  These two could just as easily be reversed.
+    if((getDigital(reverseinput))||testreverseinput)
+      {
+       selectedGear=REVERSE; 
+       statusBitfield2 |=1 << 16; //set bit to turn on REVERSE annunciator
+       statusBitfield2 |=1 << reverseinput;//setbit to Turn on reverse input annunciator
+       } 
+        else 
+        {
+          selectedGear=DRIVE; //If it's off, lets set to DRIVE. 
+          statusBitfield2 &= ~(1 << 16); //clear bit to turn off REVERSE annunciator
+          statusBitfield2 &= ~(1 << reverseinput);//clear bit to turn off reverse input annunciator
+          }                       
     }
-  
 }
 
 
@@ -433,7 +474,7 @@ int16_t MotorController::getTorqueActual() {
 	return torqueActual;
 }
 
-MotorController::Gears MotorController::getSelectedGear() {
+ MotorController::Gears MotorController::getSelectedGear() {
 	return selectedGear;
 }
 void MotorController::setSelectedGear(Gears gear) {
