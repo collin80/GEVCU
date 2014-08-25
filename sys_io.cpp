@@ -43,6 +43,8 @@ volatile uint16_t adc_buf[NUM_ANALOG][256];   // 4 buffers of 256 readings
 uint16_t adc_values[NUM_ANALOG * 2];
 uint16_t adc_out_vals[NUM_ANALOG];
 
+
+
 int NumADCSamples;
 
 //the ADC values fluctuate a lot so smoothing is required. 
@@ -249,6 +251,8 @@ void setOutput(uint8_t which, boolean active) {
 	if (active)
 		digitalWrite(out[which], HIGH);
 	else digitalWrite(out[which], LOW);
+   
+       
 }
 
 //get current value of output state (high?)
@@ -257,6 +261,9 @@ boolean getOutput(uint8_t which) {
 	if (out[which] == 255) return false;
 	return digitalRead(out[which]);
 }
+
+
+
 
 /*
 When the ADC reads in the programmed # of readings it will do two things:

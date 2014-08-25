@@ -101,11 +101,23 @@ public:
         void checkPrecharge();
 
         void brakecheck();
-	void setStatusBits();
 	bool isReady();
 	bool isRunning();
 	bool isFaulted();
 	bool isWarning();
+
+uint32_t getStatusBitfield1();
+uint32_t getStatusBitfield2();
+uint32_t getStatusBitfield3();
+uint32_t getStatusBitfield4();
+
+uint32_t statusBitfield1; // bitfield variable for use of the specific implementation
+uint32_t statusBitfield2;
+uint32_t statusBitfield3;
+uint32_t statusBitfield4;
+
+
+
 
 	void setPowerMode(PowerMode mode);
           PowerMode getPowerMode();
@@ -142,11 +154,7 @@ public:
 	int16_t getTemperatureInverter();
 	int16_t getTemperatureSystem();
 
-	uint32_t getStatusBitfield1();
-	uint32_t getStatusBitfield2();
-	uint32_t getStatusBitfield3();
-	uint32_t getStatusBitfield4();
-
+	
         int milliseconds  ;
         int seconds;
         int minutes;
@@ -183,11 +191,7 @@ protected:
 	int16_t temperatureInverter; // temperature of inverter power stage in 0.1 degree C
 	int16_t temperatureSystem; // temperature of controller in 0.1 degree C
 
-	uint32_t statusBitfield1; // bitfield variable for use of the specific implementation
-	uint32_t statusBitfield2;
-	uint32_t statusBitfield3;
-	uint32_t statusBitfield4;
-
+	
 	uint16_t nominalVolts; //nominal pack voltage in 1/10 of a volt
 
 	uint16_t prechargeTime; //time in ms that precharge should last
