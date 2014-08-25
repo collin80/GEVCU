@@ -39,7 +39,7 @@ function showTab(pageId) {
 		if ( intervalId ) {
 			clearInterval(intervalId);
 		}
-		intervalId = setInterval(function(){loadData(pageId)}, 300);
+		intervalId = setInterval(function(){loadData(pageId)}, 200);
 	} else {
 		if (intervalId) {
 			clearInterval(intervalId);

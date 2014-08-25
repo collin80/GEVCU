@@ -24,10 +24,10 @@ var Status = { /* statusBitfield1 */
 };
 
 var Warning = { /* statusBitfield2 */
-	systemCheckActive					: 1 << 0,
-	externalShutdownPathAw2Off			: 1 << 1,
-	externalShutdownPathAw1Off			: 1 << 2,
-	oscillationLimitControllerActive	: 1 << 3,
+	din0								: 1 << 0,
+	din1								: 1 << 1,
+	din2								: 1 << 2,
+	din3								: 1 << 3,
 	driverShutdownPathActive			: 1 << 10,
 	powerMismatchDetected				: 1 << 11,
 	speedSensorSignal					: 1 << 12,
@@ -90,10 +90,10 @@ function updateAnnunciatorFields(name, bitfield) {
 		updateField("stateReady", FieldClass.ok, bitfield & Status.stateReady);
 		break;
 	case 'bitfield2':
-		updateField("systemCheckActive", FieldClass.warn, bitfield & Warning.systemCheckActive);
-		updateField("externalShutdownPathAw2Off", FieldClass.warn, bitfield & Warning.externalShutdownPathAw2Off);
-		updateField("externalShutdownPathAw1Off", FieldClass.warn, bitfield & Warning.externalShutdownPathAw1Off);
-		updateField("oscillationLimitControllerActive", FieldClass.ok, bitfield & Warning.oscillationLimitControllerActive);
+		updateField("din0", FieldClass.ok, bitfield & Warning.din0);
+		updateField("din1", FieldClass.ok, bitfield & Warning.din1);
+		updateField("din2", FieldClass.ok, bitfield & Warning.din2);
+		updateField("din3", FieldClass.ok, bitfield & Warning.din3);
 		updateField("driverShutdownPathActive", FieldClass.warn, bitfield & Warning.driverShutdownPathActive);
 		updateField("powerMismatchDetected", FieldClass.warn, bitfield & Warning.powerMismatchDetected);
 		updateField("speedSensorSignal", FieldClass.warn, bitfield & Warning.speedSensorSignal);
