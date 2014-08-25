@@ -61,6 +61,14 @@ void ICHIPWIFI::setup() {
 
 	TickHandler::getInstance()->detach(this);
 
+	//MSEL pin
+	pinMode(18, OUTPUT);
+	digitalWrite(18, HIGH);
+
+	//RESET pin
+	pinMode(42, OUTPUT);
+	digitalWrite(42, HIGH);
+
 	tickCounter = 0;
 	ibWritePtr = 0;
 	psWritePtr = 0;
