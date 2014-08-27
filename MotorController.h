@@ -41,27 +41,6 @@
 #define MOTORCTL_INPUT_REVERSE     5
 #define MOTORCTL_INPUT_LIMP        6
 
-class MotorControllerConfiguration : public DeviceConfiguration {
-public:
-	uint16_t speedMax; // in rpm
-	uint16_t torqueMax;	// maximum torque in 0.1 Nm
-	uint16_t torqueSlewRate; // for torque mode only: slew rate of torque value, 0=disabled, in 0.1Nm/sec
-	uint16_t speedSlewRate; //  for speed mode only: slew rate of speed value, 0=disabled, in rpm/sec
-	uint8_t reversePercent;
-	uint16_t kilowattHrs;
-	uint16_t prechargeR; //resistance of precharge resistor in tenths of ohm
-	uint16_t nominalVolt; //nominal pack voltage in tenths of a volt
-	uint8_t prechargeRelay; //# of output to use for this relay or 255 if there is no relay
-	uint8_t mainContactorRelay; //# of output to use for this relay or 255 if there is no relay
-	uint8_t coolFan;
-	uint8_t coolOn;
-	uint8_t coolOff;
-	uint8_t brakeLight;
-	uint8_t revLight;
-	uint8_t enableIn;
-	uint8_t reverseIn;
-};
-
 class MotorController: public Device {
 
 public:
@@ -77,7 +56,7 @@ public:
 		modeSpeed
 	};
 
-        enum OperationState {
+    enum OperationState {
 		DISABLED = 0,
 		STANDBY = 1,
 		ENABLE = 2,
@@ -202,5 +181,28 @@ protected:
 	bool prelay;
 	uint32_t skipcounter;
 };
+
+class MotorControllerConfiguration : public DeviceConfiguration {
+public:
+	uint16_t speedMax; // in rpm
+	uint16_t torqueMax;	// maximum torque in 0.1 Nm
+	uint16_t torqueSlewRate; // for torque mode only: slew rate of torque value, 0=disabled, in 0.1Nm/sec
+	uint16_t speedSlewRate; //  for speed mode only: slew rate of speed value, 0=disabled, in rpm/sec
+	MotorController::PowerMode motorMode; //should we use torque or speed mode?
+	uint8_t reversePercent;
+	uint16_t kilowattHrs;
+	uint16_t prechargeR; //resistance of precharge resistor in tenths of ohm
+	uint16_t nominalVolt; //nominal pack voltage in tenths of a volt
+	uint8_t prechargeRelay; //# of output to use for this relay or 255 if there is no relay
+	uint8_t mainContactorRelay; //# of output to use for this relay or 255 if there is no relay
+	uint8_t coolFan;
+	uint8_t coolOn;
+	uint8_t coolOff;
+	uint8_t brakeLight;
+	uint8_t revLight;
+	uint8_t enableIn;
+	uint8_t reverseIn;
+};
+
 
 #endif

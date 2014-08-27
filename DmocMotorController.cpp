@@ -198,7 +198,7 @@ void DmocMotorController::sendCmd1() {
 	output.extended = 0; //standard frame
 	output.rtr = 0;
 
-	if (throttleRequested > 0 && operationState == ENABLE && selectedGear != NEUTRAL && powerMode == modeSpeed)
+	if (throttleRequested > 0 && operationState == ENABLE && selectedGear != NEUTRAL && config->motorMode == modeSpeed)
 		speedRequested = 20000 + (((long) throttleRequested * (long) config->speedMax) / 1000);
 	else
 		speedRequested = 20000;
@@ -245,16 +245,16 @@ void DmocMotorController::sendCmd2() {
 	//torqueRequested = 30000L + (((long)throttleRequested * (long)MaxTorque) / 1000L);
 
 	torqueCommand = 30000; //set offset  for zero torque commanded
-	if (powerMode == modeTorque) {
+	if (config->motorMode == modeTorque) {
                 torqueRequested=0;
 		if (actualState == ENABLE) { //don't even try sending torque commands until the DMOC reports it is ready
 			if (selectedGear == DRIVE)
-                            torqueRequested = (((long) throttleRequested * (long) config->torqueMax) / 1000L);
+                torqueRequested = (((long) throttleRequested * (long) config->torqueMax) / 1000L);
 			if (selectedGear == REVERSE)
 				torqueRequested = (((long) throttleRequested * (long) config->torqueMax) / 1000L);
 		}
                   
-                if(speedActual<config->speedMax){torqueCommand+=torqueRequested;} //If actual rpm is less than max rpm, add torque to offset
+        if(speedActual<config->speedMax){torqueCommand+=torqueRequested;} //If actual rpm is less than max rpm, add torque to offset
                                                                                   // else torque is left set to zero.
 		output.data.bytes[0] = (torqueCommand & 0xFF00) >> 8;
 		output.data.bytes[1] = (torqueCommand & 0x00FF);

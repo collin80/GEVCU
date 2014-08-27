@@ -82,9 +82,10 @@ the end of the stardard data. The below numbers are offsets from the device's ee
 #define EEMC_RPM_SLEW_RATE		39 //2 bytes - slew rate (rpm/sec) at which speed should change (only in speed mode)
 #define EEMC_TORQUE_SLEW_RATE	41 //2 bytes - slew rate (0.1Nm/sec) at which the torque should change
 #define EEMC_BRAKE_LIGHT        42
-#define EEMC_REV_LIGHT    43
-#define EEMC_ENABLE_IN       44
-#define EEMC_REVERSE_IN        45
+#define EEMC_REV_LIGHT			43
+#define EEMC_ENABLE_IN			44
+#define EEMC_REVERSE_IN			45
+#define EEMC_MOTOR_MODE			46
 
 //throttle data
 #define EETH_MIN_ONE			20 //2 bytes - ADC value of minimum value for first channel

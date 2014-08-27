@@ -110,6 +110,7 @@ struct ParamCache {
 	bool brakeNotAvailable;
 	int16_t speedRequested;
 	int16_t speedActual;
+	MotorController::PowerMode powerMode;
 	int16_t dcVoltage;
 	int16_t dcCurrent;
 	int16_t acCurrent;

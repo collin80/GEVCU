@@ -559,7 +559,7 @@ void MotorController::loadConfiguration() {
 		prefsHandler->read(EEMC_REV_LIGHT, &config->revLight);
 		prefsHandler->read(EEMC_ENABLE_IN, &config->enableIn);
 		prefsHandler->read(EEMC_REVERSE_IN, &config->reverseIn);
-
+		prefsHandler->read(EEMC_MOTOR_MODE, (uint8_t *)&config->motorMode);
 	}
 	else { //checksum invalid. Reinitialize values and store to EEPROM
 		config->speedMax = MaxRPMValue;
@@ -579,6 +579,7 @@ void MotorController::loadConfiguration() {
 		config->revLight = RevLight;
 		config->enableIn = EnableIn;
 		config->reverseIn = ReverseIn;
+		config->motorMode = MotorController::modeSpeed;
 
 	}
            //DeviceManager::getInstance()->sendMessage(DEVICE_WIFI, ICHIP2128, MSG_CONFIG_CHANGE, NULL);
@@ -608,7 +609,7 @@ void MotorController::saveConfiguration() {
 	prefsHandler->write(EEMC_REV_LIGHT, config->revLight);
 	prefsHandler->write(EEMC_ENABLE_IN, config->enableIn);
 	prefsHandler->write(EEMC_REVERSE_IN, config->reverseIn);
-
+	prefsHandler->write(EEMC_MOTOR_MODE, (uint8_t)config->motorMode);
 
 	prefsHandler->saveChecksum();
 	loadConfiguration();

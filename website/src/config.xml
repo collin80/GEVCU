@@ -22,6 +22,7 @@
 	<brakeMaxRegen>~brakeMaxRegen~</brakeMaxRegen>
 	<speedMax>~speedMax~</speedMax>
 	<torqueMax>~torqueMax~</torqueMax>
+	<motorMode>~motorMode~</motorMode>
 	<logLevel>~logLevel~</logLevel>
 	<prechargeRelay>~prechargeRelay~</prechargeRelay>
 	<mainContactorRelay>~mainContactorRelay~</mainContactorRelay>
