@@ -22,32 +22,21 @@
 bool flag = true;
 void setup() {
 	SerialUSB.begin(9600); // use SerialUSB only as the programming port doesn't work
-	Serial2.begin(9600); // use Serial3 for GEVCU2, use Serial2 for GEVCU3+4
+	Serial3.begin(9600); // use Serial3 for GEVCU2, use Serial2 for GEVCU3+4
 //	pinMode(43, INPUT);
 }
 
 void loop() {
-	while (Serial2.available()) {
-		SerialUSB.write(Serial2.read());
+	while (Serial3.available()) {
+		SerialUSB.write(Serial3.read());
 	}
 	while (SerialUSB.available()) {
-		Serial2.write(SerialUSB.read());
+		Serial3.write(SerialUSB.read());
 	}
 
-	/*if (flag && millis() > 30000) {
+	if (flag && millis() > 30000) {
 		SerialUSB.begin(115200);
-		Serial2.begin(115200);
+		Serial3.begin(115200);
 		flag = false;
-	}*/
+	}
 }
-
-    /*"FD"
-    "BDRA"
-    "WLCH=1
-    "WLSI=!GEVCU"
-    "DIP=192.168.3.10"
-    "DPSZ=10"
-    "RPG=secret"
-    "WPWD=secret"
-    "AWS=1"
-    "DOWN" */

@@ -86,6 +86,9 @@
     <ClInclude Include="CanHandler.h" />
     <ClInclude Include="CanPIDListener.h" />
     <ClInclude Include="CanThrottle.h" />
+    <ClInclude Include="CodaMotorController.h">
+      <FileType>CppCode</FileType>
+    </ClInclude>
     <ClInclude Include="config.h" />
     <ClInclude Include="constants.h">
       <FileType>CppCode</FileType>
@@ -139,6 +142,7 @@
     <ClCompile Include="CanHandler.cpp" />
     <ClCompile Include="CanPIDListener.cpp" />
     <ClCompile Include="CanThrottle.cpp" />
+    <ClCompile Include="CodaMotorController.cpp" />
     <ClCompile Include="Device.cpp" />
     <ClCompile Include="DeviceManager.cpp" />
     <ClCompile Include="DmocMotorController.cpp" />

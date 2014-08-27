@@ -1,4 +1,4 @@
-<h2>ABOUT GEVCU 4.04</h2>
+<h2>ABOUT GEVCU 4.041</h2>
 <p />
 
 <p />
@@ -7,17 +7,18 @@ software and hardware project to develop a Vehicle Control Unit (VCU) specifical
 for electric vehicles. 
 <p />
 The purpose of GEVCU is to handle throttle control, regenerative
-braking, and such peculiarities as precharge, cooling system control,
+braking, forward, reverse, and such peculiarities as precharge, cooling system control,
 instrumentation etc. - essentially the driver interface of the car.
+<p />
 GEVCU then manages torque and speed commands to the power electronics
 via CAN bus to actually operate the vehicle in response to driver input.
-But it also provides outputs to instrumentation, cooling systems, and
-other controls specific to that vehicle.
+<p />
+But it also provides outputs to instrumentation, brake lights, reverse lights, cooling systems, and other controls specific to that vehicle.
 <p />
 GEVCU is both open-source and object-oriented allowing easy addition of
 additional C++ object modules to incorporate multiple standard power components. 
 It is easily modified using the Arduino IDE to incorporate additional features 
-peculiar to any electric car conversion or build.
+peculiar to any specific electric car conversion or build.
 <p />
 For most operations, it is easily configurable by non-programmers through
 simple web and serial port interfaces to adapt to a wide variety of power 
@@ -27,14 +28,14 @@ GEVCU was originally conceived of and proposed by Jack Rickard of
 Electric Vehicle Television (http://EVtv.me) who wrote the original
 design specification. 
 <p />
-The main source of the program was developed andis maintained by Collin Kidder
+The main source of the program was developed and is maintained by Collin Kidder
 and the latest version is always available at http:/github.com/collin80/GEVCU.
 A list of major contributors to the project is maintained there.
 <p />
 Hardware was designed and developed by Ed Clausen and Paulo Almeida based on the 
 Arduino Due.
 <p />
-GEVCU is open source and classified EXPERIMENTAL - USE AT YOUR
+GEVCU is open source hardware and software and is presented as EXPERIMENTAL - USE AT YOUR
 OWN RISK. It is offered strictly for experimental and educational
 purposes and is NOT intended for actual use in any commercial product
-for any specific useful purpose.
+or for any specific useful purpose.
