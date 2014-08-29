@@ -22,21 +22,27 @@
 bool flag = true;
 void setup() {
 	SerialUSB.begin(9600); // use SerialUSB only as the programming port doesn't work
-	Serial3.begin(9600); // use Serial3 for GEVCU2, use Serial2 for GEVCU3+4
+	Serial2.begin(9600); // use Serial3 for GEVCU2, use Serial2 for GEVCU3+4
 //	pinMode(43, INPUT);
+	pinMode(18, OUTPUT);
+	digitalWrite(18, LOW);
 }
 
 void loop() {
-	while (Serial3.available()) {
-		SerialUSB.write(Serial3.read());
+	while (Serial2.available()) {
+		SerialUSB.write(Serial2.read());
 	}
 	while (SerialUSB.available()) {
-		Serial3.write(SerialUSB.read());
+		Serial2.write(SerialUSB.read());
 	}
+  
+        if (millis() > 6000) {
+            digitalWrite(18, HIGH);
+        }
 
 	if (flag && millis() > 30000) {
 		SerialUSB.begin(115200);
-		Serial3.begin(115200);
+		Serial2.begin(115200);
 		flag = false;
 	}
 }
