@@ -658,34 +658,33 @@ void SerialConsole::handleShortCmd() {
 		// restore factory defaults and give it some time
         // pinMode(42,OUTPUT);
         //  digitalWrite(42, LOW); //If we take pin 42 low for at least 5 seconds, this puts wifi board in recovery mode. Gevcu 5.2 version only.
-        //  delay(6000);
-        //  digitalWrite(42, HIGH);
-       // delay(3000);
-                deviceManager->sendMessage(DEVICE_WIFI, ICHIP2128, MSG_COMMAND, (void *)"FD");//Reset to factory defauls
-		  delay(2000);
+         // delay(6000);
+         // digitalWrite(42, HIGH);
+       delay(1000);
+                //deviceManager->sendMessage(DEVICE_WIFI, ICHIP2128, MSG_COMMAND, (void *)"FD");//Reset to factory defauls
+		  delay(200);
 		deviceManager->sendMessage(DEVICE_WIFI, ICHIP2128, MSG_COMMAND, (void *)"HIF=1");  //Set for RS-232 serial host communications.
-		  delay(1000);
+		//  delay(3200);
 		deviceManager->sendMessage(DEVICE_WIFI, ICHIP2128, MSG_COMMAND, (void *)"BDRA");//Auto baud rate selection
-		  delay(1000);
+		//  delay(3200);
                 deviceManager->sendMessage(DEVICE_WIFI, ICHIP2128, MSG_COMMAND, (void *)"RPG=secret"); // set the configuration password for /ichip
-		  delay(1000);
+		//  delay(3200);
 		deviceManager->sendMessage(DEVICE_WIFI, ICHIP2128, MSG_COMMAND, (void *)"WPWD=secret"); // set the password to update our web config params
-		  delay(1000);
-		deviceManager->sendMessage(DEVICE_WIFI, ICHIP2128, MSG_COMMAND, (void *)"WLCH=9"); //use whichever channel an AP wants to use
-		  delay(1000);
-                deviceManager->sendMessage(DEVICE_WIFI, ICHIP2128, MSG_COMMAND, (void *)"WST0=0"); //wep/wap/wap2 to off
-		  delay(1000);				
+		//  delay(3200);
+		//deviceManager->sendMessage(DEVICE_WIFI, ICHIP2128, MSG_COMMAND, (void *)"WLCH=9"); //use whichever channel an AP wants to use
+		 // delay(1000);
+               // deviceManager->sendMessage(DEVICE_WIFI, ICHIP2128, MSG_COMMAND, (void *)"WST0=0"); //wep/wap/wap2 to off
+		//  delay(1000);				
                 deviceManager->sendMessage(DEVICE_WIFI, ICHIP2128, MSG_COMMAND, (void *)"WLSI=GEVCU"); //set for GEVCU as AP SSID.
-		  delay(1000);
+		  delay(1200);
                 deviceManager->sendMessage(DEVICE_WIFI, ICHIP2128, MSG_COMMAND, (void *)"STAP=1"); //Turn on AP function
-		  delay(1000);
+		  delay(1200);
 		deviceManager->sendMessage(DEVICE_WIFI, ICHIP2128, MSG_COMMAND, (void *)"DIP=10.0.0.1"); //enable IP 10.0.0.1 through 10.255.255.254 only 
-		  delay(1000);
+		  delay(1200);
 		deviceManager->sendMessage(DEVICE_WIFI, ICHIP2128, MSG_COMMAND, (void *)"DPSZ=8"); //set DHCP server for 8 sessions
-		  delay(1000);
-		
+		  delay(1200);		
 		deviceManager->sendMessage(DEVICE_WIFI, ICHIP2128, MSG_COMMAND, (void *)"AWS=1"); //turn on web server 
-		  delay(1000);
+		  delay(1200);
 		deviceManager->sendMessage(DEVICE_WIFI, ICHIP2128, MSG_COMMAND, (void *)"DOWN"); //cause a reset to allow it to come up with the settings
 		  delay(5000); // a 5 second delay is required for the chip to come back up ! Otherwise commands will be lost
 

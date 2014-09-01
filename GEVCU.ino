@@ -74,8 +74,41 @@ Device *btDevice;
 
 byte i = 0;
 
+
+void sendWiReach(char* message)
+{
+  Serial2.println(message);
+    delay(700);
+    while (Serial2.available()) {SerialUSB.write(Serial2.read());}
+}
+
+void initWiReach()
+{
+SerialUSB.begin(9600); // use SerialUSB only as the programming port doesn't work
+Serial2.begin(9600); // use Serial3 for GEVCU2, use Serial2 for GEVCU3+4
+
+sendWiReach("AT+iHIF=1");//Host connection set to serial port
+sendWiReach("AT+iBDRA");//Automatic baud rate on host serial port
+sendWiReach("AT+iRPG=secret"); //Password for iChip wbsite
+sendWiReach("AT+iWPWD=secret");//Password for our website
+sendWiReach("AT+iWST0=0");//Connection security wap/wep/wap2 to no security
+sendWiReach("AT+iWLCH=3");  //Wireless channel
+sendWiReach("AT+iWLSI=GEVCU");//SSID
+sendWiReach("AT+iSTAP=1");//Act as AP
+sendWiReach("AT+iDIP=10.0.0.1");//default ip - must be 10.x.x.x
+sendWiReach("AT+iDPSZ=8");//DHCP pool size
+sendWiReach("AT+iAWS=1");//Website on
+sendWiReach("AT+iDOWN");//Powercycle reset
+delay(5000);
+SerialUSB.println("WiReach Wireless Module Initialized....");
+}
+
+
+  
+
 //initializes all the system EEPROM values. Chances are this should be broken out a bit but
 //there is only one checksum check for all of them so it's simple to do it all here.
+
 void initSysEEPROM() {
 	//three temporary storage places to make saving to EEPROM easy
 	uint8_t eight;
@@ -216,6 +249,7 @@ void setup() {
 
 	pinMode(BLINK_LED, OUTPUT);
 	digitalWrite(BLINK_LED, LOW);
+        initWiReach();
 
 	SerialUSB.begin(CFG_SERIAL_SPEED);
 	SerialUSB.println(CFG_VERSION);
