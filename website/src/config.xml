@@ -22,12 +22,17 @@
 	<brakeMaxRegen>~brakeMaxRegen~</brakeMaxRegen>
 	<speedMax>~speedMax~</speedMax>
 	<torqueMax>~torqueMax~</torqueMax>
+	<motorMode>~motorMode~</motorMode>
 	<logLevel>~logLevel~</logLevel>
 	<prechargeRelay>~prechargeRelay~</prechargeRelay>
 	<mainContactorRelay>~mainContactorRelay~</mainContactorRelay>
 	<prechargeR>~prechargeR~</prechargeR>
 	<nominalVolt>~nominalVolt~</nominalVolt>
 	<brakeLight>~brakeLight~</brakeLight>
+	<revLight>~revLight~</revLight>
+	<enableIn>~enableIn~</enableIn>
+	<reverseIn>~reverseIn~</reverseIn>
+	
 	
 	
 	

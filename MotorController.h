@@ -41,24 +41,6 @@
 #define MOTORCTL_INPUT_REVERSE     5
 #define MOTORCTL_INPUT_LIMP        6
 
-class MotorControllerConfiguration : public DeviceConfiguration {
-public:
-	uint16_t speedMax; // in rpm
-	uint16_t torqueMax;	// maximum torque in 0.1 Nm
-	uint16_t torqueSlewRate; // for torque mode only: slew rate of torque value, 0=disabled, in 0.1Nm/sec
-	uint16_t speedSlewRate; //  for speed mode only: slew rate of speed value, 0=disabled, in rpm/sec
-	uint8_t reversePercent;
-
-	uint16_t kilowattHrs;
-	uint16_t prechargeR; //resistance of precharge resistor in tenths of ohm
-	uint16_t nominalVolt; //nominal pack voltage in tenths of a volt
-	uint8_t prechargeRelay; //# of output to use for this relay or 255 if there is no relay
-	uint8_t mainContactorRelay; //# of output to use for this relay or 255 if there is no relay
-	uint8_t coolFan;
-	uint8_t coolOn;
-	uint8_t coolOff;
-};
-
 class MotorController: public Device {
 
 public:
@@ -74,6 +56,13 @@ public:
 		modeSpeed
 	};
 
+    enum OperationState {
+		DISABLED = 0,
+		STANDBY = 1,
+		ENABLE = 2,
+		POWERDOWN = 3
+	};
+
     MotorController();
 	DeviceType getType();
     void setup();
@@ -84,30 +73,57 @@ public:
 	void saveConfiguration();
 
 	void coolingcheck();
+        void checkBrakeLight();
+        void checkReverseLight();
+        void checkEnableInput();
+        void checkReverseInput();
+        void checkPrecharge();
+
         void brakecheck();
-	void setStatusBits();
 	bool isReady();
 	bool isRunning();
 	bool isFaulted();
 	bool isWarning();
 
+uint32_t getStatusBitfield1();
+uint32_t getStatusBitfield2();
+uint32_t getStatusBitfield3();
+uint32_t getStatusBitfield4();
+
+uint32_t statusBitfield1; // bitfield variable for use of the specific implementation
+uint32_t statusBitfield2;
+uint32_t statusBitfield3;
+uint32_t statusBitfield4;
+
+
+
+
 	void setPowerMode(PowerMode mode);
-	PowerMode getPowerMode();
+          PowerMode getPowerMode();
+        void setOpState(OperationState op) ;
+          OperationState getOpState() ;
+        void setSelectedGear(Gears gear);
+          Gears getSelectedGear();
+	
 	int16_t getThrottle();
 	int8_t getCoolFan();
     int8_t getCoolOn();
     int8_t getCoolOff();
+    int8_t getBrakeLight();
+    int8_t getRevLight();
+    int8_t getEnableIn();
+    int8_t getReverseIn();
     int16_t getselectedGear();
     int16_t getprechargeR();
     int16_t getnominalVolt();
     int8_t getprechargeRelay();
     int8_t getmainContactorRelay();
-	int16_t getSpeedRequested();
-	int16_t getSpeedActual();
-	int16_t getTorqueRequested();
-	int16_t getTorqueActual();
-	int16_t getTorqueAvailable();
-
+    int16_t getSpeedRequested();
+    int16_t getSpeedActual();
+    int16_t getTorqueRequested();
+    int16_t getTorqueActual();
+    int16_t getTorqueAvailable();
+   
 	uint16_t getDcVoltage();
 	int16_t getDcCurrent();
 	uint16_t getAcCurrent();
@@ -117,12 +133,13 @@ public:
 	int16_t getTemperatureInverter();
 	int16_t getTemperatureSystem();
 
-	uint32_t getStatusBitfield1();
-	uint32_t getStatusBitfield2();
-	uint32_t getStatusBitfield3();
-	uint32_t getStatusBitfield4();
+	
+        int milliseconds  ;
+        int seconds;
+        int minutes;
+        int hours ;
 
-	Gears getSelectedGear();
+	
 
 protected:
 	bool ready; // indicates if the controller is ready to enable the power stage
@@ -130,10 +147,15 @@ protected:
 	bool faulted; // indicates a error condition is present in the controller
 	bool warning; // indicates a warning condition is present in the controller
 	bool coolflag;
+        bool testenableinput;
+         bool testreverseinput;
+
 
 	Gears selectedGear;
 
 	PowerMode powerMode;
+        OperationState operationState; //the op state we want
+	
 	int16_t throttleRequested; // -1000 to 1000 (per mille of throttle level)
 	int16_t speedRequested; // in rpm
 	int16_t speedActual; // in rpm
@@ -150,11 +172,7 @@ protected:
 	int16_t temperatureInverter; // temperature of inverter power stage in 0.1 degree C
 	int16_t temperatureSystem; // temperature of controller in 0.1 degree C
 
-	uint32_t statusBitfield1; // bitfield variable for use of the specific implementation
-	uint32_t statusBitfield2;
-	uint32_t statusBitfield3;
-	uint32_t statusBitfield4;
-
+	
 	uint16_t nominalVolts; //nominal pack voltage in 1/10 of a volt
 
 	uint16_t prechargeTime; //time in ms that precharge should last
@@ -163,5 +181,28 @@ protected:
 	bool prelay;
 	uint32_t skipcounter;
 };
+
+class MotorControllerConfiguration : public DeviceConfiguration {
+public:
+	uint16_t speedMax; // in rpm
+	uint16_t torqueMax;	// maximum torque in 0.1 Nm
+	uint16_t torqueSlewRate; // for torque mode only: slew rate of torque value, 0=disabled, in 0.1Nm/sec
+	uint16_t speedSlewRate; //  for speed mode only: slew rate of speed value, 0=disabled, in rpm/sec
+	MotorController::PowerMode motorMode; //should we use torque or speed mode?
+	uint8_t reversePercent;
+	uint16_t kilowattHrs;
+	uint16_t prechargeR; //resistance of precharge resistor in tenths of ohm
+	uint16_t nominalVolt; //nominal pack voltage in tenths of a volt
+	uint8_t prechargeRelay; //# of output to use for this relay or 255 if there is no relay
+	uint8_t mainContactorRelay; //# of output to use for this relay or 255 if there is no relay
+	uint8_t coolFan;
+	uint8_t coolOn;
+	uint8_t coolOff;
+	uint8_t brakeLight;
+	uint8_t revLight;
+	uint8_t enableIn;
+	uint8_t reverseIn;
+};
+
 
 #endif

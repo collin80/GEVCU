@@ -61,6 +61,14 @@ void ICHIPWIFI::setup() {
 
 	TickHandler::getInstance()->detach(this);
 
+	//MSEL pin
+	pinMode(18, OUTPUT);
+	digitalWrite(18, HIGH);
+
+	//RESET pin
+	pinMode(42, OUTPUT);
+	digitalWrite(42, HIGH);
+
 	tickCounter = 0;
 	ibWritePtr = 0;
 	psWritePtr = 0;
@@ -88,6 +96,7 @@ void ICHIPWIFI::setup() {
 	elmProc = new ELM327Processor();
 
 	TickHandler::getInstance()->attach(this, CFG_TICK_INTERVAL_WIFI);
+
 }
 
 //A version of sendCmd that defaults to SET_PARAM which is what most of the code used to assume.
@@ -140,7 +149,7 @@ void ICHIPWIFI::sendToSocket(int socket, String data) {
  */
 //TODO: See the processing function below for a more detailed explanation - can't send so many setParam commands in a row
 void ICHIPWIFI::handleTick() {
-	MotorController* motorController = DeviceManager::getInstance()->getMotorController();
+        MotorController* motorController = DeviceManager::getInstance()->getMotorController();
 	Throttle *accelerator = DeviceManager::getInstance()->getAccelerator();
 	Throttle *brake = DeviceManager::getInstance()->getBrake();
 	static int pollListening = 0;
@@ -150,17 +159,17 @@ void ICHIPWIFI::handleTick() {
 	uint8_t brklt;
 	tickCounter++;
 
-	if (ms < 10000) return; //wait 10 seconds for things to settle before doing a thing
+	if (ms < 1000) return; //wait 10 seconds for things to settle before doing a thing
 
 	// Do a delayed parameter load once about a second after startup
-	if (!didParamLoad && ms > 10000) {
-		loadParameters();
-        Logger::console("Wifi Parameters loaded...");
-        paramCache.bitfield1 = motorController->getStatusBitfield1();
+	if (!didParamLoad && ms > 5000) {
+	    loadParameters();
+                  Logger::console("Wifi Parameters loaded...");
+            paramCache.bitfield1 = motorController->getStatusBitfield1();
 		setParam(Constants::bitfield1, paramCache.bitfield1);
 	    paramCache.bitfield2 = motorController->getStatusBitfield2();
 	    setParam(Constants::bitfield2, paramCache.bitfield2);
-		didParamLoad = true;
+	    didParamLoad = true;
 	}
 
 	//At 2 seconds start up a listening socket for OBDII
@@ -197,14 +206,11 @@ void ICHIPWIFI::handleTick() {
 		if (motorController) {
 			//Logger::console("Wifi tick counter 1...");
 
-			// just update this every second or so
-			if ( ms > paramCache.timeRunning + 60000 ) {
-				paramCache.timeRunning = ms;
-				setParam(Constants::timeRunning, getTimeRunning());
-			}
+			paramCache.timeRunning = ms;
+			setParam(Constants::timeRunning, getTimeRunning());
+			
 			if ( paramCache.torqueRequested != motorController->getTorqueRequested() ) {
 				paramCache.torqueRequested = motorController->getTorqueRequested();
-				paramCache.torqueRequested -= 30000;
 				setParam(Constants::torqueRequested, paramCache.torqueRequested / 10.0f, 1);
 			}
 			if ( paramCache.torqueActual != motorController->getTorqueActual() ) {
@@ -215,6 +221,7 @@ void ICHIPWIFI::handleTick() {
 		if (accelerator) {
 			if ( paramCache.throttle != accelerator->getLevel() ) {
 				paramCache.throttle = accelerator->getLevel();
+                                if (paramCache.throttle<-600){paramCache.throttle=-600;}
 				setParam(Constants::throttle, paramCache.throttle / 10.0f, 1);
 			}
 		}
@@ -239,10 +246,15 @@ void ICHIPWIFI::handleTick() {
 			}
 			if ( paramCache.speedActual != motorController->getSpeedActual() ) {
 				paramCache.speedActual = motorController->getSpeedActual();
+                                if (paramCache.speedActual<0) paramCache.speedActual=0;
+                                if (paramCache.speedActual>10000) paramCache.speedActual=10000;
 				setParam(Constants::speedActual, paramCache.speedActual);
 			}
 			if ( paramCache.dcVoltage != motorController->getDcVoltage() ) {
 				paramCache.dcVoltage = motorController->getDcVoltage();
+                                if(paramCache.dcVoltage<1000) paramCache.dcVoltage=1000;  //Limits of the gage display
+                                 if(paramCache.dcVoltage>4500) paramCache.dcVoltage=4500;
+                               
 				setParam(Constants::dcVoltage, paramCache.dcVoltage / 10.0f, 1);
 			}
 			if ( paramCache.dcCurrent != motorController->getDcCurrent() ) {
@@ -276,7 +288,9 @@ void ICHIPWIFI::handleTick() {
 
 			//if ( paramCache.kiloWattHours != motorController->getkiloWattHours()/3600000 ) {
 				paramCache.kiloWattHours = motorController->getKiloWattHours()/3600000;
-				setParam(Constants::kiloWattHours, paramCache.kiloWattHours / 10.0f, 1);
+                                if(paramCache.kiloWattHours<0)paramCache.kiloWattHours = 0;
+                                if(paramCache.kiloWattHours>300)paramCache.kiloWattHours = 300;
+                        	setParam(Constants::kiloWattHours, paramCache.kiloWattHours / 10.0f, 1);
 			//}
                        
             if ( paramCache.nominalVolt != motorController->getnominalVolt()/10 ){
@@ -300,8 +314,7 @@ void ICHIPWIFI::handleTick() {
 				paramCache.bitfield4 = motorController->getStatusBitfield4();
 				setParam(Constants::bitfield4, paramCache.bitfield4);
 			}
-			sysPrefs->read(EESYS_BRAKELIGHT, &paramCache.brakeLight);
-            setParam(Constants::brakeLight, paramCache.brakeLight);
+			
 		}
 	} else if (tickCounter == 4) {
 		if (motorController) {
@@ -332,10 +345,31 @@ void ICHIPWIFI::handleTick() {
 				paramCache.coolOn = motorController->getCoolOn();
 				setParam(Constants::coolOn, (uint8_t) paramCache.coolOn);
 			}
+
             if ( paramCache.coolOff != motorController->getCoolOff() ) {
 				paramCache.coolOff = motorController->getCoolOff();
 				setParam(Constants::coolOff, (uint8_t) paramCache.coolOff);
 			}
+
+			if ( paramCache.brakeLight != motorController->getBrakeLight() ) {
+				paramCache.brakeLight = motorController->getBrakeLight();
+				setParam(Constants::brakeLight, (uint8_t) paramCache.brakeLight);
+			}
+
+			if ( paramCache.revLight != motorController->getRevLight() ) {
+				paramCache.revLight = motorController->getRevLight();
+				setParam(Constants::revLight, (uint8_t) paramCache.revLight);
+			}
+
+			if ( paramCache.enableIn != motorController->getEnableIn() ) {
+				paramCache.enableIn = motorController->getEnableIn();
+				setParam(Constants::enableIn, (uint8_t) paramCache.enableIn);
+			}
+			if ( paramCache.reverseIn != motorController->getReverseIn() ) {
+				paramCache.reverseIn = motorController->getReverseIn();
+				setParam(Constants::reverseIn, (uint8_t) paramCache.reverseIn);
+			}
+
 		}
 	} else if (tickCounter > 4) {
 		if (motorController) {
@@ -352,8 +386,16 @@ void ICHIPWIFI::handleTick() {
 				paramCache.tempSystem = motorController->getTemperatureSystem();
 				setParam(Constants::tempSystem, paramCache.tempSystem / 10.0f, 1);
 			}
+
+			if (paramCache.powerMode != motorController->getPowerMode() ) {
+				paramCache.powerMode = motorController->getPowerMode();
+				setParam(Constants::motorMode, (uint8_t)paramCache.powerMode);
+			}
+
 			//if ( paramCache.mechPower != motorController->getMechanicalPower() ) {
 				paramCache.mechPower = motorController->getMechanicalPower();
+                                if (paramCache.mechPower<-250)paramCache.mechPower=-250;
+                                if (paramCache.mechPower>1500)paramCache.mechPower=1500;
 				setParam(Constants::mechPower, paramCache.mechPower / 10.0f, 1);
 			//}
 		}
@@ -682,29 +724,39 @@ void ICHIPWIFI::processParameterChange(char *key) {
 		motorConfig->coolFan = atol(value);
 		motorController->saveConfiguration();
 	} else if (!strcmp(key, Constants::coolOn) && motorConfig) {
-		motorConfig->coolOn = atol(value);
+		motorConfig->coolOn = (atol(value));
 		motorController->saveConfiguration();
 	} else if (!strcmp(key, Constants::coolOff) && motorConfig) {
-		motorConfig->coolOff = atol(value);
+		motorConfig->coolOff = (atol(value));
 		motorController->saveConfiguration();
-    } else if (!strcmp(key, Constants::prechargeR) && motorConfig) {
+      } else if (!strcmp(key, Constants::prechargeR) && motorConfig) {
 		motorConfig->prechargeR = atol(value);
 		motorController->saveConfiguration(); 
-    } else if (!strcmp(key, Constants::nominalVolt) && motorConfig) {
-		motorConfig->nominalVolt = (atol(value))*10;
-        motorController->saveConfiguration();
-    } else if (!strcmp(key, Constants::prechargeRelay) && motorConfig) {
+      } else if (!strcmp(key, Constants::prechargeRelay) && motorConfig) {
 		motorConfig->prechargeRelay = atol(value);
 		motorController->saveConfiguration();
-    } else if (!strcmp(key, Constants::nominalVolt) && motorConfig) {
-        motorConfig->nominalVolt = atol(value);
-		motorController->saveConfiguration();
-    } else if (!strcmp(key, Constants::mainContactorRelay) && motorConfig) {
+      } else if (!strcmp(key, Constants::nominalVolt) && motorConfig) {
+		motorConfig->nominalVolt = (atol(value))*10;
+                motorController->saveConfiguration();
+    
+      } else if (!strcmp(key, Constants::mainContactorRelay) && motorConfig) {
 		motorConfig->mainContactorRelay = atol(value);
 		motorController->saveConfiguration();
-	} else if (!strcmp(key, Constants::brakeLight) ) {
-        sysPrefs->write(EESYS_BRAKELIGHT, (uint8_t)(atol(value)));
-		//sysPrefs->saveChecksum();
+	} else if (!strcmp(key, Constants::brakeLight) && motorConfig) {
+		motorConfig->brakeLight = atol(value);
+		motorController->saveConfiguration();
+	} else if (!strcmp(key, Constants::revLight) && motorConfig) {
+		motorConfig->revLight = atol(value);
+		motorController->saveConfiguration();
+	} else if (!strcmp(key, Constants::enableIn) && motorConfig) {
+		motorConfig->enableIn = atol(value);
+		motorController->saveConfiguration();
+	} else if (!strcmp(key, Constants::reverseIn) && motorConfig) {
+		motorConfig->reverseIn = atol(value);
+		motorController->saveConfiguration();
+	} else if (!strcmp(key, Constants::motorMode) && motorConfig) {
+		motorConfig->motorMode = (MotorController::PowerMode)atoi(value);
+		motorController->saveConfiguration();	
 	} else if (!strcmp(key, Constants::logLevel)) {
 		extern PrefHandler *sysPrefs;
 		uint8_t loglevel = atol(value);
@@ -764,19 +816,22 @@ void ICHIPWIFI::loadParameters() {
 	if (motorConfig) {
 		setParam(Constants::speedMax, motorConfig->speedMax);
 		setParam(Constants::coolFan, motorConfig->coolFan);
-        setParam(Constants::coolOn, motorConfig->coolOn);
-        setParam(Constants::coolOff, motorConfig->coolOff);
-        setParam(Constants::prechargeR, motorConfig->prechargeR);
-        setParam(Constants::prechargeRelay, motorConfig->prechargeRelay);
-        setParam(Constants::mainContactorRelay, motorConfig->mainContactorRelay);
-        uint16_t nmvlt = motorConfig->nominalVolt/10;
-        setParam(Constants::nominalVolt, nmvlt);
+                setParam(Constants::coolOn, motorConfig->coolOn);
+                setParam(Constants::coolOff, motorConfig->coolOff);
+                setParam(Constants::brakeLight, motorConfig->brakeLight);
+		setParam(Constants::revLight, motorConfig->revLight);
+		setParam(Constants::enableIn, motorConfig->enableIn);
+		setParam(Constants::reverseIn, motorConfig->reverseIn);
+                setParam(Constants::prechargeR, motorConfig->prechargeR);
+                setParam(Constants::prechargeRelay, motorConfig->prechargeRelay);
+                setParam(Constants::mainContactorRelay, motorConfig->mainContactorRelay);
+                uint16_t nmvlt = motorConfig->nominalVolt/10;
+                setParam(Constants::nominalVolt, nmvlt);
 		setParam(Constants::torqueMax, (uint16_t)(motorConfig->torqueMax / 10)); // skip the tenth's
 	}
 	setParam(Constants::logLevel, (uint8_t)Logger::getLogLevel());
 
-	sysPrefs->read(EESYS_BRAKELIGHT, &paramCache.brakeLight);
-	setParam(Constants::brakeLight, paramCache.brakeLight);		
+		
 }
 
 DeviceType ICHIPWIFI::getType() {

@@ -3,7 +3,7 @@
  *
  * Note that the dmoc needs to have some form of input for gear selector (drive/neutral/reverse)
  *
- Copyright (c) 2013 Collin Kidder, Michael Neuweiler, Charles Galpin
+ Copyright (c) 2014 Jack Rickard
 
  Permission is hereby granted, free of charge, to any person obtaining
  a copy of this software and associated documentation files (the
@@ -44,21 +44,14 @@ public:
 };
 
 class CodaMotorController: public MotorController, CanObserver {
-public:
-	enum OperationState {
-		DISABLE = 0,
-		STANDBY = 1,
-		ENABLE = 2,
-		
-	};
+
+	
 
 public:
 	virtual void handleTick();
 	virtual void handleCanFrame(CAN_FRAME *frame);
 	virtual void setup();
-	void setOpState(OperationState op);
-	void setGear(Gears gear);
-
+	
 	CodaMotorController();
         void timestamp();
 	DeviceId getId();
@@ -69,16 +62,12 @@ public:
 	virtual void saveConfiguration();
 
 private:
-	Gears selectedGear;
-	
-	OperationState operationState; //the op state we want
-	
 	byte online; //counter for whether DMOC appears to be operating
 	byte alive;
 	int activityCount;
 	byte sequence;
-
-	void sendCmd1();
+        uint16_t torqueCommand;
+        void sendCmd1();
 	void sendCmd2();
         uint8_t genCodaCRC(uint8_t cmd, uint8_t torq_lsb, uint8_t torq_msb);
 

@@ -78,16 +78,24 @@
 			<td></td>
 			<td>Maximum Brake Regen</td>
 			<td><span id="brakeMaxRegenSpan" title="Percent of maximum torque for regen with full brake pedal pressure"></span> %</td>
+		<br>
 		</tr>
 		<tr>
-			<td colspan="5"><h2>Motor Control</h2></td>
+			<td colspan="5"><h2>
+			Motor Control</h2></td>
 		</tr>
 		<tr>
 			<td>Maximum Speed</td>
 			<td><input name="speedMax" type="text"  title="Maximum speed or RPM controller will apply to motor"/> rpm</td>
-			<td></td>
 			<td>Maximum Torque</td>
 			<td><input name="torqueMax" type="text" title="Maximum torque or power controller will apply to motor"/> Nm</td>
+		</tr>
+		<tr>
+			<td>Motor Mode</td>
+			<td><select name="motorMode">
+				<option value="0">Torque</option>
+				<option value="1">Speed</option>
+			</select></td>
 		</tr>
 		<tr>
 			<td colspan="5"><h2>System</h2></td>
@@ -108,163 +116,12 @@
 		</tr>
 		<tr>
 		</tr>
-		<tr>
-			<td>Precharge Relay</td>
-			<td><select name="prechargeRelay" title="Output port to set precharge relay">
-				<option value="255">None</option>
-				<option value="0">0</option>
-				<option value="1">1</option>
-				<option value="2">2</option>
-				<option value="3">3</option>
-				<option value="4">4</option>
-				<option value="5">5</option>
-				<option value="6">6</option>
-				<option value="7">7</option>
-			</select></td>
-			<td>Precharge Delay</td>
-			<td><input name="prechargeR" type="text" title="Precharge delay in ms"/> milliseconds</td>
-			<td></td>
-		</tr>
-		<tr>
-			<td>Cooling FAN Relay</td>
-			<td><select name="coolFan" title="Output port to set precharge relay">
-				<option value="255">None</option>
-				<option value="0">0</option>
-				<option value="1">1</option>
-				<option value="2">2</option>
-				<option value="3">3</option>
-				<option value="4">4</option>
-				<option value="5">5</option>
-				<option value="6">6</option>
-				<option value="7">7</option>
-				</select></td>
-			<td>Main Contactor Relay</td>
-			<td><select name="mainContactorRelay" title="Output port to set main contactor">
-				<option value="255">None</option>
-				<option value="0">0</option>
-				<option value="1">1</option>
-				<option value="2">2</option>
-				<option value="3">3</option>
-				<option value="4">4</option>
-				<option value="5">5</option>
-				<option value="6">6</option>
-				<option value="7">7</option>
-			</select></td>
-			<td></td>
-		</tr>
-		<tr>
-			<td>CoolON Temperature</td>
-			<td><input name="coolOn" type="text"  title="TempC to turn fan ON"/> C</td>
-			<td>CoolOFF Temperature</td>
-			<td><input name="coolOff" type="text" title="TempC to turn fan OFF"/> C</td>
-			<td></td>
-		</tr>
-		<tr>
-			<td>Brake Light Output</td>
-			<td><select name="brakeLight" title="Output port to turn on brake light">
-				<option value="255">None</option>
-				<option value="0">0</option>
-				<option value="1">1</option>
-				<option value="2">2</option>
-				<option value="3">3</option>
-				<option value="4">4</option>
-				<option value="5">5</option>
-				<option value="6">6</option>
-				<option value="7">7</option>
-				</select></td>
-	</table>
+			</table>
+			<br>
  	<center>
+ 	
 		<input type="submit" value="Save"> </input>
 	</center>
 </form>
 
 		
-<!--		<tr>
-			<td>Active High</td>
-			<td><input name="f24" type="text" value="c" /></td>
-			<td></td>
-			<td>Limp Scale</td>
-			<td><input name="f25" type="text" value="" /></td>
-		</tr>
-		<tr>
-			<td>Max Regen</td>
-			<td><input name="f26" type="text" value="" /></td>
-			<td></td>
-			<td>Regen Scale</td>
-			<td><input name="f28" type="text" value="" /></td>
-		</tr>
-		<tr>
-			<td>Precharge Relay</td>
-			<td><input name="f29" type="text" value="" /></td>
-			<td></td>
-			<td>Contactor Relay</td>
-			<td><input name="f30" type="text" value="" /></td>
-		</tr>
-		<tr>
-			<td>Cooling (&#176;C)</td>
-			<td><input name="f31" type="text" value="" /></td>
-			<td></td>
-			<td>Min Temp Motor (&#176;C)</td>
-			<td><input name="f32" type="text" value="" /></td>
-		</tr>
-		<tr>
-			<td>Max Temp Motor (&#176;C)</td>
-			<td><input name="f34" type="text" value="" /></td>
-			<td></td>
-			<td>Min Temp Inverter (&#176;C)</td>
-			<td><input name="f36" type="text" value="" /></td>
-		</tr>
-		<tr>
-			<td>Max Temp Inverter (&#176;C)</td>
-			<td><input name="f38" type="text" value="" /></td>
-		</tr>
-		<tr>
-			<td colspan="5"><h2>System</h2></td>
-		</tr>
-		<tr>
-			<td>CAN0 Speed (kbps, 0=disable)</td>
-			<td><input name="f100" type="text" value="" /></td>
-			<td></td>
-			<td>CAN1 Speed (kbps, 0=disable)</td>
-			<td><input name="f102" type="text" value="" /></td>
-		</tr>
-		<tr>
-			<td>Serial Speed (baud)</td>
-			<td><input name="f104" type="text" value="" /></td>
-			<td></td>
-			<td>TWI Speed (baud)</td>
-			<td><input name="f106" type="text" value="" /></td>
-		</tr>
-		<tr>
-			<td>Tick Rate</td>
-			<td><input name="f108" type="text" value="" /></td>
-			<td></td>
-			<td>System Time</td>
-			<td><input name="f150" type="text" value="" /></td>
-		</tr>
-		<tr>
-			<td>System Date</td>
-			<td><input name="f154" type="text" value="" /></td>
-			<td></td>
-			<td>SSID</td>
-			<td><input name="f500" type="text" value="" /></td>
-		</tr>
-		<tr>
-			<td>Channel</td>
-			<td><input name="f532" type="text" value="" /></td>
-			<td></td>
-			<td>DHCP (0=off,1=server,2=client)</td>
-			<td><input name="f533" type="text" value="" /></td>
-		</tr>
-		<tr>
-			<td>Mode (0=b, 1=g)</td>
-			<td><input name="f534" type="text" value="" /></td>
-			<td></td>
-			<td>IP Address</td>
-			<td><input name="f535" type="text" value="" /></td>
-		</tr>
-		<tr>
-			<td>Key (13 bytes=WEP,8-40=WPA)</td>
-			<td><input name="f539" type="text" value="" /></td>
-		</tr>
--->	

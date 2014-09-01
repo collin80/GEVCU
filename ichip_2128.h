@@ -1,5 +1,5 @@
 /*
- * ichip_2128.cpp
+ * ichip_2128.h
  *
  * Class to interface with the ichip 2128 based wifi adapter we're using on our board
  *
@@ -84,6 +84,8 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include "Sys_Messages.h"
 #include "DeviceTypes.h"
 #include "ELM327Processor.h"
+//#include "sys_io.h"
+
 
 extern PrefHandler *sysPrefs;
 
@@ -105,10 +107,10 @@ struct ParamCache {
 	int16_t torqueActual;
 	int16_t throttle;
 	int16_t brake;
-	uint8_t brakeLight;
 	bool brakeNotAvailable;
 	int16_t speedRequested;
 	int16_t speedActual;
+	MotorController::PowerMode powerMode;
 	int16_t dcVoltage;
 	int16_t dcCurrent;
 	int16_t acCurrent;
@@ -132,6 +134,10 @@ struct ParamCache {
     int8_t coolFan;
     int8_t coolOn;
     int8_t coolOff;
+    int8_t brakeLight;
+    int8_t revLight;
+    int8_t enableIn;
+    int8_t reverseIn;
 };
 
 struct SendBuff {
@@ -155,6 +161,8 @@ class ICHIPWIFI : public Device {
 
 	void loadConfiguration();
 	void saveConfiguration();
+        void loadParameters();
+       
 
     private:
 	ELM327Processor *elmProc;
@@ -190,7 +198,8 @@ class ICHIPWIFI : public Device {
 	void sendCmd(String cmd, ICHIP_COMM_STATE cmdstate);
 	void sendToSocket(int socket, String data);
     void processParameterChange(char *response);
-    void loadParameters();
+
+    
 };
 
 #endif

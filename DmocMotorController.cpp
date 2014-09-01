@@ -45,6 +45,7 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 extern bool runThrottle; //TODO: remove use of global variables !
 
+
 DmocMotorController::DmocMotorController() : MotorController() {
 	prefsHandler = new PrefHandler(DMOC645);
 	step = SPEED_TORQUE;
@@ -165,25 +166,14 @@ void DmocMotorController::handleTick() {
 		if (actualState == DISABLED && activityCount > 40) {
 			setOpState(ENABLE);
 			setGear(DRIVE);
-		}
-	}
+		    }
+	  }
 	else {
 		setGear(NEUTRAL);
 	}
 
-	//TODO: this check somehow duplicates functionality in MotorController !
-	//if the first digital input is high we'll enable drive so we can go!
-	//if (getDigital(0)) {
-		//setGear(DRIVE);
-		//runThrottle = true;
-		setPowerMode(modeTorque);
-	//}
-
-	//but, if the second input is high we cancel the whole thing and disable the drive.
-	if (getDigital(1) /*|| !getDigital(0)*/) {
-		setOpState(DISABLED);
-		//runThrottle = false;
-	}
+	setPowerMode(modeTorque);
+	
 
 	//if (online == 1) { //only send out commands if the controller is really there.
 	step = CHAL_RESP;
@@ -208,7 +198,7 @@ void DmocMotorController::sendCmd1() {
 	output.extended = 0; //standard frame
 	output.rtr = 0;
 
-	if (throttleRequested > 0 && operationState == ENABLE && selectedGear != NEUTRAL && powerMode == modeSpeed)
+	if (throttleRequested > 0 && operationState == ENABLE && selectedGear != NEUTRAL && config->motorMode == modeSpeed)
 		speedRequested = 20000 + (((long) throttleRequested * (long) config->speedMax) / 1000);
 	else
 		speedRequested = 20000;
@@ -254,16 +244,20 @@ void DmocMotorController::sendCmd2() {
 	//data 0-1 is upper limit, 2-3 is lower limit. They are set to same value to lock torque to this value
 	//torqueRequested = 30000L + (((long)throttleRequested * (long)MaxTorque) / 1000L);
 
-	torqueRequested = 30000; //set upper torque to zero if not drive enabled
-	if (powerMode == modeTorque) {
+	torqueCommand = 30000; //set offset  for zero torque commanded
+	if (config->motorMode == modeTorque) {
+                torqueRequested=0;
 		if (actualState == ENABLE) { //don't even try sending torque commands until the DMOC reports it is ready
 			if (selectedGear == DRIVE)
-                torqueRequested = 30000L + (((long) throttleRequested * (long) config->torqueMax) / 1000L);
+                torqueRequested = (((long) throttleRequested * (long) config->torqueMax) / 1000L);
 			if (selectedGear == REVERSE)
-				torqueRequested = 30000L - (((long) throttleRequested * (long) config->torqueMax) / 1000L);
+				torqueRequested = (((long) throttleRequested * (long) config->torqueMax) / 1000L);
 		}
-		output.data.bytes[0] = (torqueRequested & 0xFF00) >> 8;
-		output.data.bytes[1] = (torqueRequested & 0x00FF);
+                  
+        if(speedActual<config->speedMax){torqueCommand+=torqueRequested;} //If actual rpm is less than max rpm, add torque to offset
+                                                                                  // else torque is left set to zero.
+		output.data.bytes[0] = (torqueCommand & 0xFF00) >> 8;
+		output.data.bytes[1] = (torqueCommand & 0x00FF);
 		output.data.bytes[2] = output.data.bytes[0];
 		output.data.bytes[3] = output.data.bytes[1];
 	}
@@ -285,6 +279,10 @@ void DmocMotorController::sendCmd2() {
     //Logger::debug("requested torque: %i",(((long) throttleRequested * (long) maxTorque) / 1000L));
 
 	CanHandler::getInstanceEV()->sendFrame(output);
+        timestamp();
+        Logger::debug("Torque command: MSB: %X  LSB: %X  %X  %X  %X  %X  %X  CRC: %X  %d:%d:%d.%d",output.data.bytes[0],
+output.data.bytes[1],output.data.bytes[2],output.data.bytes[3],output.data.bytes[4],output.data.bytes[5],output.data.bytes[6],output.data.bytes[7], hours, minutes, seconds, milliseconds);
+ 
 }
 
 //Power limits plus setting ambient temp and whether to cool power train or go into limp mode
@@ -355,9 +353,6 @@ void DmocMotorController::sendCmd5() {
 	CanHandler::getInstanceEV()->sendFrame(output);
 }
 
-void DmocMotorController::setOpState(OperationState op) {
-	operationState = op;
-}
 
 void DmocMotorController::setGear(Gears gear) {
 	selectedGear = gear;
@@ -405,4 +400,17 @@ void DmocMotorController::loadConfiguration() {
 
 void DmocMotorController::saveConfiguration() {
 	MotorController::saveConfiguration();
+}
+
+void DmocMotorController::timestamp()
+{
+   milliseconds = (int) (millis()/1) %1000 ;
+   seconds = (int) (millis() / 1000) % 60 ;
+    minutes = (int) ((millis() / (1000*60)) % 60);
+    hours   = (int) ((millis() / (1000*60*60)) % 24);
+    // char buffer[9]; 
+    //sprintf(buffer,"%02d:%02d:%02d.%03d", hours, minutes, seconds, milliseconds);
+   // Serial<<buffer<<"\n";
+    
+
 }

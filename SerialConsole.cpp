@@ -44,6 +44,7 @@ void SerialConsole::init() {
 	//State variables for serial console
 	ptrBuffer = 0;
 	state = STATE_ROOT_MENU;
+      
 }
 
 void SerialConsole::loop() {
@@ -101,16 +102,22 @@ void SerialConsole::printMenu() {
 
 	if (motorController && motorController->getConfiguration()) {
 		MotorControllerConfiguration *config = (MotorControllerConfiguration *) motorController->getConfiguration();
+                  
          SerialUSB.println();
          SerialUSB.println("MOTOR CONTROLS");
          SerialUSB.println();
 		Logger::console("TORQ=%i - Set torque upper limit (tenths of a Nm)", config->torqueMax);
-		Logger::console("RPMS=%i - Set maximum RPMs", config->speedMax);
+		Logger::console("RPM=%i - Set maximum RPM", config->speedMax);
 		Logger::console("REVLIM=%i - How much torque to allow in reverse (Tenths of a percent)", config->reversePercent);
                             
-	    Logger::console("COOLFAN=%i - Digital output to turn on cooling (0-7)", config->coolFan);
-        Logger::console("COOLON=%i - Inverter temperature to turn cooling on", config->coolOn);
-        Logger::console("COOLOFF=%i - Inverter temperature to turn cooling off", config->coolOff);  
+	    Logger::console("COOLFAN=%i - Digital output to turn on cooling fan(0-7, 255 for none)", config->coolFan);
+        Logger::console("COOLON=%i - Inverter temperature C to turn cooling on", config->coolOn);
+        Logger::console("COOLOFF=%i - Inverter temperature C to turn cooling off", config->coolOff);  
+        Logger::console("BRAKELT = %i - Digital output to turn on brakelight (0-7, 255 for none)", config->brakeLight);
+        Logger::console("REVLT=%i - Digital output to turn on reverse light (0-7, 255 for none)", config->revLight);
+        Logger::console("ENABLEIN=%i - Digital input to enable motor controller (0-3, 255 for none)", config->enableIn);
+        Logger::console("REVIN=%i - Digital input to reverse motor rotation (0-3, 255 for none)", config->reverseIn);
+       
 	}
 
 
@@ -261,7 +268,7 @@ void SerialConsole::handleConfigCmd() {
 		Logger::console("Setting Torque Limit to %i", newValue);
 		motorConfig->torqueMax = newValue;
 		motorController->saveConfiguration();
-	} else if (cmdString == String("RPMS") && motorConfig) {
+	} else if (cmdString == String("RPM") && motorConfig) {
 		Logger::console("Setting RPM Limit to %i", newValue);
 		motorConfig->speedMax = newValue;
 		motorController->saveConfiguration();
@@ -342,19 +349,35 @@ void SerialConsole::handleConfigCmd() {
 		motorConfig->kilowattHrs = newValue;
 		motorController->saveConfiguration();
 	} else if (cmdString == String("PREDELAY") && motorConfig) {
-		Logger::console("Setting Precharge Time Delay to %i ms", newValue);
+		Logger::console("Setting Precharge Time Delay to %i milliseconds", newValue);
 		motorConfig->prechargeR = newValue;
 		motorController->saveConfiguration();
 	} else if (cmdString == String("NOMV") && motorConfig) {
 		Logger::console("Setting fully charged voltage to %d vdc", newValue);
 		motorConfig->nominalVolt = newValue * 10;
 		motorController->saveConfiguration();
+        } else if (cmdString == String("BRAKELT") && motorConfig) {
+		motorConfig->brakeLight = newValue;
+		motorController->saveConfiguration();
+		Logger::console("Brake light output set to DOUT%i.",newValue);
+ } else if (cmdString == String("REVLT") && motorConfig) {
+		motorConfig->revLight = newValue;
+		motorController->saveConfiguration();
+		Logger::console("Reverse light output set to DOUT%i.",newValue);
+ } else if (cmdString == String("ENABLEIN") && motorConfig) {
+		motorConfig->enableIn = newValue;
+		motorController->saveConfiguration();
+		Logger::console("Motor Enable input set to DIN%i.",newValue);
+ } else if (cmdString == String("REVIN") && motorConfig) {
+		motorConfig->reverseIn = newValue;
+		motorController->saveConfiguration();
+		Logger::console("Motor Reverse input set to DIN%i.",newValue);
 	} else if (cmdString == String("MRELAY") && motorConfig) {
-		Logger::console("Setting Main Contactor relay to %i", newValue);
+		Logger::console("Setting Main Contactor relay output to DOUT%i", newValue);
 		motorConfig->mainContactorRelay = newValue;
 		motorController->saveConfiguration();
 	} else if (cmdString == String("PRELAY") && motorConfig) {
-		Logger::console("Setting Precharge Relay to %i", newValue);
+		Logger::console("Setting Precharge Relay output to DOUT%i", newValue);
 		motorConfig->prechargeRelay = newValue;
 		motorController->saveConfiguration();
 	} else if (cmdString == String("ENABLE")) {
@@ -381,11 +404,8 @@ void SerialConsole::handleConfigCmd() {
 			Logger::console("System type updated. Power cycle to apply.");
 		}
 		else Logger::console("Invalid system type. Please enter a value 1 - 4");
-    } else if (cmdString == String("BRAKELT")) {
-			sysPrefs->write(EESYS_BRAKELIGHT, (uint8_t)(newValue));
-			sysPrefs->saveChecksum();
-			sysPrefs->forceCacheWrite(); //just in case someone takes us literally and power cycles quickly
-			Logger::console("Brake light output set to %i.",newValue);
+
+       
 	} else if (cmdString == String("LOGLEVEL")) {
 		switch (newValue) {
 		case 0:
@@ -459,9 +479,21 @@ void SerialConsole::handleConfigCmd() {
 	    }
 		else Logger::console("Invalid cooling OFF temperature. Please enter a value 0 - 200F");
 	} else if (cmdString == String("OUTPUT") && newValue<8) {
-		setOutput(newValue, !getOutput(newValue)); //Toggle output
-        //show our work
-        Logger::console("DOUT0:%d, DOUT1:%d, DOUT2:%d, DOUT3:%d,DOUT4:%d, DOUT5:%d, DOUT6:%d, DOUT7:%d", getOutput(0), getOutput(1), getOutput(2), getOutput(3), getOutput(4), getOutput(5), getOutput(6), getOutput(7));
+                int outie = getOutput(newValue);
+                Logger::console("DOUT%d,  STATE: %d",newValue, outie);
+                if(outie)
+                  {
+                    setOutput(newValue,0);
+                    motorController->statusBitfield1 &= ~(1 << newValue);//Clear
+                  }
+                   else
+                     {
+                       setOutput(newValue,1);
+                        motorController->statusBitfield1 |=1 << newValue;//setbit to Turn on annunciator
+		      }
+                  
+             
+        Logger::console("DOUT0:%d, DOUT1:%d, DOUT2:%d, DOUT3:%d, DOUT4:%d, DOUT5:%d, DOUT6:%d, DOUT7:%d", getOutput(0), getOutput(1), getOutput(2), getOutput(3), getOutput(4), getOutput(5), getOutput(6), getOutput(7));
 	} else {
 		Logger::console("Unknown command");
 		updateWifi = false;
@@ -591,7 +623,7 @@ void SerialConsole::handleShortCmd() {
 		deviceManager->sendMessage(DEVICE_WIFI, ICHIP2128, MSG_COMMAND, (void *)"AWPS");
 		break;
 	case 'w':
-		Logger::console("Resetting wifi to factory defaults and setting up to auto connect to open APs");
+		Logger::console("Resetting wifi to factory defaults and setting up GEVCU ad-hoc AP");
 		// restore factory defaults and give it some time
         // pinMode(43,OUTPUT);
         //  digitalWrite(43, HIGH); 
@@ -601,15 +633,18 @@ void SerialConsole::handleShortCmd() {
         deviceManager->sendMessage(DEVICE_WIFI, ICHIP2128, MSG_COMMAND, (void *)"FD");
 		delay(2000);
 		// set-up specific ad-hoc network
-		deviceManager->sendMessage(DEVICE_WIFI, ICHIP2128, MSG_COMMAND, (void *)"BDRA");
+                deviceManager->sendMessage(DEVICE_WIFI, ICHIP2128, MSG_COMMAND, (void *)"HIF=1");  //Set for RS-232 serial.
 		delay(1000);
-		deviceManager->sendMessage(DEVICE_WIFI, ICHIP2128, MSG_COMMAND, (void *)"WLCH=1"); //use whichever channel an AP wants to use
+		
+		deviceManager->sendMessage(DEVICE_WIFI, ICHIP2128, MSG_COMMAND, (void *)"BDRA");//Auto baud rate selection
 		delay(1000);
-		deviceManager->sendMessage(DEVICE_WIFI, ICHIP2128, MSG_COMMAND, (void *)"WLSI=!GEVCU"); //set no SSID which enables auto searching for an open hotspot
+		deviceManager->sendMessage(DEVICE_WIFI, ICHIP2128, MSG_COMMAND, (void *)"WLCH=6"); //use whichever channel an AP wants to use
+		delay(1000);
+		deviceManager->sendMessage(DEVICE_WIFI, ICHIP2128, MSG_COMMAND, (void *)"WLSI=!GEVCU"); //set for GEVCU aS AP.
 		delay(1000);
 		deviceManager->sendMessage(DEVICE_WIFI, ICHIP2128, MSG_COMMAND, (void *)"DIP=192.168.3.10"); //enable searching for a proper IP via DHCP
 		delay(1000);
-		deviceManager->sendMessage(DEVICE_WIFI, ICHIP2128, MSG_COMMAND, (void *)"DPSZ=10"); //turn off DHCP server
+		deviceManager->sendMessage(DEVICE_WIFI, ICHIP2128, MSG_COMMAND, (void *)"DPSZ=8"); //set DHCP server for 10
 		delay(1000);
 		deviceManager->sendMessage(DEVICE_WIFI, ICHIP2128, MSG_COMMAND, (void *)"RPG=secret"); // set the configuration password for /ichip
 		delay(1000);
@@ -619,7 +654,7 @@ void SerialConsole::handleShortCmd() {
 		//	deviceManager->sendMessage(DEVICE_WIFI, ICHIP2128, MSG_COMMAND, (void *)"WST1=4"); //wpa2
 		//	deviceManager->sendMessage(DEVICE_WIFI, ICHIP2128, MSG_COMMAND, (void *)"WPP1=verysecret"); //wpa2 password
 
-		deviceManager->sendMessage(DEVICE_WIFI, ICHIP2128, MSG_COMMAND, (void *)"AWS=1"); //turn on web server for three clients
+		deviceManager->sendMessage(DEVICE_WIFI, ICHIP2128, MSG_COMMAND, (void *)"AWS=1"); //turn on web server for ten clients
 		delay(1000);
 		deviceManager->sendMessage(DEVICE_WIFI, ICHIP2128, MSG_COMMAND, (void *)"DOWN"); //cause a reset to allow it to come up with the settings
 		delay(5000); // a 5 second delay is required for the chip to come back up ! Otherwise commands will be lost
