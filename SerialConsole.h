@@ -59,6 +59,7 @@ private:
 	char cmdBuffer[80];
 	int ptrBuffer;
 	int state;
+        int loopcount;
     
     void init();
     void serialEvent();

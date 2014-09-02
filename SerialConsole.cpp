@@ -44,6 +44,7 @@ void SerialConsole::init() {
 	//State variables for serial console
 	ptrBuffer = 0;
 	state = STATE_ROOT_MENU;
+        loopcount=0;
       
 }
 
@@ -234,14 +235,9 @@ void SerialConsole::handleConfigCmd() {
 	i = 0;
 
 	while (cmdBuffer[i] != '=' && i < ptrBuffer) {
-		/*if (cmdBuffer[i] >= '0' && cmdBuffer[i] <= '9') {
-		    whichEntry = cmdBuffer[i++] - '0';
-		}
-		else */ cmdString.concat(String(cmdBuffer[i++]));
+	 cmdString.concat(String(cmdBuffer[i++]));
 	}
-
 	i++; //skip the =
-
 	if (i >= ptrBuffer)
 	{
 		Logger::console("Command needs a value..ie TORQ=3000");
@@ -428,35 +424,39 @@ void SerialConsole::handleConfigCmd() {
 		sysPrefs->write(EESYS_LOG_LEVEL, (uint8_t)newValue);
 		sysPrefs->saveChecksum();
 
-	} else if (cmdString == String("WLAN")) {
+	} else if (cmdString == String("WIREACH")) {
 		DeviceManager::getInstance()->sendMessage(DEVICE_WIFI, ICHIP2128, MSG_COMMAND, (void *)(cmdBuffer + i));
-		Logger::info("sent \"AT+i%s\" to wlan device", (cmdBuffer + i));
+		Logger::info("sent \"AT+i%s\" to WiReach wireless LAN device", (cmdBuffer + i));
+                DeviceManager::getInstance()->sendMessage(DEVICE_WIFI, ICHIP2128, MSG_COMMAND, (void *)"DOWN");	
 		updateWifi = false;
-	} else if (cmdString == String("WSSID")) {
+	} else if (cmdString == String("SSID")) {
 		String cmdString = String();
-    	        cmdString.concat("WSI");
-		cmdString.concat(whichEntry);
-		cmdString.concat('=');
+    	        cmdString.concat("WLSI");
+   		cmdString.concat('=');
 		cmdString.concat((char *)(cmdBuffer + i));
-		DeviceManager::getInstance()->sendMessage(DEVICE_WIFI, ICHIP2128, MSG_COMMAND, (void *)cmdString.c_str());
+                Logger::info("Sent \"%s\" to WiReach wireless LAN device", (cmdString.c_str()));
+       		DeviceManager::getInstance()->sendMessage(DEVICE_WIFI, ICHIP2128, MSG_COMMAND, (void *)cmdString.c_str());
+                DeviceManager::getInstance()->sendMessage(DEVICE_WIFI, ICHIP2128, MSG_COMMAND, (void *)"DOWN");	
 		updateWifi = false;
-	} else if (cmdString == String("WPASS")) {
+        } else if (cmdString == String("IP")) {
 		String cmdString = String();
-		cmdString.concat("WPP");  //WKY for WEP so we should have a way to know the type first
-		cmdString.concat(whichEntry);
-		cmdString.concat('=');
+    	        cmdString.concat("DIP");
+   		cmdString.concat('=');
 		cmdString.concat((char *)(cmdBuffer + i));
-		DeviceManager::getInstance()->sendMessage(DEVICE_WIFI, ICHIP2128, MSG_COMMAND, (void *)cmdString.c_str());
+                Logger::info("Sent \"%s\" to WiReach wireless LAN device", (cmdString.c_str()));
+       		DeviceManager::getInstance()->sendMessage(DEVICE_WIFI, ICHIP2128, MSG_COMMAND, (void *)cmdString.c_str());
+                DeviceManager::getInstance()->sendMessage(DEVICE_WIFI, ICHIP2128, MSG_COMMAND, (void *)"DOWN");	
 		updateWifi = false;
-	} else if (cmdString == String("WTYPE")) {
+   } else if (cmdString == String("PWD")) {
 		String cmdString = String();
-		cmdString.concat("WST");
-		cmdString.concat(whichEntry);
-		cmdString.concat('=');
+    	        cmdString.concat("WPWD");
+   		cmdString.concat('=');
 		cmdString.concat((char *)(cmdBuffer + i));
-		DeviceManager::getInstance()->sendMessage(DEVICE_WIFI, ICHIP2128, MSG_COMMAND, (void *)cmdString.c_str());
-		DeviceManager::getInstance()->sendMessage(DEVICE_WIFI, ICHIP2128, MSG_COMMAND, (void *)"DOWN");
+                Logger::info("Sent \"%s\" to WiReach wireless LAN device", (cmdString.c_str()));
+       		DeviceManager::getInstance()->sendMessage(DEVICE_WIFI, ICHIP2128, MSG_COMMAND, (void *)cmdString.c_str());
+                DeviceManager::getInstance()->sendMessage(DEVICE_WIFI, ICHIP2128, MSG_COMMAND, (void *)"DOWN");	
 		updateWifi = false;
+	
 	} else if (cmdString == String("COOLFAN") && motorConfig) {		
 		Logger::console("Cooling fan output updated to: %i", newValue);
         motorConfig->coolFan = newValue;
@@ -614,7 +614,7 @@ void SerialConsole::handleShortCmd() {
 		Logger::console("Finding and listing all nearby WiFi access points");
 		deviceManager->sendMessage(DEVICE_WIFI, ICHIP2128, MSG_COMMAND, (void *)"RP20");
 		break;
-	case 'V':
+	case 'W':
 		Logger::console("Setting Wifi Adapter to WPS mode (make sure you press the WPS button on your router)");
 		// restore factory defaults and give it some time
 		deviceManager->sendMessage(DEVICE_WIFI, ICHIP2128, MSG_COMMAND, (void *)"AWPS");
@@ -653,45 +653,7 @@ void SerialConsole::handleShortCmd() {
 		deviceManager->sendMessage(DEVICE_WIFI, ICHIP2128, MSG_CONFIG_CHANGE, NULL); // reload configuration params as they were lost
 		Logger::console("Wifi 4.2 initialized");
 		break;
-        case 'W':
-		Logger::console("Resetting wifi to factory defaults and setting up GEVCU 5.2 10.0.0.1 Access Point");
-		// restore factory defaults and give it some time
-        // pinMode(42,OUTPUT);
-        //  digitalWrite(42, LOW); //If we take pin 42 low for at least 5 seconds, this puts wifi board in recovery mode. Gevcu 5.2 version only.
-         // delay(6000);
-         // digitalWrite(42, HIGH);
-       delay(1000);
-                //deviceManager->sendMessage(DEVICE_WIFI, ICHIP2128, MSG_COMMAND, (void *)"FD");//Reset to factory defauls
-		  delay(200);
-		deviceManager->sendMessage(DEVICE_WIFI, ICHIP2128, MSG_COMMAND, (void *)"HIF=1");  //Set for RS-232 serial host communications.
-		//  delay(3200);
-		deviceManager->sendMessage(DEVICE_WIFI, ICHIP2128, MSG_COMMAND, (void *)"BDRA");//Auto baud rate selection
-		//  delay(3200);
-                deviceManager->sendMessage(DEVICE_WIFI, ICHIP2128, MSG_COMMAND, (void *)"RPG=secret"); // set the configuration password for /ichip
-		//  delay(3200);
-		deviceManager->sendMessage(DEVICE_WIFI, ICHIP2128, MSG_COMMAND, (void *)"WPWD=secret"); // set the password to update our web config params
-		//  delay(3200);
-		//deviceManager->sendMessage(DEVICE_WIFI, ICHIP2128, MSG_COMMAND, (void *)"WLCH=9"); //use whichever channel an AP wants to use
-		 // delay(1000);
-               // deviceManager->sendMessage(DEVICE_WIFI, ICHIP2128, MSG_COMMAND, (void *)"WST0=0"); //wep/wap/wap2 to off
-		//  delay(1000);				
-                deviceManager->sendMessage(DEVICE_WIFI, ICHIP2128, MSG_COMMAND, (void *)"WLSI=GEVCU"); //set for GEVCU as AP SSID.
-		  delay(1200);
-                deviceManager->sendMessage(DEVICE_WIFI, ICHIP2128, MSG_COMMAND, (void *)"STAP=1"); //Turn on AP function
-		  delay(1200);
-		deviceManager->sendMessage(DEVICE_WIFI, ICHIP2128, MSG_COMMAND, (void *)"DIP=10.0.0.1"); //enable IP 10.0.0.1 through 10.255.255.254 only 
-		  delay(1200);
-		deviceManager->sendMessage(DEVICE_WIFI, ICHIP2128, MSG_COMMAND, (void *)"DPSZ=8"); //set DHCP server for 8 sessions
-		  delay(1200);		
-		deviceManager->sendMessage(DEVICE_WIFI, ICHIP2128, MSG_COMMAND, (void *)"AWS=1"); //turn on web server 
-		  delay(1200);
-		deviceManager->sendMessage(DEVICE_WIFI, ICHIP2128, MSG_COMMAND, (void *)"DOWN"); //cause a reset to allow it to come up with the settings
-		  delay(5000); // a 5 second delay is required for the chip to come back up ! Otherwise commands will be lost
-
-		deviceManager->sendMessage(DEVICE_WIFI, ICHIP2128, MSG_CONFIG_CHANGE, NULL); // reload configuration params as they were lost
-		Logger::console("Wifi 5.2 initialized");
-		break;
-
+        
 	case 'X':
 		setup(); //this is probably a bad idea. Do not do this while connected to anything you care about - only for debugging in safety!
 		break;

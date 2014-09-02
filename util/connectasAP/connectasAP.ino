@@ -24,8 +24,8 @@ void setup() {
 	SerialUSB.begin(9600); // use SerialUSB only as the programming port doesn't work
 	Serial2.begin(9600); // use Serial3 for GEVCU2, use Serial2 for GEVCU3+4
 //	pinMode(43, INPUT);
-	pinMode(18, OUTPUT);
-	digitalWrite(18, LOW);
+	//pinMode(18, OUTPUT);
+	//digitalWrite(18, LOW);
 }
 
 void loop() {
@@ -38,9 +38,9 @@ void loop() {
 		else {Serial2.write(inbyte);}
 	}
   
-      if (millis() > 6000) {
-           digitalWrite(18, HIGH);
-        }
+      //if (millis() > 6000) {
+     //      digitalWrite(18, HIGH);
+     //   }
 
 	
 }
@@ -49,25 +49,27 @@ void sendcommandlist()
 {
   SerialUSB.println("Sending commands....");
   
-sendmessage("AT+iFD");//Clear all options
+//sendmessage("AT+iFD");//Clear all options
 sendmessage("AT+iHIF=1");//Host connection set to serial port
 sendmessage("AT+iBDRA");//Automatic baud rate on host serial port
-//sendmessage("AT+iWRST");//Wireless chip reset 
-//sendmessage("AT+iWLBM");  //Set to 802.11b
-//sendmessage("AT+iWEBP=80");//Website port number
-sendmessage("AT+iWLCH=3");  //Wireless channel
-sendmessage("AT+iWLSI=gevcu");//SSID
-sendmessage("AT+iDIP=192.168.1.46");//default ip
-sendmessage("AT+iSNET=255.255.255.0");//subnet
-sendmessage("AT+iDPSZ=6");//DHCP pool size
-sendmessage("AT+iWST0=0");//Connection security wap/wep/wap2
-//sendmessage("AT+iWLPW=14");//Max radio power
-//sendmessage("AT+iWRFU"); //Radio on
 
 sendmessage("AT+iRPG=secret");
 sendmessage("AT+iWPWD=secret");
-sendmessage("AT+iAWS=1");//Website on
+//sendmessage("AT+iWRST");//Wireless chip reset 
+//sendmessage("AT+iWLBM");  //Set to 802.11b
+//sendmessage("AT+iWEBP=80");//Website port number
+//sendmessage("AT+iWLCH=3");  //Wireless channel
+sendmessage("AT+iWLSI=GEVCU");//SSID
 sendmessage("AT+iSTAP=1");//Act as AP
+sendmessage("AT+iDIP=10.0.0.1");//default ip
+//sendmessage("AT+iSNET=255.255.255.0");//subnet
+sendmessage("AT+iDPSZ=8");//DHCP pool size
+//sendmessage("AT+iWST0=0");//Connection security wap/wep/wap2
+//sendmessage("AT+iWLPW=14");//Max radio power
+//sendmessage("AT+iWRFU"); //Radio on
+
+sendmessage("AT+iAWS=1");//Website on
+//sendmessage("AT+iSTAP=1");//Act as AP
 sendmessage("AT+iDOWN");//Powercycle reset
 
   SerialUSB.println("Command list completed....");
