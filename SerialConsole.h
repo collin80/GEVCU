@@ -60,6 +60,8 @@ private:
 	int ptrBuffer;
 	int state;
         int loopcount;
+        bool cancel;
+        
     
     void init();
     void serialEvent();

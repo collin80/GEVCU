@@ -45,14 +45,21 @@ void SerialConsole::init() {
 	ptrBuffer = 0;
 	state = STATE_ROOT_MENU;
         loopcount=0;
+        cancel=false;
       
 }
 
 void SerialConsole::loop() {
-
-	if (handlingEvent == false) {
-		if (SerialUSB.available()) {
-			serialEvent();
+  if(!cancel)
+    {
+      if(loopcount++==10000){
+        DeviceManager::getInstance()->sendMessage(DEVICE_WIFI, ICHIP2128, MSG_CONFIG_CHANGE, NULL);
+        cancel=true;  
+        }
+    } 
+  if (handlingEvent == false) {
+	if (SerialUSB.available()) {
+        	serialEvent();
 		}
 	}
 }
