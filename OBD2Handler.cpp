@@ -218,6 +218,7 @@ bool OBD2Handler::processShowData(uint8_t pid, char *inData, char *outData) {
 bool OBD2Handler::processShowCustomData(uint16_t pid, char *inData, char *outData) {
 	switch (pid) {
 	}
+	return false;
 }
 
 

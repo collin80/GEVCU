@@ -198,11 +198,27 @@ void ThrottleDetector::detectMaxCalibrate() {
 
 		Logger::debug("Inverse: %s, throttle2Min: %d, throttle2Max: %d", (throttle2Inverse?"true":"false"), throttle2Min, throttle2Max);
 
-		// fluctuation percentages
-		throttle1MinFluctuationPercent = throttle1MinFluctuation*100/abs(throttle1Max-throttle1Min);
-		throttle1MaxFluctuationPercent = throttle1MaxFluctuation*100/abs(throttle1Max-throttle1Min);
-		throttle2MinFluctuationPercent = throttle2MinFluctuation*100/abs(throttle2Max-throttle2Min);
-		throttle2MaxFluctuationPercent = throttle2MaxFluctuation*100/abs(throttle2Max-throttle2Min);
+		// fluctuation percentages - make sure not to divide by zero
+		if (!(throttle1Max == throttle1Min))
+		{
+			throttle1MinFluctuationPercent = throttle1MinFluctuation * 100 / abs(throttle1Max - throttle1Min);
+			throttle1MaxFluctuationPercent = throttle1MaxFluctuation * 100 / abs(throttle1Max - throttle1Min);
+		}
+		else
+		{
+			throttle1MinFluctuationPercent = 0;
+			throttle1MaxFluctuationPercent = 0;
+		}
+		if (!(throttle2Max == throttle2Min))
+		{
+			throttle2MinFluctuationPercent = throttle2MinFluctuation * 100 / abs(throttle2Max - throttle2Min);
+			throttle2MaxFluctuationPercent = throttle2MaxFluctuation * 100 / abs(throttle2Max - throttle2Min);
+		}
+		else
+		{
+			throttle2MinFluctuationPercent = 0;
+			throttle2MaxFluctuationPercent = 0;
+		}
 
 		// Determine throttle subtype by examining the data sampled
 		for (int i = 0; i < sampleCount; i++) {

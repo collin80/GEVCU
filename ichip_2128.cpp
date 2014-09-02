@@ -843,7 +843,7 @@ DeviceId ICHIPWIFI::getId() {
 }
 
 void ICHIPWIFI::loadConfiguration() {
-	WifiConfiguration *config = new WifiConfiguration();
+	WifiConfiguration *config = (WifiConfiguration *)getConfiguration();
 
 	if (prefsHandler->checksumValid()) { //checksum is good, read in the values stored in EEPROM
 		Logger::debug(ICHIP2128, "Valid checksum so using stored wifi config values");
