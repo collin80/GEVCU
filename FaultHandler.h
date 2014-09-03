@@ -35,17 +35,17 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include <Arduino.h>
 #include "config.h"
 #include "Logger.h"
+#include "FaultCodes.h"
 
 //structure to use for storing and retrieving faults.
 //Stores the info a fault record will contain.
 typedef struct {
   uint32_t timeStamp; 
   uint16_t device; //which device is generating this fault
-  uint16_t faultCode; //set by the device itself. This only has meaning to a device
-  uint8_t faultDescription[40]; //a short description of the problem in plain text
-  uint8_t ack; //whether this fault has been acknowledged or not 1 = ack'd
-  uint8_t ongoing; //whether fault still seems to be happening currently 1 = still going on
-} FAULT; //50 bytes
+  uint16_t faultCode; //set by the device itself. There is a universal list of codes
+  uint8_t ack : 1; ////whether this fault has been acknowledged or not 1 = ack'd 
+  uint8_t ongoing : 1; //whether fault still seems to be happening currently 1 = still going on
+} FAULT; //should be 9 bytes because the bottom two are bit fields in a single byte
 
 
 class FaultHandler {
@@ -61,7 +61,8 @@ class FaultHandler {
   
   private:
   uint16_t  faultWritePointer; //fault # we're up to for writing. Location in EEPROM is start + (fault_ptr * sizeof(FAULT))
-  uint16_t  faultReadPointer;  //fault # we're at when reading. 
+  uint16_t  faultReadPointer;  //fault # we're at when reading.
+  FAULT faultList[CFG_FAULT_HISTORY_SIZE]; //store up to 50 faults for a long history. 50*9 = 450 bytes of EEPROM
 };
 
 extern FaultHandler faultHandler;

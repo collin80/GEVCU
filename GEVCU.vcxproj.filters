@@ -120,6 +120,9 @@
     <ClInclude Include="CodaMotorController.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="FaultCodes.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <Text Include="GEVCU.ino" />

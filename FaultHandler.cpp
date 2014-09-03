@@ -26,6 +26,8 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 #include "FaultHandler.h"
 
+//EE_FAULT_LOG is location of faults in EEPROM
+
   FaultHandler::FaultHandler()
   {
   }
