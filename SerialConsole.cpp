@@ -44,14 +44,22 @@ void SerialConsole::init() {
 	//State variables for serial console
 	ptrBuffer = 0;
 	state = STATE_ROOT_MENU;
+        loopcount=0;
+        cancel=false;
       
 }
 
 void SerialConsole::loop() {
-
-	if (handlingEvent == false) {
-		if (SerialUSB.available()) {
-			serialEvent();
+  if(!cancel)
+    {
+      if(loopcount++==10000){
+        DeviceManager::getInstance()->sendMessage(DEVICE_WIFI, ICHIP2128, MSG_CONFIG_CHANGE, NULL);
+        cancel=true;  
+        }
+    } 
+  if (handlingEvent == false) {
+	if (SerialUSB.available()) {
+        	serialEvent();
 		}
 	}
 }
@@ -88,8 +96,8 @@ void SerialConsole::printMenu() {
 	SerialUSB.println("B = save brake values");
 	SerialUSB.println("p = enable wifi passthrough (reboot required to resume normal operation)");
 	SerialUSB.println("S = show possible device IDs");
-	SerialUSB.println("w = reset wifi to factory defaults, setup GEVCU ad-hoc network");
-	SerialUSB.println("W = Set Wifi to WPS mode (try to automatically connect)");
+	SerialUSB.println("w = GEVCU 4.2 reset wifi to factory defaults, setup GEVCU ad-hoc network");
+	SerialUSB.println("W = GEVCU 5.2 reset wifi to factory defaults, setup GEVCU as 10.0.0.1 Access Point");
 	SerialUSB.println("s = Scan WiFi for nearby access points");
 	SerialUSB.println();
 	SerialUSB.println("Config Commands (enter command=newvalue). Current values shown in parenthesis:");
@@ -112,13 +120,13 @@ void SerialConsole::printMenu() {
 		Logger::console("RPM=%i - Set maximum RPM", config->speedMax);
 		Logger::console("REVLIM=%i - How much torque to allow in reverse (Tenths of a percent)", config->reversePercent);
                             
-	    Logger::console("COOLFAN=%i - Digital output to turn on cooling fan(0-7, 255 for none)", config->coolFan);
-        Logger::console("COOLON=%i - Inverter temperature C to turn cooling on", config->coolOn);
-        Logger::console("COOLOFF=%i - Inverter temperature C to turn cooling off", config->coolOff);  
-        Logger::console("BRAKELT = %i - Digital output to turn on brakelight (0-7, 255 for none)", config->brakeLight);
-        Logger::console("REVLT=%i - Digital output to turn on reverse light (0-7, 255 for none)", config->revLight);
-        Logger::console("ENABLEIN=%i - Digital input to enable motor controller (0-3, 255 for none)", config->enableIn);
-        Logger::console("REVIN=%i - Digital input to reverse motor rotation (0-3, 255 for none)", config->reverseIn);
+	        Logger::console("COOLFAN=%i - Digital output to turn on cooling fan(0-7, 255 for none)", config->coolFan);
+                Logger::console("COOLON=%i - Inverter temperature C to turn cooling on", config->coolOn);
+                Logger::console("COOLOFF=%i - Inverter temperature C to turn cooling off", config->coolOff);  
+                Logger::console("BRAKELT = %i - Digital output to turn on brakelight (0-7, 255 for none)", config->brakeLight);
+                Logger::console("REVLT=%i - Digital output to turn on reverse light (0-7, 255 for none)", config->revLight);
+                Logger::console("ENABLEIN=%i - Digital input to enable motor controller (0-3, 255 for none)", config->enableIn);
+                Logger::console("REVIN=%i - Digital input to reverse motor rotation (0-3, 255 for none)", config->reverseIn);
        
 	}
 
@@ -149,6 +157,7 @@ void SerialConsole::printMenu() {
                 SerialUSB.println();
                 SerialUSB.println("BRAKE CONTROLS");
 	        SerialUSB.println();
+
 		Logger::console("B1MN=%i - Set brake min value", config->minimumLevel1);
 		Logger::console("B1MX=%i - Set brake max value", config->maximumLevel1);
 		Logger::console("BMINR=%i - Percent of full torque for start of brake regen", config->minimumRegen);
@@ -160,25 +169,20 @@ void SerialConsole::printMenu() {
                 SerialUSB.println();
                 SerialUSB.println("PRECHARGE CONTROLS");
 	        SerialUSB.println();
-		Logger::console("kWh=%d - kiloWatt Hours of energy used", config->kilowattHrs/3600000);
+
 		Logger::console("PREDELAY=%i - Precharge delay time in milliseconds ", config->prechargeR);
-	      //Logger::console("NOMV=%i - Nominal system voltage (1/10 of a volt)", config->nominalVolt);
-		Logger::console("PRELAY=%i - Which output to use for precharge contactor (255 to disable)", config->prechargeRelay);
+	        Logger::console("PRELAY=%i - Which output to use for precharge contactor (255 to disable)", config->prechargeRelay);
 		Logger::console("MRELAY=%i - Which output to use for main contactor (255 to disable)", config->mainContactorRelay);
-		Logger::console("NOMV=%i - Fully charged pack voltage", config->nominalVolt/10);
+                SerialUSB.println();
+                SerialUSB.println("OTHER");
+	        SerialUSB.println();
+
+		Logger::console("NOMV=%i - Fully charged pack voltage that automatically resets kWh counter", config->nominalVolt/10);
+                Logger::console("kWh=%d - kiloWatt Hours of energy used", config->kilowattHrs/3600000);
+		
 	}
 
-	if (wifi) {
-		//WifiConfiguration *config = (WifiConfiguration *) wifi->getConfiguration();
-		//Logger::console("WSSIDn= - Set SSID to connect to (n=0-9)");
-		//Logger::console("WPASSn= - Set WEP/WPA password (n=0-9)");
-		//Logger::console("WTYPEn= - Set type of Wifi AP (n=0-9)");
-		//Logger::console("Types: 0 = No sec, 1 = WEP64, 2 = WEP128, 3 = WPA-PSK, 4 = WPA2-PSK");
-		//Logger::console("Types: 5 = WPA-TKIP, 6 = WPA2-TKIP, 7=EAP/WEP64, 8=EAP/WEP128");
-
-	}
-
-	Logger::console("WLAN - send a AT+i command to the wlan device");
+	
 }
 
 /*	There is a help menu (press H or h or ?)
@@ -240,14 +244,9 @@ void SerialConsole::handleConfigCmd() {
 	i = 0;
 
 	while (cmdBuffer[i] != '=' && i < ptrBuffer) {
-		/*if (cmdBuffer[i] >= '0' && cmdBuffer[i] <= '9') {
-		    whichEntry = cmdBuffer[i++] - '0';
-		}
-		else */ cmdString.concat(String(cmdBuffer[i++]));
+	 cmdString.concat(String(cmdBuffer[i++]));
 	}
-
 	i++; //skip the =
-
 	if (i >= ptrBuffer)
 	{
 		Logger::console("Command needs a value..ie TORQ=3000");
@@ -433,35 +432,40 @@ void SerialConsole::handleConfigCmd() {
 		}
 		sysPrefs->write(EESYS_LOG_LEVEL, (uint8_t)newValue);
 		sysPrefs->saveChecksum();
-	} else if (cmdString == String("WLAN")) {
+
+	} else if (cmdString == String("WIREACH")) {
 		DeviceManager::getInstance()->sendMessage(DEVICE_WIFI, ICHIP2128, MSG_COMMAND, (void *)(cmdBuffer + i));
-		Logger::info("sent \"AT+i%s\" to wlan device", (cmdBuffer + i));
+		Logger::info("sent \"AT+i%s\" to WiReach wireless LAN device", (cmdBuffer + i));
+                DeviceManager::getInstance()->sendMessage(DEVICE_WIFI, ICHIP2128, MSG_COMMAND, (void *)"DOWN");	
 		updateWifi = false;
-	} else if (cmdString == String("WSSID")) {
+	} else if (cmdString == String("SSID")) {
 		String cmdString = String();
-    	        cmdString.concat("WSI");
-		cmdString.concat(whichEntry);
-		cmdString.concat('=');
+    	        cmdString.concat("WLSI");
+   		cmdString.concat('=');
 		cmdString.concat((char *)(cmdBuffer + i));
-		DeviceManager::getInstance()->sendMessage(DEVICE_WIFI, ICHIP2128, MSG_COMMAND, (void *)cmdString.c_str());
+                Logger::info("Sent \"%s\" to WiReach wireless LAN device", (cmdString.c_str()));
+       		DeviceManager::getInstance()->sendMessage(DEVICE_WIFI, ICHIP2128, MSG_COMMAND, (void *)cmdString.c_str());
+                DeviceManager::getInstance()->sendMessage(DEVICE_WIFI, ICHIP2128, MSG_COMMAND, (void *)"DOWN");	
 		updateWifi = false;
-	} else if (cmdString == String("WPASS")) {
+        } else if (cmdString == String("IP")) {
 		String cmdString = String();
-		cmdString.concat("WPP");  //WKY for WEP so we should have a way to know the type first
-		cmdString.concat(whichEntry);
-		cmdString.concat('=');
+    	        cmdString.concat("DIP");
+   		cmdString.concat('=');
 		cmdString.concat((char *)(cmdBuffer + i));
-		DeviceManager::getInstance()->sendMessage(DEVICE_WIFI, ICHIP2128, MSG_COMMAND, (void *)cmdString.c_str());
+                Logger::info("Sent \"%s\" to WiReach wireless LAN device", (cmdString.c_str()));
+       		DeviceManager::getInstance()->sendMessage(DEVICE_WIFI, ICHIP2128, MSG_COMMAND, (void *)cmdString.c_str());
+                DeviceManager::getInstance()->sendMessage(DEVICE_WIFI, ICHIP2128, MSG_COMMAND, (void *)"DOWN");	
 		updateWifi = false;
-	} else if (cmdString == String("WTYPE")) {
+   } else if (cmdString == String("PWD")) {
 		String cmdString = String();
-		cmdString.concat("WST");
-		cmdString.concat(whichEntry);
-		cmdString.concat('=');
+    	        cmdString.concat("WPWD");
+   		cmdString.concat('=');
 		cmdString.concat((char *)(cmdBuffer + i));
-		DeviceManager::getInstance()->sendMessage(DEVICE_WIFI, ICHIP2128, MSG_COMMAND, (void *)cmdString.c_str());
-		DeviceManager::getInstance()->sendMessage(DEVICE_WIFI, ICHIP2128, MSG_COMMAND, (void *)"DOWN");
+                Logger::info("Sent \"%s\" to WiReach wireless LAN device", (cmdString.c_str()));
+       		DeviceManager::getInstance()->sendMessage(DEVICE_WIFI, ICHIP2128, MSG_COMMAND, (void *)cmdString.c_str());
+                DeviceManager::getInstance()->sendMessage(DEVICE_WIFI, ICHIP2128, MSG_COMMAND, (void *)"DOWN");	
 		updateWifi = false;
+	
 	} else if (cmdString == String("COOLFAN") && motorConfig) {		
 		Logger::console("Cooling fan output updated to: %i", newValue);
         motorConfig->coolFan = newValue;
@@ -625,45 +629,40 @@ void SerialConsole::handleShortCmd() {
 		deviceManager->sendMessage(DEVICE_WIFI, ICHIP2128, MSG_COMMAND, (void *)"AWPS");
 		break;
 	case 'w':
-		Logger::console("Resetting wifi to factory defaults and setting up GEVCU ad-hoc AP");
+		Logger::console("Resetting wifi to factory defaults and setting up GEVCU4.2 Ad Hoc network");
 		// restore factory defaults and give it some time
         // pinMode(43,OUTPUT);
-        //  digitalWrite(43, HIGH); 
-        //  delay(3000);
-        //  digitalWrite(43, LOW);
-        delay(3000);
-        deviceManager->sendMessage(DEVICE_WIFI, ICHIP2128, MSG_COMMAND, (void *)"FD");
-		delay(2000);
-		// set-up specific ad-hoc network
+        //  digitalWrite(43, LOW); //Pin 43 held low for 5 seconds puts Version 4.2 in Recovery mode
+        //  delay(6000);
+        //  digitalWrite(43, HIGH);
+       // delay(3000);
+                deviceManager->sendMessage(DEVICE_WIFI, ICHIP2128, MSG_COMMAND, (void *)"FD");//Reset
+		  delay(2000);
                 deviceManager->sendMessage(DEVICE_WIFI, ICHIP2128, MSG_COMMAND, (void *)"HIF=1");  //Set for RS-232 serial.
-		delay(1000);
-		
+		  delay(1000);
 		deviceManager->sendMessage(DEVICE_WIFI, ICHIP2128, MSG_COMMAND, (void *)"BDRA");//Auto baud rate selection
-		delay(1000);
-		deviceManager->sendMessage(DEVICE_WIFI, ICHIP2128, MSG_COMMAND, (void *)"WLCH=6"); //use whichever channel an AP wants to use
-		delay(1000);
+		  delay(1000);
+		deviceManager->sendMessage(DEVICE_WIFI, ICHIP2128, MSG_COMMAND, (void *)"WLCH=9"); //use whichever channel an AP wants to use
+		  delay(1000);
 		deviceManager->sendMessage(DEVICE_WIFI, ICHIP2128, MSG_COMMAND, (void *)"WLSI=!GEVCU"); //set for GEVCU aS AP.
-		delay(1000);
-		deviceManager->sendMessage(DEVICE_WIFI, ICHIP2128, MSG_COMMAND, (void *)"DIP=192.168.3.10"); //enable searching for a proper IP via DHCP
-		delay(1000);
-		deviceManager->sendMessage(DEVICE_WIFI, ICHIP2128, MSG_COMMAND, (void *)"DPSZ=8"); //set DHCP server for 10
-		delay(1000);
+		  delay(1000);
+		deviceManager->sendMessage(DEVICE_WIFI, ICHIP2128, MSG_COMMAND, (void *)"DIP=192.168.3.10"); //enable IP 
+		  delay(1000);
+		deviceManager->sendMessage(DEVICE_WIFI, ICHIP2128, MSG_COMMAND, (void *)"DPSZ=8"); //set DHCP server for 8
+		  delay(1000);
 		deviceManager->sendMessage(DEVICE_WIFI, ICHIP2128, MSG_COMMAND, (void *)"RPG=secret"); // set the configuration password for /ichip
-		delay(1000);
+		  delay(1000);
 		deviceManager->sendMessage(DEVICE_WIFI, ICHIP2128, MSG_COMMAND, (void *)"WPWD=secret"); // set the password to update config params
-		delay(1000);
-		//	deviceManager->sendMessage(DEVICE_WIFI, ICHIP2128, MSG_COMMAND, (void *)"WSI1=AndroidAP"); // hotspot SSID
-		//	deviceManager->sendMessage(DEVICE_WIFI, ICHIP2128, MSG_COMMAND, (void *)"WST1=4"); //wpa2
-		//	deviceManager->sendMessage(DEVICE_WIFI, ICHIP2128, MSG_COMMAND, (void *)"WPP1=verysecret"); //wpa2 password
-
-		deviceManager->sendMessage(DEVICE_WIFI, ICHIP2128, MSG_COMMAND, (void *)"AWS=1"); //turn on web server for ten clients
-		delay(1000);
+		  delay(1000);
+		deviceManager->sendMessage(DEVICE_WIFI, ICHIP2128, MSG_COMMAND, (void *)"AWS=1"); //turn on web server 
+		  delay(1000);
 		deviceManager->sendMessage(DEVICE_WIFI, ICHIP2128, MSG_COMMAND, (void *)"DOWN"); //cause a reset to allow it to come up with the settings
-		delay(5000); // a 5 second delay is required for the chip to come back up ! Otherwise commands will be lost
-
+		  delay(5000); // a 5 second delay is required for the chip to come back up ! Otherwise commands will be lost
+  
 		deviceManager->sendMessage(DEVICE_WIFI, ICHIP2128, MSG_CONFIG_CHANGE, NULL); // reload configuration params as they were lost
-		Logger::console("Wifi initialized");
+		Logger::console("Wifi 4.2 initialized");
 		break;
+        
 	case 'X':
 		setup(); //this is probably a bad idea. Do not do this while connected to anything you care about - only for debugging in safety!
 		break;

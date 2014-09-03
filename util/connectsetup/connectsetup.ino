@@ -18,7 +18,7 @@
  check-out http://www.youtube.com/watch?v=vS60htz6h1g at 00:35:00
 
  */
-
+char inbyte;
 bool flag = true;
 void setup() {
 	SerialUSB.begin(9600); // use SerialUSB only as the programming port doesn't work
@@ -33,16 +33,46 @@ void loop() {
 		SerialUSB.write(Serial2.read());
 	}
 	while (SerialUSB.available()) {
-		Serial2.write(SerialUSB.read());
+          inbyte=SerialUSB.read();
+          if (inbyte=='~'){sendcommandlist();}
+		else {Serial2.write(inbyte);}
 	}
   
       if (millis() > 6000) {
            digitalWrite(18, HIGH);
         }
 
-	//if (flag && millis() > 30000) {
-	 //       SerialUSB.begin(115200);
-	//	Serial2.begin(115200);
-	//	flag = false;
-	//}
+	
+}
+
+void sendcommandlist()
+{
+  SerialUSB.println("Sending commands....");
+  
+sendmessage("AT+iFD");
+sendmessage("AT+iHIF=1");
+sendmessage("AT+iBDRA");
+sendmessage("AT+iWLCH=8");
+sendmessage("AT+iWLSI=GEVCU1");
+sendmessage("AT+iDIP=192.168.1.46");
+sendmessage("AT+iSNET=255.255.255.0");
+sendmessage("AT+iDPSZ=8");
+sendmessage("AT+iWST0=4");
+sendmessage("AT+iWPP0=<usatoday>");
+sendmessage("AT+iRPG=secret");
+sendmessage("AT+iWPWD=secret");
+
+sendmessage("AT+iAWS=1");
+sendmessage("AT+iSTAP=1");
+sendmessage("AT+iDOWN");
+
+  SerialUSB.println("Command list completed....");
+}
+
+void sendmessage(char* message)
+{
+  Serial2.println(message);
+    delay(500);
+    while (Serial2.available()) {SerialUSB.write(Serial2.read());}
+
 }
