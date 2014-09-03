@@ -169,7 +169,7 @@ class ICHIPWIFI : public Device {
     USARTClass* serialInterface; //Allows for retargetting which serial port we use
     char incomingBuffer[128]; //storage for one incoming line
     int ibWritePtr; //write position into above buffer
-	SendBuff sendingBuffer[32];
+	SendBuff sendingBuffer[64];
 	int psWritePtr;
 	int psReadPtr;
 	int tickCounter;

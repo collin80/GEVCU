@@ -112,7 +112,7 @@ void ICHIPWIFI::sendCmd(String cmd, ICHIP_COMM_STATE cmdstate) {
 	if (state != IDLE) { //if the comm is tied up then buffer this parameter for sending later
 		sendingBuffer[psWritePtr].cmd = cmd;
 		sendingBuffer[psWritePtr].state = cmdstate;
-		psWritePtr = (psWritePtr + 1) & 31;
+		psWritePtr = (psWritePtr + 1) & 63;
 		if (Logger::isDebug()) {
 			String temp = "Buffer cmd: " + cmd;
 			Logger::debug(ICHIP2128, (char *)temp.c_str());
@@ -612,7 +612,7 @@ void ICHIPWIFI::loop() {
 							String temp = "Sending buffered cmd: " + sendingBuffer[psReadPtr].cmd;
 							if (Logger::isDebug()) Logger::debug(ICHIP2128, (char *)temp.c_str());
 							sendCmd(sendingBuffer[psReadPtr].cmd, sendingBuffer[psReadPtr].state);
-							psReadPtr = (psReadPtr + 1) & 31;
+							psReadPtr = (psReadPtr + 1) & 63;
 						}
 					}
 				}
@@ -843,7 +843,7 @@ DeviceId ICHIPWIFI::getId() {
 }
 
 void ICHIPWIFI::loadConfiguration() {
-	WifiConfiguration *config = new WifiConfiguration();
+	WifiConfiguration *config = (WifiConfiguration *)getConfiguration();
 
 	if (prefsHandler->checksumValid()) { //checksum is good, read in the values stored in EEPROM
 		Logger::debug(ICHIP2128, "Valid checksum so using stored wifi config values");
