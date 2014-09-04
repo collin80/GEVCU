@@ -172,12 +172,23 @@ void SerialConsole::printMenu() {
 	        Logger::console("PRELAY=%i - Which output to use for precharge contactor (255 to disable)", config->prechargeRelay);
 		Logger::console("MRELAY=%i - Which output to use for main contactor (255 to disable)", config->mainContactorRelay);
                 SerialUSB.println();
+                SerialUSB.println("WIRELESS LAN COMMANDS");
+	        SerialUSB.println();
+                Logger::console("WIREACH=anycommand - sends ATi+anycommand to WiReach Module");
+                Logger::console("SSID=anyname - sets broadcast ID to anyname");
+                Logger::console("IP=192.168.3.10 - sets IP of website to whatever IP is entered");
+                Logger::console("PWD=secret - sets website configuration password to entered string");
+                Logger::console("CHANNEL=4 - sets website wireless channel - 1 to 11");
+                Logger::console("SECURITY=password - sets website wireless connection security for WPA2-AES and password");
+             
+                SerialUSB.println();
                 SerialUSB.println("OTHER");
 	        SerialUSB.println();
 
 		Logger::console("NOMV=%i - Fully charged pack voltage that automatically resets kWh counter", config->nominalVolt/10);
                 Logger::console("kWh=%d - kiloWatt Hours of energy used", config->kilowattHrs/3600000);
-		
+		Logger::console("OUTPUT=<0-7> - toggles state of specified digital output");
+             
 	}
 
 	
@@ -454,6 +465,25 @@ void SerialConsole::handleConfigCmd() {
        		DeviceManager::getInstance()->sendMessage(DEVICE_WIFI, ICHIP2128, MSG_COMMAND, (void *)cmdString.c_str());
                 DeviceManager::getInstance()->sendMessage(DEVICE_WIFI, ICHIP2128, MSG_COMMAND, (void *)"DOWN");	
 		updateWifi = false;
+ } else if (cmdString == String("CHANNEL")) {
+		String cmdString = String();
+    	        cmdString.concat("WLCH");
+   		cmdString.concat('=');
+		cmdString.concat((char *)(cmdBuffer + i));
+                Logger::info("Sent \"%s\" to WiReach wireless LAN device", (cmdString.c_str()));
+       		DeviceManager::getInstance()->sendMessage(DEVICE_WIFI, ICHIP2128, MSG_COMMAND, (void *)cmdString.c_str());
+                DeviceManager::getInstance()->sendMessage(DEVICE_WIFI, ICHIP2128, MSG_COMMAND, (void *)"DOWN");	
+		updateWifi = false;
+	} else if (cmdString == String("SECURITY")) {
+		String cmdString = String();
+    	        cmdString.concat("WLPP");
+   		cmdString.concat('=');
+		cmdString.concat((char *)(cmdBuffer + i));
+                Logger::info("Sent \"%s\" to WiReach wireless LAN device", (cmdString.c_str()));
+       		DeviceManager::getInstance()->sendMessage(DEVICE_WIFI, ICHIP2128, MSG_COMMAND, (void *)cmdString.c_str());
+                DeviceManager::getInstance()->sendMessage(DEVICE_WIFI, ICHIP2128, MSG_COMMAND, (void *)"DOWN");	
+		updateWifi = false;
+	
    } else if (cmdString == String("PWD")) {
 		String cmdString = String();
     	        cmdString.concat("WPWD");

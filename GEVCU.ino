@@ -94,6 +94,7 @@ sendWiReach("AT+iWPWD=secret");//Password for our website
 sendWiReach("AT+iWST0=0");//Connection security wap/wep/wap2 to no security
 sendWiReach("AT+iWLCH=4");  //Wireless channel
 sendWiReach("AT+iWLSI=GEVCU");//SSID
+sendWiReach("AT+iWSEC=1");//IF security is used, set for WPA2-AES
 sendWiReach("AT+iSTAP=1");//Act as AP
 sendWiReach("AT+iDIP=192.168.3.10");//default ip - must be 10.x.x.x
 sendWiReach("AT+iDPSZ=8");//DHCP pool size
