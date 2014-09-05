@@ -36,11 +36,14 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include "config.h"
 #include "Logger.h"
 #include "FaultCodes.h"
+#include "MemCache.h"
+
+extern MemCache *memCache;
 
 //structure to use for storing and retrieving faults.
 //Stores the info a fault record will contain.
 typedef struct {
-  uint32_t timeStamp; 
+  uint32_t timeStamp; //number of 
   uint16_t device; //which device is generating this fault
   uint16_t faultCode; //set by the device itself. There is a universal list of codes
   uint8_t ack : 1; ////whether this fault has been acknowledged or not 1 = ack'd 
@@ -51,10 +54,13 @@ typedef struct {
 class FaultHandler {
   public:
   FaultHandler(); //constructor
-  uint16_t raiseFault(uint16_t device, uint16_t code, char* msg); //raise a new fault. Returns the fault # where this was stored
-  FAULT getNextFault(); //get the next un-ack'd fault. Will also get first fault if the first call and you forgot to call getFirstFault
-  FAULT getFirstFault(); //get the first un-acknowledged fault
-  FAULT getFault(uint16_t fault);
+  uint16_t raiseFault(uint16_t device, uint16_t code); //raise a new fault. Returns the fault # where this was stored
+  bool getNextFault(FAULT*); //get the next un-ack'd fault. Will also get first fault if the first call and you forgot to call getFirstFault
+  bool getFault(uint16_t fault, FAULT*);
+  uint16_t getFaultCount();
+
+  void loadFromEEPROM();
+  void saveToEEPROM();
   
   uint16_t setFaultACK(uint16_t fault); //acknowledge the fault # - returns fault # if successful (0xFFFF otherwise)
   uint16_t setFaultOngoing(uint16_t fault, bool ongoing); //set value of ongoing flag - returns fault # on success

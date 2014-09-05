@@ -26,38 +26,132 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 #include "FaultHandler.h"
 
-//EE_FAULT_LOG is location of faults in EEPROM
-
   FaultHandler::FaultHandler()
   {
   }
 
-  uint16_t FaultHandler::raiseFault(uint16_t device, uint16_t code, char* msg) 
+  uint16_t FaultHandler::raiseFault(uint16_t device, uint16_t code) 
   {
-	  //For now use the logger interface to send the fault to serial
-	  //and, even then commented out because otherwise you get an avalance. 
-	  //It needs to prevent repeated errors from constantly being sent.
-	  //Logger::error("Device: %i raised error: %s", device, msg);
+	  bool incPtr = false;
+	  //if this is the same as the previously registered fault then just update the time
+	  if (faultList[faultWritePointer].device == device && faultList[faultWritePointer].faultCode == code) 
+	  {
+		  faultList[faultWritePointer].timeStamp = millis();
+	  } 
+	  else 
+	  {
+		  faultList[faultWritePointer].timeStamp = millis();
+		  faultList[faultWritePointer].ack = false;
+		  faultList[faultWritePointer].device = device;
+		  faultList[faultWritePointer].faultCode = code;
+		  faultList[faultWritePointer].ongoing = false;
+		  incPtr = true;
+	  }
+
+	  memCache->Write(EE_FAULT_LOG + 5 + sizeof(FAULT) * faultWritePointer, &faultList[faultWritePointer], sizeof(FAULT));
+
+	  if (incPtr) faultWritePointer = (faultWritePointer + 1) % CFG_FAULT_HISTORY_SIZE;
+
+	  memCache->Write(EE_FAULT_LOG + 3 , faultWritePointer);
   }
 
-  FAULT FaultHandler::getNextFault()
+  uint16_t FaultHandler::getFaultCount() 
   {
+	  int count = 0;
+	  for (int i = 0; i < CFG_FAULT_HISTORY_SIZE; i++) 
+	  {
+		  if (faultList[i].ack == false) 
+		  {
+			  count++;
+		  }
+	  }
+	  return count;
   }
 
-  FAULT FaultHandler::getFirstFault()
+
+  //the fault handler isn't a device per se and uses more memory than a device would normally be allocated so
+  //it does not use PrefHandler
+  void FaultHandler::loadFromEEPROM() 
   {
+	  uint8_t validByte;
+	  memCache->Read(EE_FAULT_LOG, &validByte);
+	  if (validByte == 0xB2) //magic byte value for a valid fault cache
+	  {
+		  memCache->Read(EE_FAULT_LOG + 1, &faultReadPointer);
+		  memCache->Read(EE_FAULT_LOG + 3, &faultWritePointer);
+		  for (int i = 0; i < CFG_FAULT_HISTORY_SIZE; i++) 
+		  {
+			  memCache->Read(EE_FAULT_LOG + 5 + sizeof(FAULT) * i, &faultList[i], sizeof(FAULT));
+		  }
+	  }
+	  else //reinitialize the fault cache storage
+	  {
+		  validByte = 0xB2;
+		  memCache->Write(EE_FAULT_LOG, validByte);
+		  memCache->Write(EE_FAULT_LOG + 1, (uint16_t)0);
+		  memCache->Write(EE_FAULT_LOG + 3, (uint16_t)0);
+		  FAULT tempFault;
+		  tempFault.ack = true;
+		  tempFault.device = 0xFFFF;
+		  tempFault.faultCode = 0xFFFF;
+		  tempFault.ongoing = false;
+		  tempFault.timeStamp = 0;
+		  for (int i = 0; i < CFG_FAULT_HISTORY_SIZE; i++) 
+		  {
+			  faultList[i] = tempFault;
+		  }
+		  saveToEEPROM();
+	  }
   }
 
-  FAULT FaultHandler::getFault(uint16_t fault)
+  void FaultHandler::saveToEEPROM() 
   {
+	memCache->Write(EE_FAULT_LOG + 1, faultReadPointer);
+	memCache->Write(EE_FAULT_LOG + 3, faultWritePointer);
+	for (int i = 0; i < CFG_FAULT_HISTORY_SIZE; i++) 
+	{
+		memCache->Write(EE_FAULT_LOG + 5 + sizeof(FAULT) * i, &faultList[i], sizeof(FAULT));
+	}
+  }
+
+
+  bool FaultHandler::getNextFault(FAULT *fault)
+  {
+	uint16_t j;
+	for (int i = 0; i < CFG_FAULT_HISTORY_SIZE; i++) 
+	{
+		j = faultReadPointer + i;
+		if (faultList[j].ack == false) {
+			fault = &faultList[j];
+			return true;
+		}
+	}
+	return false;
+  }
+
+  bool FaultHandler::getFault(uint16_t fault, FAULT *outFault)
+  {
+	  if (fault > 0 && fault < CFG_FAULT_HISTORY_SIZE) {
+		  outFault = &faultList[fault];
+		  return true;
+	  }
+	  return false;
   }
   
   uint16_t FaultHandler::setFaultACK(uint16_t fault)
   {
+	  if (fault > 0 && fault < CFG_FAULT_HISTORY_SIZE) 
+	  {
+		  faultList[fault].ack = 1;
+	  }
   }
 
-  uint16_t setFaultOngoing(uint16_t fault, bool ongoing)
+  uint16_t FaultHandler::setFaultOngoing(uint16_t fault, bool ongoing)
   {
+	  if (fault > 0 && fault < CFG_FAULT_HISTORY_SIZE) 
+	  {
+		  faultList[fault].ongoing = ongoing;
+	  }
   }
 
   FaultHandler faultHandler;
