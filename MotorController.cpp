@@ -67,6 +67,7 @@ MotorController::MotorController() : Device() {
         skipcounter=0;
         testenableinput=0;
         testreverseinput=0;
+        premillis=0;
 
 
 }
@@ -122,6 +123,14 @@ void MotorController::handleTick() {
                      else 
                        {
                          torqueActual=-650;
+                       }
+                        if (dcCurrent < 0)
+                      {
+                        dcCurrent=120;
+                      }
+                     else 
+                       {
+                         dcCurrent=-65;
                        }
                     if (temperatureInverter < config->coolOn*10)
                       {
@@ -185,7 +194,7 @@ void MotorController::checkPrecharge()
             return;
           }
           
-	  if (millis()< prechargetime) //Check milliseconds since startup against our entered delay in milliseconds
+	  if ((millis()-premillis)< prechargetime) //Check milliseconds since startup against our entered delay in milliseconds
 	    {           
               if(!prelay)
                 {
@@ -341,6 +350,7 @@ void MotorController::setup() {
         prefsHandler->read(EEMC_KILOWATTHRS, &kiloWattHours); //retrieve kilowatt hours from EEPROM
         nominalVolts=config->nominalVolt;
         donePrecharge=false;
+        premillis=millis();
         
 
     if(config->prechargeR==12345)

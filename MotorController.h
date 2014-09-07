@@ -144,6 +144,7 @@ uint32_t statusBitfield4;
     int16_t getTorqueRequested();
     int16_t getTorqueActual();
     int16_t getTorqueAvailable();
+    int preMillis();
    
 	uint16_t getDcVoltage();
 	int16_t getDcCurrent();
@@ -159,6 +160,7 @@ uint32_t statusBitfield4;
         int seconds;
         int minutes;
         int hours ;
+        int premillis;
 
 	
 

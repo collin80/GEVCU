@@ -96,8 +96,8 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #define ThrottleADC1			0		//Which pin to use
 #define ThrottleADC2			1		//Which pin to use
 #define ThrottleSubtype			1		//subtype 1 is a standard linear pot throttle
-#define ThrottleRegenMinValue	30		//where does Regen stop (1/10 of percent)
-#define ThrottleRegenMaxValue	270		//where Regen is at maximum (1/10 of percent)
+#define ThrottleRegenMinValue	270		//where does Regen stop (1/10 of percent)
+#define ThrottleRegenMaxValue	30		//where Regen is at maximum (1/10 of percent)
 #define ThrottleFwdValue		300		//where does forward motion start
 #define ThrottleMapValue		750		//Where is the 1/2 way point for throttle
 #define ThrottleMinRegenValue	0		//how many percent of full power to use at minimal regen
