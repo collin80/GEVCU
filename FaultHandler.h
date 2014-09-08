@@ -51,13 +51,15 @@ typedef struct {
 } FAULT; //should be 9 bytes because the bottom two are bit fields in a single byte
 
 
-class FaultHandler {
+class FaultHandler : public TickObserver {
   public:
   FaultHandler(); //constructor
   uint16_t raiseFault(uint16_t device, uint16_t code); //raise a new fault. Returns the fault # where this was stored
   bool getNextFault(FAULT*); //get the next un-ack'd fault. Will also get first fault if the first call and you forgot to call getFirstFault
   bool getFault(uint16_t fault, FAULT*);
   uint16_t getFaultCount();
+  void handleTick();
+  void setup();
 
   void loadFromEEPROM();
   void saveToEEPROM();
@@ -69,6 +71,8 @@ class FaultHandler {
   uint16_t  faultWritePointer; //fault # we're up to for writing. Location in EEPROM is start + (fault_ptr * sizeof(FAULT))
   uint16_t  faultReadPointer;  //fault # we're at when reading.
   FAULT faultList[CFG_FAULT_HISTORY_SIZE]; //store up to 50 faults for a long history. 50*9 = 450 bytes of EEPROM
+  uint32_t globalTime; //how long the unit has been running in total (across all start ups).
+  uint32_t baseTime; //the time loaded at system start up. millis() / 100 is added to this to get the above time
 };
 
 extern FaultHandler faultHandler;

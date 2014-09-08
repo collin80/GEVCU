@@ -189,7 +189,14 @@ the end of the stardard data. The below numbers are offsets from the device's ee
 #define EESYS_LOG_LEVEL         658 //1 byte - the log level
 #define EESYS_AMPHOURS			659 //1 byte - ???
 #define EESYS_BRAKELIGHT		660 //1 byte - 
-#define EESYS_xxxx				661 //1 byte - 
+#define EESYS_xxxx				661 //1 byte -
+
+#define EEFAULT_VALID			0 //1 byte - Set to value of 0xB2 if fault data has been initialized
+#define EEFAULT_READPTR			1 //2 bytes - index where reading should start (first unacknowledged fault)
+#define EEFAULT_WRITEPTR		3 //2 bytes - index where writing should occur for new faults
+#define EEFAULT_RUNTIME			5 //4 bytes - stores the number of seconds (in tenths) that the system has been turned on for - total time ever
+#define EEFAULT_FAULTS_START	10 //a bunch of faults stored one after the other start at this location
+
 
 #endif
 
