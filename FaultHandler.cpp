@@ -30,17 +30,44 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
   {
   }
 
+  void FaultHandler::setup() 
+  {
+	  TickHandler::getInstance()->detach(this);
+
+	  Logger::info("Initializing Fault Handler", CODAUQM, this);
+
+	  loadFromEEPROM();
+
+	  //Use the heartbeat interval because it's slow and already exists so we can piggyback on the interrupt
+	  //so as to not create more timers than necessary.
+	  TickHandler::getInstance()->attach(this, CFG_TICK_INTERVAL_HEARTBEAT);
+  }
+
+
+  //Every tick update the global time and save it to EEPROM (delayed saving)
+  void FaultHandler::handleTick() 
+  {
+	  globalTime = baseTime + (millis() / 100);
+	  memCache->Write(EE_FAULT_LOG + EEFAULT_RUNTIME, globalTime);
+  }
+
   uint16_t FaultHandler::raiseFault(uint16_t device, uint16_t code) 
   {
 	  bool incPtr = false;
+	  globalTime = baseTime + (millis() / 100);
+
+	  uint16_t tempIdx = faultWritePointer;
+	  if (tempIdx > 0) tempIdx--;
+	  else tempIdx = CFG_FAULT_HISTORY_SIZE - 1;
+
 	  //if this is the same as the previously registered fault then just update the time
-	  if (faultList[faultWritePointer].device == device && faultList[faultWritePointer].faultCode == code) 
+	  if (faultList[tempIdx].device == device && faultList[tempIdx].faultCode == code) 
 	  {
-		  faultList[faultWritePointer].timeStamp = millis();
+		  faultList[tempIdx].timeStamp = globalTime;
 	  } 
 	  else 
 	  {
-		  faultList[faultWritePointer].timeStamp = millis();
+		  faultList[faultWritePointer].timeStamp = globalTime;
 		  faultList[faultWritePointer].ack = false;
 		  faultList[faultWritePointer].device = device;
 		  faultList[faultWritePointer].faultCode = code;
@@ -48,11 +75,15 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 		  incPtr = true;
 	  }
 
-	  memCache->Write(EE_FAULT_LOG + 5 + sizeof(FAULT) * faultWritePointer, &faultList[faultWritePointer], sizeof(FAULT));
+	  memCache->Write(EE_FAULT_LOG + EEFAULT_FAULTS_START + sizeof(FAULT) * faultWritePointer, &faultList[faultWritePointer], sizeof(FAULT));
+	  //Cause the memory caching system to immediately write the page
+	  memCache->InvalidateAddress(EE_FAULT_LOG + EEFAULT_FAULTS_START + sizeof(FAULT)* faultWritePointer);
 
 	  if (incPtr) faultWritePointer = (faultWritePointer + 1) % CFG_FAULT_HISTORY_SIZE;
 
-	  memCache->Write(EE_FAULT_LOG + 3 , faultWritePointer);
+	  memCache->Write(EE_FAULT_LOG + EEFAULT_WRITEPTR , faultWritePointer);
+	  //Cause the page to be immediately fully aged so that it is written very soon.
+	  memCache->AgeFullyAddress(EE_FAULT_LOG + EEFAULT_WRITEPTR);	  
   }
 
   uint16_t FaultHandler::getFaultCount() 
@@ -68,7 +99,6 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 	  return count;
   }
 
-
   //the fault handler isn't a device per se and uses more memory than a device would normally be allocated so
   //it does not use PrefHandler
   void FaultHandler::loadFromEEPROM() 
@@ -77,19 +107,24 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 	  memCache->Read(EE_FAULT_LOG, &validByte);
 	  if (validByte == 0xB2) //magic byte value for a valid fault cache
 	  {
-		  memCache->Read(EE_FAULT_LOG + 1, &faultReadPointer);
-		  memCache->Read(EE_FAULT_LOG + 3, &faultWritePointer);
+		  memCache->Read(EE_FAULT_LOG + EEFAULT_READPTR, &faultReadPointer);
+		  memCache->Read(EE_FAULT_LOG + EEFAULT_WRITEPTR, &faultWritePointer);
+		  memCache->Read(EE_FAULT_LOG + EEFAULT_RUNTIME, &globalTime);
+		  baseTime = globalTime;
 		  for (int i = 0; i < CFG_FAULT_HISTORY_SIZE; i++) 
 		  {
-			  memCache->Read(EE_FAULT_LOG + 5 + sizeof(FAULT) * i, &faultList[i], sizeof(FAULT));
+			  memCache->Read(EE_FAULT_LOG + EEFAULT_FAULTS_START + sizeof(FAULT) * i, &faultList[i], sizeof(FAULT));
 		  }
 	  }
 	  else //reinitialize the fault cache storage
 	  {
 		  validByte = 0xB2;
 		  memCache->Write(EE_FAULT_LOG, validByte);
-		  memCache->Write(EE_FAULT_LOG + 1, (uint16_t)0);
-		  memCache->Write(EE_FAULT_LOG + 3, (uint16_t)0);
+		  memCache->Write(EE_FAULT_LOG + EEFAULT_READPTR, (uint16_t)0);
+		  memCache->Write(EE_FAULT_LOG + EEFAULT_WRITEPTR, (uint16_t)0);
+		  globalTime = baseTime = millis() / 100;
+		  memCache->Write(EE_FAULT_LOG + EEFAULT_RUNTIME, globalTime);
+
 		  FAULT tempFault;
 		  tempFault.ack = true;
 		  tempFault.device = 0xFFFF;
@@ -106,11 +141,12 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
   void FaultHandler::saveToEEPROM() 
   {
-	memCache->Write(EE_FAULT_LOG + 1, faultReadPointer);
-	memCache->Write(EE_FAULT_LOG + 3, faultWritePointer);
+	memCache->Write(EE_FAULT_LOG + EEFAULT_READPTR, faultReadPointer);
+	memCache->Write(EE_FAULT_LOG + EEFAULT_WRITEPTR, faultWritePointer);
+	memCache->Write(EE_FAULT_LOG + EEFAULT_RUNTIME, globalTime);
 	for (int i = 0; i < CFG_FAULT_HISTORY_SIZE; i++) 
 	{
-		memCache->Write(EE_FAULT_LOG + 5 + sizeof(FAULT) * i, &faultList[i], sizeof(FAULT));
+		memCache->Write(EE_FAULT_LOG + EEFAULT_FAULTS_START + sizeof(FAULT) * i, &faultList[i], sizeof(FAULT));
 	}
   }
 
