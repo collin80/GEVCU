@@ -49,12 +49,12 @@ public:
 	PrefHandler(DeviceId id);
         ~PrefHandler();
 	void LKG_mode(bool mode);
-	void write(uint16_t address, uint8_t val);
-	void write(uint16_t address, uint16_t val);
-	void write(uint16_t address, uint32_t val);
-	void read(uint16_t address, uint8_t *val);
-	void read(uint16_t address, uint16_t *val);
-	void read(uint16_t address, uint32_t *val);
+	bool write(uint16_t address, uint8_t val);
+	bool write(uint16_t address, uint16_t val);
+	bool write(uint16_t address, uint32_t val);
+	bool read(uint16_t address, uint8_t *val);
+	bool read(uint16_t address, uint16_t *val);
+	bool read(uint16_t address, uint32_t *val);
 	uint8_t calcChecksum();
 	void saveChecksum();
 	bool checksumValid();
