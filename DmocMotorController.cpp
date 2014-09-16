@@ -169,7 +169,7 @@ void DmocMotorController::handleTick() {
 		    }
 	  }
 	else {
-		setGear(NEUTRAL);
+		//setGear(NEUTRAL);
 	}
 
 	setPowerMode(modeTorque);

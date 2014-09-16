@@ -211,17 +211,28 @@ void ICHIPWIFI::handleTick() {
 			}
 		}
 		if (accelerator) {
-			if ( paramCache.throttle != accelerator->getLevel() ) {
+                        RawSignalData *rawSignal = accelerator->acquireRawSignal();
+			if ( paramCache.throttle !=  rawSignal->input1) {
+				paramCache.throttle = rawSignal->input1;
+                              	setParam(Constants::throttle, paramCache.throttle);
+	
+			/*if ( paramCache.throttle != accelerator->getLevel() ) {
 				paramCache.throttle = accelerator->getLevel();
                                 if (paramCache.throttle<-600){paramCache.throttle=-600;}
-				setParam(Constants::throttle, paramCache.throttle / 10.0f, 1);
+				setParam(Constants::throttle, paramCache.throttle / 10.0f, 1);*/
 			}
 		}
 		if (brake) {
-			if ( paramCache.brake != brake->getLevel() ) {
+                        RawSignalData *rawSignal = brake->acquireRawSignal();
+			if ( paramCache.brake !=  rawSignal->input1) {
+				paramCache.brake = rawSignal->input1;
+	                        paramCache.brakeNotAvailable = false;
+	                    	setParam(Constants::brake, paramCache.brake);
+	
+			/*if ( paramCache.brake != brake->getLevel() ) {
 				paramCache.brake = brake->getLevel();
 				paramCache.brakeNotAvailable = false;
-				setParam(Constants::brake, paramCache.brake / 10.0f, 1);
+				setParam(Constants::brake, paramCache.brake / 10.0f, 1);*/
 			}
 		} else {
 			if ( paramCache.brakeNotAvailable == true ) {
