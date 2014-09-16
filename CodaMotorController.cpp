@@ -89,7 +89,7 @@ void CodaMotorController::handleCanFrame(CAN_FRAME *frame)
   
         case 0x209:  //Accurate Feedback Message 
         
-              torqueActual =  ((((frame->data.bytes[1] * 256) + frame->data.bytes[0])-32128))/2 ;
+              torqueActual =  ((((frame->data.bytes[1] * 256) + frame->data.bytes[0])-32128)) ;
               dcVoltage = (((frame->data.bytes[3] * 256) + frame->data.bytes[2])-32128);
                 if(dcVoltage<1000){dcVoltage=1000;}//Lowest value we can display on dashboard
 	      dcCurrent = (((frame->data.bytes[5] * 256) + frame->data.bytes[4])-32128);

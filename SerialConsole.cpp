@@ -52,7 +52,7 @@ void SerialConsole::init() {
 void SerialConsole::loop() {
   if(!cancel)
     {
-      if(loopcount++==5000){
+      if(loopcount++==350000){
         DeviceManager::getInstance()->sendMessage(DEVICE_WIFI, ICHIP2128, MSG_CONFIG_CHANGE, NULL);
         cancel=true;  
         }

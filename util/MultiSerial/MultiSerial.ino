@@ -23,9 +23,12 @@ bool flag = true;
 void setup() {
 	SerialUSB.begin(9600); // use SerialUSB only as the programming port doesn't work
 	Serial2.begin(9600); // use Serial3 for GEVCU2, use Serial2 for GEVCU3+4
-//	pinMode(43, INPUT);
+/*	pinMode(43, OUTPUT);
+digitalWrite(43,HIGH);
+delay(3000);
+digitalWrite(43,LOW);
 	pinMode(18, OUTPUT);
-	digitalWrite(18, LOW);
+	digitalWrite(18, LOW);*/
 }
 
 void loop() {
@@ -36,9 +39,9 @@ void loop() {
 		Serial2.write(SerialUSB.read());
 	}
   
-      if (millis() > 6000) {
-           digitalWrite(18, HIGH);
-        }
+   ////   if (millis() > 6000) {
+      //     digitalWrite(18, HIGH);
+      //  }
 
 	//if (flag && millis() > 30000) {
 	 //       SerialUSB.begin(115200);
