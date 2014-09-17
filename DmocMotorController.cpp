@@ -54,6 +54,7 @@ DmocMotorController::DmocMotorController() : MotorController() {
 	operationState = DISABLED;
 	actualState = DISABLED;
 	online = 0;
+	wentEnabled = false;
 	activityCount = 0;
 //	maxTorque = 2000;
 	commonName = "DMOC645 Inverter";
@@ -73,6 +74,7 @@ void DmocMotorController::setup() {
 
 	actualGear = NEUTRAL;
 	running = true;
+	setPowerMode(modeTorque);
 
 	TickHandler::getInstance()->attach(this, CFG_TICK_INTERVAL_MOTOR_CONTROLLER_DMOC);
 }
@@ -165,17 +167,16 @@ void DmocMotorController::handleTick() {
 	if (activityCount > 0) {
 		activityCount--;
 		if (activityCount > 60) activityCount = 60;
-		if (actualState == DISABLED && activityCount > 40) {
-			setOpState(ENABLE);
-			setGear(DRIVE);
-		    }
-	  }
+		if (actualState == DISABLED && activityCount > 40 && !wentEnabled) {
+			if (getEnableIn() >= 0 && getEnableIn() < 4) setOpState(ENABLE);
+			if (getReverseIn() >= 0 && getReverseIn() < 4)setGear(DRIVE);
+			wentEnabled = true;
+		}
+	}
 	else {
 		setGear(NEUTRAL);
+		wentEnabled = false;
 	}
-
-	setPowerMode(modeTorque);
-	
 
 	//if (online == 1) { //only send out commands if the controller is really there.
 	step = CHAL_RESP;
