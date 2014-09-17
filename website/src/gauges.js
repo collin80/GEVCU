@@ -45,19 +45,18 @@ function generateGauges() {
 		width       : 250,
 		height      : 250,
 		glow        : true,
-		units       : 'Percent',
+		units       : 'Raw',
 		title       : "Throttle",
-		minValue    : -60,
-		maxValue    : 100,
-		majorTicks  : ['-60','-40','-20','0','20','40','60','80','100'],
+		minValue    : 0,
+		maxValue    : 3000,
+		majorTicks  : ['0','300','600','900','1200','1500','1800','2100','2400','2700','3000'],
 		minorTicks  : 2,
 		strokeTicks : false,
 		valueFormat      : { "int" : 3, "dec" : 1 },
 
 	
 		highlights  : [
-			{ from : -60,   to : 0, color : 'rgba(255, 0, 0, .75)' },
-			{ from : 0, to : 100, color : 'rgba(0, 255,  0, .75)' }
+			{ from : 0,   to : 3000, color : 'rgba(0, 255, 0, .75)' }
 			],
 	
 		colors      : {

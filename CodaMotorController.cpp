@@ -4,8 +4,14 @@
  * CAN Interface to the Coda flavored UQM Powerphase 100 inverter - 
    Handles sending of commands and reception of status frames to drive
    the inverter and thus motor.  Endianess is configurable in the firmware 
-   inside the UQM inverter.  This object module * uses little endian format 
+   inside the UQM inverter but default is little endian.  This object module * uses little endian format 
    - the least significant byte is the first in order with the MSB following.
+ **************NOTE***************
+  Ticks are critical for the UQM inverter.  A tick value of 10000 in config.h is necessary as the inverter
+ expects a torque command within each 12 millisecond period.  Failing to provide it is a bit subtle to catch
+  but quite dramatic.  The motor will run at speed for about 5 to 7 minutes and then "cough" losing all torque and
+  then recovering.  Five minutes later, this will repeat.  Setting to a very fast value of 10000 seems to cure it NOW.
+ As the software grows and the load on the CPU increases, this could show up again.   
  *
 Copyright (c) 2014 Jack Rickard
 
@@ -66,7 +72,7 @@ void CodaMotorController::setup()
 	// register ourselves as observer of all 0x20x can frames for UQM
        CanHandler::getInstanceEV()->attach(this, 0x200, 0x7f0, false);
      
-    operationState=ENABLE;
+       operationState=ENABLE;
        selectedGear=DRIVE;
        running=true;
        TickHandler::getInstance()->attach(this, CFG_TICK_INTERVAL_MOTOR_CONTROLLER_CODAUQM);
@@ -89,7 +95,7 @@ void CodaMotorController::handleCanFrame(CAN_FRAME *frame)
   
         case 0x209:  //Accurate Feedback Message 
         
-              torqueActual =  ((((frame->data.bytes[1] * 256) + frame->data.bytes[0])-32128))/2 ;
+              torqueActual =  ((((frame->data.bytes[1] * 256) + frame->data.bytes[0])-32128)) ;
               dcVoltage = (((frame->data.bytes[3] * 256) + frame->data.bytes[2])-32128);
                 if(dcVoltage<1000){dcVoltage=1000;}//Lowest value we can display on dashboard
 	      dcCurrent = (((frame->data.bytes[5] * 256) + frame->data.bytes[4])-32128);
@@ -124,28 +130,21 @@ void CodaMotorController::handleCanFrame(CAN_FRAME *frame)
 	          else {temperatureMotor = (StatorTemp-40)*10;}		
                 Logger::debug("UQM 20E Inverter temp: %d Motor temp: %d", temperatureInverter,temperatureMotor);
     		break;
-
 	
         case 0x20F:    //CAN Watchdog Status Message           
                 Logger::debug("UQM 20F CAN Watchdog status error");
                 warning=true;
                 sendCmd2(); //If we get a Watchdog status, we need to respond with Watchdog reset
 		break;
-				
-	
 	}
 }
-
-
-
 
 
 
 void CodaMotorController::handleTick() {
 
 	MotorController::handleTick(); //kick the ball up to papa
-        sendCmd1();   //Send our torque command
- 
+        sendCmd1();   //Send our lone torque command
 }
 
 
@@ -211,15 +210,15 @@ void CodaMotorController::sendCmd1()
         //Requested throttle is [-1000, 1000]
        //Two byte torque request in 0.1NM Can be positive or negative  
       
-        torqueCommand=32128; //Set our zero offset value
-        torqueRequested = ((throttleRequested * config->torqueMax) / 1000); //Calculate torque command 
+        torqueCommand=32128; //Set our zero offset value -torque=0
+        torqueRequested = ((throttleRequested * config->torqueMax) / 1000); //Calculate torque request from throttle position x maximum torque 
         if(speedActual<config->speedMax){torqueCommand += torqueRequested;} //If actual rpm less than max rpm, add torque command to offset
-
-        output.data.bytes[3] = (torqueCommand & 0xFF00) >> 8;
+          else {torqueCommand+= torqueRequested/2;}  //If at RPM limit, cut torque command in half.
+        output.data.bytes[3] = (torqueCommand & 0xFF00) >> 8;  //Stow torque command in bytes 2 and 3.
         output.data.bytes[2] = (torqueCommand & 0x00FF);
-        output.data.bytes[4] = genCodaCRC(output.data.bytes[1], output.data.bytes[2], output.data.bytes[3]);
+        output.data.bytes[4] = genCodaCRC(output.data.bytes[1], output.data.bytes[2], output.data.bytes[3]); //Calculate security byte
             
-	CanHandler::getInstanceEV()->sendFrame(output);
+	CanHandler::getInstanceEV()->sendFrame(output);  //Mail it.
         timestamp();
 
         Logger::debug("Torque command: %X   %X  ControlByte: %X  LSB %X  MSB: %X  CRC: %X  %d:%d:%d.%d",output.id, output.data.bytes[0],

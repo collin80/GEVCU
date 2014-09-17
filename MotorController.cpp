@@ -67,6 +67,7 @@ MotorController::MotorController() : Device() {
         skipcounter=0;
         testenableinput=0;
         testreverseinput=0;
+        premillis=0;
 
 
 }
@@ -130,6 +131,14 @@ void MotorController::handleTick() {
                        {
                          torqueActual=-650;
                        }
+                        if (dcCurrent < 0)
+                      {
+                        dcCurrent=120;
+                      }
+                     else 
+                       {
+                         dcCurrent=-65;
+                       }
                     if (temperatureInverter < config->coolOn*10)
                       {
                         temperatureInverter=(config->coolOn+2)*10;
@@ -192,7 +201,7 @@ void MotorController::checkPrecharge()
             return;
           }
           
-	  if (millis()< prechargetime) //Check milliseconds since startup against our entered delay in milliseconds
+	  if ((millis()-premillis)< prechargetime) //Check milliseconds since startup against our entered delay in milliseconds
 	    {           
               if(!prelay)
                 {
@@ -324,13 +333,13 @@ void MotorController:: checkReverseInput()
     {
     if((getDigital(reverseinput))||testreverseinput)
       {
-       selectedGear=REVERSE; 
+       setSelectedGear(REVERSE); 
        statusBitfield2 |=1 << 16; //set bit to turn on REVERSE annunciator
        statusBitfield2 |=1 << reverseinput;//setbit to Turn on reverse input annunciator
        } 
         else 
         {
-          selectedGear=DRIVE; //If it's off, lets set to DRIVE. 
+          setSelectedGear(DRIVE); //If it's off, lets set to DRIVE. 
           statusBitfield2 &= ~(1 << 16); //clear bit to turn off REVERSE annunciator
           statusBitfield2 &= ~(1 << reverseinput);//clear bit to turn off reverse input annunciator
           }                       
@@ -348,6 +357,7 @@ void MotorController::setup() {
         prefsHandler->read(EEMC_KILOWATTHRS, &kiloWattHours); //retrieve kilowatt hours from EEPROM
         nominalVolts=config->nominalVolt;
         donePrecharge=false;
+        premillis=millis();
         
 
     if(config->prechargeR==12345)

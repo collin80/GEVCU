@@ -94,6 +94,7 @@ sendWiReach("AT+iWPWD=secret");//Password for our website
 sendWiReach("AT+iWST0=0");//Connection security wap/wep/wap2 to no security
 sendWiReach("AT+iWLCH=4");  //Wireless channel
 sendWiReach("AT+iWLSI=GEVCU");//SSID
+sendWiReach("AT+iWSEC=1");//IF security is used, set for WPA2-AES
 sendWiReach("AT+iSTAP=1");//Act as AP
 sendWiReach("AT+iDIP=192.168.3.10");//default ip - must be 10.x.x.x
 sendWiReach("AT+iDPSZ=8");//DHCP pool size
@@ -246,6 +247,7 @@ void initializeDevices() {
 
 void setup() {
         delay(5000);
+       
         //initWiReach();
 	pinMode(BLINK_LED, OUTPUT);
 	digitalWrite(BLINK_LED, LOW);
@@ -253,68 +255,41 @@ void setup() {
 	SerialUSB.println(CFG_VERSION);
 	SerialUSB.print("Build number: ");
 	SerialUSB.println(CFG_BUILD_NUM);
-
 	Wire.begin();
 	Logger::info("TWI init ok");
-
 	memCache = new MemCache();
 	Logger::info("add MemCache (id: %X, %X)", MEMCACHE, memCache);
 	memCache->setup();
 	sysPrefs = new PrefHandler(SYSTEM);
-	if (!sysPrefs->checksumValid()) {
-		Logger::info("Initializing EEPROM");
-		initSysEEPROM();
-                initWiReach();
-	} else {  //checksum is good, read in the values stored in EEPROM
-		Logger::info("Using existing EEPROM values");
-	}
+	if (!sysPrefs->checksumValid()) 
+            {
+	      Logger::info("Initializing EEPROM");
+	      initSysEEPROM();
+              initWiReach();
+	    } 
+          else {Logger::info("Using existing EEPROM values");}//checksum is good, read in the values stored in EEPROM
 
 	uint8_t loglevel;
 	sysPrefs->read(EESYS_LOG_LEVEL, &loglevel);
 	Logger::setLoglevel((Logger::LogLevel)loglevel);
-
-	sys_early_setup();
-        
+	sys_early_setup();     
 	tickHandler = TickHandler::getInstance();
-
 	canHandlerEV = CanHandler::getInstanceEV();
 	canHandlerCar = CanHandler::getInstanceCar();
 	canHandlerEV->initialize();
 	canHandlerCar->initialize();
-
-	//rtc_clock.init();
-	//Now, we have no idea what the real time is but the EEPROM should have stored a time in the past.
-	//It's better than nothing while we try to figure out the proper time.
-	/*
-	 uint32_t temp;
-	 sysPrefs->read(EESYS_RTC_TIME, &temp);
-	 rtc_clock.change_time(temp);
-	 sysPrefs->read(EESYS_RTC_DATE, &temp);
-	 rtc_clock.change_date(temp);
-	 
-	 Logger::info("RTC init ok");
-	 */
-
 	setup_sys_io(); //get calibration data for system IO
 	Logger::info("SYSIO init ok");
 
 	initializeDevices();
-       
-
-    serialConsole = new SerialConsole(memCache, heartbeat);
-        
+        serialConsole = new SerialConsole(memCache, heartbeat);
 	Logger::info("System Ready");
 	serialConsole->printMenu();
-
 	wifiDevice = DeviceManager::getInstance()->getDeviceByID(ICHIP2128);
 	btDevice = DeviceManager::getInstance()->getDeviceByID(ELM327EMU);
- DeviceManager::getInstance()->sendMessage(DEVICE_WIFI, ICHIP2128, MSG_CONFIG_CHANGE, NULL); //Load configuration 
+        DeviceManager::getInstance()->sendMessage(DEVICE_WIFI, ICHIP2128, MSG_CONFIG_CHANGE, NULL); //Load configuration 
         //variables into WiFi Web Configuration screen
 
-
-#ifdef CFG_TIMER_USE_QUEUING
-	//tickHandler->cleanBuffer(); // remove buffered tick events which clogged up already (might not be necessary)
-#endif
 }
 
 void loop() {
@@ -328,7 +303,6 @@ void loop() {
 	canHandlerCar->process();
 
 	serialConsole->loop();
-
 	//TODO: this is dumb... shouldn't have to manually do this. Devices should be able to register loop functions
 	if ( wifiDevice != NULL ) {
 		((ICHIPWIFI*)wifiDevice)->loop();
@@ -340,7 +314,6 @@ void loop() {
 
 	//this should still be here. It checks for a flag set during an interrupt
 	sys_io_adc_poll();
-
 }
 
 

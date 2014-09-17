@@ -35,8 +35,8 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 #include <due_can.h>
 
-#define CFG_BUILD_NUM	1050        //increment this every time a git commit is done. 
-#define CFG_VERSION "GEVCU alpha 2014-08-19"
+#define CFG_BUILD_NUM	1051        //increment this every time a git commit is done. 
+#define CFG_VERSION "GEVCU 2014-09-16"
 
 
 /*
@@ -57,16 +57,16 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  * try to use the same numbers for several devices because then they will share
  * the same timer (out of a limited number of 9 timers).
  */
-#define CFG_TICK_INTERVAL_HEARTBEAT					2000000
-#define CFG_TICK_INTERVAL_POT_THROTTLE				40000
-#define CFG_TICK_INTERVAL_CAN_THROTTLE				40000
-#define CFG_TICK_INTERVAL_MOTOR_CONTROLLER			40000
+#define CFG_TICK_INTERVAL_HEARTBEAT			2000000
+#define CFG_TICK_INTERVAL_POT_THROTTLE		        40000
+#define CFG_TICK_INTERVAL_CAN_THROTTLE			40000
+#define CFG_TICK_INTERVAL_MOTOR_CONTROLLER		40000
 #define CFG_TICK_INTERVAL_MOTOR_CONTROLLER_DMOC		40000
-#define CFG_TICK_INTERVAL_MOTOR_CONTROLLER_CODAUQM	20000
+#define CFG_TICK_INTERVAL_MOTOR_CONTROLLER_CODAUQM	10000
 #define CFG_TICK_INTERVAL_MOTOR_CONTROLLER_BRUSA	20000
-#define CFG_TICK_INTERVAL_MEM_CACHE					40000
-#define CFG_TICK_INTERVAL_BMS_THINK					500000
-#define CFG_TICK_INTERVAL_WIFI						200000
+#define CFG_TICK_INTERVAL_MEM_CACHE			40000
+#define CFG_TICK_INTERVAL_BMS_THINK			500000
+#define CFG_TICK_INTERVAL_WIFI				200000
 
 
 /*
@@ -96,8 +96,8 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #define ThrottleADC1			0		//Which pin to use
 #define ThrottleADC2			1		//Which pin to use
 #define ThrottleSubtype			1		//subtype 1 is a standard linear pot throttle
-#define ThrottleRegenMinValue	30		//where does Regen stop (1/10 of percent)
-#define ThrottleRegenMaxValue	270		//where Regen is at maximum (1/10 of percent)
+#define ThrottleRegenMinValue	270		//where does Regen stop (1/10 of percent)
+#define ThrottleRegenMaxValue	30		//where Regen is at maximum (1/10 of percent)
 #define ThrottleFwdValue		300		//where does forward motion start
 #define ThrottleMapValue		750		//Where is the 1/2 way point for throttle
 #define ThrottleMinRegenValue	0		//how many percent of full power to use at minimal regen
