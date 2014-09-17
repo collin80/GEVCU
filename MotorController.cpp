@@ -326,13 +326,13 @@ void MotorController:: checkReverseInput()
     {
     if((getDigital(reverseinput))||testreverseinput)
       {
-       selectedGear=REVERSE; 
+       setSelectedGear(REVERSE); 
        statusBitfield2 |=1 << 16; //set bit to turn on REVERSE annunciator
        statusBitfield2 |=1 << reverseinput;//setbit to Turn on reverse input annunciator
        } 
         else 
         {
-          selectedGear=DRIVE; //If it's off, lets set to DRIVE. 
+          setSelectedGear(DRIVE); //If it's off, lets set to DRIVE. 
           statusBitfield2 &= ~(1 << 16); //clear bit to turn off REVERSE annunciator
           statusBitfield2 &= ~(1 << reverseinput);//clear bit to turn off reverse input annunciator
           }                       

@@ -95,13 +95,13 @@ void DmocMotorController::handleCanFrame(CAN_FRAME *frame) {
 		RotorTemp = frame->data.bytes[0];
 		invTemp = frame->data.bytes[1];
 		StatorTemp = frame->data.bytes[2];
-		temperatureInverter = invTemp * 10 -400;
+		temperatureInverter = (invTemp-40) *10;
 		//now pick highest of motor temps and report it
 		if (RotorTemp > StatorTemp) {
-			temperatureMotor = RotorTemp * 10 -400;
+			temperatureMotor = (RotorTemp-40) *10;
 		}
 		else {
-			temperatureMotor = StatorTemp * 10 -400;
+			temperatureMotor = (StatorTemp-40) *10;
 		}
 		activityCount++;
 		break;
@@ -253,11 +253,11 @@ void DmocMotorController::sendCmd2() {
 			if (selectedGear == DRIVE)
                             torqueRequested = (((long) throttleRequested * (long) config->torqueMax) / 1000L);
 			if (selectedGear == REVERSE)
-			    torqueRequested = (((long) throttleRequested * (long) config->torqueMax) / 2000L);
+			    torqueRequested = (((long) throttleRequested * (long) config->torqueMax) / 1000L);
 		}
                   
-                if(speedActual<config->speedMax){torqueCommand+=torqueRequested;} //If actual rpm is less than max rpm, add torque to offset
-                                                                                  // else torque is left set to zero.
+                if(speedActual < config->speedMax){torqueCommand+=torqueRequested;} //If actual rpm is less than max rpm, add torque to offset
+                   else {torqueCommand += torqueRequested /2;}                       // else torque is halved
 		output.data.bytes[0] = (torqueCommand & 0xFF00) >> 8;
 		output.data.bytes[1] = (torqueCommand & 0x00FF);
 		output.data.bytes[2] = output.data.bytes[0];
