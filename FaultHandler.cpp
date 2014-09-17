@@ -25,6 +25,7 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */ 
 
 #include "FaultHandler.h"
+#include "eeprom_layout.h"
 
   FaultHandler::FaultHandler()
   {
