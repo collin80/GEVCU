@@ -97,10 +97,17 @@ void MotorController::handleTick() {
      //Throttle check
 	Throttle *accelerator = DeviceManager::getInstance()->getAccelerator();
 	Throttle *brake = DeviceManager::getInstance()->getBrake();
+
+	throttleRequested = 0;
+
 	if (accelerator)
+	{
 		throttleRequested = accelerator->getLevel();
+	}
 	if (brake && brake->getLevel() < -10 && brake->getLevel() < accelerator->getLevel()) //if the brake has been pressed it overrides the accelerator.
+	{
 		throttleRequested = brake->getLevel();
+	}
 	//Logger::debug("Throttle: %d", throttleRequested);
 
 
@@ -230,7 +237,7 @@ void MotorController::coolingcheck()
  {
 	int coolfan=getCoolFan();
 	            
-	if(coolfan>=0 and coolfan<8)    //We have 8 outputs 0-7 If they entered something else, there is no point in doing this check.
+	if(coolfan>=0 && coolfan<8)    //We have 8 outputs 0-7 If they entered something else, there is no point in doing this check.
 	  {          
 	    if(temperatureInverter/10>getCoolOn())  //If inverter temperature greater than COOLON, we want to turn on the coolingoutput
 	      {
@@ -354,12 +361,11 @@ void MotorController::setup() {
         
 
     if(config->prechargeR==12345)
-      {  
-	torqueActual=2;
+    {  
+		torqueActual=2;
         dcCurrent=1501;
         dcVoltage=3320;
-        
-      }
+    }
 
     Logger::console("PRELAY=%i - Current PreCharge Relay output", config->prechargeRelay);
     Logger::console("MRELAY=%i - Current Main Contactor Relay output", config->mainContactorRelay);
@@ -569,7 +575,7 @@ void MotorController::loadConfiguration() {
 		prefsHandler->read(EEMC_REV_LIGHT, &config->revLight);
 		prefsHandler->read(EEMC_ENABLE_IN, &config->enableIn);
 		prefsHandler->read(EEMC_REVERSE_IN, &config->reverseIn);
-
+		prefsHandler->read(EEMC_MOTOR_MODE, (uint8_t *)&config->motorMode);
 	}
 	else { //checksum invalid. Reinitialize values and store to EEPROM
 		config->speedMax = MaxRPMValue;
@@ -589,6 +595,7 @@ void MotorController::loadConfiguration() {
 		config->revLight = RevLight;
 		config->enableIn = EnableIn;
 		config->reverseIn = ReverseIn;
+		config->motorMode = MotorController::modeSpeed;
 
 	}
            //DeviceManager::getInstance()->sendMessage(DEVICE_WIFI, ICHIP2128, MSG_CONFIG_CHANGE, NULL);
@@ -618,7 +625,7 @@ void MotorController::saveConfiguration() {
 	prefsHandler->write(EEMC_REV_LIGHT, config->revLight);
 	prefsHandler->write(EEMC_ENABLE_IN, config->enableIn);
 	prefsHandler->write(EEMC_REVERSE_IN, config->reverseIn);
-
+	prefsHandler->write(EEMC_MOTOR_MODE, (uint8_t)config->motorMode);
 
 	prefsHandler->saveChecksum();
 	loadConfiguration();

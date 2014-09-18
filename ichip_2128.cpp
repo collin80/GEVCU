@@ -61,6 +61,14 @@ void ICHIPWIFI::setup() {
 
 	TickHandler::getInstance()->detach(this);
 
+	//MSEL pin
+	pinMode(18, OUTPUT);
+	digitalWrite(18, HIGH);
+
+	//RESET pin
+	pinMode(42, OUTPUT);
+	digitalWrite(42, HIGH);
+
 	tickCounter = 0;
 	ibWritePtr = 0;
 	psWritePtr = 0;
@@ -104,7 +112,7 @@ void ICHIPWIFI::sendCmd(String cmd, ICHIP_COMM_STATE cmdstate) {
 	if (state != IDLE) { //if the comm is tied up then buffer this parameter for sending later
 		sendingBuffer[psWritePtr].cmd = cmd;
 		sendingBuffer[psWritePtr].state = cmdstate;
-		psWritePtr = (psWritePtr + 1) & 31;
+		psWritePtr = (psWritePtr + 1) & 63;
 		if (Logger::isDebug()) {
 			String temp = "Buffer cmd: " + cmd;
 			Logger::debug(ICHIP2128, (char *)temp.c_str());
@@ -269,14 +277,14 @@ void ICHIPWIFI::handleTick() {
 				setParam(Constants::prechargeR, (uint16_t)paramCache.prechargeR);
 			}
 
-                        if ( paramCache.prechargeRelay != motorController->getprechargeRelay() ) {
+            if ( paramCache.prechargeRelay != motorController->getprechargeRelay() ) {
 				paramCache.prechargeRelay = motorController->getprechargeRelay();
 				setParam(Constants::prechargeRelay, (uint8_t) paramCache.prechargeRelay);
 				//Logger::console("Precharge Relay %i", paramCache.prechargeRelay);
 				//Logger::console("motorController:prechargeRelay:%d, paramCache.prechargeRelay:%d, Constants:prechargeRelay:%s", motorController->getprechargeRelay(),paramCache.prechargeRelay, Constants::prechargeRelay);
 			}
 
-                         if ( paramCache.mainContactorRelay != motorController->getmainContactorRelay() ) {
+            if ( paramCache.mainContactorRelay != motorController->getmainContactorRelay() ) {
 				paramCache.mainContactorRelay = motorController->getmainContactorRelay();
 				setParam(Constants::mainContactorRelay, (uint8_t) paramCache.mainContactorRelay);
 			}
@@ -296,7 +304,7 @@ void ICHIPWIFI::handleTick() {
                         	setParam(Constants::kiloWattHours, paramCache.kiloWattHours / 10.0f, 1);
 			//}
                        
-                        if ( paramCache.nominalVolt != motorController->getnominalVolt()/10 ){
+            if ( paramCache.nominalVolt != motorController->getnominalVolt()/10 ){
 				paramCache.nominalVolt = motorController->getnominalVolt()/10;
 				setParam(Constants::nominalVolt, paramCache.nominalVolt);
 			}
@@ -344,16 +352,17 @@ void ICHIPWIFI::handleTick() {
 				setParam(Constants::coolFan, (uint8_t) paramCache.coolFan);
 			}
 
-                        if ( paramCache.coolOn != motorController->getCoolOn() ) {
+            if ( paramCache.coolOn != motorController->getCoolOn() ) {
 				paramCache.coolOn = motorController->getCoolOn();
 				setParam(Constants::coolOn, (uint8_t) paramCache.coolOn);
 			}
 
-                        if ( paramCache.coolOff != motorController->getCoolOff() ) {
+            if ( paramCache.coolOff != motorController->getCoolOff() ) {
 				paramCache.coolOff = motorController->getCoolOff();
 				setParam(Constants::coolOff, (uint8_t) paramCache.coolOff);
 			}
-			 if ( paramCache.brakeLight != motorController->getBrakeLight() ) {
+
+			if ( paramCache.brakeLight != motorController->getBrakeLight() ) {
 				paramCache.brakeLight = motorController->getBrakeLight();
 				setParam(Constants::brakeLight, (uint8_t) paramCache.brakeLight);
 			}
@@ -388,6 +397,12 @@ void ICHIPWIFI::handleTick() {
 				paramCache.tempSystem = motorController->getTemperatureSystem();
 				setParam(Constants::tempSystem, paramCache.tempSystem / 10.0f, 1);
 			}
+
+			if (paramCache.powerMode != motorController->getPowerMode() ) {
+				paramCache.powerMode = motorController->getPowerMode();
+				setParam(Constants::motorMode, (uint8_t)paramCache.powerMode);
+			}
+
 			//if ( paramCache.mechPower != motorController->getMechanicalPower() ) {
 				paramCache.mechPower = motorController->getMechanicalPower();
                                 if (paramCache.mechPower<-250)paramCache.mechPower=-250;
@@ -608,7 +623,7 @@ void ICHIPWIFI::loop() {
 							String temp = "Sending buffered cmd: " + sendingBuffer[psReadPtr].cmd;
 							if (Logger::isDebug()) Logger::debug(ICHIP2128, (char *)temp.c_str());
 							sendCmd(sendingBuffer[psReadPtr].cmd, sendingBuffer[psReadPtr].state);
-							psReadPtr = (psReadPtr + 1) & 31;
+							psReadPtr = (psReadPtr + 1) & 63;
 						}
 					}
 				}
@@ -750,7 +765,9 @@ void ICHIPWIFI::processParameterChange(char *key) {
 	} else if (!strcmp(key, Constants::reverseIn) && motorConfig) {
 		motorConfig->reverseIn = atol(value);
 		motorController->saveConfiguration();
-	
+	} else if (!strcmp(key, Constants::motorMode) && motorConfig) {
+		motorConfig->motorMode = (MotorController::PowerMode)atoi(value);
+		motorController->saveConfiguration();	
 	} else if (!strcmp(key, Constants::logLevel)) {
 		extern PrefHandler *sysPrefs;
 		uint8_t loglevel = atol(value);
@@ -837,7 +854,7 @@ DeviceId ICHIPWIFI::getId() {
 }
 
 void ICHIPWIFI::loadConfiguration() {
-	WifiConfiguration *config = new WifiConfiguration();
+	WifiConfiguration *config = (WifiConfiguration *)getConfiguration();
 
 	if (prefsHandler->checksumValid()) { //checksum is good, read in the values stored in EEPROM
 		Logger::debug(ICHIP2128, "Valid checksum so using stored wifi config values");

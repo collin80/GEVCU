@@ -110,6 +110,7 @@ struct ParamCache {
 	bool brakeNotAvailable;
 	int16_t speedRequested;
 	int16_t speedActual;
+	MotorController::PowerMode powerMode;
 	int16_t dcVoltage;
 	int16_t dcCurrent;
 	int16_t acCurrent;
@@ -168,7 +169,7 @@ class ICHIPWIFI : public Device {
     USARTClass* serialInterface; //Allows for retargetting which serial port we use
     char incomingBuffer[128]; //storage for one incoming line
     int ibWritePtr; //write position into above buffer
-	SendBuff sendingBuffer[32];
+	SendBuff sendingBuffer[64];
 	int psWritePtr;
 	int psReadPtr;
 	int tickCounter;

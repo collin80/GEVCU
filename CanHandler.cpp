@@ -44,7 +44,7 @@ CanHandler::CanHandler(CanBusNode canBusNode) {
 	else
 		bus = &CAN;
 
-	for (int i; i < CFG_CAN_NUM_OBSERVERS; i++)
+	for (int i=0; i < CFG_CAN_NUM_OBSERVERS; i++)
 		observerData[i].observer = NULL;
 }
 

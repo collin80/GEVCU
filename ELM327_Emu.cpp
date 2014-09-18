@@ -167,7 +167,7 @@ DeviceId ELM327Emu::getId() {
 }
 
 void ELM327Emu::loadConfiguration() {
-	ELM327Configuration *config = new ELM327Configuration();
+	ELM327Configuration *config = (ELM327Configuration *)getConfiguration();
 
 	if (prefsHandler->checksumValid()) { //checksum is good, read in the values stored in EEPROM
 		Logger::debug(ELM327EMU, "Valid checksum so using stored elm327 emulator config values");

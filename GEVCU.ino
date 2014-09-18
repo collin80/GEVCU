@@ -116,7 +116,7 @@ void initSysEEPROM() {
 	uint16_t sixteen;
 	uint32_t thirtytwo;
 
-	eight = SYSTEM_DUED;
+	eight = 4; //GEVCU4 or GEVCU5 boards
 	sysPrefs->write(EESYS_SYSTEM_TYPE, eight);
 
 	sixteen = 1024; //no gain

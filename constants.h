@@ -71,6 +71,7 @@ namespace Constants {
 	static const char* torqueActual = "torqueActual";
 	static const char* throttle = "throttle";
 	static const char* brake = "brake";
+	static const char* motorMode = "motorMode";
 	static const char* speedRequested = "speedRequested";
 	static const char* speedActual = "speedActual";
 	static const char* dcVoltage = "dcVoltage";
