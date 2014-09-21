@@ -840,7 +840,7 @@ void ICHIPWIFI::processParameterChange(char *key) {
 	
 	} else if (!strcmp(key, Constants::logLevel)) {
 		extern PrefHandler *sysPrefs;
-		uint8_t loglevel = atol(value);
+		uint8_t loglevel = atoi(value);
 		Logger::setLoglevel((Logger::LogLevel)loglevel);
 		sysPrefs->write(EESYS_LOG_LEVEL, loglevel);
 	} else {

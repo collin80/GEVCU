@@ -274,6 +274,7 @@ void setup() {
 	uint8_t loglevel;
 	sysPrefs->read(EESYS_LOG_LEVEL, &loglevel);
 	Logger::setLoglevel((Logger::LogLevel)loglevel);
+	Logger::setLoglevel((Logger::LogLevel)1);
 	sys_early_setup();     
 	tickHandler = TickHandler::getInstance();
 	canHandlerEV = CanHandler::getInstanceEV();
