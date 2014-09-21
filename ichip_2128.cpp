@@ -776,8 +776,12 @@ void ICHIPWIFI::processParameterChange(char *key) {
 	} else if (!strcmp(key, Constants::reverseIn) && motorConfig) {
 		motorConfig->reverseIn = atol(value);  
 		motorController->saveConfiguration();
-<<<<<<< HEAD
-<<<<<<< HEAD
+        } else if (!strcmp(key, Constants::motorMode) && motorConfig) {
+		motorConfig->motorMode = (MotorController::PowerMode)atoi(value);
+		motorController->saveConfiguration();	
+	
+
+
 
         } else if (!strcmp(key, "x1000")){
                 if (255==atol(value)){sysPrefs->setDeviceStatus(strtol(key+1, 0, 16),true);}
@@ -832,19 +836,8 @@ void ICHIPWIFI::processParameterChange(char *key) {
         } else if (!strcmp(key, "x6500")){
                 if (255==atol(value)){sysPrefs->setDeviceStatus(strtol(key+1, 0, 16), true);}
                   else {sysPrefs->setDeviceStatus(strtol(key+1, 0, 16), false);}
-                sysPrefs->forceCacheWrite();
-      
-                        
-=======
-	} else if (!strcmp(key, Constants::motorMode) && motorConfig) {
-		motorConfig->motorMode = (MotorController::PowerMode)atoi(value);
-		motorController->saveConfiguration();	
->>>>>>> FETCH_HEAD
-=======
-	} else if (!strcmp(key, Constants::motorMode) && motorConfig) {
-		motorConfig->motorMode = (MotorController::PowerMode)atoi(value);
-		motorController->saveConfiguration();	
->>>>>>> FETCH_HEAD
+                sysPrefs->forceCacheWrite();            
+	
 	} else if (!strcmp(key, Constants::logLevel)) {
 		extern PrefHandler *sysPrefs;
 		uint8_t loglevel = atol(value);

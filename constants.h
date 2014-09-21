@@ -98,21 +98,7 @@ namespace Constants {
 	static const char* coolFan = "coolFan";
 	static const char* coolOn = "coolOn";
 	static const char* coolOff = "coolOff";
-        //static const char* x1000 = "1000";
-     /*   static const char* x1031 = "0x1031";
-        static const char* 1032 = "1032";
-        static const char* 1002 = "1002";
-        static const char* 1040 = "1040";
-        static const char* 1033 = "1033";
-        static const char* 1034 = "1034";
-        static const char* 1000 = "1000";
-        static const char* 1001 = "1001";
-        static const char* 2000 = "2000";
-        static const char* 6500 = "6500";*/
-      
-
-	// messages
-	static const char* validChecksum = "Valid checksum, using stored config values";
+   	static const char* validChecksum = "Valid checksum, using stored config values";
 	static const char* invalidChecksum = "Invalid checksum, using hard coded config values";
 	static const char* valueOutOfRange = "value out of range: %l";
 	static const char* normalOperation = "normal operation restored";
