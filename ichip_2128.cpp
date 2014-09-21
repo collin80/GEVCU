@@ -777,6 +777,7 @@ void ICHIPWIFI::processParameterChange(char *key) {
 		motorConfig->reverseIn = atol(value);  
 		motorController->saveConfiguration();
 <<<<<<< HEAD
+<<<<<<< HEAD
 
         } else if (!strcmp(key, "x1000")){
                 if (255==atol(value)){sysPrefs->setDeviceStatus(strtol(key+1, 0, 16),true);}
@@ -834,6 +835,11 @@ void ICHIPWIFI::processParameterChange(char *key) {
                 sysPrefs->forceCacheWrite();
       
                         
+=======
+	} else if (!strcmp(key, Constants::motorMode) && motorConfig) {
+		motorConfig->motorMode = (MotorController::PowerMode)atoi(value);
+		motorController->saveConfiguration();	
+>>>>>>> FETCH_HEAD
 =======
 	} else if (!strcmp(key, Constants::motorMode) && motorConfig) {
 		motorConfig->motorMode = (MotorController::PowerMode)atoi(value);
