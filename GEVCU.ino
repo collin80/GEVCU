@@ -87,6 +87,8 @@ void initWiReach()
 SerialUSB.begin(115200); // use SerialUSB only as the programming port doesn't work
 Serial2.begin(115200); // use Serial3 for GEVCU2, use Serial2 for GEVCU3+4
 
+sendWiReach("AT+iFD");//Host connection set to serial port
+delay(5000);
 sendWiReach("AT+iHIF=1");//Host connection set to serial port
 sendWiReach("AT+iBDRF=9");//Automatic baud rate on host serial port
 sendWiReach("AT+iRPG=secret"); //Password for iChip wbsite
@@ -116,7 +118,7 @@ void initSysEEPROM() {
 	uint16_t sixteen;
 	uint32_t thirtytwo;
 
-	eight = SYSTEM_DUED;
+	eight = 4; //GEVCU4 or GEVCU5 boards
 	sysPrefs->write(EESYS_SYSTEM_TYPE, eight);
 
 	sixteen = 1024; //no gain

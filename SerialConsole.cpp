@@ -53,7 +53,8 @@ void SerialConsole::loop() {
   if(!cancel)
     {
       if(loopcount++==350000){
-        DeviceManager::getInstance()->sendMessage(DEVICE_WIFI, ICHIP2128, MSG_CONFIG_CHANGE, NULL);
+        //DeviceManager::getInstance()->sendMessage(DEVICE_WIFI, ICHIP2128, MSG_CONFIG_CHANGE, NULL);
+        DeviceManager::getInstance()->updateWifi();
         cancel=true;  
         }
     } 
@@ -73,8 +74,10 @@ void SerialConsole::printMenu() {
 	//Show build # here as well in case people are using the native port and don't get to see the start up messages
 	SerialUSB.print("Build number: ");
 	SerialUSB.println(CFG_BUILD_NUM);
-	SerialUSB.println(
+	if (motorController) {
+		SerialUSB.println(
 			"Motor Controller Status: isRunning: " + String(motorController->isRunning()) + " isFaulted: " + String(motorController->isFaulted()));
+	}
 	SerialUSB.println("System Menu:");
 	SerialUSB.println();
 	SerialUSB.println("Enable line endings of some sort (LF, CR, CRLF)");

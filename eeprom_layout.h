@@ -82,9 +82,10 @@ the end of the stardard data. The below numbers are offsets from the device's ee
 #define EEMC_RPM_SLEW_RATE		39 //2 bytes - slew rate (rpm/sec) at which speed should change (only in speed mode)
 #define EEMC_TORQUE_SLEW_RATE	41 //2 bytes - slew rate (0.1Nm/sec) at which the torque should change
 #define EEMC_BRAKE_LIGHT        42
-#define EEMC_REV_LIGHT    43
-#define EEMC_ENABLE_IN       44
-#define EEMC_REVERSE_IN        45
+#define EEMC_REV_LIGHT			43
+#define EEMC_ENABLE_IN			44
+#define EEMC_REVERSE_IN			45
+#define EEMC_MOTOR_MODE			46
 
 //throttle data
 #define EETH_MIN_ONE			20 //2 bytes - ADC value of minimum value for first channel
@@ -188,7 +189,14 @@ the end of the stardard data. The below numbers are offsets from the device's ee
 #define EESYS_LOG_LEVEL         658 //1 byte - the log level
 #define EESYS_AMPHOURS			659 //1 byte - ???
 #define EESYS_BRAKELIGHT		660 //1 byte - 
-#define EESYS_xxxx				661 //1 byte - 
+#define EESYS_xxxx				661 //1 byte -
+
+#define EEFAULT_VALID			0 //1 byte - Set to value of 0xB2 if fault data has been initialized
+#define EEFAULT_READPTR			1 //2 bytes - index where reading should start (first unacknowledged fault)
+#define EEFAULT_WRITEPTR		3 //2 bytes - index where writing should occur for new faults
+#define EEFAULT_RUNTIME			5 //4 bytes - stores the number of seconds (in tenths) that the system has been turned on for - total time ever
+#define EEFAULT_FAULTS_START	10 //a bunch of faults stored one after the other start at this location
+
 
 #endif
 

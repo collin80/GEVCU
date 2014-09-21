@@ -39,6 +39,7 @@ namespace Constants {
 	static const char* ichipErrorString = "I/ERROR";
 
 	// configuration
+
 	static const char* numThrottlePots = "numThrottlePots";
 	static const char* throttleSubType = "throttleSubType";
 	static const char* throttleMin1 = "throttleMin1";
@@ -71,6 +72,7 @@ namespace Constants {
 	static const char* torqueActual = "torqueActual";
 	static const char* throttle = "throttle";
 	static const char* brake = "brake";
+	static const char* motorMode = "motorMode";
 	static const char* speedRequested = "speedRequested";
 	static const char* speedActual = "speedActual";
 	static const char* dcVoltage = "dcVoltage";
@@ -91,11 +93,23 @@ namespace Constants {
 	static const char* tempSystem = "tempSystem";
 	static const char* mechPower = "mechPower";
 	static const char* prechargeR = "prechargeR";
-    static const char* prechargeRelay = "prechargeRelay";
-    static const char* mainContactorRelay = "mainContactorRelay";
+        static const char* prechargeRelay = "prechargeRelay";
+        static const char* mainContactorRelay = "mainContactorRelay";
 	static const char* coolFan = "coolFan";
 	static const char* coolOn = "coolOn";
 	static const char* coolOff = "coolOff";
+        //static const char* x1000 = "1000";
+     /*   static const char* x1031 = "0x1031";
+        static const char* 1032 = "1032";
+        static const char* 1002 = "1002";
+        static const char* 1040 = "1040";
+        static const char* 1033 = "1033";
+        static const char* 1034 = "1034";
+        static const char* 1000 = "1000";
+        static const char* 1001 = "1001";
+        static const char* 2000 = "2000";
+        static const char* 6500 = "6500";*/
+      
 
 	// messages
 	static const char* validChecksum = "Valid checksum, using stored config values";

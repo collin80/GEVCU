@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<outputs>
+	<coolOn>~coolOn~</coolOn>
+	<coolOff>~coolOff~</coolOff>
+	<coolFan>~coolFan~</coolFan>
+	<prechargeRelay>~prechargeRelay~</prechargeRelay>
+	<mainContactorRelay>~mainContactorRelay~</mainContactorRelay>
+	<prechargeR>~prechargeR~</prechargeR>
+	<brakeLight>~brakeLight~</brakeLight>
+	<revLight>~revLight~</revLight>
+</outputs>

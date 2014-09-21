@@ -1,26 +1,13 @@
 <?xml version="1.0" encoding="utf-8"?>
-<status>
-	<timeRunning>~timeRunning~</timeRunning>
-	<running>~running~</running>
-	<faulted>~faulted~</faulted>
-	<warning>~warning~</warning>
+<dashboard>
 	<temperatureMotor>~tempMotor~</temperatureMotor>
 	<temperatureInverter>~tempInverter~</temperatureInverter>
-	<temperatureSystem>~tempSystem~</temperatureSystem>
 	<throttle>~throttle~</throttle>
-	<brake>~brake~</brake>
-	<gear>~gear~</gear>
-	<torqueRequested>~torqueRequested~</torqueRequested>
 	<torqueActual>~torqueActual~</torqueActual>
-	<speedRequested>~speedRequested~</speedRequested>
 	<speedActual>~speedActual~</speedActual>
 	<dcVoltage>~dcVoltage~</dcVoltage>
 	<dcCurrent>~dcCurrent~</dcCurrent>
 	<kiloWattHours>~kiloWattHours~</kiloWattHours>
 	<mechanicalPower>~mechPower~</mechanicalPower>
-	<bitfield1>~bitfield1~</bitfield1>
-	<bitfield2>~bitfield2~</bitfield2>
-	<bitfield3>~bitfield3~</bitfield3>
-	<bitfield4>~bitfield4~</bitfield4>
 	
-</status>
+</dashboard>

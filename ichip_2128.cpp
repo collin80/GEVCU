@@ -61,6 +61,14 @@ void ICHIPWIFI::setup() {
 
 	TickHandler::getInstance()->detach(this);
 
+	//MSEL pin
+	pinMode(18, OUTPUT);
+	digitalWrite(18, HIGH);
+
+	//RESET pin
+	pinMode(42, OUTPUT);
+	digitalWrite(42, HIGH);
+
 	tickCounter = 0;
 	ibWritePtr = 0;
 	psWritePtr = 0;
@@ -104,7 +112,7 @@ void ICHIPWIFI::sendCmd(String cmd, ICHIP_COMM_STATE cmdstate) {
 	if (state != IDLE) { //if the comm is tied up then buffer this parameter for sending later
 		sendingBuffer[psWritePtr].cmd = cmd;
 		sendingBuffer[psWritePtr].state = cmdstate;
-		psWritePtr = (psWritePtr + 1) & 31;
+		psWritePtr = (psWritePtr + 1) & 63;
 		if (Logger::isDebug()) {
 			String temp = "Buffer cmd: " + cmd;
 			Logger::debug(ICHIP2128, (char *)temp.c_str());
@@ -161,6 +169,8 @@ void ICHIPWIFI::handleTick() {
 		setParam(Constants::bitfield1, paramCache.bitfield1);
 	    paramCache.bitfield2 = motorController->getStatusBitfield2();
 	    setParam(Constants::bitfield2, paramCache.bitfield2);
+           // DeviceManager::getInstance()->updateWifiByID(BRUSA_DMC5);
+
 	    didParamLoad = true;
 	}
 
@@ -269,14 +279,14 @@ void ICHIPWIFI::handleTick() {
 				setParam(Constants::prechargeR, (uint16_t)paramCache.prechargeR);
 			}
 
-                        if ( paramCache.prechargeRelay != motorController->getprechargeRelay() ) {
+            if ( paramCache.prechargeRelay != motorController->getprechargeRelay() ) {
 				paramCache.prechargeRelay = motorController->getprechargeRelay();
 				setParam(Constants::prechargeRelay, (uint8_t) paramCache.prechargeRelay);
 				//Logger::console("Precharge Relay %i", paramCache.prechargeRelay);
 				//Logger::console("motorController:prechargeRelay:%d, paramCache.prechargeRelay:%d, Constants:prechargeRelay:%s", motorController->getprechargeRelay(),paramCache.prechargeRelay, Constants::prechargeRelay);
 			}
 
-                         if ( paramCache.mainContactorRelay != motorController->getmainContactorRelay() ) {
+            if ( paramCache.mainContactorRelay != motorController->getmainContactorRelay() ) {
 				paramCache.mainContactorRelay = motorController->getmainContactorRelay();
 				setParam(Constants::mainContactorRelay, (uint8_t) paramCache.mainContactorRelay);
 			}
@@ -296,7 +306,7 @@ void ICHIPWIFI::handleTick() {
                         	setParam(Constants::kiloWattHours, paramCache.kiloWattHours / 10.0f, 1);
 			//}
                        
-                        if ( paramCache.nominalVolt != motorController->getnominalVolt()/10 ){
+            if ( paramCache.nominalVolt != motorController->getnominalVolt()/10 ){
 				paramCache.nominalVolt = motorController->getnominalVolt()/10;
 				setParam(Constants::nominalVolt, paramCache.nominalVolt);
 			}
@@ -344,16 +354,17 @@ void ICHIPWIFI::handleTick() {
 				setParam(Constants::coolFan, (uint8_t) paramCache.coolFan);
 			}
 
-                        if ( paramCache.coolOn != motorController->getCoolOn() ) {
+            if ( paramCache.coolOn != motorController->getCoolOn() ) {
 				paramCache.coolOn = motorController->getCoolOn();
 				setParam(Constants::coolOn, (uint8_t) paramCache.coolOn);
 			}
 
-                        if ( paramCache.coolOff != motorController->getCoolOff() ) {
+            if ( paramCache.coolOff != motorController->getCoolOff() ) {
 				paramCache.coolOff = motorController->getCoolOff();
 				setParam(Constants::coolOff, (uint8_t) paramCache.coolOff);
 			}
-			 if ( paramCache.brakeLight != motorController->getBrakeLight() ) {
+
+			if ( paramCache.brakeLight != motorController->getBrakeLight() ) {
 				paramCache.brakeLight = motorController->getBrakeLight();
 				setParam(Constants::brakeLight, (uint8_t) paramCache.brakeLight);
 			}
@@ -388,6 +399,12 @@ void ICHIPWIFI::handleTick() {
 				paramCache.tempSystem = motorController->getTemperatureSystem();
 				setParam(Constants::tempSystem, paramCache.tempSystem / 10.0f, 1);
 			}
+
+			if (paramCache.powerMode != motorController->getPowerMode() ) {
+				paramCache.powerMode = motorController->getPowerMode();
+				setParam(Constants::motorMode, (uint8_t)paramCache.powerMode);
+			}
+
 			//if ( paramCache.mechPower != motorController->getMechanicalPower() ) {
 				paramCache.mechPower = motorController->getMechanicalPower();
                                 if (paramCache.mechPower<-250)paramCache.mechPower=-250;
@@ -416,25 +433,34 @@ char *ICHIPWIFI::getTimeRunning() {
 
 /*
  * Handle a message sent by the DeviceManager.
- * Currently MSG_SET_PARAM is supported. A array of two char * has to be included
- * in the message.
+ * Currently MSG_SET_PARAM is supported. The message should be a two element char pointer array 
+ * containing the addresses of a two element char array. char *paramPtr[2] = { &param[0][0], &param[1][0] };
+ * Element 0 of the base array (char param [2][20]; )should contain the name of the parameter to be changed
+ * Element 1 of the base array should contain the new value to be set.   
+ *
+ *  sendMessage(DEVICE_WIFI, ICHIP2128, MSG_SET_PARAM,  paramPtr);	
+ *    
  */
 void ICHIPWIFI::handleMessage(uint32_t messageType, void* message) {
-	Device::handleMessage(messageType, message);
+	Device::handleMessage(messageType, message);  //Only matters if message is MSG_STARTUP
 
 	switch (messageType) {
-	case MSG_SET_PARAM: {
-		char **params = (char **)message;
+  
+	case MSG_SET_PARAM:{   //Sets a single parameter to a single value
+  	        char **params = (char **)message;  //recast message as a two element array (params)		
+              // Logger::console("Received Device: %s value %s",params[0], params[1]);
 		setParam((char *)params[0], (char *)params[1]);
 		break;
 	}
-	case MSG_CONFIG_CHANGE:
+	case MSG_CONFIG_CHANGE:{  //Loads all parameters to web site
 		loadParameters();
 		break;
-	case MSG_COMMAND:
+        }
+	case MSG_COMMAND:  //Sends a message to the WiReach module in the form of AT+imessage
 		sendCmd((char *)message);
 		break;
-	}
+        }
+    
 }
 
 /*
@@ -456,7 +482,7 @@ void ICHIPWIFI::getParamById(String paramName) {
  * Set a parameter to the given string value
  */
 void ICHIPWIFI::setParam(String paramName, String value) {
-    sendCmd(paramName + "=\"" + value + "\"", SET_PARAM);
+      sendCmd(paramName + "=\"" + value + "\"", SET_PARAM);
 }
 
 /*
@@ -608,7 +634,7 @@ void ICHIPWIFI::loop() {
 							String temp = "Sending buffered cmd: " + sendingBuffer[psReadPtr].cmd;
 							if (Logger::isDebug()) Logger::debug(ICHIP2128, (char *)temp.c_str());
 							sendCmd(sendingBuffer[psReadPtr].cmd, sendingBuffer[psReadPtr].state);
-							psReadPtr = (psReadPtr + 1) & 31;
+							psReadPtr = (psReadPtr + 1) & 63;
 						}
 					}
 				}
@@ -748,9 +774,71 @@ void ICHIPWIFI::processParameterChange(char *key) {
 		motorConfig->enableIn = atol(value);
 		motorController->saveConfiguration();
 	} else if (!strcmp(key, Constants::reverseIn) && motorConfig) {
-		motorConfig->reverseIn = atol(value);
+		motorConfig->reverseIn = atol(value);  
 		motorController->saveConfiguration();
-	
+<<<<<<< HEAD
+
+        } else if (!strcmp(key, "x1000")){
+                if (255==atol(value)){sysPrefs->setDeviceStatus(strtol(key+1, 0, 16),true);}
+                  else {sysPrefs->setDeviceStatus(strtol(key+1, 0, 16), false);}
+                sysPrefs->forceCacheWrite();
+                // Logger::console("Setting Device: %s ID:%X value %X",key, strtol(key+1, 0, 16),atol(value));
+   
+            } else if (!strcmp(key, "x1001")){
+                if (255==atol(value)){sysPrefs->setDeviceStatus(strtol(key+1, 0, 16),true);}
+                  else {sysPrefs->setDeviceStatus(strtol(key+1, 0, 16), false);}
+                sysPrefs->forceCacheWrite();
+         } else if (!strcmp(key, "x1002")){
+                if (255==atol(value)){sysPrefs->setDeviceStatus(strtol(key+1, 0, 16),true);}
+                  else {sysPrefs->setDeviceStatus(strtol(key+1, 0, 16), false);}
+                sysPrefs->forceCacheWrite();
+         } else if (!strcmp(key, "x1031")){
+                if (255==atol(value)){sysPrefs->setDeviceStatus(strtol(key+1, 0, 16), true);}
+                  else {sysPrefs->setDeviceStatus(strtol(key+1, 0, 16), false);}
+                sysPrefs->forceCacheWrite();
+         } else if (!strcmp(key, "x1032")){
+                if (255==atol(value)){sysPrefs->setDeviceStatus(strtol(key+1, 0, 16), true);}
+                  else {sysPrefs->setDeviceStatus(strtol(key+1, 0, 16), false);}
+                sysPrefs->forceCacheWrite();
+         } else if (!strcmp(key, "x1033")){
+                if (255==atol(value)){sysPrefs->setDeviceStatus(strtol(key+1, 0, 16), true);}
+                  else {sysPrefs->setDeviceStatus(strtol(key+1, 0, 16), false);}
+                sysPrefs->forceCacheWrite();
+         } else if (!strcmp(key, "x1034")){
+                if (255==atol(value)){sysPrefs->setDeviceStatus(strtol(key+1, 0, 16), true);}
+                  else {sysPrefs->setDeviceStatus(strtol(key+1, 0, 16), false);}
+                sysPrefs->forceCacheWrite();
+         } else if (!strcmp(key, "x1010")){
+                if (255==atol(value)){sysPrefs->setDeviceStatus(strtol(key+1, 0, 16), true);}
+                  else {sysPrefs->setDeviceStatus(strtol(key+1, 0, 16), false);}
+                sysPrefs->forceCacheWrite();
+         } else if (!strcmp(key, "x1020")){
+                if (255==atol(value)){sysPrefs->setDeviceStatus(strtol(key+1, 0, 16), true);}
+                  else {sysPrefs->setDeviceStatus(strtol(key+1, 0, 16), false);}
+                sysPrefs->forceCacheWrite();
+        } else if (!strcmp(key, "x1040")){
+                if (255==atol(value)){sysPrefs->setDeviceStatus(strtol(key+1, 0, 16), true);}
+                  else {sysPrefs->setDeviceStatus(strtol(key+1, 0, 16), false);}
+                sysPrefs->forceCacheWrite();
+        } else if (!strcmp(key, "x2000")){
+                if (255==atol(value)){sysPrefs->setDeviceStatus(strtol(key+1, 0, 16), true);}
+                  else {sysPrefs->setDeviceStatus(strtol(key+1, 0, 16), false);}
+                sysPrefs->forceCacheWrite();
+        } else if (!strcmp(key, "x6000")){
+                if (255==atol(value)){sysPrefs->setDeviceStatus(strtol(key+1, 0, 16), true);}
+                  else {sysPrefs->setDeviceStatus(strtol(key+1, 0, 16), false);}
+                sysPrefs->forceCacheWrite();
+        } else if (!strcmp(key, "x6500")){
+                if (255==atol(value)){sysPrefs->setDeviceStatus(strtol(key+1, 0, 16), true);}
+                  else {sysPrefs->setDeviceStatus(strtol(key+1, 0, 16), false);}
+                sysPrefs->forceCacheWrite();
+      
+                        
+=======
+	} else if (!strcmp(key, Constants::motorMode) && motorConfig) {
+		motorConfig->motorMode = (MotorController::PowerMode)atoi(value);
+		motorController->saveConfiguration();	
+>>>>>>> FETCH_HEAD
 	} else if (!strcmp(key, Constants::logLevel)) {
 		extern PrefHandler *sysPrefs;
 		uint8_t loglevel = atol(value);
@@ -837,7 +925,7 @@ DeviceId ICHIPWIFI::getId() {
 }
 
 void ICHIPWIFI::loadConfiguration() {
-	WifiConfiguration *config = new WifiConfiguration();
+	WifiConfiguration *config = (WifiConfiguration *)getConfiguration();
 
 	if (prefsHandler->checksumValid()) { //checksum is good, read in the values stored in EEPROM
 		Logger::debug(ICHIP2128, "Valid checksum so using stored wifi config values");

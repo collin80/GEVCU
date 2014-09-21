@@ -57,6 +57,8 @@ public:
 	Device *getDeviceByID(DeviceId);
 	Device *getDeviceByType(DeviceType);
 	void printDeviceList();
+        void updateWifi();
+       Device *updateWifiByID(DeviceId);
 
 protected:
 

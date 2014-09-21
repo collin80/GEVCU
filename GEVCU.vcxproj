@@ -86,6 +86,7 @@
     <ClInclude Include="CanHandler.h" />
     <ClInclude Include="CanPIDListener.h" />
     <ClInclude Include="CanThrottle.h" />
+    <ClInclude Include="CodaMotorController.h" />
     <ClInclude Include="config.h" />
     <ClInclude Include="constants.h">
       <FileType>CppCode</FileType>
@@ -99,6 +100,7 @@
     <ClInclude Include="eeprom_layout.h" />
     <ClInclude Include="ELM327Processor.h" />
     <ClInclude Include="ELM327_Emu.h" />
+    <ClInclude Include="FaultCodes.h" />
     <ClInclude Include="FaultHandler.h" />
     <ClInclude Include="GEVCU.h" />
     <ClInclude Include="Heartbeat.h">
@@ -139,6 +141,7 @@
     <ClCompile Include="CanHandler.cpp" />
     <ClCompile Include="CanPIDListener.cpp" />
     <ClCompile Include="CanThrottle.cpp" />
+    <ClCompile Include="CodaMotorController.cpp" />
     <ClCompile Include="Device.cpp" />
     <ClCompile Include="DeviceManager.cpp" />
     <ClCompile Include="DmocMotorController.cpp" />

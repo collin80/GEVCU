@@ -292,3 +292,40 @@ void DeviceManager::printDeviceList() {
 		}	
 	}
 }
+
+
+void DeviceManager::updateWifi() {
+  
+        sendMessage(DEVICE_WIFI, ICHIP2128, MSG_CONFIG_CHANGE, NULL);  //Load all our other parameters first
+        
+        char param [2][20];  //A two element array containing id and enable state
+        char *paramPtr[2] = { &param[0][0], &param[1][0] }; //A two element array of pointers, pointing to the addresses of row 1 and row 2 of array.
+                                                            //paramPtr[0] then contains address of param row 0 element 0
+                                                            //paramPtr[1] then contains address of param row 1 element 0.
+
+	
+        for (int i = 0; i < CFG_DEV_MGR_MAX_DEVICES; i++) { //Find all devices that are enabled and load into array
+		if (devices[i] && devices[i]->isEnabled()) 
+                  {                
+                    sprintf(paramPtr[0],"x%X",devices[i]->getId());
+                    sprintf(paramPtr[1],"255");
+                 //   Logger::console(" Device: %s value %s", paramPtr[0], paramPtr[1]);
+		
+                    sendMessage(DEVICE_WIFI, ICHIP2128, MSG_SET_PARAM,  paramPtr);	//Send the array to ichip by id (ie 1031)  255 indicates enabled
+                  }
+	    }
+
+	for (int i = 0; i < CFG_DEV_MGR_MAX_DEVICES; i++) {    //Find all devices that are NOT enabled and load into array
+		if (devices[i] && !devices[i]->isEnabled()) 
+                  {    
+                    sprintf(paramPtr[0],"x%X",devices[i]->getId());
+                    sprintf(paramPtr[1],"0");
+                  // Logger::console(" Device: %s value %s", paramPtr[0], paramPtr[1]);
+		    sendMessage(DEVICE_WIFI, ICHIP2128, MSG_SET_PARAM,  paramPtr);        //Send array to ichip by id (ie 1002) 0 indicates disabled     
+                  }
+	  }
+
+       
+}
+
+

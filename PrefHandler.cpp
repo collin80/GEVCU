@@ -151,28 +151,34 @@ void PrefHandler::LKG_mode(bool mode) {
   else lkg_address = EE_MAIN_OFFSET;
 }
 
-void PrefHandler::write(uint16_t address, uint8_t val) {
-  memCache->Write((uint32_t)address + base_address + lkg_address, val);
+bool PrefHandler::write(uint16_t address, uint8_t val) {
+  if (address >= EE_DEVICE_SIZE) return false;
+  return memCache->Write((uint32_t)address + base_address + lkg_address, val);
 }
 
-void PrefHandler::write(uint16_t address, uint16_t val) {
-  memCache->Write((uint32_t)address + base_address + lkg_address, val);
+bool PrefHandler::write(uint16_t address, uint16_t val) {
+  if (address >= EE_DEVICE_SIZE) return false;
+  return memCache->Write((uint32_t)address + base_address + lkg_address, val);
 }
 
-void PrefHandler::write(uint16_t address, uint32_t val) {
-  memCache->Write((uint32_t)address + base_address + lkg_address, val);
+bool PrefHandler::write(uint16_t address, uint32_t val) {
+  if (address >= EE_DEVICE_SIZE) return false;
+  return memCache->Write((uint32_t)address + base_address + lkg_address, val);
 }
 
-void PrefHandler::read(uint16_t address, uint8_t *val) {
-  memCache->Read((uint32_t)address + base_address + lkg_address, val);
+bool PrefHandler::read(uint16_t address, uint8_t *val) {
+  if (address >= EE_DEVICE_SIZE) return false;
+  return memCache->Read((uint32_t)address + base_address + lkg_address, val);
 }
 
-void PrefHandler::read(uint16_t address, uint16_t *val) {
-  memCache->Read((uint32_t)address + base_address + lkg_address, val);
+bool PrefHandler::read(uint16_t address, uint16_t *val) {
+  if (address >= EE_DEVICE_SIZE) return false;
+  return memCache->Read((uint32_t)address + base_address + lkg_address, val);
 }
 
-void PrefHandler::read(uint16_t address, uint32_t *val) {
-  memCache->Read((uint32_t)address + base_address + lkg_address, val);
+bool PrefHandler::read(uint16_t address, uint32_t *val) {
+  if (address >= EE_DEVICE_SIZE) return false;
+  return memCache->Read((uint32_t)address + base_address + lkg_address, val);
 }
 
 uint8_t PrefHandler::calcChecksum() {
