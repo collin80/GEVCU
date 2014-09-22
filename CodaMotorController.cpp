@@ -40,7 +40,7 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 template<class T> inline Print &operator <<(Print &obj, T arg) { obj.print(arg); return obj; } 
 
-
+long ms;
 extern bool runThrottle; 
 const uint8_t swizzleTable[] = { 0xAA, 0x7F, 0xFE, 0x29, 0x52, 0xA4, 0x9D, 0xEF, 0xB, 0x16, 0x2C, 0x58, 0xB0, 0x60, 0xC0, 1 };
 
@@ -74,7 +74,7 @@ void CodaMotorController::setup()
      
        operationState=ENABLE;
        selectedGear=DRIVE;
-       running=true;
+       ms=millis();
        TickHandler::getInstance()->attach(this, CFG_TICK_INTERVAL_MOTOR_CONTROLLER_CODAUQM);
   
 }
@@ -85,7 +85,7 @@ void CodaMotorController::handleCanFrame(CAN_FRAME *frame)
 	int RotorTemp, invTemp, StatorTemp;
 	int temp;
 	online = 1; //if a frame got to here then it passed the filter and must come from UQM
-
+        running=true;
         Logger::debug("UQM inverter msg: %X   %X   %X   %X   %X   %X   %X   %X  %X", frame->id, frame->data.bytes[0],
         frame->data.bytes[1],frame->data.bytes[2],frame->data.bytes[3],frame->data.bytes[4],
         frame->data.bytes[5],frame->data.bytes[6],frame->data.bytes[7]);
@@ -134,6 +134,7 @@ void CodaMotorController::handleCanFrame(CAN_FRAME *frame)
         case 0x20F:    //CAN Watchdog Status Message           
                 Logger::debug("UQM 20F CAN Watchdog status error");
                 warning=true;
+                running=false;
                 sendCmd2(); //If we get a Watchdog status, we need to respond with Watchdog reset
 		break;
 	}
@@ -145,6 +146,12 @@ void CodaMotorController::handleTick() {
 
 	MotorController::handleTick(); //kick the ball up to papa
         sendCmd1();   //Send our lone torque command
+        if (millis()-ms>2000 && online==0)
+          {
+            running=false; // We haven't received any UQM frames for over 2 seconds.  Otherwise online would be 1.
+            ms=millis();   //So we've lost communications.  Let's turn off the running light.
+          }
+        online=0;//This flag will be set to 1 by received frames.
 }
 
 

@@ -776,10 +776,10 @@ void ICHIPWIFI::processParameterChange(char *key) {
 	} else if (!strcmp(key, Constants::reverseIn) && motorConfig) {
 		motorConfig->reverseIn = atol(value);  
 		motorController->saveConfiguration();
-        } else if (!strcmp(key, Constants::motorMode) && motorConfig) {
+      /*  } else if (!strcmp(key, Constants::motorMode) && motorConfig) {
 		motorConfig->motorMode = (MotorController::PowerMode)atoi(value);
 		motorController->saveConfiguration();	
-	
+	*/
 
 
 
