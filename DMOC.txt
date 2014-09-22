@@ -1,0 +1,72 @@
+This document explains a little bit of theory about the DMOC645 
+motorcontroller object-module.
+
+The DMOC645 is a bit complicated in that you need to progressively establish
+operation in either speed mode or torque mode.  We really don't use speed mode
+in vehicle applications.  
+
+We control DMOC operation through two main variables and a torque command generated from our throttle:
+
+operationState=	DISABLED = 0,
+				STANDBY = 1,
+				ENABLE = 2,
+				POWERDOWN = 3
+
+selectedGear  NEUTRAL =0
+			  DRIVE =1
+			  REVERSE=2
+			  ERROR=3
+			  
+			  
+The problem is, we have to allow some time for communications to establish, and then 
+we have to progressively cycle from DISABLED to STANDBY to ENABLE.  And we need acknowledgement from 
+DMOC at each step.
+
+DMOC reports its state of operation via CAN and we hold that state in a variable titled activeState.
+
+We initialize as:
+  selectedGear = NEUTRAL;
+	operationState = DISABLED;
+	actualState = DISABLED;
+
+We can set these values programmatically using two functions provided by our parent class MotorController.  They are setOpState(operationState) and setSelectedGear(selectedGear).
+
+We can also set them via hardware input by activating the ENABLE input and the REVERSE input to any of the four digital inputs.
+When 12v is applied to the input designated as ENABLE, it will call setOpState(ENABLE).  Likewise a 12v on the REVERSE input will cause a setSelectedGear(REVERSE) call.  When they are in a low state, they actively setSelectedGear(DRIVE) and setOpState(DISABLED)
+
+
+The DMOC requires three different frames twice per second beginning very soon after power up or otherwise it faults out.
+
+We hold these in SENDCMD1, SENDCMD2, and SENDCMD3.
+
+SENDCMD1 sends a 0x232 frame we think of as the speed control frame.  It is in speed mode.  But we MUST transmit this frame even in torque mode.  BYTE 5 is actually our ignition key state to get this thing running.  Byte 6 is a bit map containing an ALIVE counter that increments by 2 from 0x00 to 0x0F.  It also contains our selected gear and our requested operation state.  We use the variable NEWSTATE for this.  
+
+Examining our logic, if the DMOC reports, as it will initially, an activeState of DISABLED, if our operationState is DISABLED we will leave it there and in fact indicate a NEUTRAL gear selection as well, regardless of selectedGear.
+
+If DMOC reports DISABLED and we have an operationState of either STANDBY or ENABLE, we will set newstate to STANDBY and send that to the DMOC.  This will continue UNTIL we receive an activeState BACK from the DMOC indicating STANDBY.
+
+Once we receive an actualState of STANDBY from the DMOC, on our next transmitted 232 frame, if our operationState is ENABLE we will send a newstate of ENABLE. 
+
+Thereafter, if we receive an activeState indication from DMOC of ENABLE and our operationState is ENABLE, we continue to send ENABLE.
+
+Of course, if operationState goes to DISABLED, we will send a DISABLED to the DMOC and have to start the sequence all over again if we return to ENABLE on the operationState.
+
+IF we have a newstate of ENABLE, we also send our selectedGear instead of NEUTRAL.  So the SpeedControl frame 232 is actually key to properly cycling through the DISABLED, STANDBY, and ENABLE states AND advising DMOC of our selectedGear.
+
+SENDCMD2 sends a 233 frame containing our torque command in bytes 0 and 1 and again in 2 and 3.  It sends a STANDBy torque command in bytes 4 and 5.  Byte 6 contains the SAME alive value as the 232 frame.
+
+Our torque command is calculated by multiplying our maximum allowed torque variable by our throttle percentage.  Throttle runs from -1000 to +1000 as a percentage and is calculated by comparing the received analog values in the range of x1 to x2 to our throttle map of regen and forward torques.  We multiply our throttle position x maximum torque and divide by 1000 to get a torque value that is a percentage of maxium torque, but has the sign of regen (-) or forward(+).  This is added to an offset of 30,000.  Numbers below 30000 are regen torque and above 30000 are forward torque.
+
+The problem comes in in REVERSE gear.  DMOC takes negative values as positive torque in the reverse direction.  And it takes positive values as regen in the reverse direction.  By inverting the value, we can provide control in a reversed direction.
+
+
+And so in normal operation, we can set our selectedGear and operationState at will, and the proper cycling will occur within these two frames automatically.
+
+The only issue is on startup.  We want to wait until we have received and sent some frames to establish communications before doing all this.  And so we have an activity counter that is incremented by frames received, and decremented by our tick handler.  Once we have accumulated a surplus of 40 on the activity counter, we can set our gear to DRIVE and our opstate to ENABLE.
+
+IF we have selected an input for either REVERSE or ENABlE, we don't want to do that.  We want to leave it in neutral and disabled and let this be done by hardware signal input.  If we have NOT selected inputs for these, we of course want to go ahead and set them automatically.
+
+The RUNNING advisory on our web status panel only appears on receipt of DMOC CAN packets.  In fact, if we lose our stream of packets and our activity counter is decremented below 40, it will go out as well.
+
+
+ 
