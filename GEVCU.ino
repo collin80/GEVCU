@@ -248,7 +248,7 @@ void initializeDevices() {
 }
 
 void setup() {
-        delay(5000);
+       // delay(5000);
        
         //initWiReach();
 	pinMode(BLINK_LED, OUTPUT);

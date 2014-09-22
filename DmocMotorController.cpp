@@ -168,8 +168,20 @@ void DmocMotorController::handleTick() {
 		activityCount--;
 		if (activityCount > 60) activityCount = 60;
 		if (actualState == DISABLED && activityCount > 40 && !wentEnabled) {
-			if (getEnableIn() >= 0 && getEnableIn() < 4) setOpState(ENABLE);
-			if (getReverseIn() >= 0 && getReverseIn() < 4)setGear(DRIVE);
+			if (getEnableIn() >= 0 && getEnableIn() < 4) {
+				if (getDigital(getEnableIn())) setOpState(ENABLE);
+				else setOpState(DISABLED);
+			}
+			else {
+				setOpState(ENABLE);
+			}
+			if (getReverseIn() >= 0 && getReverseIn() < 4) {
+				if (getDigital(getReverseIn())) setGear(REVERSE);
+				else setGear(DRIVE);
+			}
+			else {
+				setGear(DRIVE);
+			}
 			wentEnabled = true;
 		}
 	}
@@ -201,9 +213,9 @@ void DmocMotorController::sendCmd1() {
 	output.extended = 0; //standard frame
 	output.rtr = 0;
 
-	if (throttleRequested > 0 && operationState == ENABLE && selectedGear != NEUTRAL && config->motorMode == modeSpeed)
-		speedRequested = 20000 + (((long) throttleRequested * (long) config->speedMax) / 1000);
-	else
+	//if (throttleRequested > 0 && operationState == ENABLE && selectedGear != NEUTRAL && config->motorMode == modeSpeed)
+		//speedRequested = 20000 + (((long) throttleRequested * (long) config->speedMax) / 1000);
+	//else
 		speedRequested = 20000;
 	output.data.bytes[0] = (speedRequested & 0xFF00) >> 8;
 	output.data.bytes[1] = (speedRequested & 0x00FF);
@@ -248,7 +260,7 @@ void DmocMotorController::sendCmd2() {
 	//torqueRequested = 30000L + (((long)throttleRequested * (long)MaxTorque) / 1000L);
 
 	torqueCommand = 30000; //set offset  for zero torque commanded
-	if (config->motorMode == modeTorque) {
+	//if (config->motorMode == modeTorque) {
                 torqueRequested=0;
 		if (actualState == ENABLE) { //don't even try sending torque commands until the DMOC reports it is ready
 			if (selectedGear == DRIVE)
@@ -263,13 +275,13 @@ void DmocMotorController::sendCmd2() {
 		output.data.bytes[1] = (torqueCommand & 0x00FF);
 		output.data.bytes[2] = output.data.bytes[0];
 		output.data.bytes[3] = output.data.bytes[1];
-	}
-	else { //RPM mode so request max torque as upper limit and zero torque as lower limit
+	//}
+	/*else { //RPM mode so request max torque as upper limit and zero torque as lower limit
 		output.data.bytes[0] = ((30000L + config->torqueMax) & 0xFF00) >> 8;
 		output.data.bytes[1] = ((30000L + config->torqueMax) & 0x00FF);
 		output.data.bytes[2] = 0x75;
 		output.data.bytes[3] = 0x30;
-	}
+	}*/
 
 	//what the hell is standby torque? Does it keep the transmission spinning for automatics? I don't know.
 	output.data.bytes[4] = 0x75; //msb standby torque. -3000 offset, 0.1 scale. These bytes give a standby of 0Nm
