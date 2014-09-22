@@ -169,6 +169,8 @@ void ICHIPWIFI::handleTick() {
 		setParam(Constants::bitfield1, paramCache.bitfield1);
 	    paramCache.bitfield2 = motorController->getStatusBitfield2();
 	    setParam(Constants::bitfield2, paramCache.bitfield2);
+           // DeviceManager::getInstance()->updateWifiByID(BRUSA_DMC5);
+
 	    didParamLoad = true;
 	}
 
@@ -431,25 +433,34 @@ char *ICHIPWIFI::getTimeRunning() {
 
 /*
  * Handle a message sent by the DeviceManager.
- * Currently MSG_SET_PARAM is supported. A array of two char * has to be included
- * in the message.
+ * Currently MSG_SET_PARAM is supported. The message should be a two element char pointer array 
+ * containing the addresses of a two element char array. char *paramPtr[2] = { &param[0][0], &param[1][0] };
+ * Element 0 of the base array (char param [2][20]; )should contain the name of the parameter to be changed
+ * Element 1 of the base array should contain the new value to be set.   
+ *
+ *  sendMessage(DEVICE_WIFI, ICHIP2128, MSG_SET_PARAM,  paramPtr);	
+ *    
  */
 void ICHIPWIFI::handleMessage(uint32_t messageType, void* message) {
-	Device::handleMessage(messageType, message);
+	Device::handleMessage(messageType, message);  //Only matters if message is MSG_STARTUP
 
 	switch (messageType) {
-	case MSG_SET_PARAM: {
-		char **params = (char **)message;
+  
+	case MSG_SET_PARAM:{   //Sets a single parameter to a single value
+  	        char **params = (char **)message;  //recast message as a two element array (params)		
+              // Logger::console("Received Device: %s value %s",params[0], params[1]);
 		setParam((char *)params[0], (char *)params[1]);
 		break;
 	}
-	case MSG_CONFIG_CHANGE:
+	case MSG_CONFIG_CHANGE:{  //Loads all parameters to web site
 		loadParameters();
 		break;
-	case MSG_COMMAND:
+        }
+	case MSG_COMMAND:  //Sends a message to the WiReach module in the form of AT+imessage
 		sendCmd((char *)message);
 		break;
-	}
+        }
+    
 }
 
 /*
@@ -471,7 +482,7 @@ void ICHIPWIFI::getParamById(String paramName) {
  * Set a parameter to the given string value
  */
 void ICHIPWIFI::setParam(String paramName, String value) {
-    sendCmd(paramName + "=\"" + value + "\"", SET_PARAM);
+      sendCmd(paramName + "=\"" + value + "\"", SET_PARAM);
 }
 
 /*
@@ -763,14 +774,73 @@ void ICHIPWIFI::processParameterChange(char *key) {
 		motorConfig->enableIn = atol(value);
 		motorController->saveConfiguration();
 	} else if (!strcmp(key, Constants::reverseIn) && motorConfig) {
-		motorConfig->reverseIn = atol(value);
+		motorConfig->reverseIn = atol(value);  
 		motorController->saveConfiguration();
-	} else if (!strcmp(key, Constants::motorMode) && motorConfig) {
+        } else if (!strcmp(key, Constants::motorMode) && motorConfig) {
 		motorConfig->motorMode = (MotorController::PowerMode)atoi(value);
 		motorController->saveConfiguration();	
+	
+
+
+
+        } else if (!strcmp(key, "x1000")){
+                if (255==atol(value)){sysPrefs->setDeviceStatus(strtol(key+1, 0, 16),true);}
+                  else {sysPrefs->setDeviceStatus(strtol(key+1, 0, 16), false);}
+                sysPrefs->forceCacheWrite();
+                // Logger::console("Setting Device: %s ID:%X value %X",key, strtol(key+1, 0, 16),atol(value));
+   
+            } else if (!strcmp(key, "x1001")){
+                if (255==atol(value)){sysPrefs->setDeviceStatus(strtol(key+1, 0, 16),true);}
+                  else {sysPrefs->setDeviceStatus(strtol(key+1, 0, 16), false);}
+                sysPrefs->forceCacheWrite();
+         } else if (!strcmp(key, "x1002")){
+                if (255==atol(value)){sysPrefs->setDeviceStatus(strtol(key+1, 0, 16),true);}
+                  else {sysPrefs->setDeviceStatus(strtol(key+1, 0, 16), false);}
+                sysPrefs->forceCacheWrite();
+         } else if (!strcmp(key, "x1031")){
+                if (255==atol(value)){sysPrefs->setDeviceStatus(strtol(key+1, 0, 16), true);}
+                  else {sysPrefs->setDeviceStatus(strtol(key+1, 0, 16), false);}
+                sysPrefs->forceCacheWrite();
+         } else if (!strcmp(key, "x1032")){
+                if (255==atol(value)){sysPrefs->setDeviceStatus(strtol(key+1, 0, 16), true);}
+                  else {sysPrefs->setDeviceStatus(strtol(key+1, 0, 16), false);}
+                sysPrefs->forceCacheWrite();
+         } else if (!strcmp(key, "x1033")){
+                if (255==atol(value)){sysPrefs->setDeviceStatus(strtol(key+1, 0, 16), true);}
+                  else {sysPrefs->setDeviceStatus(strtol(key+1, 0, 16), false);}
+                sysPrefs->forceCacheWrite();
+         } else if (!strcmp(key, "x1034")){
+                if (255==atol(value)){sysPrefs->setDeviceStatus(strtol(key+1, 0, 16), true);}
+                  else {sysPrefs->setDeviceStatus(strtol(key+1, 0, 16), false);}
+                sysPrefs->forceCacheWrite();
+         } else if (!strcmp(key, "x1010")){
+                if (255==atol(value)){sysPrefs->setDeviceStatus(strtol(key+1, 0, 16), true);}
+                  else {sysPrefs->setDeviceStatus(strtol(key+1, 0, 16), false);}
+                sysPrefs->forceCacheWrite();
+         } else if (!strcmp(key, "x1020")){
+                if (255==atol(value)){sysPrefs->setDeviceStatus(strtol(key+1, 0, 16), true);}
+                  else {sysPrefs->setDeviceStatus(strtol(key+1, 0, 16), false);}
+                sysPrefs->forceCacheWrite();
+        } else if (!strcmp(key, "x1040")){
+                if (255==atol(value)){sysPrefs->setDeviceStatus(strtol(key+1, 0, 16), true);}
+                  else {sysPrefs->setDeviceStatus(strtol(key+1, 0, 16), false);}
+                sysPrefs->forceCacheWrite();
+        } else if (!strcmp(key, "x2000")){
+                if (255==atol(value)){sysPrefs->setDeviceStatus(strtol(key+1, 0, 16), true);}
+                  else {sysPrefs->setDeviceStatus(strtol(key+1, 0, 16), false);}
+                sysPrefs->forceCacheWrite();
+        } else if (!strcmp(key, "x6000")){
+                if (255==atol(value)){sysPrefs->setDeviceStatus(strtol(key+1, 0, 16), true);}
+                  else {sysPrefs->setDeviceStatus(strtol(key+1, 0, 16), false);}
+                sysPrefs->forceCacheWrite();
+        } else if (!strcmp(key, "x6500")){
+                if (255==atol(value)){sysPrefs->setDeviceStatus(strtol(key+1, 0, 16), true);}
+                  else {sysPrefs->setDeviceStatus(strtol(key+1, 0, 16), false);}
+                sysPrefs->forceCacheWrite();            
+	
 	} else if (!strcmp(key, Constants::logLevel)) {
 		extern PrefHandler *sysPrefs;
-		uint8_t loglevel = atol(value);
+		uint8_t loglevel = atoi(value);
 		Logger::setLoglevel((Logger::LogLevel)loglevel);
 		sysPrefs->write(EESYS_LOG_LEVEL, loglevel);
 	} else {

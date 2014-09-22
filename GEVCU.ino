@@ -87,6 +87,8 @@ void initWiReach()
 SerialUSB.begin(115200); // use SerialUSB only as the programming port doesn't work
 Serial2.begin(115200); // use Serial3 for GEVCU2, use Serial2 for GEVCU3+4
 
+sendWiReach("AT+iFD");//Host connection set to serial port
+delay(5000);
 sendWiReach("AT+iHIF=1");//Host connection set to serial port
 sendWiReach("AT+iBDRF=9");//Automatic baud rate on host serial port
 sendWiReach("AT+iRPG=secret"); //Password for iChip wbsite
@@ -272,6 +274,7 @@ void setup() {
 	uint8_t loglevel;
 	sysPrefs->read(EESYS_LOG_LEVEL, &loglevel);
 	Logger::setLoglevel((Logger::LogLevel)loglevel);
+	Logger::setLoglevel((Logger::LogLevel)1);
 	sys_early_setup();     
 	tickHandler = TickHandler::getInstance();
 	canHandlerEV = CanHandler::getInstanceEV();

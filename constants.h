@@ -39,6 +39,7 @@ namespace Constants {
 	static const char* ichipErrorString = "I/ERROR";
 
 	// configuration
+
 	static const char* numThrottlePots = "numThrottlePots";
 	static const char* throttleSubType = "throttleSubType";
 	static const char* throttleMin1 = "throttleMin1";
@@ -92,14 +93,12 @@ namespace Constants {
 	static const char* tempSystem = "tempSystem";
 	static const char* mechPower = "mechPower";
 	static const char* prechargeR = "prechargeR";
-    static const char* prechargeRelay = "prechargeRelay";
-    static const char* mainContactorRelay = "mainContactorRelay";
+        static const char* prechargeRelay = "prechargeRelay";
+        static const char* mainContactorRelay = "mainContactorRelay";
 	static const char* coolFan = "coolFan";
 	static const char* coolOn = "coolOn";
 	static const char* coolOff = "coolOff";
-
-	// messages
-	static const char* validChecksum = "Valid checksum, using stored config values";
+   	static const char* validChecksum = "Valid checksum, using stored config values";
 	static const char* invalidChecksum = "Invalid checksum, using hard coded config values";
 	static const char* valueOutOfRange = "value out of range: %l";
 	static const char* normalOperation = "normal operation restored";

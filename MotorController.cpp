@@ -125,7 +125,7 @@ void MotorController::handleTick() {
 		    dcVoltage--;  
 	            if (torqueActual < -500)
                       {
-                        torqueActual=20;
+                        torqueActual=600;
                       }
                      else 
                        {
@@ -133,11 +133,11 @@ void MotorController::handleTick() {
                        }
                         if (dcCurrent < 0)
                       {
-                        dcCurrent=120;
+                        dcCurrent=1200;
                       }
                      else 
                        {
-                         dcCurrent=-65;
+                         dcCurrent=-650;
                        }
                     if (temperatureInverter < config->coolOn*10)
                       {
@@ -150,7 +150,7 @@ void MotorController::handleTick() {
                 
                     if (throttleRequested < 500)
                       {
-                        throttleRequested=500;
+                        throttleRequested=2000;
                       }
                       else 
                       {
