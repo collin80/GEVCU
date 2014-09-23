@@ -70,11 +70,40 @@ MotorController::MotorController() : Device() {
         premillis=0;
 
 
+
 }
 
-DeviceType MotorController::getType() {
-	return (DEVICE_MOTORCTRL);
+void MotorController::setup() {
+  
+	MotorControllerConfiguration *config = (MotorControllerConfiguration *)getConfiguration();
+	statusBitfield1 = 0;
+	statusBitfield2 = 0;
+	statusBitfield3 = 0;
+	statusBitfield4 = 0;
+        prefsHandler->read(EEMC_KILOWATTHRS, &kiloWattHours); //retrieve kilowatt hours from EEPROM
+        nominalVolts=config->nominalVolt;
+        donePrecharge=false;
+        premillis=millis();      
+
+    if(config->prechargeR==12345)
+      {  
+	torqueActual=2;
+        dcCurrent=1501;
+        dcVoltage=3320;
+        
+      }
+    Logger::console("PRELAY=%i - Current PreCharge Relay output", config->prechargeRelay);
+    Logger::console("MRELAY=%i - Current Main Contactor Relay output", config->mainContactorRelay);
+    Logger::console("PREDELAY=%i - Precharge delay time", config->prechargeR);
+	 
+    //show our work
+    Logger::console("PRECHARGING...DOUT0:%d, DOUT1:%d, DOUT2:%d, DOUT3:%d,DOUT4:%d, DOUT5:%d, DOUT6:%d, DOUT7:%d", getOutput(0), getOutput(1), getOutput(2), getOutput(3),getOutput(4), getOutput(5), getOutput(6), getOutput(7));
+    coolflag=false;
+    
+    Device::setup();
+   
 }
+
 
 void MotorController::handleTick() {
 
@@ -340,38 +369,6 @@ void MotorController:: checkReverseInput()
 }
 
 
-void MotorController::setup() {
-  
-	MotorControllerConfiguration *config = (MotorControllerConfiguration *)getConfiguration();
-	statusBitfield1 = 0;
-	statusBitfield2 = 0;
-	statusBitfield3 = 0;
-	statusBitfield4 = 0;
-        prefsHandler->read(EEMC_KILOWATTHRS, &kiloWattHours); //retrieve kilowatt hours from EEPROM
-        nominalVolts=config->nominalVolt;
-        donePrecharge=false;
-        premillis=millis();
-        
-
-    if(config->prechargeR==12345)
-      {  
-	torqueActual=2;
-        dcCurrent=1501;
-        dcVoltage=3320;
-        
-      }
-
-    Logger::console("PRELAY=%i - Current PreCharge Relay output", config->prechargeRelay);
-    Logger::console("MRELAY=%i - Current Main Contactor Relay output", config->mainContactorRelay);
-    Logger::console("PREDELAY=%i - Precharge delay time", config->prechargeR);
-	 
-    //show our work
-    Logger::console("PRECHARGING...DOUT0:%d, DOUT1:%d, DOUT2:%d, DOUT3:%d,DOUT4:%d, DOUT5:%d, DOUT6:%d, DOUT7:%d", getOutput(0), getOutput(1), getOutput(2), getOutput(3),getOutput(4), getOutput(5), getOutput(6), getOutput(7));
-    coolflag=false;
-
-    Device::setup();
-   
-}
 
 bool MotorController::isRunning() {
 	return running;
@@ -383,6 +380,11 @@ bool MotorController::isFaulted() {
 
 bool MotorController::isWarning() {
 	return warning;
+}
+
+
+DeviceType MotorController::getType() {
+	return (DEVICE_MOTORCTRL);
 }
 void MotorController::setOpState(OperationState op) {
 	operationState = op;

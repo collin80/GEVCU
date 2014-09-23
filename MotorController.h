@@ -60,6 +60,7 @@ public:
 	uint8_t revLight;
 	uint8_t enableIn;
 	uint8_t reverseIn;
+        
 };
 
 class MotorController: public Device {

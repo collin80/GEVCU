@@ -44,7 +44,7 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include "DmocMotorController.h"
 
 extern bool runThrottle; //TODO: remove use of global variables !
-
+long ms;
 
 DmocMotorController::DmocMotorController() : MotorController() {
 	prefsHandler = new PrefHandler(DMOC645);
@@ -73,7 +73,9 @@ void DmocMotorController::setup() {
 
 	running = false;
 	setPowerMode(modeTorque);
-	
+        setSelectedGear(NEUTRAL);
+        setOpState(DISABLED );
+         ms=millis();
 
 	TickHandler::getInstance()->attach(this, CFG_TICK_INTERVAL_MOTOR_CONTROLLER_DMOC);
 }
@@ -91,7 +93,7 @@ void DmocMotorController::handleCanFrame(CAN_FRAME *frame) {
 	int temp;
 	online = 1; //if a frame got to here then it passed the filter and must have been from the DMOC
       
-        //Logger::debug("DMOC CAN received: %X  %X  %X  %X  %X  %X  %X  %X  %X", frame->id,frame->data.bytes[0] ,frame->data.bytes[1],frame->data.bytes[2],frame->data.bytes[3],frame->data.bytes[4],frame->data.bytes[5],frame->data.bytes[6],frame->data.bytes[70]);
+        Logger::debug("DMOC CAN received: %X  %X  %X  %X  %X  %X  %X  %X  %X", frame->id,frame->data.bytes[0] ,frame->data.bytes[1],frame->data.bytes[2],frame->data.bytes[3],frame->data.bytes[4],frame->data.bytes[5],frame->data.bytes[6],frame->data.bytes[70]);
   
   
 	switch (frame->id) {
@@ -115,7 +117,7 @@ void DmocMotorController::handleCanFrame(CAN_FRAME *frame) {
 		break;
 		
 	case 0x23B: //speed and current operation status
-		speedActual = ((frame->data.bytes[0] * 256) + frame->data.bytes[1]) - 20000;
+		speedActual = abs(((frame->data.bytes[0] * 256) + frame->data.bytes[1]) - 20000);
 		temp = (OperationState) (frame->data.bytes[6] >> 4);
 		//actually, the above is an operation status report which doesn't correspond
 		//to the state enum so translate here.
@@ -185,23 +187,31 @@ void DmocMotorController::handleTick() {
 
 	MotorController::handleTick(); //kick the ball up to papa
 
-	if (activityCount > 0) {
+	if (activityCount > 0)
+             {
 		activityCount--;
 		if (activityCount > 60) activityCount = 60;
 		if (activityCount > 40) //If we are receiving regular CAN messages from DMOC, this will very quickly get to over 40. We'll limit
 								// it to 60 so if we lose communications, within 20 ticks we will decrement below this value.
-			{
-			if(getEnableIn()>4)setOpState(ENABLE); //If we HAVE an enableinput 0-3, we'll let that handle opstate. Otherwise set it to ENABLE
-			if(getReverseIn()>4)setSelectedGear(DRIVE); //If we HAVE a reverse input, we'll let that determine forward/reverse.  Otherwise set it to DRIVE
-			running=true; //Lets's set this on as long as we are 40 frames ahead.   
-		    }
-	  }
+	              {
+  Logger::console("EnableIn=%i and ReverseIn = %i" ,getEnableIn(),getReverseIn());
+			if(getEnableIn()<0)setOpState(ENABLE); //If we HAVE an enableinput 0-3, we'll let that handle opstate. Otherwise set it to ENABLE
+			if(getReverseIn()<0)setSelectedGear(DRIVE); //If we HAVE a reverse input, we'll let that determine forward/reverse.  Otherwise set it to DRIVE
+			   
+		      }
+	     }
 	else {
 		setSelectedGear(NEUTRAL); //We will stay in NEUTRAL until we get at least 40 frames ahead indicating continous communications.
-		running=false;
-	}
+		
+	      }
 
-	
+	 if (millis()-ms>2000 && online==0)
+            {
+              running=false; // We haven't received any frames for over 2 seconds.  Otherwise online would be 1.
+              ms=millis();   //So we've lost communications.  Let's turn off the running light.
+            }
+            running=online;
+          online=0;//This flag will be set to 1 by received frames.
 
 	sendCmd1();  //This actually sets our GEAR and our actualstate cycle
 	sendCmd2();  //This is our torque command
@@ -280,7 +290,7 @@ void DmocMotorController::sendCmd2() {
 		}
                   
                 if(speedActual < config->speedMax){torqueCommand+=torqueRequested;} //If actual rpm is less than max rpm, add torque to offset
-                   else {torqueCommand += torqueRequested /2;}                       // else torque is halved
+                   else {torqueCommand += torqueRequested /1.3;}                       // else torque is halved
 		output.data.bytes[0] = (torqueCommand & 0xFF00) >> 8;
 		output.data.bytes[1] = (torqueCommand & 0x00FF);
 		output.data.bytes[2] = output.data.bytes[0];
