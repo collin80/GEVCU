@@ -140,8 +140,10 @@ void SerialConsole::printMenu() {
 	
 		Logger::console("TPOT=%i - Number of pots to use (1 or 2)", config->numberPotMeters);
 		Logger::console("TTYPE=%i - Set throttle subtype (1=std linear, 2=inverse)", config->throttleSubType);
+		Logger::console("T1ADC=%i - Set throttle 1 ADC pin", config->AdcPin1);
 		Logger::console("T1MN=%i - Set throttle 1 min value", config->minimumLevel1);
 		Logger::console("T1MX=%i - Set throttle 1 max value", config->maximumLevel1);
+		Logger::console("T2ADC=%i - Set throttle 2 ADC pin", config->AdcPin2);
 		Logger::console("T2MN=%i - Set throttle 2 min value", config->minimumLevel2);
 		Logger::console("T2MX=%i - Set throttle 2 max value", config->maximumLevel2);
 		Logger::console("TRGNMAX=%i - Tenths of a percent of pedal where regen is at max", config->positionRegenMaximum);
@@ -159,6 +161,7 @@ void SerialConsole::printMenu() {
                 SerialUSB.println("BRAKE CONTROLS");
 	        SerialUSB.println();
 
+		Logger::console("B1ADC=%i - Set brake ADC pin", config->AdcPin1);
 		Logger::console("B1MN=%i - Set brake min value", config->minimumLevel1);
 		Logger::console("B1MX=%i - Set brake max value", config->maximumLevel1);
 		Logger::console("BMINR=%i - Percent of full torque for start of brake regen", config->minimumRegen);
@@ -297,6 +300,10 @@ void SerialConsole::handleConfigCmd() {
 		Logger::console("Setting Throttle Subtype to %i", newValue);
 		acceleratorConfig->throttleSubType = newValue;
 		accelerator->saveConfiguration();
+	} else if (cmdString == String("T1ADC") && acceleratorConfig) {
+		Logger::console("Setting Throttle1 ADC pin to %i", newValue);
+		acceleratorConfig->AdcPin1 = newValue;
+		accelerator->saveConfiguration();
 	} else if (cmdString == String("T1MN") && acceleratorConfig) {
 		Logger::console("Setting Throttle1 Min to %i", newValue);
 		acceleratorConfig->minimumLevel1 = newValue;
@@ -304,6 +311,11 @@ void SerialConsole::handleConfigCmd() {
 	} else if (cmdString == String("T1MX") && acceleratorConfig) {
 		Logger::console("Setting Throttle1 Max to %i", newValue);
 		acceleratorConfig->maximumLevel1 = newValue;
+		accelerator->saveConfiguration();
+	}
+	else if (cmdString == String("T2ADC") && acceleratorConfig) {
+		Logger::console("Setting Throttle2 ADC pin to %i", newValue);
+		acceleratorConfig->AdcPin2 = newValue;
 		accelerator->saveConfiguration();
 	} else if (cmdString == String("T2MN") && acceleratorConfig) {
 		Logger::console("Setting Throttle2 Min to %i", newValue);
@@ -349,6 +361,11 @@ void SerialConsole::handleConfigCmd() {
 		Logger::console("Setting Min Brake Regen to %i", newValue);
 		brakeConfig->minimumRegen = newValue;
 		brake->saveConfiguration();
+	}
+	else if (cmdString == String("B1ADC") && acceleratorConfig) {
+		Logger::console("Setting Brake ADC pin to %i", newValue);
+		brakeConfig->AdcPin1 = newValue;
+		accelerator->saveConfiguration();
 	} else if (cmdString == String("B1MX") && brakeConfig) {
 		Logger::console("Setting Brake Max to %i", newValue);
 		brakeConfig->maximumLevel1 = newValue;
