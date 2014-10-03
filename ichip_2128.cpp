@@ -221,10 +221,10 @@ void ICHIPWIFI::handleTick() {
 			}
 		}
 		if (accelerator) {
-                        RawSignalData *rawSignal = accelerator->acquireRawSignal();
+            RawSignalData *rawSignal = accelerator->acquireRawSignal();
 			if ( paramCache.throttle !=  rawSignal->input1) {
 				paramCache.throttle = rawSignal->input1;
-                              	setParam(Constants::throttle, paramCache.throttle);
+                setParam(Constants::throttle, paramCache.throttle);
 	
 			/*if ( paramCache.throttle != accelerator->getLevel() ) {
 				paramCache.throttle = accelerator->getLevel();
@@ -233,11 +233,11 @@ void ICHIPWIFI::handleTick() {
 			}
 		}
 		if (brake) {
-                        RawSignalData *rawSignal = brake->acquireRawSignal();
+            RawSignalData *rawSignal = brake->acquireRawSignal();
 			if ( paramCache.brake !=  rawSignal->input1) {
 				paramCache.brake = rawSignal->input1;
-	                        paramCache.brakeNotAvailable = false;
-	                    	setParam(Constants::brake, paramCache.brake);
+	            paramCache.brakeNotAvailable = false;
+	            setParam(Constants::brake, paramCache.brake);
 	
 			/*if ( paramCache.brake != brake->getLevel() ) {
 				paramCache.brake = brake->getLevel();
