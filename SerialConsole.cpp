@@ -194,6 +194,7 @@ void SerialConsole::printMenu() {
 		Logger::console("NOMV=%i - Fully charged pack voltage that automatically resets kWh counter", config->nominalVolt/10);
                 Logger::console("kWh=%d - kiloWatt Hours of energy used", config->kilowattHrs/3600000);
 		Logger::console("OUTPUT=<0-7> - toggles state of specified digital output");
+		Logger::console("NUKE=1 - Resets all device settings in EEPROM. You have been warned.");
              
 	}
 
@@ -548,6 +549,18 @@ void SerialConsole::handleConfigCmd() {
                   
              
         Logger::console("DOUT0:%d, DOUT1:%d, DOUT2:%d, DOUT3:%d, DOUT4:%d, DOUT5:%d, DOUT6:%d, DOUT7:%d", getOutput(0), getOutput(1), getOutput(2), getOutput(3), getOutput(4), getOutput(5), getOutput(6), getOutput(7));
+	} else if (cmdString == String("NUKE")) {
+		if (newValue == 1) 
+		{   //write zero to the checksum location of every device in the table.
+			//Logger::console("Start of EEPROM Nuke");
+			uint8_t zeroVal = 0;
+			for (int j = 0; j < 64; j++) 
+			{
+				memCache->Write(EE_DEVICES_BASE + (EE_DEVICE_SIZE * j), zeroVal);
+				memCache->FlushAllPages();
+			}			
+			Logger::console("Device settings have been nuked. Reboot to reload default settings");
+		}
 	} else {
 		Logger::console("Unknown command");
 		updateWifi = false;

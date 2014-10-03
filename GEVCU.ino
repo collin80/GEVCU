@@ -285,14 +285,12 @@ void setup() {
 	Logger::info("SYSIO init ok");
 
 	initializeDevices();
-        serialConsole = new SerialConsole(memCache, heartbeat);
-	Logger::info("System Ready");
+    serialConsole = new SerialConsole(memCache, heartbeat);
 	serialConsole->printMenu();
 	wifiDevice = DeviceManager::getInstance()->getDeviceByID(ICHIP2128);
 	btDevice = DeviceManager::getInstance()->getDeviceByID(ELM327EMU);
-        DeviceManager::getInstance()->sendMessage(DEVICE_WIFI, ICHIP2128, MSG_CONFIG_CHANGE, NULL); //Load configuration 
-        //variables into WiFi Web Configuration screen
-
+    DeviceManager::getInstance()->sendMessage(DEVICE_WIFI, ICHIP2128, MSG_CONFIG_CHANGE, NULL); //Load configuration variables into WiFi Web Configuration screen
+	Logger::info("System Ready");
 }
 
 void loop() {
