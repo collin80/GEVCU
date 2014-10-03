@@ -248,7 +248,7 @@ void initializeDevices() {
 }
 
 void setup() {
-        delay(5000);
+        //delay(5000);  //This delay lets you see startup.  But it breaks DMOC645 really badly.  You have to have comm way before 5 seconds.
        
         //initWiReach();
 	pinMode(BLINK_LED, OUTPUT);

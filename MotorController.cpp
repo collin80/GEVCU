@@ -70,11 +70,40 @@ MotorController::MotorController() : Device() {
         premillis=0;
 
 
+
 }
 
-DeviceType MotorController::getType() {
-	return (DEVICE_MOTORCTRL);
+void MotorController::setup() {
+  
+	MotorControllerConfiguration *config = (MotorControllerConfiguration *)getConfiguration();
+	statusBitfield1 = 0;
+	statusBitfield2 = 0;
+	statusBitfield3 = 0;
+	statusBitfield4 = 0;
+        prefsHandler->read(EEMC_KILOWATTHRS, &kiloWattHours); //retrieve kilowatt hours from EEPROM
+        nominalVolts=config->nominalVolt;
+        donePrecharge=false;
+        premillis=millis();      
+
+    if(config->prechargeR==12345)
+      {  
+	torqueActual=2;
+        dcCurrent=1501;
+        dcVoltage=3320;
+        
+      }
+    Logger::console("PRELAY=%i - Current PreCharge Relay output", config->prechargeRelay);
+    Logger::console("MRELAY=%i - Current Main Contactor Relay output", config->mainContactorRelay);
+    Logger::console("PREDELAY=%i - Precharge delay time", config->prechargeR);
+	 
+    //show our work
+    Logger::console("PRECHARGING...DOUT0:%d, DOUT1:%d, DOUT2:%d, DOUT3:%d,DOUT4:%d, DOUT5:%d, DOUT6:%d, DOUT7:%d", getOutput(0), getOutput(1), getOutput(2), getOutput(3),getOutput(4), getOutput(5), getOutput(6), getOutput(7));
+    coolflag=false;
+    
+    Device::setup();
+   
 }
+
 
 void MotorController::handleTick() {
 
@@ -97,17 +126,10 @@ void MotorController::handleTick() {
      //Throttle check
 	Throttle *accelerator = DeviceManager::getInstance()->getAccelerator();
 	Throttle *brake = DeviceManager::getInstance()->getBrake();
-
-	throttleRequested = 0;
-
 	if (accelerator)
-	{
 		throttleRequested = accelerator->getLevel();
-	}
 	if (brake && brake->getLevel() < -10 && brake->getLevel() < accelerator->getLevel()) //if the brake has been pressed it overrides the accelerator.
-	{
 		throttleRequested = brake->getLevel();
-	}
 	//Logger::debug("Throttle: %d", throttleRequested);
 
 
@@ -125,7 +147,7 @@ void MotorController::handleTick() {
 		    dcVoltage--;  
 	            if (torqueActual < -500)
                       {
-                        torqueActual=600;
+                        torqueActual=20;
                       }
                      else 
                        {
@@ -133,11 +155,11 @@ void MotorController::handleTick() {
                        }
                         if (dcCurrent < 0)
                       {
-                        dcCurrent=1200;
+                        dcCurrent=120;
                       }
                      else 
                        {
-                         dcCurrent=-650;
+                         dcCurrent=-65;
                        }
                     if (temperatureInverter < config->coolOn*10)
                       {
@@ -150,7 +172,7 @@ void MotorController::handleTick() {
                 
                     if (throttleRequested < 500)
                       {
-                        throttleRequested=2000;
+                        throttleRequested=500;
                       }
                       else 
                       {
@@ -237,7 +259,7 @@ void MotorController::coolingcheck()
  {
 	int coolfan=getCoolFan();
 	            
-	if(coolfan>=0 && coolfan<8)    //We have 8 outputs 0-7 If they entered something else, there is no point in doing this check.
+	if(coolfan>=0 and coolfan<8)    //We have 8 outputs 0-7 If they entered something else, there is no point in doing this check.
 	  {          
 	    if(temperatureInverter/10>getCoolOn())  //If inverter temperature greater than COOLON, we want to turn on the coolingoutput
 	      {
@@ -347,37 +369,6 @@ void MotorController:: checkReverseInput()
 }
 
 
-void MotorController::setup() {
-  
-	MotorControllerConfiguration *config = (MotorControllerConfiguration *)getConfiguration();
-	statusBitfield1 = 0;
-	statusBitfield2 = 0;
-	statusBitfield3 = 0;
-	statusBitfield4 = 0;
-        prefsHandler->read(EEMC_KILOWATTHRS, &kiloWattHours); //retrieve kilowatt hours from EEPROM
-        nominalVolts=config->nominalVolt;
-        donePrecharge=false;
-        premillis=millis();
-        
-
-    if(config->prechargeR==12345)
-    {  
-		torqueActual=2;
-        dcCurrent=1501;
-        dcVoltage=3320;
-    }
-
-    Logger::console("PRELAY=%i - Current PreCharge Relay output", config->prechargeRelay);
-    Logger::console("MRELAY=%i - Current Main Contactor Relay output", config->mainContactorRelay);
-    Logger::console("PREDELAY=%i - Precharge delay time", config->prechargeR);
-	 
-    //show our work
-    Logger::console("PRECHARGING...DOUT0:%d, DOUT1:%d, DOUT2:%d, DOUT3:%d,DOUT4:%d, DOUT5:%d, DOUT6:%d, DOUT7:%d", getOutput(0), getOutput(1), getOutput(2), getOutput(3),getOutput(4), getOutput(5), getOutput(6), getOutput(7));
-    coolflag=false;
-
-    Device::setup();
-   
-}
 
 bool MotorController::isRunning() {
 	return running;
@@ -389,6 +380,11 @@ bool MotorController::isFaulted() {
 
 bool MotorController::isWarning() {
 	return warning;
+}
+
+
+DeviceType MotorController::getType() {
+	return (DEVICE_MOTORCTRL);
 }
 void MotorController::setOpState(OperationState op) {
 	operationState = op;
@@ -575,7 +571,7 @@ void MotorController::loadConfiguration() {
 		prefsHandler->read(EEMC_REV_LIGHT, &config->revLight);
 		prefsHandler->read(EEMC_ENABLE_IN, &config->enableIn);
 		prefsHandler->read(EEMC_REVERSE_IN, &config->reverseIn);
-		prefsHandler->read(EEMC_MOTOR_MODE, (uint8_t *)&config->motorMode);
+
 	}
 	else { //checksum invalid. Reinitialize values and store to EEPROM
 		config->speedMax = MaxRPMValue;
@@ -595,7 +591,6 @@ void MotorController::loadConfiguration() {
 		config->revLight = RevLight;
 		config->enableIn = EnableIn;
 		config->reverseIn = ReverseIn;
-		config->motorMode = MotorController::modeSpeed;
 
 	}
            //DeviceManager::getInstance()->sendMessage(DEVICE_WIFI, ICHIP2128, MSG_CONFIG_CHANGE, NULL);
@@ -625,7 +620,7 @@ void MotorController::saveConfiguration() {
 	prefsHandler->write(EEMC_REV_LIGHT, config->revLight);
 	prefsHandler->write(EEMC_ENABLE_IN, config->enableIn);
 	prefsHandler->write(EEMC_REVERSE_IN, config->reverseIn);
-	prefsHandler->write(EEMC_MOTOR_MODE, (uint8_t)config->motorMode);
+
 
 	prefsHandler->saveChecksum();
 	loadConfiguration();

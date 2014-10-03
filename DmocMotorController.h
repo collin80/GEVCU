@@ -74,16 +74,15 @@ public:
 	virtual void saveConfiguration();
 
 private:
-	Gears actualGear;
+	
 	OperationState actualState; //what the controller is reporting it is
 	int step;
 	byte online; //counter for whether DMOC appears to be operating
 	byte alive;
 	int activityCount;
-    uint16_t torqueCommand;
-	bool wentEnabled;
-    
-	void timestamp();
+        uint16_t torqueCommand;
+        void timestamp();
+
 	void sendCmd1();
 	void sendCmd2();
 	void sendCmd3();
