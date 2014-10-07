@@ -98,7 +98,7 @@ void SerialConsole::printMenu() {
 	SerialUSB.println("p = enable wifi passthrough (reboot required to resume normal operation)");
 	SerialUSB.println("S = show possible device IDs");
 	SerialUSB.println("w = GEVCU 4.2 reset wifi to factory defaults, setup GEVCU ad-hoc network");
-	SerialUSB.println("W = GEVCU 5.2 reset wifi to factory defaults, setup GEVCU as 10.0.0.1 Access Point");
+	SerialUSB.println("W = GEVCU 5.2 reset wifi to factory defaults, setup GEVCU as Access Point");
 	SerialUSB.println("s = Scan WiFi for nearby access points");
 	SerialUSB.println();
 	SerialUSB.println("Config Commands (enter command=newvalue). Current values shown in parenthesis:");
@@ -668,10 +668,37 @@ void SerialConsole::handleShortCmd() {
 		deviceManager->sendMessage(DEVICE_WIFI, ICHIP2128, MSG_COMMAND, (void *)"RP20");
 		break;
 	case 'W':
-		Logger::console("Setting Wifi Adapter to WPS mode (make sure you press the WPS button on your router)");
-		// restore factory defaults and give it some time
-		deviceManager->sendMessage(DEVICE_WIFI, ICHIP2128, MSG_COMMAND, (void *)"AWPS");
-		break;
+		Logger::console("Resetting wifi to factory defaults and setting up GEVCU5.2 Access Point");
+	        deviceManager->sendMessage(DEVICE_WIFI, ICHIP2128, MSG_COMMAND, (void *)"FD");//Reset
+		  delay(2000);
+                deviceManager->sendMessage(DEVICE_WIFI, ICHIP2128, MSG_COMMAND, (void *)"HIF=1");  //Set for RS-232 serial.
+		  delay(1000);
+		deviceManager->sendMessage(DEVICE_WIFI, ICHIP2128, MSG_COMMAND, (void *)"BDRA");//Auto baud rate selection
+		  delay(1000);
+		deviceManager->sendMessage(DEVICE_WIFI, ICHIP2128, MSG_COMMAND, (void *)"WLCH=9"); //use whichever channel an AP wants to use
+		  delay(1000);
+		deviceManager->sendMessage(DEVICE_WIFI, ICHIP2128, MSG_COMMAND, (void *)"WLSI=GEVCU"); //set for GEVCU aS AP.
+		  delay(1000);
+
+		deviceManager->sendMessage(DEVICE_WIFI, ICHIP2128, MSG_COMMAND, (void *)"STAP=1"); //enable IP 
+		  delay(1000);
+
+		deviceManager->sendMessage(DEVICE_WIFI, ICHIP2128, MSG_COMMAND, (void *)"DIP=192.168.3.10"); //enable IP 
+		  delay(1000);
+		deviceManager->sendMessage(DEVICE_WIFI, ICHIP2128, MSG_COMMAND, (void *)"DPSZ=8"); //set DHCP server for 8
+		  delay(1000);
+		deviceManager->sendMessage(DEVICE_WIFI, ICHIP2128, MSG_COMMAND, (void *)"RPG=secret"); // set the configuration password for /ichip
+		  delay(1000);
+		deviceManager->sendMessage(DEVICE_WIFI, ICHIP2128, MSG_COMMAND, (void *)"WPWD=secret"); // set the password to update config params
+		  delay(1000);
+		deviceManager->sendMessage(DEVICE_WIFI, ICHIP2128, MSG_COMMAND, (void *)"AWS=1"); //turn on web server 
+		  delay(1000);
+		deviceManager->sendMessage(DEVICE_WIFI, ICHIP2128, MSG_COMMAND, (void *)"DOWN"); //cause a reset to allow it to come up with the settings
+		  delay(5000); // a 5 second delay is required for the chip to come back up ! Otherwise commands will be lost
+  
+		deviceManager->sendMessage(DEVICE_WIFI, ICHIP2128, MSG_CONFIG_CHANGE, NULL); // reload configuration params as they were lost
+		Logger::console("Wifi 5.2 initialized");
+	        break;
 	case 'w':
 		Logger::console("Resetting wifi to factory defaults and setting up GEVCU4.2 Ad Hoc network");
 		// restore factory defaults and give it some time
