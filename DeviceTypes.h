@@ -53,6 +53,7 @@ enum DeviceId { //unique device ID for every piece of hardware possible
 	CANACCELPEDAL = 0x1033,
 	CANBRAKEPEDAL = 0x1034,
 	ICHIP2128 = 0x1040,
+        DCDC = 0x1050,
 	THINKBMS = 0x2000,
 	SYSTEM = 0x5000,
 	HEARTBEAT = 0x5001,
