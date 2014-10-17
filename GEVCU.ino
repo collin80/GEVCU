@@ -87,8 +87,8 @@ void initWiReach()
 SerialUSB.begin(115200); // use SerialUSB only as the programming port doesn't work
 Serial2.begin(115200); // use Serial3 for GEVCU2, use Serial2 for GEVCU3+4
 
-sendWiReach("AT+iFD");//Host connection set to serial port
-delay(5000);
+//sendWiReach("AT+iFD");//Host connection set to serial port
+//delay(5000);
 sendWiReach("AT+iHIF=1");//Host connection set to serial port
 sendWiReach("AT+iBDRF=9");//Automatic baud rate on host serial port
 sendWiReach("AT+iRPG=secret"); //Password for iChip wbsite
@@ -268,7 +268,7 @@ void setup() {
             {
 	      Logger::info("Initializing EEPROM");
 	      initSysEEPROM();
-              initWiReach();
+             // initWiReach();
 	    } 
           else {Logger::info("Using existing EEPROM values");}//checksum is good, read in the values stored in EEPROM
 
