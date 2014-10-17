@@ -825,6 +825,10 @@ void ICHIPWIFI::processParameterChange(char *key) {
                 if (255==atol(value)){sysPrefs->setDeviceStatus(strtol(key+1, 0, 16), true);}
                   else {sysPrefs->setDeviceStatus(strtol(key+1, 0, 16), false);}
                 sysPrefs->forceCacheWrite();
+        } else if (!strcmp(key, "x1050")){
+                if (255==atol(value)){sysPrefs->setDeviceStatus(strtol(key+1, 0, 16), true);}
+                  else {sysPrefs->setDeviceStatus(strtol(key+1, 0, 16), false);}
+                sysPrefs->forceCacheWrite();
         } else if (!strcmp(key, "x2000")){
                 if (255==atol(value)){sysPrefs->setDeviceStatus(strtol(key+1, 0, 16), true);}
                   else {sysPrefs->setDeviceStatus(strtol(key+1, 0, 16), false);}
