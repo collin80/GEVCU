@@ -36,6 +36,7 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include "CanHandler.h"
 #include "DeviceManager.h"
 #include "DeviceTypes.h"
+#include "Charger.h"
 
 // CAN bus id's for frames sent to NLG5
 
@@ -62,7 +63,7 @@ public:
     uint16_t maximumBatteryVoltage; // maximum battery voltage - if exceeded, the charge process will terminate in 0.1V
 };
 
-class BrusaNLG5: public Device, CanObserver
+class BrusaNLG5: public Charger, CanObserver
 {
 public:
     // Message id=0x610, NLG5_ST
