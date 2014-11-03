@@ -261,7 +261,7 @@ void BrusaDMC5::processStatus(uint8_t data[])
         Logger::debug(BRUSA_DMC5, "status: %X, torque avail: %fNm, actual torque: %fNm, speed actual: %drpm", bitfield, (float) torqueAvailable / 100.0F, (float) torqueActual / 100.0F, speedActual);
     }
 
-    if ((bitfield & stateReady) && status->getSystemState() == Status::charged) {
+    if ((bitfield & stateReady) && status->getSystemState() == Status::preCharged) {
         status->setSystemState(Status::ready);
     }
     if ((bitfield & stateRunning) && status->getSystemState() == Status::ready) {

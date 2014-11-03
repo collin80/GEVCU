@@ -33,7 +33,6 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include "Status.h"
 #include "SystemIO.h"
 #include "TickHandler.h"
-#include "CanHandler.h"
 #include "DeviceManager.h"
 #include "DeviceTypes.h"
 

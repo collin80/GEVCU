@@ -94,7 +94,7 @@ void SystemIO::updateDigitalInputStatus() {
 void SystemIO::handlePreCharge() {
     if (configuration->prechargeMillis == 0) { // we don't want to pre-charge
         Logger::info("Pre-charging not enabled");
-        status->setSystemState(Status::charged);
+        status->setSystemState(Status::preCharged);
         setEnableRelayOutput(true);
         return;
     }
@@ -118,7 +118,7 @@ void SystemIO::handlePreCharge() {
             delay(CFG_PRE_CHARGE_RELAY_DELAY);
             setPrechargeRelayOutput(false);
 
-            status->setSystemState(Status::charged);
+            status->setSystemState(Status::preCharged);
             Logger::info("Pre-charge sequence complete after %i milliseconds", millis() - preChargeStart);
 
             setEnableRelayOutput(true);

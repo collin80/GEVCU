@@ -135,11 +135,11 @@ Status::SystemState Status::setSystemState(SystemState newSystemState) {
             }
             break;
         case preCharge:
-            if (newSystemState == charged) {
+            if (newSystemState == preCharged) {
                 systemState = newSystemState;
             }
             break;
-        case charged:
+        case preCharged:
             if (newSystemState == ready) {
                 systemState = newSystemState;
             }
@@ -184,8 +184,8 @@ char *Status::systemStateToStr(SystemState state) {
         return "init";
     case preCharge:
         return "pre-charge";
-    case charged:
-        return "charged";
+    case preCharged:
+        return "pre-charged";
     case ready:
         return "ready";
     case running:

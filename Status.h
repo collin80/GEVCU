@@ -37,9 +37,12 @@ public:
         unknown     = 0, // at start-up the system state is unknown (next states: init, error)
         init        = 1, // the system is being initialized and is not ready for operation yet (next states: preCharge, ready, error)
         preCharge   = 2, // the system is initialized and executing the pre-charge cycle (next states: ready, error)
-        charged     = 3, // the system is pre-charged, the pre-charge cycle is finished
-        ready       = 4, // the system is ready to accept commands but the motor controller's power stage is inactive (next states: running, error)
-        running     = 5, // the system is running and the power stage of the motor controller is active (next states: ready, error)
+        preCharged  = 3, // the system is pre-charged, the pre-charge cycle is finished
+        batteryHeating = 4, // before charging, the batteries need to be heated
+        charging    = 5, // the batteries are being charged
+        charged     = 6, // the charging is finished
+        ready       = 7, // the system is ready to accept commands but the motor controller's power stage is inactive (next states: running, error)
+        running     = 8, // the system is running and the power stage of the motor controller is active (next states: ready, error)
         error       = 99 // the system is in an error state and not operational (no power on motor, turn of power stage)
     };
 
