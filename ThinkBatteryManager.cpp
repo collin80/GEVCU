@@ -32,6 +32,7 @@ ThinkBatteryManager::ThinkBatteryManager() : BatteryManager() {
 	prefsHandler = new PrefHandler(THINKBMS);
 	allowCharge = false;
 	allowDischarge = false;
+	commonName = "Think City BMS";
 }
 
 void ThinkBatteryManager::setup() {
