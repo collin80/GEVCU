@@ -92,10 +92,9 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 		  memCache->Write(EE_FAULT_LOG + EEFAULT_WRITEPTR , faultWritePointer);
 		  //Cause the page to be immediately fully aged so that it is written very soon.
 		  memCache->AgeFullyAddress(EE_FAULT_LOG + EEFAULT_WRITEPTR);	  
+		  //Also announce fault on the console
+	      Logger::error(FAULTSYS, "Fault %x raised by device %x at uptime %i", code, device, globalTime);
 	  }
-
-	  //Also announce fault on the console
-	  Logger::error(FAULTSYS, "Fault %x raised by device %x at uptime %i", code, device, globalTime);
   }
 
   void FaultHandler::cancelOngoingFault(uint16_t device, uint16_t code)
