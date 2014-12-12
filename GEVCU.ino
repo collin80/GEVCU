@@ -71,7 +71,6 @@ SerialConsole *serialConsole;
 Device *wifiDevice;
 Device *btDevice;
 
-
 byte i = 0;
 
 
@@ -215,11 +214,11 @@ void createObjects() {
 	PotBrake *pbrake = new PotBrake();
 	CanBrake *cbrake = new CanBrake();
 	DmocMotorController *dmotorController = new DmocMotorController();
-        CodaMotorController *cmotorController = new CodaMotorController();
+    CodaMotorController *cmotorController = new CodaMotorController();
 	BrusaMotorController *bmotorController = new BrusaMotorController();
 	ThinkBatteryManager *BMS = new ThinkBatteryManager();
 	ELM327Emu *emu = new ELM327Emu();
-	ICHIPWIFI *iChip = new ICHIPWIFI();
+	ICHIPWIFI *iChip = new ICHIPWIFI();	
 }
 
 void initializeDevices() {
@@ -229,6 +228,10 @@ void initializeDevices() {
 	heartbeat = new Heartbeat();
 	Logger::info("add: Heartbeat (id: %X, %X)", HEARTBEAT, heartbeat);
 	heartbeat->setup();
+
+	//fault handler is always enabled too - its also statically allocated so no using -> here
+	//This is initialized before the other devices so that they can go ahead and use it if they fault upon start up
+	faultHandler.setup();
 
 	/*
 	We used to instantiate all the objects here along with other code. To simplify things this is done somewhat

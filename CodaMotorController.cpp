@@ -84,7 +84,11 @@ void CodaMotorController::handleCanFrame(CAN_FRAME *frame)
 	int RotorTemp, invTemp, StatorTemp;
 	int temp;
 	online = 1; //if a frame got to here then it passed the filter and must come from UQM
-        running=true;
+	if (!running) //if we're newly running then cancel faults if necessary.
+	{ 
+		faultHandler.cancelOngoingFault(CODAUQM, FAULT_MOTORCTRL_COMM);
+	}
+    running=true;
         Logger::debug("UQM inverter msg: %X   %X   %X   %X   %X   %X   %X   %X  %X", frame->id, frame->data.bytes[0],
         frame->data.bytes[1],frame->data.bytes[2],frame->data.bytes[3],frame->data.bytes[4],
         frame->data.bytes[5],frame->data.bytes[6],frame->data.bytes[7]);
@@ -149,6 +153,7 @@ void CodaMotorController::handleTick() {
           {
             running=false; // We haven't received any UQM frames for over 2 seconds.  Otherwise online would be 1.
             mss=millis();   //So we've lost communications.  Let's turn off the running light.
+			faultHandler.raiseFault(CODAUQM, FAULT_MOTORCTRL_COMM, true);
           }
         online=0;//This flag will be set to 1 by received frames.
 }

@@ -123,7 +123,10 @@ enum FAULTCODE {
 	
 	//A cell in the HV pack is too hot
 	FAULT_HV_CELL_OVERTEMP = 0x0AB1, //P0AB1
-	
+
+	//BMS failed to initialize properly
+	FAULT_BMS_INIT = 0xCC10, //U0C10 
+
 	//There was a problem communicating with the BMS
 	FAULT_BMS_COMM = 0xCC60, //U0C60 
 	

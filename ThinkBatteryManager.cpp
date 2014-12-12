@@ -51,12 +51,19 @@ void ThinkBatteryManager::setup() {
 /*For all multibyte integers the format is MSB first, LSB last
 */
 void ThinkBatteryManager::handleCanFrame(CAN_FRAME *frame) {
+	int temp;
 	switch (frame->id) {
 	case 0x300: //Start up message
 		//we're not really interested in much here except whether init worked.
 		if ((frame->data.bytes[6] & 1) == 0)  //there was an initialization error!
 		{
-			//set fault condition here
+			faultHandler.raiseFault(THINKBMS, FAULT_BMS_INIT, true);
+			allowCharge = false;
+			allowDischarge = false;	
+		}
+		else 
+		{
+			faultHandler.cancelOngoingFault(THINKBMS, FAULT_BMS_INIT);
 		}
 		break;
 	case 0x301: //System Data 0
@@ -68,18 +75,34 @@ void ThinkBatteryManager::handleCanFrame(CAN_FRAME *frame) {
 	case 0x302: //System Data 1		 
 		if ((frame->data.bytes[0] & 1) == 1) //Byte 0 bit 0 = general error
 		{
-			//raise a fault
+			faultHandler.raiseFault(THINKBMS, FAULT_BMS_MISC, true);
+			allowDischarge = false;
+			allowCharge = false;
+		}
+		else
+		{
+			faultHandler.cancelOngoingFault(THINKBMS, FAULT_BMS_MISC);
 		}
 		if ((frame->data.bytes[2] & 1) == 1) //Byte 2 bit 0 = general isolation error
 		{
-			//raise a fault
+			faultHandler.raiseFault(THINKBMS, FAULT_HV_BATT_ISOLATION, true);		
+			allowDischarge = false;
+			allowCharge = false;
+		}
+		else
+		{
+			faultHandler.cancelOngoingFault(THINKBMS, FAULT_HV_BATT_ISOLATION);
 		}
 		//Min discharge voltage = bytes 4-5 - tenths of a volt
 		//Max discharge current = bytes 6-7 - tenths of an amp
+		temp = (S16)(frame->data.bytes[6] * 256 + frame->data.bytes[7]);
+		if (temp > 0) allowDischarge = true;
 		break;
 	case 0x303: //System Data 2
 		//bytes 0-1 = max charge voltage (tenths of volt)
 		//bytes 2-3 = max charge current (tenths of amp)
+		temp = (S16)(frame->data.bytes[2] * 256 + frame->data.bytes[3]);
+		if (temp > 0) allowCharge = true;
 		//byte 4 bit 1 = regen braking OK, bit 2 = Discharging OK
 		//byte 6 bit 3 = EPO (emergency power off) happened, bit 5 = battery pack fan is on
 		break;

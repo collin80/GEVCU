@@ -51,6 +51,7 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include "ichip_2128.h"
 #include "Sys_Messages.h"
 #include "CodaMotorController.h"
+#include "FaultHandler.h"
 
 #ifdef __cplusplus
 extern "C" {
