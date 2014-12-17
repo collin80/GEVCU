@@ -176,7 +176,7 @@ uint32_t Logger::getLastLogTime() {
  *    Logger::debug("current time: %d", millis());
  * }
  */
-boolean Logger::isDebug() {
+bool Logger::isDebug() {
 	return logLevel == Debug;
 }
 

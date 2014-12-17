@@ -44,9 +44,9 @@ void setup_sys_io();
 uint16_t getAnalog(uint8_t which); //get value of one of the 4 analog inputs
 uint16_t getDiffADC(uint8_t which);
 uint16_t getRawADC(uint8_t which);
-boolean getDigital(uint8_t which); //get value of one of the 4 digital inputs
-void setOutput(uint8_t which, boolean active); //set output high or not
-boolean getOutput(uint8_t which); //get current value of output state (high?)
+bool getDigital(uint8_t which); //get value of one of the 4 digital inputs
+void setOutput(uint8_t which, bool active); //set output high or not
+bool getOutput(uint8_t which); //get current value of output state (high?)
 void setupFastADC();
 void sys_io_adc_poll();
 void sys_early_setup();

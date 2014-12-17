@@ -163,7 +163,7 @@ void MemCache::AgeFullyAddress(uint32_t address)
 
 //Write data into the memory cache. Takes the place of direct EEPROM writes
 //There are lots of versions of this
-boolean MemCache::Write(uint32_t address, uint8_t valu)
+bool MemCache::Write(uint32_t address, uint8_t valu)
 {
   uint32_t addr;
   uint8_t c;
@@ -183,21 +183,21 @@ boolean MemCache::Write(uint32_t address, uint8_t valu)
   return false;
 }
 
-boolean MemCache::Write(uint32_t address, uint16_t valu)
+bool MemCache::Write(uint32_t address, uint16_t valu)
 {
-  boolean result;
+  bool result;
   result = Write(address, &valu, 2);
   return result;
 }
 
-boolean MemCache::Write(uint32_t address, uint32_t valu)
+bool MemCache::Write(uint32_t address, uint32_t valu)
 {
-  boolean result;
+  bool result;
   result = Write(address, &valu, 4);
   return result;
 }
 
-boolean MemCache::Write(uint32_t address, void* data, uint16_t len)
+bool MemCache::Write(uint32_t address, void* data, uint16_t len)
 {
   uint32_t addr;
   uint8_t c;
@@ -222,7 +222,7 @@ boolean MemCache::Write(uint32_t address, void* data, uint16_t len)
   return false;
 }
 
-boolean MemCache::Read(uint32_t address, uint8_t* valu)
+bool MemCache::Read(uint32_t address, uint8_t* valu)
 {
   uint32_t addr;
   uint8_t c;
@@ -244,21 +244,21 @@ boolean MemCache::Read(uint32_t address, uint8_t* valu)
   }	
 }
 
-boolean MemCache::Read(uint32_t address, uint16_t* valu)
+bool MemCache::Read(uint32_t address, uint16_t* valu)
 {
-  boolean result;
+  bool result;
   result = Read(address, valu, 2);
   return result;
 }
 
-boolean MemCache::Read(uint32_t address, uint32_t* valu)
+bool MemCache::Read(uint32_t address, uint32_t* valu)
 {
-  boolean result;
+  bool result;
   result = Read(address, valu, 4);
   return result;
 }
 
-boolean MemCache::Read(uint32_t address, void* data, uint16_t len)
+bool MemCache::Read(uint32_t address, void* data, uint16_t len)
 {
   uint32_t addr;
   uint8_t c;
@@ -281,7 +281,7 @@ boolean MemCache::Read(uint32_t address, void* data, uint16_t len)
   return false;
 }
 
-boolean MemCache::isWriting()
+bool MemCache::isWriting()
 {
   //if (WriteTimer) return true;
   return false;
@@ -383,7 +383,7 @@ uint8_t MemCache::cache_readpage(uint32_t addr)
   return c;
 }
 
-boolean MemCache::cache_writepage(uint8_t page)
+bool MemCache::cache_writepage(uint8_t page)
 {
   uint16_t d;
   uint32_t addr;

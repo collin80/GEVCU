@@ -239,13 +239,13 @@ uint16_t getAnalog(uint8_t which) {
 }
 
 //get value of one of the 4 digital inputs
-boolean getDigital(uint8_t which) {
+bool getDigital(uint8_t which) {
 	if (which >= NUM_DIGITAL) which = 0;
 	return !(digitalRead(dig[which]));
 }
 
 //set output high or not
-void setOutput(uint8_t which, boolean active) {
+void setOutput(uint8_t which, bool active) {
 	if (which >= NUM_OUTPUT) return;
 	if (out[which] == 255) return;
 	if (active)
@@ -256,7 +256,7 @@ void setOutput(uint8_t which, boolean active) {
 }
 
 //get current value of output state (high?)
-boolean getOutput(uint8_t which) {
+bool getOutput(uint8_t which) {
 	if (which >= NUM_OUTPUT) return false;
 	if (out[which] == 255) return false;
 	return digitalRead(out[which]);

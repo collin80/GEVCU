@@ -67,16 +67,16 @@ class MemCache: public TickObserver {
   void AgeFullyPage(uint8_t page);
   void AgeFullyAddress(uint32_t address);
   
-  boolean Write(uint32_t address, uint8_t valu);
-  boolean Write(uint32_t address, uint16_t valu);
-  boolean Write(uint32_t address, uint32_t valu);
-  boolean Write(uint32_t address, void* data, uint16_t len);
+  bool Write(uint32_t address, uint8_t valu);
+  bool Write(uint32_t address, uint16_t valu);
+  bool Write(uint32_t address, uint32_t valu);
+  bool Write(uint32_t address, void* data, uint16_t len);
   
   //It's sort of weird to make the read function take a reference but it allows for overloading
-  boolean Read(uint32_t address, uint8_t* valu);
-  boolean Read(uint32_t address, uint16_t* valu);
-  boolean Read(uint32_t address, uint32_t* valu);
-  boolean Read(uint32_t address, void* data, uint16_t len);
+  bool Read(uint32_t address, uint8_t* valu);
+  bool Read(uint32_t address, uint16_t* valu);
+  bool Read(uint32_t address, uint32_t* valu);
+  bool Read(uint32_t address, void* data, uint16_t len);
   
   MemCache();
   
@@ -85,16 +85,16 @@ class MemCache: public TickObserver {
     uint8_t data[256];
     uint32_t address; //address of start of page
     uint8_t age; //
-    boolean dirty;
+    bool dirty;
   } PageCache;
 
   PageCache pages[NUM_CACHED_PAGES];
-  boolean isWriting();
+  bool isWriting();
   uint8_t cache_hit(uint32_t address);
   void cache_age();
   uint8_t cache_findpage();
   uint8_t cache_readpage(uint32_t addr);
-  boolean cache_writepage(uint8_t page);
+  bool cache_writepage(uint8_t page);
   uint8_t agingTimer;
 };
 
