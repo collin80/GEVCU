@@ -110,6 +110,8 @@ void SerialConsole::printMenu() {
 	Logger::console("SYSTYPE=%i - Set board revision (Dued=2, GEVCU3=3, GEVCU4=4)", systype);
 
 	DeviceManager::getInstance()->printDeviceList();
+	Logger::console("LDEBUGON=0x1000 - Set localized debugging for the specified device (immediate effect)");
+	Logger::console("LDEBUGOFF=0x1000 - Remove localized debugging for the specified device (immediate effect)");
 
 	if (motorController && motorController->getConfiguration()) {
 		MotorControllerConfiguration *config = (MotorControllerConfiguration *) motorController->getConfiguration();
@@ -175,30 +177,28 @@ void SerialConsole::printMenu() {
 	        SerialUSB.println();
 
 		Logger::console("PREDELAY=%i - Precharge delay time in milliseconds ", config->prechargeR);
-	        Logger::console("PRELAY=%i - Which output to use for precharge contactor (255 to disable)", config->prechargeRelay);
+	    Logger::console("PRELAY=%i - Which output to use for precharge contactor (255 to disable)", config->prechargeRelay);
 		Logger::console("MRELAY=%i - Which output to use for main contactor (255 to disable)", config->mainContactorRelay);
-                SerialUSB.println();
-                SerialUSB.println("WIRELESS LAN COMMANDS");
-	        SerialUSB.println();
-                Logger::console("WIREACH=anycommand - sends ATi+anycommand to WiReach Module");
-                Logger::console("SSID=anyname - sets broadcast ID to anyname");
-                Logger::console("IP=192.168.3.10 - sets IP of website to whatever IP is entered");
-                Logger::console("PWD=secret - sets website configuration password to entered string");
-                Logger::console("CHANNEL=4 - sets website wireless channel - 1 to 11");
-                Logger::console("SECURITY=password - sets website wireless connection security for WPA2-AES and password");
-             
-                SerialUSB.println();
-                SerialUSB.println("OTHER");
-	        SerialUSB.println();
-
 		Logger::console("NOMV=%i - Fully charged pack voltage that automatically resets kWh counter", config->nominalVolt/10);
-                Logger::console("kWh=%d - kiloWatt Hours of energy used", config->kilowattHrs/3600000);
-		Logger::console("OUTPUT=<0-7> - toggles state of specified digital output");
-		Logger::console("NUKE=1 - Resets all device settings in EEPROM. You have been warned.");
-             
+		Logger::console("kWh=%d - kiloWatt Hours of energy used", config->kilowattHrs/3600000);
+        SerialUSB.println();
 	}
+    
+	SerialUSB.println("WIRELESS LAN COMMANDS");
+	SerialUSB.println();
+    Logger::console("WIREACH=anycommand - sends ATi+anycommand to WiReach Module");
+    Logger::console("SSID=anyname - sets broadcast ID to anyname");
+    Logger::console("IP=192.168.3.10 - sets IP of website to whatever IP is entered");
+    Logger::console("PWD=secret - sets website configuration password to entered string");
+    Logger::console("CHANNEL=4 - sets website wireless channel - 1 to 11");
+    Logger::console("SECURITY=password - sets website wireless connection security for WPA2-AES and password");
+             
+    SerialUSB.println();
+    SerialUSB.println("OTHER");
+	SerialUSB.println();
 
-	
+	Logger::console("OUTPUT=<0-7> - toggles state of specified digital output");
+	Logger::console("NUKE=1 - Resets all device settings in EEPROM. You have been warned.");             	
 }
 
 /*	There is a help menu (press H or h or ?)
@@ -427,6 +427,28 @@ void SerialConsole::handleConfigCmd() {
 		else {
 			Logger::console("Invalid device ID (%X, %d)", newValue, newValue);
 		}
+	} else if (cmdString == String("LDEBUGON")) {
+		Device *tmpDevice = DeviceManager::getInstance()->getDeviceByID((DeviceId)newValue);
+		if (tmpDevice != NULL) 
+		{
+			tmpDevice->setLocalDebug(true);
+			tmpDevice->saveConfiguration();
+			Logger::console("Successfully enabled local debugging for device");
+		}
+		else {
+			Logger::console("Invalid device ID (%X, %d)", newValue, newValue);
+		}
+	} else if (cmdString == String("LDEBUGOFF")) {
+		Device *tmpDevice = DeviceManager::getInstance()->getDeviceByID((DeviceId)newValue);
+		if (tmpDevice != NULL) 
+		{
+			tmpDevice->setLocalDebug(false);
+			tmpDevice->saveConfiguration();
+			Logger::console("Successfully enabled local debugging for device");
+		}
+		else {
+			Logger::console("Invalid device ID (%X, %d)", newValue, newValue);
+		}
 	} else if (cmdString == String("SYSTYPE")) {
 		if (newValue < 5 && newValue > 0) {
 			sysPrefs->write(EESYS_SYSTEM_TYPE, (uint8_t)(newValue));
@@ -466,7 +488,7 @@ void SerialConsole::handleConfigCmd() {
 	} else if (cmdString == String("WIREACH")) {
 		DeviceManager::getInstance()->sendMessage(DEVICE_WIFI, ICHIP2128, MSG_COMMAND, (void *)(cmdBuffer + i));
 		Logger::info("sent \"AT+i%s\" to WiReach wireless LAN device", (cmdBuffer + i));
-                DeviceManager::getInstance()->sendMessage(DEVICE_WIFI, ICHIP2128, MSG_COMMAND, (void *)"DOWN");	
+        DeviceManager::getInstance()->sendMessage(DEVICE_WIFI, ICHIP2128, MSG_COMMAND, (void *)"DOWN");	
 		updateWifi = false;
 	} else if (cmdString == String("SSID")) {
 		String cmdString = String();

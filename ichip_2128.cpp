@@ -113,7 +113,7 @@ void ICHIPWIFI::sendCmd(String cmd, ICHIP_COMM_STATE cmdstate) {
 		sendingBuffer[psWritePtr].cmd = cmd;
 		sendingBuffer[psWritePtr].state = cmdstate;
 		psWritePtr = (psWritePtr + 1) & 63;
-		if (Logger::isDebug()) {
+		if (Logger::isDebug() || localDebug) {
 			String temp = "Buffer cmd: " + cmd;
 			Logger::debug(ICHIP2128, (char *)temp.c_str());
 		}
@@ -127,7 +127,7 @@ void ICHIPWIFI::sendCmd(String cmd, ICHIP_COMM_STATE cmdstate) {
 		lastSentCmd = String(cmd);
 		lastSentState = cmdstate;
 
-		if (Logger::isDebug()) {
+		if (Logger::isDebug() || localDebug) {
 			String temp = "Send to ichip cmd: " + cmd;
 			Logger::debug(ICHIP2128, (char *)temp.c_str());
 		}
@@ -551,7 +551,7 @@ void ICHIPWIFI::loop() {
 				incomingBuffer[ibWritePtr] = 0; //null terminate the string
 				ibWritePtr = 0; //reset the write pointer
 				//what we do with the input depends on what state the ICHIP comm was set to.
-				if (Logger::isDebug()) {
+				if (Logger::isDebug() || localDebug) {
 					sprintf(buff, "%u", state);
 					String temp = "In Data, state: " + String(buff);
 					Logger::debug(ICHIP2128, (char *)temp.c_str());
@@ -577,7 +577,7 @@ void ICHIPWIFI::loop() {
 						   listeningSocket = atoi(&incomingBuffer[2]);
 						   if (listeningSocket < 10) listeningSocket = 0;
 						   if (listeningSocket > 11) listeningSocket = 0;
-						   if (Logger::isDebug()) {
+						   if (Logger::isDebug() || localDebug) {
 							   sprintf(buff, "%u", listeningSocket);
 							   Logger::debug(ICHIP2128, buff);
 						   }
@@ -589,7 +589,7 @@ void ICHIPWIFI::loop() {
 						   activeSockets[1] = atoi(strtok(NULL, ","));
 						   activeSockets[2] = atoi(strtok(NULL, ","));
 						   activeSockets[3] = atoi(strtok(NULL, ","));
-						   if (Logger::isDebug()) {
+						   if (Logger::isDebug() || localDebug) {
 							   sprintf(buff, "%i", activeSockets[0]);
 							   Logger::debug(ICHIP2128, buff);
 							   sprintf(buff, "%i", activeSockets[1]);
@@ -632,7 +632,7 @@ void ICHIPWIFI::loop() {
 						state = IDLE;
 						if (psReadPtr != psWritePtr) { //if there is a parameter to send then do it
 							String temp = "Sending buffered cmd: " + sendingBuffer[psReadPtr].cmd;
-							if (Logger::isDebug()) Logger::debug(ICHIP2128, (char *)temp.c_str());
+							if (Logger::isDebug() || localDebug) Logger::debug(ICHIP2128, (char *)temp.c_str());
 							sendCmd(sendingBuffer[psReadPtr].cmd, sendingBuffer[psReadPtr].state);
 							psReadPtr = (psReadPtr + 1) & 63;
 						}
@@ -926,8 +926,11 @@ DeviceId ICHIPWIFI::getId() {
 void ICHIPWIFI::loadConfiguration() {
 	WifiConfiguration *config = (WifiConfiguration *)getConfiguration();
 
+	Device::loadConfiguration(); //call parent function
+
 	if (prefsHandler->checksumValid()) { //checksum is good, read in the values stored in EEPROM
 		Logger::debug(ICHIP2128, "Valid checksum so using stored wifi config values");
+
 		//TODO: implement processing of config params for WIFI
 //		prefsHandler->read(EESYS_WIFI0_SSID, &config->ssid);
 	}

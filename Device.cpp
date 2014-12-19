@@ -56,6 +56,16 @@ bool Device::isEnabled() {
 	return prefsHandler->isEnabled();
 }
 
+bool Device::isLocalDebugging()
+{
+	return localDebug;
+}
+
+void Device::setLocalDebug(bool state)
+{
+	localDebug = state;
+}
+
 void Device::handleMessage(uint32_t msgType, void* message) {
 	switch (msgType) {
 	case MSG_STARTUP:
@@ -72,10 +82,21 @@ DeviceId Device::getId() {
 	return INVALID;
 }
 
+/*
+Load common preferences data that all devices need.
+*/
 void Device::loadConfiguration() {
+	uint8_t temp;
+	prefsHandler->read(EE_LOCAL_DEBUG, &temp);
+	if (temp == 1) localDebug = true;
+	else localDebug = false;
 }
 
 void Device::saveConfiguration() {
+	uint8_t temp = 255;
+	if (localDebug) temp = 1;
+	prefsHandler->write(EE_LOCAL_DEBUG, temp);
+	prefsHandler->forceCacheWrite();
 }
 
 DeviceConfiguration *Device::getConfiguration() {

@@ -58,6 +58,8 @@ public:
 	bool isEnabled();
 	virtual uint32_t getTickInterval();
 	char* getCommonName();
+	bool isLocalDebugging();
+	void setLocalDebug(bool state);
 
 	virtual void loadConfiguration();
 	virtual void saveConfiguration();
@@ -66,7 +68,11 @@ public:
 
 protected:
 	PrefHandler *prefsHandler;
-	char *commonName;
+	char *commonName;	
+	//do we want to debug this module no matter what loglevel says? 
+	//Used for testing so only a single (or couple of) devices 
+	//can be debugged without others.
+	bool localDebug; 
 
 private:
 	DeviceConfiguration *deviceConfiguration; // reference to the currently active configuration

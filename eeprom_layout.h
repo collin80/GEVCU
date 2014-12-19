@@ -66,6 +66,7 @@ the end of the stardard data. The below numbers are offsets from the device's ee
 //first, things in common to all devices - leave 20 bytes for this
 #define EE_CHECKSUM 		0 //1 byte - checksum for this section of EEPROM to makesure it is valid
 #define EE_DEVICE_ID		1 //2 bytes - the value of the ENUM DEVID of this device.
+#define EE_LOCAL_DEBUG		3 //1 byte - Any value other than 1 means no local debug. 1 = Force debugging on for this device
 
 //Motor controller data
 #define EEMC_MAX_RPM			20 //2 bytes, unsigned int for maximum allowable RPM

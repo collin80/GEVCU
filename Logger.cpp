@@ -25,6 +25,8 @@
  */
 
 #include "Logger.h"
+#include "Device.h"
+#include "DeviceManager.h"
 
 Logger::LogLevel Logger::logLevel = Logger::Info;
 uint32_t Logger::lastLogTime = 0;
@@ -48,7 +50,15 @@ void Logger::debug(char *message, ...) {
  * printf() style, see Logger::log()
  */
 void Logger::debug(DeviceId deviceId, char *message, ...) {
-	if (logLevel > Debug)
+	Device *tempDev = DeviceManager::getInstance()->getDeviceByID(deviceId);
+	bool orDebug;
+	
+	if (tempDev != NULL) {
+		orDebug = tempDev->isLocalDebugging();
+	}
+	else orDebug = false;
+
+	if (logLevel > Debug && !orDebug)
 		return;
 	va_list args;
 	va_start(args, message);
