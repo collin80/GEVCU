@@ -28,6 +28,54 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
  */
 
+
+/*
+ * There is no tick handler because this is the only place we do anything is here
+*   	
+	SAE standard says that this is the format for SAE requests to us:
+	byte 0 = # of bytes following
+	byte 1 = mode for PID request
+	byte 2 = PID requested
+
+	However, the sky is the limit for non-SAE frames (modes over 0x09)
+	In that case we'll use two bytes for our custom PIDS (sent MSB first like
+	all other PID traffic) MSB = byte 2, LSB = byte 3.
+
+	These are the PIDs I think we should support (mode 1)
+	0 = lets the other side know which pids we support. A bitfield that runs from MSb of first byte to lsb of last byte (32 bits)
+	1 = Returns 32 bits but we really can only support the first byte which has bit 7 = Malfunction? Bits 0-6 = # of DTCs
+	2 = Freeze DTC
+	4 = Calculated engine load (A * 100 / 255) - Percentage
+	5 = Engine Coolant Temp (A - 40) = Degrees Centigrade
+	0x0C = Engine RPM (A * 256 + B) / 4
+	0x11 = Throttle position (A * 100 / 255) - Percentage
+	0x1C = Standard supported (We return 1 = OBDII)
+	0x1F = runtime since engine start (A*256 + B)
+	0x20 = pids supported (next 32 pids - formatted just like PID 0)
+	0x21 = Distance traveled with fault light lit (A*256 + B) - In km
+	0x2F = Fuel level (A * 100 / 255) - Percentage
+	0x40 = PIDs supported, next 32
+	0x51 = What type of fuel do we use? (We use 8 = electric, presumably.)
+	0x60 = PIDs supported, next 32
+	0x61 = Driver requested torque (A-125) - Percentage
+	0x62 = Actual Torque delivered (A-125) - Percentage
+	0x63 = Reference torque for engine - presumably max torque - A*256 + B - Nm
+	
+	Mode 3
+	Returns DTC (diag trouble codes) - Three per frame
+	bits 6-7 = DTC first character (00 = P = Powertrain, 01=C=Chassis, 10=B=Body, 11=U=Network)
+	bits 4-5 = Second char (00 = 0, 01 = 1, 10 = 2, 11 = 3)
+	bits 0-3 = third char (stored as normal nibble)
+	Then next byte has two nibbles for the next 2 characters (fourth char = bits 4-7, fifth = 0-3)
+	
+	Mode 9 PIDs
+	0x0 = Mode 9 pids supported (same scheme as mode 1)
+	0x9 = How long is ECU name returned by 0x0A?
+	0xA = ASCII string of ECU name. 20 characters are to be returned, I believe 4 at a time
+	
+ *
+ */
+
 #include "OBD2Handler.h"
 
 OBD2Handler *OBD2Handler::instance = NULL;
@@ -53,20 +101,28 @@ Public method to process OBD2 requests.
 	outData[0] is the length of the data actually returned
 	outData[1] is the returned mode (input mode + 0x40) 
 	there after, the rest of the bytes are the data requested. This should be 1-5 bytes
+	The exception is DTC requests. This could be a huge return. The return is:
+	outData[0] = # of bytes returned 
+	outData[1] = returned mode (input + 0x4) 
+	followed by DTC bytes. Allocate something like 100 bytes for this. I'm serious. Do it.
 */
 bool OBD2Handler::processRequest(uint8_t mode, uint8_t pid, char *inData, char *outData) {
 	bool ret = false;
 	switch (mode) {
 		case 1: //show current data
 			ret = processShowData(pid, inData, outData);
+			outData[0] += 2; //the length stored here by the above funct is just the data portion. Need to account for pid and mode too.
 			outData[1] = mode + 0x40;
-			outData[2] = pid;
+			outData[2] = pid;			
 			break;
 		case 2: //show freeze frame data - not sure we'll be supporting this
 			break;
 		case 3: //show stored diagnostic codes - we can probably map our faults to some existing DTC codes or roll our own
+			outData[1] = mode + 0x40;
+			ret = processDTCRequest(outData); //DTC request needs only the mode. There is no input
 			break;
 		case 4: //clear diagnostic trouble codes - If we get this frame we just clear all codes no questions asked.
+			faultHandler.ackAllFaults();
 			break;
 		case 6: //test results over CANBus (this replaces mode 5 from non-canbus) - I know nothing of this
 			break;
@@ -80,6 +136,23 @@ bool OBD2Handler::processRequest(uint8_t mode, uint8_t pid, char *inData, char *
 			break;
 	}
 	return ret;
+}
+
+//return a list of DTC codes. 
+bool OBD2Handler::processDTCRequest(char *outData)
+{
+	int numFaults = faultHandler.getFaultCount();
+	int faultCode = 0;
+	FAULT tempFault;
+	outData[0] = numFaults * 2; //each DTC is two bytes
+
+	for (int x = 0; x < numFaults;x++)
+	{
+		faultHandler.getNextFault(&tempFault);
+		faultCode = tempFault.faultCode;
+		outData[2 + (x*2)] = (faultCode & 0xFF00) >> 8;
+		outData[3 + (x*2)] = (faultCode & 0xFF);
+	}
 }
 
 //Process SAE standard PID requests. Function returns whether it handled the request or not.

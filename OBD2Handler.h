@@ -36,6 +36,8 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include "TickHandler.h"
 #include "CanHandler.h"
 #include "constants.h"
+#include "FaultHandler.h"
+#include "FaultCodes.h"
 
 class OBD2Handler {
 public:
@@ -48,6 +50,7 @@ private:
 	OBD2Handler(); //it's not right to try to directly instantiate this class
 	bool processShowData(uint8_t pid, char *inData, char *outData);
 	bool processShowCustomData(uint16_t pid, char *inData, char *outData);
+	bool processDTCRequest(char *outData);
 
 	static OBD2Handler *instance;
 	MotorController* motorController;

@@ -43,7 +43,7 @@
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <ClCompile>
-      <PreprocessorDefinitions>__SAM3X8E__;USB_VID=0x2341;USB_PID=0x003e;USBCON;USB_MANUFACTURER="Unknown";USB_PRODUCT="Arduino Due";_VMDEBUG=1;ARDUINO=154;ARDUINO_MAIN;printf=iprintf;__SAM__;__sam__;F_CPU=84000000L;__cplusplus;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>__SAM3X8E__;USB_VID=0x2341;USB_PID=0x003e;USBCON;USB_MANUFACTURER="Unknown";USB_PRODUCT="Arduino Due";ARDUINO=154;ARDUINO_MAIN;printf=iprintf;__SAM__;__sam__;F_CPU=84000000L;__cplusplus;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <RuntimeLibrary>MultiThreadedDebugDLL</RuntimeLibrary>
       <WarningLevel>Level3</WarningLevel>
       <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>

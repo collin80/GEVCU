@@ -93,7 +93,7 @@ void DmocMotorController::handleCanFrame(CAN_FRAME *frame) {
 	int temp;
 	online = 1; //if a frame got to here then it passed the filter and must have been from the DMOC
       
-        Logger::debug("DMOC CAN received: %X  %X  %X  %X  %X  %X  %X  %X  %X", frame->id,frame->data.bytes[0] ,frame->data.bytes[1],frame->data.bytes[2],frame->data.bytes[3],frame->data.bytes[4],frame->data.bytes[5],frame->data.bytes[6],frame->data.bytes[70]);
+    Logger::debug("DMOC CAN received: %X  %X  %X  %X  %X  %X  %X  %X  %X", frame->id,frame->data.bytes[0] ,frame->data.bytes[1],frame->data.bytes[2],frame->data.bytes[3],frame->data.bytes[4],frame->data.bytes[5],frame->data.bytes[6],frame->data.bytes[70]);
   
   
 	switch (frame->id) {

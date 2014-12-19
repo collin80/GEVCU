@@ -33,6 +33,7 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include "DeviceManager.h"
 #include "TickHandler.h"
 #include "CanHandler.h"
+#include "OBD2Handler.h"
 #include "constants.h"
 
 
@@ -60,8 +61,7 @@ private:
 	uint32_t responseId; // the CAN id with which the response is sent;
 	uint32_t responseMask; // the mask for the responseId
 	bool responseExtended; // if the response is expected as an extended frame
-	bool processShowData(CAN_FRAME* inFrame, CAN_FRAME& outFrame);
-	bool processShowCustomData(CAN_FRAME* inFrame, CAN_FRAME& outFrame);
+	OBD2Handler *obd2Handler;
 };
 
 #endif //CAN_PID_H_

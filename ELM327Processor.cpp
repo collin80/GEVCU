@@ -77,27 +77,21 @@ String ELM327Processor::processELMCmd(char *cmd) {
 			uint8_t pidnum = (uint8_t)(valu & 0xFF);
 			uint8_t mode = (uint8_t)((valu >> 8) & 0xFF);
 			Logger::debug(ELM327EMU, "Mode: %i, PID: %i", mode, pidnum);
-			char out[7];
+			char out[100];
 			char buff[10];
-			if (obd2Handler->processRequest(mode, pidnum, NULL, out)) {
-				if (bHeader) {
-					retString.concat("7E8");
-					out[0] += 2; //not sending only data bits but mode and pid too
-					for (int i = 0; i <= out[0]; i++) {
-						sprintf(buff, "%02X", out[i]);
-						retString.concat(buff);
-					}
+			byte databytes = 0;
+			//if the mode was 3 then this is a DTC reply and could be larger than a valid 8 byte message. Must fragment if so
+			//this is not done yet so DTC will fail if there are more than three faults.
+			if (obd2Handler->processRequest(mode, pidnum, NULL, out)) {				
+				//7E8 03 41 05 46 00 00 00 00 - Example line with header on
+				if (bHeader) { //if header is on then send ID and length. Otherwise we don't send these values (just mode, pid, data)
+					retString.concat("7E8"); //send ID out
+					sprintf(buff, "%02X", out[0]); //send length out - number of data bytes that follow this byte
+					retString.concat(buff);
 				}
-				else {
-					mode += 0x40;
-					sprintf(buff, "%02X", mode);
+				for (int i = 1; i <= out[0]; i++) {
+					sprintf(buff, "%02X", out[i]);
 					retString.concat(buff);
-					sprintf(buff, "%02X", pidnum);
-					retString.concat(buff);
-					for (int i = 1; i <= out[0]; i++) {
-						sprintf(buff, "%02X", out[i+2]);
-						retString.concat(buff);
-					}
 				}
 			}
 		}
