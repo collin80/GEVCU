@@ -222,4 +222,11 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 	  }
   }
 
+  void FaultHandler::ackAllFaults()
+  {
+	  //first set ACK in memory
+	  for (int x = 0; x < CFG_FAULT_HISTORY_SIZE; x++) faultList[x].ack = 1;
+	  saveToEEPROM(); //then update all entries into EEPROM as well.
+  }
+
   FaultHandler faultHandler;

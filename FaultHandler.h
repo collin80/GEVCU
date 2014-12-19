@@ -64,6 +64,8 @@ class FaultHandler : public TickObserver {
 
   uint16_t setFaultACK(uint16_t fault); //acknowledge the fault # - returns fault # if successful (0xFFFF otherwise)
   uint16_t setFaultOngoing(uint16_t fault, bool ongoing); //set value of ongoing flag - returns fault # on success
+
+  void ackAllFaults();
   
   private:
   void loadFromEEPROM();
