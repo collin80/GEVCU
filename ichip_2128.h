@@ -180,7 +180,7 @@ class ICHIPWIFI : public Device {
 	bool didParamLoad;
 	bool didTCPListener;
 	int listeningSocket;
-	int activeSockets[4]; //support for four sockets. Lowest byte is socket #, next byte is size of data waiting in that socket
+	int activeSockets[2]; //support for two sockets. Lowest byte is socket #, next byte is size of data waiting in that socket
 	uint32_t lastSentTime;
 	String lastSentCmd;
 	ICHIP_COMM_STATE lastSentState;

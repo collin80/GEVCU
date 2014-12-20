@@ -81,8 +81,6 @@ void ICHIPWIFI::setup() {
 
 	activeSockets[0] = -1;
 	activeSockets[1] = -1;
-	activeSockets[2] = -1;
-	activeSockets[3] = -1;
 
 	state = IDLE;
 
@@ -176,7 +174,7 @@ void ICHIPWIFI::handleTick() {
 
 	//At 2 seconds start up a listening socket for OBDII
 	if (!didTCPListener && ms > 12000) {
-		sendCmd("LTCP:2000,4", START_TCP_LISTENER);
+		sendCmd("LTCP:2000,2", START_TCP_LISTENER);
 		didTCPListener = true;
 	}
 
@@ -192,7 +190,7 @@ void ICHIPWIFI::handleTick() {
 	}
 
 	//read any information waiting on active sockets
-	for (int c = 0; c < 4; c++) 
+	for (int c = 0; c < 2; c++) 
 		if (activeSockets[c] != -1) {
 			sprintf(buff, "%03i", activeSockets[c]);
 			String temp = "SRCV:" + String(buff) + ",80";
@@ -587,16 +585,10 @@ void ICHIPWIFI::loop() {
 					    if (strcmp(incomingBuffer, Constants::ichipErrorString)) {
 						   activeSockets[0] = atoi(strtok(&incomingBuffer[3], ","));
 						   activeSockets[1] = atoi(strtok(NULL, ","));
-						   activeSockets[2] = atoi(strtok(NULL, ","));
-						   activeSockets[3] = atoi(strtok(NULL, ","));
 						   if (Logger::isDebug() || localDebug) {
 							   sprintf(buff, "%i", activeSockets[0]);
 							   Logger::debug(ICHIP2128, buff);
 							   sprintf(buff, "%i", activeSockets[1]);
-							   Logger::debug(ICHIP2128, buff);
-							   sprintf(buff, "%i", activeSockets[2]);
-							   Logger::debug(ICHIP2128, buff);
-							   sprintf(buff, "%i", activeSockets[3]);
 							   Logger::debug(ICHIP2128, buff);
 						   }
 					    }
