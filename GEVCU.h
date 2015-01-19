@@ -52,6 +52,7 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include "Sys_Messages.h"
 #include "CodaMotorController.h"
 #include "FaultHandler.h"
+#include "RX8Dash.h"
 
 #ifdef __cplusplus
 extern "C" {

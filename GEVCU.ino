@@ -219,6 +219,7 @@ void createObjects() {
 	ThinkBatteryManager *BMS = new ThinkBatteryManager();
 	ELM327Emu *emu = new ELM327Emu();
 	ICHIPWIFI *iChip = new ICHIPWIFI();	
+	RX8Dash *rx8Dash = new RX8Dash();
 }
 
 void initializeDevices() {

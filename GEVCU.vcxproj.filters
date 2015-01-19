@@ -123,6 +123,9 @@
     <ClInclude Include="FaultCodes.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="RX8Dash.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <Text Include="GEVCU.ino" />
@@ -210,6 +213,9 @@
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="CodaMotorController.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="RX8Dash.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
