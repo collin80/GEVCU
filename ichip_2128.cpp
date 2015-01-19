@@ -172,7 +172,7 @@ void ICHIPWIFI::handleTick() {
 	    didParamLoad = true;
 	}
 
-	//At 2 seconds start up a listening socket for OBDII
+	//At 12 seconds start up a listening socket for OBDII
 	if (!didTCPListener && ms > 12000) {
 		sendCmd("LTCP:2000,2", START_TCP_LISTENER);
 		didTCPListener = true;
@@ -605,11 +605,19 @@ void ICHIPWIFI::loop() {
 						if (strstr(incomingBuffer, "ERROR") == NULL) {
 							if (strcmp(incomingBuffer, Constants::ichipErrorString)) {
 								dLen = atoi( strtok(&incomingBuffer[2], ":") );
-								String datastr = strtok(0, ":"); //get the rest of the string
-								datastr.toLowerCase();
-								String ret = elmProc->processELMCmd((char *)datastr.c_str());
-								sendToSocket(0, ret); //TODO: need to actually track which socket requested this data
+								if (dLen > 0) //if no data waiting then it'd be stupid to process no command
+								{
+									String datastr = strtok(0, ":"); //get the rest of the string
+									datastr.toLowerCase();
+									String ret = elmProc->processELMCmd((char *)datastr.c_str());
+									sendToSocket(0, ret); //TODO: need to actually track which socket requested this data
+								}
 							}
+						}
+						else //if a reply from a get socket request is an error then close the socket 
+						{
+							sendCmd("SCLS:000", IDLE); //close the socket and don't care about the reply
+							sendCmd("SCLS:001", IDLE); //close the socket and don't care about the reply
 						}
 						break;
 					case IDLE: //not sure whether to leave this info or go to debug. The ichip shouldn't be sending things in idle state

@@ -165,7 +165,7 @@ bool OBD2Handler::processShowData(uint8_t pid, char *inData, char *outData) {
 		//returns 4 bytes so immediately indicate that.
 		outData[0] = 4;
 		outData[3] = 0b11011000; //pids 1 - 8 - starting with pid 1 in the MSB and going from there
-		outData[4] = 0b00010000; //pids 9 - 0x10
+		outData[4] = 0b00001000; //pids 9 - 0x10
 		outData[5] = 0b10000000; //pids 0x11 - 0x18
 		outData[6] = 0b00010011; //pids 0x19 - 0x20
 		return true;
