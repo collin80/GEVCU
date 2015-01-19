@@ -198,6 +198,8 @@ class ICHIPWIFI : public Device {
 	void sendCmd(String cmd, ICHIP_COMM_STATE cmdstate);
 	void sendToSocket(int socket, String data);
     void processParameterChange(char *response);
+	int availableBuffer(void);
+	void sendBufferedCmd();
 
     
 };

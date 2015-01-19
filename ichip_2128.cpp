@@ -108,12 +108,15 @@ void ICHIPWIFI::sendCmd(String cmd) {
  */
 void ICHIPWIFI::sendCmd(String cmd, ICHIP_COMM_STATE cmdstate) {
 	if (state != IDLE) { //if the comm is tied up then buffer this parameter for sending later
-		sendingBuffer[psWritePtr].cmd = cmd;
-		sendingBuffer[psWritePtr].state = cmdstate;
-		psWritePtr = (psWritePtr + 1) & 63;
-		if (Logger::isDebug() || localDebug) {
-			String temp = "Buffer cmd: " + cmd;
-			Logger::debug(ICHIP2128, (char *)temp.c_str());
+		if (availableBuffer() > 0) {
+			sendingBuffer[psWritePtr].cmd = cmd;
+			sendingBuffer[psWritePtr].state = cmdstate;
+			psWritePtr = (psWritePtr + 1) & 63;
+			if (Logger::isDebug() || localDebug) {
+				String temp = "Buffer cmd: " + cmd;
+				Logger::debug(ICHIP2128, (char *)temp.c_str());
+				Logger::debug(ICHIP2128, "Avail buffer: %i", availableBuffer());
+			}
 		}
 	}
 	else { //otherwise, go ahead and blast away
@@ -532,6 +535,14 @@ void ICHIPWIFI::setParam(String paramName, float value, int precision) {
 	setParam(paramName, buffer);
 }
 
+int ICHIPWIFI::availableBuffer(void)
+{
+  int head = psWritePtr;
+  int tail = psReadPtr;
+  if (head >= tail) return 64 - 1 - head + tail;
+  return tail - head - 1;
+}
+
 /*
  * Called in the main loop (hopefully) in order to process serial input waiting for us
  * from the wifi module. It should always terminate its answers with 13 so buffer
@@ -542,6 +553,10 @@ void ICHIPWIFI::setParam(String paramName, float value, int precision) {
 void ICHIPWIFI::loop() {
 	int incoming;
 	char buff[6];
+
+	//Helps to determine average latency but it creates an avalanche. Use sparingly.
+	//Logger::debug(ICHIP2128, "Entering IChip loop");
+
 	while (serialInterface->available()) {
 		incoming = serialInterface->read();
 		if (incoming != -1) { //and there is no reason it should be -1
@@ -558,10 +573,19 @@ void ICHIPWIFI::loop() {
 
 				}
 
-				//The ichip echoes our commands back at us. The safer option might be to verify that the command
-				//we think we're about to process is really proper by validating the echo here. But, for now
-				//just ignore echoes.
-				if (strncmp(incomingBuffer, Constants::ichipCommandPrefix, 4) != 0) {
+				//SET_PARAM				
+				//ichip echoes the command before replying. This allows for setting the proper state for below automatically
+				if (strncmp(incomingBuffer, Constants::ichipCommandPrefix, 4) == 0) //starts with AT+i
+				{
+					if (strncmp(&incomingBuffer[4], "SSND", 4) == 0) state = SEND_SOCKET;
+					if (strncmp(&incomingBuffer[4], "LTCP", 4) == 0) state = START_TCP_LISTENER;
+					if (strncmp(&incomingBuffer[4], "LSST", 4) == 0) state = GET_ACTIVE_SOCKETS;
+					if (strncmp(&incomingBuffer[4], "SRCV", 4) == 0) state = GET_SOCKET;
+					if (strncmp(&incomingBuffer[4], "WNXT", 4) == 0) state = GET_PARAM;
+					if (strchr(&incomingBuffer[4], '?') != NULL) state = GET_PARAM;
+					if (strchr(&incomingBuffer[4], '=') != NULL) state = SET_PARAM;
+				}
+				else {
 					switch (state) {
 					case GET_PARAM: //reply from an attempt to read changed parameters from ichip
 						if (strchr(incomingBuffer, '='))
@@ -630,12 +654,7 @@ void ICHIPWIFI::loop() {
 					//if we got an I/ reply then the command is done sending data. So, see if there is a buffered cmd to send.
 					if (strstr(incomingBuffer, "I/") != NULL) {
 						state = IDLE;
-						if (psReadPtr != psWritePtr) { //if there is a parameter to send then do it
-							String temp = "Sending buffered cmd: " + sendingBuffer[psReadPtr].cmd;
-							if (Logger::isDebug() || localDebug) Logger::debug(ICHIP2128, (char *)temp.c_str());
-							sendCmd(sendingBuffer[psReadPtr].cmd, sendingBuffer[psReadPtr].state);
-							psReadPtr = (psReadPtr + 1) & 63;
-						}
+						sendBufferedCmd();
 					}
 				}
 			} else { // add more characters
@@ -646,12 +665,26 @@ void ICHIPWIFI::loop() {
 		else return;
 	}
 	
-	if (millis() > lastSentTime + 1000) { //if the last sent command hasn't gotten a reply in 1 second
+	if (millis() > lastSentTime + 200) { //Absolutely no replies should take even 200ms!
 		state = IDLE; //something went wrong so reset state
-		//sendCmd(lastSentCmd, lastSentState); //try to resend it
-		//The sendCmd call resets lastSentTime so this will at most be called every second until the iChip interface decides to cooperate.
+		sendBufferedCmd(); //skip the command that was ignored and go to the next.
 	}
 }
+
+void ICHIPWIFI::sendBufferedCmd()
+{
+	if (psReadPtr != psWritePtr) { //if there is a parameter to send then do it
+		String temp = "Sending buffered cmd: " + sendingBuffer[psReadPtr].cmd;
+		if (Logger::isDebug() || localDebug) {
+			Logger::debug(ICHIP2128, "Avail buffer: %i", availableBuffer());
+			Logger::debug(ICHIP2128, (char *)temp.c_str());
+		}
+
+		sendCmd(sendingBuffer[psReadPtr].cmd, sendingBuffer[psReadPtr].state);
+		psReadPtr = (psReadPtr + 1) & 63;
+	}
+}
+
 
 /*
  * Process the parameter update from ichip we received as a response to AT+iWNXT.

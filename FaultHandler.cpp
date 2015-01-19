@@ -57,6 +57,8 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 	  bool incPtr = false;
 	  globalTime = baseTime + (millis() / 100);
 
+	  /*
+
 	  //first try to see if this fault is already registered as ongoing. If so don't update the time but set ongoing status if necessary
 	  bool found = false;
       for (int j = 0; j < CFG_FAULT_HISTORY_SIZE; j++)
@@ -95,6 +97,7 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 		  //Also announce fault on the console
 	      Logger::error(FAULTSYS, "Fault %x raised by device %x at uptime %i", code, device, globalTime);
 	  }
+	  */
   }
 
   void FaultHandler::cancelOngoingFault(uint16_t device, uint16_t code)
