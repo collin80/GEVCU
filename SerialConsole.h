@@ -68,6 +68,8 @@ private:
 	void handleConsoleCmd();
 	void handleShortCmd();
     void handleConfigCmd();
+    void resetWiReachMini();
+    void getResponse();
 };
 
 #endif /* SERIALCONSOLE_H_ */

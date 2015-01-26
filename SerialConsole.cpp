@@ -701,41 +701,58 @@ void SerialConsole::handleShortCmd() {
 	        break;
 	case 'w':
 		Logger::console("Resetting wifi to factory defaults and setting up GEVCU4.2 Ad Hoc network");
-		// restore factory defaults and give it some time
-        // pinMode(43,OUTPUT);
-        //  digitalWrite(43, LOW); //Pin 43 held low for 5 seconds puts Version 4.2 in Recovery mode
-        //  delay(6000);
-        //  digitalWrite(43, HIGH);
-       // delay(3000);
-                deviceManager->sendMessage(DEVICE_WIFI, ICHIP2128, MSG_COMMAND, (void *)"FD");//Reset
-		  delay(2000);
-                deviceManager->sendMessage(DEVICE_WIFI, ICHIP2128, MSG_COMMAND, (void *)"HIF=1");  //Set for RS-232 serial.
-		  delay(1000);
-		deviceManager->sendMessage(DEVICE_WIFI, ICHIP2128, MSG_COMMAND, (void *)"BDRA");//Auto baud rate selection
-		  delay(1000);
-		deviceManager->sendMessage(DEVICE_WIFI, ICHIP2128, MSG_COMMAND, (void *)"WLCH=9"); //use whichever channel an AP wants to use
-		  delay(1000);
-		deviceManager->sendMessage(DEVICE_WIFI, ICHIP2128, MSG_COMMAND, (void *)"WLSI=!GEVCU"); //set for GEVCU aS AP.
-		  delay(1000);
-		deviceManager->sendMessage(DEVICE_WIFI, ICHIP2128, MSG_COMMAND, (void *)"DIP=192.168.3.10"); //enable IP 
-		  delay(1000);
-		deviceManager->sendMessage(DEVICE_WIFI, ICHIP2128, MSG_COMMAND, (void *)"DPSZ=8"); //set DHCP server for 8
-		  delay(1000);
-		deviceManager->sendMessage(DEVICE_WIFI, ICHIP2128, MSG_COMMAND, (void *)"RPG=secret"); // set the configuration password for /ichip
-		  delay(1000);
-		deviceManager->sendMessage(DEVICE_WIFI, ICHIP2128, MSG_COMMAND, (void *)"WPWD=secret"); // set the password to update config params
-		  delay(1000);
-		deviceManager->sendMessage(DEVICE_WIFI, ICHIP2128, MSG_COMMAND, (void *)"AWS=1"); //turn on web server 
-		  delay(1000);
-		deviceManager->sendMessage(DEVICE_WIFI, ICHIP2128, MSG_COMMAND, (void *)"DOWN"); //cause a reset to allow it to come up with the settings
-		  delay(5000); // a 5 second delay is required for the chip to come back up ! Otherwise commands will be lost
-  
+		resetWiReachMini();
 		deviceManager->sendMessage(DEVICE_WIFI, ICHIP2128, MSG_CONFIG_CHANGE, NULL); // reload configuration params as they were lost
-		Logger::console("Wifi 4.2 initialized");
-		break;
-        
+                break;
+
 	case 'X':
 		setup(); //this is probably a bad idea. Do not do this while connected to anything you care about - only for debugging in safety!
 		break;
 	}
 }
+
+void SerialConsole::resetWiReachMini() {
+
+  //Serial2.begin(115200);
+              while (Serial2.available()) {
+		SerialUSB.write(Serial2.read());
+                }
+              Serial2.println("AT+iFD");
+              getResponse();
+              Serial2.println("AT+iHIF=1");
+              getResponse();
+              Serial2.println("AT+iBDRA");
+              getResponse();
+              Serial2.println("AT+iWLCH=9");
+              getResponse();
+              Serial2.println("AT+iWLSI=!GEVCU");
+              getResponse();
+              Serial2.println("AT+iDIP=192.168.3.10");
+              getResponse();
+              Serial2.println("AT+iDPSZ=8");
+              getResponse();
+              Serial2.println("AT+iRPG=secret");
+              getResponse();
+              Serial2.println("AT+iWPWD=secret");
+              getResponse();
+              Serial2.println("AT+iAWS=1");
+              getResponse();
+              Serial2.println("AT+iDOWN");
+              getResponse();
+               getResponse();
+             
+              
+
+		Logger::console("Wifi 4.2 initialized");
+}
+
+void SerialConsole::getResponse(){
+      
+       while (Serial2.available()) {
+		SerialUSB.write(Serial2.read());
+                }
+              SerialUSB.println();
+                delay(4000);
+              
+}
+        
