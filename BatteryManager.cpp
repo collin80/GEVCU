@@ -70,3 +70,29 @@ signed int BatteryManager::getPackCurrent()
 	return packCurrent;
 }
 
+
+//Default do nothing versions of these next five. We don't have any data or any reason to inhibit charge or discharge
+bool BatteryManager::hasPackVoltage() 
+{
+	return false;
+}
+
+bool BatteryManager::hasPackCurrent()
+{
+	return false;
+}
+
+bool BatteryManager::hasTemperatures()
+{
+	return false;
+}
+
+bool BatteryManager::isChargeOK()
+{
+	return true;
+}
+
+bool BatteryManager::isDischargeOK()
+{
+	return true;
+}
