@@ -150,6 +150,18 @@ void DeviceManager::sendMessage(DeviceType devType, DeviceId devId, uint32_t msg
 	}
 }
 
+//allow each device to have a loop handler if it needs one.
+void DeviceManager::loop()
+{
+	for (int i = 0; i < CFG_DEV_MGR_MAX_DEVICES; i++)
+	{
+		if (devices[i] && devices[i]->isEnabled()) //does this object exist and is it enabled?
+		{
+			devices[i]->loop();
+		}
+	}
+}
+
 void DeviceManager::setParameter(DeviceType deviceType, DeviceId deviceId, uint32_t msgType, char *key, char *value) {
 	char *params[] = { key, value };
 	sendMessage(deviceType, deviceId, msgType, params);
@@ -323,9 +335,7 @@ void DeviceManager::updateWifi() {
                   // Logger::console(" Device: %s value %s", paramPtr[0], paramPtr[1]);
 		    sendMessage(DEVICE_WIFI, ICHIP2128, MSG_SET_PARAM,  paramPtr);        //Send array to ichip by id (ie 1002) 0 indicates disabled     
                   }
-	  }
-
-       
+	  }   
 }
 
 
