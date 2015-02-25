@@ -13,7 +13,7 @@ extern CanHandler *canHandlerEV;
 extern CanHandler *canHandlerCar;
 extern Device *wifi;
 extern Device *bluetooth;
-extern MotorController *motorcontroller;
+extern MotorController *motorController;
 extern BatteryManager *bms;
 extern Throttle *throttle;
 extern Throttle *brake;

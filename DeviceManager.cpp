@@ -36,6 +36,7 @@
  */
 
 #include "DeviceManager.h"
+#include "globals.h"
 
 DeviceManager *DeviceManager::deviceManager = NULL;
 
@@ -72,7 +73,7 @@ void DeviceManager::addDevice(Device *device) {
 			Logger::error("unable to register device, max number of devices reached.");
 		}
 	}
-	/*
+	
 	switch (device->getType()) {
 	case DEVICE_THROTTLE:
 		throttle = (Throttle *) device;
@@ -83,8 +84,12 @@ void DeviceManager::addDevice(Device *device) {
 	case DEVICE_MOTORCTRL:
 		motorController = (MotorController *) device;
 		break;
+	case DEVICE_BMS:
+		bms = (BatteryManager *) device;
+		break;
+	case DEVICE_WIFI:
+		wifi = device; // fix this - there is currently no generic WIFI class
 	}
-	*/
 }
 
 /*

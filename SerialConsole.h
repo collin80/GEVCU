@@ -35,7 +35,6 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include "PotThrottle.h"
 #include "DeviceManager.h"
 #include "MotorController.h"
-#include "DmocMotorController.h" //TODO: direct reference to dmoc must be removed
 #include "ThrottleDetector.h"
 #include "ichip_2128.h"
 
@@ -59,8 +58,8 @@ private:
 	char cmdBuffer[80];
 	int ptrBuffer;
 	int state;
-        int loopcount;
-        bool cancel;
+	int loopcount;
+	bool cancel;
         
     
     void init();
