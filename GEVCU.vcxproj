@@ -92,6 +92,9 @@
     <ClInclude Include="CanThrottle.h" />
     <ClInclude Include="CodaMotorController.h" />
     <ClInclude Include="config.h" />
+    <ClInclude Include="ConfigObject.h">
+      <FileType>CppCode</FileType>
+    </ClInclude>
     <ClInclude Include="constants.h">
       <FileType>CppCode</FileType>
     </ClInclude>
@@ -148,6 +151,7 @@
     <ClCompile Include="CanPIDListener.cpp" />
     <ClCompile Include="CanThrottle.cpp" />
     <ClCompile Include="CodaMotorController.cpp" />
+    <ClCompile Include="ConfigObject.cpp" />
     <ClCompile Include="Device.cpp" />
     <ClCompile Include="DeviceManager.cpp" />
     <ClCompile Include="DmocMotorController.cpp" />

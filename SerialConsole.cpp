@@ -739,5 +739,10 @@ void SerialConsole::handleShortCmd() {
 	case 'X':
 		setup(); //this is probably a bad idea. Do not do this while connected to anything you care about - only for debugging in safety!
 		break;
+	case 'A': //test routine
+		Logger::console("Trying to read max RPM from active motor controller %i", Config(DEVICE_MOTORCTRL, EEMC_MAX_RPM));
+		//now try to set the value
+		Config(DEVICE_MOTORCTRL, EEMC_MAX_RPM) = 1000;
+		break;
 	}
 }

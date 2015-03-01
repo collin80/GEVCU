@@ -66,6 +66,7 @@ PrefHandler *sysPrefs;
 MemCache *memCache;
 Heartbeat *heartbeat;
 SerialConsole *serialConsole;
+ConfigObject Config;
 
 //these references are global and persisted across all modules via extern definitions
 //Because of this they can be used anywhere to quickly gain access to the underlying

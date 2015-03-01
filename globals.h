@@ -4,6 +4,7 @@
 #include "Throttle.h"
 #include "MotorController.h"
 #include "BatteryManager.h"
+#include "ConfigObject.h"
 
 #ifndef GLOBAL_H_
 #define GLOBAL_H_
@@ -18,4 +19,5 @@ extern BatteryManager *bms;
 extern Throttle *throttle;
 extern Throttle *brake;
 extern DeviceManager *deviceManager;
+extern ConfigObject Config;
 #endif

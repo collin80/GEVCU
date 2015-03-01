@@ -27,6 +27,7 @@
  */
 
 #include "ichip_2128.h"
+#include "globals.h"
 
 /*
  * Constructor. Assign serial interface to use for ichip communication
@@ -938,7 +939,6 @@ void ICHIPWIFI::loadParameters() {
 	}
 	setParam(Constants::logLevel, (uint8_t)Logger::getLogLevel());
 
-	motorController->getSpeedActual()
 }
 
 DeviceType ICHIPWIFI::getType() {
