@@ -150,9 +150,6 @@ void ICHIPWIFI::sendToSocket(int socket, String data) {
  */
 //TODO: See the processing function below for a more detailed explanation - can't send so many setParam commands in a row
 void ICHIPWIFI::handleTick() {
-        MotorController* motorController = DeviceManager::getInstance()->getMotorController();
-	Throttle *accelerator = DeviceManager::getInstance()->getAccelerator();
-	Throttle *brake = DeviceManager::getInstance()->getBrake();
 	static int pollListening = 0;
 	static int pollSocket = 0;
 	uint32_t ms = millis();
@@ -221,14 +218,14 @@ void ICHIPWIFI::handleTick() {
 				setParam(Constants::torqueActual, paramCache.torqueActual / 10.0f, 1);
 			}
 		}
-		if (accelerator) {
-            RawSignalData *rawSignal = accelerator->acquireRawSignal();
+		if (throttle) {
+            RawSignalData *rawSignal = throttle->acquireRawSignal();
 			if ( paramCache.throttle !=  rawSignal->input1) {
 				paramCache.throttle = rawSignal->input1;
                 setParam(Constants::throttle, paramCache.throttle);
 	
-			/*if ( paramCache.throttle != accelerator->getLevel() ) {
-				paramCache.throttle = accelerator->getLevel();
+			/*if ( paramCache.throttle != throttle->getLevel() ) {
+				paramCache.throttle = throttle->getLevel();
                                 if (paramCache.throttle<-600){paramCache.throttle=-600;}
 				setParam(Constants::throttle, paramCache.throttle / 10.0f, 1);*/
 			}
@@ -692,7 +689,7 @@ void ICHIPWIFI::sendBufferedCmd()
  * by looking for the '=' sign and the leading/trailing '"' have to be ignored.
  */
 void ICHIPWIFI::processParameterChange(char *key) {
-	PotThrottleConfiguration *acceleratorConfig = NULL;
+	PotThrottleConfiguration *throttleConfig = NULL;
 	PotThrottleConfiguration *brakeConfig = NULL;
 	MotorControllerConfiguration *motorConfig = NULL;
 	bool parameterFound = true;
@@ -701,12 +698,8 @@ void ICHIPWIFI::processParameterChange(char *key) {
 	if (!value)
 		return;
 
-	Throttle *accelerator = DeviceManager::getInstance()->getAccelerator();
-	Throttle *brake = DeviceManager::getInstance()->getBrake();
-	MotorController *motorController = DeviceManager::getInstance()->getMotorController();
-
-	if (accelerator)
-		acceleratorConfig = (PotThrottleConfiguration *)accelerator->getConfiguration();
+	if (throttle)
+		throttleConfig = (PotThrottleConfiguration *)throttle->getConfiguration();
 	if (brake)
 		brakeConfig = (PotThrottleConfiguration *)brake->getConfiguration();
 	if(motorController)
@@ -719,44 +712,44 @@ void ICHIPWIFI::processParameterChange(char *key) {
 	if (value[strlen(value) - 1] == '"')
 		value[strlen(value) - 1] = 0; // if the value ends with a '"' character, replace it with 0
 
-	if (!strcmp(key, Constants::numThrottlePots) && acceleratorConfig) {
-		acceleratorConfig->numberPotMeters = atol(value);
-		accelerator->saveConfiguration();
-	} else if (!strcmp(key, Constants::throttleSubType) && acceleratorConfig) {
-		acceleratorConfig->throttleSubType = atol(value);
-		accelerator->saveConfiguration();
-	} else if (!strcmp(key, Constants::throttleMin1) && acceleratorConfig) {
-		acceleratorConfig->minimumLevel1 = atol(value);
-		accelerator->saveConfiguration();
-	} else if (!strcmp(key, Constants::throttleMin2) && acceleratorConfig) {
-		acceleratorConfig->minimumLevel2 = atol(value);
-		accelerator->saveConfiguration();
-	} else if (!strcmp(key, Constants::throttleMax1) && acceleratorConfig) {
-		acceleratorConfig->maximumLevel1 = atol(value);
-		accelerator->saveConfiguration();
-	} else if (!strcmp(key, Constants::throttleMax2) && acceleratorConfig) {
-		acceleratorConfig->maximumLevel2 = atol(value);
-		accelerator->saveConfiguration();
-	} else if (!strcmp(key, Constants::throttleRegenMax) && acceleratorConfig) {
-		acceleratorConfig->positionRegenMaximum = atol(value) * 10;
-	} else if (!strcmp(key, Constants::throttleRegenMin) && acceleratorConfig) {
-		acceleratorConfig->positionRegenMinimum = atol(value) * 10;
-		accelerator->saveConfiguration();
-	} else if (!strcmp(key, Constants::throttleFwd) && acceleratorConfig) {
-		acceleratorConfig->positionForwardMotionStart = atol(value) * 10;
-		accelerator->saveConfiguration();
-	} else if (!strcmp(key, Constants::throttleMap) && acceleratorConfig) {
-		acceleratorConfig->positionHalfPower = atol(value) * 10;
-		accelerator->saveConfiguration();
-	} else if (!strcmp(key, Constants::throttleMinRegen) && acceleratorConfig) {
-		acceleratorConfig->minimumRegen = atol(value);
-		accelerator->saveConfiguration();
-	} else if (!strcmp(key, Constants::throttleMaxRegen) && acceleratorConfig) {
-		acceleratorConfig->maximumRegen = atol(value);
-		accelerator->saveConfiguration();
-	} else if (!strcmp(key, Constants::throttleCreep) && acceleratorConfig) {
-		acceleratorConfig->creep = atol(value);
-		accelerator->saveConfiguration();
+	if (!strcmp(key, Constants::numThrottlePots) && throttleConfig) {
+		throttleConfig->numberPotMeters = atol(value);
+		throttle->saveConfiguration();
+	} else if (!strcmp(key, Constants::throttleSubType) && throttleConfig) {
+		throttleConfig->throttleSubType = atol(value);
+		throttle->saveConfiguration();
+	} else if (!strcmp(key, Constants::throttleMin1) && throttleConfig) {
+		throttleConfig->minimumLevel1 = atol(value);
+		throttle->saveConfiguration();
+	} else if (!strcmp(key, Constants::throttleMin2) && throttleConfig) {
+		throttleConfig->minimumLevel2 = atol(value);
+		throttle->saveConfiguration();
+	} else if (!strcmp(key, Constants::throttleMax1) && throttleConfig) {
+		throttleConfig->maximumLevel1 = atol(value);
+		throttle->saveConfiguration();
+	} else if (!strcmp(key, Constants::throttleMax2) && throttleConfig) {
+		throttleConfig->maximumLevel2 = atol(value);
+		throttle->saveConfiguration();
+	} else if (!strcmp(key, Constants::throttleRegenMax) && throttleConfig) {
+		throttleConfig->positionRegenMaximum = atol(value) * 10;
+	} else if (!strcmp(key, Constants::throttleRegenMin) && throttleConfig) {
+		throttleConfig->positionRegenMinimum = atol(value) * 10;
+		throttle->saveConfiguration();
+	} else if (!strcmp(key, Constants::throttleFwd) && throttleConfig) {
+		throttleConfig->positionForwardMotionStart = atol(value) * 10;
+		throttle->saveConfiguration();
+	} else if (!strcmp(key, Constants::throttleMap) && throttleConfig) {
+		throttleConfig->positionHalfPower = atol(value) * 10;
+		throttle->saveConfiguration();
+	} else if (!strcmp(key, Constants::throttleMinRegen) && throttleConfig) {
+		throttleConfig->minimumRegen = atol(value);
+		throttle->saveConfiguration();
+	} else if (!strcmp(key, Constants::throttleMaxRegen) && throttleConfig) {
+		throttleConfig->maximumRegen = atol(value);
+		throttle->saveConfiguration();
+	} else if (!strcmp(key, Constants::throttleCreep) && throttleConfig) {
+		throttleConfig->creep = atol(value);
+		throttle->saveConfiguration();
 	} else if (!strcmp(key, Constants::brakeMin) && brakeConfig) {
 		brakeConfig->minimumLevel1 = atol(value);
 		brake->saveConfiguration();
@@ -891,7 +884,7 @@ void ICHIPWIFI::processParameterChange(char *key) {
  */
 void ICHIPWIFI::loadParameters() {
 	MotorController *motorController = DeviceManager::getInstance()->getMotorController();
-	Throttle *accelerator = DeviceManager::getInstance()->getAccelerator();
+	Throttle *throttle = DeviceManager::getInstance()->getAccelerator();
 	Throttle *brake = DeviceManager::getInstance()->getBrake();
 	PotThrottleConfiguration *acceleratorConfig = NULL;
 	PotThrottleConfiguration *brakeConfig = NULL;
@@ -899,8 +892,8 @@ void ICHIPWIFI::loadParameters() {
 
 	Logger::info("loading config params to ichip/wifi");
 
-	if (accelerator)
-		acceleratorConfig = (PotThrottleConfiguration *)accelerator->getConfiguration();
+	if (throttle)
+		acceleratorConfig = (PotThrottleConfiguration *)throttle->getConfiguration();
 	if (brake)
 		brakeConfig = (PotThrottleConfiguration *)brake->getConfiguration();
 	if (motorController)
@@ -930,22 +923,22 @@ void ICHIPWIFI::loadParameters() {
 	if (motorConfig) {
 		setParam(Constants::speedMax, motorConfig->speedMax);
 		setParam(Constants::coolFan, motorConfig->coolFan);
-                setParam(Constants::coolOn, motorConfig->coolOn);
-                setParam(Constants::coolOff, motorConfig->coolOff);
-                setParam(Constants::brakeLight, motorConfig->brakeLight);
+        setParam(Constants::coolOn, motorConfig->coolOn);
+        setParam(Constants::coolOff, motorConfig->coolOff);
+        setParam(Constants::brakeLight, motorConfig->brakeLight);
 		setParam(Constants::revLight, motorConfig->revLight);
 		setParam(Constants::enableIn, motorConfig->enableIn);
 		setParam(Constants::reverseIn, motorConfig->reverseIn);
-                setParam(Constants::prechargeR, motorConfig->prechargeR);
-                setParam(Constants::prechargeRelay, motorConfig->prechargeRelay);
-                setParam(Constants::mainContactorRelay, motorConfig->mainContactorRelay);
-                uint16_t nmvlt = motorConfig->nominalVolt/10;
-                setParam(Constants::nominalVolt, nmvlt);
+        setParam(Constants::prechargeR, motorConfig->prechargeR);
+        setParam(Constants::prechargeRelay, motorConfig->prechargeRelay);
+        setParam(Constants::mainContactorRelay, motorConfig->mainContactorRelay);
+        uint16_t nmvlt = motorConfig->nominalVolt/10;
+        setParam(Constants::nominalVolt, nmvlt);
 		setParam(Constants::torqueMax, (uint16_t)(motorConfig->torqueMax / 10)); // skip the tenth's
 	}
 	setParam(Constants::logLevel, (uint8_t)Logger::getLogLevel());
 
-		
+	motorController->getSpeedActual()
 }
 
 DeviceType ICHIPWIFI::getType() {
