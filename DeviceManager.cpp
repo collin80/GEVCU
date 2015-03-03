@@ -36,6 +36,7 @@
  */
 
 #include "DeviceManager.h"
+#include "globals.h"
 
 DeviceManager *DeviceManager::deviceManager = NULL;
 
@@ -72,7 +73,7 @@ void DeviceManager::addDevice(Device *device) {
 			Logger::error("unable to register device, max number of devices reached.");
 		}
 	}
-	/*
+	
 	switch (device->getType()) {
 	case DEVICE_THROTTLE:
 		throttle = (Throttle *) device;
@@ -83,8 +84,12 @@ void DeviceManager::addDevice(Device *device) {
 	case DEVICE_MOTORCTRL:
 		motorController = (MotorController *) device;
 		break;
+	case DEVICE_BMS:
+		bms = (BatteryManager *) device;
+		break;
+	case DEVICE_WIFI:
+		wifi = device; // fix this - there is currently no generic WIFI class
 	}
-	*/
 }
 
 /*
@@ -146,6 +151,18 @@ void DeviceManager::sendMessage(DeviceType devType, DeviceId devId, uint32_t msg
 					devices[i]->handleMessage(msgType, message);
 				}
 			}
+		}
+	}
+}
+
+//allow each device to have a loop handler if it needs one.
+void DeviceManager::loop()
+{
+	for (int i = 0; i < CFG_DEV_MGR_MAX_DEVICES; i++)
+	{
+		if (devices[i] && devices[i]->isEnabled()) //does this object exist and is it enabled?
+		{
+			devices[i]->loop();
 		}
 	}
 }
@@ -323,9 +340,7 @@ void DeviceManager::updateWifi() {
                   // Logger::console(" Device: %s value %s", paramPtr[0], paramPtr[1]);
 		    sendMessage(DEVICE_WIFI, ICHIP2128, MSG_SET_PARAM,  paramPtr);        //Send array to ichip by id (ie 1002) 0 indicates disabled     
                   }
-	  }
-
-       
+	  }   
 }
 
 

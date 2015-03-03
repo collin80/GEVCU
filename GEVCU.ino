@@ -61,15 +61,25 @@ Random comments on things that should be coded up soon:
 //RTC_clock rtc_clock(XTAL); //init RTC with the external 32k crystal as a reference
 
 //Evil, global variables
-CanHandler *canHandlerEV;
-CanHandler *canHandlerCar;
 TickHandler *tickHandler;
 PrefHandler *sysPrefs;
 MemCache *memCache;
 Heartbeat *heartbeat;
 SerialConsole *serialConsole;
-Device *wifiDevice;
-Device *btDevice;
+ConfigObject Config;
+
+//these references are global and persisted across all modules via extern definitions
+//Because of this they can be used anywhere to quickly gain access to the underlying
+//modules without having to know which module it is and without having to gain a reference
+CanHandler *canHandlerEV;
+CanHandler *canHandlerCar;
+Device *wifi;
+Device *bluetooth;
+MotorController *motorController;
+BatteryManager *bms;
+Throttle *throttle;
+Throttle *brake;
+DeviceManager *deviceManager;
 
 byte i = 0;
 
@@ -223,7 +233,7 @@ void createObjects() {
 }
 
 void initializeDevices() {
-	DeviceManager *deviceManager = DeviceManager::getInstance();
+	deviceManager = DeviceManager::getInstance();
 
 	//heartbeat is always enabled now
 	heartbeat = new Heartbeat();
@@ -291,9 +301,9 @@ void setup() {
 	initializeDevices();
     serialConsole = new SerialConsole(memCache, heartbeat);
 	serialConsole->printMenu();
-	wifiDevice = DeviceManager::getInstance()->getDeviceByID(ICHIP2128);
-	btDevice = DeviceManager::getInstance()->getDeviceByID(ELM327EMU);
-    DeviceManager::getInstance()->sendMessage(DEVICE_WIFI, ICHIP2128, MSG_CONFIG_CHANGE, NULL); //Load configuration variables into WiFi Web Configuration screen
+	wifi = deviceManager->getDeviceByID(ICHIP2128);
+	bluetooth = deviceManager->getDeviceByID(ELM327EMU);
+    deviceManager->sendMessage(DEVICE_WIFI, ICHIP2128, MSG_CONFIG_CHANGE, NULL); //Load configuration variables into WiFi Web Configuration screen
 	Logger::info("System Ready");
 }
 
@@ -308,14 +318,7 @@ void loop() {
 	canHandlerCar->process();
 
 	serialConsole->loop();
-	//TODO: this is dumb... shouldn't have to manually do this. Devices should be able to register loop functions
-	if ( wifiDevice != NULL ) {
-		((ICHIPWIFI*)wifiDevice)->loop();
-	}
-
-	//if (btDevice != NULL) {
-	//	((ELM327Emu*)btDevice)->loop();
-	//}
+	deviceManager->loop(); //call loop on all enabled devices
 
 	//this should still be here. It checks for a flag set during an interrupt
 	sys_io_adc_poll();

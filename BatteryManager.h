@@ -46,11 +46,11 @@ public:
     void handleTick();
 	//a bunch of boolean functions. Derived classes must implment
 	//these functions to tell everyone else what they support
-	virtual bool hasPackVoltage() = 0;
-	virtual bool hasPackCurrent() = 0;
-	virtual bool hasTemperatures() = 0;
-	virtual bool isChargeOK() = 0;
-	virtual bool isDischargeOK() = 0;
+	virtual bool hasPackVoltage();
+	virtual bool hasPackCurrent();
+	virtual bool hasTemperatures();
+	virtual bool isChargeOK();
+	virtual bool isDischargeOK();
 protected:
 	int packVoltage; //tenths of a volt
 	signed int packCurrent; //tenths of an amp

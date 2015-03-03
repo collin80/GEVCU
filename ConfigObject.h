@@ -1,7 +1,8 @@
 /*
- * GEVCU.h
+ * ConfigObject.h - Forms the basis of a configuration object that can access the configuration of anything that stores data in EEPROM
+   overloads the () operator to do this.
  *
-Copyright (c) 2013 Collin Kidder, Michael Neuweiler, Charles Galpin
+Copyright (c) 2015 Collin Kidder
 
 Permission is hereby granted, free of charge, to any person obtaining
 a copy of this software and associated documentation files (the
@@ -24,49 +25,25 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
  */
 
-#ifndef GEVCU_H_
-#define GEVCU_H_
+#ifndef CONF_OBJ_H_
+#define CONF_OBJ_H_
 
 #include <Arduino.h>
 #include "config.h"
-#include "Device.h"
-#include "Throttle.h"
-#include "CanThrottle.h"
-#include "CanBrake.h"
-#include "PotThrottle.h"
-#include "PotBrake.h"
-#include "BatteryManager.h"
-#include "ThinkBatteryManager.h"
-#include "MotorController.h"
-#include "DmocMotorController.h"
-#include "BrusaMotorController.h"
-#include "Heartbeat.h"
-#include "sys_io.h"
-#include "CanHandler.h"
+#include "eeprom_layout.h"
 #include "MemCache.h"
-#include "ThrottleDetector.h"
-#include "DeviceManager.h"
-#include "SerialConsole.h"
-#include "ELM327_Emu.h"
-#include "ichip_2128.h"
-#include "Sys_Messages.h"
-#include "CodaMotorController.h"
-#include "FaultHandler.h"
-#include "RX8Dash.h"
-#include "ConfigObject.h"
+#include "DeviceTypes.h"
+#include "Logger.h"
 
-#ifdef __cplusplus
-extern "C" {
+extern MemCache *memCache;
+
+class ConfigObject
+{
+public:
+	int &operator()(int device, int location);
+
+private:
+	int getEELocation(int deviceid);
+};
+
 #endif
-void loop();
-void setup();
-
-#ifdef __cplusplus
-} // extern "C"
-#endif
-
-#define SYSTEM_PROTO	1
-#define SYSTEM_DUED		2
-#define SYSTEM_GEVCU3	3
-
-#endif /* GEVCU_H_ */

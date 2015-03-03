@@ -26,33 +26,43 @@
 
 #include "Device.h"
 #include "DeviceManager.h"
+#include "globals.h"
 
 Device::Device() {
 	deviceConfiguration = NULL;
 	prefsHandler = NULL;
 	//since all derived classes eventually call this base method this will cause every device to auto register itself with the device manager
-	DeviceManager::getInstance()->addDevice(this); 
+	deviceManager->addDevice(this); 
 	commonName = "Generic Device";
 }
 
 //Empty functions to handle these callbacks if the derived classes don't
 
-void Device::setup() {
+void Device::setup() 
+{
 }
 
-char* Device::getCommonName() {
+void Device::loop()
+{
+}
+
+char* Device::getCommonName() 
+{
 	return commonName;
 }
 
-void Device::handleTick() {
+void Device::handleTick() 
+{
 }
 
-uint32_t Device::getTickInterval() {
+uint32_t Device::getTickInterval() 
+{
 	return 0;
 }
 
 //just bubbles up the value from the preference handler.
-bool Device::isEnabled() {
+bool Device::isEnabled() 
+{
 	return prefsHandler->isEnabled();
 }
 
@@ -66,7 +76,8 @@ void Device::setLocalDebug(bool state)
 	localDebug = state;
 }
 
-void Device::handleMessage(uint32_t msgType, void* message) {
+void Device::handleMessage(uint32_t msgType, void* message) 
+{
 	switch (msgType) {
 	case MSG_STARTUP:
 		this->setup();
@@ -74,36 +85,42 @@ void Device::handleMessage(uint32_t msgType, void* message) {
 	}
 }
 
-DeviceType Device::getType() {
+DeviceType Device::getType() 
+{
 	return DEVICE_NONE;
 }
 
-DeviceId Device::getId() {
+DeviceId Device::getId() 
+{
 	return INVALID;
 }
 
 /*
 Load common preferences data that all devices need.
 */
-void Device::loadConfiguration() {
+void Device::loadConfiguration() 
+{
 	uint8_t temp;
 	prefsHandler->read(EE_LOCAL_DEBUG, &temp);
 	if (temp == 1) localDebug = true;
 	else localDebug = false;
 }
 
-void Device::saveConfiguration() {
+void Device::saveConfiguration() 
+{
 	uint8_t temp = 255;
 	if (localDebug) temp = 1;
 	prefsHandler->write(EE_LOCAL_DEBUG, temp);
 	prefsHandler->forceCacheWrite();
 }
 
-DeviceConfiguration *Device::getConfiguration() {
+DeviceConfiguration *Device::getConfiguration() 
+{
 	return this->deviceConfiguration;
 }
 
-void Device::setConfiguration(DeviceConfiguration *configuration) {
+void Device::setConfiguration(DeviceConfiguration *configuration) 
+{
 	this->deviceConfiguration = configuration;
 }
 

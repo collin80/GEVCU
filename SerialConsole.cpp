@@ -25,6 +25,7 @@
  */
 
 #include "SerialConsole.h"
+#include "globals.h"
 
 extern PrefHandler *sysPrefs;
 
@@ -53,8 +54,8 @@ void SerialConsole::loop() {
   if(!cancel)
     {
       if(loopcount++==350000){
-        //DeviceManager::getInstance()->sendMessage(DEVICE_WIFI, ICHIP2128, MSG_CONFIG_CHANGE, NULL);
-        DeviceManager::getInstance()->updateWifi();
+        //deviceManager->sendMessage(DEVICE_WIFI, ICHIP2128, MSG_CONFIG_CHANGE, NULL);
+        deviceManager->updateWifi();
         cancel=true;  
         }
     } 
@@ -66,11 +67,7 @@ void SerialConsole::loop() {
 }
 
 void SerialConsole::printMenu() {
-	MotorController* motorController = (MotorController*) DeviceManager::getInstance()->getMotorController();
-	Throttle *accelerator = DeviceManager::getInstance()->getAccelerator();
-	Throttle *brake = DeviceManager::getInstance()->getBrake();
-	ICHIPWIFI *wifi = (ICHIPWIFI*) DeviceManager::getInstance()->getDeviceByType(DEVICE_WIFI);
-
+	
 	//Show build # here as well in case people are using the native port and don't get to see the start up messages
 	SerialUSB.print("Build number: ");
 	SerialUSB.println(CFG_BUILD_NUM);
@@ -109,7 +106,7 @@ void SerialConsole::printMenu() {
 	sysPrefs->read(EESYS_SYSTEM_TYPE, &systype);
 	Logger::console("SYSTYPE=%i - Set board revision (Dued=2, GEVCU3=3, GEVCU4=4)", systype);
 
-	DeviceManager::getInstance()->printDeviceList();
+	deviceManager->printDeviceList();
 	Logger::console("LDEBUGON=0x1000 - Set localized debugging for the specified device (immediate effect)");
 	Logger::console("LDEBUGOFF=0x1000 - Remove localized debugging for the specified device (immediate effect)");
 
@@ -134,8 +131,8 @@ void SerialConsole::printMenu() {
 	}
 
 
-	if (accelerator && accelerator->getConfiguration()) {
-		PotThrottleConfiguration *config = (PotThrottleConfiguration *) accelerator->getConfiguration();
+	if (throttle && throttle->getConfiguration()) {
+		PotThrottleConfiguration *config = (PotThrottleConfiguration *) throttle->getConfiguration();
          SerialUSB.println();
          SerialUSB.println("THROTTLE CONTROLS");
          SerialUSB.println();
@@ -244,9 +241,6 @@ void SerialConsole::handleConfigCmd() {
 	PotThrottleConfiguration *acceleratorConfig = NULL;
 	PotThrottleConfiguration *brakeConfig = NULL;
 	MotorControllerConfiguration *motorConfig = NULL;
-	Throttle *accelerator = DeviceManager::getInstance()->getAccelerator();
-	Throttle *brake = DeviceManager::getInstance()->getBrake();
-	MotorController *motorController = DeviceManager::getInstance()->getMotorController();
 	int i;
 	int newValue;
 	bool updateWifi = true;
@@ -270,8 +264,8 @@ void SerialConsole::handleConfigCmd() {
 		return; //or, we could use this to display the parameter instead of setting
 	}
 
-	if (accelerator)
-		acceleratorConfig = (PotThrottleConfiguration *) accelerator->getConfiguration();
+	if (throttle)
+		acceleratorConfig = (PotThrottleConfiguration *) throttle->getConfiguration();
 	if (brake)
 		brakeConfig = (PotThrottleConfiguration *) brake->getConfiguration();
 	if (motorController)
@@ -296,64 +290,64 @@ void SerialConsole::handleConfigCmd() {
 	} else if (cmdString == String("TPOT") && acceleratorConfig) {
 		Logger::console("Setting # of Throttle Pots to %i", newValue);
 		acceleratorConfig->numberPotMeters = newValue;
-		accelerator->saveConfiguration();
+		throttle->saveConfiguration();
 	} else if (cmdString == String("TTYPE") && acceleratorConfig) {
 		Logger::console("Setting Throttle Subtype to %i", newValue);
 		acceleratorConfig->throttleSubType = newValue;
-		accelerator->saveConfiguration();
+		throttle->saveConfiguration();
 	} else if (cmdString == String("T1ADC") && acceleratorConfig) {
 		Logger::console("Setting Throttle1 ADC pin to %i", newValue);
 		acceleratorConfig->AdcPin1 = newValue;
-		accelerator->saveConfiguration();
+		throttle->saveConfiguration();
 	} else if (cmdString == String("T1MN") && acceleratorConfig) {
 		Logger::console("Setting Throttle1 Min to %i", newValue);
 		acceleratorConfig->minimumLevel1 = newValue;
-		accelerator->saveConfiguration();
+		throttle->saveConfiguration();
 	} else if (cmdString == String("T1MX") && acceleratorConfig) {
 		Logger::console("Setting Throttle1 Max to %i", newValue);
 		acceleratorConfig->maximumLevel1 = newValue;
-		accelerator->saveConfiguration();
+		throttle->saveConfiguration();
 	}
 	else if (cmdString == String("T2ADC") && acceleratorConfig) {
 		Logger::console("Setting Throttle2 ADC pin to %i", newValue);
 		acceleratorConfig->AdcPin2 = newValue;
-		accelerator->saveConfiguration();
+		throttle->saveConfiguration();
 	} else if (cmdString == String("T2MN") && acceleratorConfig) {
 		Logger::console("Setting Throttle2 Min to %i", newValue);
 		acceleratorConfig->minimumLevel2 = newValue;
-		accelerator->saveConfiguration();
+		throttle->saveConfiguration();
 	} else if (cmdString == String("T2MX") && acceleratorConfig) {
 		Logger::console("Setting Throttle2 Max to %i", newValue);
 		acceleratorConfig->maximumLevel2 = newValue;
-		accelerator->saveConfiguration();
+		throttle->saveConfiguration();
 	} else if (cmdString == String("TRGNMAX") && acceleratorConfig) {
 		Logger::console("Setting Throttle Regen maximum to %i", newValue);
 		acceleratorConfig->positionRegenMaximum = newValue;
-		accelerator->saveConfiguration();
+		throttle->saveConfiguration();
 	} else if (cmdString == String("TRGNMIN") && acceleratorConfig) {
 		Logger::console("Setting Throttle Regen minimum to %i", newValue);
 		acceleratorConfig->positionRegenMinimum = newValue;
-		accelerator->saveConfiguration();
+		throttle->saveConfiguration();
 	} else if (cmdString == String("TFWD") && acceleratorConfig) {
 		Logger::console("Setting Throttle Forward Start to %i", newValue);
 		acceleratorConfig->positionForwardMotionStart = newValue;
-		accelerator->saveConfiguration();
+		throttle->saveConfiguration();
 	} else if (cmdString == String("TMAP") && acceleratorConfig) {
 		Logger::console("Setting Throttle MAP Point to %i", newValue);
 		acceleratorConfig->positionHalfPower = newValue;
-		accelerator->saveConfiguration();
+		throttle->saveConfiguration();
 	} else if (cmdString == String("TMINRN") && acceleratorConfig) {
 		Logger::console("Setting Throttle Regen Minimum Strength to %i", newValue);
 		acceleratorConfig->minimumRegen = newValue;
-		accelerator->saveConfiguration();
+		throttle->saveConfiguration();
 	} else if (cmdString == String("TMAXRN") && acceleratorConfig) {
 		Logger::console("Setting Throttle Regen Maximum Strength to %i", newValue);
 		acceleratorConfig->maximumRegen = newValue;
-		accelerator->saveConfiguration();
+		throttle->saveConfiguration();
 	} else if (cmdString == String("TCREEP") && acceleratorConfig) {
 		Logger::console("Setting Throttle Creep Strength to %i", newValue);
 		acceleratorConfig->creep = newValue;
-		accelerator->saveConfiguration();
+		throttle->saveConfiguration();
 	} else if (cmdString == String("BMAXR") && brakeConfig) {
 		Logger::console("Setting Max Brake Regen to %i", newValue);
 		brakeConfig->maximumRegen = newValue;
@@ -366,7 +360,7 @@ void SerialConsole::handleConfigCmd() {
 	else if (cmdString == String("B1ADC") && acceleratorConfig) {
 		Logger::console("Setting Brake ADC pin to %i", newValue);
 		brakeConfig->AdcPin1 = newValue;
-		accelerator->saveConfiguration();
+		brake->saveConfiguration();
 	} else if (cmdString == String("B1MX") && brakeConfig) {
 		Logger::console("Setting Brake Max to %i", newValue);
 		brakeConfig->maximumLevel1 = newValue;
@@ -594,10 +588,6 @@ void SerialConsole::handleConfigCmd() {
 
 void SerialConsole::handleShortCmd() {
 	uint8_t val;
-	MotorController* motorController = (MotorController*) DeviceManager::getInstance()->getMotorController();
-	Throttle *accelerator = DeviceManager::getInstance()->getAccelerator();
-	Throttle *brake = DeviceManager::getInstance()->getBrake();
-	DeviceManager *deviceManager = DeviceManager::getInstance();
 
 	switch (cmdBuffer[0]) {
 	case 'h':
@@ -648,14 +638,14 @@ void SerialConsole::handleShortCmd() {
 		Logger::console("all outputs: OFF");
 		break;
 	case 'z': // detect throttle min/max & other details
-		if (accelerator) {
-			ThrottleDetector *detector = new ThrottleDetector(accelerator);
+		if (throttle) {
+			ThrottleDetector *detector = new ThrottleDetector(throttle);
 			detector->detect();
 		}
 		break;
 	case 'Z': // save throttle settings
-		if (accelerator) {
-			accelerator->saveConfiguration();
+		if (throttle) {
+			throttle->saveConfiguration();
 		}
 		break;
 	case 'b':
@@ -748,6 +738,11 @@ void SerialConsole::handleShortCmd() {
         
 	case 'X':
 		setup(); //this is probably a bad idea. Do not do this while connected to anything you care about - only for debugging in safety!
+		break;
+	case 'A': //test routine
+		Logger::console("Trying to read max RPM from active motor controller %i", Config(DEVICE_MOTORCTRL, EEMC_MAX_RPM));
+		//now try to set the value
+		Config(DEVICE_MOTORCTRL, EEMC_MAX_RPM) = 1000;
 		break;
 	}
 }
