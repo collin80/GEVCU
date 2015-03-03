@@ -303,6 +303,10 @@ void setup() {
 	serialConsole->printMenu();
 	wifi = deviceManager->getDeviceByID(ICHIP2128);
 	bluetooth = deviceManager->getDeviceByID(ELM327EMU);
+	motorController = (MotorController *)deviceManager->getDeviceByType(DEVICE_MOTORCTRL);
+	throttle = (Throttle *)deviceManager->getDeviceByType(DEVICE_THROTTLE);
+	brake = (Throttle *)deviceManager->getDeviceByType(DEVICE_BRAKE);
+	bms = (BatteryManager *)deviceManager->getDeviceByType(DEVICE_BMS);
     deviceManager->sendMessage(DEVICE_WIFI, ICHIP2128, MSG_CONFIG_CHANGE, NULL); //Load configuration variables into WiFi Web Configuration screen
 	Logger::info("System Ready");
 }
