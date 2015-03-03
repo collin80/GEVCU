@@ -55,11 +55,18 @@ void RX8Dash::handleTick() {
 	send.extended = false;
 	send.priority = 10;
 	send.rtr = false;
+
+	mcRef = DeviceManager::getInstance()->getMotorController();
+	if (mcRef)
+	{
+		if (!getDigital(mcRef->getEnableIn())) return;
+	}
+	else return; //no motor controller exists
 	
 	switch (state)
 	{
 	case SPEEDO:
-		mcRef = DeviceManager::getInstance()->getMotorController();
+		
 		if (mcRef != NULL)
 		{
 			RPM = mcRef->getSpeedActual();
