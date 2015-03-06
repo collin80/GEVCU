@@ -74,6 +74,7 @@ void DeviceManager::addDevice(Device *device) {
 		}
 	}
 	
+	//FIXME: Why do the below lines not seem to work? I had to fill out the globals in gevcu.ino to make it work?!?
 	switch (device->getType()) {
 	case DEVICE_THROTTLE:
 		throttle = (Throttle *) device;

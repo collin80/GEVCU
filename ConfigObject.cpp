@@ -28,8 +28,9 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 #include "ConfigObject.h"
 #include "globals.h"
+#include "Logger.h"
 
-int dummy;
+int dummy = 0;
 extern MemCache *memCache;
 
 //the big abstraction. Allows device to either be a device type such as DEVICE_MOTORCTRL or an actual device ID such as CODAUQM.
@@ -41,6 +42,8 @@ int& ConfigObject::operator()(int device, int location)
 	int val = 0;
 	Device *devPtr;
 
+	Logger::debug("Input ID: %i Location: %i", device, location);
+
 	//is this a device type or an actual ID? Device types are under 0x1000 while id's are 0x1000 or higher
 	if (device < 0x1000)
 	{
@@ -49,13 +52,20 @@ int& ConfigObject::operator()(int device, int location)
 		deviceId = devPtr->getId();
 	}
 
+	Logger::debug("Transformed ID: %i", deviceId);
+
 	//Now, find the proper EEPROM location for this deviceID
 	eepromOffset = getEELocation(deviceId);
 	if (eepromOffset < 0) return dummy;
 
 	if (location >= EE_DEVICE_SIZE) return dummy;
 
+	Logger::debug("EEPROM Offset: %i", eepromOffset);
+
 	memCache->Read((uint32_t)location + eepromOffset, (uint32_t *)&val);
+
+	Logger::debug("Value: %i", val);
+
 	return val;
 }
 
@@ -65,6 +75,7 @@ int ConfigObject::getEELocation(int deviceid)
 
 	for (int x = 1; x < 64; x++) {
 		memCache->Read(EE_DEVICE_TABLE + (2 * x), &id);
+		Logger::debug("Device offset: %i   ID: %x", x, id);
 		if ((id & 0x7FFF) == deviceid) {
 			return EE_DEVICES_BASE + (EE_DEVICE_SIZE * x);			
 		}
