@@ -52,6 +52,7 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include "Sys_Messages.h"
 #include "CodaMotorController.h"
 #include "DCDCController.h"
+#include "EVIC.h"
 
 #ifdef __cplusplus
 extern "C" {
@@ -68,3 +69,5 @@ void setup();
 #define SYSTEM_GEVCU3	3
 
 #endif /* GEVCU_H_ */
+
+

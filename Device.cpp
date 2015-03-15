@@ -86,3 +86,5 @@ void Device::setConfiguration(DeviceConfiguration *configuration) {
 	this->deviceConfiguration = configuration;
 }
 
+
+

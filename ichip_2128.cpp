@@ -290,6 +290,7 @@ void ICHIPWIFI::handleTick() {
 				paramCache.mainContactorRelay = motorController->getmainContactorRelay();
 				setParam(Constants::mainContactorRelay, (uint8_t) paramCache.mainContactorRelay);
 			}
+                  //DeviceManager::getInstance()->updateWifi();
 		}
 	} else if (tickCounter == 3) {
 		if (motorController) {
@@ -786,61 +787,72 @@ void ICHIPWIFI::processParameterChange(char *key) {
         } else if (!strcmp(key, "x1000")){
                 if (255==atol(value)){sysPrefs->setDeviceStatus(strtol(key+1, 0, 16),true);}
                   else {sysPrefs->setDeviceStatus(strtol(key+1, 0, 16), false);}
-                sysPrefs->forceCacheWrite();
-                // Logger::console("Setting Device: %s ID:%X value %X",key, strtol(key+1, 0, 16),atol(value));
-   
+                //sysPrefs->forceCacheWrite();
             } else if (!strcmp(key, "x1001")){
                 if (255==atol(value)){sysPrefs->setDeviceStatus(strtol(key+1, 0, 16),true);}
                   else {sysPrefs->setDeviceStatus(strtol(key+1, 0, 16), false);}
-                sysPrefs->forceCacheWrite();
+               //sysPrefs->forceCacheWrite();
          } else if (!strcmp(key, "x1002")){
                 if (255==atol(value)){sysPrefs->setDeviceStatus(strtol(key+1, 0, 16),true);}
                   else {sysPrefs->setDeviceStatus(strtol(key+1, 0, 16), false);}
-                sysPrefs->forceCacheWrite();
+              // sysPrefs->forceCacheWrite();
          } else if (!strcmp(key, "x1031")){
                 if (255==atol(value)){sysPrefs->setDeviceStatus(strtol(key+1, 0, 16), true);}
                   else {sysPrefs->setDeviceStatus(strtol(key+1, 0, 16), false);}
-                sysPrefs->forceCacheWrite();
+               //sysPrefs->forceCacheWrite();
          } else if (!strcmp(key, "x1032")){
                 if (255==atol(value)){sysPrefs->setDeviceStatus(strtol(key+1, 0, 16), true);}
                   else {sysPrefs->setDeviceStatus(strtol(key+1, 0, 16), false);}
-                sysPrefs->forceCacheWrite();
+              //sysPrefs->forceCacheWrite();
          } else if (!strcmp(key, "x1033")){
                 if (255==atol(value)){sysPrefs->setDeviceStatus(strtol(key+1, 0, 16), true);}
                   else {sysPrefs->setDeviceStatus(strtol(key+1, 0, 16), false);}
-                sysPrefs->forceCacheWrite();
+               //sysPrefs->forceCacheWrite();
          } else if (!strcmp(key, "x1034")){
                 if (255==atol(value)){sysPrefs->setDeviceStatus(strtol(key+1, 0, 16), true);}
                   else {sysPrefs->setDeviceStatus(strtol(key+1, 0, 16), false);}
-                sysPrefs->forceCacheWrite();
+              // sysPrefs->forceCacheWrite();
          } else if (!strcmp(key, "x1010")){
                 if (255==atol(value)){sysPrefs->setDeviceStatus(strtol(key+1, 0, 16), true);}
                   else {sysPrefs->setDeviceStatus(strtol(key+1, 0, 16), false);}
-                sysPrefs->forceCacheWrite();
-         } else if (!strcmp(key, "x1020")){
+              // sysPrefs->forceCacheWrite();
+           } else if (!strcmp(key, "x1011")){
                 if (255==atol(value)){sysPrefs->setDeviceStatus(strtol(key+1, 0, 16), true);}
                   else {sysPrefs->setDeviceStatus(strtol(key+1, 0, 16), false);}
-                sysPrefs->forceCacheWrite();
+              //sysPrefs->forceCacheWrite();
+         } else if (!strcmp(key, "x1012")){
+                if (255==atol(value)){sysPrefs->setDeviceStatus(strtol(key+1, 0, 16), true);}
+                  else {sysPrefs->setDeviceStatus(strtol(key+1, 0, 16), false);}
+               //sysPrefs->forceCacheWrite();
+       } else if (!strcmp(key, "x1020")){
+                if (255==atol(value)){sysPrefs->setDeviceStatus(strtol(key+1, 0, 16), true);}
+                  else {sysPrefs->setDeviceStatus(strtol(key+1, 0, 16), false);}
+               sysPrefs->forceCacheWrite();
         } else if (!strcmp(key, "x1040")){
                 if (255==atol(value)){sysPrefs->setDeviceStatus(strtol(key+1, 0, 16), true);}
                   else {sysPrefs->setDeviceStatus(strtol(key+1, 0, 16), false);}
-                sysPrefs->forceCacheWrite();
+             // sysPrefs->forceCacheWrite();
         } else if (!strcmp(key, "x1050")){
                 if (255==atol(value)){sysPrefs->setDeviceStatus(strtol(key+1, 0, 16), true);}
                   else {sysPrefs->setDeviceStatus(strtol(key+1, 0, 16), false);}
-                sysPrefs->forceCacheWrite();
+              // sysPrefs->forceCacheWrite();
         } else if (!strcmp(key, "x2000")){
                 if (255==atol(value)){sysPrefs->setDeviceStatus(strtol(key+1, 0, 16), true);}
                   else {sysPrefs->setDeviceStatus(strtol(key+1, 0, 16), false);}
-                sysPrefs->forceCacheWrite();
+               sysPrefs->forceCacheWrite();
+         } else if (!strcmp(key, "x4400")){
+                if (255==atol(value)){sysPrefs->setDeviceStatus(strtol(key+1, 0, 16), true);}
+                  else {sysPrefs->setDeviceStatus(strtol(key+1, 0, 16), false);}
+               // sysPrefs->forceCacheWrite();
+     sysPrefs->forceCacheWrite();
         } else if (!strcmp(key, "x6000")){
                 if (255==atol(value)){sysPrefs->setDeviceStatus(strtol(key+1, 0, 16), true);}
                   else {sysPrefs->setDeviceStatus(strtol(key+1, 0, 16), false);}
-                sysPrefs->forceCacheWrite();
-        } else if (!strcmp(key, "x6500")){
+             //   sysPrefs->forceCacheWrite();
+        } else if (!strcmp(key, "x650")){
                 if (255==atol(value)){sysPrefs->setDeviceStatus(strtol(key+1, 0, 16), true);}
                   else {sysPrefs->setDeviceStatus(strtol(key+1, 0, 16), false);}
-                sysPrefs->forceCacheWrite();            
+                        // sysPrefs->forceCacheWrite();
 	
 	} else if (!strcmp(key, Constants::logLevel)) {
 		extern PrefHandler *sysPrefs;
@@ -854,6 +866,10 @@ void ICHIPWIFI::processParameterChange(char *key) {
 		Logger::info(ICHIP2128, "parameter change: %s", key);
 		getNextParam(); // try to get another one immediately
 	}
+        else {
+              sysPrefs->forceCacheWrite();
+              DeviceManager::getInstance()->updateWifi();
+            }
 }
 
 /*
@@ -869,6 +885,8 @@ void ICHIPWIFI::loadParameters() {
 	MotorControllerConfiguration *motorConfig = NULL;
 
 	Logger::info("loading config params to ichip/wifi");
+        
+        //DeviceManager::getInstance()->updateWifi();
 
 	if (accelerator)
 		acceleratorConfig = (PotThrottleConfiguration *)accelerator->getConfiguration();
@@ -944,3 +962,5 @@ void ICHIPWIFI::saveConfiguration() {
 //	prefsHandler->write(EESYS_WIFI0_SSID, config->ssid);
 //	prefsHandler->saveChecksum();
 }
+
+

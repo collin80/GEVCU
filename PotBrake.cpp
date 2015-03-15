@@ -202,3 +202,5 @@ void PotBrake::saveConfiguration() {
 	prefsHandler->saveChecksum();
 }
 
+
+

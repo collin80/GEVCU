@@ -72,6 +72,7 @@ Device *wifiDevice;
 Device *btDevice;
 
 
+
 byte i = 0;
 
 
@@ -221,9 +222,9 @@ void createObjects() {
 	ThinkBatteryManager *BMS = new ThinkBatteryManager();
 	ELM327Emu *emu = new ELM327Emu();
 	ICHIPWIFI *iChip = new ICHIPWIFI();
+        EVIC *eVIC = new EVIC();
 }
-
-void initializeDevices() {
+     void initializeDevices() {
 	DeviceManager *deviceManager = DeviceManager::getInstance();
 
 	//heartbeat is always enabled now
@@ -319,5 +320,7 @@ void loop() {
 	//this should still be here. It checks for a flag set during an interrupt
 	sys_io_adc_poll();
 }
+
+
 
 

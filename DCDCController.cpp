@@ -36,7 +36,7 @@ template<class T> inline Print &operator <<(Print &obj, T arg) { obj.print(arg);
 DCDCController::DCDCController() : Device()
 {
     prefsHandler = new PrefHandler(DCDC);
-    prefsHandler->setEnabledStatus(true);
+    //prefsHandler->setEnabledStatus(true);
    
     commonName = "Delphi DC-DC Converter";
     
@@ -59,9 +59,9 @@ void DCDCController::setup()
 	loadConfiguration();
 	Device::setup(); // run the parent class version of this function
 
-	// Читаем только один кадр
+	// ‚Äì√ü‚Äì‚àè‚Äî√á‚Äì‚àû‚Äì¬µ‚Äì¬∫ ‚Äî√á‚Äì√¶‚Äì¬™‚Äî√•‚Äì‚à´‚Äì√¶ ‚Äì√¶‚Äì¬•‚Äì‚àè‚ÄìŒ© ‚Äì‚à´‚Äì‚àû‚Äì¬•‚Äî√Ñ
         CanHandler::getInstanceCar()->attach(this, 0x1D5, 0x7ff, false);
-        //Ставим таймер на 25мс.
+        //‚Äì¬∞‚Äî√á‚Äì‚àû‚Äì‚â§‚Äì‚àè‚Äì¬∫ ‚Äî√á‚Äì‚àû‚ÄìœÄ‚Äì¬∫‚Äì¬µ‚Äî√Ñ ‚ÄìŒ©‚Äì‚àû 25‚Äì¬∫‚Äî√Ö.
         //Watch for 0x1D5 messages from Delphi converter
 	TickHandler::getInstance()->attach(this, CFG_TICK_INTERVAL_DCDC);
 }
@@ -95,7 +95,8 @@ void DCDCController::sendCmd()
 	output.length = 8;
 	output.id = 0x1D7;
 	output.extended = 0; //standard frame
-	output.rtr = 0;       
+	output.rtr = 0;  
+        output.fid = 0; 
         output.data.bytes[0] = 0x80;
         output.data.bytes[1] = 0x8E;
         output.data.bytes[2] = 0;
@@ -142,3 +143,5 @@ void DCDCController::timestamp()
     minutes = (int) ((millis() / (1000*60)) % 60);
     hours   = (int) ((millis() / (1000*60*60)) % 24);  
 }
+
+

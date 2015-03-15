@@ -194,7 +194,7 @@ void CanHandler::process() {
 
 	if (bus->rx_avail()) {
 		bus->get_rx_buff(frame);
-		logFrame(frame);
+		//logFrame(frame);
 
 		for (int i = 0; i < CFG_CAN_NUM_OBSERVERS; i++) {
 			if (observerData[i].observer != NULL) {
@@ -210,6 +210,7 @@ void CanHandler::process() {
 //(whatever happens to be open) or queue it to send (if nothing is open)
 void CanHandler::sendFrame(CAN_FRAME& frame) {
 	bus->sendFrame(frame);
+       // logFrame(frame);
 }
 
 /*
@@ -219,3 +220,4 @@ void CanHandler::sendFrame(CAN_FRAME& frame) {
 void CanObserver::handleCanFrame(CAN_FRAME *frame) {
 	Logger::error("CanObserver does not implement handleCanFrame(), frame.id=%d", frame->id);
 }
+

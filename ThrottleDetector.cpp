@@ -388,3 +388,5 @@ uint16_t ThrottleDetector::normalize(uint16_t sensorValue, uint16_t sensorMin, u
 	int value = map(sensorValue, sensorMin, sensorMax, constrainMin, constrainMax);
 	return constrain(value, constrainMin, constrainMax);
 }
+
+

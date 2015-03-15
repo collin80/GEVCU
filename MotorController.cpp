@@ -82,6 +82,7 @@ void MotorController::setup() {
 	statusBitfield4 = 0;
         prefsHandler->read(EEMC_KILOWATTHRS, &kiloWattHours); //retrieve kilowatt hours from EEPROM
         nominalVolts=config->nominalVolt;
+        capacity=config->capacity;
         donePrecharge=false;
         premillis=millis();      
 
@@ -565,12 +566,14 @@ void MotorController::loadConfiguration() {
 		prefsHandler->read(EEMC_PRECHARGE_RELAY, &config->prechargeRelay);
 		prefsHandler->read(EEMC_CONTACTOR_RELAY, &config->mainContactorRelay);
 		prefsHandler->read(EEMC_COOL_FAN, &config->coolFan);
-        prefsHandler->read(EEMC_COOL_ON, &config->coolOn);
-        prefsHandler->read(EEMC_COOL_OFF, &config->coolOff);
-        prefsHandler->read(EEMC_BRAKE_LIGHT, &config->brakeLight);
+                prefsHandler->read(EEMC_COOL_ON, &config->coolOn);
+                prefsHandler->read(EEMC_COOL_OFF, &config->coolOff);
+                prefsHandler->read(EEMC_BRAKE_LIGHT, &config->brakeLight);
 		prefsHandler->read(EEMC_REV_LIGHT, &config->revLight);
 		prefsHandler->read(EEMC_ENABLE_IN, &config->enableIn);
 		prefsHandler->read(EEMC_REVERSE_IN, &config->reverseIn);
+                prefsHandler->read(EESYS_CAPACITY, &config->capacity);
+
 
 	}
 	else { //checksum invalid. Reinitialize values and store to EEPROM
@@ -620,8 +623,11 @@ void MotorController::saveConfiguration() {
 	prefsHandler->write(EEMC_REV_LIGHT, config->revLight);
 	prefsHandler->write(EEMC_ENABLE_IN, config->enableIn);
 	prefsHandler->write(EEMC_REVERSE_IN, config->reverseIn);
+        prefsHandler->write(EESYS_CAPACITY, config->capacity);
 
-
+        
 	prefsHandler->saveChecksum();
 	loadConfiguration();
 }
+
+

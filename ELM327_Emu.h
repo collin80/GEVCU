@@ -33,7 +33,7 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 /*
 List of AT commands to support:
 AT E0 (turn echo off)
-AT H (0/1) - Turn headers on or off - headers are used to determine how many ECU�s present (hint: only send one response to 0100 and emulate a single ECU system to save time coding)
+AT H (0/1) - Turn headers on or off - headers are used to determine how many ECU√≠s present (hint: only send one response to 0100 and emulate a single ECU system to save time coding)
 AT L0 (Turn linefeeds off - just use CR)
 AT Z (reset)
 AT SH - Set header address - seems to set the ECU address to send to (though you may be able to ignore this if you wish)
@@ -96,3 +96,5 @@ class ELM327Emu : public Device {
 };
 
 #endif
+
+

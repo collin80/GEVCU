@@ -52,6 +52,7 @@ enum DeviceId { //unique device ID for every piece of hardware possible
 	POTBRAKEPEDAL = 0x1032,
 	CANACCELPEDAL = 0x1033,
 	CANBRAKEPEDAL = 0x1034,
+        EVICTUS = 0x4400,
 	ICHIP2128 = 0x1040,
         DCDC = 0x1050,
 	THINKBMS = 0x2000,
@@ -59,8 +60,10 @@ enum DeviceId { //unique device ID for every piece of hardware possible
 	HEARTBEAT = 0x5001,
 	MEMCACHE = 0x5002,
 	PIDLISTENER = 0x6000,
-	ELM327EMU = 0x6500,
+	ELM327EMU = 0x650,
 	INVALID = 0xFFFF
 };
 
 #endif /* DEVICE_TYPES_H_ */
+
+

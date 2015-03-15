@@ -70,3 +70,5 @@ signed int BatteryManager::getPackCurrent()
 	return packCurrent;
 }
 
+
+

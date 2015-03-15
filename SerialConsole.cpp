@@ -189,6 +189,8 @@ void SerialConsole::printMenu() {
 	        SerialUSB.println();
 
 		Logger::console("NOMV=%i - Fully charged pack voltage that automatically resets kWh counter", config->nominalVolt/10);
+            	Logger::console("CAPACITY=%i - capacity of battery pack in ampere-hours", config->capacity);
+           
                 Logger::console("kWh=%d - kiloWatt Hours of energy used", config->kilowattHrs/3600000);
 		Logger::console("OUTPUT=<0-7> - toggles state of specified digital output");
                 Logger::console("NUKE=1 - Resets all device settings in EEPROM. You have been warned.");
@@ -240,10 +242,11 @@ void SerialConsole::handleConfigCmd() {
 	PotThrottleConfiguration *acceleratorConfig = NULL;
 	PotThrottleConfiguration *brakeConfig = NULL;
 	MotorControllerConfiguration *motorConfig = NULL;
+       
 	Throttle *accelerator = DeviceManager::getInstance()->getAccelerator();
 	Throttle *brake = DeviceManager::getInstance()->getBrake();
 	MotorController *motorController = DeviceManager::getInstance()->getMotorController();
-	int i;
+    	int i;
 	int newValue;
 	bool updateWifi = true;
 
@@ -532,6 +535,11 @@ void SerialConsole::handleConfigCmd() {
              
         Logger::console("DOUT0:%d, DOUT1:%d, DOUT2:%d, DOUT3:%d, DOUT4:%d, DOUT5:%d, DOUT6:%d, DOUT7:%d", getOutput(0), getOutput(1), getOutput(2), getOutput(3), getOutput(4), getOutput(5), getOutput(6), getOutput(7));
 	
+        } else if (cmdString == String("CAPACITY") ) {
+                motorConfig->capacity = newValue;
+		motorController->saveConfiguration();
+              	Logger::console("Battery Pack Capacity set to: ",newValue);
+
               } else if (cmdString == String("NUKE")) {
 		if (newValue == 1) 
 		{   //write zero to the checksum location of every device in the table.
@@ -756,3 +764,5 @@ void SerialConsole::getResponse(){
               
 }
         
+
+
