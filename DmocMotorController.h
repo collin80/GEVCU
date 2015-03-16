@@ -34,7 +34,6 @@
 #include "MotorController.h"
 #include "SystemIO.h"
 #include "TickHandler.h"
-#include "CanHandler.h"
 
 /*
  * Class for DMOC specific configuration parameters
@@ -44,7 +43,7 @@ class DmocMotorControllerConfiguration : public MotorControllerConfiguration
 public:
 };
 
-class DmocMotorController: public MotorController, CanObserver
+class DmocMotorController: public MotorController
 {
 public:
 

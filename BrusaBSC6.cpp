@@ -30,7 +30,7 @@
 /*
  * Constructor
  */
-BrusaBSC6::BrusaBSC6() : Device()
+BrusaBSC6::BrusaBSC6() : DcDcConverter()
 {
     canHandlerEv = CanHandler::getInstanceEV();
     prefsHandler = new PrefHandler(BRUSA_BSC6);

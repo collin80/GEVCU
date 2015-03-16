@@ -110,6 +110,10 @@ void MotorController::handleTick()
 }
 
 
+void MotorController::handleCanFrame(CAN_FRAME *frame)
+{
+}
+
 
 void MotorController::setup()
 {

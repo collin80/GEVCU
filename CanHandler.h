@@ -33,7 +33,6 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include "variant.h"
 #include <DueTimer.h>
 #include "Logger.h"
-#include "DeviceManager.h"
 
 class CanObserver
 {

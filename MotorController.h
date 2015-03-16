@@ -34,6 +34,7 @@
 #include "Device.h"
 #include "Throttle.h"
 #include "CanHandler.h"
+#include "DeviceManager.h"
 
 #define MOTORCTL_INPUT_DRIVE_EN    3
 #define MOTORCTL_INPUT_FORWARD     4
@@ -55,9 +56,8 @@ public:
     uint16_t nominalVolt; //nominal pack voltage in tenths of a volt
 };
 
-class MotorController: public Device
+class MotorController: public Device, public CanObserver
 {
-
 public:
     enum Gears {
         NEUTRAL = 0,
@@ -75,6 +75,7 @@ public:
     DeviceType getType();
     void setup();
     void handleTick();
+    void handleCanFrame(CAN_FRAME *);
     uint32_t getTickInterval();
 
     void loadConfiguration();

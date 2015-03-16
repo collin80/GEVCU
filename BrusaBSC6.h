@@ -33,9 +33,9 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include "Status.h"
 #include "SystemIO.h"
 #include "TickHandler.h"
-#include "CanHandler.h"
 #include "DeviceManager.h"
 #include "DeviceTypes.h"
+#include "DcDcConverter.h"
 
 // CAN bus id's for frames sent to BSC6
 
@@ -66,7 +66,7 @@ public:
     uint8_t hvBoostModeCurrentLimit; // 0-25A in 0.1A
 };
 
-class BrusaBSC6: public Device, CanObserver
+class BrusaBSC6: public DcDcConverter, CanObserver
 {
 public:
     // Message id=0x26a, BSC6VAL1

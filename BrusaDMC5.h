@@ -34,7 +34,6 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include "MotorController.h"
 #include "SystemIO.h"
 #include "TickHandler.h"
-#include "CanHandler.h"
 #include "DeviceManager.h"
 #include "ichip_2128.h"
 #include "DeviceTypes.h"
@@ -74,7 +73,7 @@ public:
     bool enableOscillationLimiter; // this will enable the DMC5 oscillation limiter (if also enabled by parameter)
 };
 
-class BrusaDMC5: public MotorController, CanObserver
+class BrusaDMC5: public MotorController
 {
 public:
     // Message id=0x258, DMC_TRQS

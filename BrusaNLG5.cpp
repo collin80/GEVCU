@@ -30,7 +30,7 @@
 /*
  * Constructor
  */
-BrusaNLG5::BrusaNLG5() : Device()
+BrusaNLG5::BrusaNLG5() : Charger()
 {
     canHandlerEv = CanHandler::getInstanceEV();
     prefsHandler = new PrefHandler(BRUSA_NLG5);

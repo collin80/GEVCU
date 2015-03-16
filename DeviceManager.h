@@ -29,7 +29,6 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include "config.h"
 #include "Throttle.h"
 #include "MotorController.h"
-#include "CanHandler.h"
 #include "Sys_Messages.h"
 #include "DeviceTypes.h"
 
