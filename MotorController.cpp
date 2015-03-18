@@ -85,6 +85,7 @@ void MotorController::handleTick()
     kiloWattHours += (currentMillis - milliStamp) * mechanicalPower; //We assume here that power is at current level since last tick and accrue in kilowattmilliseconds.
     milliStamp = currentMillis; //reset our kwms timer for next check
 
+    DeviceManager *deviceManager = DeviceManager::getInstance();
     Throttle *accelerator = deviceManager->getAccelerator();
     Throttle *brake = deviceManager->getBrake();
 

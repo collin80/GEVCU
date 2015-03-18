@@ -160,7 +160,7 @@ void CanPIDListener::handleCanFrame(CAN_FRAME *frame)
 //Process SAE standard PID requests. Function returns whether it handled the request or not.
 bool CanPIDListener::processShowData(CAN_FRAME* inFrame, CAN_FRAME& outFrame)
 {
-    MotorController* motorController = deviceManager->getMotorController();
+    MotorController* motorController = DeviceManager::getInstance()->getMotorController();
     int temp;
 
     switch (inFrame->data.bytes[2]) {

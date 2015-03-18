@@ -143,6 +143,7 @@ void ICHIPWIFI::sendToSocket(int socket, String data)
 //TODO: See the processing function below for a more detailed explanation - can't send so many setParam commands in a row
 void ICHIPWIFI::handleTick()
 {
+    DeviceManager *deviceManager = DeviceManager::getInstance();
     MotorController* motorController = deviceManager->getMotorController();
     Throttle *accelerator = deviceManager->getAccelerator();
     Throttle *brake = deviceManager->getBrake();
@@ -574,6 +575,7 @@ void ICHIPWIFI::processParameterChange(char *key)
         return;
     }
 
+    DeviceManager *deviceManager = DeviceManager::getInstance();
     Throttle *accelerator = deviceManager->getAccelerator();
     Throttle *brake = deviceManager->getBrake();
     MotorController *motorController = deviceManager->getMotorController();
@@ -711,6 +713,7 @@ void ICHIPWIFI::processParameterChange(char *key)
  */
 void ICHIPWIFI::loadParameters()
 {
+    DeviceManager *deviceManager = DeviceManager::getInstance();
     MotorController *motorController = deviceManager->getMotorController();
     Throttle *accelerator = deviceManager->getAccelerator();
     Throttle *brake = deviceManager->getBrake();

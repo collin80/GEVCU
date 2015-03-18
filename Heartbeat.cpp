@@ -32,6 +32,7 @@ Heartbeat::Heartbeat()
     status = Status::getInstance();
     led = false;
     throttleDebug = false;
+    commonName = "Heartbeat";
 }
 
 void Heartbeat::setup()
