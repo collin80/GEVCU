@@ -61,9 +61,6 @@ ICHIPWIFI::ICHIPWIFI(USARTClass *which)
  */
 void ICHIPWIFI::setup()
 {
-
-    Logger::info("add device: iChip 2128 WiFi (id: %X, %X)", ICHIP2128, this);
-
     tickHandler->detach(this);
 
     tickCounter = 0;

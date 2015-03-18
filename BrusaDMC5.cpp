@@ -57,8 +57,6 @@ void BrusaDMC5::setup()
 {
     tickHandler->detach(this);
 
-    Logger::info("add device: Brusa DMC5 (id: %X, %X)", BRUSA_DMC5, this);
-
     loadConfiguration();
     MotorController::setup(); // run the parent class version of this function
 

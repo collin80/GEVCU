@@ -66,6 +66,8 @@ DeviceManager *DeviceManager::getInstance()
  */
 void DeviceManager::addDevice(Device *device)
 {
+    Logger::info("add device: %s (id: %X, %X)", device->getId(), device);
+
     if (findDevice(device) == -1) {
         int8_t i = findDevice(NULL);
 

@@ -45,8 +45,6 @@ void CanThrottle::setup()
 {
     tickHandler->detach(this);
 
-    Logger::info("add device: CanThrottle (id: %X, %X)", CANACCELPEDAL, this);
-
     loadConfiguration();
     Throttle::setup();
 

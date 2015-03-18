@@ -33,13 +33,12 @@ ThinkBatteryManager::ThinkBatteryManager() : BatteryManager()
     prefsHandler = new PrefHandler(THINKBMS);
     allowCharge = false;
     allowDischarge = false;
+    commonName = "Th!nk City BMS";
 }
 
 void ThinkBatteryManager::setup()
 {
     tickHandler->detach(this);
-
-    Logger::info("add device: Th!nk City BMS (id: %X, %X)", THINKBMS, this);
 
     BatteryManager::setup(); // run the parent class version of this function
 

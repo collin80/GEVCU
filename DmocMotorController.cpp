@@ -58,8 +58,6 @@ void DmocMotorController::setup()
 {
     tickHandler->detach(this);
 
-    Logger::info("add device: DMOC645 (id:%X, %X)", DMOC645, this);
-
     loadConfiguration();
     MotorController::setup(); // run the parent class version of this function
 

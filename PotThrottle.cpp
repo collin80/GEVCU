@@ -42,8 +42,6 @@ void PotThrottle::setup()
 {
     tickHandler->detach(this);  // unregister from TickHandler first
 
-    Logger::info("add device: PotThrottle (id: %X, %X)", POTACCELPEDAL, this);
-
     loadConfiguration();
 
     Throttle::setup(); //call base class

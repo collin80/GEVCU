@@ -46,8 +46,6 @@ void CanBrake::setup()
 {
     tickHandler->detach(this);
 
-    Logger::info("add device: CanBrake (id: %X, %X)", CANBRAKEPEDAL, this);
-
     loadConfiguration();
     Throttle::setup();
 

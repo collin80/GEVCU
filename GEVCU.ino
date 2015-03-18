@@ -175,7 +175,7 @@ void initSysEEPROM()
     sysPrefs->saveChecksum();
 }
 
-void createObjects()
+void createDevices()
 {
     PotThrottle *paccelerator = new PotThrottle();
     CanThrottle *caccelerator = new CanThrottle();
@@ -204,7 +204,7 @@ void initializeDevices()
     automatically now. Just instantiate your new device object in createObjects above. This takes care of the details
     so long as you follow the template of how other devices were coded.
     */
-    createObjects();
+    createDevices();
 
     /*
      *  We defer setting up the devices until here. This allows all objects to be instantiated
