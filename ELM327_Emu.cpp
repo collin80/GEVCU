@@ -67,9 +67,6 @@ ELM327Emu::ELM327Emu(USARTClass *which)
  */
 void ELM327Emu::setup()
 {
-
-    Logger::info("add device: ELM327 emulator (id: %X, %X", ELM327EMU, this);
-
     tickHandler->detach(this);
 
     tickCounter = 0;

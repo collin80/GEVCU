@@ -72,7 +72,6 @@ public:
 protected:
     SystemIO *systemIO; // pointer to SystemIO singleton
     Status *status; // pointer to Status singleton
-    DeviceManager *deviceManager; // pointer to DeviceManager singleton
     TickHandler *tickHandler; // pointer to Tickhandler singleton
     PrefHandler *prefsHandler;
     char *commonName;

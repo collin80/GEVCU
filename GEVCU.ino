@@ -175,36 +175,22 @@ void initSysEEPROM()
     sysPrefs->saveChecksum();
 }
 
-void createObjects()
-{
-    PotThrottle *paccelerator = new PotThrottle();
-    CanThrottle *caccelerator = new CanThrottle();
-    PotBrake *pbrake = new PotBrake();
-    CanBrake *cbrake = new CanBrake();
-    DmocMotorController *dmotorController = new DmocMotorController();
-    BrusaDMC5 *bmotorController = new BrusaDMC5();
-    BrusaBSC6 *bDcDcConverter = new BrusaBSC6();
-    BrusaNLG5 *bCharger = new BrusaNLG5();
-    ThinkBatteryManager *BMS = new ThinkBatteryManager();
-//    ELM327Emu *emu = new ELM327Emu();
-    ICHIPWIFI *iChip = new ICHIPWIFI();
-}
-
-void initializeDevices()
+void createDevices()
 {
     DeviceManager *deviceManager = DeviceManager::getInstance();
 
-    //heartbeat is always enabled now
-    heartbeat = new Heartbeat();
-    Logger::info("add: Heartbeat (id: %X, %X)", HEARTBEAT, heartbeat);
-    heartbeat->setup();
-
-    /*
-    We used to instantiate all the objects here along with other code. To simplify things this is done somewhat
-    automatically now. Just instantiate your new device object in createObjects above. This takes care of the details
-    so long as you follow the template of how other devices were coded.
-    */
-    createObjects();
+    deviceManager->addDevice(new Heartbeat());
+    deviceManager->addDevice(new PotThrottle());
+    deviceManager->addDevice(new CanThrottle());
+    deviceManager->addDevice(new PotBrake());
+    deviceManager->addDevice(new CanBrake());
+    deviceManager->addDevice(new DmocMotorController());
+    deviceManager->addDevice(new BrusaDMC5());
+    deviceManager->addDevice(new BrusaBSC6());
+    deviceManager->addDevice(new BrusaNLG5());
+    deviceManager->addDevice(new ThinkBatteryManager());
+//    deviceManager->addDevice(new ELM327Emu());
+    deviceManager->addDevice(new ICHIPWIFI());
 
     /*
      *  We defer setting up the devices until here. This allows all objects to be instantiated
@@ -213,7 +199,6 @@ void initializeDevices()
      *  exists and supports a function that the motor controller wants to access.
      */
     deviceManager->sendMessage(DEVICE_ANY, INVALID, MSG_STARTUP, NULL);
-
 }
 
 void setup()
@@ -271,7 +256,7 @@ void setup()
     systemIO = SystemIO::getInstance();
     systemIO->setup();
 
-    initializeDevices();
+    createDevices();
 
     Status::getInstance()->setSystemState(Status::preCharge);
 

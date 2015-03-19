@@ -43,8 +43,6 @@ void PotBrake::setup()
 {
     tickHandler->detach(this);  // unregister from TickHandler first
 
-    Logger::info("add device: PotBrake (id: %X, %X)", POTBRAKEPEDAL, this);
-
     Throttle::setup(); //call base class
 
     //set digital ports to inputs and pull them up all inputs currently active low

@@ -61,9 +61,6 @@ ICHIPWIFI::ICHIPWIFI(USARTClass *which)
  */
 void ICHIPWIFI::setup()
 {
-
-    Logger::info("add device: iChip 2128 WiFi (id: %X, %X)", ICHIP2128, this);
-
     tickHandler->detach(this);
 
     tickCounter = 0;
@@ -146,6 +143,7 @@ void ICHIPWIFI::sendToSocket(int socket, String data)
 //TODO: See the processing function below for a more detailed explanation - can't send so many setParam commands in a row
 void ICHIPWIFI::handleTick()
 {
+    DeviceManager *deviceManager = DeviceManager::getInstance();
     MotorController* motorController = deviceManager->getMotorController();
     Throttle *accelerator = deviceManager->getAccelerator();
     Throttle *brake = deviceManager->getBrake();
@@ -577,6 +575,7 @@ void ICHIPWIFI::processParameterChange(char *key)
         return;
     }
 
+    DeviceManager *deviceManager = DeviceManager::getInstance();
     Throttle *accelerator = deviceManager->getAccelerator();
     Throttle *brake = deviceManager->getBrake();
     MotorController *motorController = deviceManager->getMotorController();
@@ -714,6 +713,7 @@ void ICHIPWIFI::processParameterChange(char *key)
  */
 void ICHIPWIFI::loadParameters()
 {
+    DeviceManager *deviceManager = DeviceManager::getInstance();
     MotorController *motorController = deviceManager->getMotorController();
     Throttle *accelerator = deviceManager->getAccelerator();
     Throttle *brake = deviceManager->getBrake();

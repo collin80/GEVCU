@@ -33,7 +33,7 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include "SystemIO.h"
 #include "Status.h"
 
-class Heartbeat: public TickObserver
+class Heartbeat: public Device
 {
 public:
     Heartbeat();

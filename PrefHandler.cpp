@@ -86,7 +86,7 @@ PrefHandler::PrefHandler(DeviceId id_in)
             }
 
             position = x;
-            Logger::info("Device ID: %X was found in device table at entry: %i", (int) id_in, x);
+            Logger::debug("Device ID: %X was found in device table at entry: %i", (int) id_in, x);
             return;
         }
     }
@@ -103,7 +103,7 @@ PrefHandler::PrefHandler(DeviceId id_in)
             id = (int) id_in;
             memCache->Write(EE_DEVICE_TABLE + (2 * x), id);
             position = x;
-            Logger::info("Device ID: %X was placed into device table at entry: %i", (int) id, x);
+            Logger::debug("Device ID: %X was placed into device table at entry: %i", (int) id, x);
             return;
         }
     }
