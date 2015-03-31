@@ -83,7 +83,7 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 #define CFG_THROTTLE_TOLERANCE  150 //the max that things can go over or under the min/max without fault - 1/10% each #
 #define CFG_PRE_CHARGE_RELAY_DELAY 100
-//#define THREE_CONTACTOR_PRECHARGE // do we use three contactors instead of two for pre-charge cycle ?
+//#define CFG_THREE_CONTACTOR_PRECHARGE // do we use three contactors instead of two for pre-charge cycle ?
 
 /*
  * HARD CODED PARAMETERS
@@ -154,7 +154,7 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  * PIN ASSIGNMENT
  */
 #define CFG_OUTPUT_NONE    255
-#define BLINK_LED          73 //13 is L, 73 is TX, 72 is RX
+#define CFG_BLINK_LED          73 //13 is L, 73 is TX, 72 is RX
 
 #define CFG_NUMBER_ANALOG_INPUTS  4
 #define CFG_NUMBER_DIGITAL_INPUTS 4

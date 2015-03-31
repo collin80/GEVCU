@@ -43,8 +43,6 @@ public:
     bool getThrottleDebug();
 
 protected:
-    Status *status;
-    SystemIO *systemIO;
 
 private:
     bool led;

@@ -52,6 +52,7 @@ public:
     void attach(CanObserver *observer, uint32_t id, uint32_t mask, bool extended);
     void detach(CanObserver *observer, uint32_t id, uint32_t mask);
     void process();
+    void prepareOutputFrame(CAN_FRAME *frame, uint32_t id);
     void sendFrame(CAN_FRAME& frame);
     static CanHandler *getInstanceCar();
     static CanHandler *getInstanceEV();

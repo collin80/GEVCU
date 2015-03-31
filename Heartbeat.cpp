@@ -26,10 +26,8 @@
 
 #include "Heartbeat.h"
 
-Heartbeat::Heartbeat()
+Heartbeat::Heartbeat() : Device()
 {
-    systemIO = SystemIO::getInstance();
-    status = Status::getInstance();
     led = false;
     throttleDebug = false;
     commonName = "Heartbeat";
@@ -38,6 +36,9 @@ Heartbeat::Heartbeat()
 void Heartbeat::setup()
 {
     TickHandler::getInstance()->detach(this);
+
+    pinMode(CFG_BLINK_LED, OUTPUT);
+    digitalWrite(CFG_BLINK_LED, LOW);
 
     TickHandler::getInstance()->attach(this, CFG_TICK_INTERVAL_HEARTBEAT);
 }
@@ -66,9 +67,9 @@ void Heartbeat::handleTick()
     lastTickTime = millis();
 
     if (led) {
-        digitalWrite(BLINK_LED, HIGH);
+        digitalWrite(CFG_BLINK_LED, HIGH);
     } else {
-        digitalWrite(BLINK_LED, LOW);
+        digitalWrite(CFG_BLINK_LED, LOW);
     }
 
     led = !led;
