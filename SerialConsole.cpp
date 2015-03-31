@@ -411,7 +411,6 @@ void SerialConsole::handleConfigCmd()
     } else if (cmdString == String("OUTPUT") && newValue < 8) {
         SystemIO *sysIO = SystemIO::getInstance();
         sysIO->setDigitalOut(newValue, !sysIO->getDigitalOut(newValue)); //Toggle output
-        sysIO->printIOStatus(); //show our work
     } else if (cmdString == String("ENABLE")) {
         if (PrefHandler::setDeviceStatus(newValue, true)) {
             sysPrefs->forceCacheWrite(); //just in case someone takes us literally and power cycles quickly

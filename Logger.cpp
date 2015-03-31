@@ -342,7 +342,7 @@ void Logger::logMessage(char *format, va_list args)
             }
 
             if (*format == 't') {
-                if (va_arg(args, int) == 1) {
+                if (va_arg(args, int)) {
                     SerialUSB.print("T");
                 } else {
                     SerialUSB.print("F");
@@ -352,7 +352,7 @@ void Logger::logMessage(char *format, va_list args)
             }
 
             if (*format == 'T') {
-                if (va_arg(args, int) == 1) {
+                if (va_arg(args, int)) {
                     SerialUSB.print(Constants::trueStr);
                 } else {
                     SerialUSB.print(Constants::falseStr);

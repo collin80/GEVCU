@@ -113,6 +113,7 @@ public:
 
     int16_t temperatureController; // temperature reported by the motor controller (in 0.1 degree celsius)
     int16_t temperatureMotor; // temperature reported by the motor (in 0.1 degree celsius)
+    int16_t externalTemperature[8]; // temperature reported via CAN from external device
 
     static Status *getInstance();
     SystemState getSystemState();

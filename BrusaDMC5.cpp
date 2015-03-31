@@ -96,7 +96,7 @@ void BrusaDMC5::handleTick()
 void BrusaDMC5::sendControl()
 {
     BrusaDMC5Configuration *config = (BrusaDMC5Configuration *) getConfiguration();
-    prepareOutputFrame(CAN_ID_CONTROL);
+    canHandlerEv->prepareOutputFrame(&outputFrame, CAN_ID_CONTROL);
 
     speedRequested = 0;
     torqueRequested = 0;
@@ -151,7 +151,7 @@ void BrusaDMC5::sendControl2()
 {
     BrusaDMC5Configuration *config = (BrusaDMC5Configuration *) getConfiguration();
 
-    prepareOutputFrame(CAN_ID_CONTROL_2);
+    canHandlerEv->prepareOutputFrame(&outputFrame, CAN_ID_CONTROL_2);
     outputFrame.data.bytes[0] = ((config->torqueSlewRate * 10) & 0xFF00) >> 8;
     outputFrame.data.bytes[1] = ((config->torqueSlewRate * 10) & 0x00FF);
     outputFrame.data.bytes[2] = (config->speedSlewRate & 0xFF00) >> 8;
@@ -173,7 +173,7 @@ void BrusaDMC5::sendLimits()
 {
     BrusaDMC5Configuration *config = (BrusaDMC5Configuration *) getConfiguration();
 
-    prepareOutputFrame(CAN_ID_LIMIT);
+    canHandlerEv->prepareOutputFrame(&outputFrame, CAN_ID_LIMIT);
     outputFrame.data.bytes[0] = (config->dcVoltLimitMotor & 0xFF00) >> 8;
     outputFrame.data.bytes[1] = (config->dcVoltLimitMotor & 0x00FF);
     outputFrame.data.bytes[2] = (config->dcVoltLimitRegen & 0xFF00) >> 8;
@@ -184,27 +184,6 @@ void BrusaDMC5::sendLimits()
     outputFrame.data.bytes[7] = (config->dcCurrentLimitRegen & 0x00FF);
 
     canHandlerEv->sendFrame(outputFrame);
-}
-
-/*
- * Prepare the CAN transmit frame.
- * Re-sets all parameters in the re-used frame.
- */
-void BrusaDMC5::prepareOutputFrame(uint32_t id)
-{
-    outputFrame.length = 8;
-    outputFrame.id = id;
-    outputFrame.extended = 0;
-    outputFrame.rtr = 0;
-
-    outputFrame.data.bytes[0] = 0;
-    outputFrame.data.bytes[1] = 0;
-    outputFrame.data.bytes[2] = 0;
-    outputFrame.data.bytes[3] = 0;
-    outputFrame.data.bytes[4] = 0;
-    outputFrame.data.bytes[5] = 0;
-    outputFrame.data.bytes[6] = 0;
-    outputFrame.data.bytes[7] = 0;
 }
 
 /*

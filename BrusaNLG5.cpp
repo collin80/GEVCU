@@ -60,10 +60,8 @@ void BrusaNLG5::setup()
 {
     tickHandler->detach(this);
 
-    Logger::info("add device: %s (id: %X, %X)", commonName, BRUSA_NLG5, this);
-
     loadConfiguration();
-    Device::setup(); // call parent
+    Charger::setup(); // call parent
 
     // register ourselves as observer of 0x26a-0x26f can frames
     canHandlerEv->attach(this, CAN_MASKED_ID, CAN_MASK, false);
@@ -76,7 +74,7 @@ void BrusaNLG5::setup()
  */
 void BrusaNLG5::handleTick()
 {
-    Device::handleTick(); // call parent
+    Charger::handleTick(); // call parent
     sendControl();
 }
 
@@ -89,7 +87,7 @@ void BrusaNLG5::handleTick()
 void BrusaNLG5::sendControl()
 {
     BrusaNLG5Configuration *config = (BrusaNLG5Configuration *) getConfiguration();
-    prepareOutputFrame(CAN_ID_COMMAND);
+    canHandlerEv->prepareOutputFrame(&outputFrame, CAN_ID_COMMAND);
 
     if ((status->getSystemState() == Status::running) && systemIO->getEnableInput()) {
         outputFrame.data.bytes[0] |= enable;
@@ -111,27 +109,6 @@ void BrusaNLG5::sendControl()
 
     //TODO: enable sending the can frames once it's save
 //    canHandlerEv->sendFrame(outputFrame);
-}
-
-/*
- * Prepare the CAN transmit frame.
- * Re-sets all parameters in the re-used frame.
- */
-void BrusaNLG5::prepareOutputFrame(uint32_t id)
-{
-    outputFrame.length = 8;
-    outputFrame.id = id;
-    outputFrame.extended = 0;
-    outputFrame.rtr = 0;
-
-    outputFrame.data.bytes[0] = 0;
-    outputFrame.data.bytes[1] = 0;
-    outputFrame.data.bytes[2] = 0;
-    outputFrame.data.bytes[3] = 0;
-    outputFrame.data.bytes[4] = 0;
-    outputFrame.data.bytes[5] = 0;
-    outputFrame.data.bytes[6] = 0;
-    outputFrame.data.bytes[7] = 0;
 }
 
 /*
@@ -328,14 +305,6 @@ void BrusaNLG5::processError(uint8_t data[])
 }
 
 /*
- * Return the device type
- */
-DeviceType BrusaNLG5::getType()
-{
-    return (DEVICE_CHARGER);
-}
-
-/*
  * Return the device id of this device
  */
 DeviceId BrusaNLG5::getId()
@@ -365,7 +334,7 @@ void BrusaNLG5::loadConfiguration()
         setConfiguration(config);
     }
 
-    Device::loadConfiguration(); // call parent
+    Charger::loadConfiguration(); // call parent
 
 #ifdef USE_HARD_CODED
 
@@ -404,7 +373,7 @@ void BrusaNLG5::saveConfiguration()
 {
     BrusaNLG5Configuration *config = (BrusaNLG5Configuration *) getConfiguration();
 
-    Device::saveConfiguration(); // call parent
+    Charger::saveConfiguration(); // call parent
 
     prefsHandler->write(CHRG_MAX_MAINS_CURRENT, config->maxMainsCurrent);
     prefsHandler->write(CHRG_CONSTANT_CURRENT, config->constantCurrent);

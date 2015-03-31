@@ -231,6 +231,27 @@ void CanHandler::process()
     }
 }
 
+/*
+ * Prepare the CAN transmit frame.
+ * Re-sets all parameters in the re-used frame.
+ */
+void CanHandler::prepareOutputFrame(CAN_FRAME *frame, uint32_t id)
+{
+    frame->length = 8;
+    frame->id = id;
+    frame->extended = 0;
+    frame->rtr = 0;
+
+    frame->data.bytes[0] = 0;
+    frame->data.bytes[1] = 0;
+    frame->data.bytes[2] = 0;
+    frame->data.bytes[3] = 0;
+    frame->data.bytes[4] = 0;
+    frame->data.bytes[5] = 0;
+    frame->data.bytes[6] = 0;
+    frame->data.bytes[7] = 0;
+}
+
 //Allow the canbus driver to figure out the proper mailbox to use
 //(whatever happens to be open) or queue it to send (if nothing is open)
 void CanHandler::sendFrame(CAN_FRAME& frame)

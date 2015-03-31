@@ -91,6 +91,9 @@ Status::Status() {
     brakeLight          = false;
     reverseLight        = false;
 
+    temperatureController = -9999;
+    temperatureMotor = -9999;
+
     for (int i = 0; i < CFG_NUMBER_DIGITAL_OUTPUTS; i++) {
         digitalOutput[i] = false;
     }

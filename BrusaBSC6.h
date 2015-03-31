@@ -117,7 +117,6 @@ public:
     void handleTick();
     void handleCanFrame(CAN_FRAME *frame);
     void setup();
-    DeviceType getType();
     DeviceId getId();
     uint32_t getTickInterval();
 
@@ -152,7 +151,6 @@ private:
 
     void sendCommand();
     void sendLimits();
-    void prepareOutputFrame(uint32_t);
     void processValues1(uint8_t data[]);
     void processValues2(uint8_t data[]);
     void processDebug1(uint8_t data[]);

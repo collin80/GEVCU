@@ -42,6 +42,7 @@ extern PrefHandler *sysPrefs;
 SystemIO::SystemIO() {
     configuration = new SystemIOConfiguration();
     prefsHandler = new PrefHandler(SYSTEM);
+    canHandlerEv = CanHandler::getInstanceEV();
     status = Status::getInstance();
     preChargeStart = 0;
     coolflag = false;
@@ -65,8 +66,22 @@ void SystemIO::setup() {
     initializeAnalogIO();
     printIOStatus();
 
+    canHandlerEv->attach(this, CAN_MASKED_ID, CAN_MASK, false);
+
     TickHandler::getInstance()->attach(this, CFG_TICK_INTERVAL_SYSTEM_IO);
 }
+
+/*
+ * Processes an event from the CanHandler.
+ */
+void SystemIO::handleCanFrame(CAN_FRAME *frame) {
+    switch (frame->id) {
+    case CAN_ID_GEVCU_EXT_TEMPERATURE:
+        processExternalTemperature(frame->data.byte);
+        break;
+    }
+}
+
 
 void SystemIO::handleTick() {
     if(status->getSystemState() == Status::preCharge) {
@@ -76,6 +91,8 @@ void SystemIO::handleTick() {
         handleCooling();
     }
     updateDigitalInputStatus();
+
+    sendIOStatus();
 }
 
 /*
@@ -87,6 +104,58 @@ void SystemIO::updateDigitalInputStatus() {
     status->digitalInput[2] = getDigitalIn(2);
     status->digitalInput[3] = getDigitalIn(3);
 }
+
+/*
+ * Send the status of the IO over CAN so it can be used by other devices.
+ */
+void SystemIO::sendIOStatus() {
+    canHandlerEv->prepareOutputFrame(&outputFrame, CAN_ID_GEVCU_STATUS);
+
+    uint16_t rawIO = 0;
+    rawIO |= status->digitalInput[0] ? digitalIn1 : 0;
+    rawIO |= status->digitalInput[1] ? digitalIn2 : 0;
+    rawIO |= status->digitalInput[2] ? digitalIn3 : 0;
+    rawIO |= status->digitalInput[3] ? digitalIn4 : 0;
+    rawIO |= status->digitalOutput[0] ? digitalOut1 : 0;
+    rawIO |= status->digitalOutput[1] ? digitalOut2 : 0;
+    rawIO |= status->digitalOutput[2] ? digitalOut3 : 0;
+    rawIO |= status->digitalOutput[3] ? digitalOut4 : 0;
+    rawIO |= status->digitalOutput[4] ? digitalOut5 : 0;
+    rawIO |= status->digitalOutput[5] ? digitalOut6 : 0;
+    rawIO |= status->digitalOutput[6] ? digitalOut7 : 0;
+    rawIO |= status->digitalOutput[7] ? digitalOut8 : 0;
+
+    outputFrame.data.byte[0] = (rawIO & 0xFF00) >> 8;
+    outputFrame.data.byte[1] = (rawIO & 0x00FF);
+
+    uint16_t logicIO = 0;
+//    logicIO |= .. ? heatingPump : 0;
+//    logicIO |= .. ? batteryHeater : 0;
+//    logicIO |= .. ? chargePowerAvailable : 0;
+//    logicIO |= .. ? activateCharger : 0;
+    logicIO |= status->reverseLight ? reverseLight : 0;
+    logicIO |= status->brakeLight ? brakeLight : 0;
+//    logicIO |= .. ? coolingPump : 0;
+    logicIO |= status->coolingFanRelay ? coolingFan : 0;
+    logicIO |= status->secondaryContactorRelay ? secondayContactor : 0;
+    logicIO |= status->mainContactorRelay ? mainContactor : 0;
+    logicIO |= status->preChargeRelay ? preChargeRelay : 0;
+    logicIO |= status->enableOut ? enableSignalOut : 0;
+    logicIO |= status->enableIn ? enableSignalIn : 0;
+
+    outputFrame.data.byte[2] = (logicIO & 0xFF00) >> 8;
+    outputFrame.data.byte[3] = (logicIO & 0x00FF);
+
+    outputFrame.data.byte[4] = status->getSystemState();
+
+    uint8_t stat = 0;
+    stat |= status->warning ? warning : 0;
+    stat |= status->limitationTorque ? powerLimitation : 0;
+    outputFrame.data.byte[5] = stat;
+
+    canHandlerEv->sendFrame(outputFrame);
+}
+
 
 /*
  * Handle the pre-charge sequence.
@@ -106,7 +175,7 @@ void SystemIO::handlePreCharge() {
         preChargeStart = millis();
         setPrechargeRelayOutput(true);
 
-#ifdef THREE_CONTACTOR_PRECHARGE
+#ifdef CFG_THREE_CONTACTOR_PRECHARGE
         if (configuration->secondaryContactorOutput != CFG_OUTPUT_NONE) {
             delay(CFG_PRE_CHARGE_RELAY_DELAY);
             setSecondaryContactorRelayOutput(true);
@@ -150,6 +219,13 @@ void SystemIO::handleCooling() {
     }
 }
 
+void SystemIO::processExternalTemperature(byte bytes[]) {
+	for (int i = 0; i < 8; i++) {
+		status->externalTemperature[i] = bytes[i] - 50;
+Logger::info("external temperature %d: %d", i, status->externalTemperature[i]);
+	}
+}
+
 /*
  * Get the the input signal for the car's enable signal.
  */
@@ -168,9 +244,9 @@ bool SystemIO::getEnableInput() {
 void SystemIO::setPrechargeRelayOutput(bool enabled) {
     if (configuration->prechargeOutput != CFG_OUTPUT_NONE) {
         setDigitalOut(configuration->prechargeOutput, enabled);
-        status->preChargeRelay = enabled;
-        printIOStatus();
     }
+    status->preChargeRelay = enabled;
+    sendIOStatus();
 }
 
 /*
@@ -179,9 +255,9 @@ void SystemIO::setPrechargeRelayOutput(bool enabled) {
 void SystemIO::setMainContactorRelayOutput(bool enabled) {
     if (configuration->mainContactorOutput != CFG_OUTPUT_NONE) {
         setDigitalOut(configuration->mainContactorOutput, enabled);
-        status->mainContactorRelay = enabled;
-        printIOStatus();
     }
+    status->mainContactorRelay = enabled;
+    sendIOStatus();
 }
 
 /*
@@ -190,9 +266,9 @@ void SystemIO::setMainContactorRelayOutput(bool enabled) {
 void SystemIO::setSecondaryContactorRelayOutput(bool enabled) {
     if (configuration->secondaryContactorOutput != CFG_OUTPUT_NONE) {
         setDigitalOut(configuration->secondaryContactorOutput, enabled);
-        status->secondaryContactorRelay = enabled;
-        printIOStatus();
     }
+    status->secondaryContactorRelay = enabled;
+    sendIOStatus();
 }
 
 /*
@@ -201,9 +277,9 @@ void SystemIO::setSecondaryContactorRelayOutput(bool enabled) {
 void SystemIO::setEnableRelayOutput(bool enabled) {
     if (configuration->enableOutput != CFG_OUTPUT_NONE) {
         setDigitalOut(configuration->enableOutput, enabled);
-        status->enableOut = enabled;
-        printIOStatus();
     }
+    status->enableOut = enabled;
+    sendIOStatus();
 }
 
 /*
@@ -212,9 +288,9 @@ void SystemIO::setEnableRelayOutput(bool enabled) {
 void SystemIO::setBrakeLightOutput(bool enabled) {
     if (configuration->brakeLightOutput != CFG_OUTPUT_NONE) {
         setDigitalOut(configuration->brakeLightOutput, enabled);
-        status->brakeLight = enabled;
-        printIOStatus();
     }
+    status->brakeLight = enabled;
+    sendIOStatus();
 }
 
 /*
@@ -223,9 +299,9 @@ void SystemIO::setBrakeLightOutput(bool enabled) {
 void SystemIO::setReverseLightOutput(bool enabled) {
     if (configuration->reverseLightOutput != CFG_OUTPUT_NONE) {
         setDigitalOut(configuration->reverseLightOutput, enabled);
-        status->reverseLight = enabled;
-        printIOStatus();
     }
+    status->reverseLight = enabled;
+    sendIOStatus();
 }
 
 
@@ -235,9 +311,9 @@ void SystemIO::setReverseLightOutput(bool enabled) {
 void SystemIO::setCoolingFanRelayOutput(bool enabled) {
     if (configuration->coolingFanOutput != CFG_OUTPUT_NONE) {
         setDigitalOut(configuration->coolingFanOutput, enabled);
-        status->coolingFanRelay = enabled;
-        printIOStatus();
     }
+    status->coolingFanRelay = enabled;
+    sendIOStatus();
 }
 
 /*
@@ -342,6 +418,7 @@ void SystemIO::setDigitalOut(uint8_t which, boolean active) {
 
     digitalWrite(out[which], active ? HIGH : LOW);
     status->digitalOutput[which] = active;
+    printIOStatus();
 }
 
 /*

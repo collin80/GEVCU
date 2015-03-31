@@ -203,9 +203,6 @@ void createDevices()
 
 void setup()
 {
-    pinMode(BLINK_LED, OUTPUT);
-    digitalWrite(BLINK_LED, LOW);
-
     SerialUSB.begin(CFG_SERIAL_SPEED);
     SerialUSB.println(CFG_VERSION);
     SerialUSB.print("Build number: ");

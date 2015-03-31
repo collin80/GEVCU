@@ -65,10 +65,8 @@ void BrusaBSC6::setup()
 {
     tickHandler->detach(this);
 
-    Logger::info("add device: %s (id: %X, %X)", commonName, BRUSA_BSC6, this);
-
     loadConfiguration();
-    Device::setup(); // call parent
+    DcDcConverter::setup(); // call parent
 
     // register ourselves as observer of 0x26a-0x26f can frames
     canHandlerEv->attach(this, CAN_MASKED_ID, CAN_MASK, false);
@@ -81,7 +79,7 @@ void BrusaBSC6::setup()
  */
 void BrusaBSC6::handleTick()
 {
-    Device::handleTick(); // call parent
+    DcDcConverter::handleTick(); // call parent
 
     sendCommand();
     sendLimits();
@@ -96,7 +94,7 @@ void BrusaBSC6::handleTick()
 void BrusaBSC6::sendCommand()
 {
     BrusaBSC6Configuration *config = (BrusaBSC6Configuration *) getConfiguration();
-    prepareOutputFrame(CAN_ID_COMMAND);
+    canHandlerEv->prepareOutputFrame(&outputFrame, CAN_ID_COMMAND);
 
     if ((status->getSystemState() == Status::running)
             && systemIO->getEnableInput()) {
@@ -123,7 +121,7 @@ void BrusaBSC6::sendCommand()
 void BrusaBSC6::sendLimits()
 {
     BrusaBSC6Configuration *config = (BrusaBSC6Configuration *) getConfiguration();
-    prepareOutputFrame(CAN_ID_LIMIT);
+    canHandlerEv->prepareOutputFrame(&outputFrame, CAN_ID_LIMIT);
 
     outputFrame.data.bytes[0] = config->hvUndervoltageLimit - 170;
     outputFrame.data.bytes[1] = config->lvBuckModeCurrentLimit;
@@ -133,27 +131,6 @@ void BrusaBSC6::sendLimits()
     outputFrame.data.bytes[5] = config->hvBoostModeCurrentLimit;
 
 //    canHandlerEv->sendFrame(outputFrame);
-}
-
-/*
- * Prepare the CAN transmit frame.
- * Re-sets all parameters in the re-used frame.
- */
-void BrusaBSC6::prepareOutputFrame(uint32_t id)
-{
-    outputFrame.length = 8;
-    outputFrame.id = id;
-    outputFrame.extended = 0;
-    outputFrame.rtr = 0;
-
-    outputFrame.data.bytes[0] = 0;
-    outputFrame.data.bytes[1] = 0;
-    outputFrame.data.bytes[2] = 0;
-    outputFrame.data.bytes[3] = 0;
-    outputFrame.data.bytes[4] = 0;
-    outputFrame.data.bytes[5] = 0;
-    outputFrame.data.bytes[6] = 0;
-    outputFrame.data.bytes[7] = 0;
 }
 
 /*
@@ -253,7 +230,7 @@ void BrusaBSC6::processValues2(uint8_t data[])
 //    brokenTemperatureSensor
 
     if (Logger::isDebug()) {
-        Logger::debug(BRUSA_BSC6, "error bitfield: %X, LV current avail: %dA, maximum Temperature: %d°C", bitfield, lvCurrentAvailable, maxTemperature);
+        Logger::debug(BRUSA_BSC6, "error bitfield: %X, LV current avail: %dA, maximum Temperature: %dï¿½C", bitfield, lvCurrentAvailable, maxTemperature);
     }
 }
 
@@ -274,10 +251,10 @@ void BrusaBSC6::processDebug1(uint8_t data[])
     temperatureTransformerCoil2 = (uint8_t)data[7];
 
     if (Logger::isDebug()) {
-        Logger::debug(BRUSA_BSC6, "Temp buck/boost switch 1: %d°C, switch 2: %d°C", temperatureBuckBoostSwitch1, temperatureBuckBoostSwitch2);
-        Logger::debug(BRUSA_BSC6, "Temp HV trafostage switch 1: %d°C, switch 2: %d°C", temperatureHvTrafostageSwitch1, temperatureHvTrafostageSwitch2);
-        Logger::debug(BRUSA_BSC6, "Temp LV trafostage switch 1: %d°C, switch 2: %d°C", temperatureLvTrafostageSwitch1, temperatureLvTrafostageSwitch2);
-        Logger::debug(BRUSA_BSC6, "Temp transformer coil 1: %d°C, coil 2: %d°C", temperatureTransformerCoil1, temperatureTransformerCoil2);
+        Logger::debug(BRUSA_BSC6, "Temp buck/boost switch 1: %dï¿½C, switch 2: %dï¿½C", temperatureBuckBoostSwitch1, temperatureBuckBoostSwitch2);
+        Logger::debug(BRUSA_BSC6, "Temp HV trafostage switch 1: %dï¿½C, switch 2: %dï¿½C", temperatureHvTrafostageSwitch1, temperatureHvTrafostageSwitch2);
+        Logger::debug(BRUSA_BSC6, "Temp LV trafostage switch 1: %dï¿½C, switch 2: %dï¿½C", temperatureLvTrafostageSwitch1, temperatureLvTrafostageSwitch2);
+        Logger::debug(BRUSA_BSC6, "Temp transformer coil 1: %dï¿½C, coil 2: %dï¿½C", temperatureTransformerCoil1, temperatureTransformerCoil2);
     }
 }
 
@@ -299,14 +276,6 @@ void BrusaBSC6::processDebug2(uint8_t data[])
         Logger::debug(BRUSA_BSC6, "LS actual current: %fA, LS commanded current: %fA", (float) internal12VSupplyVoltage / 200.0F, (float) lsActualVoltage / 200.0F);
         Logger::debug(BRUSA_BSC6, "internal power state: %d", internalOperationState);
     }
-}
-
-/*
- * Return the device type
- */
-DeviceType BrusaBSC6::getType()
-{
-    return (DEVICE_DCDC);
 }
 
 /*
@@ -339,7 +308,7 @@ void BrusaBSC6::loadConfiguration()
         setConfiguration(config);
     }
 
-    Device::loadConfiguration(); // call parent
+    DcDcConverter::loadConfiguration(); // call parent
 
 #ifdef USE_HARD_CODED
 
@@ -389,7 +358,7 @@ void BrusaBSC6::saveConfiguration()
 {
     BrusaBSC6Configuration *config = (BrusaBSC6Configuration *) getConfiguration();
 
-    Device::saveConfiguration(); // call parent
+    DcDcConverter::saveConfiguration(); // call parent
 
     prefsHandler->write(DCDC_BOOST_MODE, (uint8_t) (config->boostMode ? 1 : 0));
     prefsHandler->write(DCDC_DEBUG_MODE, (uint8_t) (config->debugMode ? 1 : 0));
