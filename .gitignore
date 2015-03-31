@@ -2,6 +2,7 @@
 bin/
 bin-debug/
 bin-release/
+.ino.cpp
 
 # Other files and folders
 .settings/
