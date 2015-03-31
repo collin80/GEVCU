@@ -36,3 +36,11 @@ DcDcConverter::~DcDcConverter()
 {
 }
 
+/*
+ * Return the device type
+ */
+DeviceType DcDcConverter::getType()
+{
+    return (DEVICE_DCDC);
+}
+

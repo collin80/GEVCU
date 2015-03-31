@@ -32,12 +32,20 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include <Arduino.h>
 #include "config.h"
 #include "Device.h"
+#include "CanHandler.h"
+
+class DcDcConverterConfiguration : public DeviceConfiguration
+{
+public:
+};
 
 class DcDcConverter : public Device
 {
 public:
 	DcDcConverter();
     ~DcDcConverter();
+    DeviceType getType();
+
 protected:
 
 private:

@@ -182,7 +182,6 @@ private:
     void sendControl();
     void sendControl2();
     void sendLimits();
-    void prepareOutputFrame(uint32_t);
     void processStatus(uint8_t data[]);
     void processActualValues(uint8_t data[]);
     void processErrors(uint8_t data[]);

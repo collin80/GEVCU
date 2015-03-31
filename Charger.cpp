@@ -36,3 +36,10 @@ Charger::~Charger()
 {
 }
 
+/*
+ * Return the device type
+ */
+DeviceType Charger::getType()
+{
+    return (DEVICE_CHARGER);
+}

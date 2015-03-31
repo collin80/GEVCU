@@ -38,6 +38,7 @@ class Charger : public Device
 public:
     Charger();
     ~Charger();
+    DeviceType getType();
 protected:
 
 private:
