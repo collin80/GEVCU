@@ -70,7 +70,6 @@ public:
     virtual void handleTick();
     virtual void handleCanFrame(CAN_FRAME *frame);
     virtual void setup();
-    void setOpState(OperationState op);
     void setGear(Gears gear);
 
     DmocMotorController();
@@ -82,8 +81,7 @@ public:
 
 private:
     Gears actualGear;
-    OperationState operationState; //the op state we want
-    OperationState actualState; //what the controller is reporting it is
+    OperationState actualState; // the operation state the controller is reporting
     int step;
     byte online; //counter for whether DMOC appears to be operating
     byte alive;

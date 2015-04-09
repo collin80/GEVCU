@@ -30,11 +30,12 @@
 
 #include <Arduino.h>
 #include "Logger.h"
+#include "Sys_Messages.h"
 
 class Status {
 public:
     enum SystemState {
-        unknown     = 0, // at start-up the system state is unknown (next states: init, error)
+        startup     = 0, // the system is starting-up (next states: init, error)
         init        = 1, // the system is being initialized and is not ready for operation yet (next states: preCharge, ready, error)
         preCharge   = 2, // the system is initialized and executing the pre-charge cycle (next states: ready, error)
         preCharged  = 3, // the system is pre-charged, the pre-charge cycle is finished
@@ -104,16 +105,21 @@ public:
     bool mainContactorRelay; // is the main contactor relay activated ?
     bool secondaryContactorRelay; // is the secondary relay activated ?
     bool enableOut; // is the 'enable' output activated ?
-    bool coolingFanRelay; // is the cooling relay activated ?
-    bool brakeLight; // is the brake light activated ?
-    bool reverseLight; // is the reverse light activated ?
+    bool coolingFan; // is the cooling relay activated ?
+    bool coolingPump; // is the cooling pump relay activated ?
+    bool brakeLight; // is the brake light relay activated ?
+    bool reverseLight; // is the reverse light relay activated ?
+    bool heatingPump; // is the heating pump relay enabled ?
+    bool batteryHeater; // is the battery heater realy enabled ?
+    bool chargePowerAvailable; // is shore power available (connected to charging station)
+    bool activateCharger; // is the charger (relay) activated ?
 
     bool digitalInput[CFG_NUMBER_DIGITAL_INPUTS]; // the the digital input x activated ?
     bool digitalOutput[CFG_NUMBER_DIGITAL_OUTPUTS]; // the the digital output x activated ?
 
     int16_t temperatureController; // temperature reported by the motor controller (in 0.1 degree celsius)
     int16_t temperatureMotor; // temperature reported by the motor (in 0.1 degree celsius)
-    int16_t externalTemperature[8]; // temperature reported via CAN from external device
+    int16_t externalTemperature[CFG_NUMBER_TEMPERATURE_SENSORS]; // temperature reported via CAN from external device
 
     static Status *getInstance();
     SystemState getSystemState();
@@ -122,6 +128,8 @@ public:
     uint32_t getBitField1();
     uint32_t getBitField2();
     uint32_t getBitField3();
+    uint16_t getLowestExternalTemperature();
+    uint16_t getHighestExternalTemperature();
 
 private:
     Status();

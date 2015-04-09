@@ -33,6 +33,9 @@ Device::Device()
     tickHandler = TickHandler::getInstance();
     systemIO = SystemIO::getInstance();
 
+    deviceReady = false;
+    deviceRunning = false;
+
     deviceConfiguration = NULL;
     prefsHandler = NULL;
     commonName = "Generic Device";
@@ -65,12 +68,50 @@ bool Device::isEnabled()
     return prefsHandler->isEnabled();
 }
 
+/**
+ * Is the device itself ready for operation ?
+ */
+bool Device::isReady()
+{
+    return deviceReady;
+}
+
+/**
+ * Is the device reporting that it's running ?
+ */
+bool Device::isRunning()
+{
+    return deviceRunning;
+}
+
+/**
+ * Handle incoming messages from the DeviceManager. A message might
+ * indicate a change in the system state, a command to reload the configuration
+ * or other actions.
+ */
 void Device::handleMessage(uint32_t msgType, void* message)
 {
     switch (msgType) {
-        case MSG_STARTUP:
+    case MSG_SOFT_FAULT:
+        //TODO: implement action/method for soft fault
+        break;
+    case MSG_HARD_FAULT:
+        //TODO: implement action/method for hard fault
+        break;
+    case MSG_DISABLE:
+        //TODO: implement action/method to disable device (if possible without restart)
+        break;
+    case MSG_ENABLE:
+        //TODO: implement action/method to enable device (if possible without restart)
+        break;
+    case MSG_STATE_CHANGE:
+        Status::SystemState state = *(Status::SystemState *) message;
+        switch (state) {
+        case Status::init:
             this->setup();
             break;
+        }
+        break;
     }
 }
 

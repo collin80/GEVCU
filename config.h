@@ -67,6 +67,7 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #define CFG_TICK_INTERVAL_CHARGE_NLG5               100000
 #define CFG_TICK_INTERVAL_WIFI                      200000
 #define CFG_TICK_INTERVAL_SYSTEM_IO                 200000
+#define CFG_TICK_INTERVAL_CAN_IO                    200000
 
 /*
  * CAN BUS CONFIGURATION
@@ -82,8 +83,10 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  *
  */
 #define CFG_THROTTLE_TOLERANCE  150 //the max that things can go over or under the min/max without fault - 1/10% each #
-#define CFG_PRE_CHARGE_RELAY_DELAY 100
+#define CFG_PRE_CHARGE_RELAY_DELAY 200 // a delay to allow relays to (de-)activate before proceeding with next steps
 //#define CFG_THREE_CONTACTOR_PRECHARGE // do we use three contactors instead of two for pre-charge cycle ?
+#define CFG_NO_TEMPERATURE_DATA 9999 // temperature used to indicate that no external temp sensor is connected
+#define CFG_MIN_BATTERY_CHARGE_TEMPERATURE 5 // GEVCU won't start the battery charging process if the battery temp is below 5 deg C
 
 /*
  * HARD CODED PARAMETERS
@@ -159,5 +162,6 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #define CFG_NUMBER_ANALOG_INPUTS  4
 #define CFG_NUMBER_DIGITAL_INPUTS 4
 #define CFG_NUMBER_DIGITAL_OUTPUTS  8
+#define CFG_NUMBER_TEMPERATURE_SENSORS 8 // the maximum supported external temperature sensors
 
 #endif /* CONFIG_H_ */

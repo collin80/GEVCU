@@ -33,7 +33,7 @@
 Throttle::Throttle() : Device()
 {
     level = 0;
-    status = OK;
+    throttleStatus = OK;
 }
 
 /*
@@ -51,8 +51,10 @@ void Throttle::handleTick()
     if (validateSignal(rawSignals)) {  // validate the raw data
         uint16_t position = calculatePedalPosition(rawSignals);  // bring the raw data into a range of 0-1000 (without mapping)
         level = mapPedalPosition(position);  // apply mapping of the 0-1000 range to the user defined settings
+        deviceRunning = true;
     } else {
         level = 0;
+        deviceRunning = false;
     }
 }
 
@@ -165,7 +167,7 @@ int16_t Throttle::getLevel()
  */
 Throttle::ThrottleStatus Throttle::getStatus()
 {
-    return status;
+    return throttleStatus;
 }
 
 /*
@@ -173,7 +175,7 @@ Throttle::ThrottleStatus Throttle::getStatus()
  */
 bool Throttle::isFaulted()
 {
-    return status != OK;
+    return throttleStatus != OK;
 }
 
 /*

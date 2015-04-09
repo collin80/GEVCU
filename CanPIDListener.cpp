@@ -50,6 +50,10 @@ void CanPIDListener::setup()
     //TODO: FIXME Quickly coded as hard coded values. This is naughty.
     canHandlerEv->attach(this, 0x7DF, 0x7DF, false);
     canHandlerEv->attach(this, 0x7E0, 0x7E0, false);
+
+    deviceReady = true;
+    deviceRunning = true;
+
     //tickHandler->attach(this, CFG_TICK_INTERVAL_CAN_THROTTLE);
 }
 

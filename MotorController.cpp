@@ -35,7 +35,10 @@ MotorController::MotorController() : Device()
     temperatureMotor = 0;
     temperatureController = 0;
 
+    powerOn = false;
     powerMode = modeTorque;
+    selectedGear = NEUTRAL;
+
     throttleRequested = 0;
     speedRequested = 0;
     speedActual = 0;
@@ -43,8 +46,6 @@ MotorController::MotorController() : Device()
     torqueActual = 0;
     torqueAvailable = 0;
     mechanicalPower = 0;
-
-    selectedGear = NEUTRAL;
 
     dcVoltage = 0;
     dcCurrent = 0;
@@ -89,7 +90,7 @@ void MotorController::handleTick()
     Throttle *accelerator = deviceManager->getAccelerator();
     Throttle *brake = deviceManager->getBrake();
 
-    if (status->getSystemState() == Status::running && accelerator) {
+    if (powerOn && accelerator) {
         throttleRequested = accelerator->getLevel();
         if (brake && brake->getLevel() < -10 && brake->getLevel() < accelerator->getLevel()) { //if the brake has been pressed it overrides the accelerator.
             throttleRequested = brake->getLevel();
@@ -103,7 +104,7 @@ void MotorController::handleTick()
     status->temperatureMotor = temperatureMotor;
 
     //Logger::debug("Throttle: %d", throttleRequested);
-    if (skipcounter++ > 30) { //As how fast we turn on cooling is very low priority, we only check cooling every 24th lap or about once per second
+    if (skipcounter++ > 30) {
         prefsHandler->write(EEMC_KILOWATTHRS, kiloWattHours);
         prefsHandler->saveChecksum();
         skipcounter = 0;
@@ -115,6 +116,21 @@ void MotorController::handleCanFrame(CAN_FRAME *frame)
 {
 }
 
+/**
+ * act on messages the super-class does not react upon, like state change
+ * to ready or running which should enable/disable the power-stage of the controller
+ */
+void MotorController::handleMessage(uint32_t msgType, void* message)
+{
+    Device::handleMessage(msgType, message);
+
+    switch (msgType) {
+    case MSG_STATE_CHANGE:
+        Status::SystemState state = *(Status::SystemState *) message;
+        powerOn = (state == Status::running ? true : false);
+        break;
+    }
+}
 
 void MotorController::setup()
 {
@@ -185,7 +201,7 @@ uint16_t MotorController::getAcCurrent()
     return acCurrent;
 }
 
-int16_t MotorController::getnominalVolt()
+int16_t MotorController::getNominalVolt()
 {
     return nominalVolts;
 }

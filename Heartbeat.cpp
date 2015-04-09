@@ -35,12 +35,14 @@ Heartbeat::Heartbeat() : Device()
 
 void Heartbeat::setup()
 {
-    TickHandler::getInstance()->detach(this);
+    tickHandler->detach(this);
 
     pinMode(CFG_BLINK_LED, OUTPUT);
     digitalWrite(CFG_BLINK_LED, LOW);
+    deviceReady = true;
+    deviceRunning = true;
 
-    TickHandler::getInstance()->attach(this, CFG_TICK_INTERVAL_HEARTBEAT);
+    tickHandler->attach(this, CFG_TICK_INTERVAL_HEARTBEAT);
 }
 
 void Heartbeat::setThrottleDebug(bool debug)
@@ -98,3 +100,12 @@ void Heartbeat::handleTick()
     }
 }
 
+DeviceType Heartbeat::getType()
+{
+    return DEVICE_MISC;
+}
+
+DeviceId Heartbeat::getId()
+{
+    return HEARTBEAT;
+}

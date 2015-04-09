@@ -89,7 +89,7 @@ void BrusaNLG5::sendControl()
     BrusaNLG5Configuration *config = (BrusaNLG5Configuration *) getConfiguration();
     canHandlerEv->prepareOutputFrame(&outputFrame, CAN_ID_COMMAND);
 
-    if ((status->getSystemState() == Status::running) && systemIO->getEnableInput()) {
+    if (status->getSystemState() == Status::charging && (deviceReady || deviceRunning)) {
         outputFrame.data.bytes[0] |= enable;
     }
     if (errorPresent && clearErrorLatch) {
@@ -157,6 +157,9 @@ void BrusaNLG5::processStatus(uint8_t data[])
     bitfield = (uint32_t)((data[1] << 0) | (data[0] << 8) | (data[3] << 16) | (data[2] << 24));
 
     //TODO: handle bit field values
+//    ready = ...;
+//    running = ...;
+
 //    limitPowerMaximum
 //    limitPowerControlPilot
 //    limitPowerIndicatorInput

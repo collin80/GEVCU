@@ -47,7 +47,6 @@ DmocMotorController::DmocMotorController() : MotorController()
 {
     prefsHandler = new PrefHandler(DMOC645);
     step = SPEED_TORQUE;
-    operationState = DISABLED;
     actualState = DISABLED;
     online = 0;
     activityCount = 0;
@@ -125,35 +124,37 @@ void DmocMotorController::handleCanFrame(CAN_FRAME *frame)
 
                 case 2: //ready (standby)
                     actualState = STANDBY;
-                    status->setSystemState(Status::ready);
- //                   ready = true;
                     break;
 
                 case 3: //enabled
                     actualState = ENABLE;
-                    status->setSystemState(Status::running);
                     break;
 
                 case 4: //Power Down
                     actualState = POWERDOWN;
-                    status->setSystemState(Status::ready);
                     break;
 
                 case 5: //Fault
                     actualState = DISABLED;
+                    Logger::error(DMOC645, "Inverter reports fault");
                     status->setSystemState(Status::error);
                     break;
 
                 case 6: //Critical Fault
                     actualState = DISABLED;
+                    Logger::error(DMOC645, "Inverter reports critical fault");
                     status->setSystemState(Status::error);
                     break;
 
                 case 7: //LOS
                     actualState = DISABLED;
+                    Logger::error(DMOC645, "Inverter reports LOS");
                     status->setSystemState(Status::error);
                     break;
             }
+
+            deviceReady = (actualState == STANDBY) || (actualState == ENABLE) ? true : false;
+            deviceRunning = (actualState == ENABLE) ? true : false;
 
 //      Logger::debug("OpState: %d", temp);
             activityCount++;
@@ -175,7 +176,6 @@ void DmocMotorController::handleCanFrame(CAN_FRAME *frame)
 */
 void DmocMotorController::handleTick()
 {
-
     MotorController::handleTick(); //kick the ball up to papa
 
     if (activityCount > 0) {
@@ -185,8 +185,7 @@ void DmocMotorController::handleTick()
             activityCount = 60;
         }
 
-        if (actualState == DISABLED && activityCount > 40) {
-            setOpState(ENABLE);
+        if (powerOn && activityCount > 40) {
             setGear(DRIVE);
         }
     } else {
@@ -201,12 +200,6 @@ void DmocMotorController::handleTick()
     setPowerMode(modeTorque);
     //}
 
-    //but, if the second input is high we cancel the whole thing and disable the drive.
-    if (systemIO->getEnableInput() /*|| !systemIO->getDigital(0)*/) {
-        setOpState(DISABLED);
-        //runThrottle = false;
-    }
-
     //if (online == 1) { //only send out commands if the controller is really there.
     step = CHAL_RESP;
     sendCmd1();
@@ -215,8 +208,6 @@ void DmocMotorController::handleTick()
     //sendCmd4();
     //sendCmd5();
     //}
-
-
 }
 
 //Commanded RPM plus state of key and gear selector
@@ -231,7 +222,7 @@ void DmocMotorController::sendCmd1()
     output.extended = 0; //standard frame
     output.rtr = 0;
 
-    if (throttleRequested > 0 && operationState == ENABLE && selectedGear != NEUTRAL && powerMode == modeSpeed) {
+    if (throttleRequested > 0 && powerOn && selectedGear != NEUTRAL && powerMode == modeSpeed) {
         speedRequested = 20000 + (((long) throttleRequested * (long) config->speedMax) / 1000);
     } else {
         speedRequested = 20000;
@@ -247,15 +238,15 @@ void DmocMotorController::sendCmd1()
     //handle proper state transitions
     newstate = DISABLED;
 
-    if (actualState == DISABLED && (operationState == STANDBY || operationState == ENABLE)) {
+    if (actualState == DISABLED && powerOn) {
         newstate = STANDBY;
     }
 
-    if ((actualState == STANDBY || actualState == ENABLE) && operationState == ENABLE) {
+    if ((actualState == STANDBY || actualState == ENABLE) && powerOn) {
         newstate = ENABLE;
     }
 
-    if (operationState == POWERDOWN) {
+    if (!powerOn) {
         newstate = POWERDOWN;
     }
 
@@ -377,7 +368,7 @@ void DmocMotorController::sendCmd5()
     output.data.bytes[1] = 127;
     output.data.bytes[2] = 0;
 
-    if (operationState == ENABLE && selectedGear != NEUTRAL) {
+    if (powerOn && selectedGear != NEUTRAL) {
         output.data.bytes[3] = 52;
         output.data.bytes[4] = 26;
         output.data.bytes[5] = 59; //drive
@@ -394,21 +385,9 @@ void DmocMotorController::sendCmd5()
     canHandlerEv->sendFrame(output);
 }
 
-void DmocMotorController::setOpState(OperationState op)
-{
-    operationState = op;
-}
-
 void DmocMotorController::setGear(Gears gear)
 {
     selectedGear = gear;
-
-    //if the gear was just set to drive or reverse and the DMOC is not currently in enabled
-    //op state then ask for it by name
-    if (selectedGear != NEUTRAL) {
-        operationState = ENABLE;
-    }
-
     //should it be set to standby when selecting neutral? I don't know. Doing that prevents regen
     //when in neutral and I don't think people will like that.
 }

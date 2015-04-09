@@ -87,6 +87,8 @@ void ICHIPWIFI::setup()
     paramCache.brakeNotAvailable = true;
 
     elmProc = new ELM327Processor();
+    deviceReady = true;
+    deviceRunning = true;
 
     tickHandler->attach(this, CFG_TICK_INTERVAL_WIFI);
 }

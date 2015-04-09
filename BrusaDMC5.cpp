@@ -107,11 +107,11 @@ void BrusaDMC5::sendControl()
 //    if (faulted) {
 //        outputFrame.data.bytes[0] |= clearErrorLatch;
 //    } else {
-        if ((status->getSystemState() == Status::running || speedActual > 1000) && systemIO->getEnableInput()) {   // see warning about field weakening current to prevent uncontrollable regen
+        if (powerOn || speedActual > 1000) {   // see warning about field weakening current to prevent uncontrollable regen
             outputFrame.data.bytes[0] |= enablePowerStage;
         }
 
-        if (status->getSystemState() == Status::running) {
+        if (powerOn && deviceRunning) {
             if (config->enableOscillationLimiter) {
                 outputFrame.data.bytes[0] |= enableOscillationLimiter;
             }
@@ -238,12 +238,8 @@ void BrusaDMC5::processStatus(uint8_t data[])
         Logger::debug(BRUSA_DMC5, "status: %X, torque avail: %fNm, actual torque: %fNm, speed actual: %drpm", bitfield, (float) torqueAvailable / 100.0F, (float) torqueActual / 100.0F, speedActual);
     }
 
-    if ((bitfield & stateReady) && status->getSystemState() == Status::preCharged) {
-        status->setSystemState(Status::ready);
-    }
-    if ((bitfield & stateRunning) && status->getSystemState() == Status::ready) {
-        status->setSystemState(Status::running);
-    }
+    deviceReady = (bitfield & ready) ? true : false;
+    deviceRunning = (bitfield & running) ? true : false;
     if ((bitfield & errorFlag) && status->getSystemState() != Status::error) {
         status->setSystemState(Status::error);
     }

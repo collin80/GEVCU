@@ -45,6 +45,7 @@ void PotThrottle::setup()
     loadConfiguration();
 
     Throttle::setup(); //call base class
+    deviceReady = true;
 
     //set digital ports to inputs and pull them up all inputs currently active low
     //pinMode(THROTTLE_INPUT_BRAKELIGHT, INPUT_PULLUP); //Brake light switch
@@ -89,20 +90,20 @@ bool PotThrottle::validateSignal(RawSignalData *rawSignal)
     }
 
     if (calcThrottle1 > (1000 + CFG_THROTTLE_TOLERANCE)) {
-        if (status == OK) {
+        if (throttleStatus == OK) {
             Logger::error(POTACCELPEDAL, "ERR_HIGH_T1: throttle 1 value out of range: %l", calcThrottle1);
         }
 
-        status = ERR_HIGH_T1;
+        throttleStatus = ERR_HIGH_T1;
         return false;
     }
 
     if (calcThrottle1 < (0 - CFG_THROTTLE_TOLERANCE)) {
-        if (status == OK) {
+        if (throttleStatus == OK) {
             Logger::error(POTACCELPEDAL, "ERR_LOW_T1: throttle 1 value out of range: %l ", calcThrottle1);
         }
 
-        status = ERR_LOW_T1;
+        throttleStatus = ERR_LOW_T1;
         return false;
     }
 
@@ -110,60 +111,60 @@ bool PotThrottle::validateSignal(RawSignalData *rawSignal)
         calcThrottle2 = normalizeInput(rawSignal->input2, config->minimumLevel2, config->maximumLevel2);
 
         if (calcThrottle2 > (1000 + CFG_THROTTLE_TOLERANCE)) {
-            if (status == OK) {
+            if (throttleStatus == OK) {
                 Logger::error(POTACCELPEDAL, "ERR_HIGH_T2: throttle 2 value out of range: %l", calcThrottle2);
             }
 
-            status = ERR_HIGH_T2;
+            throttleStatus = ERR_HIGH_T2;
             return false;
         }
 
         if (calcThrottle2 < (0 - CFG_THROTTLE_TOLERANCE)) {
-            if (status == OK) {
+            if (throttleStatus == OK) {
                 Logger::error(POTACCELPEDAL, "ERR_LOW_T2: throttle 2 value out of range: %l", calcThrottle2);
             }
 
-            status = ERR_LOW_T2;
+            throttleStatus = ERR_LOW_T2;
             return false;
         }
 
         if (config->throttleSubType == 2) {
             // inverted throttle 2 means the sum of the two throttles should be 1000
             if (abs(1000 - calcThrottle1 - calcThrottle2) > ThrottleMaxErrValue) {
-                if (status == OK)
+                if (throttleStatus == OK)
                     Logger::error(POTACCELPEDAL, "Sum of throttle 1 (%l) and throttle 2 (%l) exceeds max variance from 1000 (%l)",
                                   calcThrottle1, calcThrottle2, ThrottleMaxErrValue);
 
-                status = ERR_MISMATCH;
+                throttleStatus = ERR_MISMATCH;
                 return false;
             }
         } else {
             if ((calcThrottle1 - ThrottleMaxErrValue) > calcThrottle2) {  //then throttle1 is too large compared to 2
-                if (status == OK) {
+                if (throttleStatus == OK) {
                     Logger::error(POTACCELPEDAL, "throttle 1 too high (%l) compared to 2 (%l)", calcThrottle1, calcThrottle2);
                 }
 
-                status = ERR_MISMATCH;
+                throttleStatus = ERR_MISMATCH;
                 return false;
             }
 
             if ((calcThrottle2 - ThrottleMaxErrValue) > calcThrottle1) {  //then throttle2 is too large compared to 1
-                if (status == OK) {
+                if (throttleStatus == OK) {
                     Logger::error(POTACCELPEDAL, "throttle 2 too high (%l) compared to 1 (%l)", calcThrottle2, calcThrottle1);
                 }
 
-                status = ERR_MISMATCH;
+                throttleStatus = ERR_MISMATCH;
                 return false;
             }
         }
     }
 
     // all checks passed -> throttle is ok
-    if (status != OK) {
+    if (throttleStatus != OK) {
         Logger::info(POTACCELPEDAL, (char *) Constants::normalOperation);
     }
 
-    status = OK;
+    throttleStatus = OK;
     return true;
 }
 

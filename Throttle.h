@@ -88,7 +88,7 @@ public:
     void saveConfiguration();
 
 protected:
-    ThrottleStatus status;
+    ThrottleStatus throttleStatus;
     virtual bool validateSignal(RawSignalData *);
     virtual uint16_t calculatePedalPosition(RawSignalData *);
     virtual int16_t mapPedalPosition(int16_t);

@@ -64,6 +64,7 @@ void CanBrake::setup()
                 0x03, 0x22, 0x2B, 0x0D, 0x00, 0x00, 0x00, 0x00
             }, 8);
             responseId = 0x768;
+            deviceReady = true;
             break;
 
         case Volvo_V50_Diesel:
@@ -74,12 +75,12 @@ void CanBrake::setup()
 //      memcpy(requestFrame.data, (uint8_t[]){ 0xce, 0x11, 0xe6, 0x00, 0x24, 0x03, 0xfd, 0x00 }, 8);
 //      responseId = 0x21;
 //      responseExtended = true;
+//            ready = true;
             break;
 
         default:
             Logger::error(CANBRAKEPEDAL, "no valid car type defined.");
     }
-
     canHandlerCar->attach(this, responseId, responseMask, responseExtended);
     tickHandler->attach(this, CFG_TICK_INTERVAL_CAN_THROTTLE);
 }
@@ -118,6 +119,7 @@ void CanBrake::handleCanFrame(CAN_FRAME *frame)
                 break;
         }
 
+        deviceRunning = true;
         ticksNoResponse = 0;
     }
 }
@@ -132,38 +134,39 @@ bool CanBrake::validateSignal(RawSignalData* rawSignal)
     CanBrakeConfiguration *config = (CanBrakeConfiguration *) getConfiguration();
 
     if (ticksNoResponse >= CFG_CANTHROTTLE_MAX_NUM_LOST_MSG) {
-        if (status == OK) {
+        if (throttleStatus == OK) {
             Logger::error(CANBRAKEPEDAL, "no response on position request received: %d ", ticksNoResponse);
         }
 
-        status = ERR_MISC;
+        throttleStatus = ERR_MISC;
+        deviceRunning = false;
         return false;
     }
 
     if (rawSignal->input1 > (config->maximumLevel1 + CFG_THROTTLE_TOLERANCE)) {
-        if (status == OK) {
+        if (throttleStatus == OK) {
             Logger::error(CANBRAKEPEDAL, (char *) Constants::valueOutOfRange, rawSignal->input1);
         }
 
-        status = ERR_HIGH_T1;
+        throttleStatus = ERR_HIGH_T1;
         return false;
     }
 
     if (rawSignal->input1 < (config->minimumLevel1 - CFG_THROTTLE_TOLERANCE)) {
-        if (status == OK) {
+        if (throttleStatus == OK) {
             Logger::error(CANBRAKEPEDAL, (char *) Constants::valueOutOfRange, rawSignal->input1);
         }
 
-        status = ERR_LOW_T1;
+        throttleStatus = ERR_LOW_T1;
         return false;
     }
 
     // all checks passed -> brake is working
-    if (status != OK) {
+    if (throttleStatus != OK) {
         Logger::info(CANBRAKEPEDAL, (char *) Constants::normalOperation);
     }
 
-    status = OK;
+    throttleStatus = OK;
     return true;
 }
 

@@ -44,6 +44,7 @@ void ThinkBatteryManager::setup()
 
     //Relevant BMS messages are 0x300 - 0x30F
     CanHandler::getInstanceEV()->attach(this, 0x300, 0x7f0, false);
+    deviceReady = true;
 
     tickHandler->attach(this, CFG_TICK_INTERVAL_BMS_THINK);
 }
@@ -58,6 +59,8 @@ void ThinkBatteryManager::handleCanFrame(CAN_FRAME *frame)
             //we're not really interested in much here except whether init worked.
             if ((frame->data.bytes[6] & 1) == 0) {  //there was an initialization error!
                 //set fault condition here
+            } else {
+                deviceRunning = true;
             }
 
             break;

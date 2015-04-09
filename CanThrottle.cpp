@@ -63,6 +63,7 @@ void CanThrottle::setup()
                 0x03, 0x22, 0xee, 0xcb, 0x00, 0x00, 0x00, 0x00
             }, 8);
             responseId = 0x7e8;
+            deviceReady = true;
             break;
 
         case Volvo_V50_Diesel:
@@ -75,6 +76,7 @@ void CanThrottle::setup()
             }, 8);
             responseId = 0x21;
             responseExtended = true;
+            deviceReady = true;
             break;
 
         default:
@@ -118,7 +120,6 @@ void CanThrottle::handleCanFrame(CAN_FRAME *frame)
                 rawSignal.input1 = (frame->data.bytes[5] + 1) * frame->data.bytes[6];
                 break;
         }
-
         ticksNoResponse = 0;
     }
 }
@@ -133,38 +134,38 @@ bool CanThrottle::validateSignal(RawSignalData* rawSignal)
     CanThrottleConfiguration *config = (CanThrottleConfiguration *) getConfiguration();
 
     if (ticksNoResponse >= CFG_CANTHROTTLE_MAX_NUM_LOST_MSG) {
-        if (status == OK) {
+        if (throttleStatus == OK) {
             Logger::error(CANACCELPEDAL, "no response on position request received: %d ", ticksNoResponse);
         }
 
-        status = ERR_MISC;
+        throttleStatus = ERR_MISC;
         return false;
     }
 
     if (rawSignal->input1 > (config->maximumLevel1 + CFG_THROTTLE_TOLERANCE)) {
-        if (status == OK) {
+        if (throttleStatus == OK) {
             Logger::error(CANACCELPEDAL, (char *) Constants::valueOutOfRange, rawSignal->input1);
         }
 
-        status = ERR_HIGH_T1;
+        throttleStatus = ERR_HIGH_T1;
         return false;
     }
 
     if (rawSignal->input1 < (config->minimumLevel1 - CFG_THROTTLE_TOLERANCE)) {
-        if (status == OK) {
+        if (throttleStatus == OK) {
             Logger::error(CANACCELPEDAL, (char *) Constants::valueOutOfRange, rawSignal->input1);
         }
 
-        status = ERR_LOW_T1;
+        throttleStatus = ERR_LOW_T1;
         return false;
     }
 
     // all checks passed -> throttle seems to be ok
-    if (status != OK) {
+    if (throttleStatus != OK) {
         Logger::info(CANACCELPEDAL, (char *) Constants::normalOperation);
     }
 
-    status = OK;
+    throttleStatus = OK;
     return true;
 }
 

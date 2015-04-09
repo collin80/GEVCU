@@ -96,8 +96,7 @@ void BrusaBSC6::sendCommand()
     BrusaBSC6Configuration *config = (BrusaBSC6Configuration *) getConfiguration();
     canHandlerEv->prepareOutputFrame(&outputFrame, CAN_ID_COMMAND);
 
-    if ((status->getSystemState() == Status::running)
-            && systemIO->getEnableInput()) {
+    if ((status->getSystemState() == Status::running || status->getSystemState() == Status::ready)) {
         outputFrame.data.bytes[0] |= enable;
     }
     if (config->boostMode) {
@@ -174,14 +173,10 @@ void BrusaBSC6::processValues1(uint8_t data[])
 {
     bitfield = (uint32_t)data[7] & 0x0F;
 
-    if (bitfield & running) {
-        //TODO: interaction with system state ?
-    }
-    if (bitfield & ready) {
-        //TODO: interaction with system state ?
-    }
+    deviceRunning = (bitfield & running) ? true : false;
+    deviceReady = (bitfield & ready) ? true : false;
     if (bitfield & automatic) {
-        //TODO: interaction with system state ?
+        //TODO
     }
 
     hvVoltage = (uint16_t)(data[1] | (data[0] << 8));
@@ -191,7 +186,7 @@ void BrusaBSC6::processValues1(uint8_t data[])
     mode = (data[7] & 0xF0) >> 4;
 
     if (Logger::isDebug()) {
-        Logger::debug(BRUSA_BSC6, "status bitfield: %X, HV: %fV, %fA, LV: %fV, %dA, mode %d", bitfield, (float) hvVoltage / 10.0F, (float) hvCurrent / 10.0F, (float) lvVoltage / 10.0F, lvCurrent, mode);
+        Logger::debug(BRUSA_BSC6, "status bitfield: %X, ready: %T, running: %T, HV: %fV, %fA, LV: %fV, %dA, mode %d", bitfield, ready, running, (float) hvVoltage / 10.0F, (float) hvCurrent / 10.0F, (float) lvVoltage / 10.0F, lvCurrent, mode);
     }
 }
 

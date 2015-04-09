@@ -76,6 +76,7 @@ public:
     void setup();
     void handleTick();
     void handleCanFrame(CAN_FRAME *);
+    void handleMessage(uint32_t msgType, void* message);
     uint32_t getTickInterval();
 
     void loadConfiguration();
@@ -98,13 +99,14 @@ public:
     int16_t getMechanicalPower();
     int16_t getTemperatureMotor();
     int16_t getTemperatureController();
-    int16_t getnominalVolt();
+    int16_t getNominalVolt();
 
     Gears getSelectedGear();
 
 protected:
     CanHandler *canHandlerEv;
 
+    bool powerOn; // should the device enable the controller's power stage? value depends on system state
     Gears selectedGear;
     PowerMode powerMode;
 

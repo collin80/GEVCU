@@ -29,11 +29,11 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 #include <Arduino.h>
 #include "config.h"
+#include "Status.h"
 #include "DeviceTypes.h"
 #include "eeprom_layout.h"
 #include "PrefHandler.h"
 #include "Sys_Messages.h"
-#include "Status.h"
 #include "SystemIO.h"
 
 class DeviceManager;
@@ -63,6 +63,8 @@ public:
     bool isEnabled();
     virtual uint32_t getTickInterval();
     char* getCommonName();
+    bool isReady();
+    bool isRunning();
 
     virtual void loadConfiguration();
     virtual void saveConfiguration();
@@ -75,6 +77,8 @@ protected:
     TickHandler *tickHandler; // pointer to Tickhandler singleton
     PrefHandler *prefsHandler;
     char *commonName;
+    bool deviceReady; // set if the device itself reports that it's ready for operation
+    bool deviceRunning; // set if the device itself reports that it's running / active
 
 private:
     DeviceConfiguration *deviceConfiguration; // reference to the currently active configuration

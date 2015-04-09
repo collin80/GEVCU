@@ -40,7 +40,7 @@ BatteryManager::~BatteryManager()
 
 DeviceType BatteryManager::getType()
 {
-    return (DEVICE_BMS);
+    return DEVICE_BMS;
 }
 
 void BatteryManager::handleTick()

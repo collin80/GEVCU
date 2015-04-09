@@ -49,6 +49,8 @@ void PotBrake::setup()
     //pinMode(THROTTLE_INPUT_BRAKELIGHT, INPUT_PULLUP); //Brake light switch
 
     loadConfiguration();
+    deviceReady = true;
+
     tickHandler->attach(this, CFG_TICK_INTERVAL_POT_THROTTLE);
 }
 
@@ -79,29 +81,29 @@ bool PotBrake::validateSignal(RawSignalData *rawSignal)
     PotBrakeConfiguration *config = (PotBrakeConfiguration *) getConfiguration();
 
     if (rawSignal->input1 > (config->maximumLevel1 + CFG_THROTTLE_TOLERANCE)) {
-        if (status == OK) {
+        if (throttleStatus == OK) {
             Logger::error(POTBRAKEPEDAL, (char *) Constants::valueOutOfRange, rawSignal->input1);
         }
 
-        status = ERR_HIGH_T1;
+        throttleStatus = ERR_HIGH_T1;
         return true; // even if it's too high, let it process and apply full regen !
     }
 
     if (rawSignal->input1 < (config->minimumLevel1 - CFG_THROTTLE_TOLERANCE)) {
-        if (status == OK) {
+        if (throttleStatus == OK) {
             Logger::error(POTBRAKEPEDAL, (char *) Constants::valueOutOfRange, rawSignal->input1);
         }
 
-        status = ERR_LOW_T1;
+        throttleStatus = ERR_LOW_T1;
         return false;
     }
 
     // all checks passed -> brake is OK
-    if (status != OK) {
+    if (throttleStatus != OK) {
         Logger::info(POTBRAKEPEDAL, (char *) Constants::normalOperation);
     }
 
-    status = OK;
+    throttleStatus = OK;
     return true;
 }
 

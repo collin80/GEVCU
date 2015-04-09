@@ -150,7 +150,9 @@ void DeviceManager::sendMessage(DeviceType devType, DeviceId devId, uint32_t msg
         if (devices[i] && devices[i]->isEnabled()) { //does this object exist and is it enabled?
             if (devType == DEVICE_ANY || devType == devices[i]->getType()) {
                 if (devId == INVALID || devId == devices[i]->getId()) {
-                    Logger::debug("Sending msg to device with ID %X", devices[i]->getId());
+                    if (Logger::isDebug()) {
+                        Logger::debug("Sending msg %X to device with ID %X", msgType, devices[i]->getId());
+                    }
                     devices[i]->handleMessage(msgType, message);
                 }
             }
