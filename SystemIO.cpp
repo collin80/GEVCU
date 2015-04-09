@@ -31,6 +31,7 @@
  */
 
 #include "SystemIO.h"
+#include "DeviceManager.h"
 
 #undef HID_ENABLED
 
@@ -42,7 +43,6 @@ extern PrefHandler *sysPrefs;
 SystemIO::SystemIO() {
     configuration = new SystemIOConfiguration();
     prefsHandler = new PrefHandler(SYSTEM);
-    canHandlerEv = CanHandler::getInstanceEV();
     status = Status::getInstance();
     preChargeStart = 0;
     coolflag = false;
@@ -66,33 +66,38 @@ void SystemIO::setup() {
     initializeAnalogIO();
     printIOStatus();
 
-    canHandlerEv->attach(this, CAN_MASKED_ID, CAN_MASK, false);
-
     TickHandler::getInstance()->attach(this, CFG_TICK_INTERVAL_SYSTEM_IO);
 }
 
-/*
- * Processes an event from the CanHandler.
- */
-void SystemIO::handleCanFrame(CAN_FRAME *frame) {
-    switch (frame->id) {
-    case CAN_ID_GEVCU_EXT_TEMPERATURE:
-        processExternalTemperature(frame->data.byte);
-        break;
-    }
-}
-
-
 void SystemIO::handleTick() {
-    if(status->getSystemState() == Status::preCharge) {
+    Status::SystemState state = status->getSystemState();
+
+    if (getEnableInput()) {
+        // if the system is ready and the enable input is high, then switch to state "running", this should enable the motor controller
+        if (state == Status::ready) {
+            setEnableRelayOutput(true); // first switch on the enable signal
+            state = status->setSystemState(Status::running); // then allow the devices to power-up
+        }
+    } else {
+        // if enable input is low and the motor controller is running, then disable it by switching to state "ready"
+        if (state == Status::running) {
+            state = status->setSystemState(Status::ready); // allow the devices to gracefully power-down
+            setEnableRelayOutput(false); // then turn off the enable signal
+        }
+    }
+
+    if (state == Status::preCharge) {
         handlePreCharge();
     }
-    if (configuration->coolingFanOutput != CFG_OUTPUT_NONE) {
-        handleCooling();
-    }
-    updateDigitalInputStatus();
 
-    sendIOStatus();
+    if (state == Status::preCharged) {
+        state = status->setSystemState(Status::ready);
+    }
+
+    handleCooling();
+    handleCharging();
+
+    updateDigitalInputStatus();
 }
 
 /*
@@ -106,65 +111,13 @@ void SystemIO::updateDigitalInputStatus() {
 }
 
 /*
- * Send the status of the IO over CAN so it can be used by other devices.
- */
-void SystemIO::sendIOStatus() {
-    canHandlerEv->prepareOutputFrame(&outputFrame, CAN_ID_GEVCU_STATUS);
-
-    uint16_t rawIO = 0;
-    rawIO |= status->digitalInput[0] ? digitalIn1 : 0;
-    rawIO |= status->digitalInput[1] ? digitalIn2 : 0;
-    rawIO |= status->digitalInput[2] ? digitalIn3 : 0;
-    rawIO |= status->digitalInput[3] ? digitalIn4 : 0;
-    rawIO |= status->digitalOutput[0] ? digitalOut1 : 0;
-    rawIO |= status->digitalOutput[1] ? digitalOut2 : 0;
-    rawIO |= status->digitalOutput[2] ? digitalOut3 : 0;
-    rawIO |= status->digitalOutput[3] ? digitalOut4 : 0;
-    rawIO |= status->digitalOutput[4] ? digitalOut5 : 0;
-    rawIO |= status->digitalOutput[5] ? digitalOut6 : 0;
-    rawIO |= status->digitalOutput[6] ? digitalOut7 : 0;
-    rawIO |= status->digitalOutput[7] ? digitalOut8 : 0;
-
-    outputFrame.data.byte[0] = (rawIO & 0xFF00) >> 8;
-    outputFrame.data.byte[1] = (rawIO & 0x00FF);
-
-    uint16_t logicIO = 0;
-//    logicIO |= .. ? heatingPump : 0;
-//    logicIO |= .. ? batteryHeater : 0;
-//    logicIO |= .. ? chargePowerAvailable : 0;
-//    logicIO |= .. ? activateCharger : 0;
-    logicIO |= status->reverseLight ? reverseLight : 0;
-    logicIO |= status->brakeLight ? brakeLight : 0;
-//    logicIO |= .. ? coolingPump : 0;
-    logicIO |= status->coolingFanRelay ? coolingFan : 0;
-    logicIO |= status->secondaryContactorRelay ? secondayContactor : 0;
-    logicIO |= status->mainContactorRelay ? mainContactor : 0;
-    logicIO |= status->preChargeRelay ? preChargeRelay : 0;
-    logicIO |= status->enableOut ? enableSignalOut : 0;
-    logicIO |= status->enableIn ? enableSignalIn : 0;
-
-    outputFrame.data.byte[2] = (logicIO & 0xFF00) >> 8;
-    outputFrame.data.byte[3] = (logicIO & 0x00FF);
-
-    outputFrame.data.byte[4] = status->getSystemState();
-
-    uint8_t stat = 0;
-    stat |= status->warning ? warning : 0;
-    stat |= status->limitationTorque ? powerLimitation : 0;
-    outputFrame.data.byte[5] = stat;
-
-    canHandlerEv->sendFrame(outputFrame);
-}
-
-
-/*
  * Handle the pre-charge sequence.
  */
 void SystemIO::handlePreCharge() {
     if (configuration->prechargeMillis == 0) { // we don't want to pre-charge
         Logger::info("Pre-charging not enabled");
+        setMainContactorRelayOutput(true);
         status->setSystemState(Status::preCharged);
-        setEnableRelayOutput(true);
         return;
     }
 
@@ -176,10 +129,8 @@ void SystemIO::handlePreCharge() {
         setPrechargeRelayOutput(true);
 
 #ifdef CFG_THREE_CONTACTOR_PRECHARGE
-        if (configuration->secondaryContactorOutput != CFG_OUTPUT_NONE) {
-            delay(CFG_PRE_CHARGE_RELAY_DELAY);
-            setSecondaryContactorRelayOutput(true);
-        }
+        delay(CFG_PRE_CHARGE_RELAY_DELAY);
+        setSecondaryContactorRelayOutput(true);
 #endif
     } else {
         if ((millis() - preChargeStart) > configuration->prechargeMillis) {
@@ -189,8 +140,6 @@ void SystemIO::handlePreCharge() {
 
             status->setSystemState(Status::preCharged);
             Logger::info("Pre-charge sequence complete after %i milliseconds", millis() - preChargeStart);
-
-            setEnableRelayOutput(true);
         }
     }
 }
@@ -200,120 +149,168 @@ void SystemIO::handlePreCharge() {
  * the motor controller
  */
 void SystemIO::handleCooling() {
+    if (status->temperatureController == CFG_NO_TEMPERATURE_DATA) {
+        return;
+    }
+
     if (status->temperatureController / 10 > configuration->coolingTempOn) {
         if (!coolflag) {
             coolflag = true;
-            setCoolingFanRelayOutput(true);
-            // enabling cooling does not necessarily mean overtemp, the motor controller object should set the overtemp status
-            // Status::getInstance()->overtempController = true;
+            setCoolingFanOutput(true);
         }
     }
 
     if (status->temperatureController / 10 < configuration->coolingTempOff) {
         if (coolflag) {
             coolflag = false;
-            setCoolingFanRelayOutput(false);
-            // enabling cooling does not necessarily mean overtemp, the motor controller object should set the overtemp status
-            // Status::getInstance()->overtempController = false;
+            setCoolingFanOutput(false);
         }
     }
 }
 
-void SystemIO::processExternalTemperature(byte bytes[]) {
-	for (int i = 0; i < 8; i++) {
-		status->externalTemperature[i] = bytes[i] - 50;
-Logger::info("external temperature %d: %d", i, status->externalTemperature[i]);
-	}
+/*
+ * Verify if we're connected to a charge station and handle the charging process
+ * (including an evtl. heating period for the batteries)
+ */
+void SystemIO::handleCharging() {
+    Status::SystemState state = status->getSystemState();
+
+    if (getChargePowerAvailableInput()) { // we're connected to "shore" power
+        if (state == Status::running) { // disable motor controller if necessary
+            state = status->setSystemState(Status::ready);
+            setEnableRelayOutput(false);
+        }
+        if (state == Status::ready || state == Status::batteryHeating) {
+            int16_t batteryTemp = status->getLowestExternalTemperature();
+            if (batteryTemp == CFG_NO_TEMPERATURE_DATA || batteryTemp >= CFG_MIN_BATTERY_CHARGE_TEMPERATURE) {
+                state = status->setSystemState(Status::charging);
+            } else {
+                state = status->setSystemState(Status::batteryHeating);
+            }
+        }
+    } else {
+        // terminate all charge related activities and return to ready if GEVCU is still powered on
+        if (state == Status::charging || state == Status::charged || state == Status::batteryHeating) {
+            state = status->setSystemState(Status::ready);
+        }
+    }
 }
 
 /*
  * Get the the input signal for the car's enable signal.
  */
 bool SystemIO::getEnableInput() {
-    if (configuration->enableInput != CFG_OUTPUT_NONE) {
-        bool flag = getDigitalIn(configuration->enableInput);
-        status->enableIn = flag;
-        return flag;
-    }
-    return false;
+    bool flag = getDigitalIn(configuration->enableInput);
+    status->enableIn = flag;
+    return flag;
+}
+
+/*
+ * Get the the input signal which indicates if the car is connected to a charge station
+ */
+bool SystemIO::getChargePowerAvailableInput() {
+    bool flag = getDigitalIn(configuration->chargePowerAvailableInput);
+    status->chargePowerAvailable = flag;
+    return flag;
 }
 
 /*
  * Enable / disable the pre-charge relay output and set the status flag.
  */
 void SystemIO::setPrechargeRelayOutput(bool enabled) {
-    if (configuration->prechargeOutput != CFG_OUTPUT_NONE) {
-        setDigitalOut(configuration->prechargeOutput, enabled);
-    }
+    setDigitalOut(configuration->prechargeOutput, enabled);
     status->preChargeRelay = enabled;
-    sendIOStatus();
+    DeviceManager::getInstance()->sendMessage(DEVICE_IO, CANIO, MSG_UPDATE, NULL);
 }
 
 /*
  * Enable / disable the main contactor relay output and set the status flag.
  */
 void SystemIO::setMainContactorRelayOutput(bool enabled) {
-    if (configuration->mainContactorOutput != CFG_OUTPUT_NONE) {
-        setDigitalOut(configuration->mainContactorOutput, enabled);
-    }
+    setDigitalOut(configuration->mainContactorOutput, enabled);
     status->mainContactorRelay = enabled;
-    sendIOStatus();
+    DeviceManager::getInstance()->sendMessage(DEVICE_IO, CANIO, MSG_UPDATE, NULL);
 }
 
 /*
  * Enable / disable the secondary contactor relay output and set the status flag.
  */
 void SystemIO::setSecondaryContactorRelayOutput(bool enabled) {
-    if (configuration->secondaryContactorOutput != CFG_OUTPUT_NONE) {
-        setDigitalOut(configuration->secondaryContactorOutput, enabled);
-    }
+    setDigitalOut(configuration->secondaryContactorOutput, enabled);
     status->secondaryContactorRelay = enabled;
-    sendIOStatus();
+    DeviceManager::getInstance()->sendMessage(DEVICE_IO, CANIO, MSG_UPDATE, NULL);
 }
 
 /*
  * Enable / disable the 'enable' relay output and set the status flag.
  */
 void SystemIO::setEnableRelayOutput(bool enabled) {
-    if (configuration->enableOutput != CFG_OUTPUT_NONE) {
-        setDigitalOut(configuration->enableOutput, enabled);
-    }
+    setDigitalOut(configuration->enableOutput, enabled);
     status->enableOut = enabled;
-    sendIOStatus();
+    DeviceManager::getInstance()->sendMessage(DEVICE_IO, CANIO, MSG_UPDATE, NULL);
 }
 
 /*
  * Enable / disable the brake light output and set the status flag.
  */
 void SystemIO::setBrakeLightOutput(bool enabled) {
-    if (configuration->brakeLightOutput != CFG_OUTPUT_NONE) {
-        setDigitalOut(configuration->brakeLightOutput, enabled);
-    }
+    setDigitalOut(configuration->brakeLightOutput, enabled);
     status->brakeLight = enabled;
-    sendIOStatus();
+    DeviceManager::getInstance()->sendMessage(DEVICE_IO, CANIO, MSG_UPDATE, NULL);
 }
 
 /*
  * Enable / disable the brake light output and set the status flag.
  */
 void SystemIO::setReverseLightOutput(bool enabled) {
-    if (configuration->reverseLightOutput != CFG_OUTPUT_NONE) {
-        setDigitalOut(configuration->reverseLightOutput, enabled);
-    }
+    setDigitalOut(configuration->reverseLightOutput, enabled);
     status->reverseLight = enabled;
-    sendIOStatus();
+    DeviceManager::getInstance()->sendMessage(DEVICE_IO, CANIO, MSG_UPDATE, NULL);
 }
 
+/*
+ * Enable / disable the cooling fan output and set the status flag.
+ */
+void SystemIO::setCoolingFanOutput(bool enabled) {
+    setDigitalOut(configuration->coolingFanOutput, enabled);
+    status->coolingFan = enabled;
+    DeviceManager::getInstance()->sendMessage(DEVICE_IO, CANIO, MSG_UPDATE, NULL);
+}
 
 /*
- * Enable / disable the cooling realy output and set the status flag.
+ * Enable / disable the cooling pump output and set the status flag.
  */
-void SystemIO::setCoolingFanRelayOutput(bool enabled) {
-    if (configuration->coolingFanOutput != CFG_OUTPUT_NONE) {
-        setDigitalOut(configuration->coolingFanOutput, enabled);
-    }
-    status->coolingFanRelay = enabled;
-    sendIOStatus();
+void SystemIO::setCoolingPumpOutput(bool enabled) {
+    setDigitalOut(configuration->coolingPumpOutput, enabled);
+    status->coolingPump = enabled;
+    DeviceManager::getInstance()->sendMessage(DEVICE_IO, CANIO, MSG_UPDATE, NULL);
+}
+
+/*
+ * Enable / disable the heating pump output and set the status flag.
+ */
+void SystemIO::setHeatingPumpOutput(bool enabled) {
+    setDigitalOut(configuration->heatingPumpOutput, enabled);
+    status->heatingPump = enabled;
+    DeviceManager::getInstance()->sendMessage(DEVICE_IO, CANIO, MSG_UPDATE, NULL);
+}
+
+/*
+ * Enable / disable the battery heater output and set the status flag.
+ */
+void SystemIO::setBatteryHeaterOutput(bool enabled) {
+    setDigitalOut(configuration->batteryHeaterOutput, enabled);
+    status->batteryHeater = enabled;
+    DeviceManager::getInstance()->sendMessage(DEVICE_IO, CANIO, MSG_UPDATE, NULL);
+}
+
+/*
+ * Enable / disable the charger activation output and set the status flag.
+ */
+void SystemIO::setActivateChargerOutput(bool enabled) {
+    setDigitalOut(configuration->activateChargerOutput, enabled);
+    status->activateCharger = enabled;
+    DeviceManager::getInstance()->sendMessage(DEVICE_IO, CANIO, MSG_UPDATE, NULL);
 }
 
 /*
@@ -412,7 +409,7 @@ void SystemIO::setDigitalOut(uint8_t which, boolean active) {
     if (which >= CFG_NUMBER_DIGITAL_OUTPUTS) {
         return;
     }
-    if (out[which] == 255) {
+    if (out[which] == CFG_OUTPUT_NONE) {
         return;
     }
 
@@ -729,14 +726,10 @@ void SystemIO::setupFastADC() {
 
 void SystemIO::printIOStatus() {
     if (Logger::isDebug()) {
-        Logger::debug("AIN0: %d, AIN1: %d, AIN2: %d, AIN3: %d", getAnalogIn(0),
-                getAnalogIn(1), getAnalogIn(2), getAnalogIn(3));
-        Logger::debug("DIN0: %d, DIN1: %d, DIN2: %d, DIN3: %d", getDigitalIn(0),
-                getDigitalIn(1), getDigitalIn(2), getDigitalIn(3));
-        Logger::debug(
-                "DOUT0: %d, DOUT1: %d, DOUT2: %d, DOUT3: %d,DOUT4: %d, DOUT5: %d, DOUT6: %d, DOUT7: %d",
-                getDigitalOut(0), getDigitalOut(1), getDigitalOut(2), getDigitalOut(3),
-                getDigitalOut(4), getDigitalOut(5), getDigitalOut(6), getDigitalOut(7));
+        Logger::debug("AIN0: %d, AIN1: %d, AIN2: %d, AIN3: %d", getAnalogIn(0), getAnalogIn(1), getAnalogIn(2), getAnalogIn(3));
+        Logger::debug("DIN0: %t, DIN1: %t, DIN2: %t, DIN3: %t", getDigitalIn(0), getDigitalIn(1), getDigitalIn(2), getDigitalIn(3));
+        Logger::debug("DOUT0: %t, DOUT1: %t, DOUT2: %t, DOUT3: %t,DOUT4: %t, DOUT5: %t, DOUT6: %t, DOUT7: %t", getDigitalOut(0), getDigitalOut(1),
+                getDigitalOut(2), getDigitalOut(3), getDigitalOut(4), getDigitalOut(5), getDigitalOut(6), getDigitalOut(7));
     }
 }
 
@@ -789,7 +782,6 @@ void ADC_Handler() {
 //    sum = sum / numberADCSamples;
 //    return ((uint16_t) sum);
 //}
-
 SystemIOConfiguration *SystemIO::getConfiguration() {
     return configuration;
 }
