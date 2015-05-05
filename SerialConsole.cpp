@@ -535,10 +535,18 @@ void SerialConsole::handleConfigCmd() {
              
         Logger::console("DOUT0:%d, DOUT1:%d, DOUT2:%d, DOUT3:%d, DOUT4:%d, DOUT5:%d, DOUT6:%d, DOUT7:%d", getOutput(0), getOutput(1), getOutput(2), getOutput(3), getOutput(4), getOutput(5), getOutput(6), getOutput(7));
 	
-        } else if (cmdString == String("CAPACITY") ) {
-                motorConfig->capacity = newValue;
-		motorController->saveConfiguration();
-              	Logger::console("Battery Pack Capacity set to: ",newValue);
+                } else if (cmdString == String("CAPACITY") ) {
+                  motorConfig->capacity = newValue;
+		  motorController->saveConfiguration();
+              	  Logger::console("Battery Pack Capacity set to: %d",motorConfig->capacity);
+              
+                } else if (cmdString == String("KWH") ) {
+             
+                  motorController->kiloWattHours = newValue*3600000;
+		  motorController->saveConfiguration();
+              	  Logger::console("kWh set to: %d",motorController->kiloWattHours);
+
+            
 
               } else if (cmdString == String("NUKE")) {
 		if (newValue == 1) 

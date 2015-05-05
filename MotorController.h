@@ -117,7 +117,8 @@ uint32_t statusBitfield1; // bitfield variable for use of the specific implement
 uint32_t statusBitfield2;
 uint32_t statusBitfield3;
 uint32_t statusBitfield4;
-
+uint32_t kiloWattHours;
+	
 
 
 
@@ -192,7 +193,6 @@ protected:
 	uint16_t dcVoltage; // DC voltage in 0.1 Volts
 	int16_t dcCurrent; // DC current in 0.1 Amps
 	uint16_t acCurrent; // AC current in 0.1 Amps
-	uint32_t kiloWattHours;
 	int16_t mechanicalPower; // mechanical power of the motor 0.1 kW
 	int16_t temperatureMotor; // temperature of motor in 0.1 degree C
 	int16_t temperatureInverter; // temperature of inverter power stage in 0.1 degree C
