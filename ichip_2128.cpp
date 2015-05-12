@@ -87,11 +87,22 @@ void ICHIPWIFI::setup()
     paramCache.brakeNotAvailable = true;
 
     elmProc = new ELM327Processor();
-    deviceReady = true;
-    deviceRunning = true;
+    ready = true;
+    running = true;
 
     tickHandler->attach(this, CFG_TICK_INTERVAL_WIFI);
 }
+
+/**
+ * Tear down the device in a safe way.
+ */
+void ICHIPWIFI::tearDown()
+{
+    Device::tearDown();
+
+    //TODO: if there is a way to physically power off the device, do it here. but also power it on during setup()
+}
+
 
 //A version of sendCmd that defaults to SET_PARAM which is what most of the code used to assume.
 void ICHIPWIFI::sendCmd(String cmd)
@@ -667,8 +678,8 @@ void ICHIPWIFI::processParameterChange(char *key)
     } else if (!strcmp(key, Constants::prechargeMillis)) {
         systemIOConfig->prechargeMillis = atol(value);
         systemIO->saveConfiguration();
-    } else if (!strcmp(key, Constants::prechargeOutput)) {
-        systemIOConfig->prechargeOutput = atol(value);
+    } else if (!strcmp(key, Constants::prechargeRelayOutput)) {
+        systemIOConfig->prechargeRelayOutput = atol(value);
         systemIO->saveConfiguration();
     } else if (!strcmp(key, Constants::mainContactorOutput)) {
         systemIOConfig->mainContactorOutput = atol(value);
@@ -676,8 +687,8 @@ void ICHIPWIFI::processParameterChange(char *key)
     } else if (!strcmp(key, Constants::secondaryContactorOutput)) {
         systemIOConfig->secondaryContactorOutput = atol(value);
         systemIO->saveConfiguration();
-    } else if (!strcmp(key, Constants::enableOutput)) {
-        systemIOConfig->enableOutput = atol(value);
+    } else if (!strcmp(key, Constants::enableMotorOutput)) {
+        systemIOConfig->enableMotorOutput = atol(value);
         systemIO->saveConfiguration();
     } else if (!strcmp(key, Constants::coolingFanOutput)) {
         systemIOConfig->coolingFanOutput = atol(value);
@@ -769,10 +780,10 @@ void ICHIPWIFI::loadParameters()
 
     setParam(Constants::enableInput, systemIOConfig->enableInput);
     setParam(Constants::prechargeMillis, systemIOConfig->prechargeMillis);
-    setParam(Constants::prechargeOutput, systemIOConfig->prechargeOutput);
+    setParam(Constants::prechargeRelayOutput, systemIOConfig->prechargeRelayOutput);
     setParam(Constants::mainContactorOutput, systemIOConfig->mainContactorOutput);
     setParam(Constants::secondaryContactorOutput, systemIOConfig->secondaryContactorOutput);
-    setParam(Constants::enableOutput, systemIOConfig->enableOutput);
+    setParam(Constants::enableMotorOutput, systemIOConfig->enableMotorOutput);
     setParam(Constants::brakeLightOutput, systemIOConfig->brakeLightOutput);
     setParam(Constants::reverseLightOutput, systemIOConfig->reverseLightOutput);
     setParam(Constants::coolingFanOutput, systemIOConfig->coolingFanOutput);

@@ -67,6 +67,8 @@ void SerialConsole::printMenu()
     ICHIPWIFI *wifi = (ICHIPWIFI*) DeviceManager::getInstance()->getDeviceByType(DEVICE_WIFI);
     Status *status = Status::getInstance();
     SystemIO *systemIO = SystemIO::getInstance();
+    Charger *charger = DeviceManager::getInstance()->getCharger();
+    DcDcConverter *dcDcConverter = DeviceManager::getInstance()->getDcDcConverter();
 
     //Show build # here as well in case people are using the native port and don't get to see the start up messages
     Logger::console("\nBuild number: %i", CFG_BUILD_NUM);
@@ -107,7 +109,7 @@ void SerialConsole::printMenu()
         Logger::console("RPMS=%i - Set maximum RPMs", config->speedMax);
         Logger::console("REVLIM=%i - How much torque to allow in reverse (Tenths of a percent)", config->reversePercent);
         Logger::console("NOMV=%i - Fully charged pack voltage", config->nominalVolt / 10);
-        Logger::console("kWh=%d - kiloWatt Hours of energy used", config->kilowattHrs / 3600000);
+        Logger::console("kWh=%d - kiloWatt Hours of energy used", motorController->getKiloWattHours() / 3600000);
     }
 
     if (accelerator && accelerator->getConfiguration()) {
@@ -142,16 +144,40 @@ void SerialConsole::printMenu()
         Logger::console("\nPRECHARGE CONTROLS\n");
         Logger::console("ENABLEI=%i - Digital input to use for enable signal", config->enableInput);
         Logger::console("PREDELAY=%d - Precharge delay time in milliseconds ", config->prechargeMillis);
-        Logger::console("PRELAY=%i - Digital output to use for precharge contactor (255 to disable)", config->prechargeOutput);
+        Logger::console("PRELAY=%i - Digital output to use for precharge contactor (255 to disable)", config->prechargeRelayOutput);
         Logger::console("MRELAY=%i - Digital output to use for main contactor (255 to disable)", config->mainContactorOutput);
 //        Logger::console("NRELAY=%i - Digital output to use for secondary contactor (255 to disable)", config->secondaryContactorOutput);
-        Logger::console("ERELAY=%i - Digital output to use for enable signal relay (255 to disable)", config->enableOutput);
+        Logger::console("ERELAY=%i - Digital output to use for enable signal relay (255 to disable)", config->enableMotorOutput);
         Logger::console("COOLFAN=%i - Digital output to turn on cooling fan (255 to disable)", config->coolingFanOutput);
         Logger::console("COOLON=%i - Inverter temperature to turn cooling on (deg celsius)", config->coolingTempOn);
         Logger::console("COOLOFF=%i - Inverter temperature to turn cooling off (deg celsius)", config->coolingTempOff);
         Logger::console("COOLOFF=%i - Inverter temperature to turn cooling off (deg celsius)", config->coolingTempOff);
         Logger::console("BRAKELT=%i - Digital output to use for brake light", config->brakeLightOutput);
         Logger::console("REVLT=%i - Digital output to use for reverse light", config->reverseLightOutput);
+    }
+
+    if (charger && charger->getConfiguration()) {
+        ChargerConfiguration *config = (ChargerConfiguration *) charger->getConfiguration();
+        Logger::console("\nCHARGER CONTROLS\n");
+        Logger::console("CC=%i - Constant current in tenths of an Ampere", config->constantCurrent);
+        Logger::console("CV=%i - Constant voltage in tenths of a Volt", config->constantVoltage);
+        Logger::console("TC=%i - Terminate current in tenths of an Ampere", config->terminateCurrent);
+        Logger::console("ICMX=%i - Maximum Input Voltage in tenths of a Volt", config->constantVoltage);
+        Logger::console("BVMN=%i - Minimum battery voltage in tenths of a Volt", config->minimumBatteryVoltage);
+        Logger::console("BVMX=%i - Maximum battery voltage in tenths of a Volt", config->maximumBatteryVoltage);
+        Logger::console("TPMN=%i - Minimum battery temperature for charging in tenths of a Celsius", config->minimumTemperutre);
+        Logger::console("TPMX=%i - Maximum battery temperature for charging in tenths of a Celsius", config->maximumTemperature);
+        Logger::console("AHMX=%i - Maximum ampere hours in tenths of a AmpereHours", config->maximumAmpereHours);
+        Logger::console("CTMX=%i - Maximum charge time in minutes", config->maximumChargeTime);
+    }
+
+    if (dcDcConverter && dcDcConverter->getConfiguration()) {
+        DcDcConverterConfiguration *config = (DcDcConverterConfiguration *) dcDcConverter->getConfiguration();
+        Logger::console("\nDCDC CONVERTER CONTROLS\n");
+        Logger::console("LV=%i - Low voltage in tenths of a Volt", config->lowVoltageCommand);
+        Logger::console("LVCL=%i - LV current limit in Amperes", config->lvBuckModeCurrentLimit);
+        Logger::console("HVVL=%i - HV undervoltage limit in Volts", config->hvUndervoltageLimit);
+        Logger::console("HVCL=%i - HV current limit in in tenths of an Ampere", config->hvBuckModeCurrentLimit);
     }
 
     if (wifi) {
@@ -374,11 +400,11 @@ void SerialConsole::handleConfigCmd()
         systemIO->saveConfiguration();
     } else if (cmdString == String("PRELAY") && systemIOConfig) {
         Logger::console("Setting Precharge Relay to output %i", newValue);
-        systemIOConfig->prechargeOutput = newValue;
+        systemIOConfig->prechargeRelayOutput = newValue;
         systemIO->saveConfiguration();
     } else if (cmdString == String("ERELAY") && systemIOConfig) {
         Logger::console("Setting Enable Relay to output %i", newValue);
-        systemIOConfig->enableOutput = newValue;
+        systemIOConfig->enableMotorOutput = newValue;
         systemIO->saveConfiguration();
     } else if (cmdString == String("COOLFAN") && systemIOConfig) {
         Logger::console("Setting Cooling Fan Relay to output %i", newValue);
@@ -412,17 +438,11 @@ void SerialConsole::handleConfigCmd()
         SystemIO *sysIO = SystemIO::getInstance();
         sysIO->setDigitalOut(newValue, !sysIO->getDigitalOut(newValue)); //Toggle output
     } else if (cmdString == String("ENABLE")) {
-        if (PrefHandler::setDeviceStatus(newValue, true)) {
-            sysPrefs->forceCacheWrite(); //just in case someone takes us literally and power cycles quickly
-            Logger::console("Successfully enabled device.(%X, %d) Power cycle to activate.", newValue, newValue);
-        } else {
+        if(!DeviceManager::getInstance()->sendMessage(DEVICE_ANY, (DeviceId) newValue, MSG_ENABLE, NULL)) {
             Logger::console("Invalid device ID (%X, %d)", newValue, newValue);
         }
     } else if (cmdString == String("DISABLE")) {
-        if (PrefHandler::setDeviceStatus(newValue, false)) {
-            sysPrefs->forceCacheWrite(); //just in case someone takes us literally and power cycles quickly
-            Logger::console("Successfully disabled device. Power cycle to deactivate.");
-        } else {
+        if(!DeviceManager::getInstance()->sendMessage(DEVICE_ANY, (DeviceId) newValue, MSG_DISABLE, NULL)) {
             Logger::console("Invalid device ID (%X, %d)", newValue, newValue);
         }
     } else if (cmdString == String("SYSTYPE")) {

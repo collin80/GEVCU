@@ -49,20 +49,27 @@ class DeviceConfiguration
 };
 
 /*
- * A abstract class for all Devices.
+ * Base class for all Devices.
  */
 class Device: public TickObserver
 {
 public:
     Device();
     virtual void setup();
+    virtual void tearDown();
+
+    virtual void handleTick();
     virtual void handleMessage(uint32_t, void*);
+    virtual void handleStateChange(Status::SystemState);
+
     virtual DeviceType getType();
     virtual DeviceId getId();
-    void handleTick();
-    bool isEnabled();
-    virtual uint32_t getTickInterval();
     char* getCommonName();
+
+    void enable();
+    void disable();
+
+    bool isEnabled();
     bool isReady();
     bool isRunning();
 
@@ -74,11 +81,13 @@ public:
 protected:
     SystemIO *systemIO; // pointer to SystemIO singleton
     Status *status; // pointer to Status singleton
-    TickHandler *tickHandler; // pointer to Tickhandler singleton
-    PrefHandler *prefsHandler;
-    char *commonName;
-    bool deviceReady; // set if the device itself reports that it's ready for operation
-    bool deviceRunning; // set if the device itself reports that it's running / active
+    TickHandler *tickHandler; // pointer to TickHandler singleton
+    PrefHandler *prefsHandler; // pointer to device specific instance of PrefHandler
+    char *commonName; // the device's common name
+
+    bool ready; // set if the device itself reports that it's ready for operation
+    bool running; // set if the device itself reports that it's running / active
+    bool powerOn; // set if the device has to be powered on - e.g. the power stage of a motor controller or DC-DC converter, may be ignored by various devices
 
 private:
     DeviceConfiguration *deviceConfiguration; // reference to the currently active configuration

@@ -47,6 +47,7 @@ class CanBrake: public Throttle, CanObserver
 public:
     CanBrake();
     void setup();
+    void tearDown();
     void handleTick();
     void handleCanFrame(CAN_FRAME *frame);
     DeviceId getId();

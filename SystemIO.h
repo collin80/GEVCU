@@ -44,23 +44,31 @@ class SystemIOConfiguration
 {
 public:
     uint8_t enableInput; // # of input for enable signal - required so that GEVCU enables the controller and requests torque/speed > 0
+    uint8_t chargePowerAvailableInput; // # of input to signal availability of charging power (shore power)
+    uint8_t interlockInput; // # of input to signal if the interlock circuit is closed and HV voltage can be applied
+
     uint16_t prechargeMillis; // milliseconds required for the pre-charge cycle
-    uint8_t prechargeOutput; // # of output to use for the pre-charge relay or 255 if not used
+    uint8_t prechargeRelayOutput; // # of output to use for the pre-charge relay or 255 if not used
     uint8_t mainContactorOutput; // # of output to use for the main contactor relay (main contactor) or 255 if not used
     uint8_t secondaryContactorOutput; // # of output to use for the secondary contactor relay or 255 if not used
-    uint8_t enableOutput; // # of output to use for the enable signal/relay or 255 if not used
+    uint8_t fastChargeContactorOutput; // # of output to use for the fast charge contactor relay or 255 if not used
 
+    uint8_t enableMotorOutput; // # of output to use for the enable signal/relay or 255 if not used
+    uint8_t enableChargerOutput; // # of output to activate the charger
+    uint8_t enableDcDcOutput; // # of output to enable the DC to DC cenverter
+    uint8_t enableHeaterOutput; // # of output to enable heater
+
+    uint8_t heaterValveOutput; // # of output to control heater valve (heat cabin or batteries)
+    uint8_t heaterPumpOutput; // # of output to control heater pump
+    uint8_t coolingPumpOutput; // # of output to control cooling pump
     uint8_t coolingFanOutput; // # of output to use for the cooling fan relay or 255 if not used
     uint8_t coolingTempOn; // temperature in degree celsius to start cooling
     uint8_t coolingTempOff; // temperature in degree celsius to stop cooling
 
     uint8_t brakeLightOutput; // #of output for brake light at regen or 255 if not used
     uint8_t reverseLightOutput; // #of output for reverse light or 255 if not used
-    uint8_t chargePowerAvailableInput; // # of input to signal availability of charging power (shore power)
-    uint8_t coolingPumpOutput; // # of output to control cooling pump
-    uint8_t heatingPumpOutput; // # of output to control heating pump
-    uint8_t batteryHeaterOutput; // # of output to enable battery heater
-    uint8_t activateChargerOutput; // # of output to activate the charger
+    uint8_t warningOutput; // #of output for warning light/relay or 255 if not used
+    uint8_t powerLimitationOutput; // #of output for power limitation light or 255 if not used
 };
 
 class SystemIO : public TickObserver
@@ -75,7 +83,24 @@ public:
     void saveConfiguration();
     SystemIOConfiguration *getConfiguration();
 
-    bool getEnableInput();
+    bool isEnableSignalPresent();
+    bool isChargePowerAvailable();
+    bool isInterlockPresent();
+
+    void setEnableMotor(bool);
+    void setEnableCharger(bool);
+    void setEnableDcDc(bool);
+    void setEnableHeater(bool);
+
+    void setHeaterValve(bool);
+    void setHeaterPump(bool);
+    void setCoolingPump(bool);
+    void setCoolingFan(bool);
+
+    void setBrakeLight(bool);
+    void setReverseLight(bool);
+    void setWarning(bool);
+    void setPowerLimitation(bool);
 
     uint16_t getAnalogIn(uint8_t which);
     boolean getDigitalIn(uint8_t which);
@@ -129,22 +154,18 @@ private:
     void setupFastADC();
 
     void updateDigitalInputStatus();
+    void powerDownSystem();
+
     void handleCooling();
     void handlePreCharge();
     void handleCharging();
 
-    bool getChargePowerAvailableInput();
-    void setPrechargeRelayOutput(bool);
-    void setMainContactorRelayOutput(bool);
-    void setSecondaryContactorRelayOutput(bool);
-    void setEnableRelayOutput(bool);
-    void setCoolingFanOutput(bool);
-    void setBrakeLightOutput(bool);
-    void setReverseLightOutput(bool);
-    void setCoolingPumpOutput(bool);
-    void setHeatingPumpOutput(bool);
-    void setBatteryHeaterOutput(bool);
-    void setActivateChargerOutput(bool);
+    // for security reasons, these should stay private
+    void setPrechargeRelay(bool);
+    void setMainContactor(bool);
+    void setSecondaryContactor(bool);
+    void setFastChargeContactor(bool);
+
 };
 
 #endif

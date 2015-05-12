@@ -35,6 +35,26 @@
 #include "SystemIO.h"
 #include "TickHandler.h"
 
+// CAN bus id's for frames sent to DMOC
+
+#define CAN_ID_COMMAND      0x232 // send commands (speed, gear)
+#define CAN_ID_LIMIT        0x233 // send limitations (torque)
+#define CAN_ID_LIMIT2       0x234 // send limitations (power)
+#define CAN_ID_CHALLENGE    0x235 // send challenge/response
+#define CAN_ID_CHALLENGE2   0x236 // send challenge/response
+
+// CAN bus id's for frames received from DMOC
+
+#define CAN_ID_TORQUE       0x23a // receive actual torque values              01000111010
+#define CAN_ID_STATUS       0x23b // receive status and speed information      01000111011
+#define CAN_MASK_1          0x7fe // mask for above id's                       11111111110
+#define CAN_MASKED_ID_1     0x23a // masked id for id's from 0x26a to 0x26f    01000111010
+
+#define CAN_ID_HV_STATUS    0x650 // receive hv bus status information         11001010000
+#define CAN_ID_TEMPERATURE  0x651 // receive actual temperature                11001010001
+#define CAN_MASK_2          0x7fe // mask for above id's                       11111111110
+#define CAN_MASKED_ID_2     0x650 // masked id for id's from 0x26a to 0x26f    11001010000
+
 /*
  * Class for DMOC specific configuration parameters
  */
@@ -69,12 +89,13 @@ public:
 public:
     virtual void handleTick();
     virtual void handleCanFrame(CAN_FRAME *frame);
+    void handleStateChange(Status::SystemState state);
     virtual void setup();
+    virtual void tearDown();
     void setGear(Gears gear);
 
     DmocMotorController();
     DeviceId getId();
-    uint32_t getTickInterval();
 
     virtual void loadConfiguration();
     virtual void saveConfiguration();

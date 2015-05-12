@@ -41,6 +41,7 @@ class ThinkBatteryManager : public BatteryManager, CanObserver
 public:
     ThinkBatteryManager();
     void setup();
+    void tearDown();
     void handleTick();
     void handleCanFrame(CAN_FRAME *frame);
     DeviceId getId();

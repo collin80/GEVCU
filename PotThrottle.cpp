@@ -45,7 +45,7 @@ void PotThrottle::setup()
     loadConfiguration();
 
     Throttle::setup(); //call base class
-    deviceReady = true;
+    ready = true;
 
     //set digital ports to inputs and pull them up all inputs currently active low
     //pinMode(THROTTLE_INPUT_BRAKELIGHT, INPUT_PULLUP); //Brake light switch

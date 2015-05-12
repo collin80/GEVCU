@@ -36,6 +36,15 @@ Throttle::Throttle() : Device()
     throttleStatus = OK;
 }
 
+/**
+ * Tear down the controller in a safe way.
+ */
+void Throttle::tearDown()
+{
+    Device::tearDown();
+    level = 0;
+}
+
 /*
  * Controls the main flow of throttle data acquisiton, validation and mapping to
  * user defined behaviour.
@@ -51,10 +60,10 @@ void Throttle::handleTick()
     if (validateSignal(rawSignals)) {  // validate the raw data
         uint16_t position = calculatePedalPosition(rawSignals);  // bring the raw data into a range of 0-1000 (without mapping)
         level = mapPedalPosition(position);  // apply mapping of the 0-1000 range to the user defined settings
-        deviceRunning = true;
+        running = true;
     } else {
         level = 0;
-        deviceRunning = false;
+        running = false;
     }
 }
 
@@ -136,6 +145,7 @@ int16_t Throttle::mapPedalPosition(int16_t pedalPosition)
 
     return throttleLevel;
 }
+
 
 /*
  * Make sure input level stays within margins (min/max) then map the constrained

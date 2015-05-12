@@ -30,7 +30,7 @@ CanIO::CanIO() : Device()
 {
     prefsHandler = new PrefHandler(CANIO);
     canHandlerEv = CanHandler::getInstanceEV();
-    commonName = "CanIO";
+    commonName = "CAN I/O";
 }
 
 void CanIO::setup()
@@ -38,13 +38,25 @@ void CanIO::setup()
     tickHandler->detach(this);
 
     loadConfiguration();
+    Device::setup();
 
     canHandlerEv->attach(this, CAN_MASKED_ID, CAN_MASK, false);
 
-    deviceReady = true;
-    deviceRunning = true;
+    ready = true;
+    running = true;
 
     tickHandler->attach(this, CFG_TICK_INTERVAL_CAN_IO);
+}
+
+/**
+ * Tear down the device in a safe way.
+ */
+void CanIO::tearDown()
+{
+    Device::tearDown();
+    sendIOStatus(); // so the error state is transmitted
+
+    canHandlerEv->detach(this, CAN_MASKED_ID, CAN_MASK);
 }
 
 void CanIO::handleTick()
@@ -107,29 +119,30 @@ void CanIO::sendIOStatus()
     outputFrame.data.byte[1] = (rawIO & 0x00FF);
 
     uint16_t logicIO = 0;
-    logicIO |= status->heatingPump ? heatingPump : 0;
-    logicIO |= status->batteryHeater ? batteryHeater : 0;
-    logicIO |= status->chargePowerAvailable ? chargePowerAvailable : 0;
-    logicIO |= status->activateCharger ? activateCharger : 0;
-    logicIO |= status->reverseLight ? reverseLight : 0;
-    logicIO |= status->brakeLight ? brakeLight : 0;
+    logicIO |= status->preChargeRelay ? preChargeRelay : 0;
+    logicIO |= status->mainContactor ? mainContactor : 0;
+    logicIO |= status->secondaryContactor ? secondaryContactor : 0;
+    logicIO |= status->fastChargeContactor ? fastChargeContactor : 0;
+
+    logicIO |= status->enableMotor ? enableMotor : 0;
+    logicIO |= status->enableCharger ? enableCharger : 0;
+    logicIO |= status->enableDcDc ? enableDcDc : 0;
+    logicIO |= status->enableHeater ? enableHeater : 0;
+
+    logicIO |= status->heaterValve ? heaterValve : 0;
+    logicIO |= status->heaterPump ? heaterPump : 0;
     logicIO |= status->coolingPump ? coolingPump : 0;
     logicIO |= status->coolingFan ? coolingFan : 0;
-    logicIO |= status->secondaryContactorRelay ? secondayContactor : 0;
-    logicIO |= status->mainContactorRelay ? mainContactor : 0;
-    logicIO |= status->preChargeRelay ? preChargeRelay : 0;
-    logicIO |= status->enableOut ? enableSignalOut : 0;
-    logicIO |= status->enableIn ? enableSignalIn : 0;
+
+    logicIO |= status->brakeLight ? brakeLight : 0;
+    logicIO |= status->reverseLight ? reverseLight : 0;
+    logicIO |= status->warning ? warning : 0;
+    logicIO |= status->limitationTorque ? powerLimitation : 0;
 
     outputFrame.data.byte[2] = (logicIO & 0xFF00) >> 8;
     outputFrame.data.byte[3] = (logicIO & 0x00FF);
 
     outputFrame.data.byte[4] = status->getSystemState();
-
-    uint8_t stat = 0;
-    stat |= status->warning ? warning : 0;
-    stat |= status->limitationTorque ? powerLimitation : 0;
-    outputFrame.data.byte[5] = stat;
 
     canHandlerEv->sendFrame(outputFrame);
 }
@@ -156,16 +169,29 @@ DeviceId CanIO::getId()
 
 void CanIO::loadConfiguration()
 {
+    CanIOConfiguration *config = (CanIOConfiguration *) getConfiguration();
+
+    if (!config) { // as lowest sub-class make sure we have a config object
+        config = new CanIOConfiguration();
+        setConfiguration(config);
+    }
+
+    Device::loadConfiguration(); // call parent
+    Logger::info(getId(), "CAN I/O configuration:");
+
 #ifdef USE_HARD_CODED
     if (false) {
 #else
     if (prefsHandler->checksumValid()) { //checksum is good, read in the values stored in EEPROM
 #endif
+        Logger::debug(getId(), (char *) Constants::validChecksum);
 //        prefsHandler->read(EESYS_ENABLE_INPUT, &configuration->enableInput);
 //        prefsHandler->read(EESYS_PRECHARGE_MILLIS, &configuration->prechargeMillis);
     } else { //checksum invalid. Reinitialize values and store to EEPROM
+        Logger::warn(getId(), (char *) Constants::invalidChecksum);
 //        configuration->enableInput = EnableInput;
 //        configuration->prechargeMillis = PrechargeMillis;
+        saveConfiguration();
     }
 }
 
@@ -173,6 +199,6 @@ void CanIO::saveConfiguration()
 {
 //    prefsHandler->write(EESYS_ENABLE_INPUT, configuration->enableInput);
 //    prefsHandler->write(EESYS_PRECHARGE_MILLIS, configuration->prechargeMillis);
-//    prefsHandler->saveChecksum();
+    prefsHandler->saveChecksum();
 }
 

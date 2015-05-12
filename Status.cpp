@@ -83,19 +83,27 @@ Status::Status() {
     internalSupply                  = false;
     osTrap                          = false;
 
+    preChargeRelay = false;
+    mainContactor = false;
+    secondaryContactor = false;
+    fastChargeContactor = false;
+
+    enableMotor = false;
+    enableCharger = false;
+    enableDcDc = false;
+    enableHeater = false;
+
+    heaterValve = false;
+    heaterPump = false;
+    coolingPump = false;
+    coolingFan = false;
+
+    brakeLight = false;
+    reverseLight = false;
+
     enableIn            = false;
-    preChargeRelay      = false;
-    mainContactorRelay  = false;
-    secondaryContactorRelay = false;
-    enableOut           = false;
-    coolingFan          = false;
-    brakeLight          = false;
-    reverseLight        = false;
-    coolingPump         = false;
-    heatingPump         = false;
-    batteryHeater       = false;
     chargePowerAvailable= false;
-    activateCharger     = false;
+    interlockPresent    = false;
 
     temperatureController = CFG_NO_TEMPERATURE_DATA;
     temperatureMotor = CFG_NO_TEMPERATURE_DATA;
@@ -195,12 +203,14 @@ Status::SystemState Status::setSystemState(SystemState newSystemState) {
         }
     }
     if (systemState == newSystemState) {
-        Logger::info("switched to system state '%s'", systemStateToStr(systemState));
-        DeviceManager::getInstance()->sendMessage(DEVICE_ANY, INVALID, MSG_STATE_CHANGE, &newSystemState);
+        Logger::info("switching to system state '%s'", systemStateToStr(systemState));
     } else {
         Logger::error("switching from system state '%s' to '%s' is not allowed", systemStateToStr(systemState), systemStateToStr(newSystemState));
         systemState = error;
     }
+
+    DeviceManager::getInstance()->sendMessage(DEVICE_ANY, INVALID, MSG_STATE_CHANGE, &newSystemState);
+
     return systemState;
 }
 
@@ -359,9 +369,9 @@ uint32_t Status::getBitField3() {
     bitfield |= (systemState == ready               ? 1 << 0 : 0);  // 0x00000001
     bitfield |= (systemState == running             ? 1 << 1 : 0);  // 0x00000002
     bitfield |= (preChargeRelay                     ? 1 << 2 : 0);  // 0x00000004
-    bitfield |= (secondaryContactorRelay            ? 1 << 3 : 0);  // 0x00000008
-    bitfield |= (mainContactorRelay                 ? 1 << 4 : 0);  // 0x00000010
-    bitfield |= (enableOut                          ? 1 << 5 : 0);  // 0x00000020
+    bitfield |= (secondaryContactor                 ? 1 << 3 : 0);  // 0x00000008
+    bitfield |= (mainContactor                      ? 1 << 4 : 0);  // 0x00000010
+    bitfield |= (enableMotor                        ? 1 << 5 : 0);  // 0x00000020
     bitfield |= (coolingFan                         ? 1 << 6 : 0);  // 0x00000040
     bitfield |= (brakeLight                         ? 1 << 7 : 0);  // 0x00000080
     bitfield |= (reverseLight                       ? 1 << 8 : 0);  // 0x00000100

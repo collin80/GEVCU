@@ -44,9 +44,18 @@ void ThinkBatteryManager::setup()
 
     //Relevant BMS messages are 0x300 - 0x30F
     CanHandler::getInstanceEV()->attach(this, 0x300, 0x7f0, false);
-    deviceReady = true;
+    ready = true;
 
     tickHandler->attach(this, CFG_TICK_INTERVAL_BMS_THINK);
+}
+
+/**
+ * Tear down the device in a safe way.
+ */
+void ThinkBatteryManager::tearDown()
+{
+    BatteryManager::tearDown();
+    CanHandler::getInstanceEV()->detach(this, 0x300, 0x7f0);
 }
 
 /*For all multibyte integers the format is MSB first, LSB last
@@ -60,7 +69,7 @@ void ThinkBatteryManager::handleCanFrame(CAN_FRAME *frame)
             if ((frame->data.bytes[6] & 1) == 0) {  //there was an initialization error!
                 //set fault condition here
             } else {
-                deviceRunning = true;
+                running = true;
             }
 
             break;

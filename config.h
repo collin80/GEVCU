@@ -39,7 +39,7 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 //define this to add in latency and efficiency calculations. Comment it out for builds you're going to 
 //use in an actual car. No need to waste cycles for 99% of everyone using the code.
-#define CFG_EFFICIENCY_CALCS
+//#define CFG_EFFICIENCY_CALCS
 
 
 /*
@@ -84,7 +84,8 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 #define CFG_THROTTLE_TOLERANCE  150 //the max that things can go over or under the min/max without fault - 1/10% each #
 #define CFG_PRE_CHARGE_RELAY_DELAY 200 // a delay to allow relays to (de-)activate before proceeding with next steps
-//#define CFG_THREE_CONTACTOR_PRECHARGE // do we use three contactors instead of two for pre-charge cycle ?
+#define CFG_PRE_CHARGE_START 1000 // delay for the pre-charge process to start - ensuring other deivces become available
+#define CFG_THREE_CONTACTOR_PRECHARGE // do we use three contactors instead of two for pre-charge cycle ?
 #define CFG_NO_TEMPERATURE_DATA 9999 // temperature used to indicate that no external temp sensor is connected
 #define CFG_MIN_BATTERY_CHARGE_TEMPERATURE 5 // GEVCU won't start the battery charging process if the battery temp is below 5 deg C
 
@@ -136,6 +137,7 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #define CoolingFanRelayOutput  7  //output to use for cooling fan
 #define CoolingTemperatureOn 70 //temperature (in C) to turn on cooling fan
 #define CoolingTemperatureOff 60 //temperature to turn it off
+#define InterlockInput 255
 
 #define MaxRegenWatts   20000 //in actual watts, there is no scale here
 #define MaxAccelWatts   150000

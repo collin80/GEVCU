@@ -49,7 +49,7 @@ void PotBrake::setup()
     //pinMode(THROTTLE_INPUT_BRAKELIGHT, INPUT_PULLUP); //Brake light switch
 
     loadConfiguration();
-    deviceReady = true;
+    ready = true;
 
     tickHandler->attach(this, CFG_TICK_INTERVAL_POT_THROTTLE);
 }

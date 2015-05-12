@@ -98,6 +98,7 @@ void setup()
 {
     SerialUSB.begin(CFG_SERIAL_SPEED);
     SerialUSB.println(CFG_VERSION);
+
     SerialUSB.print("Build number: ");
     SerialUSB.println(CFG_BUILD_NUM);
 
@@ -141,8 +142,6 @@ void setup()
      */
 
     systemIO = SystemIO::getInstance();
-    systemIO->setup();
-
     createDevices();
     /*
      *  We defer setting up the devices until here. This allows all objects to be instantiated
@@ -150,6 +149,7 @@ void setup()
      *  out there as they initialize. For instance, a motor controller could see if a BMS
      *  exists and supports a function that the motor controller wants to access.
      */
+    systemIO->setup();
     Status::getInstance()->setSystemState(Status::init);
 
     serialConsole = new SerialConsole(memCache, heartbeat);

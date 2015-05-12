@@ -88,6 +88,7 @@ void CanHandler::initialize()
 {
     // Initialize the canbus at the specified baudrate
     bus->init(canBusNode == CAN_BUS_EV ? CFG_CAN0_SPEED : CFG_CAN1_SPEED);
+    bus->setNumTXBoxes(3);
 
     //Mailboxes are default set up initialized with one MB for TX and the rest for RX
     //That's OK with us so no need to initialize those things there.

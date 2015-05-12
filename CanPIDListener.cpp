@@ -51,10 +51,21 @@ void CanPIDListener::setup()
     canHandlerEv->attach(this, 0x7DF, 0x7DF, false);
     canHandlerEv->attach(this, 0x7E0, 0x7E0, false);
 
-    deviceReady = true;
-    deviceRunning = true;
+    ready = true;
+    running = true;
 
     //tickHandler->attach(this, CFG_TICK_INTERVAL_CAN_THROTTLE);
+}
+
+/**
+ * Tear down the device in a safe way.
+ */
+void CanPIDListener::tearDown()
+{
+    Device::tearDown();
+
+    canHandlerEv->detach(this, 0x7DF, 0x7DF);
+    canHandlerEv->detach(this, 0x7E0, 0x7E0);
 }
 
 /*

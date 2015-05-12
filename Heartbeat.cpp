@@ -39,8 +39,8 @@ void Heartbeat::setup()
 
     pinMode(CFG_BLINK_LED, OUTPUT);
     digitalWrite(CFG_BLINK_LED, LOW);
-    deviceReady = true;
-    deviceRunning = true;
+    ready = true;
+    running = true;
 
     tickHandler->attach(this, CFG_TICK_INTERVAL_HEARTBEAT);
 }

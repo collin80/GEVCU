@@ -61,13 +61,50 @@ void DmocMotorController::setup()
     MotorController::setup(); // run the parent class version of this function
 
     // register ourselves as observer of 0x23x and 0x65x can frames
-    canHandlerEv->attach(this, 0x230, 0x7f0, false);
-    canHandlerEv->attach(this, 0x650, 0x7f0, false);
+    canHandlerEv->attach(this, CAN_MASKED_ID_1, CAN_MASK_1, false);
+    canHandlerEv->attach(this, CAN_MASKED_ID_2, CAN_MASK_2, false);
 
     actualGear = NEUTRAL;
 //    running = true;
 
     tickHandler->attach(this, CFG_TICK_INTERVAL_MOTOR_CONTROLLER_DMOC);
+}
+
+/**
+ * Tear down the controller in a safe way.
+ */
+void DmocMotorController::tearDown()
+{
+    MotorController::tearDown();
+
+    canHandlerEv->detach(this, CAN_MASKED_ID_1, CAN_MASK_1);
+    canHandlerEv->detach(this, CAN_MASKED_ID_2, CAN_MASK_2);
+
+    throttleRequested = 0;
+    setGear(NEUTRAL);
+    sendCmd1();
+    sendCmd2();
+    sendCmd3();
+}
+
+/**
+ * act on messages the super-class does not react upon, like state change
+ * to ready or running which should enable/disable the power-stage of the controller
+ */
+void DmocMotorController::handleStateChange(Status::SystemState state)
+{
+    MotorController::handleStateChange(state);
+
+    // for safety reasons at power off first request 0 torque - this allows the controller to dissipate residual fields first
+    if (!powerOn) {
+        throttleRequested = 0;
+        setGear(NEUTRAL);
+        sendCmd1();
+        sendCmd2();
+        sendCmd3();
+    }
+
+    systemIO->setEnableMotor(powerOn);
 }
 
 /*
@@ -86,7 +123,7 @@ void DmocMotorController::handleCanFrame(CAN_FRAME *frame)
 
     //Logger::debug("dmoc msg: %i", frame->id);
     switch (frame->id) {
-        case 0x651: //Temperature status
+        case CAN_ID_TEMPERATURE:
             rotorTemp = frame->data.bytes[0];
             invTemp = frame->data.bytes[1];
             statorTemp = frame->data.bytes[2];
@@ -102,12 +139,12 @@ void DmocMotorController::handleCanFrame(CAN_FRAME *frame)
             activityCount++;
             break;
 
-        case 0x23A: //torque report
+        case CAN_ID_TORQUE:
             torqueActual = ((frame->data.bytes[0] * 256) + frame->data.bytes[1]) - 30000;
             activityCount++;
             break;
 
-        case 0x23B: //speed and current operation status
+        case CAN_ID_STATUS:
             speedActual = ((frame->data.bytes[0] * 256) + frame->data.bytes[1]) - 20000;
             temp = (OperationState)(frame->data.bytes[6] >> 4);
 
@@ -153,8 +190,8 @@ void DmocMotorController::handleCanFrame(CAN_FRAME *frame)
                     break;
             }
 
-            deviceReady = (actualState == STANDBY) || (actualState == ENABLE) ? true : false;
-            deviceRunning = (actualState == ENABLE) ? true : false;
+            ready = (actualState == STANDBY) || (actualState == ENABLE) ? true : false;
+            running = (actualState == ENABLE) ? true : false;
 
 //      Logger::debug("OpState: %d", temp);
             activityCount++;
@@ -163,7 +200,7 @@ void DmocMotorController::handleCanFrame(CAN_FRAME *frame)
             //case 0x23E: //electrical status
             //gives volts and amps for D and Q but does the firmware really care?
             //break;
-        case 0x650: //HV bus status
+        case CAN_ID_HV_STATUS:
             dcVoltage = ((frame->data.bytes[0] * 256) + frame->data.bytes[1]);
             dcCurrent = ((frame->data.bytes[2] * 256) + frame->data.bytes[3]) - 5000;  //offset is 500A, unit = .1A
             activityCount++;
@@ -218,7 +255,7 @@ void DmocMotorController::sendCmd1()
     OperationState newstate;
     alive = (alive + 2) & 0x0F;
     output.length = 8;
-    output.id = 0x232;
+    output.id = CAN_ID_COMMAND;
     output.extended = 0; //standard frame
     output.rtr = 0;
 
@@ -267,7 +304,7 @@ void DmocMotorController::sendCmd2()
     DmocMotorControllerConfiguration *config = (DmocMotorControllerConfiguration *) getConfiguration();
     CAN_FRAME output;
     output.length = 8;
-    output.id = 0x233;
+    output.id = CAN_ID_LIMIT;
     output.extended = 0; //standard frame
     output.rtr = 0;
     //30000 is the base point where torque = 0
@@ -318,7 +355,7 @@ void DmocMotorController::sendCmd3()
 {
     CAN_FRAME output;
     output.length = 8;
-    output.id = 0x234;
+    output.id = CAN_ID_LIMIT2;
     output.extended = 0; //standard frame
     output.rtr = 0;
 
@@ -341,7 +378,7 @@ void DmocMotorController::sendCmd4()
 {
     CAN_FRAME output;
     output.length = 8;
-    output.id = 0x235;
+    output.id = CAN_ID_CHALLENGE;
     output.extended = 0; //standard frame
     output.rtr = 0;
     output.data.bytes[0] = 37; //i don't know what all these values are
@@ -361,7 +398,7 @@ void DmocMotorController::sendCmd5()
 {
     CAN_FRAME output;
     output.length = 8;
-    output.id = 0x236;
+    output.id = CAN_ID_CHALLENGE2;
     output.extended = 0; //standard frame
     output.rtr = 0;
     output.data.bytes[0] = 2;
@@ -412,11 +449,6 @@ byte DmocMotorController::calcChecksum(CAN_FRAME thisFrame)
 DeviceId DmocMotorController::getId()
 {
     return (DMOC645);
-}
-
-uint32_t DmocMotorController::getTickInterval()
-{
-    return CFG_TICK_INTERVAL_MOTOR_CONTROLLER_DMOC;
 }
 
 void DmocMotorController::loadConfiguration()

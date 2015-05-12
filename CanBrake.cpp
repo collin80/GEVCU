@@ -64,7 +64,7 @@ void CanBrake::setup()
                 0x03, 0x22, 0x2B, 0x0D, 0x00, 0x00, 0x00, 0x00
             }, 8);
             responseId = 0x768;
-            deviceReady = true;
+            ready = true;
             break;
 
         case Volvo_V50_Diesel:
@@ -83,6 +83,15 @@ void CanBrake::setup()
     }
     canHandlerCar->attach(this, responseId, responseMask, responseExtended);
     tickHandler->attach(this, CFG_TICK_INTERVAL_CAN_THROTTLE);
+}
+
+/**
+ * Tear down the device in a safe way.
+ */
+void CanBrake::tearDown()
+{
+    Throttle::tearDown();
+    canHandlerCar->detach(this, responseId, responseMask);
 }
 
 /*
@@ -119,7 +128,7 @@ void CanBrake::handleCanFrame(CAN_FRAME *frame)
                 break;
         }
 
-        deviceRunning = true;
+        running = true;
         ticksNoResponse = 0;
     }
 }
@@ -139,7 +148,7 @@ bool CanBrake::validateSignal(RawSignalData* rawSignal)
         }
 
         throttleStatus = ERR_MISC;
-        deviceRunning = false;
+        running = false;
         return false;
     }
 

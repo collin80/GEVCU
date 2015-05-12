@@ -77,6 +77,7 @@ public:
     };
 
     Throttle();
+    void tearDown();
     virtual int16_t getLevel();
     void handleTick();
     virtual ThrottleStatus getStatus();

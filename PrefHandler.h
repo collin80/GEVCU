@@ -69,12 +69,12 @@ public:
     void initSysEEPROM();
 
 private:
+    DeviceId deviceId; // the device id the handler is assigned to
     uint32_t base_address; //base address for the parent device
     uint32_t lkg_address;
     bool use_lkg; //use last known good config?
-    bool enabled;
-    int position; //position within the device table
     void initDevTable();
+    static int8_t findDevice(DeviceId);
 };
 
 #endif

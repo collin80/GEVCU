@@ -63,7 +63,7 @@ void CanThrottle::setup()
                 0x03, 0x22, 0xee, 0xcb, 0x00, 0x00, 0x00, 0x00
             }, 8);
             responseId = 0x7e8;
-            deviceReady = true;
+            ready = true;
             break;
 
         case Volvo_V50_Diesel:
@@ -76,7 +76,7 @@ void CanThrottle::setup()
             }, 8);
             responseId = 0x21;
             responseExtended = true;
-            deviceReady = true;
+            ready = true;
             break;
 
         default:
@@ -85,6 +85,16 @@ void CanThrottle::setup()
 
     canHandlerCar->attach(this, responseId, responseMask, responseExtended);
     tickHandler->attach(this, CFG_TICK_INTERVAL_CAN_THROTTLE);
+}
+
+/**
+ * Tear down the device in a safe way.
+ */
+void CanThrottle::tearDown()
+{
+    Throttle::tearDown();
+
+    canHandlerCar->detach(this, responseId, responseMask);
 }
 
 /*

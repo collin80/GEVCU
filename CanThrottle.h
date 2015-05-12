@@ -53,6 +53,7 @@ class CanThrottle: public Throttle, CanObserver
 public:
     CanThrottle();
     void setup();
+    void tearDown();
     void handleTick();
     void handleCanFrame(CAN_FRAME *frame);
     DeviceId getId();
