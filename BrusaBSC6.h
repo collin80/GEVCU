@@ -51,19 +51,10 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #define CAN_MASK            0x7fa // mask for above id's                                11111111010
 #define CAN_MASKED_ID       0x26a // masked id for id's from 0x26a to 0x26f             01001101010
 
-class BrusaBSC6Configuration : public DeviceConfiguration
+class BrusaBSC6Configuration : public DcDcConverterConfiguration
 {
 public:
-    bool boostMode;
     bool debugMode;
-    uint8_t lowVoltage; // 8-16V in 0.1V
-    uint8_t highVoltage; // 190-425V in 1V, offset = 170V
-    uint8_t hvUndervoltageLimit; // 170-425V in 1V, offset = 170V
-    uint8_t lvBuckModeCurrentLimit; // 0-250A in 1A
-    uint8_t hvBuckModeCurrentLimit; // 0-25A in 0.1A
-    uint8_t lvUndervoltageLimit; // 0-16V in 0.1V
-    uint8_t lvBoostModeCurrentLinit; // 0-250A in 1A
-    uint8_t hvBoostModeCurrentLimit; // 0-25A in 0.1A
 };
 
 class BrusaBSC6: public DcDcConverter, CanObserver
@@ -72,8 +63,8 @@ public:
     // Message id=0x26a, BSC6VAL1
     // The value is composed of 1 byte : data[7]
     enum BSC6_Status {
-        running             = 1 << 0, // 0x01, data[7], Motorola bit 63
-        ready               = 1 << 1, // 0x02, data[7], Motorola bit 62
+        bsc6Running         = 1 << 0, // 0x01, data[7], Motorola bit 63
+        bsc6Ready           = 1 << 1, // 0x02, data[7], Motorola bit 62
         automatic           = 1 << 2  // 0x04, data[7], Motorola bit 61
     };
 
@@ -117,8 +108,8 @@ public:
     void handleTick();
     void handleCanFrame(CAN_FRAME *frame);
     void setup();
+    void tearDown();
     DeviceId getId();
-    uint32_t getTickInterval();
 
     void loadConfiguration();
     void saveConfiguration();
@@ -126,13 +117,8 @@ public:
 private:
     CanHandler *canHandlerEv;
     uint32_t bitfield; // various bit fields
-    uint16_t hvVoltage; // 0-480V in 0.1V
-    uint8_t lvVoltage; // 0-25V in 0.1V
-    int16_t hvCurrent; // -25-25A in 0.1A, offset = -25A
-    int16_t lvCurrent; // -280-280A in 1A, offset = -280A
     uint8_t mode; // operation mode / status
     uint8_t lvCurrentAvailable; // 0-250A in 1A
-    uint8_t maxTemperature; // 0 - 180C in 1C
     uint8_t temperatureBuckBoostSwitch1; // 0 - 180C in 1C
     uint8_t temperatureBuckBoostSwitch2; // 0 - 180C in 1C
     uint8_t temperatureHvTrafostageSwitch1; // 0 - 180C in 1C
