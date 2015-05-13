@@ -92,10 +92,10 @@ the end of the stardard data. The below numbers are offsets from the device's ee
 #define EEMC_OSCILATION_LIMITER     66 // 1 byte - flag to enable oscilation limiter (1=true/0=false)
 
 //throttle data
-#define EETH_MIN_ONE            20 //2 bytes - ADC value of minimum value for first channel
-#define EETH_MAX_ONE            22 //2 bytes - ADC value of maximum value for first channel
-#define EETH_MIN_TWO            24 //2 bytes - ADC value of minimum value for second channel
-#define EETH_MAX_TWO            26 //2 bytes - ADC value of maximum value for second channel
+#define EETH_LEVEL_MIN            20 //2 bytes - ADC value of minimum value for first channel
+#define EETH_LEVEL_MAX            22 //2 bytes - ADC value of maximum value for first channel
+#define EETH_LEVEL_MIN_TWO            24 //2 bytes - ADC value of minimum value for second channel
+#define EETH_LEVEL_MAX_TWO            26 //2 bytes - ADC value of maximum value for second channel
 #define EETH_REGEN_MIN          28 //2 bytes - unsigned int - tenths of a percent (0-1000) of pedal position where regen stops
 #define EETH_FWD                30 //2 bytes - unsigned int - tenths of a percent (0-1000) of pedal position where forward motion starts 
 #define EETH_MAP                32 //2 bytes - unsigned int - tenths of a percent (0-1000) of pedal position where forward motion is at 50% throttle

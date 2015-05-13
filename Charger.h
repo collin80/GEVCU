@@ -43,7 +43,7 @@ public:
 
     uint16_t minimumBatteryVoltage; // minimum battery voltage in 0.1V where to start the charge process
     uint16_t maximumBatteryVoltage; // maximum battery voltage in 0.1V - if exceeded, the charge process will terminate
-    uint16_t minimumTemperutre; // temperature in 0.1 deg Celsius below which charging will not occur
+    uint16_t minimumTemperature; // temperature in 0.1 deg Celsius below which charging will not occur
     uint16_t maximumTemperature; // temperature in 0.1 deg Celsius where charging is terminated
     uint16_t maximumAmpereHours; // charge in 0.1 Ah where charging is terminated
     uint16_t maximumChargeTime; // charge time in 1 minutes at which charging is terminated

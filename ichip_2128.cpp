@@ -623,13 +623,13 @@ void ICHIPWIFI::processParameterChange(char *key)
         acceleratorConfig->throttleSubType = atol(value);
         accelerator->saveConfiguration();
     } else if (!strcmp(key, Constants::throttleMin1) && acceleratorConfig) {
-        acceleratorConfig->minimumLevel1 = atol(value);
+        acceleratorConfig->minimumLevel = atol(value);
         accelerator->saveConfiguration();
     } else if (!strcmp(key, Constants::throttleMin2) && acceleratorConfig) {
         acceleratorConfig->minimumLevel2 = atol(value);
         accelerator->saveConfiguration();
     } else if (!strcmp(key, Constants::throttleMax1) && acceleratorConfig) {
-        acceleratorConfig->maximumLevel1 = atol(value);
+        acceleratorConfig->maximumLevel = atol(value);
         accelerator->saveConfiguration();
     } else if (!strcmp(key, Constants::throttleMax2) && acceleratorConfig) {
         acceleratorConfig->maximumLevel2 = atol(value);
@@ -655,10 +655,10 @@ void ICHIPWIFI::processParameterChange(char *key)
         acceleratorConfig->creep = atol(value);
         accelerator->saveConfiguration();
     } else if (!strcmp(key, Constants::brakeMin) && brakeConfig) {
-        brakeConfig->minimumLevel1 = atol(value);
+        brakeConfig->minimumLevel = atol(value);
         brake->saveConfiguration();
     } else if (!strcmp(key, Constants::brakeMax) && brakeConfig) {
-        brakeConfig->maximumLevel1 = atol(value);
+        brakeConfig->maximumLevel = atol(value);
         brake->saveConfiguration();
     } else if (!strcmp(key, Constants::brakeMinRegen) && brakeConfig) {
         brakeConfig->minimumRegen = atol(value);
@@ -752,9 +752,9 @@ void ICHIPWIFI::loadParameters()
     if (acceleratorConfig) {
         setParam(Constants::numThrottlePots, acceleratorConfig->numberPotMeters);
         setParam(Constants::throttleSubType, acceleratorConfig->throttleSubType);
-        setParam(Constants::throttleMin1, acceleratorConfig->minimumLevel1);
+        setParam(Constants::throttleMin1, acceleratorConfig->minimumLevel);
         setParam(Constants::throttleMin2, acceleratorConfig->minimumLevel2);
-        setParam(Constants::throttleMax1, acceleratorConfig->maximumLevel1);
+        setParam(Constants::throttleMax1, acceleratorConfig->maximumLevel);
         setParam(Constants::throttleMax2, acceleratorConfig->maximumLevel2);
         setParam(Constants::throttleRegenMax, (uint16_t)(acceleratorConfig->positionRegenMaximum / 10));
         setParam(Constants::throttleRegenMin, (uint16_t)(acceleratorConfig->positionRegenMinimum / 10));
@@ -766,8 +766,8 @@ void ICHIPWIFI::loadParameters()
     }
 
     if (brakeConfig) {
-        setParam(Constants::brakeMin, brakeConfig->minimumLevel1);
-        setParam(Constants::brakeMax, brakeConfig->maximumLevel1);
+        setParam(Constants::brakeMin, brakeConfig->minimumLevel);
+        setParam(Constants::brakeMax, brakeConfig->maximumLevel);
         setParam(Constants::brakeMinRegen, brakeConfig->minimumRegen);
         setParam(Constants::brakeMaxRegen, brakeConfig->maximumRegen);
     }

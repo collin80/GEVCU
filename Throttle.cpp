@@ -227,6 +227,8 @@ void Throttle::loadConfiguration()
 
     if (prefsHandler->checksumValid()) { //checksum is good, read in the values stored in EEPROM
 #endif
+        prefsHandler->read(EETH_LEVEL_MIN, &config->minimumLevel);
+        prefsHandler->read(EETH_LEVEL_MAX, &config->maximumLevel);
         prefsHandler->read(EETH_REGEN_MIN, &config->positionRegenMinimum);
         prefsHandler->read(EETH_REGEN_MAX, &config->positionRegenMaximum);
         prefsHandler->read(EETH_FWD, &config->positionForwardMotionStart);
@@ -235,6 +237,8 @@ void Throttle::loadConfiguration()
         prefsHandler->read(EETH_MIN_ACCEL_REGEN, &config->minimumRegen);
         prefsHandler->read(EETH_MAX_ACCEL_REGEN, &config->maximumRegen);
     } else { //checksum invalid. Reinitialize values, leave storing them to the subclasses
+        config->minimumLevel = Throttle1MinValue;
+        config->maximumLevel = Throttle1MaxValue;
         config->positionRegenMinimum = ThrottleRegenMinValue;
         config->positionRegenMaximum = ThrottleRegenMaxValue;
         config->positionForwardMotionStart = ThrottleFwdValue;
@@ -258,6 +262,8 @@ void Throttle::saveConfiguration()
 
     Device::saveConfiguration(); // call parent
 
+    prefsHandler->write(EETH_LEVEL_MIN, config->minimumLevel);
+    prefsHandler->write(EETH_LEVEL_MAX, config->maximumLevel);
     prefsHandler->write(EETH_REGEN_MIN, config->positionRegenMinimum);
     prefsHandler->write(EETH_REGEN_MAX, config->positionRegenMaximum);
     prefsHandler->write(EETH_FWD, config->positionForwardMotionStart);
