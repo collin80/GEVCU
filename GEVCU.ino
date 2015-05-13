@@ -67,7 +67,6 @@ CanHandler *canHandlerCar;
 TickHandler *tickHandler;
 PrefHandler *sysPrefs;
 MemCache *memCache;
-Heartbeat *heartbeat;
 SerialConsole *serialConsole;
 Device *wifiDevice;
 Device *btDevice;
@@ -152,7 +151,7 @@ void setup()
     systemIO->setup();
     Status::getInstance()->setSystemState(Status::init);
 
-    serialConsole = new SerialConsole(memCache, heartbeat);
+    serialConsole = new SerialConsole(memCache);
     serialConsole->printMenu();
 
     wifiDevice = DeviceManager::getInstance()->getDeviceByID(ICHIP2128);
