@@ -36,13 +36,8 @@ BrusaBSC6::BrusaBSC6() : DcDcConverter()
     prefsHandler = new PrefHandler(BRUSA_BSC6);
     commonName = "Brusa BSC6 DC-DC Converter";
 
-    hvVoltage = 0;
-    lvVoltage = 0;
-    hvCurrent = 250;
-    lvCurrent = 280;
     mode = 0;
     lvCurrentAvailable = 0;
-    maxTemperature = 0;
     temperatureBuckBoostSwitch1 = 0;
     temperatureBuckBoostSwitch2 = 0;
     temperatureHvTrafostageSwitch1 = 0;
@@ -53,8 +48,8 @@ BrusaBSC6::BrusaBSC6() : DcDcConverter()
     temperatureTransformerCoil2 = 0;
     internal12VSupplyVoltage = 0;
     lsActualVoltage = 0;
-    lsActualCurrent = 6000;
-    lsCommandedCurrent = 6000;
+    lsActualCurrent = 0;
+    lsCommandedCurrent = 0;
     internalOperationState = 0;
 }
 
@@ -73,6 +68,17 @@ void BrusaBSC6::setup()
 
     tickHandler->attach(this, CFG_TICK_INTERVAL_DCDC_BSC6);
 }
+
+/**
+ * Tear down the controller in a safe way.
+ */
+void BrusaBSC6::tearDown()
+{
+    DcDcConverter::tearDown();
+    canHandlerEv->detach(this, CAN_MASKED_ID, CAN_MASK);
+    sendCommand(); // as powerOn is false now, send last command to deactivate controller
+}
+
 
 /*
  * Process event from the tick handler.
@@ -96,8 +102,7 @@ void BrusaBSC6::sendCommand()
     BrusaBSC6Configuration *config = (BrusaBSC6Configuration *) getConfiguration();
     canHandlerEv->prepareOutputFrame(&outputFrame, CAN_ID_COMMAND);
 
-    if ((status->getSystemState() == Status::running)
-            && systemIO->getEnableInput()) {
+    if ((ready || running) && powerOn) {
         outputFrame.data.bytes[0] |= enable;
     }
     if (config->boostMode) {
@@ -107,10 +112,11 @@ void BrusaBSC6::sendCommand()
         outputFrame.data.bytes[0] |= debugMode;
     }
 
-    outputFrame.data.bytes[1] = config->lowVoltage; // 8-16V in 0.1V, offset = 0V
-    outputFrame.data.bytes[2] = config->highVoltage -170; // 190-425V in 1V, offset = 170V
+    outputFrame.data.bytes[1] = constrain(config->lowVoltageCommand, 80, 160); // 8-16V in 0.1V, offset = 0V
+    outputFrame.data.bytes[2] = constrain(config->highVoltageCommand - 170, 20, 255); // 190-425V in 1V, offset = 170V
 
-//    canHandlerEv->sendFrame(outputFrame);
+    outputFrame.length = 3;
+    canHandlerEv->sendFrame(outputFrame);
 }
 
 /*
@@ -123,14 +129,15 @@ void BrusaBSC6::sendLimits()
     BrusaBSC6Configuration *config = (BrusaBSC6Configuration *) getConfiguration();
     canHandlerEv->prepareOutputFrame(&outputFrame, CAN_ID_LIMIT);
 
-    outputFrame.data.bytes[0] = config->hvUndervoltageLimit - 170;
-    outputFrame.data.bytes[1] = config->lvBuckModeCurrentLimit;
-    outputFrame.data.bytes[2] = config->hvBuckModeCurrentLimit;
-    outputFrame.data.bytes[3] = config->lvUndervoltageLimit;
-    outputFrame.data.bytes[4] = config->lvBoostModeCurrentLinit;
-    outputFrame.data.bytes[5] = config->hvBoostModeCurrentLimit;
+    outputFrame.data.bytes[0] = constrain(config->hvUndervoltageLimit - 170, 0, 255);
+    outputFrame.data.bytes[1] = constrain(config->lvBuckModeCurrentLimit, 0, 250);
+    outputFrame.data.bytes[2] = constrain(config->hvBuckModeCurrentLimit, 0, 250);
+    outputFrame.data.bytes[3] = constrain(config->lvUndervoltageLimit, 0, 160);
+    outputFrame.data.bytes[4] = constrain(config->lvBoostModeCurrentLinit, 0, 250);
+    outputFrame.data.bytes[5] = constrain(config->hvBoostModeCurrentLimit, 0, 250);
+    outputFrame.length = 6;
 
-//    canHandlerEv->sendFrame(outputFrame);
+    canHandlerEv->sendFrame(outputFrame);
 }
 
 /*
@@ -158,9 +165,6 @@ void BrusaBSC6::handleCanFrame(CAN_FRAME *frame)
         case CAN_ID_DEBUG_2:
             processDebug2(frame->data.bytes);
             break;
-
-//        default:
-//            Logger::warn(BRUSA_BSC6, "received unknown frame id %X", frame->id);
     }
 }
 
@@ -174,14 +178,10 @@ void BrusaBSC6::processValues1(uint8_t data[])
 {
     bitfield = (uint32_t)data[7] & 0x0F;
 
-    if (bitfield & running) {
-        //TODO: interaction with system state ?
-    }
-    if (bitfield & ready) {
-        //TODO: interaction with system state ?
-    }
+    running = (bitfield & bsc6Running) ? true : false;
+    ready = (bitfield & bsc6Ready) ? true : false;
     if (bitfield & automatic) {
-        //TODO: interaction with system state ?
+        //TODO
     }
 
     hvVoltage = (uint16_t)(data[1] | (data[0] << 8));
@@ -191,7 +191,7 @@ void BrusaBSC6::processValues1(uint8_t data[])
     mode = (data[7] & 0xF0) >> 4;
 
     if (Logger::isDebug()) {
-        Logger::debug(BRUSA_BSC6, "status bitfield: %X, HV: %fV, %fA, LV: %fV, %dA, mode %d", bitfield, (float) hvVoltage / 10.0F, (float) hvCurrent / 10.0F, (float) lvVoltage / 10.0F, lvCurrent, mode);
+        Logger::debug(BRUSA_BSC6, "status bitfield: %X, ready: %T, running: %T, HV: %fV %fA, LV: %fV %dA, mode %d", bitfield, ready, running, (float) hvVoltage / 10.0F, (float) hvCurrent / 10.0F, (float) lvVoltage / 10.0F, lvCurrent, mode);
     }
 }
 
@@ -203,7 +203,7 @@ void BrusaBSC6::processValues1(uint8_t data[])
 void BrusaBSC6::processValues2(uint8_t data[])
 {
     lvCurrentAvailable = (uint8_t)data[0];
-    maxTemperature = (uint8_t)data[1];
+    temperature = (uint8_t)data[1] * 10;
 
     bitfield = (uint32_t)((data[3] << 0) | (data[2] << 8) | (data[4] << 16));
     // TODO: react on various bitfields if set ?
@@ -230,7 +230,7 @@ void BrusaBSC6::processValues2(uint8_t data[])
 //    brokenTemperatureSensor
 
     if (Logger::isDebug()) {
-        Logger::debug(BRUSA_BSC6, "error bitfield: %X, LV current avail: %dA, maximum Temperature: %d�C", bitfield, lvCurrentAvailable, maxTemperature);
+        Logger::debug(BRUSA_BSC6, "error bitfield: %X, LV current avail: %dA, maximum Temperature: %dC", bitfield, lvCurrentAvailable, (float) temperature / 10.0F);
     }
 }
 
@@ -287,14 +287,6 @@ DeviceId BrusaBSC6::getId()
 }
 
 /*
- * Expose the tick interval of this controller
- */
-uint32_t BrusaBSC6::getTickInterval()
-{
-    return CFG_TICK_INTERVAL_DCDC_BSC6;
-}
-
-/*
  * Load configuration data from EEPROM.
  *
  * If not available or the checksum is invalid, default values are chosen.
@@ -317,38 +309,12 @@ void BrusaBSC6::loadConfiguration()
     if (prefsHandler->checksumValid()) { //checksum is good, read in the values stored in EEPROM
 #endif
         uint8_t temp;
-        Logger::debug(BRUSA_BSC6, (char *) Constants::validChecksum);
-
-        prefsHandler->read(DCDC_BOOST_MODE, &temp);
-        config->boostMode = (temp != 0);
         prefsHandler->read(DCDC_DEBUG_MODE, &temp);
         config->debugMode = (temp != 0);
-        prefsHandler->read(DCDC_LOW_VOLTAGE, &config->lowVoltage);
-        prefsHandler->read(DCDC_HIGH_VOLTAGE, &config->highVoltage);
-        prefsHandler->read(DCDC_HV_UNDERVOLTAGE_LIMIT, &config->hvUndervoltageLimit);
-        prefsHandler->read(DCDC_LV_BUCK_CURRENT_LIMIT, &config->lvBuckModeCurrentLimit);
-        prefsHandler->read(DCDC_HV_BUCK_CURRENT_LIMIT, &config->hvBuckModeCurrentLimit);
-        prefsHandler->read(DCDC_LV_UNDERVOLTAGE_LIMIT, &config->lvUndervoltageLimit);
-        prefsHandler->read(DCDC_LV_BOOST_CURRENT_LIMIT, &config->lvBoostModeCurrentLinit);
-        prefsHandler->read(DCDC_HV_BOOST_CURRENT_LIMIT, &config->hvBoostModeCurrentLimit);
     } else { //checksum invalid. Reinitialize values and store to EEPROM
-        Logger::warn(BRUSA_BSC6, (char *) Constants::invalidChecksum);
-        config->boostMode = false;
-        config->debugMode = false;
-        config->lowVoltage = 120;
-        config->highVoltage = 20;
-        config->hvUndervoltageLimit = 0;
-        config->lvBuckModeCurrentLimit = 250;
-        config->hvBuckModeCurrentLimit = 250;
-        config->lvUndervoltageLimit = 100;
-        config->lvBoostModeCurrentLinit = 250;
-        config->hvBoostModeCurrentLimit = 250;
+        config->debugMode = false; // no debug messages
         saveConfiguration();
     }
-
-    Logger::debug(BRUSA_BSC6, "Boost mode: %b, debug mode: %b, low Voltage: %fV, high Voltage: %dV", config->boostMode, config->debugMode, (float) config->lowVoltage / 10.0F, config->highVoltage);
-    Logger::debug(BRUSA_BSC6, "HV undervoltage limit: %dV, LV buck mode current limit: %dA, HV buck mode current limit: %fA", config->hvUndervoltageLimit, config->lvBuckModeCurrentLimit, (float) config->hvBuckModeCurrentLimit / 10.0F);
-    Logger::debug(BRUSA_BSC6, "LV undervoltage limit: %fV, LV boost mode current limit: %dA, HV boost mode current limit: %fA", (float) config->lvUndervoltageLimit / 10.0F, config->lvBoostModeCurrentLinit, (float) config->hvBoostModeCurrentLimit / 10.0F);
 }
 
 /*
@@ -360,16 +326,7 @@ void BrusaBSC6::saveConfiguration()
 
     DcDcConverter::saveConfiguration(); // call parent
 
-    prefsHandler->write(DCDC_BOOST_MODE, (uint8_t) (config->boostMode ? 1 : 0));
     prefsHandler->write(DCDC_DEBUG_MODE, (uint8_t) (config->debugMode ? 1 : 0));
-    prefsHandler->write(DCDC_LOW_VOLTAGE, config->lowVoltage);
-    prefsHandler->write(DCDC_HIGH_VOLTAGE, config->highVoltage);
-    prefsHandler->write(DCDC_HV_UNDERVOLTAGE_LIMIT, config->hvUndervoltageLimit);
-    prefsHandler->write(DCDC_LV_BUCK_CURRENT_LIMIT, config->lvBuckModeCurrentLimit);
-    prefsHandler->write(DCDC_HV_BUCK_CURRENT_LIMIT, config->hvBuckModeCurrentLimit);
-    prefsHandler->write(DCDC_LV_UNDERVOLTAGE_LIMIT, config->lvUndervoltageLimit);
-    prefsHandler->write(DCDC_LV_BOOST_CURRENT_LIMIT, config->lvBoostModeCurrentLinit);
-    prefsHandler->write(DCDC_HV_BOOST_CURRENT_LIMIT, config->hvBoostModeCurrentLimit);
 
     prefsHandler->saveChecksum();
 }

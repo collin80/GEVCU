@@ -52,15 +52,9 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #define CAN_MASK            0x7f8 // mask for above id's                                11111111000
 #define CAN_MASKED_ID       0x610 // masked id for id's from 0x610 to 0x614             11000010000
 
-class BrusaNLG5Configuration : public DeviceConfiguration
+class BrusaNLG5Configuration : public ChargerConfiguration
 {
 public:
-    uint16_t maxMainsCurrent; // maximum mains current in 0.1A
-    uint16_t constantCurrent; // current during constant current phase in 0.1A
-    uint16_t constantVoltage; // current during constant voltage phase and point where switching from constant current to constant voltage in 0.1V
-    uint16_t terminateCurrent; // current at which to terminate the charge process in 0.1A
-    uint16_t minimumBatteryVoltage; // minimum battery voltage where to start the charge process in 0.1V
-    uint16_t maximumBatteryVoltage; // maximum battery voltage - if exceeded, the charge process will terminate in 0.1V
 };
 
 class BrusaNLG5: public Charger, CanObserver
@@ -161,29 +155,30 @@ public:
     BrusaNLG5();
     void handleTick();
     void handleCanFrame(CAN_FRAME *frame);
+    void handleStateChange(Status::SystemState state);
     void setup();
+    void tearDown();
     DeviceId getId();
-    uint32_t getTickInterval();
 
     void loadConfiguration();
     void saveConfiguration();
 
+protected:
+    long getTickInterval();
+
 private:
     CanHandler *canHandlerEv;
     uint32_t bitfield; // various bit fields
-    uint16_t mainsCurrent; // 0 - 50A in 0.01A
-    uint16_t mainsVoltage; // 0 - 500V in 0.1V
-    uint16_t batteryVoltage; // 0 - 1000V in 0.1V
-    uint16_t batteryCurrent; // 0 - 150A in 0.01A
     uint16_t currentLimitControlPilot; // 0 - 100A in 0.1A
     uint8_t currentLimitPowerIndicator; // 0 - 20A in 0.1A
     uint8_t auxBatteryVoltage; // 0 - 25V in 0.1V
     int16_t extChargeBalance; // -327.68 - 327.67Ah in 0.01Ah
     uint16_t boosterOutputCurrent; // 0 - 50A in 0.01A
-    int16_t temperaturePowerStage; // -40 - 300°C in 0.1°C
-    int16_t temperatureExtSensor1; // -40 - 300°C in 0.1°C
-    int16_t temperatureExtSensor2; // -40 - 300°C in 0.1°C
-    int16_t temperatureExtSensor3; // -40 - 300°C in 0.1°C
+    int16_t temperaturePowerStage; // -40 - 300 deg C in 0.1 deg C
+    int16_t temperatureExtSensor1; // -40 - 300 deg C in 0.1 deg C
+    int16_t temperatureExtSensor2; // -40 - 300 deg C in 0.1 deg C
+    int16_t temperatureExtSensor3; // -40 - 300 deg C in 0.1 deg C
+    uint16_t canTickCounter;
     bool errorPresent;
     bool clearErrorLatch;
 

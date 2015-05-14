@@ -437,6 +437,10 @@ void Logger::printDeviceName(DeviceId deviceId)
         case MEMCACHE:
             SerialUSB.print("MEMCACHE");
             break;
+
+        case CANIO:
+            SerialUSB.print("CANIO");
+            break;
     }
 
     SerialUSB.print(" - ");

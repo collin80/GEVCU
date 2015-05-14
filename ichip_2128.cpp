@@ -87,9 +87,22 @@ void ICHIPWIFI::setup()
     paramCache.brakeNotAvailable = true;
 
     elmProc = new ELM327Processor();
+    ready = true;
+    running = true;
 
     tickHandler->attach(this, CFG_TICK_INTERVAL_WIFI);
 }
+
+/**
+ * Tear down the device in a safe way.
+ */
+void ICHIPWIFI::tearDown()
+{
+    Device::tearDown();
+
+    //TODO: if there is a way to physically power off the device, do it here. but also power it on during setup()
+}
+
 
 //A version of sendCmd that defaults to SET_PARAM which is what most of the code used to assume.
 void ICHIPWIFI::sendCmd(String cmd)
@@ -610,13 +623,13 @@ void ICHIPWIFI::processParameterChange(char *key)
         acceleratorConfig->throttleSubType = atol(value);
         accelerator->saveConfiguration();
     } else if (!strcmp(key, Constants::throttleMin1) && acceleratorConfig) {
-        acceleratorConfig->minimumLevel1 = atol(value);
+        acceleratorConfig->minimumLevel = atol(value);
         accelerator->saveConfiguration();
     } else if (!strcmp(key, Constants::throttleMin2) && acceleratorConfig) {
         acceleratorConfig->minimumLevel2 = atol(value);
         accelerator->saveConfiguration();
     } else if (!strcmp(key, Constants::throttleMax1) && acceleratorConfig) {
-        acceleratorConfig->maximumLevel1 = atol(value);
+        acceleratorConfig->maximumLevel = atol(value);
         accelerator->saveConfiguration();
     } else if (!strcmp(key, Constants::throttleMax2) && acceleratorConfig) {
         acceleratorConfig->maximumLevel2 = atol(value);
@@ -642,10 +655,10 @@ void ICHIPWIFI::processParameterChange(char *key)
         acceleratorConfig->creep = atol(value);
         accelerator->saveConfiguration();
     } else if (!strcmp(key, Constants::brakeMin) && brakeConfig) {
-        brakeConfig->minimumLevel1 = atol(value);
+        brakeConfig->minimumLevel = atol(value);
         brake->saveConfiguration();
     } else if (!strcmp(key, Constants::brakeMax) && brakeConfig) {
-        brakeConfig->maximumLevel1 = atol(value);
+        brakeConfig->maximumLevel = atol(value);
         brake->saveConfiguration();
     } else if (!strcmp(key, Constants::brakeMinRegen) && brakeConfig) {
         brakeConfig->minimumRegen = atol(value);
@@ -665,8 +678,8 @@ void ICHIPWIFI::processParameterChange(char *key)
     } else if (!strcmp(key, Constants::prechargeMillis)) {
         systemIOConfig->prechargeMillis = atol(value);
         systemIO->saveConfiguration();
-    } else if (!strcmp(key, Constants::prechargeOutput)) {
-        systemIOConfig->prechargeOutput = atol(value);
+    } else if (!strcmp(key, Constants::prechargeRelayOutput)) {
+        systemIOConfig->prechargeRelayOutput = atol(value);
         systemIO->saveConfiguration();
     } else if (!strcmp(key, Constants::mainContactorOutput)) {
         systemIOConfig->mainContactorOutput = atol(value);
@@ -674,8 +687,8 @@ void ICHIPWIFI::processParameterChange(char *key)
     } else if (!strcmp(key, Constants::secondaryContactorOutput)) {
         systemIOConfig->secondaryContactorOutput = atol(value);
         systemIO->saveConfiguration();
-    } else if (!strcmp(key, Constants::enableOutput)) {
-        systemIOConfig->enableOutput = atol(value);
+    } else if (!strcmp(key, Constants::enableMotorOutput)) {
+        systemIOConfig->enableMotorOutput = atol(value);
         systemIO->saveConfiguration();
     } else if (!strcmp(key, Constants::coolingFanOutput)) {
         systemIOConfig->coolingFanOutput = atol(value);
@@ -739,9 +752,9 @@ void ICHIPWIFI::loadParameters()
     if (acceleratorConfig) {
         setParam(Constants::numThrottlePots, acceleratorConfig->numberPotMeters);
         setParam(Constants::throttleSubType, acceleratorConfig->throttleSubType);
-        setParam(Constants::throttleMin1, acceleratorConfig->minimumLevel1);
+        setParam(Constants::throttleMin1, acceleratorConfig->minimumLevel);
         setParam(Constants::throttleMin2, acceleratorConfig->minimumLevel2);
-        setParam(Constants::throttleMax1, acceleratorConfig->maximumLevel1);
+        setParam(Constants::throttleMax1, acceleratorConfig->maximumLevel);
         setParam(Constants::throttleMax2, acceleratorConfig->maximumLevel2);
         setParam(Constants::throttleRegenMax, (uint16_t)(acceleratorConfig->positionRegenMaximum / 10));
         setParam(Constants::throttleRegenMin, (uint16_t)(acceleratorConfig->positionRegenMinimum / 10));
@@ -753,8 +766,8 @@ void ICHIPWIFI::loadParameters()
     }
 
     if (brakeConfig) {
-        setParam(Constants::brakeMin, brakeConfig->minimumLevel1);
-        setParam(Constants::brakeMax, brakeConfig->maximumLevel1);
+        setParam(Constants::brakeMin, brakeConfig->minimumLevel);
+        setParam(Constants::brakeMax, brakeConfig->maximumLevel);
         setParam(Constants::brakeMinRegen, brakeConfig->minimumRegen);
         setParam(Constants::brakeMaxRegen, brakeConfig->maximumRegen);
     }
@@ -767,10 +780,10 @@ void ICHIPWIFI::loadParameters()
 
     setParam(Constants::enableInput, systemIOConfig->enableInput);
     setParam(Constants::prechargeMillis, systemIOConfig->prechargeMillis);
-    setParam(Constants::prechargeOutput, systemIOConfig->prechargeOutput);
+    setParam(Constants::prechargeRelayOutput, systemIOConfig->prechargeRelayOutput);
     setParam(Constants::mainContactorOutput, systemIOConfig->mainContactorOutput);
     setParam(Constants::secondaryContactorOutput, systemIOConfig->secondaryContactorOutput);
-    setParam(Constants::enableOutput, systemIOConfig->enableOutput);
+    setParam(Constants::enableMotorOutput, systemIOConfig->enableMotorOutput);
     setParam(Constants::brakeLightOutput, systemIOConfig->brakeLightOutput);
     setParam(Constants::reverseLightOutput, systemIOConfig->reverseLightOutput);
     setParam(Constants::coolingFanOutput, systemIOConfig->coolingFanOutput);

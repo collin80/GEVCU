@@ -38,10 +38,14 @@ enum DeviceType {
     DEVICE_MISC,
     DEVICE_WIFI,
     DEVICE_DCDC,
+    DEVICE_IO,
     DEVICE_NONE
 };
 
-enum DeviceId { //unique device ID for every piece of hardware possible
+// unique device ID for every piece of hardware possible
+// maximum ID number: 0x7fff (refer to PrefHandler, first bit of 16bit is used as enable flag)
+enum DeviceId {
+    NEW = 0x0000,
     DMOC645 = 0x1000,
     BRUSA_DMC5 = 0x1001,
     BRUSA_NLG5 = 0x1010,
@@ -57,6 +61,7 @@ enum DeviceId { //unique device ID for every piece of hardware possible
     SYSTEM = 0x5000,
     HEARTBEAT = 0x5001,
     MEMCACHE = 0x5002,
+    CANIO = 0x5003,
     PIDLISTENER = 0x6000,
     ELM327EMU = 0x6500,
     INVALID = 0xFFFF

@@ -42,6 +42,8 @@ DeviceManager::DeviceManager()
     throttle = NULL;
     brake = NULL;
     motorController = NULL;
+    charger = NULL;
+    dcDcConverter = NULL;
 
     for (int i = 0; i < CFG_DEV_MGR_MAX_DEVICES; i++) {
         devices[i] = NULL;
@@ -144,18 +146,23 @@ void DeviceManager::removeDevice(Device *device)
  whatever you want. The standard message types are to enforce standard messages for easy
  intercommunication.
  */
-void DeviceManager::sendMessage(DeviceType devType, DeviceId devId, uint32_t msgType, void* message)
+bool DeviceManager::sendMessage(DeviceType devType, DeviceId devId, uint32_t msgType, void* message)
 {
+    bool foundDevice = false;
     for (int i = 0; i < CFG_DEV_MGR_MAX_DEVICES; i++) {
-        if (devices[i] && devices[i]->isEnabled()) { //does this object exist and is it enabled?
+        if (devices[i] && (devices[i]->isEnabled() || msgType == MSG_ENABLE)) { //does this object exist and is it enabled?
             if (devType == DEVICE_ANY || devType == devices[i]->getType()) {
                 if (devId == INVALID || devId == devices[i]->getId()) {
-                    Logger::debug("Sending msg to device with ID %X", devices[i]->getId());
+                    if (Logger::isDebug()) {
+                        Logger::debug("Sending msg %X to device %X", msgType, devices[i]->getId());
+                    }
                     devices[i]->handleMessage(msgType, message);
+                    foundDevice = true;
                 }
             }
         }
     }
+    return foundDevice;
 }
 
 void DeviceManager::setParameter(DeviceType deviceType, DeviceId deviceId, uint32_t msgType, char *key, char *value)
@@ -171,60 +178,30 @@ void DeviceManager::setParameter(DeviceType deviceType, DeviceId deviceId, uint3
     setParameter(deviceType, deviceId, msgType, key, buffer);
 }
 
-uint8_t DeviceManager::getNumThrottles()
-{
-    return countDeviceType(DEVICE_THROTTLE);
-}
-
-uint8_t DeviceManager::getNumControllers()
-{
-    return countDeviceType(DEVICE_MOTORCTRL);
-}
-
-uint8_t DeviceManager::getNumBMS()
-{
-    return countDeviceType(DEVICE_BMS);
-}
-
-uint8_t DeviceManager::getNumChargers()
-{
-    return countDeviceType(DEVICE_CHARGER);
-}
-
-uint8_t DeviceManager::getNumDisplays()
-{
-    return countDeviceType(DEVICE_DISPLAY);
-}
-
 Throttle *DeviceManager::getAccelerator()
 {
     //try to find one if nothing registered. Cache it if we find one
     if (!throttle) {
         throttle = (Throttle *) getDeviceByType(DEVICE_THROTTLE);
     }
-
     //if there is no throttle then instantiate a dummy throttle
     //so down range code doesn't puke
     if (!throttle) {
         Logger::debug("getAccelerator() called but there is no registered accelerator!");
         return 0; //NULL!
     }
-
     return throttle;
 }
 
 Throttle *DeviceManager::getBrake()
 {
-
     if (!brake) {
         brake = (Throttle *) getDeviceByType(DEVICE_BRAKE);
     }
-
     if (!brake) {
         //Logger::debug("getBrake() called but there is no registered brake!");
         return 0; //NULL!
     }
-
     return brake;
 }
 
@@ -233,14 +210,37 @@ MotorController *DeviceManager::getMotorController()
     if (!motorController) {
         motorController = (MotorController *) getDeviceByType(DEVICE_MOTORCTRL);
     }
-
     if (!motorController) {
         Logger::debug("getMotorController() called but there is no registered motor controller!");
         return 0; //NULL!
     }
-
     return motorController;
 }
+
+Charger *DeviceManager::getCharger()
+{
+    if (!charger) {
+        charger = (Charger *) getDeviceByType(DEVICE_CHARGER);
+    }
+    if (!charger) {
+        Logger::debug("getCharger() called but there is no registered charger!");
+        return 0; //NULL!
+    }
+    return charger;
+}
+
+DcDcConverter *DeviceManager::getDcDcConverter()
+{
+    if (!dcDcConverter) {
+        dcDcConverter = (DcDcConverter *) getDeviceByType(DEVICE_DCDC);
+    }
+    if (!dcDcConverter) {
+        Logger::debug("getDcDcConverter() called but there is no registered DC-DC converter!");
+        return 0; //NULL!
+    }
+    return dcDcConverter;
+}
+
 
 /*
 Allows one to request a reference to a device with the given ID. This lets code specifically request a certain
@@ -290,22 +290,6 @@ int8_t DeviceManager::findDevice(Device *device)
     }
 
     return -1;
-}
-
-/*
- * Count the number of registered devices of a certain type.
- */
-uint8_t DeviceManager::countDeviceType(DeviceType deviceType)
-{
-    uint8_t count = 0;
-
-    for (int i = 0; i < CFG_DEV_MGR_MAX_DEVICES; i++) {
-        if (devices[i]->getType() == deviceType) {
-            count++;
-        }
-    }
-
-    return count;
 }
 
 void DeviceManager::printDeviceList()

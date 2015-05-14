@@ -64,6 +64,7 @@ void CanBrake::setup()
                 0x03, 0x22, 0x2B, 0x0D, 0x00, 0x00, 0x00, 0x00
             }, 8);
             responseId = 0x768;
+            ready = true;
             break;
 
         case Volvo_V50_Diesel:
@@ -74,14 +75,23 @@ void CanBrake::setup()
 //      memcpy(requestFrame.data, (uint8_t[]){ 0xce, 0x11, 0xe6, 0x00, 0x24, 0x03, 0xfd, 0x00 }, 8);
 //      responseId = 0x21;
 //      responseExtended = true;
+//            ready = true;
             break;
 
         default:
             Logger::error(CANBRAKEPEDAL, "no valid car type defined.");
     }
-
     canHandlerCar->attach(this, responseId, responseMask, responseExtended);
     tickHandler->attach(this, CFG_TICK_INTERVAL_CAN_THROTTLE);
+}
+
+/**
+ * Tear down the device in a safe way.
+ */
+void CanBrake::tearDown()
+{
+    Throttle::tearDown();
+    canHandlerCar->detach(this, responseId, responseMask);
 }
 
 /*
@@ -118,6 +128,7 @@ void CanBrake::handleCanFrame(CAN_FRAME *frame)
                 break;
         }
 
+        running = true;
         ticksNoResponse = 0;
     }
 }
@@ -132,38 +143,39 @@ bool CanBrake::validateSignal(RawSignalData* rawSignal)
     CanBrakeConfiguration *config = (CanBrakeConfiguration *) getConfiguration();
 
     if (ticksNoResponse >= CFG_CANTHROTTLE_MAX_NUM_LOST_MSG) {
-        if (status == OK) {
+        if (throttleStatus == OK) {
             Logger::error(CANBRAKEPEDAL, "no response on position request received: %d ", ticksNoResponse);
         }
 
-        status = ERR_MISC;
+        throttleStatus = ERR_MISC;
+        running = false;
         return false;
     }
 
-    if (rawSignal->input1 > (config->maximumLevel1 + CFG_THROTTLE_TOLERANCE)) {
-        if (status == OK) {
+    if (rawSignal->input1 > (config->maximumLevel + CFG_THROTTLE_TOLERANCE)) {
+        if (throttleStatus == OK) {
             Logger::error(CANBRAKEPEDAL, (char *) Constants::valueOutOfRange, rawSignal->input1);
         }
 
-        status = ERR_HIGH_T1;
+        throttleStatus = ERR_HIGH_T1;
         return false;
     }
 
-    if (rawSignal->input1 < (config->minimumLevel1 - CFG_THROTTLE_TOLERANCE)) {
-        if (status == OK) {
+    if (rawSignal->input1 < (config->minimumLevel - CFG_THROTTLE_TOLERANCE)) {
+        if (throttleStatus == OK) {
             Logger::error(CANBRAKEPEDAL, (char *) Constants::valueOutOfRange, rawSignal->input1);
         }
 
-        status = ERR_LOW_T1;
+        throttleStatus = ERR_LOW_T1;
         return false;
     }
 
     // all checks passed -> brake is working
-    if (status != OK) {
+    if (throttleStatus != OK) {
         Logger::info(CANBRAKEPEDAL, (char *) Constants::normalOperation);
     }
 
-    status = OK;
+    throttleStatus = OK;
     return true;
 }
 
@@ -171,11 +183,11 @@ uint16_t CanBrake::calculatePedalPosition(RawSignalData* rawSignal)
 {
     CanBrakeConfiguration *config = (CanBrakeConfiguration *) getConfiguration();
 
-    if (config->maximumLevel1 == 0) { //brake processing disabled if max is 0
+    if (config->maximumLevel == 0) { //brake processing disabled if max is 0
         return 0;
     }
 
-    return normalizeAndConstrainInput(rawSignal->input1, config->minimumLevel1, config->maximumLevel1);
+    return normalizeAndConstrainInput(rawSignal->input1, config->minimumLevel, config->maximumLevel);
 }
 
 /*
@@ -230,18 +242,14 @@ void CanBrake::loadConfiguration()
     if (prefsHandler->checksumValid()) { //checksum is good, read in the values stored in EEPROM
 #endif
         Logger::debug(CANBRAKEPEDAL, (char *) Constants::validChecksum);
-        prefsHandler->read(EETH_MIN_ONE, &config->minimumLevel1);
-        prefsHandler->read(EETH_MAX_ONE, &config->maximumLevel1);
         prefsHandler->read(EETH_CAR_TYPE, &config->carType);
     } else { //checksum invalid. Reinitialize values and store to EEPROM
         Logger::warn(CANBRAKEPEDAL, (char *) Constants::invalidChecksum);
-        config->minimumLevel1 = 2;
-        config->maximumLevel1 = 255;
         config->carType = Volvo_S80_Gas;
         saveConfiguration();
     }
 
-    Logger::debug(CANBRAKEPEDAL, "T1 MIN: %l MAX: %l Type: %d", config->minimumLevel1, config->maximumLevel1, config->carType);
+    Logger::debug(CANBRAKEPEDAL, "T1 MIN: %l MAX: %l Type: %d", config->minimumLevel, config->maximumLevel, config->carType);
 }
 
 /*
@@ -253,8 +261,6 @@ void CanBrake::saveConfiguration()
 
     Throttle::saveConfiguration(); // call parent
 
-    prefsHandler->write(EETH_MIN_ONE, config->minimumLevel1);
-    prefsHandler->write(EETH_MAX_ONE, config->maximumLevel1);
     prefsHandler->write(EETH_CAR_TYPE, config->carType);
     prefsHandler->saveChecksum();
 }

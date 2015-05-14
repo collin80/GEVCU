@@ -27,50 +27,154 @@
 #include "Device.h"
 #include "DeviceManager.h"
 
+/**
+ * Constructor - initialize class variables
+ */
 Device::Device()
 {
     status = Status::getInstance();
     tickHandler = TickHandler::getInstance();
     systemIO = SystemIO::getInstance();
-
-    deviceConfiguration = NULL;
     prefsHandler = NULL;
+
     commonName = "Generic Device";
+    deviceConfiguration = NULL;
+
+    ready = false;
+    running = false;
+    powerOn = false;
 }
 
-
-//Empty functions to handle these callbacks if the derived classes don't
-
+/**
+ * Called during initialization of the device.
+ * May be called multiple times e.g. when recovering from an error
+ * or disabling and re-enabling the device.
+ */
 void Device::setup()
 {
 }
 
+/**
+ * Called during tear-down of the device.
+ * May be called multiple times e.g. when disabling the device.
+ */
+void Device::tearDown()
+{
+    tickHandler->detach(this);
+    ready = false;
+    running = false;
+    powerOn = false;
+}
+
+/**
+ * Retrieve the common name of the device.
+ */
 char* Device::getCommonName()
 {
     return commonName;
 }
 
+/**
+ * Handle a timer event - called by the TickHandler
+ */
 void Device::handleTick()
 {
 }
 
-uint32_t Device::getTickInterval()
+/**
+ * Enable the device in the preferences and activate it
+ */
+void Device::enable()
 {
-    return 0;
+    if (isEnabled()) {
+        return;
+    }
+    if (prefsHandler->setDeviceStatus(getId(), true)) {
+        prefsHandler->forceCacheWrite(); //just in case someone power cycles quickly
+        Logger::info(getId(), "Successfully enabled device %s.(%X)", commonName, getId());
+    }
+    setup();
 }
 
-//just bubbles up the value from the preference handler.
+/**
+ * Deactivate the device and disable it in the preferences
+ */
+void Device::disable()
+{
+    if (!isEnabled()) {
+        return;
+    }
+    if(prefsHandler->setDeviceStatus(getId(), false)) {
+        prefsHandler->forceCacheWrite(); //just in case someone power cycles quickly
+        Logger::info(getId(), "Successfully disabled device %s.(%X)", commonName, getId());
+    }
+    tearDown();
+}
+
+/**
+ * Returns if the device is enabled via preferences
+ */
 bool Device::isEnabled()
 {
     return prefsHandler->isEnabled();
 }
 
+/**
+ * Is the device itself ready for operation ?
+ */
+bool Device::isReady()
+{
+    return ready;
+}
+
+/**
+ * Is the device reporting that it's running ?
+ */
+bool Device::isRunning()
+{
+    return running;
+}
+
+/**
+ * Handle incoming messages from the DeviceManager. A message might
+ * indicate a change in the system state, a command to reload the configuration
+ * or other actions.
+ */
 void Device::handleMessage(uint32_t msgType, void* message)
 {
     switch (msgType) {
-        case MSG_STARTUP:
-            this->setup();
-            break;
+    case MSG_SOFT_FAULT:
+        //TODO: implement action/method for soft fault
+        break;
+    case MSG_HARD_FAULT:
+        //TODO: implement action/method for hard fault
+        break;
+    case MSG_DISABLE:
+        disable();
+        break;
+    case MSG_ENABLE:
+        enable();
+        break;
+    case MSG_STATE_CHANGE:
+        Status::SystemState state = *(Status::SystemState *) message;
+        handleStateChange(state);
+        break;
+    }
+}
+
+/**
+ * React on state changes.
+ * Subclasses may overwrite the method but should call the parent.
+ */
+void Device::handleStateChange(Status::SystemState state)
+{
+    switch (state) {
+    case Status::init:
+        this->setup();
+        break;
+    case Status::error: // stop all devices in case of an error
+        this->tearDown();
+        break;
     }
 }
 

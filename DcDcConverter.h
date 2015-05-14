@@ -37,6 +37,15 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 class DcDcConverterConfiguration : public DeviceConfiguration
 {
 public:
+    bool boostMode; // use boost mode (true) or buck mode (false)
+    uint16_t lowVoltageCommand; // in 0.1V, commanded LV voltage in buck mode
+    uint16_t hvUndervoltageLimit; // in 1V, HV under-voltage limit in buck mode
+    uint16_t lvBuckModeCurrentLimit; // in 1A
+    uint16_t hvBuckModeCurrentLimit; // in 0.1A
+    uint16_t highVoltageCommand; // 1V, commanded HV in boost mode
+    uint16_t lvUndervoltageLimit; // in 0.1V, LV under-voltage limit in boost mode
+    uint16_t lvBoostModeCurrentLinit; // in 1A
+    uint16_t hvBoostModeCurrentLimit; // in 0.1A
 };
 
 class DcDcConverter : public Device
@@ -44,9 +53,18 @@ class DcDcConverter : public Device
 public:
 	DcDcConverter();
     ~DcDcConverter();
+    void handleStateChange(Status::SystemState);
     DeviceType getType();
 
+    void loadConfiguration();
+    void saveConfiguration();
+
 protected:
+    uint16_t hvVoltage; // in 0.1V
+    uint16_t lvVoltage; // in 0.1V
+    int16_t hvCurrent; // in 0.1A
+    int16_t lvCurrent; // in 0.1A
+    int16_t temperature; // in 0.1C
 
 private:
 };

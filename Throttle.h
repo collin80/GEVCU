@@ -53,6 +53,7 @@ struct RawSignalData {
 class ThrottleConfiguration: public DeviceConfiguration
 {
 public:
+    uint16_t minimumLevel, maximumLevel;  // values for when the pedal is at its min and max
     uint16_t positionRegenMaximum, positionRegenMinimum; // throttle position where regen is highest and lowest
     uint16_t positionForwardMotionStart, positionHalfPower; // throttle position where forward motion starts and the mid point of throttle
     uint8_t maximumRegen; // percentage of max torque allowable for regen at maximum level
@@ -77,6 +78,7 @@ public:
     };
 
     Throttle();
+    void tearDown();
     virtual int16_t getLevel();
     void handleTick();
     virtual ThrottleStatus getStatus();
@@ -88,7 +90,7 @@ public:
     void saveConfiguration();
 
 protected:
-    ThrottleStatus status;
+    ThrottleStatus throttleStatus;
     virtual bool validateSignal(RawSignalData *);
     virtual uint16_t calculatePedalPosition(RawSignalData *);
     virtual int16_t mapPedalPosition(int16_t);

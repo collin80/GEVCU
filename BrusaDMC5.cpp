@@ -67,6 +67,37 @@ void BrusaDMC5::setup()
     tickHandler->attach(this, CFG_TICK_INTERVAL_MOTOR_CONTROLLER_BRUSA);
 }
 
+/**
+ * Tear down the controller in a safe way.
+ */
+void BrusaDMC5::tearDown()
+{
+    MotorController::tearDown();
+
+    canHandlerEv->detach(this, CAN_MASKED_ID_1, CAN_MASK_1);
+    canHandlerEv->detach(this, CAN_MASKED_ID_2, CAN_MASK_2);
+
+    throttleRequested = 0;
+    sendControl();
+}
+
+/**
+ * act on messages the super-class does not react upon, like state change
+ * to ready or running which should enable/disable the power-stage of the controller
+ */
+void BrusaDMC5::handleStateChange(Status::SystemState state)
+{
+    MotorController::handleStateChange(state);
+
+    // for safety reasons at power off first request 0 torque - this allows the controller to dissipate residual fields first
+    if (!powerOn) {
+        throttleRequested = 0;
+        sendControl();
+    }
+
+    systemIO->setEnableMotor(powerOn);
+}
+
 /*
  * Process event from the tick handler.
  *
@@ -107,11 +138,11 @@ void BrusaDMC5::sendControl()
 //    if (faulted) {
 //        outputFrame.data.bytes[0] |= clearErrorLatch;
 //    } else {
-        if ((status->getSystemState() == Status::running || speedActual > 1000) && systemIO->getEnableInput()) {   // see warning about field weakening current to prevent uncontrollable regen
+        if (powerOn || speedActual > 1000) {   // see warning about field weakening current to prevent uncontrollable regen
             outputFrame.data.bytes[0] |= enablePowerStage;
         }
 
-        if (status->getSystemState() == Status::running) {
+        if (powerOn && running) {
             if (config->enableOscillationLimiter) {
                 outputFrame.data.bytes[0] |= enableOscillationLimiter;
             }
@@ -238,13 +269,10 @@ void BrusaDMC5::processStatus(uint8_t data[])
         Logger::debug(BRUSA_DMC5, "status: %X, torque avail: %fNm, actual torque: %fNm, speed actual: %drpm", bitfield, (float) torqueAvailable / 100.0F, (float) torqueActual / 100.0F, speedActual);
     }
 
-    if ((bitfield & stateReady) && status->getSystemState() == Status::preCharged) {
-        status->setSystemState(Status::ready);
-    }
-    if ((bitfield & stateRunning) && status->getSystemState() == Status::ready) {
-        status->setSystemState(Status::running);
-    }
+    ready = (bitfield & dmc5Ready) ? true : false;
+    running = (bitfield & dmc5Running) ? true : false;
     if ((bitfield & errorFlag) && status->getSystemState() != Status::error) {
+        Logger::error(BRUSA_DMC5, "Error reported from motor controller!");
         status->setSystemState(Status::error);
     }
     status->warning = (bitfield & warningFlag) ? true : false;
@@ -384,14 +412,6 @@ DeviceId BrusaDMC5::getId()
 }
 
 /*
- * Expose the tick interval of this controller
- */
-uint32_t BrusaDMC5::getTickInterval()
-{
-    return CFG_TICK_INTERVAL_MOTOR_CONTROLLER_BRUSA;
-}
-
-/*
  * Load configuration data from EEPROM.
  *
  * If not available or the checksum is invalid, default values are chosen.
@@ -435,9 +455,9 @@ void BrusaDMC5::loadConfiguration()
         config->enableOscillationLimiter = false;
         saveConfiguration();
     }
-    Logger::debug(BRUSA_DMC5, "Max mech power motor: %d kW, max mech power regen: %d ", config->maxMechanicalPowerMotor, config->maxMechanicalPowerRegen);
-    Logger::debug(BRUSA_DMC5, "DC limit motor: %d Volt, DC limit regen: %d Volt", config->dcVoltLimitMotor, config->dcVoltLimitRegen);
-    Logger::debug(BRUSA_DMC5, "DC limit motor: %d Amps, DC limit regen: %d Amps", config->dcCurrentLimitMotor, config->dcCurrentLimitRegen);
+    Logger::info(BRUSA_DMC5, "Max mech power motor: %d kW, max mech power regen: %d ", config->maxMechanicalPowerMotor, config->maxMechanicalPowerRegen);
+    Logger::info(BRUSA_DMC5, "DC limit motor: %d Volt, DC limit regen: %d Volt", config->dcVoltLimitMotor, config->dcVoltLimitRegen);
+    Logger::info(BRUSA_DMC5, "DC limit motor: %d Amps, DC limit regen: %d Amps", config->dcCurrentLimitMotor, config->dcCurrentLimitRegen);
 }
 
 /*

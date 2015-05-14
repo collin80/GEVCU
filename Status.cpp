@@ -25,12 +25,13 @@
  */
 
 #include "Status.h"
+#include "DeviceManager.h"
 
 /*
  * Constructor
  */
 Status::Status() {
-    systemState = unknown;
+    systemState = startup;
 
     limitationTorque                = false;
     limitationMaxTorque             = false;
@@ -82,17 +83,30 @@ Status::Status() {
     internalSupply                  = false;
     osTrap                          = false;
 
-    enableIn            = false;
-    preChargeRelay      = false;
-    mainContactorRelay  = false;
-    secondaryContactorRelay = false;
-    enableOut           = false;
-    coolingFanRelay     = false;
-    brakeLight          = false;
-    reverseLight        = false;
+    preChargeRelay = false;
+    mainContactor = false;
+    secondaryContactor = false;
+    fastChargeContactor = false;
 
-    temperatureController = -9999;
-    temperatureMotor = -9999;
+    enableMotor = false;
+    enableCharger = false;
+    enableDcDc = false;
+    enableHeater = false;
+
+    heaterValve = false;
+    heaterPump = false;
+    coolingPump = false;
+    coolingFan = false;
+
+    brakeLight = false;
+    reverseLight = false;
+
+    enableIn            = false;
+    chargePowerAvailable= false;
+    interlockPresent    = false;
+
+    temperatureController = CFG_NO_TEMPERATURE_DATA;
+    temperatureMotor = CFG_NO_TEMPERATURE_DATA;
 
     for (int i = 0; i < CFG_NUMBER_DIGITAL_OUTPUTS; i++) {
         digitalOutput[i] = false;
@@ -100,6 +114,10 @@ Status::Status() {
     for (int i = 0; i < CFG_NUMBER_DIGITAL_INPUTS; i++) {
         digitalInput[i] = false;
     }
+    for (int i = 0; i < CFG_NUMBER_TEMPERATURE_SENSORS; i++) {
+        externalTemperature[i] = CFG_NO_TEMPERATURE_DATA;
+    }
+
 }
 
 /*
@@ -123,17 +141,22 @@ Status::SystemState Status::getSystemState() {
  * attempted, the new state will be 'error'.
  */
 Status::SystemState Status::setSystemState(SystemState newSystemState) {
+
+    if (systemState == newSystemState) {
+        return systemState;
+    }
+
     if (newSystemState == error) {
         systemState = error;
     } else {
         switch (systemState) {
-        case unknown:
+        case startup:
             if (newSystemState == init) {
-                systemState = init;
+                systemState = newSystemState;
             }
             break;
         case init:
-            if (newSystemState == preCharge || newSystemState == ready) {
+            if (newSystemState == preCharge) {
                 systemState = newSystemState;
             }
             break;
@@ -147,8 +170,23 @@ Status::SystemState Status::setSystemState(SystemState newSystemState) {
                 systemState = newSystemState;
             }
             break;
+        case batteryHeating:
+            if (newSystemState == charging || newSystemState == ready) {
+                systemState = newSystemState;
+            }
+            break;
+        case charging:
+            if (newSystemState == charged || newSystemState == ready) {
+                systemState = newSystemState;
+            }
+            break;
+        case charged:
+            if (newSystemState == ready) {
+                systemState = newSystemState;
+            }
+            break;
         case ready:
-            if (newSystemState == running) {
+            if (newSystemState == running || newSystemState == charging || newSystemState == batteryHeating) {
                 systemState = newSystemState;
             }
             break;
@@ -165,15 +203,37 @@ Status::SystemState Status::setSystemState(SystemState newSystemState) {
         }
     }
     if (systemState == newSystemState) {
-        Logger::info("switched to system state '%s'",
-                systemStateToStr(systemState));
+        Logger::info("switching to system state '%s'", systemStateToStr(systemState));
     } else {
-        Logger::error("switching from system state '%s' to '%s' is not allowed",
-                systemStateToStr(systemState),
-                systemStateToStr(newSystemState));
+        Logger::error("switching from system state '%s' to '%s' is not allowed", systemStateToStr(systemState), systemStateToStr(newSystemState));
         systemState = error;
     }
+
+    DeviceManager::getInstance()->sendMessage(DEVICE_ANY, INVALID, MSG_STATE_CHANGE, &newSystemState);
+
     return systemState;
+}
+
+int16_t Status::getLowestExternalTemperature() {
+    int16_t temp = CFG_NO_TEMPERATURE_DATA;
+
+    for (int i = 0; i < CFG_NUMBER_TEMPERATURE_SENSORS; i++) {
+        if (externalTemperature[i] != CFG_NO_TEMPERATURE_DATA) {
+            temp = min(temp, externalTemperature[i]);
+        }
+    }
+    return temp;
+}
+
+int16_t Status::getHighestExternalTemperature() {
+    int16_t temp = -9999;
+
+    for (int i = 0; i < CFG_NUMBER_TEMPERATURE_SENSORS; i++) {
+        if (externalTemperature[i] != CFG_NO_TEMPERATURE_DATA) {
+            temp = max(temp, externalTemperature[i]);
+        }
+    }
+    return (temp == -9999 ? CFG_NO_TEMPERATURE_DATA : temp);
 }
 
 /*
@@ -181,7 +241,7 @@ Status::SystemState Status::setSystemState(SystemState newSystemState) {
  */
 char *Status::systemStateToStr(SystemState state) {
     switch (state) {
-    case unknown:
+    case startup:
         return "unknown";
     case init:
         return "init";
@@ -195,6 +255,12 @@ char *Status::systemStateToStr(SystemState state) {
         return "running";
     case error:
         return "error";
+    case batteryHeating:
+        return "battery heating";
+    case charging:
+        return "charging";
+    case charged:
+        return "charged";
     }
     Logger::error("the system state is invalid, contact your support!");
     return "invalid";
@@ -305,10 +371,10 @@ uint32_t Status::getBitField3() {
     bitfield |= (systemState == ready               ? 1 << 0 : 0);  // 0x00000001
     bitfield |= (systemState == running             ? 1 << 1 : 0);  // 0x00000002
     bitfield |= (preChargeRelay                     ? 1 << 2 : 0);  // 0x00000004
-    bitfield |= (secondaryContactorRelay                    ? 1 << 3 : 0);  // 0x00000008
-    bitfield |= (mainContactorRelay                    ? 1 << 4 : 0);  // 0x00000010
-    bitfield |= (enableOut                          ? 1 << 5 : 0);  // 0x00000020
-    bitfield |= (coolingFanRelay                       ? 1 << 6 : 0);  // 0x00000040
+    bitfield |= (secondaryContactor                 ? 1 << 3 : 0);  // 0x00000008
+    bitfield |= (mainContactor                      ? 1 << 4 : 0);  // 0x00000010
+    bitfield |= (enableMotor                        ? 1 << 5 : 0);  // 0x00000020
+    bitfield |= (coolingFan                         ? 1 << 6 : 0);  // 0x00000040
     bitfield |= (brakeLight                         ? 1 << 7 : 0);  // 0x00000080
     bitfield |= (reverseLight                       ? 1 << 8 : 0);  // 0x00000100
     bitfield |= (enableIn                           ? 1 << 9 : 0);  // 0x00000200

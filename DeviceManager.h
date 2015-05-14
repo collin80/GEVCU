@@ -29,6 +29,8 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include "config.h"
 #include "Throttle.h"
 #include "MotorController.h"
+#include "Charger.h"
+#include "DcDcConverter.h"
 #include "Sys_Messages.h"
 #include "DeviceTypes.h"
 
@@ -41,19 +43,14 @@ public:
     static DeviceManager *getInstance();
     void addDevice(Device *device);
     void removeDevice(Device *device);
-//  void addTickObserver(TickObserver *observer, uint32_t frequency);
-//  void addCanObserver(CanObserver *observer, uint32_t id, uint32_t mask, bool extended, CanHandler::CanBusNode canBus);
-    void sendMessage(DeviceType deviceType, DeviceId deviceId, uint32_t msgType, void* message);
+    bool sendMessage(DeviceType deviceType, DeviceId deviceId, uint32_t msgType, void* message);
     void setParameter(DeviceType deviceType, DeviceId deviceId, uint32_t msgType, char *key, char *value);
     void setParameter(DeviceType deviceType, DeviceId deviceId, uint32_t msgType, char *key, uint32_t value);
-    uint8_t getNumThrottles();
-    uint8_t getNumControllers();
-    uint8_t getNumBMS();
-    uint8_t getNumChargers();
-    uint8_t getNumDisplays();
     Throttle *getAccelerator();
     Throttle *getBrake();
     MotorController *getMotorController();
+    Charger *getCharger();
+    DcDcConverter *getDcDcConverter();
     Device *getDeviceByID(DeviceId);
     Device *getDeviceByType(DeviceType);
     void printDeviceList();
@@ -67,9 +64,10 @@ private:
     Throttle *throttle;
     Throttle *brake;
     MotorController *motorController;
+    DcDcConverter *dcDcConverter;
+    Charger *charger;
 
     int8_t findDevice(Device *device);
-    uint8_t countDeviceType(DeviceType deviceType);
 };
 
 #endif

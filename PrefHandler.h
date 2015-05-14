@@ -40,6 +40,10 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #define PREF_MODE_NORMAL  false
 #define PREF_MODE_LKG     true
 
+#define SYSTEM_PROTO    1
+#define SYSTEM_DUED     2
+#define SYSTEM_GEVCU3   3
+
 extern MemCache *memCache;
 
 class PrefHandler
@@ -62,14 +66,15 @@ public:
     void forceCacheWrite();
     bool isEnabled();
     static bool setDeviceStatus(uint16_t device, bool enabled);
+    void initSysEEPROM();
 
 private:
+    DeviceId deviceId; // the device id the handler is assigned to
     uint32_t base_address; //base address for the parent device
     uint32_t lkg_address;
     bool use_lkg; //use last known good config?
-    bool enabled;
-    int position; //position within the device table
     void initDevTable();
+    static int8_t findDevice(DeviceId);
 };
 
 #endif

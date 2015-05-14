@@ -31,13 +31,9 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 PrefHandler::PrefHandler()
 {
+    deviceId = INVALID;
     lkg_address = EE_MAIN_OFFSET; //default to normal mode
     base_address = 0;
-}
-
-bool PrefHandler::isEnabled()
-{
-    return enabled;
 }
 
 void PrefHandler::initDevTable()
@@ -50,7 +46,7 @@ void PrefHandler::initDevTable()
         return;
     }
 
-    Logger::debug("Initializing EEPROM device table");
+    Logger::debug(deviceId, "Initializing EEPROM device table");
 
     //initialize table with zeros
     id = 0;
@@ -64,81 +60,94 @@ void PrefHandler::initDevTable()
     memCache->Write(EE_DEVICE_TABLE, id);
 }
 
+bool PrefHandler::isEnabled()
+{
+    int8_t pos = findDevice(deviceId);
+    if (pos > -1) {
+        uint16_t id;
+        memCache->Read(EE_DEVICE_TABLE + (2 * pos), &id);
+        if (id & 0x8000) {
+            return true;
+        }
+    }
+    return false;
+}
+
+/*
+ * Search the device table for a device with a given ID
+ */
+int8_t PrefHandler::findDevice(DeviceId deviceId)
+{
+    uint16_t id;
+
+    for (int pos = 1; pos < 64; pos++) {
+        memCache->Read(EE_DEVICE_TABLE + (2 * pos), &id);
+
+        if ((id & 0x7FFF) == deviceId) {
+            return pos;
+        }
+    }
+    return -1;
+}
+
 //Given a device ID we must search the 64 entry table found in EEPROM to see if the device
 //has a spot in EEPROM. If it does not then
 PrefHandler::PrefHandler(DeviceId id_in)
 {
     uint16_t id;
+    int8_t position;
 
-    enabled = false;
+    deviceId = id_in;
 
     initDevTable();
 
-    for (int x = 1; x < 64; x++) {
-        memCache->Read(EE_DEVICE_TABLE + (2 * x), &id);
-
-        if ((id & 0x7FFF) == ((int) id_in)) {
-            base_address = EE_DEVICES_BASE + (EE_DEVICE_SIZE * x);
-            lkg_address = EE_MAIN_OFFSET;
-
-            if (id & 0x8000) {
-                enabled = true;
-            }
-
-            position = x;
-            Logger::debug("Device ID: %X was found in device table at entry: %i", (int) id_in, x);
-            return;
-        }
+    position = findDevice(deviceId);
+    if (position > -1) {
+        memCache->Read(EE_DEVICE_TABLE + (2 * position), &id);
+        base_address = EE_DEVICES_BASE + (EE_DEVICE_SIZE * position);
+        lkg_address = EE_MAIN_OFFSET;
+        Logger::debug(deviceId, "Device ID %X was found in device table at entry %i", (int) deviceId, position);
+        return;
     }
 
     //if we got here then there was no entry for this device in the table yet.
     //try to find an empty spot and place it there.
-    for (int x = 1; x < 64; x++) {
-        memCache->Read(EE_DEVICE_TABLE + (2 * x), &id);
-
-        if (id == 0) {
-            base_address = EE_DEVICES_BASE + (EE_DEVICE_SIZE * x);
-            lkg_address = EE_MAIN_OFFSET;
-            enabled = false; //default to devices being off until the user says otherwise
-            id = (int) id_in;
-            memCache->Write(EE_DEVICE_TABLE + (2 * x), id);
-            position = x;
-            Logger::debug("Device ID: %X was placed into device table at entry: %i", (int) id, x);
-            return;
-        }
+    position = findDevice(NEW);
+    if (position > -1) {
+        base_address = EE_DEVICES_BASE + (EE_DEVICE_SIZE * position);
+        lkg_address = EE_MAIN_OFFSET;
+        memCache->Write(EE_DEVICE_TABLE + (2 * position), (uint16_t)deviceId);
+        Logger::debug(deviceId, "Device ID: %X was placed into device table at entry: %i", (int) deviceId, position);
+        return;
     }
 
     //we found no matches and could not allocate a space. This is bad. Error out here
     base_address = 0xF0F0;
     lkg_address = EE_MAIN_OFFSET;
-    Logger::error("PrefManager - Device Table Full!!!");
+    Logger::error(deviceId, "PrefManager - Device Table Full!!!");
 }
 
-//A special static function that can be called whenever, wherever to turn a specific device on/off. Does not
-//attempt to do so at runtime so the user will still have to power cycle to change the device status.
+//A special static function that can be called whenever, wherever to turn a specific device on/off.
 //returns true if it could make the change, false if it could not.
-bool PrefHandler::setDeviceStatus(uint16_t device, bool enabled)
+bool PrefHandler::setDeviceStatus(uint16_t device, bool enable)
 {
     uint16_t id;
 
-    for (int x = 1; x < 64; x++) {
-        memCache->Read(EE_DEVICE_TABLE + (2 * x), &id);
+    int8_t position = findDevice((DeviceId) device);
+    if (position > -1) {
+        Logger::debug("Found a device record to edit");
 
-        if ((id & 0x7FFF) == (device & 0x7FFF)) {
-            Logger::debug("Found a device record to edit");
-
-            if (enabled) {
-                id |= 0x8000;
-            } else {
-                id &= 0x7FFF;
-            }
-
-            Logger::debug("ID to write: %X", id);
-            memCache->Write(EE_DEVICE_TABLE + (2 * x), id);
-            return true;
+        memCache->Read(EE_DEVICE_TABLE + (2 * position), &id);
+        if (enable) {
+            id |= 0x8000;
+        } else {
+            id &= 0x7FFF;
         }
-    }
 
+        Logger::debug("ID to write: %X", id);
+        memCache->Write(EE_DEVICE_TABLE + (2 * position), id);
+        return true;
+    }
     return false;
 }
 
@@ -214,7 +223,7 @@ bool PrefHandler::checksumValid()
 
     memCache->Read(EE_CHECKSUM + base_address + lkg_address, &stored_chk);
     calc_chk = calcChecksum();
-    Logger::info("Stored Checksum: %X Calc: %X", stored_chk, calc_chk);
+    Logger::info(deviceId, "Stored Checksum: %X Calc: %X", stored_chk, calc_chk);
 
     return (stored_chk == calc_chk);
 }
@@ -222,5 +231,90 @@ bool PrefHandler::checksumValid()
 void PrefHandler::forceCacheWrite()
 {
     memCache->FlushAllPages();
+}
+
+//initializes all the system EEPROM values. Chances are this should be broken out a bit but
+//there is only one checksum check for all of them so it's simple to do it all here.
+void PrefHandler::initSysEEPROM()
+{
+    Logger::info("Initializing EEPROM");
+
+    //three temporary storage places to make saving to EEPROM easy
+    uint8_t eight;
+    uint16_t sixteen;
+    uint32_t thirtytwo;
+
+    Logger::info("Initializing EEPROM");
+
+    eight = SYSTEM_DUED;
+    write(EESYS_SYSTEM_TYPE, eight);
+
+    sixteen = 1024; //no gain
+    write(EESYS_ADC0_GAIN, sixteen);
+    write(EESYS_ADC1_GAIN, sixteen);
+    write(EESYS_ADC2_GAIN, sixteen);
+    write(EESYS_ADC3_GAIN, sixteen);
+
+    sixteen = 0; //no offset
+    write(EESYS_ADC0_OFFSET, sixteen);
+    write(EESYS_ADC1_OFFSET, sixteen);
+    write(EESYS_ADC2_OFFSET, sixteen);
+    write(EESYS_ADC3_OFFSET, sixteen);
+
+    sixteen = 500; //multiplied by 1000 so 500k baud
+    write(EESYS_CAN0_BAUD, sixteen);
+    write(EESYS_CAN1_BAUD, sixteen);
+
+    sixteen = 11520; //multiplied by 10
+    write(EESYS_SERUSB_BAUD, sixteen);
+
+    sixteen = 100; //multiplied by 1000
+    write(EESYS_TWI_BAUD, sixteen);
+
+    sixteen = 100; //number of ticks per second
+    write(EESYS_TICK_RATE, sixteen);
+
+    thirtytwo = 0;
+    write(EESYS_RTC_TIME, thirtytwo);
+    write(EESYS_RTC_DATE, thirtytwo);
+
+    thirtytwo = 0; //ok, not technically 32 bytes but the four zeros still shows it is unused.
+    write(EESYS_WIFI0_SSID, thirtytwo);
+    write(EESYS_WIFI1_SSID, thirtytwo);
+    write(EESYS_WIFI2_SSID, thirtytwo);
+    write(EESYS_WIFIX_SSID, thirtytwo);
+
+    eight = 0; //no channel, DHCP off, B mode
+    write(EESYS_WIFI0_CHAN, eight);
+    write(EESYS_WIFI0_DHCP, eight);
+    write(EESYS_WIFI0_MODE, eight);
+
+    write(EESYS_WIFI1_CHAN, eight);
+    write(EESYS_WIFI1_DHCP, eight);
+    write(EESYS_WIFI1_MODE, eight);
+
+    write(EESYS_WIFI2_CHAN, eight);
+    write(EESYS_WIFI2_DHCP, eight);
+    write(EESYS_WIFI2_MODE, eight);
+
+    write(EESYS_WIFIX_CHAN, eight);
+    write(EESYS_WIFIX_DHCP, eight);
+    write(EESYS_WIFIX_MODE, eight);
+
+    thirtytwo = 0;
+    write(EESYS_WIFI0_IPADDR, thirtytwo);
+    write(EESYS_WIFI1_IPADDR, thirtytwo);
+    write(EESYS_WIFI2_IPADDR, thirtytwo);
+    write(EESYS_WIFIX_IPADDR, thirtytwo);
+
+    write(EESYS_WIFI0_KEY, thirtytwo);
+    write(EESYS_WIFI1_KEY, thirtytwo);
+    write(EESYS_WIFI2_KEY, thirtytwo);
+    write(EESYS_WIFIX_KEY, thirtytwo);
+
+    eight = 1;
+    write(EESYS_LOG_LEVEL, eight);
+
+    saveChecksum();
 }
 

@@ -300,8 +300,8 @@ void ThrottleDetector::detectMaxCalibrate()
         Logger::console("========================================");
 
         // update the throttle's configuration (without storing it yet)
-        config->minimumLevel1 = throttle1Min;
-        config->maximumLevel1 = throttle1Max;
+        config->minimumLevel = throttle1Min;
+        config->maximumLevel = throttle1Max;
         config->numberPotMeters = potentiometerCount;
 
         if (config->numberPotMeters > 1) {

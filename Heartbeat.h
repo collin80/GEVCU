@@ -39,6 +39,8 @@ public:
     Heartbeat();
     void setup();
     void handleTick();
+    DeviceType getType();
+    DeviceId getId();
     void setThrottleDebug(bool debug);
     bool getThrottleDebug();
 

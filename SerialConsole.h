@@ -33,6 +33,7 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include "config.h"
 #include "SystemIO.h"
 #include "PotThrottle.h"
+#include "CanThrottle.h"
 #include "DeviceManager.h"
 #include "MotorController.h"
 #include "ThrottleDetector.h"
@@ -52,7 +53,6 @@ protected:
     };
 
 private:
-    Heartbeat* heartbeat;
     MemCache* memCache;
     bool handlingEvent;
     char cmdBuffer[80];
@@ -64,6 +64,19 @@ private:
     void handleConsoleCmd();
     void handleShortCmd();
     void handleConfigCmd();
+    bool handleConfigCmdMotorController(String command, long value);
+    bool handleConfigCmdThrottle(String command, long value);
+    bool handleConfigCmdBrake(String command, long value);
+    bool handleConfigCmdSystemIO(String command, long value);
+    bool handleConfigCmdCharger(String command, long value);
+    bool handleConfigCmdDcDcConverter(String command, long value);
+    bool handleConfigCmdSystem(String command, long value);
+    void printMenuMotorController();
+    void printMenuThrottle();
+    void printMenuBrake();
+    void printMenuSystemIO();
+    void printMenuCharger();
+    void printMenuDcDcConverter();
 };
 
 #endif /* SERIALCONSOLE_H_ */

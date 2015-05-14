@@ -49,6 +49,7 @@ class CanPIDListener: public Device, CanObserver
 public:
     CanPIDListener();
     void setup();
+    void tearDown();
     void handleTick();
     void handleCanFrame(CAN_FRAME *frame);
     DeviceId getId();

@@ -74,6 +74,8 @@ void ELM327Emu::setup()
     serialInterface->begin(9600);
 
     elmProc = new ELM327Processor();
+    ready = true;
+    running = true;
 
     //this isn't a wifi link but the timer interval can be the same
     //because it serves a similar function and has similar timing requirements

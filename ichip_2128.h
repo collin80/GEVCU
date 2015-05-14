@@ -135,6 +135,7 @@ public:
     ICHIPWIFI();
     ICHIPWIFI(USARTClass *which);
     void setup(); //initialization on start up
+    void tearDown();
     void handleTick(); //periodic processes
     void handleMessage(uint32_t messageType, void* message);
     DeviceType getType();

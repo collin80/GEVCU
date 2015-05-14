@@ -63,6 +63,7 @@ void CanThrottle::setup()
                 0x03, 0x22, 0xee, 0xcb, 0x00, 0x00, 0x00, 0x00
             }, 8);
             responseId = 0x7e8;
+            ready = true;
             break;
 
         case Volvo_V50_Diesel:
@@ -75,6 +76,7 @@ void CanThrottle::setup()
             }, 8);
             responseId = 0x21;
             responseExtended = true;
+            ready = true;
             break;
 
         default:
@@ -83,6 +85,16 @@ void CanThrottle::setup()
 
     canHandlerCar->attach(this, responseId, responseMask, responseExtended);
     tickHandler->attach(this, CFG_TICK_INTERVAL_CAN_THROTTLE);
+}
+
+/**
+ * Tear down the device in a safe way.
+ */
+void CanThrottle::tearDown()
+{
+    Throttle::tearDown();
+
+    canHandlerCar->detach(this, responseId, responseMask);
 }
 
 /*
@@ -118,7 +130,6 @@ void CanThrottle::handleCanFrame(CAN_FRAME *frame)
                 rawSignal.input1 = (frame->data.bytes[5] + 1) * frame->data.bytes[6];
                 break;
         }
-
         ticksNoResponse = 0;
     }
 }
@@ -133,38 +144,38 @@ bool CanThrottle::validateSignal(RawSignalData* rawSignal)
     CanThrottleConfiguration *config = (CanThrottleConfiguration *) getConfiguration();
 
     if (ticksNoResponse >= CFG_CANTHROTTLE_MAX_NUM_LOST_MSG) {
-        if (status == OK) {
+        if (throttleStatus == OK) {
             Logger::error(CANACCELPEDAL, "no response on position request received: %d ", ticksNoResponse);
         }
 
-        status = ERR_MISC;
+        throttleStatus = ERR_MISC;
         return false;
     }
 
-    if (rawSignal->input1 > (config->maximumLevel1 + CFG_THROTTLE_TOLERANCE)) {
-        if (status == OK) {
+    if (rawSignal->input1 > (config->maximumLevel + CFG_THROTTLE_TOLERANCE)) {
+        if (throttleStatus == OK) {
             Logger::error(CANACCELPEDAL, (char *) Constants::valueOutOfRange, rawSignal->input1);
         }
 
-        status = ERR_HIGH_T1;
+        throttleStatus = ERR_HIGH_T1;
         return false;
     }
 
-    if (rawSignal->input1 < (config->minimumLevel1 - CFG_THROTTLE_TOLERANCE)) {
-        if (status == OK) {
+    if (rawSignal->input1 < (config->minimumLevel - CFG_THROTTLE_TOLERANCE)) {
+        if (throttleStatus == OK) {
             Logger::error(CANACCELPEDAL, (char *) Constants::valueOutOfRange, rawSignal->input1);
         }
 
-        status = ERR_LOW_T1;
+        throttleStatus = ERR_LOW_T1;
         return false;
     }
 
     // all checks passed -> throttle seems to be ok
-    if (status != OK) {
+    if (throttleStatus != OK) {
         Logger::info(CANACCELPEDAL, (char *) Constants::normalOperation);
     }
 
-    status = OK;
+    throttleStatus = OK;
     return true;
 }
 
@@ -172,7 +183,7 @@ uint16_t CanThrottle::calculatePedalPosition(RawSignalData* rawSignal)
 {
     CanThrottleConfiguration *config = (CanThrottleConfiguration *) getConfiguration();
 
-    return normalizeAndConstrainInput(rawSignal->input1, config->minimumLevel1, config->maximumLevel1);
+    return normalizeAndConstrainInput(rawSignal->input1, config->minimumLevel, config->maximumLevel);
 }
 
 DeviceId CanThrottle::getId()
@@ -199,18 +210,14 @@ void CanThrottle::loadConfiguration()
     if (prefsHandler->checksumValid()) { //checksum is good, read in the values stored in EEPROM
 #endif
         Logger::debug(CANACCELPEDAL, (char *) Constants::validChecksum);
-        prefsHandler->read(EETH_MIN_ONE, &config->minimumLevel1);
-        prefsHandler->read(EETH_MAX_ONE, &config->maximumLevel1);
         prefsHandler->read(EETH_CAR_TYPE, &config->carType);
     } else { //checksum invalid. Reinitialize values and store to EEPROM
         Logger::warn(CANACCELPEDAL, (char *) Constants::invalidChecksum);
-        config->minimumLevel1 = Throttle1MinValue;
-        config->maximumLevel1 = Throttle1MaxValue;
         config->carType = Volvo_S80_Gas;
         saveConfiguration();
     }
 
-    Logger::debug(CANACCELPEDAL, "T1 MIN: %l MAX: %l Type: %d", config->minimumLevel1, config->maximumLevel1, config->carType);
+    Logger::debug(CANACCELPEDAL, "T1 MIN: %l MAX: %l Type: %d", config->minimumLevel, config->maximumLevel, config->carType);
 }
 
 /*
@@ -222,8 +229,6 @@ void CanThrottle::saveConfiguration()
 
     Throttle::saveConfiguration(); // call parent
 
-    prefsHandler->write(EETH_MIN_ONE, config->minimumLevel1);
-    prefsHandler->write(EETH_MAX_ONE, config->maximumLevel1);
     prefsHandler->write(EETH_CAR_TYPE, config->carType);
     prefsHandler->saveChecksum();
 }

@@ -49,6 +49,8 @@ void PotBrake::setup()
     //pinMode(THROTTLE_INPUT_BRAKELIGHT, INPUT_PULLUP); //Brake light switch
 
     loadConfiguration();
+    ready = true;
+
     tickHandler->attach(this, CFG_TICK_INTERVAL_POT_THROTTLE);
 }
 
@@ -78,30 +80,30 @@ bool PotBrake::validateSignal(RawSignalData *rawSignal)
 {
     PotBrakeConfiguration *config = (PotBrakeConfiguration *) getConfiguration();
 
-    if (rawSignal->input1 > (config->maximumLevel1 + CFG_THROTTLE_TOLERANCE)) {
-        if (status == OK) {
+    if (rawSignal->input1 > (config->maximumLevel + CFG_THROTTLE_TOLERANCE)) {
+        if (throttleStatus == OK) {
             Logger::error(POTBRAKEPEDAL, (char *) Constants::valueOutOfRange, rawSignal->input1);
         }
 
-        status = ERR_HIGH_T1;
+        throttleStatus = ERR_HIGH_T1;
         return true; // even if it's too high, let it process and apply full regen !
     }
 
-    if (rawSignal->input1 < (config->minimumLevel1 - CFG_THROTTLE_TOLERANCE)) {
-        if (status == OK) {
+    if (rawSignal->input1 < (config->minimumLevel - CFG_THROTTLE_TOLERANCE)) {
+        if (throttleStatus == OK) {
             Logger::error(POTBRAKEPEDAL, (char *) Constants::valueOutOfRange, rawSignal->input1);
         }
 
-        status = ERR_LOW_T1;
+        throttleStatus = ERR_LOW_T1;
         return false;
     }
 
     // all checks passed -> brake is OK
-    if (status != OK) {
+    if (throttleStatus != OK) {
         Logger::info(POTBRAKEPEDAL, (char *) Constants::normalOperation);
     }
 
-    status = OK;
+    throttleStatus = OK;
     return true;
 }
 
@@ -114,12 +116,12 @@ uint16_t PotBrake::calculatePedalPosition(RawSignalData *rawSignal)
     PotBrakeConfiguration *config = (PotBrakeConfiguration *) getConfiguration();
     uint16_t calcBrake1, clampedLevel;
 
-    if (config->maximumLevel1 == 0) { //brake processing disabled if max is 0
+    if (config->maximumLevel == 0) { //brake processing disabled if max is 0
         return 0;
     }
 
-    clampedLevel = constrain(rawSignal->input1, config->minimumLevel1, config->maximumLevel1);
-    calcBrake1 = map(clampedLevel, config->minimumLevel1, config->maximumLevel1, (uint16_t) 0, (uint16_t) 1000);
+    clampedLevel = constrain(rawSignal->input1, config->minimumLevel, config->maximumLevel);
+    calcBrake1 = map(clampedLevel, config->minimumLevel, config->maximumLevel, (uint16_t) 0, (uint16_t) 1000);
 
     //This prevents flutter in the ADC readings of the brake from slamming regen on intermittently
     // just because the value fluttered a couple of numbers. This makes sure that we're actually
@@ -184,15 +186,15 @@ void PotBrake::loadConfiguration()
 
     if (prefsHandler->checksumValid()) { //checksum is good, read in the values stored in EEPROM
 #endif
-        prefsHandler->read(EETH_BRAKE_MIN, &config->minimumLevel1);
-        prefsHandler->read(EETH_BRAKE_MAX, &config->maximumLevel1);
+        prefsHandler->read(EETH_BRAKE_MIN, &config->minimumLevel);
+        prefsHandler->read(EETH_BRAKE_MAX, &config->maximumLevel);
         prefsHandler->read(EETH_MAX_BRAKE_REGEN, &config->maximumRegen);
         prefsHandler->read(EETH_MIN_BRAKE_REGEN, &config->minimumRegen);
         prefsHandler->read(EETH_ADC_1, &config->AdcPin1);
 
         config->AdcPin1 = BrakeADC; //TODO: This is hard coded because of old defaults. Fix this soon.
 
-        Logger::debug(POTBRAKEPEDAL, "BRAKE MIN: %l MAX: %l", config->minimumLevel1, config->maximumLevel1);
+        Logger::debug(POTBRAKEPEDAL, "BRAKE MIN: %l MAX: %l", config->minimumLevel, config->maximumLevel);
         Logger::debug(POTBRAKEPEDAL, "Min: %l MaxRegen: %l", config->minimumRegen, config->maximumRegen);
     } else { //checksum invalid. Reinitialize values and store to EEPROM
 
@@ -200,8 +202,8 @@ void PotBrake::loadConfiguration()
         //The next three are tenths of a percent
         config->maximumRegen = BrakeMaxRegenValue; //percentage of full power to use for regen at brake pedal transducer
         config->minimumRegen = BrakeMinRegenValue;
-        config->minimumLevel1 = BrakeMinValue;
-        config->maximumLevel1 = BrakeMaxValue;
+        config->minimumLevel = BrakeMinValue;
+        config->maximumLevel = BrakeMaxValue;
         config->AdcPin1 = BrakeADC;
         saveConfiguration();
     }
@@ -216,8 +218,8 @@ void PotBrake::saveConfiguration()
 
     // we deliberately do not save config via parent class here !
 
-    prefsHandler->write(EETH_BRAKE_MIN, config->minimumLevel1);
-    prefsHandler->write(EETH_BRAKE_MAX, config->maximumLevel1);
+    prefsHandler->write(EETH_BRAKE_MIN, config->minimumLevel);
+    prefsHandler->write(EETH_BRAKE_MAX, config->maximumLevel);
     prefsHandler->write(EETH_MAX_BRAKE_REGEN, config->maximumRegen);
     prefsHandler->write(EETH_MIN_BRAKE_REGEN, config->minimumRegen);
     prefsHandler->write(EETH_ADC_1, config->AdcPin1);

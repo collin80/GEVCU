@@ -44,7 +44,6 @@ enum CanCarType {
 class CanThrottleConfiguration : public ThrottleConfiguration
 {
 public:
-    uint16_t minimumLevel1, maximumLevel1; // values for when the pedal is at its min and max
     uint16_t carType; // the type of car, so we know how to interpret which bytes
 };
 
@@ -53,6 +52,7 @@ class CanThrottle: public Throttle, CanObserver
 public:
     CanThrottle();
     void setup();
+    void tearDown();
     void handleTick();
     void handleCanFrame(CAN_FRAME *frame);
     DeviceId getId();

@@ -51,8 +51,6 @@ public:
     uint16_t torqueSlewRate; // for torque mode only: slew rate of torque value, 0=disabled, in 0.1Nm/sec
     uint16_t speedSlewRate; //  for speed mode only: slew rate of speed value, 0=disabled, in rpm/sec
     uint8_t reversePercent;
-
-    uint16_t kilowattHrs;
     uint16_t nominalVolt; //nominal pack voltage in tenths of a volt
 };
 
@@ -76,7 +74,7 @@ public:
     void setup();
     void handleTick();
     void handleCanFrame(CAN_FRAME *);
-    uint32_t getTickInterval();
+    void handleStateChange(Status::SystemState);
 
     void loadConfiguration();
     void saveConfiguration();
@@ -98,7 +96,7 @@ public:
     int16_t getMechanicalPower();
     int16_t getTemperatureMotor();
     int16_t getTemperatureController();
-    int16_t getnominalVolt();
+    int16_t getNominalVolt();
 
     Gears getSelectedGear();
 
@@ -123,7 +121,6 @@ protected:
     int16_t temperatureMotor; // temperature of motor in 0.1 degree C
     int16_t temperatureController; // temperature of controller in 0.1 degree C
 
-    uint16_t nominalVolts; //nominal pack voltage in 1/10 of a volt
     uint32_t skipcounter;
     uint32_t milliStamp;
 };

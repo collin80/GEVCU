@@ -35,7 +35,10 @@ MotorController::MotorController() : Device()
     temperatureMotor = 0;
     temperatureController = 0;
 
+    powerOn = false;
     powerMode = modeTorque;
+    selectedGear = NEUTRAL;
+
     throttleRequested = 0;
     speedRequested = 0;
     speedActual = 0;
@@ -44,13 +47,10 @@ MotorController::MotorController() : Device()
     torqueAvailable = 0;
     mechanicalPower = 0;
 
-    selectedGear = NEUTRAL;
-
     dcVoltage = 0;
     dcCurrent = 0;
     acCurrent = 0;
     kiloWattHours = 0;
-    nominalVolts = 0;
     milliStamp = 0;
     skipcounter = 0;
 }
@@ -69,11 +69,9 @@ void MotorController::handleTick()
     mechanicalPower = dcVoltage * dcCurrent / 10000; //In kilowatts. DC voltage is x10
     //Logger::console("POWER: %d", mechanicalPower);
     //Logger::console("dcVoltage: %d", dcVoltage);
-    //Logger::console("nominalVolts: %d", nominalVolts);
     //Logger::console("kilowatthours: %d", kiloWattHours);
 
-
-    if (dcVoltage > nominalVolts && torqueActual > 0) {
+    if (dcVoltage > config->nominalVolt && torqueActual > 0) {
         kiloWattHours = 1;   //If our voltage is higher than fully charged with no regen, zero our kwh meter
     }
 
@@ -89,7 +87,7 @@ void MotorController::handleTick()
     Throttle *accelerator = deviceManager->getAccelerator();
     Throttle *brake = deviceManager->getBrake();
 
-    if (status->getSystemState() == Status::running && accelerator) {
+    if (powerOn && accelerator) {
         throttleRequested = accelerator->getLevel();
         if (brake && brake->getLevel() < -10 && brake->getLevel() < accelerator->getLevel()) { //if the brake has been pressed it overrides the accelerator.
             throttleRequested = brake->getLevel();
@@ -103,7 +101,7 @@ void MotorController::handleTick()
     status->temperatureMotor = temperatureMotor;
 
     //Logger::debug("Throttle: %d", throttleRequested);
-    if (skipcounter++ > 30) { //As how fast we turn on cooling is very low priority, we only check cooling every 24th lap or about once per second
+    if (skipcounter++ > 30) {
         prefsHandler->write(EEMC_KILOWATTHRS, kiloWattHours);
         prefsHandler->saveChecksum();
         skipcounter = 0;
@@ -115,12 +113,20 @@ void MotorController::handleCanFrame(CAN_FRAME *frame)
 {
 }
 
+/**
+ * act on messages the super-class does not react upon, like state change
+ * to ready or running which should enable/disable the power-stage of the controller
+ */
+void MotorController::handleStateChange(Status::SystemState state)
+{
+    Device::handleStateChange(state);
+    powerOn = (state == Status::running ? true : false);
+}
 
 void MotorController::setup()
 {
     MotorControllerConfiguration *config = (MotorControllerConfiguration *) getConfiguration();
     prefsHandler->read(EEMC_KILOWATTHRS, &kiloWattHours);  //retrieve kilowatt hours from EEPROM
-    nominalVolts = config->nominalVolt;
 
     Device::setup();
 }
@@ -185,11 +191,6 @@ uint16_t MotorController::getAcCurrent()
     return acCurrent;
 }
 
-int16_t MotorController::getnominalVolt()
-{
-    return nominalVolts;
-}
-
 uint32_t MotorController::getKiloWattHours()
 {
     return kiloWattHours;
@@ -210,16 +211,12 @@ int16_t MotorController::getTemperatureController()
     return temperatureController;
 }
 
-uint32_t MotorController::getTickInterval()
-{
-    return CFG_TICK_INTERVAL_MOTOR_CONTROLLER;
-}
-
 void MotorController::loadConfiguration()
 {
     MotorControllerConfiguration *config = (MotorControllerConfiguration *) getConfiguration();
 
     Device::loadConfiguration(); // call parent
+    Logger::info("Motor controller configuration:");
 
 #ifdef USE_HARD_CODED
 
@@ -233,7 +230,6 @@ void MotorController::loadConfiguration()
         prefsHandler->read(EEMC_RPM_SLEW_RATE, &config->speedSlewRate);
         prefsHandler->read(EEMC_TORQUE_SLEW_RATE, &config->torqueSlewRate);
         prefsHandler->read(EEMC_REVERSE_LIMIT, &config->reversePercent);
-        prefsHandler->read(EEMC_KILOWATTHRS, &config->kilowattHrs);
         prefsHandler->read(EEMC_NOMINAL_V, &config->nominalVolt);
     } else { //checksum invalid. Reinitialize values and store to EEPROM
         config->speedMax = MaxRPMValue;
@@ -241,7 +237,6 @@ void MotorController::loadConfiguration()
         config->speedSlewRate = RPMSlewRateValue;
         config->torqueSlewRate = TorqueSlewRateValue;
         config->reversePercent = ReversePercent;
-        config->kilowattHrs = KilowattHrs;
         config->nominalVolt = NominalVolt;
     }
 
@@ -259,7 +254,6 @@ void MotorController::saveConfiguration()
     prefsHandler->write(EEMC_RPM_SLEW_RATE, config->speedSlewRate);
     prefsHandler->write(EEMC_TORQUE_SLEW_RATE, config->torqueSlewRate);
     prefsHandler->write(EEMC_REVERSE_LIMIT, config->reversePercent);
-    prefsHandler->write(EEMC_KILOWATTHRS, config->kilowattHrs);
     prefsHandler->write(EEMC_NOMINAL_V, config->nominalVolt);
     prefsHandler->saveChecksum();
 }

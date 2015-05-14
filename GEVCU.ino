@@ -67,113 +67,12 @@ CanHandler *canHandlerCar;
 TickHandler *tickHandler;
 PrefHandler *sysPrefs;
 MemCache *memCache;
-Heartbeat *heartbeat;
 SerialConsole *serialConsole;
 Device *wifiDevice;
 Device *btDevice;
 PerfTimer *mainLoopTimer;
 
 byte i = 0;
-
-//initializes all the system EEPROM values. Chances are this should be broken out a bit but
-//there is only one checksum check for all of them so it's simple to do it all here.
-void initSysEEPROM()
-{
-    //three temporary storage places to make saving to EEPROM easy
-    uint8_t eight;
-    uint16_t sixteen;
-    uint32_t thirtytwo;
-
-    eight = SYSTEM_DUED;
-    sysPrefs->write(EESYS_SYSTEM_TYPE, eight);
-
-    sixteen = 1024; //no gain
-    sysPrefs->write(EESYS_ADC0_GAIN, sixteen);
-    sysPrefs->write(EESYS_ADC1_GAIN, sixteen);
-    sysPrefs->write(EESYS_ADC2_GAIN, sixteen);
-    sysPrefs->write(EESYS_ADC3_GAIN, sixteen);
-
-    sixteen = 0; //no offset
-    sysPrefs->write(EESYS_ADC0_OFFSET, sixteen);
-    sysPrefs->write(EESYS_ADC1_OFFSET, sixteen);
-    sysPrefs->write(EESYS_ADC2_OFFSET, sixteen);
-    sysPrefs->write(EESYS_ADC3_OFFSET, sixteen);
-
-    sixteen = 500; //multiplied by 1000 so 500k baud
-    sysPrefs->write(EESYS_CAN0_BAUD, sixteen);
-    sysPrefs->write(EESYS_CAN1_BAUD, sixteen);
-
-    sixteen = 11520; //multiplied by 10
-    sysPrefs->write(EESYS_SERUSB_BAUD, sixteen);
-
-    sixteen = 100; //multiplied by 1000
-    sysPrefs->write(EESYS_TWI_BAUD, sixteen);
-
-    sixteen = 100; //number of ticks per second
-    sysPrefs->write(EESYS_TICK_RATE, sixteen);
-
-    thirtytwo = 0;
-    sysPrefs->write(EESYS_RTC_TIME, thirtytwo);
-    sysPrefs->write(EESYS_RTC_DATE, thirtytwo);
-
-    eight = 5; //how many RX mailboxes
-    sysPrefs->write(EESYS_CAN_RX_COUNT, eight);
-
-    thirtytwo = 0x7f0; //standard frame, ignore bottom 4 bits
-    sysPrefs->write(EESYS_CAN_MASK0, thirtytwo);
-    sysPrefs->write(EESYS_CAN_MASK1, thirtytwo);
-    sysPrefs->write(EESYS_CAN_MASK2, thirtytwo);
-    sysPrefs->write(EESYS_CAN_MASK3, thirtytwo);
-    sysPrefs->write(EESYS_CAN_MASK4, thirtytwo);
-
-    thirtytwo = 0x230;
-    sysPrefs->write(EESYS_CAN_FILTER0, thirtytwo);
-    sysPrefs->write(EESYS_CAN_FILTER1, thirtytwo);
-    sysPrefs->write(EESYS_CAN_FILTER2, thirtytwo);
-
-    thirtytwo = 0x650;
-    sysPrefs->write(EESYS_CAN_FILTER3, thirtytwo);
-    sysPrefs->write(EESYS_CAN_FILTER4, thirtytwo);
-
-    thirtytwo = 0; //ok, not technically 32 bytes but the four zeros still shows it is unused.
-    sysPrefs->write(EESYS_WIFI0_SSID, thirtytwo);
-    sysPrefs->write(EESYS_WIFI1_SSID, thirtytwo);
-    sysPrefs->write(EESYS_WIFI2_SSID, thirtytwo);
-    sysPrefs->write(EESYS_WIFIX_SSID, thirtytwo);
-
-    eight = 0; //no channel, DHCP off, B mode
-    sysPrefs->write(EESYS_WIFI0_CHAN, eight);
-    sysPrefs->write(EESYS_WIFI0_DHCP, eight);
-    sysPrefs->write(EESYS_WIFI0_MODE, eight);
-
-    sysPrefs->write(EESYS_WIFI1_CHAN, eight);
-    sysPrefs->write(EESYS_WIFI1_DHCP, eight);
-    sysPrefs->write(EESYS_WIFI1_MODE, eight);
-
-    sysPrefs->write(EESYS_WIFI2_CHAN, eight);
-    sysPrefs->write(EESYS_WIFI2_DHCP, eight);
-    sysPrefs->write(EESYS_WIFI2_MODE, eight);
-
-    sysPrefs->write(EESYS_WIFIX_CHAN, eight);
-    sysPrefs->write(EESYS_WIFIX_DHCP, eight);
-    sysPrefs->write(EESYS_WIFIX_MODE, eight);
-
-    thirtytwo = 0;
-    sysPrefs->write(EESYS_WIFI0_IPADDR, thirtytwo);
-    sysPrefs->write(EESYS_WIFI1_IPADDR, thirtytwo);
-    sysPrefs->write(EESYS_WIFI2_IPADDR, thirtytwo);
-    sysPrefs->write(EESYS_WIFIX_IPADDR, thirtytwo);
-
-    sysPrefs->write(EESYS_WIFI0_KEY, thirtytwo);
-    sysPrefs->write(EESYS_WIFI1_KEY, thirtytwo);
-    sysPrefs->write(EESYS_WIFI2_KEY, thirtytwo);
-    sysPrefs->write(EESYS_WIFIX_KEY, thirtytwo);
-
-    eight = 1;
-    sysPrefs->write(EESYS_LOG_LEVEL, eight);
-
-    sysPrefs->saveChecksum();
-}
 
 void createDevices()
 {
@@ -191,24 +90,16 @@ void createDevices()
     deviceManager->addDevice(new ThinkBatteryManager());
 //    deviceManager->addDevice(new ELM327Emu());
     deviceManager->addDevice(new ICHIPWIFI());
-
-    /*
-     *  We defer setting up the devices until here. This allows all objects to be instantiated
-     *  before any of them set up. That in turn allows the devices to inspect what else is
-     *  out there as they initialize. For instance, a motor controller could see if a BMS
-     *  exists and supports a function that the motor controller wants to access.
-     */
-    deviceManager->sendMessage(DEVICE_ANY, INVALID, MSG_STARTUP, NULL);
+    deviceManager->addDevice(new CanIO());
 }
 
 void setup()
 {
     SerialUSB.begin(CFG_SERIAL_SPEED);
     SerialUSB.println(CFG_VERSION);
+
     SerialUSB.print("Build number: ");
     SerialUSB.println(CFG_BUILD_NUM);
-
-    Status::getInstance()->setSystemState(Status::init);
 
     Wire.begin();
     Logger::info("TWI init ok");
@@ -219,8 +110,7 @@ void setup()
     sysPrefs = new PrefHandler(SYSTEM);
 
     if (!sysPrefs->checksumValid()) {
-        Logger::info("Initializing EEPROM");
-        initSysEEPROM();
+        sysPrefs->initSysEEPROM();
     } else {  //checksum is good, read in the values stored in EEPROM
         Logger::info("Using existing EEPROM values");
     }
@@ -251,17 +141,23 @@ void setup()
      */
 
     systemIO = SystemIO::getInstance();
-    systemIO->setup();
-
     createDevices();
+    /*
+     *  We defer setting up the devices until here. This allows all objects to be instantiated
+     *  before any of them set up. That in turn allows the devices to inspect what else is
+     *  out there as they initialize. For instance, a motor controller could see if a BMS
+     *  exists and supports a function that the motor controller wants to access.
+     */
+    systemIO->setup();
+    Status::getInstance()->setSystemState(Status::init);
 
-    Status::getInstance()->setSystemState(Status::preCharge);
-
-    serialConsole = new SerialConsole(memCache, heartbeat);
+    serialConsole = new SerialConsole(memCache);
     serialConsole->printMenu();
 
     wifiDevice = DeviceManager::getInstance()->getDeviceByID(ICHIP2128);
     btDevice = DeviceManager::getInstance()->getDeviceByID(ELM327EMU);
+
+    Status::getInstance()->setSystemState(Status::preCharge);
 
 #ifdef CFG_EFFICIENCY_CALCS
 	mainLoopTimer = new PerfTimer();

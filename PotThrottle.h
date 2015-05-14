@@ -50,7 +50,7 @@ public:
      * 2 - inverse potentiometer (high-low). If 2 pots, then 1st is low-high and 2nd is high-low)
      */
     uint8_t throttleSubType;
-    uint16_t minimumLevel1, maximumLevel1, minimumLevel2, maximumLevel2; // values for when the pedal is at its min and max for each input
+    uint16_t minimumLevel2, maximumLevel2; // values for when the pedal is at its min and max for secondary input
     uint8_t numberPotMeters; // the number of potentiometers to be used. Should support three as well since some pedals really do have that many
     uint8_t AdcPin1, AdcPin2; //which ADC pins to use for the throttle
 };

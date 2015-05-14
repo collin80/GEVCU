@@ -93,8 +93,8 @@ public:
         warningFlag                 = 1 << 10, // 0x0400, data[0], Motorola bit 5
         slewRateLimitation          = 1 << 12, // 0x1000, data[0], Motorola bit 3
         motorTemperatureLimitation  = 1 << 13, // 0x2000, data[0], Motorola bit 2
-        stateRunning                = 1 << 14, // 0x4000, data[0], Motorola bit 1
-        stateReady                  = 1 << 15  // 0x8000, data[0], Motorola bit 0
+        dmc5Running                 = 1 << 14, // 0x4000, data[0], Motorola bit 1
+        dmc5Ready                   = 1 << 15  // 0x8000, data[0], Motorola bit 0
     };
 
     // Message id=0x25a, DMC_ERR
@@ -162,9 +162,10 @@ public:
     BrusaDMC5();
     void handleTick();
     void handleCanFrame(CAN_FRAME *frame);
+    void handleStateChange(Status::SystemState state);
     void setup();
+    void tearDown();
     DeviceId getId();
-    uint32_t getTickInterval();
 
     void loadConfiguration();
     void saveConfiguration();

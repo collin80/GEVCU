@@ -33,7 +33,16 @@
 Throttle::Throttle() : Device()
 {
     level = 0;
-    status = OK;
+    throttleStatus = OK;
+}
+
+/**
+ * Tear down the controller in a safe way.
+ */
+void Throttle::tearDown()
+{
+    Device::tearDown();
+    level = 0;
 }
 
 /*
@@ -51,8 +60,10 @@ void Throttle::handleTick()
     if (validateSignal(rawSignals)) {  // validate the raw data
         uint16_t position = calculatePedalPosition(rawSignals);  // bring the raw data into a range of 0-1000 (without mapping)
         level = mapPedalPosition(position);  // apply mapping of the 0-1000 range to the user defined settings
+        running = true;
     } else {
         level = 0;
+        running = false;
     }
 }
 
@@ -135,6 +146,7 @@ int16_t Throttle::mapPedalPosition(int16_t pedalPosition)
     return throttleLevel;
 }
 
+
 /*
  * Make sure input level stays within margins (min/max) then map the constrained
  * level linearly to a value from 0 to 1000.
@@ -165,7 +177,7 @@ int16_t Throttle::getLevel()
  */
 Throttle::ThrottleStatus Throttle::getStatus()
 {
-    return status;
+    return throttleStatus;
 }
 
 /*
@@ -173,7 +185,7 @@ Throttle::ThrottleStatus Throttle::getStatus()
  */
 bool Throttle::isFaulted()
 {
-    return status != OK;
+    return throttleStatus != OK;
 }
 
 /*
@@ -215,6 +227,8 @@ void Throttle::loadConfiguration()
 
     if (prefsHandler->checksumValid()) { //checksum is good, read in the values stored in EEPROM
 #endif
+        prefsHandler->read(EETH_LEVEL_MIN, &config->minimumLevel);
+        prefsHandler->read(EETH_LEVEL_MAX, &config->maximumLevel);
         prefsHandler->read(EETH_REGEN_MIN, &config->positionRegenMinimum);
         prefsHandler->read(EETH_REGEN_MAX, &config->positionRegenMaximum);
         prefsHandler->read(EETH_FWD, &config->positionForwardMotionStart);
@@ -223,6 +237,8 @@ void Throttle::loadConfiguration()
         prefsHandler->read(EETH_MIN_ACCEL_REGEN, &config->minimumRegen);
         prefsHandler->read(EETH_MAX_ACCEL_REGEN, &config->maximumRegen);
     } else { //checksum invalid. Reinitialize values, leave storing them to the subclasses
+        config->minimumLevel = Throttle1MinValue;
+        config->maximumLevel = Throttle1MaxValue;
         config->positionRegenMinimum = ThrottleRegenMinValue;
         config->positionRegenMaximum = ThrottleRegenMaxValue;
         config->positionForwardMotionStart = ThrottleFwdValue;
@@ -246,6 +262,8 @@ void Throttle::saveConfiguration()
 
     Device::saveConfiguration(); // call parent
 
+    prefsHandler->write(EETH_LEVEL_MIN, config->minimumLevel);
+    prefsHandler->write(EETH_LEVEL_MAX, config->maximumLevel);
     prefsHandler->write(EETH_REGEN_MIN, config->positionRegenMinimum);
     prefsHandler->write(EETH_REGEN_MAX, config->positionRegenMaximum);
     prefsHandler->write(EETH_FWD, config->positionForwardMotionStart);

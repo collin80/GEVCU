@@ -38,10 +38,6 @@ BrusaNLG5::BrusaNLG5() : Charger()
 
     errorPresent = false;
     clearErrorLatch = false;
-    mainsCurrent = 0;
-    mainsVoltage = 0;
-    batteryVoltage = 0;
-    batteryCurrent = 0;
     currentLimitControlPilot = 0;
     currentLimitPowerIndicator = 0;
     auxBatteryVoltage = 0;
@@ -65,8 +61,17 @@ void BrusaNLG5::setup()
 
     // register ourselves as observer of 0x26a-0x26f can frames
     canHandlerEv->attach(this, CAN_MASKED_ID, CAN_MASK, false);
+}
 
-    tickHandler->attach(this, CFG_TICK_INTERVAL_CHARGE_NLG5);
+/**
+ * Tear down the controller in a safe way.
+ */
+void BrusaNLG5::tearDown()
+{
+    Charger::tearDown();
+
+    canHandlerEv->detach(this, CAN_MASKED_ID, CAN_MASK);
+    sendControl();
 }
 
 /*
@@ -76,6 +81,14 @@ void BrusaNLG5::handleTick()
 {
     Charger::handleTick(); // call parent
     sendControl();
+
+    // check if we get a status message, if not received for 1 sec, the charger is not ready
+    if (canTickCounter < 1000) {
+        canTickCounter++;
+    } else {
+        ready = false;
+        running = false;
+    }
 }
 
 /*
@@ -89,26 +102,42 @@ void BrusaNLG5::sendControl()
     BrusaNLG5Configuration *config = (BrusaNLG5Configuration *) getConfiguration();
     canHandlerEv->prepareOutputFrame(&outputFrame, CAN_ID_COMMAND);
 
-    if ((status->getSystemState() == Status::running) && systemIO->getEnableInput()) {
+    if (powerOn && (ready || running)) {
         outputFrame.data.bytes[0] |= enable;
     }
-    if (errorPresent && clearErrorLatch) {
-        outputFrame.data.bytes[0] |= errorLatch;
-        clearErrorLatch = false;
+//    if (errorPresent && clearErrorLatch) {
+//        outputFrame.data.bytes[0] |= errorLatch;
+//        clearErrorLatch = false;
+//    }
+    outputFrame.data.bytes[1] = (config->maximumInputCurrent & 0xFF00) >> 8;
+    outputFrame.data.bytes[2] = (config->maximumInputCurrent & 0x00FF);
+
+    uint16_t voltage = getOutputVoltage();
+    outputFrame.data.bytes[3] = (voltage & 0xFF00) >> 8;
+    outputFrame.data.bytes[4] = (voltage & 0x00FF);
+
+    uint16_t current = getOutputCurrent();
+    outputFrame.data.bytes[5] = (current & 0xFF00) >> 8;
+    outputFrame.data.bytes[6] = (current & 0x00FF);
+    outputFrame.length = 7;
+
+    canHandlerEv->sendFrame(outputFrame);
+}
+
+/**
+ * act on state changes to register ourselves at the tick handler.
+ * This is special for chargers as they should not run while driving in
+ * order not to consume CPU cycles unnecessarily.
+ */
+void BrusaNLG5::handleStateChange(Status::SystemState state)
+{
+    Charger::handleStateChange(state);
+    if (state == Status::charging) {
+        tickHandler->attach(this, CFG_TICK_INTERVAL_CHARGE_NLG5);
+        canTickCounter = 0;
+    } else {
+        tickHandler->detach(this);
     }
-    outputFrame.data.bytes[1] = (config->maxMainsCurrent & 0xFF00) >> 8;
-    outputFrame.data.bytes[2] = (config->maxMainsCurrent & 0x00FF);
-
-    uint16_t batteryOutputVoltage = 0; // TODO: calculate desired output voltage to battery
-    outputFrame.data.bytes[3] = (batteryOutputVoltage & 0xFF00) >> 8;
-    outputFrame.data.bytes[4] = (batteryOutputVoltage & 0x00FF);
-
-    uint16_t batteryOutputCurrent = 0; // TODO: calculate desired output current to battery
-    outputFrame.data.bytes[5] = (batteryOutputCurrent & 0xFF00) >> 8;
-    outputFrame.data.bytes[6] = (batteryOutputCurrent & 0x00FF);
-
-    //TODO: enable sending the can frames once it's save
-//    canHandlerEv->sendFrame(outputFrame);
 }
 
 /*
@@ -140,9 +169,6 @@ void BrusaNLG5::handleCanFrame(CAN_FRAME *frame)
         case CAN_ID_ERROR:
             processError(frame->data.bytes);
             break;
-
-        default:
-            Logger::warn(BRUSA_NLG5, "received unknown frame id %X", frame->id);
     }
 }
 
@@ -156,13 +182,16 @@ void BrusaNLG5::processStatus(uint8_t data[])
 {
     bitfield = (uint32_t)((data[1] << 0) | (data[0] << 8) | (data[3] << 16) | (data[2] << 24));
 
-    //TODO: handle bit field values
-//    limitPowerMaximum
-//    limitPowerControlPilot
-//    limitPowerIndicatorInput
-//    limitMainsCurrent
-//    limitBatteryCurrent
-//    limitBatteryVoltage
+    canTickCounter = 0;
+    ready = true;
+    running = bitfield & hardwareEnabled;
+
+    if (bitfield & error) {
+        Logger::error(BRUSA_NLG5, "Charger reported an error, terminating charge.");
+        //TODO check if this needs to be re-enabled !
+//        status->setSystemState(Status::error);
+    }
+
 //    bypassDetection1
 //    bypassDetection2
 //    controlPilotSignal
@@ -171,9 +200,14 @@ void BrusaNLG5::processStatus(uint8_t data[])
 //    euMains
 //    coolingFan
 //    warning
-//    error
-//    hardwareEnabled
 //    automaticChargingActive
+
+//    limitPowerMaximum
+//    limitPowerControlPilot
+//    limitPowerIndicatorInput
+//    limitMainsCurrent
+//    limitBatteryCurrent
+//    limitBatteryVoltage
 //    limitBatteryTemperature
 //    limitTransformerTemperature
 //    limitDiodesTemperature
@@ -195,13 +229,13 @@ void BrusaNLG5::processStatus(uint8_t data[])
  */
 void BrusaNLG5::processValues1(uint8_t data[])
 {
-    mainsCurrent = (uint16_t)(data[1] | (data[0] << 8));
-    mainsVoltage = (uint16_t)(data[3] | (data[2] << 8));
+    inputCurrent = (uint16_t)(data[1] | (data[0] << 8));
+    inputVoltage = (uint16_t)(data[3] | (data[2] << 8));
     batteryVoltage = (uint16_t)(data[5] | (data[4] << 8));
     batteryCurrent = (uint16_t)(data[7] | (data[6] << 8));
 
     if (Logger::isDebug()) {
-        Logger::debug(BRUSA_NLG5, "mains: %fV, %fA, battery: %fV, %fA", (float) mainsVoltage / 10.0F, (float) mainsCurrent / 100.0F, (float) batteryVoltage / 10.0F, (float) batteryCurrent / 100.0F);
+        Logger::debug(BRUSA_NLG5, "mains: %fV, %fA, battery: %fV, %fA", (float) inputVoltage / 10.0F, (float) inputCurrent / 100.0F, (float) batteryVoltage / 10.0F, (float) batteryCurrent / 100.0F);
     }
 }
 
@@ -237,8 +271,8 @@ void BrusaNLG5::processTemperature(uint8_t data[])
     temperatureExtSensor3 = (uint16_t)(data[7] | (data[6] << 8));
 
     if (Logger::isDebug()) {
-        Logger::debug(BRUSA_NLG5, "Temp power stage: %f°C, Temp ext sensor 1: %f°C", (float) temperaturePowerStage / 10.0F, (float) temperatureExtSensor1 / 10.0F);
-        Logger::debug(BRUSA_NLG5, "Temp ext sensor 2: %f°C, Temp ext sensor 3: %f°C", (float) temperatureExtSensor2 / 10.0F, (float) temperatureExtSensor3 / 10.0F);
+        Logger::debug(BRUSA_NLG5, "Temp power stage: %fC, Temp ext sensor 1: %C", (float) temperaturePowerStage / 10.0F, (float) temperatureExtSensor1 / 10.0F);
+        Logger::debug(BRUSA_NLG5, "Temp ext sensor 2: %fC, Temp ext sensor 3: %fC", (float) temperatureExtSensor2 / 10.0F, (float) temperatureExtSensor3 / 10.0F);
     }
 }
 
@@ -304,20 +338,17 @@ void BrusaNLG5::processError(uint8_t data[])
 
 }
 
+long BrusaNLG5::getTickInterval()
+{
+    return CFG_TICK_INTERVAL_CHARGE_NLG5;
+}
+
 /*
  * Return the device id of this device
  */
 DeviceId BrusaNLG5::getId()
 {
     return BRUSA_NLG5;
-}
-
-/*
- * Expose the tick interval of this controller
- */
-uint32_t BrusaNLG5::getTickInterval()
-{
-    return CFG_TICK_INTERVAL_CHARGE_NLG5;
 }
 
 /*
@@ -342,28 +373,7 @@ void BrusaNLG5::loadConfiguration()
 #else
     if (prefsHandler->checksumValid()) { //checksum is good, read in the values stored in EEPROM
 #endif
-        uint8_t temp;
-        Logger::debug(BRUSA_NLG5, (char *) Constants::validChecksum);
-
-        prefsHandler->read(CHRG_MAX_MAINS_CURRENT, &config->maxMainsCurrent);
-        prefsHandler->read(CHRG_CONSTANT_CURRENT, &config->constantCurrent);
-        prefsHandler->read(CHRG_CONSTANT_VOLTAGE, &config->constantVoltage);
-        prefsHandler->read(CHRG_TERMINATE_CURRENT, &config->terminateCurrent);
-        prefsHandler->read(CHRG_MIN_BATTERY_VOLTAGE, &config->minimumBatteryVoltage);
-        prefsHandler->read(CHRG_MAX_BATTERY_VOLTAGE, &config->maximumBatteryVoltage);
-    } else { //checksum invalid. Reinitialize values and store to EEPROM
-        Logger::warn(BRUSA_NLG5, (char *) Constants::invalidChecksum);
-        config->maxMainsCurrent = 160;
-        config->constantCurrent = 100;
-        config->constantVoltage = 1000;
-        config->terminateCurrent = 30;
-        config->minimumBatteryVoltage = 2000;
-        config->maximumBatteryVoltage = 3000;
-        saveConfiguration();
     }
-
-    Logger::debug(BRUSA_NLG5, "max mains current: %fA, constant current: %fA, constant voltage: %fV", (float) config->maxMainsCurrent / 10.0F, (float) config->constantCurrent / 10.0F, (float) config->constantVoltage / 10.0F);
-    Logger::debug(BRUSA_NLG5, "terminate current: %fA, battery min: %fV max: %fV", (float) config->terminateCurrent / 10.0F, (float) config->minimumBatteryVoltage / 10.0F, (float) config->maximumBatteryVoltage / 10.0F);
 }
 
 /*
@@ -374,13 +384,6 @@ void BrusaNLG5::saveConfiguration()
     BrusaNLG5Configuration *config = (BrusaNLG5Configuration *) getConfiguration();
 
     Charger::saveConfiguration(); // call parent
-
-    prefsHandler->write(CHRG_MAX_MAINS_CURRENT, config->maxMainsCurrent);
-    prefsHandler->write(CHRG_CONSTANT_CURRENT, config->constantCurrent);
-    prefsHandler->write(CHRG_CONSTANT_VOLTAGE, config->constantVoltage);
-    prefsHandler->write(CHRG_TERMINATE_CURRENT, config->terminateCurrent);
-    prefsHandler->write(CHRG_MIN_BATTERY_VOLTAGE, config->minimumBatteryVoltage);
-    prefsHandler->write(CHRG_MAX_BATTERY_VOLTAGE, config->maximumBatteryVoltage);
 
     prefsHandler->saveChecksum();
 }
