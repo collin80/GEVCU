@@ -234,9 +234,9 @@ void BrusaNLG5::processValues1(uint8_t data[])
     batteryVoltage = (uint16_t)(data[5] | (data[4] << 8));
     batteryCurrent = (uint16_t)(data[7] | (data[6] << 8));
 
-//    if (Logger::isDebug()) {
-        Logger::info(BRUSA_NLG5, "mains: %fV, %fA, battery: %fV, %fA", (float) inputVoltage / 10.0F, (float) inputCurrent / 100.0F, (float) batteryVoltage / 10.0F, (float) batteryCurrent / 100.0F);
-//    }
+    if (Logger::isDebug()) {
+        Logger::debug(BRUSA_NLG5, "mains: %fV, %fA, battery: %fV, %fA", (float) inputVoltage / 10.0F, (float) inputCurrent / 100.0F, (float) batteryVoltage / 10.0F, (float) batteryCurrent / 100.0F);
+    }
 }
 
 /*

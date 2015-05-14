@@ -162,7 +162,7 @@ void SerialConsole::printMenuSystemIO() {
 
     if (systemIO && systemIO->getConfiguration()) {
         SystemIOConfiguration *config = systemIO->getConfiguration();
-        Logger::console("\SYSTEM I/O\n");
+        Logger::console("\nSYSTEM I/O\n");
         Logger::console("ENABLEI=%i - Digital input to use for enable signal (255 to disable)", config->enableInput);
         Logger::console("CHARGEI=%i - Digital input to use for charger signal (255 to disable)", config->chargePowerAvailableInput);
         Logger::console("INTERLI=%i - Digital input to use for interlock signal (255 to disable)\n", config->interlockInput);
@@ -353,7 +353,7 @@ bool SerialConsole::handleConfigCmdMotorController(String command, long value)
         Logger::console("Setting reverse limit to %f%%", (float) value / 10.0f);
         config->reversePercent = value;
     } else if (command == String("NOMV")) {
-        Logger::console("Setting fully charged voltage to %dV", value);
+        Logger::console("Setting fully charged voltage to %fV", (float) value / 10.0f);
         config->nominalVolt = value;
     } else {
         return false;

@@ -134,7 +134,15 @@ the end of the stardard data. The below numbers are offsets from the device's ee
 #define CHRG_TERMINATE_CURRENT      26 // 2 bytes, terminate current in 0.1A
 #define CHRG_MIN_BATTERY_VOLTAGE    28 // 2 bytes, minimum battery voltage to start charging in 0.1V
 #define CHRG_MAX_BATTERY_VOLTAGE    30 // 2 bytes, maximum battery voltage to charge in 0.1V
-
+#define CHRG_MIN_BATTERY_TEMPERATURE 32 // 2 bytes, minimum battery temp to charge in 0.1deg C
+#define CHRG_MAX_BATTERY_TEMPERATURE 34 // 2 bytes, maximum battery temp to charge in 0.1deg C
+#define CHRG_MAX_AMPERE_HOURS       36 // 2 bytes, maximum Ah to charge in 0.1Ah
+#define CHRG_MAX_CHARGE_TIME        38 // 2 bytes, maximum charge time in minutes
+#define CHRG_TEMPERATURE_MODE       40 // 1 byte, temperature mode to use
+#define CHRG_DERATING_TEMPERATURE   41 // 2 bytes, 0.1Ah per deg Celsius
+#define CHRG_DERATING_REFERENCE     43 // 2 bytes, 0.1 deg Celsius where derating will reach 0 Amp
+#define CHRG_HYSTERESE_STOP         45 // 2 bytes, temperature where charging is interrupted in 0.1deg C
+#define CHRG_HYSTERESE_RESUME       47 // 2 bytes, temperature where chargin is resumed in 0.1deg C
 
 //System Data
 #define EESYS_SYSTEM_TYPE        10  //1 byte - 1 = Old school protoboards 2 = GEVCU2/DUED 3 = GEVCU3 - Defaults to 2 if invalid or not set up

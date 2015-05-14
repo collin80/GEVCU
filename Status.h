@@ -136,8 +136,8 @@ public:
     uint32_t getBitField1();
     uint32_t getBitField2();
     uint32_t getBitField3();
-    uint16_t getLowestExternalTemperature();
-    uint16_t getHighestExternalTemperature();
+    int16_t getLowestExternalTemperature();
+    int16_t getHighestExternalTemperature();
 
 private:
     Status();

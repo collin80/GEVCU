@@ -214,8 +214,8 @@ Status::SystemState Status::setSystemState(SystemState newSystemState) {
     return systemState;
 }
 
-uint16_t Status::getLowestExternalTemperature() {
-    uint16_t temp = CFG_NO_TEMPERATURE_DATA;
+int16_t Status::getLowestExternalTemperature() {
+    int16_t temp = CFG_NO_TEMPERATURE_DATA;
 
     for (int i = 0; i < CFG_NUMBER_TEMPERATURE_SENSORS; i++) {
         if (externalTemperature[i] != CFG_NO_TEMPERATURE_DATA) {
@@ -225,8 +225,8 @@ uint16_t Status::getLowestExternalTemperature() {
     return temp;
 }
 
-uint16_t Status::getHighestExternalTemperature() {
-    uint16_t temp = -9999;
+int16_t Status::getHighestExternalTemperature() {
+    int16_t temp = -9999;
 
     for (int i = 0; i < CFG_NUMBER_TEMPERATURE_SENSORS; i++) {
         if (externalTemperature[i] != CFG_NO_TEMPERATURE_DATA) {

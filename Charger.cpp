@@ -85,7 +85,7 @@ void Charger::handleStateChange(Status::SystemState state)
         powerOn = true;
     } else {
         if (powerOn) {
-            Logger::info(getId(), "Charging finished after %d min, %f Ah / %f kWh, final voltage %f, final current %f", (millis() - chargeStartTime) / 60000, (float) ampereMilliSeconds / 3600000.0f, (float) wattMilliSeconds / 3600.0f, batteryVoltage, batteryCurrent);
+            Logger::info(getId(), "Charging finished after %d min, %f Ah / %f kWh, final voltage %f, final current %f", (millis() - chargeStartTime) / 60000, (float) ampereMilliSeconds / 360000000.0f, (float) wattMilliSeconds / 3600000000000.0f, batteryVoltage, batteryCurrent);
         }
         requestedOutputCurrent = 0;
         powerOn = false;
@@ -125,11 +125,12 @@ uint16_t Charger::getOutputCurrent()
         if (batteryVoltage > config->constantVoltage) {
             requestedOutputCurrent--; //TODO verify if this is an appropriate way to decrease the current
         }
-        if (requestedOutputCurrent < config->terminateCurrent) {
+        if (requestedOutputCurrent < config->terminateCurrent ||
+                ((millis() - chargeStartTime) > 5000 && batteryCurrent < config->terminateCurrent)) { // give the charger 5sec to ramp up the current
             requestedOutputCurrent = 0;
             status->setSystemState(Status::charged);
         }
-        if (config->maximumChargeTime * 60000 > (millis() - chargeStartTime)) {
+        if ((millis() - chargeStartTime) > config->maximumChargeTime * 60000) {
             requestedOutputCurrent = 0;
             Logger::error(getId(), "Maximum charge time exceeded (%imin)", (millis() - chargeStartTime) / 60000);
             status->setSystemState(Status::error);
@@ -144,9 +145,9 @@ uint16_t Charger::getOutputCurrent()
             Logger::error(getId(), "Battery voltage too low (%fV)", (float) batteryVoltage / 10.0f);
             status->setSystemState(Status::error);
         }
-        if (ampereMilliSeconds / 360000 > config->maximumAmpereHours) {
+        if (ampereMilliSeconds / 36000000 > config->maximumAmpereHours) {
             requestedOutputCurrent = 0;
-            Logger::error(getId(), "Maximum ampere hours exceeded (%f)", (float) ampereMilliSeconds / 3600000.0f);
+            Logger::error(getId(), "Maximum ampere hours exceeded (%f)", (float) ampereMilliSeconds / 360000000.0f);
             status->setSystemState(Status::error);
         }
         temperature = getHighestBatteryTemperature();
@@ -172,7 +173,6 @@ uint16_t Charger::getOutputCurrent()
 int16_t Charger::getHighestBatteryTemperature()
 {
     int16_t temperature = batteryTemperature;
-
     if (status->getHighestExternalTemperature() != CFG_NO_TEMPERATURE_DATA &&
             status->getHighestExternalTemperature() * 10 > temperature) {
         temperature = status->getHighestExternalTemperature() * 10;
@@ -249,7 +249,7 @@ void Charger::loadConfiguration()
     Device::loadConfiguration(); // call parent
     Logger::info(getId(), "Charger configuration:");
 
-#ifndef USE_HARD_CODED
+#ifdef USE_HARD_CODED
 
     if (false) {
 #else
@@ -264,6 +264,16 @@ void Charger::loadConfiguration()
         prefsHandler->read(CHRG_TERMINATE_CURRENT, &config->terminateCurrent);
         prefsHandler->read(CHRG_MIN_BATTERY_VOLTAGE, &config->minimumBatteryVoltage);
         prefsHandler->read(CHRG_MAX_BATTERY_VOLTAGE, &config->maximumBatteryVoltage);
+        prefsHandler->read(CHRG_MIN_BATTERY_TEMPERATURE, &config->minimumTemperature);
+        prefsHandler->read(CHRG_MAX_BATTERY_TEMPERATURE, &config->maximumTemperature);
+        prefsHandler->read(CHRG_MAX_AMPERE_HOURS, &config->maximumAmpereHours);
+        prefsHandler->read(CHRG_MAX_CHARGE_TIME, &config->maximumChargeTime);
+        prefsHandler->read(CHRG_TEMPERATURE_MODE, &temp);
+        config->useTemperatureDerating = (temp == 1);
+        prefsHandler->read(CHRG_DERATING_TEMPERATURE, &config->deratingTemperature);
+        prefsHandler->read(CHRG_DERATING_REFERENCE, &config->deratingReferenceTemperature);
+        prefsHandler->read(CHRG_HYSTERESE_STOP, &config->hystereseStopTemperature);
+        prefsHandler->read(CHRG_HYSTERESE_RESUME, &config->hystereseResumeTemperature);
     } else { //checksum invalid. Reinitialize values and store to EEPROM
         Logger::warn(getId(), (char *) Constants::invalidChecksum);
         config->maximumInputCurrent = 100;
@@ -272,6 +282,15 @@ void Charger::loadConfiguration()
         config->terminateCurrent = 50;
         config->minimumBatteryVoltage = 3272;
         config->maximumBatteryVoltage = 4284;
+        config->minimumTemperature = 30;
+        config->maximumTemperature = 600;
+        config->maximumAmpereHours = 1200;
+        config->maximumChargeTime = 600;
+        config->useTemperatureDerating = 0;
+        config->deratingTemperature = 1;
+        config->deratingReferenceTemperature = 500;
+        config->hystereseStopTemperature = 600;
+        config->hystereseResumeTemperature = 500;
         saveConfiguration();
     }
 
@@ -294,6 +313,15 @@ void Charger::saveConfiguration()
     prefsHandler->write(CHRG_TERMINATE_CURRENT, config->terminateCurrent);
     prefsHandler->write(CHRG_MIN_BATTERY_VOLTAGE, config->minimumBatteryVoltage);
     prefsHandler->write(CHRG_MAX_BATTERY_VOLTAGE, config->maximumBatteryVoltage);
+    prefsHandler->write(CHRG_MIN_BATTERY_TEMPERATURE, config->minimumTemperature);
+    prefsHandler->write(CHRG_MAX_BATTERY_TEMPERATURE, config->maximumTemperature);
+    prefsHandler->write(CHRG_MAX_AMPERE_HOURS, config->maximumAmpereHours);
+    prefsHandler->write(CHRG_MAX_CHARGE_TIME, config->maximumChargeTime);
+    prefsHandler->write(CHRG_TEMPERATURE_MODE, (uint8_t)(config->useTemperatureDerating ? 1 : 0));
+    prefsHandler->write(CHRG_DERATING_TEMPERATURE, config->deratingTemperature);
+    prefsHandler->write(CHRG_DERATING_REFERENCE, config->deratingReferenceTemperature);
+    prefsHandler->write(CHRG_HYSTERESE_STOP, config->hystereseStopTemperature);
+    prefsHandler->write(CHRG_HYSTERESE_RESUME, config->hystereseResumeTemperature);
 
     prefsHandler->saveChecksum();
 }
