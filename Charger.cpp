@@ -65,22 +65,29 @@ void Charger::handleTick()
  * Act on messages the super-class does not react upon, like state change
  * to charging which should enable the charger
  */
-void Charger::handleStateChange(Status::SystemState state) {
+void Charger::handleStateChange(Status::SystemState state)
+{
     Device::handleStateChange(state);
     if (state == Status::charging) {
-//TODO
-//        ChargerConfiguration *config = (ChargerConfiguration *) getConfiguration();
-//        desiredOutputCurrent = config->constantCurrent;
-        powerOn = true;
+        ChargerConfiguration *config = (ChargerConfiguration *) getConfiguration();
+
+        // re-initialize variables
+        inputCurrent = 0;
+        inputVoltage = 0;
+        batteryVoltage = 0;
+        batteryCurrent = 0;
+        ampereMilliSeconds = 0;
+        wattMilliSeconds = 0;
         chargeStartTime = millis();
         lastTick = millis();
-        wattMilliSeconds = 0;
-        ampereMilliSeconds = 0;
+
+        requestedOutputCurrent = config->constantCurrent;
+        powerOn = true;
     } else {
         if (powerOn) {
-            Logger::info(getId(), "Charging finished after %d min, %f Ah / %f kWh, final voltage %f, final current %f", (millis() - chargeStartTime) / 60, (float) ampereMilliSeconds / 3600000.0f, (float) wattMilliSeconds / 3600.0f, batteryVoltage, batteryCurrent);
+            Logger::info(getId(), "Charging finished after %d min, %f Ah / %f kWh, final voltage %f, final current %f", (millis() - chargeStartTime) / 60000, (float) ampereMilliSeconds / 3600000.0f, (float) wattMilliSeconds / 3600.0f, batteryVoltage, batteryCurrent);
         }
-//        desiredOutputCurrent = 0;
+        requestedOutputCurrent = 0;
         powerOn = false;
     }
     systemIO->setEnableCharger(powerOn);
@@ -89,28 +96,103 @@ void Charger::handleStateChange(Status::SystemState state) {
 /**
  * Calculate desired output voltage to battery in 0.1V
  */
-//uint16_t Charger::getOutputVoltage() {
-//    if (powerOn && running) {
-//        ChargerConfiguration *config = (ChargerConfiguration *) getConfiguration();
-//        return config->constantVoltage;
-//    }
-//    return 0;
-//}
+uint16_t Charger::getOutputVoltage()
+{
+    if (powerOn && running) {
+        ChargerConfiguration *config = (ChargerConfiguration *) getConfiguration();
+        return config->constantVoltage;
+    }
+    return 0;
+}
 
 /**
  * Calculate desired output current to battery in 0.1A
  */
-//uint16_t Charger::getOutputCurrent() {
-//    if (powerOn && running) {
-//        ChargerConfiguration *config = (ChargerConfiguration *) getConfiguration();
-//
-//        // in constant voltage phase decrease current accordingly
-//        if (batteryVoltage > config->constantVoltage) {
-//            desiredOutputCurrent--; //TODO verify if this is an appropriate way to decrease the current
-//        }
-//    }
-//    return 0;
-//}
+uint16_t Charger::getOutputCurrent()
+{
+    if (powerOn && running) {
+        ChargerConfiguration *config = (ChargerConfiguration *) getConfiguration();
+        int16_t temperature;
+
+//TODO inmplement temp hysterese / derating according to the following config variables:
+//        bool useTemperatureDerating; // if true derating is used at high temperatures, otherwise hysterese at fixed temperatures will be used
+//        uint16_t deratingTemperature; // 0.1Ah per deg Celsius
+//        uint16_t deratingReferenceTemperature; // 0.1 deg Celsius where derating will reach 0 Amp
+//        uint16_t hystereseStopTemperature; // 0.1 deg Celsius where charging will stop in hysterese mode
+//        uint16_t hystereseResumeTemperature; // 0.1 deg Celsius where charging is resumed
+
+        // in constant voltage phase decrease current accordingly
+        if (batteryVoltage > config->constantVoltage) {
+            requestedOutputCurrent--; //TODO verify if this is an appropriate way to decrease the current
+        }
+        if (requestedOutputCurrent < config->terminateCurrent) {
+            requestedOutputCurrent = 0;
+            status->setSystemState(Status::charged);
+        }
+        if (config->maximumChargeTime * 60000 > (millis() - chargeStartTime)) {
+            requestedOutputCurrent = 0;
+            Logger::error(getId(), "Maximum charge time exceeded (%imin)", (millis() - chargeStartTime) / 60000);
+            status->setSystemState(Status::error);
+        }
+        if (batteryVoltage > config->maximumBatteryVoltage) {
+            requestedOutputCurrent = 0;
+            Logger::error(getId(), "Maximum battery voltage exceeded (%fV)", (float) batteryVoltage / 10.0f);
+            status->setSystemState(Status::error);
+        }
+        if (batteryVoltage < config->minimumBatteryVoltage) {
+            requestedOutputCurrent = 0;
+            Logger::error(getId(), "Battery voltage too low (%fV)", (float) batteryVoltage / 10.0f);
+            status->setSystemState(Status::error);
+        }
+        if (ampereMilliSeconds / 360000 > config->maximumAmpereHours) {
+            requestedOutputCurrent = 0;
+            Logger::error(getId(), "Maximum ampere hours exceeded (%f)", (float) ampereMilliSeconds / 3600000.0f);
+            status->setSystemState(Status::error);
+        }
+        temperature = getHighestBatteryTemperature();
+        if (temperature != CFG_NO_TEMPERATURE_DATA && temperature > config->maximumTemperature) {
+            requestedOutputCurrent = 0;
+            Logger::error(getId(), "Battery temperature too high (%f deg C)", (float) temperature / 10.0f);
+            status->setSystemState(Status::error);
+        }
+        temperature = getLowestBatteryTemperature();
+        if (temperature != CFG_NO_TEMPERATURE_DATA && temperature < config->minimumTemperature) {
+            requestedOutputCurrent = 0;
+            Logger::error(getId(), "Battery temperature too low (%f deg C)", (float) temperature / 10.0f);
+            status->setSystemState(Status::error);
+        }
+        return requestedOutputCurrent;
+    }
+    return 0;
+}
+
+/**
+ * Find highest temperature reported by charger or external temperature sensors (in 0.1 deg C)
+ */
+int16_t Charger::getHighestBatteryTemperature()
+{
+    int16_t temperature = batteryTemperature;
+
+    if (status->getHighestExternalTemperature() != CFG_NO_TEMPERATURE_DATA &&
+            status->getHighestExternalTemperature() * 10 > temperature) {
+        temperature = status->getHighestExternalTemperature() * 10;
+    }
+    return temperature;
+}
+
+/**
+ * Find lowest temperature reported by charger or external temperature sensors (in 0.1 deg C)
+ */
+int16_t Charger::getLowestBatteryTemperature()
+{
+    int16_t temperature = batteryTemperature;
+
+    if (status->getLowestExternalTemperature() != CFG_NO_TEMPERATURE_DATA &&
+            status->getLowestExternalTemperature() * 10 < temperature) {
+        temperature = status->getLowestExternalTemperature() * 10;
+    }
+    return temperature;
+}
 
 /*
  * Return the device type
@@ -120,27 +202,33 @@ DeviceType Charger::getType()
     return (DEVICE_CHARGER);
 }
 
-uint16_t Charger::getBatteryCurrent() {
+uint16_t Charger::getBatteryCurrent()
+{
     return batteryCurrent;
 }
 
-int16_t Charger::getBatteryTemperature() {
+int16_t Charger::getBatteryTemperature()
+{
     return batteryTemperature;
 }
 
-void Charger::setBatteryTemperature(int16_t batteryTemperature) {
+void Charger::setBatteryTemperature(int16_t batteryTemperature)
+{
     this->batteryTemperature = batteryTemperature;
 }
 
-uint16_t Charger::getBatteryVoltage() {
+uint16_t Charger::getBatteryVoltage()
+{
     return batteryVoltage;
 }
 
-uint16_t Charger::getInputCurrent() {
+uint16_t Charger::getInputCurrent()
+{
     return inputCurrent;
 }
 
-uint16_t Charger::getInputVoltage() {
+uint16_t Charger::getInputVoltage()
+{
     return inputVoltage;
 }
 

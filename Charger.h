@@ -80,12 +80,17 @@ protected:
     uint16_t batteryVoltage; // the reported battery voltage in 0.1V
     uint16_t batteryCurrent; // the reported battery current in 0.01A
     int16_t batteryTemperature; // the externally set battery temperature in 0.1 deg C
+    uint16_t getOutputVoltage();
+    uint16_t getOutputCurrent();
 
 private:
     uint32_t chargeStartTime; // timestamp when charging starts in millis
     uint32_t lastTick; // last time in ms when the handleTick method was called
     uint64_t ampereMilliSeconds; // ampere hours put into the battery in 1 ampere-milliseconds (divide by 3600000 to get Ah)
     uint64_t wattMilliSeconds; // watt hours put into the battery in 1 watt-millisecond (divide by 3600000000 to get kWh)
+    uint16_t requestedOutputCurrent; // calculated current to be delivered by the charger, use getOutputCurrent() to retrieve this value - never use it directly !!
+    int16_t getHighestBatteryTemperature();
+    int16_t getLowestBatteryTemperature();
 };
 
 #endif
