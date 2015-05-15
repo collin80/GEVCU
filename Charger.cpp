@@ -264,7 +264,7 @@ void Charger::loadConfiguration()
         prefsHandler->read(CHRG_TERMINATE_CURRENT, &config->terminateCurrent);
         prefsHandler->read(CHRG_MIN_BATTERY_VOLTAGE, &config->minimumBatteryVoltage);
         prefsHandler->read(CHRG_MAX_BATTERY_VOLTAGE, &config->maximumBatteryVoltage);
-        prefsHandler->read(CHRG_MIN_BATTERY_TEMPERATURE, &config->minimumTemperature);
+        prefsHandler->read(CHRG_MIN_BATTERY_TEMPERATURE, (uint16_t *) &config->minimumTemperature);
         prefsHandler->read(CHRG_MAX_BATTERY_TEMPERATURE, &config->maximumTemperature);
         prefsHandler->read(CHRG_MAX_AMPERE_HOURS, &config->maximumAmpereHours);
         prefsHandler->read(CHRG_MAX_CHARGE_TIME, &config->maximumChargeTime);
@@ -313,7 +313,7 @@ void Charger::saveConfiguration()
     prefsHandler->write(CHRG_TERMINATE_CURRENT, config->terminateCurrent);
     prefsHandler->write(CHRG_MIN_BATTERY_VOLTAGE, config->minimumBatteryVoltage);
     prefsHandler->write(CHRG_MAX_BATTERY_VOLTAGE, config->maximumBatteryVoltage);
-    prefsHandler->write(CHRG_MIN_BATTERY_TEMPERATURE, config->minimumTemperature);
+    prefsHandler->write(CHRG_MIN_BATTERY_TEMPERATURE, (uint16_t) config->minimumTemperature);
     prefsHandler->write(CHRG_MAX_BATTERY_TEMPERATURE, config->maximumTemperature);
     prefsHandler->write(CHRG_MAX_AMPERE_HOURS, config->maximumAmpereHours);
     prefsHandler->write(CHRG_MAX_CHARGE_TIME, config->maximumChargeTime);
