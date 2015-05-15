@@ -344,15 +344,19 @@ bool SerialConsole::handleConfigCmdMotorController(String command, long value)
     config = (MotorControllerConfiguration *) motorController->getConfiguration();
 
     if (command == String("TORQ")) {
+        value = constrain(value, 0, 1000000);
         Logger::console("Setting torque limit to %fNm", (float) value / 10.0f);
         config->torqueMax = value;
     } else if (command == String("RPMS")) {
+        value = constrain(value, 0, 1000000);
         Logger::console("Setting speed limit to %irpm", value);
         config->speedMax = value;
     } else if (command == String("REVLIM")) {
+        value = constrain(value, 0, 1000);
         Logger::console("Setting reverse limit to %f%%", (float) value / 10.0f);
         config->reversePercent = value;
     } else if (command == String("NOMV")) {
+        value = constrain(value, 0, 100000);
         Logger::console("Setting fully charged voltage to %fV", (float) value / 10.0f);
         config->nominalVolt = value;
     } else {
@@ -372,9 +376,11 @@ bool SerialConsole::handleConfigCmdThrottle(String command, long value) {
     config = (ThrottleConfiguration *) throttle->getConfiguration();
 
     if (command == String("TPOT") && (throttle->getId() == POTACCELPEDAL)) {
+        value = constrain(value, 1, 3);
         Logger::console("Setting # of throttle pots to %i", value);
         ((PotThrottleConfiguration *)config)->numberPotMeters = value;
     } else if (command == String("TTYPE") && (throttle->getId() == POTACCELPEDAL)) {
+        value = constrain(value, 1, 2);
         Logger::console("Setting throttle subtype to %s", (value == 2 ? "inverse" : "std linear"));
         ((PotThrottleConfiguration *)config)->throttleSubType = value;
     } else if (command == String("T2MN") && (throttle->getId() == POTACCELPEDAL)) {
@@ -393,24 +399,31 @@ bool SerialConsole::handleConfigCmdThrottle(String command, long value) {
         Logger::console("Setting throttle 1 max to %i", value);
         config->maximumLevel = value;
     } else if (command == String("TRGNMAX")) {
+        value = constrain(value, 0, config->positionRegenMinimum);
         Logger::console("Setting throttle regen maximum to %f%%", (float) value / 10.0f);
         config->positionRegenMaximum = value;
     } else if (command == String("TRGNMIN")) {
+        value = constrain(value, config->positionRegenMaximum, config->positionForwardMotionStart);
         Logger::console("Setting throttle regen minimum to %f%%", (float) value / 10.0f);
         config->positionRegenMinimum = value;
     } else if (command == String("TFWD")) {
+        value = constrain(value, config->positionRegenMinimum, config->positionHalfPower);
         Logger::console("Setting throttle forward start to %f%%", (float) value / 10.0f);
         config->positionForwardMotionStart = value;
     } else if (command == String("TMAP")) {
+        value = constrain(value, config->positionForwardMotionStart, 1000);
         Logger::console("Setting throttle 50%% torque to %f%%", (float) value / 10.0f);
         config->positionHalfPower = value;
     } else if (command == String("TMINRN")) {
+        value = constrain(value, 0, config->maximumRegen);
         Logger::console("Setting throttle regen minimum strength to %i%%", value);
         config->minimumRegen = value;
     } else if (command == String("TMAXRN")) {
+        value = constrain(value, config->minimumRegen, 100);
         Logger::console("Setting throttle Regen maximum strength to %i%%", value);
         config->maximumRegen = value;
     } else if (command == String("TCREEP")) {
+        value = constrain(value, 0, 100);
         Logger::console("Setting throttle creep strength to %i%%", value);
         config->creep = value;
     } else {
@@ -436,9 +449,11 @@ bool SerialConsole::handleConfigCmdBrake(String command, long value) {
         Logger::console("Setting brake max to %i", value);
         config->maximumLevel = value;
     } else if (command == String("BMINR")) {
+        value = constrain(value, 0, config->maximumRegen);
         Logger::console("Setting min brake regen to %i%%", value);
         config->minimumRegen = value;
     } else if (command == String("BMAXR")) {
+        value = constrain(value, config->minimumRegen, 100);
         Logger::console("Setting max brake regen to %i%%", value);
         config->maximumRegen = value;
     } else {
@@ -460,74 +475,87 @@ bool SerialConsole::handleConfigCmdSystemIO(String command, long value) {
             Logger::console("Invalid enable signal input number. Please enter a value 0 - %d", CFG_NUMBER_DIGITAL_INPUTS - 1);
         }
     } else if (command == String("CHARGEI")) {
+        value = constrain(value, 0, 255);
         Logger::console("Setting charge signal to input %i", value);
         config->chargePowerAvailableInput = value;
     } else if (command == String("INTERLI")) {
+        value = constrain(value, 0, 255);
         Logger::console("Setting interlock signal to input %i", value);
         config->interlockInput = value;
     } else if (command == String("PREDELAY")) {
+        value = constrain(value, 0, 100000);
         Logger::console("Setting precharge time to %ims", value);
         config->prechargeMillis = value;
     } else if (command == String("PRELAY")) {
+        value = constrain(value, 0, 255);
         Logger::console("Setting precharge relay to output %i", value);
         config->prechargeRelayOutput = value;
     } else if (command == String("MRELAY")) {
+        value = constrain(value, 0, 255);
         Logger::console("Setting main contactor to output %i", value);
         config->mainContactorOutput = value;
     } else if (command == String("NRELAY")) {
+        value = constrain(value, 0, 255);
         Logger::console("Setting secondary contactor to output %i", value);
         config->secondaryContactorOutput = value;
     } else if (command == String("FRELAY")) {
+        value = constrain(value, 0, 255);
         Logger::console("Setting fast charge contactor to output %i", value);
         config->fastChargeContactorOutput = value;
     } else if (command == String("ENABLEM")) {
+        value = constrain(value, 0, 255);
         Logger::console("Setting enable motor signal to output %i", value);
         config->enableMotorOutput = value;
     } else if (command == String("ENABLEC")) {
+        value = constrain(value, 0, 255);
         Logger::console("Setting enable charger signal to output %i", value);
         config->enableChargerOutput = value;
     } else if (command == String("ENABLED")) {
+        value = constrain(value, 0, 255);
         Logger::console("Setting enable DC-DC converter signal to output %i", value);
         config->enableDcDcOutput = value;
     } else if (command == String("ENABLEH")) {
+        value = constrain(value, 0, 255);
         Logger::console("Setting enable heater signal to output %i", value);
         config->enableHeaterOutput = value;
     } else if (command == String("HEATVALV")) {
+        value = constrain(value, 0, 255);
         Logger::console("Setting heater valve signal output %i", value);
         config->heaterValveOutput = value;
     } else if (command == String("HEATPUMP")) {
+        value = constrain(value, 0, 255);
         Logger::console("Setting heater pump signal to output %i", value);
         config->heaterPumpOutput = value;
     } else if (command == String("COOLPUMP")) {
+        value = constrain(value, 0, 255);
         Logger::console("Setting cooling pump signal to output %i", value);
         config->coolingPumpOutput = value;
     } else if (command == String("COOLFAN")) {
+        value = constrain(value, 0, 255);
         Logger::console("Setting cooling fan signal to output %i", value);
         config->coolingFanOutput = value;
     } else if (command == String("COOLON")) {
-        if (value <= 200 && value >= 0) {
-            Logger::console("Setting cooling ON temperature to: %i deg C", value);
-            config->coolingTempOn = value;
-        } else {
-            Logger::console("Invalid cooling ON temperature. Please enter a value 0 - 200");
-        }
+        value = constrain(value, 0, 200);
+        Logger::console("Setting cooling ON temperature to: %i deg C", value);
+        config->coolingTempOn = value;
     } else if (command == String("COOLOFF")) {
-        if (value <= 200 && value >= 0) {
-            Logger::console("Setting cooling OFF temperature to: %i deg C", value);
-            config->coolingTempOff = value;
-        } else {
-            Logger::console("Invalid cooling OFF temperature. Please enter a value 0 - 200");
-        }
+        value = constrain(value, 0, config->coolingTempOn);
+        Logger::console("Setting cooling OFF temperature to: %i deg C", value);
+        config->coolingTempOff = value;
     } else if (command == String("BRAKELT")) {
+        value = constrain(value, 0, 255);
         Logger::console("Brake light signal set to output %i.", value);
         config->brakeLightOutput = value;
     } else if (command == String("REVLT")) {
+        value = constrain(value, 0, 255);
         Logger::console("Reverse light signal set to output %i.", value);
         config->reverseLightOutput = value;
     } else if (command == String("WARNLT")) {
+        value = constrain(value, 0, 255);
         Logger::console("Warning signal set to output %i.", value);
         config->warningOutput = value;
     } else if (command == String("LIMITLT")) {
+        value = constrain(value, 0, 255);
         Logger::console("Limit signal set to output %i.", value);
         config->powerLimitationOutput = value;
     } else {
@@ -547,48 +575,62 @@ bool SerialConsole::handleConfigCmdCharger(String command, long value) {
     config = (ChargerConfiguration *) charger->getConfiguration();
 
     if (command == String("CHCC")) {
+        value = constrain(value, 0, 100000);
         Logger::console("Setting constant current to %fA", (float) value / 10.0f);
         config->constantCurrent = value;
     } else if (command == String("CHCV")) {
+        value = constrain(value, 0, 100000);
         Logger::console("Setting constant voltage to %fV", (float) value / 10.0f);
         config->constantVoltage = value;
     } else if (command == String("CHTC")) {
+        value = constrain(value, 0, config->constantCurrent);
         Logger::console("Setting terminate current to %fA", (float) value / 10.0f);
         config->terminateCurrent = value;
     } else if (command == String("CHICMX")) {
+        value = constrain(value, 0, 100000);
         Logger::console("Setting max input current to %fV", (float) value / 10.0f);
         config->maximumInputCurrent = value;
     } else if (command == String("CHBVMN")) {
+        value = constrain(value, 0, config->maximumBatteryVoltage);
         Logger::console("Setting min battery voltage to %fV", (float) value / 10.0f);
         config->minimumBatteryVoltage = value;
     } else if (command == String("CHBVMX")) {
+        value = constrain(value, config->minimumBatteryVoltage, 100000);
         Logger::console("Setting max battery voltage to %fV", (float) value / 10.0f);
         config->maximumBatteryVoltage = value;
     } else if (command == String("CHTPMN")) {
+        value = constrain(value, -1000, config->maximumTemperature);
         Logger::console("Setting min battery temp to %f deg C", (float) value / 10.0f);
         config->minimumTemperature = value;
     } else if (command == String("CHTPMX")) {
+        value = constrain(value, config->minimumTemperature, 10000);
         Logger::console("Setting max battery temp to %f deg C", (float) value / 10.0f);
         config->maximumTemperature = value;
     } else if (command == String("CHAHMX")) {
+        value = constrain(value, 0, 100000);
         Logger::console("Setting max Ampere hours to %fAh", (float) value / 10.0f);
         config->maximumAmpereHours = value;
     } else if (command == String("CHCTMX")) {
+        value = constrain(value, 0, 100000);
         Logger::console("Setting max charge time to %i min", value);
         config->maximumChargeTime = value;
     } else if (command == String("CHTMOD")) {
         Logger::console("Setting temp cotrol mode to %s", (value == 0 ? "hysterese" : "derating"));
         config->useTemperatureDerating = value;
     } else if (command == String("CHTDRC")) {
-        Logger::console("Setting derating of charge current to %fAh per deg C", (float) value / 10.0f);
+        value = constrain(value, 0, 100000);
+        Logger::console("Setting derating of charge current to %fA per deg C", (float) value / 10.0f);
         config->deratingTemperature = value;
     } else if (command == String("CHTDRS")) {
+        value = constrain(value, 0, 10000);
         Logger::console("Setting derating reference temp to %i deg C", value);
         config->deratingReferenceTemperature = value;
     } else if (command == String("CHTHYS")) {
+        value = constrain(value, config->hystereseResumeTemperature, 10000);
         Logger::console("Setting hysterese temp to stop charging to %i deg C", value);
         config->hystereseStopTemperature = value;
     } else if (command == String("CHTHYR")) {
+        value = constrain(value, 0, config->hystereseStopTemperature);
         Logger::console("Setting hysterese temp to resume charging to %i deg C", value);
         config->hystereseResumeTemperature = value;
     } else {
@@ -611,27 +653,35 @@ bool SerialConsole::handleConfigCmdDcDcConverter(String command, long value) {
         Logger::console("Setting mode to %s", (value == 0 ? "buck" : "boost"));
         config->boostMode = value;
     } else if (command == String("DCBULV")) {
+        value = constrain(value, 0, 10000);
         Logger::console("Setting buck LV voltage to %fV", (float) value / 10.0f);
         config->lowVoltageCommand = value;
     } else if (command == String("DCBULVC")) {
+        value = constrain(value, 0, 10000);
         Logger::console("Setting buck LV current limit to %iA", value);
         config->lvBuckModeCurrentLimit = value;
     } else if (command == String("DCBUHVV")) {
+        value = constrain(value, 0, 10000);
         Logger::console("Setting buck HV under voltage limit to %iV", value);
         config->hvUndervoltageLimit = value;
     } else if (command == String("DCBUHVC")) {
+        value = constrain(value, 0, 10000);
         Logger::console("Setting buck HV current limit to %fA", (float) value / 10.0f);
         config->hvBuckModeCurrentLimit = value;
     } else if (command == String("DCBOHV")) {
+        value = constrain(value, 0, 10000);
         Logger::console("Setting boost HV voltage to %iV", value);
         config->highVoltageCommand = value;
     } else if (command == String("DCBOLVV")) {
+        value = constrain(value, 0, 10000);
         Logger::console("Setting boost LV undervoltage limit to %fV", (float) value / 10.0f);
         config->lvUndervoltageLimit = value;
     } else if (command == String("DCBOLVC")) {
+        value = constrain(value, 0, 10000);
         Logger::console("Setting boost LV current limit to %iA", value);
         config->lvBoostModeCurrentLinit = value;
     } else if (command == String("DCBOHVC")) {
+        value = constrain(value, 0, 10000);
         Logger::console("Setting boost HV current limit to %fA", (float) value / 10.0f);
         config->hvBoostModeCurrentLimit = value;
     } else {
