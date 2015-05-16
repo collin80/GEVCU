@@ -46,6 +46,7 @@ class CanHandler;
 class MotorControllerConfiguration : public DeviceConfiguration
 {
 public:
+    bool invertDirection; // should an AC motor run in reverse mode? (e.g. negative speed for forward motion)
     uint16_t speedMax; // in rpm
     uint16_t torqueMax; // maximum torque in 0.1 Nm
     uint16_t torqueSlewRate; // for torque mode only: slew rate of torque value, 0=disabled, in 0.1Nm/sec

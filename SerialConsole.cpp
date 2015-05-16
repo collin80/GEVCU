@@ -110,6 +110,17 @@ void SerialConsole::printMenuMotorController() {
         Logger::console("REVLIM=%i - How much torque to allow in reverse (in 0.1%%)", config->reversePercent);
         Logger::console("NOMV=%i - Fully charged pack voltage (in 0.1V)", config->nominalVolt);
         Logger::console("kWh=%d - kiloWatt Hours of energy used", motorController->getKiloWattHours() / 3600000);
+        Logger::console("MOINVD=%i - invert the direction of the motor (0=normal, 1=invert)", config->invertDirection);
+        if (motorController->getId() == BRUSA_DMC5) {
+            BrusaDMC5Configuration *dmc5Config = (BrusaDMC5Configuration *) config;
+            Logger::console("MOMWMX=%i - maximal mechanical power of motor (in 4W steps)", dmc5Config->maxMechanicalPowerMotor);
+            Logger::console("MOMVMN=%i - minimum DC voltage limit for motoring (in 0.1V)", dmc5Config->dcVoltLimitMotor);
+            Logger::console("MOMCMX=%i - current limit for motoring (in 0.1A)", dmc5Config->dcCurrentLimitMotor);
+            Logger::console("MORWMX=%i - maximal mechanical power of regen (in 4W steps)", dmc5Config->maxMechanicalPowerRegen);
+            Logger::console("MORVMX=%i - maximum DC voltage limit for regen (in 0.1V)", dmc5Config->dcVoltLimitRegen);
+            Logger::console("MORCMX=%i - current limit for regen (in 0.1A)", dmc5Config->dcCurrentLimitRegen);
+            Logger::console("MOOSC=%i - enable the DMC5 oscillation limiter (1=enable, 0=disable)", dmc5Config->enableOscillationLimiter);
+        }
     }
 }
 
@@ -359,6 +370,32 @@ bool SerialConsole::handleConfigCmdMotorController(String command, long value)
         value = constrain(value, 0, 100000);
         Logger::console("Setting fully charged voltage to %fV", (float) value / 10.0f);
         config->nominalVolt = value;
+    } else if (command == String("MOINVD")) {
+        value = constrain(value, 0, 1);
+        Logger::console("Setting motor direction to %s", (value ? "inverted" : "normal"));
+        config->invertDirection = value;
+    } else if (command == String("MOMWMX") && (motorController->getId() == BRUSA_DMC5)) {
+        Logger::console("Setting maximal mechanical power of motor to %iW", value * 4);
+        ((BrusaDMC5Configuration *)config)->maxMechanicalPowerMotor = value;
+    } else if (command == String("MOMVMN") && (motorController->getId() == BRUSA_DMC5)) {
+        Logger::console("Setting minimum DC voltage limit for motoring to %fV", (float) value / 10.0f);
+        ((BrusaDMC5Configuration *)config)->dcVoltLimitMotor = value;
+    } else if (command == String("MOMCMX") && (motorController->getId() == BRUSA_DMC5)) {
+        Logger::console("Setting current limit for motoring to %fA", (float) value / 10.0f);
+        ((BrusaDMC5Configuration *)config)->dcCurrentLimitMotor = value;
+    } else if (command == String("MORWMX") && (motorController->getId() == BRUSA_DMC5)) {
+        Logger::console("Setting maximal mechanical power of regen to %iW", value * 4);
+        ((BrusaDMC5Configuration *)config)->maxMechanicalPowerRegen = value;
+    } else if (command == String("MORVMX") && (motorController->getId() == BRUSA_DMC5)) {
+        Logger::console("Setting maximum DC voltage limit for regen to %fV", (float) value / 10.0f);
+        ((BrusaDMC5Configuration *)config)->dcVoltLimitRegen = value;
+    } else if (command == String("MORCMX") && (motorController->getId() == BRUSA_DMC5)) {
+        Logger::console("Setting current limit for regen to %fA", (float) value / 10.0f);
+        ((BrusaDMC5Configuration *)config)->dcCurrentLimitRegen = value;
+    } else if (command == String("MOOSC") && (motorController->getId() == BRUSA_DMC5)) {
+        value = constrain(value, 0, 1);
+        Logger::console("Setting oscillation limiter to %s", (value == 0 ? "disabled" : "enabled"));
+        ((BrusaDMC5Configuration *)config)->enableOscillationLimiter = value;
     } else {
         return false;
     }

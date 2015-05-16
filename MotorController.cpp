@@ -225,6 +225,9 @@ void MotorController::loadConfiguration()
 
     if (prefsHandler->checksumValid()) { //checksum is good, read in the values stored in EEPROM
 #endif
+        uint8_t temp;
+        prefsHandler->read(EEMC_INVERT_DIRECTION, &temp);
+        config->invertDirection = temp;
         prefsHandler->read(EEMC_MAX_RPM, &config->speedMax);
         prefsHandler->read(EEMC_MAX_TORQUE, &config->torqueMax);
         prefsHandler->read(EEMC_RPM_SLEW_RATE, &config->speedSlewRate);
@@ -232,6 +235,7 @@ void MotorController::loadConfiguration()
         prefsHandler->read(EEMC_REVERSE_LIMIT, &config->reversePercent);
         prefsHandler->read(EEMC_NOMINAL_V, &config->nominalVolt);
     } else { //checksum invalid. Reinitialize values and store to EEPROM
+        config->invertDirection = false;
         config->speedMax = MaxRPMValue;
         config->torqueMax = MaxTorqueValue;
         config->speedSlewRate = RPMSlewRateValue;
@@ -249,6 +253,7 @@ void MotorController::saveConfiguration()
 
     Device::saveConfiguration(); // call parent
 
+    prefsHandler->write(EEMC_INVERT_DIRECTION, (uint8_t)(config->invertDirection ? 1 : 0));
     prefsHandler->write(EEMC_MAX_RPM, config->speedMax);
     prefsHandler->write(EEMC_MAX_TORQUE, config->torqueMax);
     prefsHandler->write(EEMC_RPM_SLEW_RATE, config->speedSlewRate);

@@ -89,7 +89,8 @@ the end of the stardard data. The below numbers are offsets from the device's ee
 #define EEMC_DC_VOLT_LIMIT_REGEN    60 // 2 bytes - DC volt limit for regen in 0.1V
 #define EEMC_DC_CURRENT_LIMIT_MOTOR 62 // 2 bytes - DC current limit for motoring in 0.1A
 #define EEMC_DC_CURRENT_LIMIT_REGEN 64 // 2 bytes - DC current limit for regen in 0.1A
-#define EEMC_OSCILATION_LIMITER     66 // 1 byte - flag to enable oscilation limiter (1=true/0=false)
+#define EEMC_OSCILLATION_LIMITER    66 // 1 byte - flag to enable oscillation limiter (1=true/0=false)
+#define EEMC_INVERT_DIRECTION       67 // 1 byte - flag to indicate if the motor's direction should be inverted
 
 //throttle data
 #define EETH_LEVEL_MIN            20 //2 bytes - ADC value of minimum value for first channel

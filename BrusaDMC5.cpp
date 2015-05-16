@@ -132,7 +132,7 @@ void BrusaDMC5::sendControl()
     speedRequested = 0;
     torqueRequested = 0;
 
-    outputFrame.data.bytes[0] = enablePositiveTorqueSpeed; // | enableNegativeTorqueSpeed;
+    outputFrame.data.bytes[0] = (config->invertDirection ? enableNegativeTorqueSpeed : enablePositiveTorqueSpeed);
 
 //TODO: clarify how to handle the "clear error latch" function
 //    if (faulted) {
@@ -151,9 +151,15 @@ void BrusaDMC5::sendControl()
                 outputFrame.data.bytes[0] |= enableSpeedMode;
                 speedRequested = throttleRequested * config->speedMax / 1000;
                 torqueRequested = config->torqueMax; // positive number used for both speed directions
-            } else { // torque mode
+                if (config->invertDirection) { // reverse the motor direction if specified
+                     speedRequested *= -1;
+                }
+           } else { // torque mode
                 speedRequested = config->speedMax; // positive number used for both torque directions
                 torqueRequested = throttleRequested * config->torqueMax / 1000;
+                if (config->invertDirection) { // reverse the motor direction if specified
+                    torqueRequested *= -1;
+                }
             }
 
             // set the speed in rpm
@@ -167,7 +173,7 @@ void BrusaDMC5::sendControl()
 //    }
 
     if (Logger::isDebug()) {
-        Logger::debug(BRUSA_DMC5, "requested Speed: %l rpm, requested Torque: %f Nm", speedRequested, (float) torqueRequested / 10.0F);
+        Logger::debug(BRUSA_DMC5, "throttle: %f%%, requested Speed: %l rpm, requested Torque: %f Nm", (float) throttleRequested / 10.0f, speedRequested, (float) torqueRequested / 10.0F);
     }
 
     canHandlerEv->sendFrame(outputFrame);
@@ -442,7 +448,7 @@ void BrusaDMC5::loadConfiguration()
         prefsHandler->read(EEMC_DC_VOLT_LIMIT_REGEN, &config->dcVoltLimitRegen);
         prefsHandler->read(EEMC_DC_CURRENT_LIMIT_MOTOR, &config->dcCurrentLimitMotor);
         prefsHandler->read(EEMC_DC_CURRENT_LIMIT_REGEN, &config->dcCurrentLimitRegen);
-        prefsHandler->read(EEMC_OSCILATION_LIMITER, &temp);
+        prefsHandler->read(EEMC_OSCILLATION_LIMITER, &temp);
         config->enableOscillationLimiter = (temp != 0);
     } else { //checksum invalid. Reinitialize values and store to EEPROM
         Logger::warn(BRUSA_DMC5, (char *) Constants::invalidChecksum);
@@ -475,6 +481,6 @@ void BrusaDMC5::saveConfiguration()
     prefsHandler->write(EEMC_DC_VOLT_LIMIT_REGEN, config->dcVoltLimitRegen);
     prefsHandler->write(EEMC_DC_CURRENT_LIMIT_MOTOR, config->dcCurrentLimitMotor);
     prefsHandler->write(EEMC_DC_CURRENT_LIMIT_REGEN, config->dcCurrentLimitRegen);
-    prefsHandler->write(EEMC_OSCILATION_LIMITER, (uint8_t)(config->enableOscillationLimiter ? 1 : 0));
+    prefsHandler->write(EEMC_OSCILLATION_LIMITER, (uint8_t)(config->enableOscillationLimiter ? 1 : 0));
     prefsHandler->saveChecksum();
 }

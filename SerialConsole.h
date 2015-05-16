@@ -36,6 +36,7 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include "CanThrottle.h"
 #include "DeviceManager.h"
 #include "MotorController.h"
+#include "BrusaDMC5.h"
 #include "ThrottleDetector.h"
 #include "ichip_2128.h"
 
