@@ -85,7 +85,7 @@ void Charger::handleStateChange(Status::SystemState state)
         powerOn = true;
     } else {
         if (powerOn) {
-            Logger::info(getId(), "Charging finished after %d min, %f Ah / %f kWh, final voltage %f, final current %f", (millis() - chargeStartTime) / 60000, (float) ampereMilliSeconds / 360000000.0f, (float) wattMilliSeconds / 3600000000000.0f, batteryVoltage, batteryCurrent);
+            Logger::info(getId(), "Charging finished after %d min, %f Ah / %f kWh", (millis() - chargeStartTime) / 60000, (float) ampereMilliSeconds / 360000000.0f, (float) wattMilliSeconds / 3600000000000.0f);
         }
         requestedOutputCurrent = 0;
         powerOn = false;

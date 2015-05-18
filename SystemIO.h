@@ -135,7 +135,6 @@ private:
 
     bool useRawADC;
     uint32_t preChargeStart; // time-stamp when pre-charge cycle has started
-    bool coolflag;
     SystemIOConfiguration *configuration;
     Status *status;
     PrefHandler *prefsHandler;

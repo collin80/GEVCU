@@ -45,7 +45,6 @@ SystemIO::SystemIO() {
     prefsHandler = new PrefHandler(SYSTEM);
     status = Status::getInstance();
     preChargeStart = 0;
-    coolflag = false;
 }
 
 /*
@@ -184,22 +183,28 @@ void SystemIO::handlePreCharge() {
  * the motor controller
  */
 void SystemIO::handleCooling() {
+    Status::SystemState state = status->getSystemState();
+
+    if ((state == Status::ready || state == Status::running || state == Status::charging || state == Status::charged
+            || state == Status::batteryHeating) && !status->coolingPump) {
+        setCoolingPump(true);
+    }
+//TODO: what if it stays in mode "charged" for hours ?? will drain the battery , probably power off after 1h ?
+    if ((state != Status::ready && state != Status::running && state != Status::charging && state != Status::charged
+            && state != Status::batteryHeating) && status->coolingPump) {
+        setCoolingPump(false);
+    }
+
     if (status->temperatureController == CFG_NO_TEMPERATURE_DATA) {
         return;
     }
 
-    if (status->temperatureController / 10 > configuration->coolingTempOn) {
-        if (!coolflag) {
-            coolflag = true;
-            setCoolingFan(true);
-        }
+    if (status->temperatureController / 10 > configuration->coolingTempOn && !status->coolingFan) {
+        setCoolingFan(true);
     }
 
-    if (status->temperatureController / 10 < configuration->coolingTempOff) {
-        if (coolflag) {
-            coolflag = false;
-            setCoolingFan(false);
-        }
+    if (status->temperatureController / 10 < configuration->coolingTempOff && status->coolingFan) {
+        setCoolingFan(false);
     }
 }
 
