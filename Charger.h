@@ -84,6 +84,7 @@ protected:
     uint16_t getOutputCurrent();
 
 private:
+    bool constantVoltage;
     uint32_t chargeStartTime; // timestamp when charging starts in millis
     uint32_t lastTick; // last time in ms when the handleTick method was called
     uint64_t ampereMilliSeconds; // ampere hours put into the battery in 1 ampere-milliseconds (divide by 3600000 to get Ah)

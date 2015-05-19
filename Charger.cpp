@@ -39,6 +39,7 @@ Charger::Charger() : Device()
     wattMilliSeconds = 0;
     chargeStartTime = 0;
     lastTick = 0;
+    constantVoltage = false;
 }
 
 Charger::~Charger()
@@ -72,6 +73,7 @@ void Charger::handleStateChange(Status::SystemState state)
         ChargerConfiguration *config = (ChargerConfiguration *) getConfiguration();
 
         // re-initialize variables
+        constantVoltage = 0;
         inputCurrent = 0;
         inputVoltage = 0;
         batteryVoltage = 0;
@@ -124,6 +126,10 @@ uint16_t Charger::getOutputCurrent()
         // in constant voltage phase decrease current accordingly
         if (batteryVoltage > config->constantVoltage) {
             requestedOutputCurrent--; //TODO verify if this is an appropriate way to decrease the current
+            if (!constantVoltage) {
+                Logger::info(getId(), "Constant current (CC) phase finished, switching to constant voltage (CV) phase");
+                constantVoltage = true;
+            }
         }
         if (requestedOutputCurrent < config->terminateCurrent ||
                 ((millis() - chargeStartTime) > 5000 && batteryCurrent < config->terminateCurrent)) { // give the charger 5sec to ramp up the current
