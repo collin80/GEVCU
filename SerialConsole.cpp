@@ -119,7 +119,7 @@ void SerialConsole::printMenuMotorController() {
             Logger::console("MORWMX=%i - maximal mechanical power of regen (in 4W steps)", dmc5Config->maxMechanicalPowerRegen);
             Logger::console("MORVMX=%i - maximum DC voltage limit for regen (in 0.1V)", dmc5Config->dcVoltLimitRegen);
             Logger::console("MORCMX=%i - current limit for regen (in 0.1A)", dmc5Config->dcCurrentLimitRegen);
-            Logger::console("MOOSC=%i - enable the DMC5 oscillation limiter (1=enable, 0=disable)", dmc5Config->enableOscillationLimiter);
+            Logger::console("MOOSC=%i - enable the DMC5 oscillation limiter (1=enable, 0=disable, also set DMC parameter!)", dmc5Config->enableOscillationLimiter);
         }
     }
 }

@@ -44,7 +44,7 @@ BrusaDMC5::BrusaDMC5() : MotorController()
     maxPositiveTorque = 0;
     minNegativeTorque = 0;
     limiterStateNumber = 0;
-
+    firstMessageSent = false;
     tickCounter = 0;
 
     commonName = "Brusa DMC5 Inverter";
@@ -63,6 +63,9 @@ void BrusaDMC5::setup()
     // register ourselves as observer of 0x258-0x268 and 0x458 can frames
     canHandlerEv->attach(this, CAN_MASKED_ID_1, CAN_MASK_1, false);
     canHandlerEv->attach(this, CAN_MASKED_ID_2, CAN_MASK_2, false);
+
+    tickCounter = 4; // this will result in the limmit and control2 messages being sent in the first tick - prevents msg lost errors
+    firstMessageSent = false; // prevent the first controll message sent having enable flag set (causes error in the controller)
 
     tickHandler->attach(this, CFG_TICK_INTERVAL_MOTOR_CONTROLLER_BRUSA);
 }
@@ -134,11 +137,11 @@ void BrusaDMC5::sendControl()
 
     outputFrame.data.bytes[0] = (config->invertDirection ? enableNegativeTorqueSpeed : enablePositiveTorqueSpeed);
 
-//TODO: clarify how to handle the "clear error latch" function
-//    if (faulted) {
-//        outputFrame.data.bytes[0] |= clearErrorLatch;
-//    } else {
-        if (powerOn || speedActual > 1000) {   // see warning about field weakening current to prevent uncontrollable regen
+    if ((status->canControlMessageLost || status->canControl2MessageLost || status->canLimitMessageLost) && firstMessageSent) {
+        outputFrame.data.bytes[0] |= clearErrorLatch;
+        Logger::info(BRUSA_DMC5, "clearing error latch - ctrl lost: %t, ctrl2 lost: %t, limit lost: %t", status->canControlMessageLost, status->canControl2MessageLost, status->canLimitMessageLost);
+    } else {
+        if (ready && (powerOn || (speedActual > 1000)) && firstMessageSent) {   // see warning about field weakening current to prevent uncontrollable regen
             outputFrame.data.bytes[0] |= enablePowerStage;
         }
 
@@ -170,12 +173,13 @@ void BrusaDMC5::sendControl()
             outputFrame.data.bytes[4] = ((torqueRequested * 10) & 0xFF00) >> 8;
             outputFrame.data.bytes[5] = ((torqueRequested * 10) & 0x00FF);
         }
-//    }
+    }
 
     if (Logger::isDebug()) {
         Logger::debug(BRUSA_DMC5, "throttle: %f%%, requested Speed: %l rpm, requested Torque: %f Nm", (float) throttleRequested / 10.0f, speedRequested, (float) torqueRequested / 10.0F);
     }
 
+    firstMessageSent = true;
     canHandlerEv->sendFrame(outputFrame);
 }
 
@@ -187,6 +191,8 @@ void BrusaDMC5::sendControl()
 void BrusaDMC5::sendControl2()
 {
     BrusaDMC5Configuration *config = (BrusaDMC5Configuration *) getConfiguration();
+
+    // 00 00 00 00 c3 50 c3 50 works fine --> 0 slew torque/speed, 200000.0 W p mech max motor + regen
 
     canHandlerEv->prepareOutputFrame(&outputFrame, CAN_ID_CONTROL_2);
     outputFrame.data.bytes[0] = ((config->torqueSlewRate * 10) & 0xFF00) >> 8;
@@ -211,6 +217,9 @@ void BrusaDMC5::sendLimits()
     BrusaDMC5Configuration *config = (BrusaDMC5Configuration *) getConfiguration();
 
     canHandlerEv->prepareOutputFrame(&outputFrame, CAN_ID_LIMIT);
+
+    // 0b 9f 10 68 0b b8 0b b8 works fine with 119 LiFePO cells --> 297.5V limit motor, 420.0V limit regen, 300.0 A limit motor + regen
+
     outputFrame.data.bytes[0] = (config->dcVoltLimitMotor & 0xFF00) >> 8;
     outputFrame.data.bytes[1] = (config->dcVoltLimitMotor & 0x00FF);
     outputFrame.data.bytes[2] = (config->dcVoltLimitRegen & 0xFF00) >> 8;
@@ -252,9 +261,6 @@ void BrusaDMC5::handleCanFrame(CAN_FRAME *frame)
         case CAN_ID_TEMP:
             processTemperature(frame->data.bytes);
             break;
-
-//        default:
-//            Logger::warn(BRUSA_DMC5, "received unknown frame id %X", frame->id);
     }
 }
 
@@ -279,7 +285,7 @@ void BrusaDMC5::processStatus(uint8_t data[])
     running = (bitfield & dmc5Running) ? true : false;
     if ((bitfield & errorFlag) && status->getSystemState() != Status::error) {
         Logger::error(BRUSA_DMC5, "Error reported from motor controller!");
-        status->setSystemState(Status::error);
+//        status->setSystemState(Status::error);
     }
     status->warning = (bitfield & warningFlag) ? true : false;
     status->limitationTorque = (bitfield & torqueLimitation) ? true : false;
@@ -453,11 +459,11 @@ void BrusaDMC5::loadConfiguration()
     } else { //checksum invalid. Reinitialize values and store to EEPROM
         Logger::warn(BRUSA_DMC5, (char *) Constants::invalidChecksum);
         config->maxMechanicalPowerMotor = 50000;
-        config->maxMechanicalPowerRegen = 0; //TODO: 50000; don't want regen yet !
+        config->maxMechanicalPowerRegen = 50000;
         config->dcVoltLimitMotor = 1000;
-        config->dcVoltLimitRegen =  0;//TODO: 1000; don't want regen yet !;
-        config->dcCurrentLimitMotor = 0;
-        config->dcCurrentLimitRegen = 0;
+        config->dcVoltLimitRegen =  4200;
+        config->dcCurrentLimitMotor = 3000;
+        config->dcCurrentLimitRegen = 3000;
         config->enableOscillationLimiter = false;
         saveConfiguration();
     }

@@ -121,8 +121,8 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 #define MaxTorqueValue      2000 //in tenths of a Nm
 #define MaxRPMValue         6000 //DMOC will ignore this but we can use it ourselves for limiting
-#define RPMSlewRateValue    10000 // rpm/sec the requested speed should change (speed mode)
-#define TorqueSlewRateValue 6000 // 0.1Nm/sec the requested torque output should change (torque mode)
+#define RPMSlewRateValue    0 // rpm/sec the requested speed should change (speed mode)
+#define TorqueSlewRateValue 0 // 0.1Nm/sec the requested torque output should change (torque mode)
 #define KilowattHrs         11000 //not currently used
 #define EnableInput         1 // digital input port for enable signal
 #define PrechargeMillis     3000 // milliseconds for pre-charge cycle

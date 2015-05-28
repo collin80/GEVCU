@@ -52,6 +52,9 @@ Device::Device()
  */
 void Device::setup()
 {
+    ready = false;
+    running = false;
+    powerOn = false;
 }
 
 /**
