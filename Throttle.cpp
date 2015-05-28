@@ -112,10 +112,9 @@ int16_t Throttle::mapPedalPosition(int16_t pedalPosition)
                 throttleLevel = -10 * config->minimumRegen + (config->maximumRegen - config->minimumRegen) * (100 - value * 100 / range) / -10;
             }
         } else {
-            // no ramping yet below positionRegenMaximum, just drop to 0
-//          range = config->positionRegenMaximum;
-//          value = pedalPosition;
-//          throttleLevel = -10 * config->maximumRegen * value / range;
+	    range = config->positionRegenMaximum;
+            value = pedalPosition;
+            throttleLevel = -10 * config->maximumRegen * value / range;
         }
     }
 
