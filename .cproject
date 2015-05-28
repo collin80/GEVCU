@@ -5,10 +5,10 @@
 			<storageModule buildSystemId="org.eclipse.cdt.managedbuilder.core.configurationDataProvider" id="it.baeyens.arduino.core.toolChain.release.686383860" moduleId="org.eclipse.cdt.core.settings" name="Release">
 				<externalSettings/>
 				<extensions>
-					<extension id="org.eclipse.cdt.core.ELF" point="org.eclipse.cdt.core.BinaryParser"/>
 					<extension id="org.eclipse.cdt.core.MakeErrorParser" point="org.eclipse.cdt.core.ErrorParser"/>
 					<extension id="org.eclipse.cdt.core.GCCErrorParser" point="org.eclipse.cdt.core.ErrorParser"/>
 					<extension id="org.eclipse.cdt.core.GLDErrorParser" point="org.eclipse.cdt.core.ErrorParser"/>
+					<extension id="org.eclipse.cdt.core.ELF" point="org.eclipse.cdt.core.BinaryParser"/>
 				</extensions>
 			</storageModule>
 			<storageModule moduleId="cdtBuildSystem" version="4.0.0">
@@ -44,7 +44,7 @@
 							<tool id="it.baeyens.arduino.tool.objcopy.eep.1229462495" name="Arduino tool Create eeprom" superClass="it.baeyens.arduino.tool.objcopy.eep"/>
 							<tool id="it.baeyens.arduino.tool.objcopy.flash.113633736" name="Arduino tool Create hex" superClass="it.baeyens.arduino.tool.objcopy.flash"/>
 							<tool id="it.baeyens.arduino.tool.size.721515839" name="Arduino tool Print Size" superClass="it.baeyens.arduino.tool.size"/>
-							<tool id="it.baeyens.arduino.tool.sketch.compiler.s.1903296261" name="Arduino Assembler" superClass="it.baeyens.arduino.tool.sketch.compiler.s"/>
+							<tool id="it.baeyens.arduino.tool.sketch.compiler.s.1144476912" name="Arduino Assembler" superClass="it.baeyens.arduino.tool.sketch.compiler.s"/>
 						</toolChain>
 					</folderInfo>
 					<sourceEntries>

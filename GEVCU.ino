@@ -72,8 +72,6 @@ Device *wifiDevice;
 Device *btDevice;
 PerfTimer *mainLoopTimer;
 
-byte i = 0;
-
 void createDevices()
 {
     DeviceManager *deviceManager = DeviceManager::getInstance();

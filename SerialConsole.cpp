@@ -333,7 +333,7 @@ void SerialConsole::handleConfigCmd()
         Logger::info("sent \"AT+i%s\" to wlan device", (cmdBuffer + i));
         updateWifi = false;
         } else {
-            Logger::error("unknown command: %s", command);
+            Logger::error("unknown command");
             updateWifi = false;
         }
     }
