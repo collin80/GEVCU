@@ -61,7 +61,8 @@ void Device::setup()
 {
     ready = false;
     running = false;
-    powerOn = false;}
+    powerOn = false;
+}
 
 /**
  * Called during tear-down of the device.
