@@ -47,6 +47,9 @@ SystemIO::SystemIO() {
     preChargeStart = 0;
 }
 
+SystemIO::~SystemIO() {
+}
+
 /*
  * Get the instance of the SystemIO (singleton pattern)
  */
@@ -103,6 +106,8 @@ void SystemIO::handleTick() {
 
     handleCooling();
     handleCharging();
+    handleBrakeLight();
+    handleReverseLight();
 
     updateDigitalInputStatus();
 }
@@ -235,6 +240,40 @@ void SystemIO::handleCharging() {
     }
 }
 
+/**
+ * Turn on/off the brake light at a configured level of actual torque
+ */
+void SystemIO::handleBrakeLight() {
+    MotorController *motorController = DeviceManager::getInstance()->getMotorController();
+
+    if (motorController && motorController->getTorqueActual() < CFG_TORQUE_BRAKE_LIGHT_ON) {
+        if (!status->brakeLight) {
+            setBrakeLight(true); //Turn on brake light output
+        }
+    } else {
+        if (status->brakeLight) {
+            setBrakeLight(false); //Turn off brake light output
+        }
+    }
+}
+
+/**
+ * Turn on/off the reverse light if we're in reverse mode.
+ */
+void SystemIO::handleReverseLight() {
+    MotorController *motorController = DeviceManager::getInstance()->getMotorController();
+
+    if (motorController && motorController->getSelectedGear() == MotorController::REVERSE) {
+        if (!status->reverseLight) {
+            setReverseLight(true);
+        }
+    } else {
+        if (status->reverseLight) {
+            setReverseLight(false);
+        }
+    }
+}
+
 /*
  * Get the the input signal for the car's enable signal.
  */
@@ -264,6 +303,15 @@ bool SystemIO::isInterlockPresent() {
 
     bool flag = getDigitalIn(configuration->interlockInput);
     status->interlockPresent = flag;
+    return flag;
+}
+
+/*
+ * Get the the input signal which indicates if the car is connected to a charge station
+ */
+bool SystemIO::isReverseSignalPresent() {
+    bool flag = getDigitalIn(configuration->reverseInput);
+    status->reverseInput = flag;
     return flag;
 }
 
@@ -494,7 +542,7 @@ uint16_t SystemIO::getAnalogIn(uint8_t which) {
  * Get value of one of the 4 digital inputs.
  * If input is not configured, false is returned.
  */
-boolean SystemIO::getDigitalIn(uint8_t which) {
+bool SystemIO::getDigitalIn(uint8_t which) {
     if (which >= CFG_NUMBER_DIGITAL_INPUTS) {
         return false;
     }
@@ -524,7 +572,7 @@ void SystemIO::setDigitalOut(uint8_t which, boolean active) {
 /*
  * Get current state of digital output (high or low?)
  */
-boolean SystemIO::getDigitalOut(uint8_t which) {
+bool SystemIO::getDigitalOut(uint8_t which) {
     if (which >= CFG_NUMBER_DIGITAL_OUTPUTS) {
         return false;
     }
@@ -901,6 +949,7 @@ void SystemIO::loadConfiguration() {
         prefsHandler->read(EESYS_ENABLE_INPUT, &configuration->enableInput);
         prefsHandler->read(EESYS_CHARGE_POWER_AVAILABLE_INPUT, &configuration->chargePowerAvailableInput);
         prefsHandler->read(EESYS_INTERLOCK_INPUT, &configuration->interlockInput);
+        prefsHandler->read(EESYS_REVERSE_INPUT, &configuration->reverseInput);
 
         prefsHandler->read(EESYS_PRECHARGE_MILLIS, &configuration->prechargeMillis);
         prefsHandler->read(EESYS_PRECHARGE_RELAY_OUTPUT, &configuration->prechargeRelayOutput);
@@ -929,6 +978,7 @@ void SystemIO::loadConfiguration() {
         configuration->enableInput = EnableInput;
         configuration->chargePowerAvailableInput = CFG_OUTPUT_NONE;
         configuration->interlockInput = InterlockInput;
+        configuration->reverseInput = CFG_OUTPUT_NONE;
 
         configuration->prechargeMillis = PrechargeMillis;
         configuration->prechargeRelayOutput = PrechargeRelayOutput;
@@ -954,7 +1004,7 @@ void SystemIO::loadConfiguration() {
         configuration->powerLimitationOutput = CFG_OUTPUT_NONE;
         saveConfiguration();
     }
-    Logger::info("GEVCU enable input: %d, charge power avail input: %d, interlock input: %d", configuration->enableInput, configuration->chargePowerAvailableInput, configuration->interlockInput);
+    Logger::info("GEVCU enable input: %d, charge power avail input: %d, interlock input: %d, reverse input: %d", configuration->enableInput, configuration->chargePowerAvailableInput, configuration->interlockInput, configuration->reverseInput);
     Logger::info("pre-charge milliseconds: %d, pre-charge relay: %d, main contactor: %d", configuration->prechargeMillis, configuration->prechargeRelayOutput, configuration->mainContactorOutput);
     Logger::info("secondary contactor: %d, fast charge contactor: %d", configuration->secondaryContactorOutput, configuration->fastChargeContactorOutput);
     Logger::info("enable motor: %d, enable charger: %d, enable DCDC: %d, enable heater: %d", configuration->enableMotorOutput, configuration->enableChargerOutput, configuration->enableDcDcOutput, configuration->enableHeaterOutput);
@@ -967,6 +1017,7 @@ void SystemIO::saveConfiguration() {
     prefsHandler->write(EESYS_ENABLE_INPUT, configuration->enableInput);
     prefsHandler->write(EESYS_CHARGE_POWER_AVAILABLE_INPUT, configuration->chargePowerAvailableInput);
     prefsHandler->write(EESYS_INTERLOCK_INPUT, configuration->interlockInput);
+    prefsHandler->write(EESYS_REVERSE_INPUT, configuration->reverseInput);
 
     prefsHandler->write(EESYS_PRECHARGE_MILLIS, configuration->prechargeMillis);
     prefsHandler->write(EESYS_PRECHARGE_RELAY_OUTPUT, configuration->prechargeRelayOutput);

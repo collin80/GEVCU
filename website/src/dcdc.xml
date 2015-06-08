@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="utf-8"?>
+<outputs>
+	<dcDcMode>~dcDcMode~</dcDcMode>
+	<lowVoltageCommand>~lowVoltageCommand~</lowVoltageCommand>
+	<hvUndervoltageLimit>~hvUndervoltageLimit~</hvUndervoltageLimit>
+	<lvBuckCurrentLimit>~lvBuckCurrentLimit~</lvBuckCurrentLimit>
+	<hvBuckCurrentLimit>~hvBuckCurrentLimit~</hvBuckCurrentLimit>
+	<highVoltageCommand>~highVoltageCommand~</highVoltageCommand>
+	<lvUndervoltageLimit>~lvUndervoltageLimit~</lvUndervoltageLimit>
+	<lvBoostCurrentLimit>~lvBoostCurrentLimit~</lvBoostCurrentLimit>
+	<hvBoostCurrentLimit>~hvBoostCurrentLimit~</hvBoostCurrentLimit>
+</outputs>

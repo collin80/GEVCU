@@ -100,6 +100,9 @@ var Gauge = function( config) {
 	this.setValue = function( val) {
 
 		fromValue = config.animation ? value : val;
+		if (fromValue < config.minValue) {
+			fromValue = config.minValue;
+		}
 
 		var dv = (config.maxValue - config.minValue) / 100;
 

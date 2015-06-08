@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="utf-8"?>
+<outputs>
+	<prechargeMillis>~prechargeMillis~</prechargeMillis>
+	<prechargeRelayOutput>~prechargeRelayOutput~</prechargeRelayOutput>
+	<mainContactorOutput>~mainContactorOutput~</mainContactorOutput>
+	<secondaryContOutput>~secondaryContOutput~</secondaryContOutput>
+	<fastChargeContOutput>~fastChargeContOutput~</fastChargeContOutput>
+	<enableMotorOutput>~enableMotorOutput~</enableMotorOutput>
+	<enableChargerOutput>~enableChargerOutput~</enableChargerOutput>
+	<enableDcDcOutput>~enableDcDcOutput~</enableDcDcOutput>
+	<enableHeaterOutput>~enableHeaterOutput~</enableHeaterOutput>
+	<heaterValveOutput>~heaterValveOutput~</heaterValveOutput>
+	<heaterPumpOutput>~heaterPumpOutput~</heaterPumpOutput>
+	<coolingPumpOutput>~coolingPumpOutput~</coolingPumpOutput>
+	<coolingFanOutput>~coolingFanOutput~</coolingFanOutput>
+	<coolingTempOn>~coolingTempOn~</coolingTempOn>
+	<coolingTempOff>~coolingTempOff~</coolingTempOff>
+	<brakeLightOutput>~brakeLightOutput~</brakeLightOutput>
+	<reverseLightOutput>~reverseLightOutput~</reverseLightOutput>
+	<warningOutput>~warningOutput~</warningOutput>
+	<powerLimitOutput>~powerLimitOutput~</powerLimitOutput>
+</outputs>

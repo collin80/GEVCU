@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="utf-8"?>
+<outputs>
+	<maximumInputCurrent>~maximumInputCurrent~</maximumInputCurrent>
+	<constantCurrent>~constantCurrent~</constantCurrent>
+	<constantVoltage>~constantVoltage~</constantVoltage>
+	<terminateCurrent>~terminateCurrent~</terminateCurrent>
+	<minBatteryVoltage>~minBatteryVoltage~</minBatteryVoltage>
+	<maxBatteryVoltage>~maxBatteryVoltage~</maxBatteryVoltage>
+	<minimumTemperature>~minimumTemperature~</minimumTemperature>
+	<maximumTemperature>~maximumTemperature~</maximumTemperature>
+	<maximumAmpereHours>~maximumAmpereHours~</maximumAmpereHours>
+	<maximumChargeTime>~maximumChargeTime~</maximumChargeTime>
+	<deratingRate>~deratingRate~</deratingRate>
+	<deratingReferenceTmp>~deratingReferenceTmp~</deratingReferenceTmp>
+	<hystereseStopTemp>~hystereseStopTemp~</hystereseStopTemp>
+	<hystereseResumeTemp>~hystereseResumeTemp~</hystereseResumeTemp>
+</outputs>

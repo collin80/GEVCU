@@ -93,19 +93,29 @@ bool PotThrottle::validateSignal(RawSignalData *rawSignal)
         if (throttleStatus == OK) {
             Logger::error(POTACCELPEDAL, "ERR_HIGH_T1: throttle 1 value out of range: %l", calcThrottle1);
         }
+		faultHandler.raiseFault(POTACCELPEDAL, FAULT_THROTTLE_HIGH_A, true);
 
         throttleStatus = ERR_HIGH_T1;
         return false;
     }
+	else
+	{
+		faultHandler.cancelOngoingFault(POTACCELPEDAL, FAULT_THROTTLE_HIGH_A);
+	}
 
     if (calcThrottle1 < (0 - CFG_THROTTLE_TOLERANCE)) {
         if (throttleStatus == OK) {
             Logger::error(POTACCELPEDAL, "ERR_LOW_T1: throttle 1 value out of range: %l ", calcThrottle1);
         }
+		faultHandler.raiseFault(POTACCELPEDAL, FAULT_THROTTLE_LOW_A, true);
 
         throttleStatus = ERR_LOW_T1;
         return false;
     }
+	else
+	{
+		faultHandler.cancelOngoingFault(POTACCELPEDAL, FAULT_THROTTLE_LOW_A);
+	}
 
     if (config->numberPotMeters > 1) {
         calcThrottle2 = normalizeInput(rawSignal->input2, config->minimumLevel2, config->maximumLevel2);
@@ -114,19 +124,29 @@ bool PotThrottle::validateSignal(RawSignalData *rawSignal)
             if (throttleStatus == OK) {
                 Logger::error(POTACCELPEDAL, "ERR_HIGH_T2: throttle 2 value out of range: %l", calcThrottle2);
             }
+			faultHandler.raiseFault(POTACCELPEDAL, FAULT_THROTTLE_HIGH_B, true);
 
             throttleStatus = ERR_HIGH_T2;
             return false;
         }
+		else
+		{
+			faultHandler.cancelOngoingFault(POTACCELPEDAL, FAULT_THROTTLE_HIGH_B);
+		}
 
         if (calcThrottle2 < (0 - CFG_THROTTLE_TOLERANCE)) {
             if (throttleStatus == OK) {
                 Logger::error(POTACCELPEDAL, "ERR_LOW_T2: throttle 2 value out of range: %l", calcThrottle2);
             }
+			faultHandler.cancelOngoingFault(POTACCELPEDAL, FAULT_THROTTLE_LOW_B);
 
             throttleStatus = ERR_LOW_T2;
             return false;
         }
+		else
+		{
+			faultHandler.cancelOngoingFault(POTACCELPEDAL, FAULT_THROTTLE_LOW_B);
+		}
 
         if (config->throttleSubType == 2) {
             // inverted throttle 2 means the sum of the two throttles should be 1000
@@ -136,8 +156,13 @@ bool PotThrottle::validateSignal(RawSignalData *rawSignal)
                                   calcThrottle1, calcThrottle2, ThrottleMaxErrValue);
 
                 throttleStatus = ERR_MISMATCH;
+				faultHandler.raiseFault(POTACCELPEDAL, FAULT_THROTTLE_MISMATCH_AB, true);
                 return false;
             }
+			else 
+			{
+				faultHandler.cancelOngoingFault(POTACCELPEDAL, FAULT_THROTTLE_MISMATCH_AB);
+			}
         } else {
             if ((calcThrottle1 - ThrottleMaxErrValue) > calcThrottle2) {  //then throttle1 is too large compared to 2
                 if (throttleStatus == OK) {
@@ -145,17 +170,21 @@ bool PotThrottle::validateSignal(RawSignalData *rawSignal)
                 }
 
                 throttleStatus = ERR_MISMATCH;
+				faultHandler.raiseFault(POTACCELPEDAL, FAULT_THROTTLE_MISMATCH_AB, true);
                 return false;
             }
 
-            if ((calcThrottle2 - ThrottleMaxErrValue) > calcThrottle1) {  //then throttle2 is too large compared to 1
+           else if ((calcThrottle2 - ThrottleMaxErrValue) > calcThrottle1) {  //then throttle2 is too large compared to 1
                 if (throttleStatus == OK) {
                     Logger::error(POTACCELPEDAL, "throttle 2 too high (%l) compared to 1 (%l)", calcThrottle2, calcThrottle1);
                 }
+				faultHandler.raiseFault(POTACCELPEDAL, FAULT_THROTTLE_MISMATCH_AB, true);
 
                 throttleStatus = ERR_MISMATCH;
                 return false;
-            }
+            } else {
+				faultHandler.cancelOngoingFault(POTACCELPEDAL, FAULT_THROTTLE_MISMATCH_AB);
+			}
         }
     }
 
@@ -252,9 +281,8 @@ void PotThrottle::loadConfiguration()
         saveConfiguration();
     }
 
-    Logger::debug(POTACCELPEDAL, "# of pots: %d       subtype: %d", config->numberPotMeters, config->throttleSubType);
-    Logger::debug(POTACCELPEDAL, "T1 MIN: %l MAX: %l      T2 MIN: %l MAX: %l", config->minimumLevel, config->maximumLevel, config->minimumLevel2,
-                  config->maximumLevel2);
+    Logger::info(POTACCELPEDAL, "T2 MIN: %l, T2 MAX: %l", config->minimumLevel2, config->maximumLevel2);
+    Logger::info(POTACCELPEDAL, "# of pots: %d, subtype: %d", config->numberPotMeters, config->throttleSubType);
 }
 
 /*

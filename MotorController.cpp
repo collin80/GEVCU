@@ -36,7 +36,6 @@ MotorController::MotorController() : Device()
     temperatureController = 0;
 
     powerOn = false;
-    powerMode = modeTorque;
     selectedGear = NEUTRAL;
 
     throttleRequested = 0;
@@ -129,16 +128,6 @@ void MotorController::setup()
     prefsHandler->read(EEMC_KILOWATTHRS, &kiloWattHours);  //retrieve kilowatt hours from EEPROM
 
     Device::setup();
-}
-
-MotorController::PowerMode MotorController::getPowerMode()
-{
-    return powerMode;
-}
-
-void MotorController::setPowerMode(PowerMode mode)
-{
-    powerMode = mode;
 }
 
 int16_t MotorController::getThrottle()
@@ -234,6 +223,7 @@ void MotorController::loadConfiguration()
         prefsHandler->read(EEMC_TORQUE_SLEW_RATE, &config->torqueSlewRate);
         prefsHandler->read(EEMC_REVERSE_LIMIT, &config->reversePercent);
         prefsHandler->read(EEMC_NOMINAL_V, &config->nominalVolt);
+        prefsHandler->read(EEMC_POWER_MODE, (uint8_t *) &config->powerMode);
     } else { //checksum invalid. Reinitialize values and store to EEPROM
         config->invertDirection = false;
         config->speedMax = MaxRPMValue;
@@ -242,9 +232,11 @@ void MotorController::loadConfiguration()
         config->torqueSlewRate = TorqueSlewRateValue;
         config->reversePercent = ReversePercent;
         config->nominalVolt = NominalVolt;
+        config->powerMode = modeTorque;
     }
 
-    Logger::info("MaxTorque: %i MaxRPM: %i", config->torqueMax, config->speedMax);
+    Logger::info(getId(), "Power mode: %s, Max torque: %i Max RPM: %i", (config->powerMode == modeTorque ? "torque" : "speed"), config->torqueMax, config->speedMax);
+    Logger::info(getId(), "Torque slew rate: %i Speed slew rate: %i", config->torqueSlewRate, config->speedSlewRate);
 }
 
 void MotorController::saveConfiguration()
@@ -260,5 +252,6 @@ void MotorController::saveConfiguration()
     prefsHandler->write(EEMC_TORQUE_SLEW_RATE, config->torqueSlewRate);
     prefsHandler->write(EEMC_REVERSE_LIMIT, config->reversePercent);
     prefsHandler->write(EEMC_NOMINAL_V, config->nominalVolt);
+    prefsHandler->write(EEMC_POWER_MODE, (uint8_t) config->powerMode);
     prefsHandler->saveChecksum();
 }

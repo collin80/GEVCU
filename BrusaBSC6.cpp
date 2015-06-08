@@ -105,7 +105,7 @@ void BrusaBSC6::sendCommand()
     if ((ready || running) && powerOn) {
         outputFrame.data.bytes[0] |= enable;
     }
-    if (config->boostMode) {
+    if (config->mode == 1) {
         outputFrame.data.bytes[0] |= boostMode;
     }
     if (config->debugMode) {
@@ -315,6 +315,7 @@ void BrusaBSC6::loadConfiguration()
         config->debugMode = false; // no debug messages
         saveConfiguration();
     }
+    Logger::info(BRUSA_BSC6, "debug: %t", config->debugMode);
 }
 
 /*

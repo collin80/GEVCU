@@ -42,7 +42,7 @@ class ThrottleDetector : public TickObserver
 
 public:
     ThrottleDetector(Throttle *throttle);
-    ~ThrottleDetector();
+    virtual ~ThrottleDetector();
     void handleTick();
     void detect();
 

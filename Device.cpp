@@ -46,13 +46,22 @@ Device::Device()
 }
 
 /**
+ * Destructor
+ */
+Device::~Device()
+{
+}
+
+/**
  * Called during initialization of the device.
  * May be called multiple times e.g. when recovering from an error
  * or disabling and re-enabling the device.
  */
 void Device::setup()
 {
-}
+    ready = false;
+    running = false;
+    powerOn = false;}
 
 /**
  * Called during tear-down of the device.
@@ -89,7 +98,7 @@ void Device::enable()
     if (isEnabled()) {
         return;
     }
-    if (prefsHandler->setDeviceStatus(getId(), true)) {
+    if (prefsHandler->setEnabled(true)) {
         prefsHandler->forceCacheWrite(); //just in case someone power cycles quickly
         Logger::info(getId(), "Successfully enabled device %s.(%X)", commonName, getId());
     }
@@ -104,7 +113,7 @@ void Device::disable()
     if (!isEnabled()) {
         return;
     }
-    if(prefsHandler->setDeviceStatus(getId(), false)) {
+    if(prefsHandler->setEnabled(false)) {
         prefsHandler->forceCacheWrite(); //just in case someone power cycles quickly
         Logger::info(getId(), "Successfully disabled device %s.(%X)", commonName, getId());
     }

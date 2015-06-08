@@ -37,7 +37,7 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 class DcDcConverterConfiguration : public DeviceConfiguration
 {
 public:
-    bool boostMode; // use boost mode (true) or buck mode (false)
+    uint8_t mode; // the operation mode to use (0=buck, 1=boost)
     uint16_t lowVoltageCommand; // in 0.1V, commanded LV voltage in buck mode
     uint16_t hvUndervoltageLimit; // in 1V, HV under-voltage limit in buck mode
     uint16_t lvBuckModeCurrentLimit; // in 1A

@@ -62,15 +62,23 @@ void PrefHandler::initDevTable()
 
 bool PrefHandler::isEnabled()
 {
-    int8_t pos = findDevice(deviceId);
-    if (pos > -1) {
-        uint16_t id;
-        memCache->Read(EE_DEVICE_TABLE + (2 * pos), &id);
-        if (id & 0x8000) {
-            return true;
-        }
-    }
-    return false;
+	return enabled;
+}
+
+bool PrefHandler::setEnabled(bool en)
+{
+	uint16_t id = deviceId;
+
+	enabled = en;
+
+	if (enabled) {
+		id |= 0x8000; //set enabled bit
+	}
+	else {
+		id &= 0x7FFF; //clear enabled bit
+	}
+
+	return memCache->Write(EE_DEVICE_TABLE + (2 * position), id);
 }
 
 /*
@@ -95,15 +103,18 @@ int8_t PrefHandler::findDevice(DeviceId deviceId)
 PrefHandler::PrefHandler(DeviceId id_in)
 {
     uint16_t id;
-    int8_t position;
 
     deviceId = id_in;
+	enabled = false; 
 
     initDevTable();
 
     position = findDevice(deviceId);
     if (position > -1) {
         memCache->Read(EE_DEVICE_TABLE + (2 * position), &id);
+        if (id & 0x8000) {
+            enabled = true;
+        }
         base_address = EE_DEVICES_BASE + (EE_DEVICE_SIZE * position);
         lkg_address = EE_MAIN_OFFSET;
         Logger::debug(deviceId, "Device ID %X was found in device table at entry %i", (int) deviceId, position);
@@ -127,30 +138,6 @@ PrefHandler::PrefHandler(DeviceId id_in)
     Logger::error(deviceId, "PrefManager - Device Table Full!!!");
 }
 
-//A special static function that can be called whenever, wherever to turn a specific device on/off.
-//returns true if it could make the change, false if it could not.
-bool PrefHandler::setDeviceStatus(uint16_t device, bool enable)
-{
-    uint16_t id;
-
-    int8_t position = findDevice((DeviceId) device);
-    if (position > -1) {
-        Logger::debug("Found a device record to edit");
-
-        memCache->Read(EE_DEVICE_TABLE + (2 * position), &id);
-        if (enable) {
-            id |= 0x8000;
-        } else {
-            id &= 0x7FFF;
-        }
-
-        Logger::debug("ID to write: %X", id);
-        memCache->Write(EE_DEVICE_TABLE + (2 * position), id);
-        return true;
-    }
-    return false;
-}
-
 PrefHandler::~PrefHandler()
 {
 }
@@ -164,34 +151,52 @@ void PrefHandler::LKG_mode(bool mode)
     }
 }
 
-void PrefHandler::write(uint16_t address, uint8_t val)
+bool PrefHandler::write(uint16_t address, uint8_t val)
 {
-    memCache->Write((uint32_t) address + base_address + lkg_address, val);
+    if (address >= EE_DEVICE_SIZE) {
+        return false;
+    }
+    return memCache->Write((uint32_t) address + base_address + lkg_address, val);
 }
 
-void PrefHandler::write(uint16_t address, uint16_t val)
+bool PrefHandler::write(uint16_t address, uint16_t val)
 {
-    memCache->Write((uint32_t) address + base_address + lkg_address, val);
+    if (address >= EE_DEVICE_SIZE) {
+        return false;
+    }
+    return memCache->Write((uint32_t) address + base_address + lkg_address, val);
 }
 
-void PrefHandler::write(uint16_t address, uint32_t val)
+bool PrefHandler::write(uint16_t address, uint32_t val)
 {
-    memCache->Write((uint32_t) address + base_address + lkg_address, val);
+    if (address >= EE_DEVICE_SIZE) {
+        return false;
+    }
+    return memCache->Write((uint32_t) address + base_address + lkg_address, val);
 }
 
-void PrefHandler::read(uint16_t address, uint8_t *val)
+bool PrefHandler::read(uint16_t address, uint8_t *val)
 {
-    memCache->Read((uint32_t) address + base_address + lkg_address, val);
+    if (address >= EE_DEVICE_SIZE) {
+        return false;
+    }
+    return memCache->Read((uint32_t) address + base_address + lkg_address, val);
 }
 
-void PrefHandler::read(uint16_t address, uint16_t *val)
+bool PrefHandler::read(uint16_t address, uint16_t *val)
 {
-    memCache->Read((uint32_t) address + base_address + lkg_address, val);
+    if (address >= EE_DEVICE_SIZE) {
+        return false;
+    }
+    return memCache->Read((uint32_t) address + base_address + lkg_address, val);
 }
 
-void PrefHandler::read(uint16_t address, uint32_t *val)
+bool PrefHandler::read(uint16_t address, uint32_t *val)
 {
-    memCache->Read((uint32_t) address + base_address + lkg_address, val);
+    if (address >= EE_DEVICE_SIZE) {
+        return false;
+    }
+    return memCache->Read((uint32_t) address + base_address + lkg_address, val);
 }
 
 uint8_t PrefHandler::calcChecksum()

@@ -1,16 +1,15 @@
 <?xml version="1.0" encoding="utf-8"?>
-<status>
-	<temperatureMotor>~tempMotor~</temperatureMotor>
-	<temperatureInverter>~tempInverter~</temperatureInverter>
+<dashboard>
+	<temperatureMotor>~temperatureMotor~</temperatureMotor>
+	<temperatureController>~tempController~</temperatureController>
 	<throttle>~throttle~</throttle>
 	<brake>~brake~</brake>
 	<gear>~gear~</gear>
 	<torqueRequested>~torqueRequested~</torqueRequested>
 	<torqueActual>~torqueActual~</torqueActual>
-	<speedRequested>~speedRequested~</speedRequested>
 	<speedActual>~speedActual~</speedActual>
 	<dcVoltage>~dcVoltage~</dcVoltage>
 	<dcCurrent>~dcCurrent~</dcCurrent>
 	<kiloWattHours>~kiloWattHours~</kiloWattHours>
-	<mechanicalPower>~mechPower~</mechanicalPower>
-</status>
+	<mechanicalPower>~mechanicalPower~</mechanicalPower>
+</dashboard>

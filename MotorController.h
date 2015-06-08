@@ -43,6 +43,11 @@
 
 class CanHandler;
 
+enum PowerMode {
+    modeTorque = 0,
+    modeSpeed = 1
+};
+
 class MotorControllerConfiguration : public DeviceConfiguration
 {
 public:
@@ -53,6 +58,7 @@ public:
     uint16_t speedSlewRate; //  for speed mode only: slew rate of speed value, 0=disabled, in rpm/sec
     uint8_t reversePercent;
     uint16_t nominalVolt; //nominal pack voltage in tenths of a volt
+    PowerMode powerMode;
 };
 
 class MotorController: public Device, public CanObserver
@@ -62,12 +68,14 @@ public:
         NEUTRAL = 0,
         DRIVE = 1,
         REVERSE = 2,
-        ERROR = 3,
+        ERROR = 3
     };
 
-    enum PowerMode {
-        modeTorque,
-        modeSpeed
+    enum OperationState {
+        DISABLED = 0,
+        STANDBY = 1,
+        ENABLE = 2,
+        POWERDOWN = 3
     };
 
     MotorController();
@@ -80,10 +88,8 @@ public:
     void loadConfiguration();
     void saveConfiguration();
 
-    void setPowerMode(PowerMode mode);
-    PowerMode getPowerMode();
     int16_t getThrottle();
-    int16_t getselectedGear();
+    Gears getSelectedGear();
     int16_t getSpeedRequested();
     int16_t getSpeedActual();
     int16_t getTorqueRequested();
@@ -99,13 +105,11 @@ public:
     int16_t getTemperatureController();
     int16_t getNominalVolt();
 
-    Gears getSelectedGear();
-
 protected:
     CanHandler *canHandlerEv;
 
     Gears selectedGear;
-    PowerMode powerMode;
+    OperationState actualState; // the operation state the controller is reporting
 
     int16_t throttleRequested; // -1000 to 1000 (per mille of throttle level)
     int16_t speedRequested; // in rpm

@@ -217,7 +217,7 @@ void CanThrottle::loadConfiguration()
         saveConfiguration();
     }
 
-    Logger::debug(CANACCELPEDAL, "T1 MIN: %l MAX: %l Type: %d", config->minimumLevel, config->maximumLevel, config->carType);
+    Logger::info(CANACCELPEDAL, "MIN: %l MAX: %l Type: %d", config->minimumLevel, config->maximumLevel, config->carType);
 }
 
 /*

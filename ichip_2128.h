@@ -1,5 +1,5 @@
 /*
- * ichip_2128.cpp
+ * ichip_2128.h
  *
  * Class to interface with the ichip 2128 based wifi adapter we're using on our board
  *
@@ -84,6 +84,7 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include "Sys_Messages.h"
 #include "DeviceTypes.h"
 #include "ELM327Processor.h"
+#include "BrusaDMC5.h"
 
 extern PrefHandler *sysPrefs;
 
@@ -106,21 +107,20 @@ struct ParamCache {
     int16_t torqueActual;
     int16_t throttle;
     int16_t brake;
-    bool brakeNotAvailable;
-    int16_t speedRequested;
     int16_t speedActual;
     int16_t dcVoltage;
     int16_t dcCurrent;
+	int16_t acCurrent;
+	int16_t nominalVolt;
     int16_t kiloWattHours;
     uint32_t bitfield1;
     uint32_t bitfield2;
     uint32_t bitfield3;
     uint8_t systemState;
     MotorController::Gears gear;
-    int16_t tempMotor;
-    int16_t tempController;
-    int16_t tempSystem;
-    int16_t mechPower;
+    int16_t temperatureMotor;
+    int16_t temperatureController;
+    int16_t mechanicalPower;
 };
 
 struct SendBuff {
@@ -165,6 +165,8 @@ private:
     int listeningSocket;
     int activeSockets[4]; //support for four sockets. Lowest byte is socket #, next byte is size of data waiting in that socket
     uint32_t lastSendTime;
+	String lastSentCmd;
+	ICHIP_COMM_STATE lastSentState;
 
     void getNextParam(); //get next changed parameter
     void getParamById(String paramName);  //try to retrieve the value of the given parameter
@@ -179,7 +181,21 @@ private:
     void sendCmd(String cmd, ICHIP_COMM_STATE cmdstate);
     void sendToSocket(int socket, String data);
     void processParameterChange(char *response);
+    bool processParameterChangeThrottle(char *key, char *value);
+    bool processParameterChangeBrake(char *key, char *value);
+    bool processParameterChangeMotor(char *key, char *value);
+    bool processParameterChangeCharger(char *key, char *value);
+    bool processParameterChangeDcDc(char *key, char *value);
+    bool processParameterChangeSystemIO(char *key, char *value);
+    bool processParameterChangeDevices(char *key, char *value);
     void loadParameters();
+    void loadParametersThrottle();
+    void loadParametersBrake();
+    void loadParametersMotor();
+    void loadParametersCharger();
+    void loadParametersDcDc();
+    void loadParametersSystemIO();
+    void loadParametersDevices();
 };
 
 #endif

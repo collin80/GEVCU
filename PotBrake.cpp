@@ -178,6 +178,7 @@ void PotBrake::loadConfiguration()
     setConfiguration(config);
 
     // we deliberately do not load config via parent class here !
+    Logger::info("Pot brake configuration:");
 
 #ifdef USE_HARD_CODED
 
@@ -193,9 +194,6 @@ void PotBrake::loadConfiguration()
         prefsHandler->read(EETH_ADC_1, &config->AdcPin1);
 
         config->AdcPin1 = BrakeADC; //TODO: This is hard coded because of old defaults. Fix this soon.
-
-        Logger::debug(POTBRAKEPEDAL, "BRAKE MIN: %l MAX: %l", config->minimumLevel, config->maximumLevel);
-        Logger::debug(POTBRAKEPEDAL, "Min: %l MaxRegen: %l", config->minimumRegen, config->maximumRegen);
     } else { //checksum invalid. Reinitialize values and store to EEPROM
 
         //these four values are ADC values
@@ -207,6 +205,9 @@ void PotBrake::loadConfiguration()
         config->AdcPin1 = BrakeADC;
         saveConfiguration();
     }
+
+    Logger::info(POTBRAKEPEDAL, "MIN: %l, MAX: %l", config->minimumLevel, config->maximumLevel);
+    Logger::info(POTBRAKEPEDAL, "Min regen: %l Max Regen: %l", config->minimumRegen, config->maximumRegen);
 }
 
 /*

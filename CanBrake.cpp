@@ -249,7 +249,7 @@ void CanBrake::loadConfiguration()
         saveConfiguration();
     }
 
-    Logger::debug(CANBRAKEPEDAL, "T1 MIN: %l MAX: %l Type: %d", config->minimumLevel, config->maximumLevel, config->carType);
+    Logger::info(CANBRAKEPEDAL, "T1 MIN: %l MAX: %l Type: %d", config->minimumLevel, config->maximumLevel, config->carType);
 }
 
 /*

@@ -37,7 +37,6 @@ class BatteryManager : public Device
 {
 public:
     BatteryManager();
-    ~BatteryManager();
     int getPackVoltage(); //in tenths of a volt
     signed int getPackCurrent(); //in tenths of an amp
     //bool allowCharging();

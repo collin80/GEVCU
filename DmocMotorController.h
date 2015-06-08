@@ -79,13 +79,6 @@ public:
         NOACTION = 3
     };
 
-    enum OperationState {
-        DISABLED = 0,
-        STANDBY = 1,
-        ENABLE = 2,
-        POWERDOWN = 3
-    };
-
 public:
     virtual void handleTick();
     virtual void handleCanFrame(CAN_FRAME *frame);
@@ -102,7 +95,6 @@ public:
 
 private:
     Gears actualGear;
-    OperationState actualState; // the operation state the controller is reporting
     int step;
     byte online; //counter for whether DMOC appears to be operating
     byte alive;

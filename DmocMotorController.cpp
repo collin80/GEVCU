@@ -48,6 +48,7 @@ DmocMotorController::DmocMotorController() : MotorController()
     prefsHandler = new PrefHandler(DMOC645);
     step = SPEED_TORQUE;
     actualState = DISABLED;
+    actualGear = NEUTRAL;
     online = 0;
     activityCount = 0;
     commonName = "DMOC645 Inverter";
@@ -65,7 +66,6 @@ void DmocMotorController::setup()
     canHandlerEv->attach(this, CAN_MASKED_ID_2, CAN_MASK_2, false);
 
     actualGear = NEUTRAL;
-//    running = true;
 
     tickHandler->attach(this, CFG_TICK_INTERVAL_MOTOR_CONTROLLER_DMOC);
 }
@@ -127,13 +127,13 @@ void DmocMotorController::handleCanFrame(CAN_FRAME *frame)
             rotorTemp = frame->data.bytes[0];
             invTemp = frame->data.bytes[1];
             statorTemp = frame->data.bytes[2];
-            temperatureController = invTemp * 10;
+            temperatureController = (invTemp - 40) * 10;
 
             //now pick highest of motor temps and report it
             if (rotorTemp > statorTemp) {
-                temperatureMotor = rotorTemp * 10;
+                temperatureMotor = (rotorTemp - 40) * 10;
             } else {
-                temperatureMotor = statorTemp * 10;
+                temperatureMotor = (statorTemp - 40) * 10;
             }
 
             activityCount++;
@@ -145,8 +145,8 @@ void DmocMotorController::handleCanFrame(CAN_FRAME *frame)
             break;
 
         case CAN_ID_STATUS:
-            speedActual = ((frame->data.bytes[0] * 256) + frame->data.bytes[1]) - 20000;
-            temp = (OperationState)(frame->data.bytes[6] >> 4);
+            speedActual = abs(((frame->data.bytes[0] * 256) + frame->data.bytes[1]) - 20000);
+            temp = (OperationState) (frame->data.bytes[6] >> 4);
 
             //actually, the above is an operation status report which doesn't correspond
             //to the state enum so translate here.
@@ -202,7 +202,7 @@ void DmocMotorController::handleCanFrame(CAN_FRAME *frame)
             //break;
         case CAN_ID_HV_STATUS:
             dcVoltage = ((frame->data.bytes[0] * 256) + frame->data.bytes[1]);
-            dcCurrent = ((frame->data.bytes[2] * 256) + frame->data.bytes[3]) - 5000;  //offset is 500A, unit = .1A
+            dcCurrent = ((frame->data.bytes[2] * 256) + frame->data.bytes[3]) - 5000; //offset is 500A, unit = .1A
             activityCount++;
             break;
     }
@@ -223,7 +223,11 @@ void DmocMotorController::handleTick()
         }
 
         if (powerOn && activityCount > 40) {
-            setGear(DRIVE);
+            if (systemIO->isReverseSignalPresent()) {
+                setGear(REVERSE);
+            } else {
+                setGear(DRIVE);
+            }
         }
     } else {
         setGear(NEUTRAL);
@@ -234,7 +238,6 @@ void DmocMotorController::handleTick()
     //if (getDigital(0)) {
     //setGear(DRIVE);
     //runThrottle = true;
-    setPowerMode(modeTorque);
     //}
 
     //if (online == 1) { //only send out commands if the controller is really there.
@@ -259,7 +262,7 @@ void DmocMotorController::sendCmd1()
     output.extended = 0; //standard frame
     output.rtr = 0;
 
-    if (throttleRequested > 0 && powerOn && selectedGear != NEUTRAL && powerMode == modeSpeed) {
+    if (throttleRequested > 0 && powerOn && selectedGear != NEUTRAL && config->powerMode == modeSpeed) {
         speedRequested = 20000 + (((long) throttleRequested * (long) config->speedMax) / 1000);
     } else {
         speedRequested = 20000;
@@ -315,7 +318,7 @@ void DmocMotorController::sendCmd2()
 
     torqueRequested = 30000; //set upper torque to zero if not drive enabled
 
-    if (powerMode == modeTorque) {
+    if (config->powerMode == modeTorque) {
         if (actualState == ENABLE) { //don't even try sending torque commands until the DMOC reports it is ready
             if (selectedGear == DRIVE) {
                 torqueRequested = 30000L + (((long) throttleRequested * (long) config->torqueMax) / 1000L);

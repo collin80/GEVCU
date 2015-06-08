@@ -33,6 +33,7 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include "config.h"
 #include "SystemIO.h"
 #include "PotThrottle.h"
+#include "PotBrake.h"
 #include "CanThrottle.h"
 #include "DeviceManager.h"
 #include "MotorController.h"
@@ -62,6 +63,7 @@ private:
 
     void init();
     void serialEvent();
+    void sendWifiCommand(String command, String parameter);
     void handleConsoleCmd();
     void handleShortCmd();
     void handleConfigCmd();
@@ -72,6 +74,7 @@ private:
     bool handleConfigCmdCharger(String command, long value);
     bool handleConfigCmdDcDcConverter(String command, long value);
     bool handleConfigCmdSystem(String command, long value);
+    bool handleConfigCmdWifi(String command, String parameter);
     void printMenuMotorController();
     void printMenuThrottle();
     void printMenuBrake();

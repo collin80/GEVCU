@@ -35,6 +35,7 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include "DeviceManager.h"
 #include "BatteryManager.h"
 #include "CanHandler.h"
+#include "FaultHandler.h"
 
 class ThinkBatteryManager : public BatteryManager, CanObserver
 {

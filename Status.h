@@ -70,6 +70,7 @@ public:
     bool speedSensorSignal; // the speed sensor signal is bad but not bad enough to report an error (e.g. certain amount of lost position counts or invalid transitions)
     bool maximumModulationLimiter; // the motor's maximum modulation limiter is active
     bool temperatureSensor; // invalid data is received from one or a group of temperature sensors
+    bool systemCheckActive; // is the system not ready yet because of a system check?
 
     // error flags
     bool speedSensor; // the encoder or position sensor deliver a faulty signal
@@ -121,6 +122,7 @@ public:
     bool enableIn; // is the 'enable' input signal active ?
     bool chargePowerAvailable; // is shore power available (connected to charging station)
     bool interlockPresent; // is the interlock circuit closed and the signal available ?
+    bool reverseInput; // is the reverse signal present ?
 
     bool digitalInput[CFG_NUMBER_DIGITAL_INPUTS]; // the the digital input x activated ?
     bool digitalOutput[CFG_NUMBER_DIGITAL_OUTPUTS]; // the the digital output x activated ?

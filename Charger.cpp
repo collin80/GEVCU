@@ -39,7 +39,6 @@ Charger::Charger() : Device()
     wattMilliSeconds = 0;
     chargeStartTime = 0;
     lastTick = 0;
-    constantVoltage = false;
 }
 
 Charger::~Charger()
@@ -73,7 +72,6 @@ void Charger::handleStateChange(Status::SystemState state)
         ChargerConfiguration *config = (ChargerConfiguration *) getConfiguration();
 
         // re-initialize variables
-        constantVoltage = 0;
         inputCurrent = 0;
         inputVoltage = 0;
         batteryVoltage = 0;
@@ -126,10 +124,6 @@ uint16_t Charger::getOutputCurrent()
         // in constant voltage phase decrease current accordingly
         if (batteryVoltage > config->constantVoltage) {
             requestedOutputCurrent--; //TODO verify if this is an appropriate way to decrease the current
-            if (!constantVoltage) {
-                Logger::info(getId(), "Constant current (CC) phase finished, switching to constant voltage (CV) phase");
-                constantVoltage = true;
-            }
         }
         if (requestedOutputCurrent < config->terminateCurrent ||
                 ((millis() - chargeStartTime) > 5000 && batteryCurrent < config->terminateCurrent)) { // give the charger 5sec to ramp up the current
@@ -261,7 +255,6 @@ void Charger::loadConfiguration()
 #else
     if (prefsHandler->checksumValid()) { //checksum is good, read in the values stored in EEPROM
 #endif
-        uint8_t temp;
         Logger::debug(getId(), (char *) Constants::validChecksum);
 
         prefsHandler->read(CHRG_MAX_INPUT_CURRENT, &config->maximumInputCurrent);
@@ -274,9 +267,7 @@ void Charger::loadConfiguration()
         prefsHandler->read(CHRG_MAX_BATTERY_TEMPERATURE, &config->maximumTemperature);
         prefsHandler->read(CHRG_MAX_AMPERE_HOURS, &config->maximumAmpereHours);
         prefsHandler->read(CHRG_MAX_CHARGE_TIME, &config->maximumChargeTime);
-        prefsHandler->read(CHRG_TEMPERATURE_MODE, &temp);
-        config->useTemperatureDerating = (temp == 1);
-        prefsHandler->read(CHRG_DERATING_TEMPERATURE, &config->deratingTemperature);
+        prefsHandler->read(CHRG_DERATING_TEMPERATURE, &config->deratingRate);
         prefsHandler->read(CHRG_DERATING_REFERENCE, &config->deratingReferenceTemperature);
         prefsHandler->read(CHRG_HYSTERESE_STOP, &config->hystereseStopTemperature);
         prefsHandler->read(CHRG_HYSTERESE_RESUME, &config->hystereseResumeTemperature);
@@ -292,8 +283,7 @@ void Charger::loadConfiguration()
         config->maximumTemperature = 600;
         config->maximumAmpereHours = 1200;
         config->maximumChargeTime = 600;
-        config->useTemperatureDerating = 0;
-        config->deratingTemperature = 1;
+        config->deratingRate = 1;
         config->deratingReferenceTemperature = 500;
         config->hystereseStopTemperature = 600;
         config->hystereseResumeTemperature = 500;
@@ -323,8 +313,7 @@ void Charger::saveConfiguration()
     prefsHandler->write(CHRG_MAX_BATTERY_TEMPERATURE, config->maximumTemperature);
     prefsHandler->write(CHRG_MAX_AMPERE_HOURS, config->maximumAmpereHours);
     prefsHandler->write(CHRG_MAX_CHARGE_TIME, config->maximumChargeTime);
-    prefsHandler->write(CHRG_TEMPERATURE_MODE, (uint8_t)(config->useTemperatureDerating ? 1 : 0));
-    prefsHandler->write(CHRG_DERATING_TEMPERATURE, config->deratingTemperature);
+    prefsHandler->write(CHRG_DERATING_TEMPERATURE, config->deratingRate);
     prefsHandler->write(CHRG_DERATING_REFERENCE, config->deratingReferenceTemperature);
     prefsHandler->write(CHRG_HYSTERESE_STOP, config->hystereseStopTemperature);
     prefsHandler->write(CHRG_HYSTERESE_RESUME, config->hystereseResumeTemperature);

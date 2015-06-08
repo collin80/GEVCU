@@ -91,6 +91,7 @@ the end of the stardard data. The below numbers are offsets from the device's ee
 #define EEMC_DC_CURRENT_LIMIT_REGEN 64 // 2 bytes - DC current limit for regen in 0.1A
 #define EEMC_OSCILLATION_LIMITER    66 // 1 byte - flag to enable oscillation limiter (1=true/0=false)
 #define EEMC_INVERT_DIRECTION       67 // 1 byte - flag to indicate if the motor's direction should be inverted
+#define EEMC_POWER_MODE             68 // 1 byte - speed or torque mode
 
 //throttle data
 #define EETH_LEVEL_MIN            20 //2 bytes - ADC value of minimum value for first channel
@@ -139,11 +140,10 @@ the end of the stardard data. The below numbers are offsets from the device's ee
 #define CHRG_MAX_BATTERY_TEMPERATURE 34 // 2 bytes, maximum battery temp to charge in 0.1deg C
 #define CHRG_MAX_AMPERE_HOURS       36 // 2 bytes, maximum Ah to charge in 0.1Ah
 #define CHRG_MAX_CHARGE_TIME        38 // 2 bytes, maximum charge time in minutes
-#define CHRG_TEMPERATURE_MODE       40 // 1 byte, temperature mode to use
-#define CHRG_DERATING_TEMPERATURE   41 // 2 bytes, 0.1Ah per deg Celsius
-#define CHRG_DERATING_REFERENCE     43 // 2 bytes, 0.1 deg Celsius where derating will reach 0 Amp
-#define CHRG_HYSTERESE_STOP         45 // 2 bytes, temperature where charging is interrupted in 0.1deg C
-#define CHRG_HYSTERESE_RESUME       47 // 2 bytes, temperature where chargin is resumed in 0.1deg C
+#define CHRG_DERATING_TEMPERATURE   40 // 2 bytes, 0.1Ah per deg Celsius
+#define CHRG_DERATING_REFERENCE     42 // 2 bytes, 0.1 deg Celsius where derating will reach 0 Amp
+#define CHRG_HYSTERESE_STOP         44 // 2 bytes, temperature where charging is interrupted in 0.1deg C
+#define CHRG_HYSTERESE_RESUME       46 // 2 bytes, temperature where chargin is resumed in 0.1deg C
 
 //System Data
 #define EESYS_SYSTEM_TYPE        10  //1 byte - 1 = Old school protoboards 2 = GEVCU2/DUED 3 = GEVCU3 - Defaults to 2 if invalid or not set up
@@ -179,6 +179,7 @@ the end of the stardard data. The below numbers are offsets from the device's ee
 #define EESYS_COOLING_PUMP_OUTPUT           65 // 1 byte - digital output for cooling pump relay (255 = no output)
 #define EESYS_WARNING_OUTPUT                66 // 1 byte - digital output for warning signal (255 = no output)
 #define EESYS_POWER_LIMITATION_OUTPUT       67 // 1 byte - digital output for power limitation signal (255 = no output)
+#define EESYS_REVERSE_INPUT                 68 // 1 byte - digital input for reverse signal (255 = no input)
 
 #define EESYS_CAN0_BAUD          100 //2 bytes - Baud rate of CAN0 in 1000's of baud. So a value of 500 = 500k baud. Set to 0 to disable CAN0
 #define EESYS_CAN1_BAUD          102 //2 bytes - Baud rate of CAN1 in 1000's of baud. So a value of 500 = 500k baud. Set to 0 to disable CAN1
@@ -227,5 +228,10 @@ the end of the stardard data. The below numbers are offsets from the device's ee
 
 #define EESYS_LOG_LEVEL         658 //1 byte - the log level
 
+#define EEFAULT_VALID			0 //1 byte - Set to value of 0xB2 if fault data has been initialized
+#define EEFAULT_READPTR			1 //2 bytes - index where reading should start (first unacknowledged fault)
+#define EEFAULT_WRITEPTR		3 //2 bytes - index where writing should occur for new faults
+#define EEFAULT_RUNTIME			5 //4 bytes - stores the number of seconds (in tenths) that the system has been turned on for - total time ever
+#define EEFAULT_FAULTS_START	10 //a bunch of faults stored one after the other start at this location
 #endif
 

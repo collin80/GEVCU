@@ -48,9 +48,10 @@ enum DeviceId {
     NEW = 0x0000,
     DMOC645 = 0x1000,
     BRUSA_DMC5 = 0x1001,
+    CODAUQM = 0x1002,
     BRUSA_NLG5 = 0x1010,
     TCCHCHARGE = 0x1020,
-    THROTTLE = 0x1030,
+    LEARCHARGE = 0x1022,
     POTACCELPEDAL = 0x1031,
     POTBRAKEPEDAL = 0x1032,
     CANACCELPEDAL = 0x1033,
@@ -58,6 +59,7 @@ enum DeviceId {
     ICHIP2128 = 0x1040,
     THINKBMS = 0x2000,
     BRUSA_BSC6 = 0x3000,
+	FAULTSYS = 0x4000,
     SYSTEM = 0x5000,
     HEARTBEAT = 0x5001,
     MEMCACHE = 0x5002,
@@ -65,6 +67,27 @@ enum DeviceId {
     PIDLISTENER = 0x6000,
     ELM327EMU = 0x6500,
     INVALID = 0xFFFF
+};
+
+// this array must list all and only devices which can be enabled/disabled
+const DeviceId deviceIds[] = {
+        DMOC645,
+        BRUSA_DMC5,
+        CODAUQM,
+        BRUSA_NLG5,
+//        TCCHCHARGE,
+//        LEARCHARGE,
+        POTACCELPEDAL,
+        POTBRAKEPEDAL,
+        CANACCELPEDAL,
+        CANBRAKEPEDAL,
+        ICHIP2128,
+        THINKBMS,
+        BRUSA_BSC6,
+        HEARTBEAT,
+        CANIO,
+//        PIDLISTENER,
+//        ELM327EMU
 };
 
 #endif /* DEVICE_TYPES_H_ */

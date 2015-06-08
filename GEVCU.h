@@ -54,6 +54,8 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include "ichip_2128.h"
 #include "Sys_Messages.h"
 #include "PerfTimer.h"
+#include "CodaMotorController.h"
+#include "FaultHandler.h"
 #include "CanIO.h"
 
 #ifdef __cplusplus

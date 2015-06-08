@@ -72,8 +72,6 @@ Device *wifiDevice;
 Device *btDevice;
 PerfTimer *mainLoopTimer;
 
-byte i = 0;
-
 void createDevices()
 {
     DeviceManager *deviceManager = DeviceManager::getInstance();
@@ -84,6 +82,7 @@ void createDevices()
     deviceManager->addDevice(new PotBrake());
     deviceManager->addDevice(new CanBrake());
     deviceManager->addDevice(new DmocMotorController());
+    deviceManager->addDevice(new CodaMotorController());
     deviceManager->addDevice(new BrusaDMC5());
     deviceManager->addDevice(new BrusaBSC6());
     deviceManager->addDevice(new BrusaNLG5());
@@ -95,6 +94,7 @@ void createDevices()
 
 void setup()
 {
+//    delay(5000);  //This delay lets you see startup messages on native USB.  But it breaks DMOC645 really badly.  You have to have comm way before 5 seconds.
     SerialUSB.begin(CFG_SERIAL_SPEED);
     SerialUSB.println(CFG_VERSION);
 
@@ -120,25 +120,16 @@ void setup()
     Logger::setLoglevel((Logger::LogLevel) loglevel);
 //    Logger::setLoglevel(Logger::Debug);
 
+    //fault handler is always enabled too - its also statically allocated so no using -> here
+    //This is initialized before the other devices so that they can go ahead and use it if they fault upon start up
+    faultHandler.setup();
+
     tickHandler = TickHandler::getInstance();
 
     canHandlerEV = CanHandler::getInstanceEV();
     canHandlerCar = CanHandler::getInstanceCar();
     canHandlerEV->initialize();
     canHandlerCar->initialize();
-
-    //rtc_clock.init();
-    //Now, we have no idea what the real time is but the EEPROM should have stored a time in the past.
-    //It's better than nothing while we try to figure out the proper time.
-    /*
-     uint32_t temp;
-     sysPrefs->read(EESYS_RTC_TIME, &temp);
-     rtc_clock.change_time(temp);
-     sysPrefs->read(EESYS_RTC_DATE, &temp);
-     rtc_clock.change_date(temp);
-
-     Logger::info("RTC init ok");
-     */
 
     systemIO = SystemIO::getInstance();
     createDevices();

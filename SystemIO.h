@@ -46,6 +46,7 @@ public:
     uint8_t enableInput; // # of input for enable signal - required so that GEVCU enables the controller and requests torque/speed > 0
     uint8_t chargePowerAvailableInput; // # of input to signal availability of charging power (shore power)
     uint8_t interlockInput; // # of input to signal if the interlock circuit is closed and HV voltage can be applied
+    uint8_t reverseInput; // # of input to signal if reverse mode is selected
 
     uint16_t prechargeMillis; // milliseconds required for the pre-charge cycle
     uint8_t prechargeRelayOutput; // # of output to use for the pre-charge relay or 255 if not used
@@ -86,6 +87,7 @@ public:
     bool isEnableSignalPresent();
     bool isChargePowerAvailable();
     bool isInterlockPresent();
+    bool isReverseSignalPresent();
 
     void setEnableMotor(bool);
     void setEnableCharger(bool);
@@ -103,9 +105,9 @@ public:
     void setPowerLimitation(bool);
 
     uint16_t getAnalogIn(uint8_t which);
-    boolean getDigitalIn(uint8_t which);
+    bool getDigitalIn(uint8_t which);
     void setDigitalOut(uint8_t which, boolean active);
-    boolean getDigitalOut(uint8_t which);
+    bool getDigitalOut(uint8_t which);
     void ADCPoll();
     uint32_t getNextADCBuffer();
     void printIOStatus();
@@ -140,6 +142,7 @@ private:
     PrefHandler *prefsHandler;
 
     SystemIO();
+    virtual ~SystemIO();
     void initializePinTables();
     void initGevcu2PinTable();
     void initGevcu3PinTable();
@@ -158,6 +161,8 @@ private:
     void handleCooling();
     void handlePreCharge();
     void handleCharging();
+    void handleBrakeLight();
+    void handleReverseLight();
 
     // for security reasons, these should stay private
     void setPrechargeRelay(bool);

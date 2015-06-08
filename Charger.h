@@ -48,10 +48,9 @@ public:
     uint16_t maximumAmpereHours; // charge in 0.1 Ah where charging is terminated
     uint16_t maximumChargeTime; // charge time in 1 minutes at which charging is terminated
 
-    bool useTemperatureDerating; // if true derating is used at high temperatures, otherwise hysterese at fixed temperatures will be used
-    uint16_t deratingTemperature; // 0.1Ah per deg Celsius
-    uint16_t deratingReferenceTemperature; // 0.1 deg Celsius where derating will reach 0 Amp
-    uint16_t hystereseStopTemperature; // 0.1 deg Celsius where charging will stop in hysterese mode
+    uint16_t deratingRate; // 0.1Ah per deg Celsius
+    uint16_t deratingReferenceTemperature; // 0.1 deg Celsius where derating will reach 0 Amp (0=disable)
+    uint16_t hystereseStopTemperature; // 0.1 deg Celsius where charging will stop in hysterese mode (0=disable)
     uint16_t hystereseResumeTemperature; // 0.1 deg Celsius where charging is resumed
 };
 
@@ -84,7 +83,6 @@ protected:
     uint16_t getOutputCurrent();
 
 private:
-    bool constantVoltage;
     uint32_t chargeStartTime; // timestamp when charging starts in millis
     uint32_t lastTick; // last time in ms when the handleTick method was called
     uint64_t ampereMilliSeconds; // ampere hours put into the battery in 1 ampere-milliseconds (divide by 3600000 to get Ah)

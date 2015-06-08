@@ -55,6 +55,7 @@ class Device: public TickObserver
 {
 public:
     Device();
+    virtual ~Device();
     virtual void setup();
     virtual void tearDown();
 

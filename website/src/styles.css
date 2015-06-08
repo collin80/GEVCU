@@ -97,15 +97,37 @@ a {
 h1 {
 	color: #9999dd;
 	font-size: 2.5em;
-	margin-top: 5px;
+	margin-top: 10px;
 	margin-bottom: 5px;
 }
 
 h2 {
 	color: #bbbbff;
-	margin-top: 10px;
+	margin-top: 15px;
 	margin-bottom: 5px;
 	padding: 0px 0px 0px 0px;
+}
+
+h3 {
+	color: #bbbbff;
+	margin-top: 14px;
+	margin-bottom: 4px;
+	padding: 0px 0px 0px 0px;
+}
+
+#config td {
+    padding: 3px 7px 2px 7px;
+}
+
+#config th {
+	font-size: 1.5em;
+	color: #bbbbff;
+	padding: 10px 7px 10px 7px;
+	text-align: left;
+}
+
+input {
+	width: 70px;
 }
 
 /* for safari  */
