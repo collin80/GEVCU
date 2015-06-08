@@ -1043,7 +1043,6 @@ void ICHIPWIFI::loadParametersDevices()
         device = DeviceManager::getInstance()->getDeviceByID(deviceIds[i]);
         if (device != NULL) {
             sprintf(idHex, "x%x", deviceIds[i]);
-Logger::console("XXXXXXXXXXXXXXXX ichip: device %s , enabled %d (%s)", idHex, (device->isEnabled() ? 1 : 0), device->getCommonName());
             setParam(idHex, (uint8_t)((device->isEnabled() == true) ? 1 : 0));
         }
     }
