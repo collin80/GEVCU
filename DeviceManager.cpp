@@ -76,7 +76,7 @@ void DeviceManager::addDevice(Device *device)
         if (i != -1) {
             devices[i] = device;
         } else {
-            Logger::error("unable to register device, max number of devices reached.");
+            Logger::error(device->getId(), "unable to register device, max number of devices reached.");
         }
     }
 

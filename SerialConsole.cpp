@@ -181,8 +181,8 @@ void SerialConsole::printMenuSystemIO() {
         Logger::console("\nSYSTEM I/O\n");
         Logger::console("ENABLEI=%i - Digital input to use for enable signal (255 to disable)", config->enableInput);
         Logger::console("CHARGEI=%i - Digital input to use for charger signal (255 to disable)", config->chargePowerAvailableInput);
-        Logger::console("INTERLI=%i - Digital input to use for interlock signal (255 to disable)\n", config->interlockInput);
-        Logger::console("REVIN=%i - Digital input to reverse motor rotation (255 to disable)", config->reverseInput);
+        Logger::console("INTERLI=%i - Digital input to use for interlock signal (255 to disable)", config->interlockInput);
+        Logger::console("REVIN=%i - Digital input to reverse motor rotation (255 to disable)\n", config->reverseInput);
 
         Logger::console("PREDELAY=%d - Precharge delay time (in milliseconds)", config->prechargeMillis);
         Logger::console("PRELAY=%i - Digital output to use for precharge contactor (255 to disable)", config->prechargeRelayOutput);

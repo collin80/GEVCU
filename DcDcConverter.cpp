@@ -85,8 +85,6 @@ void DcDcConverter::loadConfiguration()
     if (prefsHandler->checksumValid()) { //checksum is good, read in the values stored in EEPROM
 #endif
         uint8_t temp;
-        Logger::debug(getId(), (char *) Constants::validChecksum);
-
         prefsHandler->read(DCDC_BOOST_MODE, &config->mode);
         prefsHandler->read(DCDC_LOW_VOLTAGE, &config->lowVoltageCommand);
         prefsHandler->read(DCDC_HV_UNDERVOLTAGE_LIMIT, &config->hvUndervoltageLimit);
@@ -97,7 +95,6 @@ void DcDcConverter::loadConfiguration()
         prefsHandler->read(DCDC_LV_BOOST_CURRENT_LIMIT, &config->lvBoostModeCurrentLinit);
         prefsHandler->read(DCDC_HV_BOOST_CURRENT_LIMIT, &config->hvBoostModeCurrentLimit);
     } else { //checksum invalid. Reinitialize values and store to EEPROM
-        Logger::warn(getId(), (char *) Constants::invalidChecksum);
         config->mode = false; // default mode: buck, meaning: reduce from HV to LV
         config->lowVoltageCommand = 135; // 13.5 V
         config->hvUndervoltageLimit = 330; // 330 V

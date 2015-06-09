@@ -218,7 +218,7 @@ void Throttle::loadConfiguration()
     ThrottleConfiguration *config = (ThrottleConfiguration *) getConfiguration();
 
     Device::loadConfiguration(); // call parent
-    Logger::info("Throttle configuration:");
+    Logger::info(getId(), "Throttle configuration:");
 
 #ifdef USE_HARD_CODED
 

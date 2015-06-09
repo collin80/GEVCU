@@ -360,6 +360,7 @@ void CanPIDListener::loadConfiguration()
     }
 
     Device::loadConfiguration(); // call parent
+    Logger::info(PIDLISTENER, "CAN PID listener configuration:");
 
 #ifdef USE_HARD_CODED
 
@@ -368,19 +369,15 @@ void CanPIDListener::loadConfiguration()
 
     if (prefsHandler->checksumValid()) { //checksum is good, read in the values stored in EEPROM
 #endif
-        Logger::debug(PIDLISTENER, (char *) Constants::validChecksum);
-        //prefsHandler->read(EETH_MIN_ONE, &config->minimumLevel1);
-        //prefsHandler->read(EETH_MAX_ONE, &config->maximumLevel1);
-        //prefsHandler->read(EETH_CAR_TYPE, &config->carType);
+        //prefsHandler->write(EE_, &config->pidId);
+        //prefsHandler->write(EE_, &config->pidMask);
     } else { //checksum invalid. Reinitialize values and store to EEPROM
-        Logger::warn(PIDLISTENER, (char *) Constants::invalidChecksum);
-        //config->minimumLevel1 = Throttle1MinValue;
-        //config->maximumLevel1 = Throttle1MaxValue;
-        //config->carType = Volvo_S80_Gas;
+        config->pidId = 0x200;
+        config->pidMask = 0x7ff;
         saveConfiguration();
     }
 
-    //Logger::debug(CANACCELPEDAL, "T1 MIN: %l MAX: %l Type: %d", config->minimumLevel1, config->maximumLevel1, config->carType);
+    Logger::info(PIDLISTENER, "pid: %d pid mask: %d", config->pidId, config->pidMask);
 }
 
 /*
@@ -392,9 +389,8 @@ void CanPIDListener::saveConfiguration()
 
     Device::saveConfiguration(); // call parent
 
-    //prefsHandler->write(EETH_MIN_ONE, config->minimumLevel1);
-    //prefsHandler->write(EETH_MAX_ONE, config->maximumLevel1);
-    //prefsHandler->write(EETH_CAR_TYPE, config->carType);
-    //prefsHandler->saveChecksum();
+    //prefsHandler->write(EE_, config->pidId);
+    //prefsHandler->write(EE_, config->pidMask);
+    prefsHandler->saveChecksum();
 }
 

@@ -191,9 +191,10 @@ void ELM327Emu::loadConfiguration()
     ELM327Configuration *config = (ELM327Configuration *) getConfiguration();
 
     if (prefsHandler->checksumValid()) { //checksum is good, read in the values stored in EEPROM
-        Logger::debug(ELM327EMU, "Valid checksum so using stored elm327 emulator config values");
         //TODO: implement processing of config params for WIFI
 //      prefsHandler->read(EESYS_WIFI0_SSID, &config->ssid);
+    } else {
+        saveConfiguration();
     }
 }
 
@@ -203,5 +204,5 @@ void ELM327Emu::saveConfiguration()
 
     //TODO: implement processing of config params for WIFI
 //  prefsHandler->write(EESYS_WIFI0_SSID, config->ssid);
-//  prefsHandler->saveChecksum();
+    prefsHandler->saveChecksum();
 }

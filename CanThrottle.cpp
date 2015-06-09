@@ -209,10 +209,8 @@ void CanThrottle::loadConfiguration()
 
     if (prefsHandler->checksumValid()) { //checksum is good, read in the values stored in EEPROM
 #endif
-        Logger::debug(CANACCELPEDAL, (char *) Constants::validChecksum);
         prefsHandler->read(EETH_CAR_TYPE, &config->carType);
-    } else { //checksum invalid. Reinitialize values and store to EEPROM
-        Logger::warn(CANACCELPEDAL, (char *) Constants::invalidChecksum);
+    } else {
         config->carType = Volvo_S80_Gas;
         saveConfiguration();
     }

@@ -184,21 +184,17 @@ void CanIO::loadConfiguration()
 #else
     if (prefsHandler->checksumValid()) { //checksum is good, read in the values stored in EEPROM
 #endif
-        Logger::debug(getId(), (char *) Constants::validChecksum);
-//        prefsHandler->read(EESYS_ENABLE_INPUT, &configuration->enableInput);
-//        prefsHandler->read(EESYS_PRECHARGE_MILLIS, &configuration->prechargeMillis);
-    } else { //checksum invalid. Reinitialize values and store to EEPROM
-        Logger::warn(getId(), (char *) Constants::invalidChecksum);
-//        configuration->enableInput = EnableInput;
-//        configuration->prechargeMillis = PrechargeMillis;
+//        prefsHandler->read(EESYS_, &config->);
+    } else {
+//        config-> = 0;
         saveConfiguration();
     }
+//    Logger::info(getId(), "xyz: %d", config->);
 }
 
 void CanIO::saveConfiguration()
 {
-//    prefsHandler->write(EESYS_ENABLE_INPUT, configuration->enableInput);
-//    prefsHandler->write(EESYS_PRECHARGE_MILLIS, configuration->prechargeMillis);
+//    prefsHandler->write(EESYS_, config->);
     prefsHandler->saveChecksum();
 }
 

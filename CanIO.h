@@ -44,24 +44,6 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 class CanIOConfiguration : public DeviceConfiguration
 {
 public:
-//    uint8_t enableInput; // # of input for enable signal - required so that GEVCU enables the controller and requests torque/speed > 0
-//    uint16_t prechargeMillis; // milliseconds required for the pre-charge cycle
-//    uint8_t prechargeOutput; // # of output to use for the pre-charge relay or 255 if not used
-//    uint8_t mainContactorOutput; // # of output to use for the main contactor relay (main contactor) or 255 if not used
-//    uint8_t secondaryContactorOutput; // # of output to use for the secondary contactor relay or 255 if not used
-//    uint8_t enableOutput; // # of output to use for the enable signal/relay or 255 if not used
-//
-//    uint8_t coolingFanOutput; // # of output to use for the cooling fan relay or 255 if not used
-//    uint8_t coolingTempOn; // temperature in degree celsius to start cooling
-//    uint8_t coolingTempOff; // temperature in degree celsius to stop cooling
-//
-//    uint8_t brakeLightOutput; // #of output for brake light at regen or 255 if not used
-//    uint8_t reverseLightOutput; // #of output for reverse light or 255 if not used
-//    uint8_t chargePowerAvailableInput; // # of input to signal availability of charging power (shore power)
-//    uint8_t coolingPumpOutput; // # of output to control cooling pump
-//    uint8_t heatingPumpOutput; // # of output to control heating pump
-//    uint8_t batteryHeaterOutput; // # of output to enable battery heater
-//    uint8_t activateChargerOutput; // # of output to activate the charger
 };
 
 class CanIO: public Device, public CanObserver

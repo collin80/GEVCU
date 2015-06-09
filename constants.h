@@ -39,8 +39,6 @@ static const char* ichipCommandPrefix = "AT+i";
 static const char* ichipErrorString = "I/ERROR";
 
 // messages
-static const char* validChecksum = "Valid checksum, using stored config values";
-static const char* invalidChecksum = "Invalid checksum, using hard coded config values";
 static const char* valueOutOfRange = "value out of range: %l";
 static const char* normalOperation = "normal operation restored";
 

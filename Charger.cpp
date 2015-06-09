@@ -255,8 +255,6 @@ void Charger::loadConfiguration()
 #else
     if (prefsHandler->checksumValid()) { //checksum is good, read in the values stored in EEPROM
 #endif
-        Logger::debug(getId(), (char *) Constants::validChecksum);
-
         prefsHandler->read(CHRG_MAX_INPUT_CURRENT, &config->maximumInputCurrent);
         prefsHandler->read(CHRG_CONSTANT_CURRENT, &config->constantCurrent);
         prefsHandler->read(CHRG_CONSTANT_VOLTAGE, &config->constantVoltage);
@@ -272,7 +270,6 @@ void Charger::loadConfiguration()
         prefsHandler->read(CHRG_HYSTERESE_STOP, &config->hystereseStopTemperature);
         prefsHandler->read(CHRG_HYSTERESE_RESUME, &config->hystereseResumeTemperature);
     } else { //checksum invalid. Reinitialize values and store to EEPROM
-        Logger::warn(getId(), (char *) Constants::invalidChecksum);
         config->maximumInputCurrent = 100;
         config->constantCurrent = 100;
         config->constantVoltage = 4165;

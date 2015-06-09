@@ -192,10 +192,7 @@ void PotBrake::loadConfiguration()
         prefsHandler->read(EETH_MAX_BRAKE_REGEN, &config->maximumRegen);
         prefsHandler->read(EETH_MIN_BRAKE_REGEN, &config->minimumRegen);
         prefsHandler->read(EETH_ADC_1, &config->AdcPin1);
-
-        config->AdcPin1 = BrakeADC; //TODO: This is hard coded because of old defaults. Fix this soon.
-    } else { //checksum invalid. Reinitialize values and store to EEPROM
-
+    } else {
         //these four values are ADC values
         //The next three are tenths of a percent
         config->maximumRegen = BrakeMaxRegenValue; //percentage of full power to use for regen at brake pedal transducer

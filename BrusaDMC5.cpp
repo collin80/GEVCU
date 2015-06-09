@@ -445,8 +445,6 @@ void BrusaDMC5::loadConfiguration()
     if (prefsHandler->checksumValid()) { //checksum is good, read in the values stored in EEPROM
 #endif
         uint8_t temp;
-        Logger::debug(BRUSA_DMC5, (char *) Constants::validChecksum);
-
         prefsHandler->read(EEMC_MAX_MECH_POWER_MOTOR, &config->maxMechanicalPowerMotor);
         prefsHandler->read(EEMC_MAX_MECH_POWER_REGEN, &config->maxMechanicalPowerRegen);
         prefsHandler->read(EEMC_DC_VOLT_LIMIT_MOTOR, &config->dcVoltLimitMotor);
@@ -456,7 +454,6 @@ void BrusaDMC5::loadConfiguration()
         prefsHandler->read(EEMC_OSCILLATION_LIMITER, &temp);
         config->enableOscillationLimiter = (temp != 0);
     } else { //checksum invalid. Reinitialize values and store to EEPROM
-        Logger::warn(BRUSA_DMC5, (char *) Constants::invalidChecksum);
         config->maxMechanicalPowerMotor = 50000;
         config->maxMechanicalPowerRegen = 50000;
         config->dcVoltLimitMotor = 1000;

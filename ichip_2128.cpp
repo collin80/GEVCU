@@ -63,14 +63,6 @@ void ICHIPWIFI::setup()
 {
     tickHandler->detach(this);
 
-    //MSEL pin
-    pinMode(18, OUTPUT);
-    digitalWrite(18, HIGH);
-
-    //RESET pin
-    pinMode(42, OUTPUT);
-    digitalWrite(42, HIGH);
-
     tickCounter = 0;
     ibWritePtr = 0;
     psWritePtr = 0;
@@ -525,7 +517,6 @@ void ICHIPWIFI::loop()
                     }
                     //if we got an I/ in the reply then the command is done sending data. So, see if there is a buffered cmd to send.
                     if (incomingBuffer[0] == 'I' && incomingBuffer[1] == '/') {
-Logger::debug(ICHIP2128, "a, read %d, write %d", psReadPtr, psWritePtr);
                         if (psReadPtr != psWritePtr) { //if there is a parameter in the buffer to send then do it
                             if (Logger::isDebug()) {
                                 Logger::debug(ICHIP2128, "Sending buffered cmd: %s", sendBuffer[psReadPtr].cmd.c_str());
@@ -611,13 +602,13 @@ bool ICHIPWIFI::processParameterChangeThrottle(char *key, char *value)
             } else if (!strcmp(key, Constants::maximumLevel2)) {
                 config->maximumLevel2 = atol(value);
             } else if (!strcmp(key, Constants::positionRegenMaximum)) {
-                config->positionRegenMaximum = atol(value) * 10;
+                config->positionRegenMaximum = atof(value) * 10;
             } else if (!strcmp(key, Constants::positionRegenMinimum)) {
-                config->positionRegenMinimum = atol(value) * 10;
+                config->positionRegenMinimum = atof(value) * 10;
             } else if (!strcmp(key, Constants::positionForwardMotionStart)) {
-                config->positionForwardMotionStart = atol(value) * 10;
+                config->positionForwardMotionStart = atof(value) * 10;
             } else if (!strcmp(key, Constants::positionHalfPower)) {
-                config->positionHalfPower = atol(value) * 10;
+                config->positionHalfPower = atof(value) * 10;
             } else if (!strcmp(key, Constants::minimumRegen)) {
                 config->minimumRegen = atol(value);
             } else if (!strcmp(key, Constants::maximumRegen)) {
@@ -671,17 +662,17 @@ bool ICHIPWIFI::processParameterChangeMotor(char *key, char *value)
             if (!strcmp(key, Constants::speedMax)) {
                 config->speedMax = atol(value);
             } else if (!strcmp(key, Constants::torqueMax)) {
-                config->torqueMax = atol(value) * 10;
+                config->torqueMax = atof(value) * 10;
             } else if (!strcmp(key, Constants::nominalVolt)) {
-                config->nominalVolt = atol(value) * 10;
+                config->nominalVolt = atof(value) * 10;
             } else if (!strcmp(key, Constants::motorMode)) {
                 config->powerMode = (atol(value) ? modeSpeed : modeTorque);
             } else if (!strcmp(key, Constants::invertDirection)) {
                 config->invertDirection = atol(value);
             } else if (!strcmp(key, Constants::torqueSlewRate)) {
-                config->torqueSlewRate = atol(value) * 10;
+                config->torqueSlewRate = atof(value) * 10;
             } else if (!strcmp(key, Constants::speedSlewRate)) {
-                config->speedSlewRate = atol(value) * 10;
+                config->speedSlewRate = atof(value) * 10;
             } else if (motorController->getId() == BRUSA_DMC5) {
                 BrusaDMC5Configuration *dmc5Config = (BrusaDMC5Configuration *) config;
 
@@ -690,13 +681,13 @@ bool ICHIPWIFI::processParameterChangeMotor(char *key, char *value)
                 } else if (!strcmp(key, Constants::maxMechanicalPowerRegen)) {
                     dmc5Config->maxMechanicalPowerRegen = atol(value) / 4;
                 } else if (!strcmp(key, Constants::dcVoltLimitMotor)) {
-                    dmc5Config->dcVoltLimitMotor = atol(value) * 10;
+                    dmc5Config->dcVoltLimitMotor = atof(value) * 10;
                 } else if (!strcmp(key, Constants::dcVoltLimitRegen)) {
-                    dmc5Config->dcVoltLimitRegen = atol(value) * 10;
+                    dmc5Config->dcVoltLimitRegen = atof(value) * 10;
                 } else if (!strcmp(key, Constants::dcCurrentLimitMotor)) {
-                    dmc5Config->dcCurrentLimitMotor = atol(value) * 10;
+                    dmc5Config->dcCurrentLimitMotor = atof(value) * 10;
                 } else if (!strcmp(key, Constants::dcCurrentLimitRegen)) {
-                    dmc5Config->dcCurrentLimitRegen = atol(value) * 10;
+                    dmc5Config->dcCurrentLimitRegen = atof(value) * 10;
                 } else if (!strcmp(key, Constants::enableOscillationLimiter)) {
                     dmc5Config->enableOscillationLimiter = atol(value);
                 } else {
@@ -721,33 +712,33 @@ bool ICHIPWIFI::processParameterChangeCharger(char *key, char *value)
 
         if (config) {
             if (!strcmp(key, Constants::maximumInputCurrent)) {
-                config->maximumInputCurrent = atol(value) * 10;
+                config->maximumInputCurrent = atof(value) * 10;
             } else if (!strcmp(key, Constants::constantCurrent)) {
-                config->constantCurrent = atol(value) * 10;
+                config->constantCurrent = atof(value) * 10;
             } else if (!strcmp(key, Constants::constantVoltage)) {
-                config->constantVoltage = atol(value) * 10;
+                config->constantVoltage = atof(value) * 10;
             } else if (!strcmp(key, Constants::terminateCurrent)) {
-                config->terminateCurrent = atol(value) * 10;
+                config->terminateCurrent = atof(value) * 10;
             } else if (!strcmp(key, Constants::minimumBatteryVoltage)) {
-                config->minimumBatteryVoltage = atol(value) * 10;
+                config->minimumBatteryVoltage = atof(value) * 10;
             } else if (!strcmp(key, Constants::maximumBatteryVoltage)) {
-                config->maximumBatteryVoltage = atol(value) * 10;
+                config->maximumBatteryVoltage = atof(value) * 10;
             } else if (!strcmp(key, Constants::minimumTemperature)) {
-                config->minimumTemperature = atol(value) * 10;
+                config->minimumTemperature = atof(value) * 10;
             } else if (!strcmp(key, Constants::maximumTemperature)) {
-                config->maximumTemperature = atol(value) * 10;
+                config->maximumTemperature = atof(value) * 10;
             } else if (!strcmp(key, Constants::maximumAmpereHours)) {
-                config->maximumAmpereHours = atol(value) * 10;
+                config->maximumAmpereHours = atof(value) * 10;
             } else if (!strcmp(key, Constants::maximumChargeTime)) {
                 config->maximumChargeTime = atol(value);
             } else if (!strcmp(key, Constants::deratingRate)) {
-                config->deratingRate = atol(value) * 10;
+                config->deratingRate = atof(value) * 10;
             } else if (!strcmp(key, Constants::deratingReferenceTemperature)) {
-                config->deratingReferenceTemperature = atol(value) * 10;
+                config->deratingReferenceTemperature = atof(value) * 10;
             } else if (!strcmp(key, Constants::hystereseStopTemperature)) {
-                config->hystereseStopTemperature = atol(value) * 10;
+                config->hystereseStopTemperature = atof(value) * 10;
             } else if (!strcmp(key, Constants::hystereseResumeTemperature)) {
-                config->hystereseResumeTemperature = atol(value) * 10;
+                config->hystereseResumeTemperature = atof(value) * 10;
             } else {
                 return false;
             }
@@ -769,21 +760,21 @@ bool ICHIPWIFI::processParameterChangeDcDc(char *key, char *value)
             if (!strcmp(key, Constants::dcDcMode)) {
                 config->mode = atol(value);
             } else if (!strcmp(key, Constants::lowVoltageCommand)) {
-                config->lowVoltageCommand = atol(value) * 10;
+                config->lowVoltageCommand = atof(value) * 10;
             } else if (!strcmp(key, Constants::hvUndervoltageLimit)) {
-                config->hvUndervoltageLimit = atol(value);
+                config->hvUndervoltageLimit = atof(value);
             } else if (!strcmp(key, Constants::lvBuckModeCurrentLimit)) {
                 config->lvBuckModeCurrentLimit = atol(value);
             } else if (!strcmp(key, Constants::hvBuckModeCurrentLimit)) {
-                config->hvBuckModeCurrentLimit = atol(value) * 10;
+                config->hvBuckModeCurrentLimit = atof(value) * 10;
             } else if (!strcmp(key, Constants::highVoltageCommand)) {
                 config->highVoltageCommand = atol(value);
             } else if (!strcmp(key, Constants::lvUndervoltageLimit)) {
-                config->lvUndervoltageLimit = atol(value) * 10;
+                config->lvUndervoltageLimit = atof(value) * 10;
             } else if (!strcmp(key, Constants::lvBoostModeCurrentLimit)) {
                 config->lvBoostModeCurrentLinit = atol(value);
             } else if (!strcmp(key, Constants::hvBoostModeCurrentLimit)) {
-                config->hvBoostModeCurrentLimit = atol(value) * 10;
+                config->hvBoostModeCurrentLimit = atof(value) * 10;
             } else {
                 return false;
             }
@@ -848,12 +839,18 @@ bool ICHIPWIFI::processParameterChangeSystemIO(char *key, char *value)
     } else {
         return false;
     }
+    systemIO->saveConfiguration();
     return true;
 }
 
 bool ICHIPWIFI::processParameterChangeDevices(char *key, char *value)
 {
-    if (key[0] == 'x' && atol(&key[1]) > 0) {
+    if (!strcmp(key, Constants::logLevel)) {
+        Logger::LogLevel logLevel = (Logger::LogLevel) atoi(value);
+        Logger::setLoglevel(logLevel);
+        sysPrefs->write(EESYS_LOG_LEVEL, (uint8_t) logLevel);
+        sysPrefs->saveChecksum();
+    } else if (key[0] == 'x' && atol(&key[1]) > 0) {
         long deviceId = strtol(key + 1, 0, 16);
         DeviceManager::getInstance()->sendMessage(DEVICE_ANY, (DeviceId) deviceId, (atol(value) ? MSG_ENABLE : MSG_DISABLE), NULL);
         return true;
@@ -1067,11 +1064,16 @@ void ICHIPWIFI::loadConfiguration()
         setConfiguration(config);
     }
 
+    Device::loadConfiguration();
+    Logger::info(getId(), "WiFi configuration:");
+
     if (prefsHandler->checksumValid()) { //checksum is good, read in the values stored in EEPROM
-        Logger::debug(ICHIP2128, "Valid checksum so using stored wifi config values");
         //TODO: implement processing of config params for WIFI
 //      prefsHandler->read(EESYS_WIFI0_SSID, &config->ssid);
+    } else {
+        saveConfiguration();
     }
+//    Logger::info(ICHIP2128, "ssid: %s", config->);
 }
 
 void ICHIPWIFI::saveConfiguration()
@@ -1080,5 +1082,5 @@ void ICHIPWIFI::saveConfiguration()
 
 //TODO: implement processing of config params for WIFI
 //  prefsHandler->write(EESYS_WIFI0_SSID, config->ssid);
-//  prefsHandler->saveChecksum();
+    prefsHandler->saveChecksum();
 }

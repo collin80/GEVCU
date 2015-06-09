@@ -241,10 +241,8 @@ void CanBrake::loadConfiguration()
 
     if (prefsHandler->checksumValid()) { //checksum is good, read in the values stored in EEPROM
 #endif
-        Logger::debug(CANBRAKEPEDAL, (char *) Constants::validChecksum);
         prefsHandler->read(EETH_CAR_TYPE, &config->carType);
     } else { //checksum invalid. Reinitialize values and store to EEPROM
-        Logger::warn(CANBRAKEPEDAL, (char *) Constants::invalidChecksum);
         config->carType = Volvo_S80_Gas;
         saveConfiguration();
     }

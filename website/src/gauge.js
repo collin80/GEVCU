@@ -99,20 +99,18 @@ var Gauge = function( config) {
 	 */
 	this.setValue = function( val) {
 
-		fromValue = config.animation ? value : val;
-		if (fromValue < config.minValue) {
-			fromValue = config.minValue;
+		if (val < config.minValue) {
+			val = config.minValue;
 		}
+		if (val > config.maxValue) {
+			val = config.maxValue;
+		}
+		
+		fromValue = config.animation ? value : val;
 
 		var dv = (config.maxValue - config.minValue) / 100;
 
-		toValue = val > config.maxValue ?
-			config.maxValue + dv :
-				val < config.minValue ?
-					config.minValue - dv : 
-						val
-		;
-
+		toValue = val;
 		value = val;
 
 		config.animation ? animate() : this.draw();

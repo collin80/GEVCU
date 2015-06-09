@@ -46,9 +46,9 @@ void MemCache::setup()
 
     //WriteTimer = 0;
 
-    //digital pin 19 is connected to the write protect function of the EEPROM. It is active high so set it low to enable writes
-    pinMode(19, OUTPUT);
-    digitalWrite(19, LOW);
+    //digital pin 18 is connected to the write protect function of the EEPROM. It is active high so set it low to enable writes
+    pinMode(18, OUTPUT);
+    digitalWrite(18, LOW);
     TickHandler::getInstance()->attach(this, CFG_TICK_INTERVAL_MEM_CACHE);
 }
 
@@ -105,16 +105,6 @@ void MemCache::FlushPage(uint8_t page)
         pages[page].dirty = false;
         pages[page].age = 0; //freshly flushed!
     }
-}
-
-//Flush a page by taking an address within the page.
-void MemCache::FlushAddress(uint32_t address) {
-	uint32_t addr;
-	uint8_t c;
-
-	addr = address >> 8; //kick it down to the page we're talking about
-	c = cache_hit(addr);
-	if (c != 0xFF) FlushPage(c);
 }
 
 //Like FlushPage but also marks the page invalid (unused) so if another read request comes it it'll have to be re-read from EEPROM
@@ -414,7 +404,6 @@ uint8_t MemCache::cache_readpage(uint32_t addr)
     uint8_t i2c_id;
     c = cache_findpage();
 
-//  Logger::debug("r");
     if (c != 0xFF) {
         buffer[0] = ((address & 0xFF00) >> 8);
         //buffer[1] = (address & 0x00FF);

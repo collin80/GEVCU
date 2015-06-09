@@ -108,7 +108,6 @@ PrefHandler::PrefHandler(DeviceId id_in)
 	enabled = false; 
 
     initDevTable();
-
     position = findDevice(deviceId);
     if (position > -1) {
         memCache->Read(EE_DEVICE_TABLE + (2 * position), &id);
@@ -228,9 +227,13 @@ bool PrefHandler::checksumValid()
 
     memCache->Read(EE_CHECKSUM + base_address + lkg_address, &stored_chk);
     calc_chk = calcChecksum();
-    Logger::info(deviceId, "Stored Checksum: %X Calc: %X", stored_chk, calc_chk);
-
-    return (stored_chk == calc_chk);
+    if (stored_chk == calc_chk) {
+        Logger::debug(deviceId, "valid checksum, using stored config values");
+        return true;
+    } else {
+        Logger::warn(deviceId, "invalid checksum, using hard coded config values (stored: %X, calc: %X", stored_chk, calc_chk);
+        return false;
+    }
 }
 
 void PrefHandler::forceCacheWrite()
@@ -242,8 +245,6 @@ void PrefHandler::forceCacheWrite()
 //there is only one checksum check for all of them so it's simple to do it all here.
 void PrefHandler::initSysEEPROM()
 {
-    Logger::info("Initializing EEPROM");
-
     //three temporary storage places to make saving to EEPROM easy
     uint8_t eight;
     uint16_t sixteen;
@@ -255,67 +256,16 @@ void PrefHandler::initSysEEPROM()
     write(EESYS_SYSTEM_TYPE, eight);
 
     sixteen = 1024; //no gain
-    write(EESYS_ADC0_GAIN, sixteen);
-    write(EESYS_ADC1_GAIN, sixteen);
-    write(EESYS_ADC2_GAIN, sixteen);
-    write(EESYS_ADC3_GAIN, sixteen);
+    write(EESIO_ADC0_GAIN, sixteen);
+    write(EESIO_ADC1_GAIN, sixteen);
+    write(EESIO_ADC2_GAIN, sixteen);
+    write(EESIO_ADC3_GAIN, sixteen);
 
     sixteen = 0; //no offset
-    write(EESYS_ADC0_OFFSET, sixteen);
-    write(EESYS_ADC1_OFFSET, sixteen);
-    write(EESYS_ADC2_OFFSET, sixteen);
-    write(EESYS_ADC3_OFFSET, sixteen);
-
-    sixteen = 500; //multiplied by 1000 so 500k baud
-    write(EESYS_CAN0_BAUD, sixteen);
-    write(EESYS_CAN1_BAUD, sixteen);
-
-    sixteen = 11520; //multiplied by 10
-    write(EESYS_SERUSB_BAUD, sixteen);
-
-    sixteen = 100; //multiplied by 1000
-    write(EESYS_TWI_BAUD, sixteen);
-
-    sixteen = 100; //number of ticks per second
-    write(EESYS_TICK_RATE, sixteen);
-
-    thirtytwo = 0;
-    write(EESYS_RTC_TIME, thirtytwo);
-    write(EESYS_RTC_DATE, thirtytwo);
-
-    thirtytwo = 0; //ok, not technically 32 bytes but the four zeros still shows it is unused.
-    write(EESYS_WIFI0_SSID, thirtytwo);
-    write(EESYS_WIFI1_SSID, thirtytwo);
-    write(EESYS_WIFI2_SSID, thirtytwo);
-    write(EESYS_WIFIX_SSID, thirtytwo);
-
-    eight = 0; //no channel, DHCP off, B mode
-    write(EESYS_WIFI0_CHAN, eight);
-    write(EESYS_WIFI0_DHCP, eight);
-    write(EESYS_WIFI0_MODE, eight);
-
-    write(EESYS_WIFI1_CHAN, eight);
-    write(EESYS_WIFI1_DHCP, eight);
-    write(EESYS_WIFI1_MODE, eight);
-
-    write(EESYS_WIFI2_CHAN, eight);
-    write(EESYS_WIFI2_DHCP, eight);
-    write(EESYS_WIFI2_MODE, eight);
-
-    write(EESYS_WIFIX_CHAN, eight);
-    write(EESYS_WIFIX_DHCP, eight);
-    write(EESYS_WIFIX_MODE, eight);
-
-    thirtytwo = 0;
-    write(EESYS_WIFI0_IPADDR, thirtytwo);
-    write(EESYS_WIFI1_IPADDR, thirtytwo);
-    write(EESYS_WIFI2_IPADDR, thirtytwo);
-    write(EESYS_WIFIX_IPADDR, thirtytwo);
-
-    write(EESYS_WIFI0_KEY, thirtytwo);
-    write(EESYS_WIFI1_KEY, thirtytwo);
-    write(EESYS_WIFI2_KEY, thirtytwo);
-    write(EESYS_WIFIX_KEY, thirtytwo);
+    write(EESIO_ADC0_OFFSET, sixteen);
+    write(EESIO_ADC1_OFFSET, sixteen);
+    write(EESIO_ADC2_OFFSET, sixteen);
+    write(EESIO_ADC3_OFFSET, sixteen);
 
     eight = 1;
     write(EESYS_LOG_LEVEL, eight);

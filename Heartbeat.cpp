@@ -28,6 +28,7 @@
 
 Heartbeat::Heartbeat() : Device()
 {
+    prefsHandler = new PrefHandler(HEARTBEAT);
     led = false;
     throttleDebug = false;
     commonName = "Heartbeat";
@@ -108,4 +109,23 @@ DeviceType Heartbeat::getType()
 DeviceId Heartbeat::getId()
 {
     return HEARTBEAT;
+}
+
+void Heartbeat::loadConfiguration()
+{
+//    HeartbeatConfiguration *config = (HeartbeatConfiguration *) getConfiguration();
+
+    if (prefsHandler->checksumValid()) { //checksum is good, read in the values stored in EEPROM
+//      prefsHandler->read(EESYS_, &config->);
+    } else {
+        saveConfiguration();
+    }
+}
+
+void Heartbeat::saveConfiguration()
+{
+//    HeartbeatConfiguration *config = (HeartbeatConfiguration *) getConfiguration();
+
+//  prefsHandler->write(EESYS_, config->);
+    prefsHandler->saveChecksum();
 }

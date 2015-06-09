@@ -47,11 +47,8 @@
  // EEPROM handles about 1 million write cycles. So, a flush time of 100 seconds means that
  // continuous writing would last 100M seconds which is 3.17 years
  // Another way to look at it is that 128 aging levels * 40ms tick is 5.12 seconds to flush for
- // each aging period below. Adjust acccordingly.
+ // each aging period below. Adjust accordingly.
  */
-#define AGING_PERIOD       60
-
-//Current parameters as of Sept 7 2014 = 128 * 40ms * 60 = 307.2 seconds to flush = about 10 years EEPROM life
 
 class MemCache: public TickObserver {
 public:

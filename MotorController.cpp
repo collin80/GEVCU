@@ -205,7 +205,7 @@ void MotorController::loadConfiguration()
     MotorControllerConfiguration *config = (MotorControllerConfiguration *) getConfiguration();
 
     Device::loadConfiguration(); // call parent
-    Logger::info("Motor controller configuration:");
+    Logger::info(getId(), "Motor controller configuration:");
 
 #ifdef USE_HARD_CODED
 

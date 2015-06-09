@@ -663,7 +663,7 @@ uint16_t SystemIO::getRawADC(uint8_t which) {
  */
 void SystemIO::initializePinTables() {
     uint8_t rawadc;
-    sysPrefs->read(EESYS_RAWADC, &rawadc);
+    sysPrefs->read(EESIO_RAWADC, &rawadc);
 
     if (rawadc != 0) {
         useRawADC = true;
@@ -813,8 +813,8 @@ void SystemIO::initializeAnalogIO() {
 
     //requires the value to be contiguous in memory
     for (int i = 0; i < CFG_NUMBER_ANALOG_INPUTS; i++) {
-        sysPrefs->read(EESYS_ADC0_GAIN + 4 * i, &adcComp[i].gain);
-        sysPrefs->read(EESYS_ADC0_OFFSET + 4 * i, &adcComp[i].offset);
+        sysPrefs->read(EESIO_ADC0_GAIN + 4 * i, &adcComp[i].gain);
+        sysPrefs->read(EESIO_ADC0_OFFSET + 4 * i, &adcComp[i].offset);
 
         //Logger::debug("ADC:%d GAIN: %d Offset: %d", i, adc_comp[i].gain, adc_comp[i].offset);
 //        for (int j = 0; j < numberADCSamples; j++) {
@@ -945,36 +945,34 @@ void SystemIO::loadConfiguration() {
 #else
     if (prefsHandler->checksumValid()) { //checksum is good, read in the values stored in EEPROM
 #endif
-        Logger::debug((char *) Constants::validChecksum);
-        prefsHandler->read(EESYS_ENABLE_INPUT, &configuration->enableInput);
-        prefsHandler->read(EESYS_CHARGE_POWER_AVAILABLE_INPUT, &configuration->chargePowerAvailableInput);
-        prefsHandler->read(EESYS_INTERLOCK_INPUT, &configuration->interlockInput);
-        prefsHandler->read(EESYS_REVERSE_INPUT, &configuration->reverseInput);
+        prefsHandler->read(EESIO_ENABLE_INPUT, &configuration->enableInput);
+        prefsHandler->read(EESIO_CHARGE_POWER_AVAILABLE_INPUT, &configuration->chargePowerAvailableInput);
+        prefsHandler->read(EESIO_INTERLOCK_INPUT, &configuration->interlockInput);
+        prefsHandler->read(EESIO_REVERSE_INPUT, &configuration->reverseInput);
 
-        prefsHandler->read(EESYS_PRECHARGE_MILLIS, &configuration->prechargeMillis);
-        prefsHandler->read(EESYS_PRECHARGE_RELAY_OUTPUT, &configuration->prechargeRelayOutput);
-        prefsHandler->read(EESYS_MAIN_CONTACTOR_OUTPUT, &configuration->mainContactorOutput);
-        prefsHandler->read(EESYS_SECONDARY_CONTACTOR_OUTPUT, &configuration->secondaryContactorOutput);
-        prefsHandler->read(EESYS_FAST_CHARGE_CONTACTOR_OUTPUT, &configuration->fastChargeContactorOutput);
+        prefsHandler->read(EESIO_PRECHARGE_MILLIS, &configuration->prechargeMillis);
+        prefsHandler->read(EESIO_PRECHARGE_RELAY_OUTPUT, &configuration->prechargeRelayOutput);
+        prefsHandler->read(EESIO_MAIN_CONTACTOR_OUTPUT, &configuration->mainContactorOutput);
+        prefsHandler->read(EESIO_SECONDARY_CONTACTOR_OUTPUT, &configuration->secondaryContactorOutput);
+        prefsHandler->read(EESIO_FAST_CHARGE_CONTACTOR_OUTPUT, &configuration->fastChargeContactorOutput);
 
-        prefsHandler->read(EESYS_ENABLE_MOTOR_OUTPUT, &configuration->enableMotorOutput);
-        prefsHandler->read(EESYS_ENABLE_CHARGER_OUTPUT, &configuration->enableChargerOutput);
-        prefsHandler->read(EESYS_ENABLE_DCDC_OUTPUT, &configuration->enableDcDcOutput);
-        prefsHandler->read(EESYS_ENABLE_HEATER_OUTPUT, &configuration->enableHeaterOutput);
+        prefsHandler->read(EESIO_ENABLE_MOTOR_OUTPUT, &configuration->enableMotorOutput);
+        prefsHandler->read(EESIO_ENABLE_CHARGER_OUTPUT, &configuration->enableChargerOutput);
+        prefsHandler->read(EESIO_ENABLE_DCDC_OUTPUT, &configuration->enableDcDcOutput);
+        prefsHandler->read(EESIO_ENABLE_HEATER_OUTPUT, &configuration->enableHeaterOutput);
 
-        prefsHandler->read(EESYS_HEATER_VALVE_OUTPUT, &configuration->heaterValveOutput);
-        prefsHandler->read(EESYS_HEATER_PUMP_OUTPUT, &configuration->heaterPumpOutput);
-        prefsHandler->read(EESYS_COOLING_PUMP_OUTPUT, &configuration->coolingPumpOutput);
-        prefsHandler->read(EESYS_COOLING_FAN_OUTPUT, &configuration->coolingFanOutput);
-        prefsHandler->read(EESYS_COOLING_TEMP_ON, &configuration->coolingTempOn);
-        prefsHandler->read(EESYS_COOLING_TEMP_OFF, &configuration->coolingTempOff);
+        prefsHandler->read(EESIO_HEATER_VALVE_OUTPUT, &configuration->heaterValveOutput);
+        prefsHandler->read(EESIO_HEATER_PUMP_OUTPUT, &configuration->heaterPumpOutput);
+        prefsHandler->read(EESIO_COOLING_PUMP_OUTPUT, &configuration->coolingPumpOutput);
+        prefsHandler->read(EESIO_COOLING_FAN_OUTPUT, &configuration->coolingFanOutput);
+        prefsHandler->read(EESIO_COOLING_TEMP_ON, &configuration->coolingTempOn);
+        prefsHandler->read(EESIO_COOLING_TEMP_OFF, &configuration->coolingTempOff);
 
-        prefsHandler->read(EESYS_BRAKE_LIGHT_OUTPUT, &configuration->brakeLightOutput);
-        prefsHandler->read(EESYS_REVERSE_LIGHT_OUTPUT, &configuration->reverseLightOutput);
-        prefsHandler->read(EESYS_WARNING_OUTPUT, &configuration->warningOutput);
-        prefsHandler->read(EESYS_POWER_LIMITATION_OUTPUT, &configuration->powerLimitationOutput);
+        prefsHandler->read(EESIO_BRAKE_LIGHT_OUTPUT, &configuration->brakeLightOutput);
+        prefsHandler->read(EESIO_REVERSE_LIGHT_OUTPUT, &configuration->reverseLightOutput);
+        prefsHandler->read(EESIO_WARNING_OUTPUT, &configuration->warningOutput);
+        prefsHandler->read(EESIO_POWER_LIMITATION_OUTPUT, &configuration->powerLimitationOutput);
     } else { //checksum invalid. Reinitialize values and store to EEPROM
-        Logger::warn((char *) Constants::invalidChecksum);
         configuration->enableInput = EnableInput;
         configuration->chargePowerAvailableInput = CFG_OUTPUT_NONE;
         configuration->interlockInput = InterlockInput;
@@ -1004,7 +1002,7 @@ void SystemIO::loadConfiguration() {
         configuration->powerLimitationOutput = CFG_OUTPUT_NONE;
         saveConfiguration();
     }
-    Logger::info("GEVCU enable input: %d, charge power avail input: %d, interlock input: %d, reverse input: %d", configuration->enableInput, configuration->chargePowerAvailableInput, configuration->interlockInput, configuration->reverseInput);
+    Logger::info("enable input: %d, charge power avail input: %d, interlock input: %d, reverse input: %d", configuration->enableInput, configuration->chargePowerAvailableInput, configuration->interlockInput, configuration->reverseInput);
     Logger::info("pre-charge milliseconds: %d, pre-charge relay: %d, main contactor: %d", configuration->prechargeMillis, configuration->prechargeRelayOutput, configuration->mainContactorOutput);
     Logger::info("secondary contactor: %d, fast charge contactor: %d", configuration->secondaryContactorOutput, configuration->fastChargeContactorOutput);
     Logger::info("enable motor: %d, enable charger: %d, enable DCDC: %d, enable heater: %d", configuration->enableMotorOutput, configuration->enableChargerOutput, configuration->enableDcDcOutput, configuration->enableHeaterOutput);
@@ -1014,33 +1012,33 @@ void SystemIO::loadConfiguration() {
 }
 
 void SystemIO::saveConfiguration() {
-    prefsHandler->write(EESYS_ENABLE_INPUT, configuration->enableInput);
-    prefsHandler->write(EESYS_CHARGE_POWER_AVAILABLE_INPUT, configuration->chargePowerAvailableInput);
-    prefsHandler->write(EESYS_INTERLOCK_INPUT, configuration->interlockInput);
-    prefsHandler->write(EESYS_REVERSE_INPUT, configuration->reverseInput);
+    prefsHandler->write(EESIO_ENABLE_INPUT, configuration->enableInput);
+    prefsHandler->write(EESIO_CHARGE_POWER_AVAILABLE_INPUT, configuration->chargePowerAvailableInput);
+    prefsHandler->write(EESIO_INTERLOCK_INPUT, configuration->interlockInput);
+    prefsHandler->write(EESIO_REVERSE_INPUT, configuration->reverseInput);
 
-    prefsHandler->write(EESYS_PRECHARGE_MILLIS, configuration->prechargeMillis);
-    prefsHandler->write(EESYS_PRECHARGE_RELAY_OUTPUT, configuration->prechargeRelayOutput);
-    prefsHandler->write(EESYS_MAIN_CONTACTOR_OUTPUT, configuration->mainContactorOutput);
-    prefsHandler->write(EESYS_SECONDARY_CONTACTOR_OUTPUT, configuration->secondaryContactorOutput);
-    prefsHandler->write(EESYS_FAST_CHARGE_CONTACTOR_OUTPUT, configuration->fastChargeContactorOutput);
+    prefsHandler->write(EESIO_PRECHARGE_MILLIS, configuration->prechargeMillis);
+    prefsHandler->write(EESIO_PRECHARGE_RELAY_OUTPUT, configuration->prechargeRelayOutput);
+    prefsHandler->write(EESIO_MAIN_CONTACTOR_OUTPUT, configuration->mainContactorOutput);
+    prefsHandler->write(EESIO_SECONDARY_CONTACTOR_OUTPUT, configuration->secondaryContactorOutput);
+    prefsHandler->write(EESIO_FAST_CHARGE_CONTACTOR_OUTPUT, configuration->fastChargeContactorOutput);
 
-    prefsHandler->write(EESYS_ENABLE_MOTOR_OUTPUT, configuration->enableMotorOutput);
-    prefsHandler->write(EESYS_ENABLE_CHARGER_OUTPUT, configuration->enableChargerOutput);
-    prefsHandler->write(EESYS_ENABLE_DCDC_OUTPUT, configuration->enableDcDcOutput);
-    prefsHandler->write(EESYS_ENABLE_HEATER_OUTPUT, configuration->enableHeaterOutput);
+    prefsHandler->write(EESIO_ENABLE_MOTOR_OUTPUT, configuration->enableMotorOutput);
+    prefsHandler->write(EESIO_ENABLE_CHARGER_OUTPUT, configuration->enableChargerOutput);
+    prefsHandler->write(EESIO_ENABLE_DCDC_OUTPUT, configuration->enableDcDcOutput);
+    prefsHandler->write(EESIO_ENABLE_HEATER_OUTPUT, configuration->enableHeaterOutput);
 
-    prefsHandler->write(EESYS_HEATER_VALVE_OUTPUT, configuration->heaterValveOutput);
-    prefsHandler->write(EESYS_HEATER_PUMP_OUTPUT, configuration->heaterPumpOutput);
-    prefsHandler->write(EESYS_COOLING_PUMP_OUTPUT, configuration->coolingPumpOutput);
-    prefsHandler->write(EESYS_COOLING_FAN_OUTPUT, configuration->coolingFanOutput);
-    prefsHandler->write(EESYS_COOLING_TEMP_ON, configuration->coolingTempOn);
-    prefsHandler->write(EESYS_COOLING_TEMP_OFF, configuration->coolingTempOff);
+    prefsHandler->write(EESIO_HEATER_VALVE_OUTPUT, configuration->heaterValveOutput);
+    prefsHandler->write(EESIO_HEATER_PUMP_OUTPUT, configuration->heaterPumpOutput);
+    prefsHandler->write(EESIO_COOLING_PUMP_OUTPUT, configuration->coolingPumpOutput);
+    prefsHandler->write(EESIO_COOLING_FAN_OUTPUT, configuration->coolingFanOutput);
+    prefsHandler->write(EESIO_COOLING_TEMP_ON, configuration->coolingTempOn);
+    prefsHandler->write(EESIO_COOLING_TEMP_OFF, configuration->coolingTempOff);
 
-    prefsHandler->write(EESYS_BRAKE_LIGHT_OUTPUT, configuration->brakeLightOutput);
-    prefsHandler->write(EESYS_REVERSE_LIGHT_OUTPUT, configuration->reverseLightOutput);
-    prefsHandler->write(EESYS_WARNING_OUTPUT, configuration->warningOutput);
-    prefsHandler->write(EESYS_POWER_LIMITATION_OUTPUT, configuration->powerLimitationOutput);
+    prefsHandler->write(EESIO_BRAKE_LIGHT_OUTPUT, configuration->brakeLightOutput);
+    prefsHandler->write(EESIO_REVERSE_LIGHT_OUTPUT, configuration->reverseLightOutput);
+    prefsHandler->write(EESIO_WARNING_OUTPUT, configuration->warningOutput);
+    prefsHandler->write(EESIO_POWER_LIMITATION_OUTPUT, configuration->powerLimitationOutput);
 
     prefsHandler->saveChecksum();
 }
