@@ -125,6 +125,7 @@ function loadData(pageId) {
 		var xmlhttp = new XMLHttpRequest();
 		xmlhttp.onreadystatechange = function() {
 			if (xmlhttp.readyState == 4 && xmlhttp.status == 200) {
+				hideDeviceTr(); // hide device dependent TR's so they can be shown if configured
 				var root = xmlhttp.responseXML.firstChild;
 				for (var i = 0; i < root.childNodes.length; i++) {
 					var node = root.childNodes[i]; // scan through the nodes
@@ -132,8 +133,8 @@ function loadData(pageId) {
 						var name = node.nodeName;
 						var value = node.childNodes[0].nodeValue;
 						
-						if (name.indexOf('device_x') == 0) {
-							setTrVisibility(name, value); // it's a device config, update device specific visibility
+						if (name.indexOf('device_x') == 0 && value == '1') {
+							setTrVisibility(name, true); // it's a device config, update device specific visibility
 						} else if (pageId == 'dashboard') {
 							refreshGaugeValue(name, value);
 						} else {
@@ -282,12 +283,23 @@ function addRangeControl(id, min, max) {
 		node.innerHTML = "<input id='"+id+"Level' type='range' min='"+min+"' max='"+max+"' onchange=\"updateRangeValue('"+id+"', this);\" onmousemove=\"updateRangeValue('"+id+"', this);\" /><input type='number' id='"+id+"' name='"+id+"' min='"+min+"' max='"+max+"' maxlength='4' size='4' onchange=\"updateRangeValue('"+id+"Level', this);\"/>";
 }
 
+//hides rows with device depandent visibility (as a pre-requisite to re-enable it)
+function hideDeviceTr() {
+	tr = document.getElementsByTagName('tr')
+	for (i = 0; i < tr.length; i++) {
+		var idStr = tr[i].getAttribute('id');
+		if (idStr && idStr.indexOf('device_x') != -1) {
+			tr[i].style.display = 'none';
+		}
+	}
+}
+
 // shows/hides rows of a table with a certain id value (used for device specific parameters)
 function setTrVisibility(id, visible) {
 	tr = document.getElementsByTagName('tr')
 	for (i = 0; i < tr.length; i++) {
 		var idStr = tr[i].getAttribute('id');
-		if (idStr && idStr == id) {
+		if (idStr && idStr.indexOf(id) != -1) {
 			if (visible != 0) {
 				tr[i].style.display = '';
 			} else {

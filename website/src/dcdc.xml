@@ -9,4 +9,6 @@
 	<lvUndervoltageLimit>~lvUndervoltageLimit~</lvUndervoltageLimit>
 	<lvBoostCurrentLimit>~lvBoostCurrentLimit~</lvBoostCurrentLimit>
 	<hvBoostCurrentLimit>~hvBoostCurrentLimit~</hvBoostCurrentLimit>
+
+	<device_x3000>~x3000~</device_x3000>
 </outputs>

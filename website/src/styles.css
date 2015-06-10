@@ -115,11 +115,11 @@ h3 {
 	padding: 0px 0px 0px 0px;
 }
 
-#config td {
+#configTable td {
     padding: 3px 7px 2px 7px;
 }
 
-#config th {
+#configTable th {
 	font-size: 1.5em;
 	color: #bbbbff;
 	padding: 10px 7px 10px 7px;
@@ -143,4 +143,4 @@ input[type="range"]{
     -moz-box-shadow: inset 0px 0px 1px 1px rgba(0, 0, 0, 0.9), 0px 1px 1px 0px rgba(255, 255, 255, 0.13);
     box-shadow: inset 0px 0px 1px 1px rgba(0, 0, 0, 0.9), 0px 1px 1px 0px rgba(255, 255, 255, 0.13);
 }
- }
+

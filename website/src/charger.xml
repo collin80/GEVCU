@@ -14,4 +14,8 @@
 	<deratingReferenceTmp>~deratingReferenceTmp~</deratingReferenceTmp>
 	<hystereseStopTemp>~hystereseStopTemp~</hystereseStopTemp>
 	<hystereseResumeTemp>~hystereseResumeTemp~</hystereseResumeTemp>
+	
+	<device_x1010>~x1010~</device_x1010>
+	<device_x1020>~x1020~</device_x1020>
+	<device_x1022>~x1022~</device_x1022>
 </outputs>

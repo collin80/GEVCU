@@ -1,60 +1,60 @@
 <form method="POST" action="">
-	<table id="config">
+	<table id="configTable">
 		<tr>
 			<th colspan="5">Charger Configuration</th>
 		</tr>
-        <tr>
+        <tr id="device_x1010,device_x1020,device_x1022">
             <td>Maximum Input Current</td>
             <td><input name="maximumInputCurrent" type="text" maxlength="6" title="Max current to be used on input side (e.g. mains)" /> A</td>
             <td></td>
             <td>Constant Current</td>
             <td><input name="constantCurrent" type="text" maxlength="6" title="Max current to be used on battery side during CC phase" /> A</td>
         </tr>
-        <tr>
+        <tr id="device_x1010,device_x1020,device_x1022">
             <td>Constant Voltage</td>
             <td><input name="constantVoltage" type="text" maxlength="6" title="Voltage up to which to charge in CC until switching to CV" /> V</td>
             <td></td>
             <td>Terminate Current</td>
             <td><input name="terminateCurrent" type="text" maxlength="6" title="Current on battery side at which the charge process will be terminated" /> A</td>
         </tr>
-        <tr>
+        <tr id="device_x1010,device_x1020,device_x1022">
             <td colspan="5"><h3>Safety Limits</h3></td>
         </tr>
-        <tr>
+        <tr id="device_x1010,device_x1020,device_x1022">
             <td>Minimum Battery Voltage</td>
             <td><input name="minBatteryVoltage" type="text" maxlength="6" title="Min battery voltage at which the charge process will be started" /> V</td>
             <td></td>
             <td>Maximum Battery Voltage</td>
             <td><input name="maxBatteryVoltage" type="text" maxlength="6" title="Battery voltage at which the charge process will fail/terminate" /> V</td>
         </tr>
-        <tr>
+        <tr id="device_x1010,device_x1020,device_x1022">
             <td>Minimum Temperature </td>
             <td><input name="minimumTemperature" type="text" maxlength="6" title="Minimum battery temperature at which the charge process will be started" /> &#176;C</td>
             <td></td>
             <td>Maximum Temperature</td>
             <td><input name="maximumTemperature" type="text" maxlength="6" title="Maximum battery temperature at which the charge process will be terminated" /> &#176;C</td>
         </tr>
-        <tr>
+        <tr id="device_x1010,device_x1020,device_x1022">
             <td>Maximum Ampere Hours</td>
             <td><input name="maximumAmpereHours" type="text" maxlength="6" title="Maximum Ampere Hours that will be charged in one cycle" /> Ah</td>
             <td></td>
             <td>Maximum Charge Time</td>
             <td><input name="maximumChargeTime" type="text" maxlength="4" title="Maximum time for a charge cycle" /> min</td>
         </tr>
-        <tr>
+        <tr id="device_x1010,device_x1020,device_x1022">
             <td colspan="5"><h3>Derating</h3></td>
         </tr>
-        <tr>
+        <tr id="device_x1010,device_x1020,device_x1022">
             <td>Derating Rate</td>
             <td><input name="deratingRate" type="text" maxlength="6" title="Battery temperature Derating of charge current (0=disabled)" /> A/&#176;C</td>
             <td></td>
             <td>Derating Reference Temperature</td>
             <td><input name="deratingReferenceTmp" type="text" maxlength="6" title="Reference temperature where charge current will reach 0 Amp" /> &#176;C</td>
         </tr>
-        <tr>
+        <tr id="device_x1010,device_x1020,device_x1022">
             <td colspan="5"><h3>Hysterese</h3></td>
         </tr>
-        <tr>
+        <tr id="device_x1010,device_x1020,device_x1022">
             <td>Stop Temperature</td>
             <td><input name="hystereseStopTemp" type="text" maxlength="6" title="Max battery temperature at which the charge process will be interrupted (0=disabled)" /> &#176;C</td>
             <td></td>
