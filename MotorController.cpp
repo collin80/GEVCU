@@ -52,6 +52,7 @@ MotorController::MotorController() : Device()
     kiloWattHours = 0;
     milliStamp = 0;
     skipcounter = 0;
+    ticksNoMessage = 0;
 }
 
 DeviceType MotorController::getType()
@@ -67,55 +68,111 @@ void MotorController::updatePowerConsumption()
     MotorControllerConfiguration *config = (MotorControllerConfiguration *) getConfiguration();
     uint32_t currentMillis = millis();
 
-    mechanicalPower = dcVoltage * dcCurrent / 10000; //In kilowatts. DC voltage is x10
-    if (dcVoltage > config->nominalVolt && torqueActual > 0) {
-        kiloWattHours = 1; //If our voltage is higher than fully charged with no regen, zero our kwh meter
-    }
-    if (milliStamp > currentMillis) {
-        milliStamp = 0; //In case millis rolls over to zero while running
-    }
-    kiloWattHours += (currentMillis - milliStamp) * mechanicalPower; //We assume here that power is at current level since last tick and accrue in kilowattmilliseconds.
-    milliStamp = currentMillis; //reset our kwms timer for next check
+    if (running) {
+        mechanicalPower = dcVoltage * dcCurrent / 10000; //In kilowatts. DC voltage is x10
+        if (dcVoltage > config->nominalVolt && torqueActual > 0) {
+            kiloWattHours = 1; //If our voltage is higher than fully charged with no regen, zero our kwh meter
+        }
+        if (milliStamp > currentMillis) {
+            milliStamp = 0; //In case millis rolls over to zero while running
+        }
+        kiloWattHours += (currentMillis - milliStamp) * mechanicalPower; //We assume here that power is at current level since last tick and accrue in kilowattmilliseconds.
+        milliStamp = currentMillis; //reset our kwms timer for next check
 
-    if (skipcounter++ > 30) {
-        prefsHandler->write(EEMC_KILOWATTHRS, kiloWattHours);
-        prefsHandler->saveChecksum();
-        skipcounter = 0;
+        if (skipcounter++ > 30) {
+            prefsHandler->write(EEMC_KILOWATTHRS, kiloWattHours);
+            prefsHandler->saveChecksum();
+            skipcounter = 0;
+        }
     }
 }
 
-void MotorController::handleTick()
+/*
+ * The sub-classes must use this function to report activity/messages from the controller.
+ * In subsequent calls to checkActivity() it is verified if we ran into a timeout.
+ */
+void MotorController::reportActivity() {
+    if (!running) //if we're newly running then cancel faults if necessary.
+    {
+        faultHandler.cancelOngoingFault(getId(), FAULT_MOTORCTRL_COMM);
+    }
+    ticksNoMessage = 0;
+}
+
+/*
+ * Verify if the controller sends messages, if it is online
+ * Otherwise the controller's status flags "ready" and "running"
+ * are set to false and a fault is raised
+ */
+void MotorController::checkActivity() {
+    if (ticksNoMessage < 255) { // make sure it doesn't overflow
+        ticksNoMessage++;
+    }
+    // We haven't received frames from the controller for a defined number of ticks
+    // But we're in system state "running", so we've lost communications.
+    if (ticksNoMessage > CFG_MOTORCTRL_MAX_NUM_LOST_MSG && status->getSystemState() == Status::running) {
+        running = false;
+        ready = false;
+        faultHandler.raiseFault(getId(), FAULT_MOTORCTRL_COMM, true);
+    }
+}
+
+/*
+ * From the throttle and brake level, calculate the requested torque and speed.
+ * Depending on power mode, the throttle dependent value is torque or speed. The other
+ * value is locked to the configured maximum value.
+ */
+void MotorController::processThrottleLevel()
 {
     MotorControllerConfiguration *config = (MotorControllerConfiguration *) getConfiguration();
     DeviceManager *deviceManager = DeviceManager::getInstance();
     Throttle *accelerator = deviceManager->getAccelerator();
     Throttle *brake = deviceManager->getBrake();
 
-    updatePowerConsumption();
-
     throttleLevel = 0; //force to zero in case not in operational condition
     torqueRequested = 0;
     speedRequested = 0;
 
-    if (powerOn && accelerator) {
-        throttleLevel = accelerator->getLevel();
-
+    if (powerOn && running) {
+        if (accelerator) {
+            throttleLevel = accelerator->getLevel();
+        }
         // if the brake has been pressed it may override the accelerator
         if (brake && brake->getLevel() < 0 && brake->getLevel() < accelerator->getLevel()) {
             throttleLevel = brake->getLevel();
         }
-
         if (config->powerMode == modeSpeed) {
             speedRequested = throttleLevel * config->speedMax / 1000;
             torqueRequested = config->torqueMax;
-        } else { // torque mode
+        } else {
+            // torque mode
             speedRequested = config->speedMax;
             torqueRequested = throttleLevel * config->torqueMax / 1000;
         }
     }
+}
+
+void MotorController::updateGear()
+{
+    if (powerOn && running) {
+        gear = (systemIO->isReverseSignalPresent() ? REVERSE : DRIVE);
+    } else {
+        gear = NEUTRAL; // stay in neutral until the controller reports that it's running
+    }
+}
+
+void MotorController::handleTick()
+{
+    checkActivity();
+
+    processThrottleLevel();
+    updateGear();
+
+    updatePowerConsumption();
+
     if (Logger::isDebug()) {
-        Logger::debug(getId(), "throttle: %f%%, requested Speed: %l rpm, requested Torque: %f Nm", throttleLevel / 10.0f, speedRequested,
-                torqueRequested / 10.0F);
+        Logger::debug(getId(), "throttle: %f%%, requested Speed: %l rpm, requested Torque: %f Nm, gear: %d", throttleLevel / 10.0f, speedRequested,
+                torqueRequested / 10.0F, gear);
     }
 }
 
@@ -138,6 +195,7 @@ void MotorController::handleStateChange(Status::SystemState oldState, Status::Sy
         throttleLevel = 0;
         gear = NEUTRAL;
     }
+    systemIO->setEnableMotor(powerOn);
 }
 
 void MotorController::setup()
@@ -156,7 +214,7 @@ void MotorController::tearDown()
     Device::tearDown();
 
     throttleLevel = 0;
-    setGear(NEUTRAL);
+    gear = NEUTRAL;
 }
 
 int16_t MotorController::getThrottleLevel()
@@ -187,13 +245,6 @@ int16_t MotorController::getTorqueActual()
 MotorController::Gears MotorController::getGear()
 {
     return gear;
-}
-
-void MotorController::setGear(MotorController::Gears newGear)
-{
-    gear = newGear;
-    //should it be set to standby when selecting neutral? I don't know. Doing that prevents regen
-    //when in neutral and I don't think people will like that.
 }
 
 int16_t MotorController::getTorqueAvailable()

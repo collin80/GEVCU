@@ -81,8 +81,6 @@ void CanBrake::setup()
         default:
             Logger::error(CANBRAKEPEDAL, "no valid car type defined.");
     }
-    canHandlerCar->attach(this, responseId, responseMask, responseExtended);
-    tickHandler->attach(this, CFG_TICK_INTERVAL_CAN_THROTTLE);
 }
 
 /**
@@ -92,6 +90,24 @@ void CanBrake::tearDown()
 {
     Throttle::tearDown();
     canHandlerCar->detach(this, responseId, responseMask);
+}
+
+/**
+ * act on messages the super-class does not react upon, like state change
+ * to ready or running which should enable/disable the controller
+ */
+void CanBrake::handleStateChange(Status::SystemState oldState, Status::SystemState newState)
+{
+    Throttle::handleStateChange(oldState, newState);
+
+    if (newState == Status::running) {
+        canHandlerCar->attach(this, responseId, responseMask, responseExtended);
+        tickHandler->attach(this, CFG_TICK_INTERVAL_CAN_THROTTLE);
+    } else {
+        if (oldState == Status::running) {
+            tearDown();
+        }
+    }
 }
 
 /*

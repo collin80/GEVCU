@@ -48,7 +48,6 @@ DmocMotorController::DmocMotorController() : MotorController()
     prefsHandler = new PrefHandler(DMOC645);
 
     step = SPEED_TORQUE;
-    activityCount = 0;
     commonName = "DMOC645 Inverter";
 }
 
@@ -95,8 +94,6 @@ void DmocMotorController::handleStateChange(Status::SystemState oldState, Status
         sendCmd2();
         sendCmd3();
     }
-
-    systemIO->setEnableMotor(powerOn);
 }
 
 /*
@@ -118,12 +115,12 @@ void DmocMotorController::handleCanFrame(CAN_FRAME *frame)
         statorTemp = frame->data.bytes[2];
         temperatureController = (invTemp - 40) * 10;
         temperatureMotor = (max(rotorTemp, statorTemp) - 40) * 10;
-        activityCount++;
+        reportActivity();
         break;
 
     case CAN_ID_TORQUE:
         torqueActual = ((frame->data.bytes[0] * 256) + frame->data.bytes[1]) - 30000;
-        activityCount++;
+        reportActivity();
         break;
 
     case CAN_ID_STATUS:
@@ -152,7 +149,7 @@ void DmocMotorController::handleCanFrame(CAN_FRAME *frame)
             status->setSystemState(Status::error);
             break;
         }
-        activityCount++;
+        reportActivity();
         break;
 
     //case 0x23E: //electrical status
@@ -162,7 +159,7 @@ void DmocMotorController::handleCanFrame(CAN_FRAME *frame)
     case CAN_ID_HV_STATUS:
         dcVoltage = ((frame->data.bytes[0] * 256) + frame->data.bytes[1]);
         dcCurrent = ((frame->data.bytes[2] * 256) + frame->data.bytes[3]) - 5000; //offset is 500A, unit = .1A
-        activityCount++;
+        reportActivity();
         break;
     }
 }
@@ -174,23 +171,6 @@ void DmocMotorController::handleTick()
 {
     DmocMotorControllerConfiguration *config = (DmocMotorControllerConfiguration *) getConfiguration();
     MotorController::handleTick();
-
-    if (activityCount > 0) {
-        activityCount--;
-
-        if (activityCount > 60) { // We'll limit it to 60 so if we lose communications, within 20 ticks we will decrement below 40
-            activityCount = 60;
-        }
-        if (powerOn && activityCount > 40) { //If we are receiving regular CAN messages from DMOC, this will very quickly get to over 40.
-            if (systemIO->isReverseSignalPresent()) {
-                setGear((!config->invertDirection ? REVERSE : DRIVE));
-            } else {
-                setGear((!config->invertDirection ? DRIVE : REVERSE));
-            }
-        }
-    } else {
-        setGear(NEUTRAL); //We will stay in NEUTRAL until we get at least 40 frames ahead indicating continuous communications.
-    }
 
     step = CHAL_RESP;
     sendCmd1();
@@ -234,11 +214,17 @@ void DmocMotorController::sendCmd1()
     if (!powerOn) {
         newstate = POWERDOWN;
     }
+
+    Gears gear = getGear();
     if (running) {
-        output.data.bytes[6] = alive + ((byte) getGear() << 4) + ((byte) newstate << 6);
+       if(config->invertDirection) {
+           gear = (gear == DRIVE ? REVERSE : DRIVE);
+       }
     } else { //force neutral gear until the system is enabled.
-        output.data.bytes[6] = alive + ((byte) NEUTRAL << 4) + ((byte) newstate << 6);
+        gear = NEUTRAL;
     }
+
+    output.data.bytes[6] = alive + ((byte) gear << 4) + ((byte) newstate << 6);
 
     output.data.bytes[7] = calcChecksum(output);
 

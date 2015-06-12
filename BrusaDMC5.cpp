@@ -59,13 +59,8 @@ void BrusaDMC5::setup()
     loadConfiguration();
     MotorController::setup(); // run the parent class version of this function
 
-    // register ourselves as observer of 0x258-0x268 and 0x458 can frames
-    canHandlerEv->attach(this, CAN_MASKED_ID_1, CAN_MASK_1, false);
-    canHandlerEv->attach(this, CAN_MASKED_ID_2, CAN_MASK_2, false);
-
-//    tickCounter = 4; // this will result in the limit and control2 messages being sent in the first tick - prevents msg lost errors
-
-    tickHandler->attach(this, CFG_TICK_INTERVAL_MOTOR_CONTROLLER_BRUSA);
+    // we do not attach to CanHandler and TickHandler yet
+    // this only happens when the state changes to running.
 }
 
 /**
@@ -78,6 +73,8 @@ void BrusaDMC5::tearDown()
     canHandlerEv->detach(this, CAN_MASKED_ID_1, CAN_MASK_1);
     canHandlerEv->detach(this, CAN_MASKED_ID_2, CAN_MASK_2);
 
+    // for safety reasons at power off, first request 0 torque
+    // this allows the controller to dissipate residual fields first
     sendControl();
 }
 
@@ -89,12 +86,18 @@ void BrusaDMC5::handleStateChange(Status::SystemState oldState, Status::SystemSt
 {
     MotorController::handleStateChange(oldState, newState);
 
-    // for safety reasons at power off first request 0 torque - this allows the controller to dissipate residual fields first
-    if (!powerOn) {
-        sendControl();
+    // as the DMC is not sending/receiving messages as long as the enable signal is low
+    // (state != running), attach to can/tick handler only when running.
+    if (newState == Status::running) {
+        // register ourselves as observer of 0x258-0x268 and 0x458 can frames
+        canHandlerEv->attach(this, CAN_MASKED_ID_1, CAN_MASK_1, false);
+        canHandlerEv->attach(this, CAN_MASKED_ID_2, CAN_MASK_2, false);
+        tickHandler->attach(this, CFG_TICK_INTERVAL_MOTOR_CONTROLLER_BRUSA);
+    } else {
+        if (oldState == Status::running) {
+            tearDown();
+        }
     }
-
-    systemIO->setEnableMotor(powerOn);
 }
 
 /*
@@ -133,12 +136,12 @@ void BrusaDMC5::sendControl()
         Logger::error(BRUSA_DMC5, "clearing error latch - ctrl lost: %t, ctrl2 lost: %t, limit lost: %t", status->canControlMessageLost,
                 status->canControl2MessageLost, status->canLimitMessageLost);
     } else {
-        // to safe energy only enable the power-stage if positive acceleration is requested or the motor is still spinning (to control regen)
+        // to safe energy only enable the power-stage when positive acceleration is requested or the motor is still spinning (to control regen)
         // see warning in Brusa docs about field weakening current to prevent uncontrollable regen
         if (ready && (((getThrottleLevel() > 0) && powerOn) || (speedActual != 0))) {
             outputFrame.data.bytes[0] |= enablePowerStage;
         }
-
+//TODO add support for gears
         if (powerOn && running) {
             int16_t speedCommand = getSpeedRequested();
             int16_t torqueCommand = getTorqueRequested();
@@ -227,22 +230,27 @@ void BrusaDMC5::handleCanFrame(CAN_FRAME *frame)
     switch (frame->id) {
     case CAN_ID_STATUS:
         processStatus(frame->data.bytes);
+        reportActivity();
         break;
 
     case CAN_ID_ACTUAL_VALUES:
         processActualValues(frame->data.bytes);
+        reportActivity();
         break;
 
     case CAN_ID_ERRORS:
         processErrors(frame->data.bytes);
+        reportActivity();
         break;
 
     case CAN_ID_TORQUE_LIMIT:
         processTorqueLimit(frame->data.bytes);
+        reportActivity();
         break;
 
     case CAN_ID_TEMP:
         processTemperature(frame->data.bytes);
+        reportActivity();
         break;
     }
 }

@@ -105,6 +105,7 @@ public:
     };
 
     BrusaBSC6();
+    void handleStateChange(Status::SystemState, Status::SystemState);
     void handleTick();
     void handleCanFrame(CAN_FRAME *frame);
     void setup();

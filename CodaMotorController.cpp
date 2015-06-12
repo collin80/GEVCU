@@ -38,16 +38,15 @@
 
 #include "CodaMotorController.h"
 
-template<class T> inline Print &operator <<(Print &obj, T arg) {
-    obj.print(arg);
-    return obj;
-}
+//template<class T> inline Print &operator <<(Print &obj, T arg) {
+//    obj.print(arg);
+//    return obj;
+//}
 
 const uint8_t swizzleTable[] = { 0xAA, 0x7F, 0xFE, 0x29, 0x52, 0xA4, 0x9D, 0xEF, 0xB, 0x16, 0x2C, 0x58, 0xB0, 0x60, 0xC0, 1 };
 
 CodaMotorController::CodaMotorController() : MotorController() {
     prefsHandler = new PrefHandler(CODAUQM);
-    online = 0;
     sequence = 0;
     commonName = "Coda UQM Powerphase 100 Inverter";
 }
@@ -61,19 +60,15 @@ void CodaMotorController::setup() {
     // register ourselves as observer of all 0x20x can frames for UQM
     canHandlerEv->attach(this, 0x200, 0x7f0, false);
 
-    setGear(DRIVE);
     tickHandler->attach(this, CFG_TICK_INTERVAL_MOTOR_CONTROLLER_CODAUQM);
 }
 
 void CodaMotorController::handleCanFrame(CAN_FRAME *frame) {
     int invTemp, rotorTemp, statorTemp;
 
-    online = 1; //if a frame got to here then it passed the filter and must come from UQM
-    if (!running) //if we're newly running then cancel faults if necessary.
-    {
-        faultHandler.cancelOngoingFault(CODAUQM, FAULT_MOTORCTRL_COMM);
-    }
+    //TODO: running should only be set to true if the controller reports that its power-stageis up and running.
     running = true;
+
     if (Logger::isDebug()) {
         Logger::debug(CODAUQM, "msg: %X   %X   %X   %X   %X   %X   %X   %X  %X", frame->id, frame->data.bytes[0], frame->data.bytes[1],
             frame->data.bytes[2], frame->data.bytes[3], frame->data.bytes[4], frame->data.bytes[5], frame->data.bytes[6], frame->data.bytes[7]);
@@ -89,22 +84,27 @@ void CodaMotorController::handleCanFrame(CAN_FRAME *frame) {
         if (Logger::isDebug()) {
             Logger::debug(CODAUQM, "Actual Torque: %d DC Voltage: %d Amps: %d RPM: %d", torqueActual / 10, dcVoltage / 10, dcCurrent / 10, speedActual);
         }
+        reportActivity();
         break;
 
     case 0x20A:    //System Status Message
         Logger::debug(CODAUQM, "20A System Status Message Received");
+        reportActivity();
         break;
 
     case 0x20B:    //Emergency Fuel Cutback Message
         Logger::debug(CODAUQM, "20B Emergency Fuel Cutback Message Received");
+        reportActivity();
         break;
 
     case 0x20C:    //Reserved Message
         Logger::debug(CODAUQM, "20C Reserved Message Received");
+        reportActivity();
         break;
 
     case 0x20D:    //Limited Torque Percentage Message
         Logger::debug(CODAUQM, "20D Limited Torque Percentage Message Received");
+        reportActivity();
         break;
 
     case 0x20E:     //Temperature Feedback Message
@@ -116,6 +116,7 @@ void CodaMotorController::handleCanFrame(CAN_FRAME *frame) {
         if (Logger::isDebug()) {
             Logger::debug(CODAUQM, "Inverter temp: %d Motor temp: %d", temperatureController, temperatureMotor);
         }
+        reportActivity();
         break;
 
     case 0x20F:    //CAN Watchdog Status Message
@@ -123,6 +124,7 @@ void CodaMotorController::handleCanFrame(CAN_FRAME *frame) {
         status->warning = true;
         running = false;
         sendCmd2(); //If we get a Watchdog status, we need to respond with Watchdog reset
+        reportActivity();
         break;
     }
 }
@@ -130,12 +132,6 @@ void CodaMotorController::handleCanFrame(CAN_FRAME *frame) {
 void CodaMotorController::handleTick() {
     MotorController::handleTick(); //kick the ball up to papa
     sendCmd1();   //Send our lone torque command
-    if (millis() - mss > 2000 && online == 0) {
-        running = false; // We haven't received any UQM frames for over 2 seconds.  Otherwise online would be 1.
-        mss = millis();   //So we've lost communications.  Let's turn off the running light.
-        faultHandler.raiseFault(CODAUQM, FAULT_MOTORCTRL_COMM, true);
-    }
-    online = 0;   //This flag will be set to 1 by received frames.
 }
 
 /*

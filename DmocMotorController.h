@@ -102,7 +102,6 @@ public:
 private:
     int step;
     byte alive;
-    int activityCount;
 
     void sendCmd1();
     void sendCmd2();

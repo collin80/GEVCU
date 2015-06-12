@@ -35,6 +35,7 @@
 #include "Throttle.h"
 #include "CanHandler.h"
 #include "DeviceManager.h"
+#include "FaultHandler.h"
 
 #define MOTORCTL_INPUT_DRIVE_EN    3
 #define MOTORCTL_INPUT_FORWARD     4
@@ -86,7 +87,6 @@ public:
 
     int16_t getThrottleLevel();
     Gears getGear();
-    void setGear(Gears gear);
     int16_t getSpeedRequested();
     int16_t getSpeedActual();
     int16_t getTorqueRequested();
@@ -119,13 +119,19 @@ protected:
 
     uint32_t skipcounter;
     uint32_t milliStamp;
+    void reportActivity();
 
 private:
     int16_t throttleLevel; // -1000 to 1000 (per mille of throttle level)
     int16_t torqueRequested; // in 0.1 Nm, calculated in MotorController - must not be manipulated by subclasses
     int16_t speedRequested; // in rpm, calculated in MotorController - must not be manipulated by subclasses
+    uint8_t ticksNoMessage; // counter how many ticks the device went through without any message from the controller
     Gears gear;
+
     void updatePowerConsumption();
+    void checkActivity();
+    void processThrottleLevel();
+    void updateGear();
 };
 
 #endif

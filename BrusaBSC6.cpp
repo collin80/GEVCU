@@ -62,11 +62,6 @@ void BrusaBSC6::setup()
 
     loadConfiguration();
     DcDcConverter::setup(); // call parent
-
-    // register ourselves as observer of 0x26a-0x26f can frames
-    canHandlerEv->attach(this, CAN_MASKED_ID, CAN_MASK, false);
-
-    tickHandler->attach(this, CFG_TICK_INTERVAL_DCDC_BSC6);
 }
 
 /**
@@ -79,6 +74,20 @@ void BrusaBSC6::tearDown()
     sendCommand(); // as powerOn is false now, send last command to deactivate controller
 }
 
+void BrusaBSC6::handleStateChange(Status::SystemState oldState, Status::SystemState newState)
+{
+    DcDcConverter::handleStateChange(oldState, newState);
+
+    if (powerOn) {
+        if (!ready && !running) {
+            // register ourselves as observer of 0x26a-0x26f can frames
+            canHandlerEv->attach(this, CAN_MASKED_ID, CAN_MASK, false);
+            tickHandler->attach(this, CFG_TICK_INTERVAL_DCDC_BSC6);
+        }
+    } else {
+        tearDown();
+    }
+}
 
 /*
  * Process event from the tick handler.

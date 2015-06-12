@@ -58,9 +58,6 @@ void BrusaNLG5::setup()
 
     loadConfiguration();
     Charger::setup(); // call parent
-
-    // register ourselves as observer of 0x26a-0x26f can frames
-    canHandlerEv->attach(this, CAN_MASKED_ID, CAN_MASK, false);
 }
 
 /**
@@ -132,11 +129,13 @@ void BrusaNLG5::sendControl()
 void BrusaNLG5::handleStateChange(Status::SystemState oldState, Status::SystemState newState)
 {
     Charger::handleStateChange(oldState, newState);
+
     if (newState == Status::charging) {
         tickHandler->attach(this, CFG_TICK_INTERVAL_CHARGE_NLG5);
+        canHandlerEv->attach(this, CAN_MASKED_ID, CAN_MASK, false);
         canTickCounter = 0;
     } else {
-        tickHandler->detach(this);
+        tearDown();
     }
 }
 

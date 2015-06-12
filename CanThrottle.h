@@ -54,6 +54,7 @@ public:
     void setup();
     void tearDown();
     void handleTick();
+    void handleStateChange(Status::SystemState, Status::SystemState);
     void handleCanFrame(CAN_FRAME *frame);
     DeviceId getId();
 
