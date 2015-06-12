@@ -65,10 +65,10 @@ void Charger::handleTick()
  * Act on messages the super-class does not react upon, like state change
  * to charging which should enable the charger
  */
-void Charger::handleStateChange(Status::SystemState state)
+void Charger::handleStateChange(Status::SystemState oldState, Status::SystemState newState)
 {
-    Device::handleStateChange(state);
-    if (state == Status::charging) {
+    Device::handleStateChange(oldState, newState);
+    if (newState == Status::charging) {
         ChargerConfiguration *config = (ChargerConfiguration *) getConfiguration();
 
         // re-initialize variables

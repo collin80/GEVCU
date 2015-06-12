@@ -155,7 +155,7 @@ public:
     BrusaNLG5();
     void handleTick();
     void handleCanFrame(CAN_FRAME *frame);
-    void handleStateChange(Status::SystemState state);
+    void handleStateChange(Status::SystemState, Status::SystemState);
     void setup();
     void tearDown();
     DeviceId getId();

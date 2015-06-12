@@ -53,7 +53,7 @@ class DcDcConverter : public Device
 public:
 	DcDcConverter();
     ~DcDcConverter();
-    void handleStateChange(Status::SystemState);
+    void handleStateChange(Status::SystemState, Status::SystemState);
     DeviceType getType();
 
     void loadConfiguration();

@@ -236,7 +236,7 @@ bool CanPIDListener::processShowData(CAN_FRAME* inFrame, CAN_FRAME& outFrame)
             break;
 
         case 0x11: //Throttle position (A * 100 / 255) - Percentage
-            temp = motorController->getThrottle() / 10; //getThrottle returns in 10ths of a percent
+            temp = motorController->getThrottleLevel() / 10; //getThrottle returns in 10ths of a percent
 
             if (temp < 0) {
                 temp = 0;    //negative throttle can't be shown for OBDII

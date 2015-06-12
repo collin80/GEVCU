@@ -188,6 +188,7 @@ void SystemIO::handlePreCharge() {
  * the motor controller
  */
 void SystemIO::handleCooling() {
+    MotorController *motorController = DeviceManager::getInstance()->getMotorController();
     Status::SystemState state = status->getSystemState();
 
     if ((state == Status::ready || state == Status::running || state == Status::charging || state == Status::charged
@@ -200,16 +201,18 @@ void SystemIO::handleCooling() {
         setCoolingPump(false);
     }
 
-    if (status->temperatureController == CFG_NO_TEMPERATURE_DATA) {
-        return;
-    }
+    if (motorController) {
+        if (motorController->getTemperatureController() == CFG_NO_TEMPERATURE_DATA) {
+            return;
+        }
 
-    if (status->temperatureController / 10 > configuration->coolingTempOn && !status->coolingFan) {
-        setCoolingFan(true);
-    }
+        if (motorController->getTemperatureController() / 10 > configuration->coolingTempOn && !status->coolingFan) {
+            setCoolingFan(true);
+        }
 
-    if (status->temperatureController / 10 < configuration->coolingTempOff && status->coolingFan) {
-        setCoolingFan(false);
+        if (motorController->getTemperatureController() / 10 < configuration->coolingTempOff && status->coolingFan) {
+            setCoolingFan(false);
+        }
     }
 }
 
@@ -263,7 +266,7 @@ void SystemIO::handleBrakeLight() {
 void SystemIO::handleReverseLight() {
     MotorController *motorController = DeviceManager::getInstance()->getMotorController();
 
-    if (motorController && motorController->getSelectedGear() == MotorController::REVERSE) {
+    if (motorController && motorController->getGear() == MotorController::REVERSE) {
         if (!status->reverseLight) {
             setReverseLight(true);
         }

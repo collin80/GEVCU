@@ -47,9 +47,7 @@ const uint8_t swizzleTable[] = { 0xAA, 0x7F, 0xFE, 0x29, 0x52, 0xA4, 0x9D, 0xEF,
 
 CodaMotorController::CodaMotorController() : MotorController() {
     prefsHandler = new PrefHandler(CODAUQM);
-    actualState = ENABLE;
     online = 0;
-    activityCount = 0;
     sequence = 0;
     commonName = "Coda UQM Powerphase 100 Inverter";
 }
@@ -63,14 +61,13 @@ void CodaMotorController::setup() {
     // register ourselves as observer of all 0x20x can frames for UQM
     canHandlerEv->attach(this, 0x200, 0x7f0, false);
 
-    actualState = ENABLE;
-    selectedGear = DRIVE;
+    setGear(DRIVE);
     tickHandler->attach(this, CFG_TICK_INTERVAL_MOTOR_CONTROLLER_CODAUQM);
 }
 
 void CodaMotorController::handleCanFrame(CAN_FRAME *frame) {
-    int RotorTemp, invTemp, StatorTemp;
-    int temp;
+    int invTemp, rotorTemp, statorTemp;
+
     online = 1; //if a frame got to here then it passed the filter and must come from UQM
     if (!running) //if we're newly running then cancel faults if necessary.
     {
@@ -112,14 +109,10 @@ void CodaMotorController::handleCanFrame(CAN_FRAME *frame) {
 
     case 0x20E:     //Temperature Feedback Message
         invTemp = frame->data.bytes[2];
-        RotorTemp = frame->data.bytes[3];
-        StatorTemp = frame->data.bytes[4];
+        rotorTemp = frame->data.bytes[3];
+        statorTemp = frame->data.bytes[4];
         temperatureController = (invTemp - 40) * 10;
-        if (RotorTemp > StatorTemp) {
-            temperatureMotor = (RotorTemp - 40) * 10;
-        } else {
-            temperatureMotor = (StatorTemp - 40) * 10;
-        }
+        temperatureMotor = (max(rotorTemp, statorTemp) - 40) * 10;
         if (Logger::isDebug()) {
             Logger::debug(CODAUQM, "Inverter temp: %d Motor temp: %d", temperatureController, temperatureMotor);
         }
@@ -176,13 +169,13 @@ void CodaMotorController::sendCmd1() {
     CAN_FRAME output;
     canHandlerEv->prepareOutputFrame(&output, 0x204);
 
-    if (actualState == ENABLE) {
+    if ((ready || running) && powerOn) {
         output.data.bytes[1] = 0x80; //1000 0000
     } else {
         output.data.bytes[1] = 0x40; //0100 0000
     }
 
-    if (selectedGear == DRIVE) {
+    if (getGear() == DRIVE && !config->invertDirection) {
         output.data.bytes[1] |= 0x20; //xx10 0000
     } else {
         output.data.bytes[1] |= 0x10; //xx01 0000
@@ -192,19 +185,18 @@ void CodaMotorController::sendCmd1() {
     if (sequence == 8) {
         sequence = 0;
     } //If we reach 8, go to zero
-    output.data.bytes[1] |= sequence; //This should retain left four and add sequence count
-                                      //to right four bits.
+    output.data.bytes[1] |= sequence; //This should retain left four and add sequence count to right four bits.
     //Requested throttle is [-1000, 1000]
     //Two byte torque request in 0.1NM Can be positive or negative
 
-    torqueCommand = 32128; //Set our zero offset value -torque=0
-    torqueRequested = ((throttleRequested * config->torqueMax) / 1000); //Calculate torque request from throttle position x maximum torque
+    uint16_t torqueCommand = 32128; //Set our zero offset value -torque=0
     if (speedActual < config->speedMax) {
-        torqueCommand += torqueRequested;
+        torqueCommand += getTorqueRequested();
     } //If actual rpm less than max rpm, add torque command to offset
     else {
-        torqueCommand += torqueRequested / 2;
+        torqueCommand += getTorqueRequested() / 2;
     }  //If at RPM limit, cut torque command in half.
+
     output.data.bytes[3] = (torqueCommand & 0xFF00) >> 8;  //Stow torque command in bytes 2 and 3.
     output.data.bytes[2] = (torqueCommand & 0x00FF);
     output.data.bytes[4] = genCodaCRC(output.data.bytes[1], output.data.bytes[2], output.data.bytes[3]); //Calculate security byte
@@ -229,17 +221,10 @@ void CodaMotorController::sendCmd2() {
      */
 
     CAN_FRAME output;
-    output.length = 8;
-    output.id = 0x207;
-    output.extended = 0; //standard frame
+    canHandlerEv->prepareOutputFrame(&output, 0x207);
     output.data.bytes[0] = 0xa5; //This is simply three given values.  The 5A appears to be
     output.data.bytes[1] = 0xa5; //the important one.
     output.data.bytes[2] = 0x5a;
-    output.data.bytes[3] = 0x00;
-    output.data.bytes[4] = 0x00;
-    output.data.bytes[5] = 0x00;
-    output.data.bytes[6] = 0x00;
-    output.data.bytes[7] = 0x00;
 
     canHandlerEv->sendFrame(output);
     if (Logger::isDebug()) {
@@ -262,7 +247,6 @@ void CodaMotorController::loadConfiguration() {
     }
 
     MotorController::loadConfiguration(); // call parent
-
 }
 
 void CodaMotorController::saveConfiguration() {

@@ -127,8 +127,6 @@ public:
     bool digitalInput[CFG_NUMBER_DIGITAL_INPUTS]; // the the digital input x activated ?
     bool digitalOutput[CFG_NUMBER_DIGITAL_OUTPUTS]; // the the digital output x activated ?
 
-    int16_t temperatureController; // temperature reported by the motor controller (in 0.1 degree celsius)
-    int16_t temperatureMotor; // temperature reported by the motor (in 0.1 degree celsius)
     int16_t externalTemperature[CFG_NUMBER_TEMPERATURE_SENSORS]; // temperature reported via CAN from external device
 
     static Status *getInstance();

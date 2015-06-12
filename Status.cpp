@@ -105,9 +105,6 @@ Status::Status() {
     chargePowerAvailable= false;
     interlockPresent    = false;
 
-    temperatureController = CFG_NO_TEMPERATURE_DATA;
-    temperatureMotor = CFG_NO_TEMPERATURE_DATA;
-
     for (int i = 0; i < CFG_NUMBER_DIGITAL_OUTPUTS; i++) {
         digitalOutput[i] = false;
     }
@@ -145,6 +142,8 @@ Status::SystemState Status::setSystemState(SystemState newSystemState) {
     if (systemState == newSystemState) {
         return systemState;
     }
+
+    SystemState oldSystemState = systemState;
 
     if (newSystemState == error) {
         systemState = error;
@@ -209,7 +208,8 @@ Status::SystemState Status::setSystemState(SystemState newSystemState) {
         systemState = error;
     }
 
-    DeviceManager::getInstance()->sendMessage(DEVICE_ANY, INVALID, MSG_STATE_CHANGE, &newSystemState);
+    SystemState params[] = { oldSystemState, newSystemState };
+    DeviceManager::getInstance()->sendMessage(DEVICE_ANY, INVALID, MSG_STATE_CHANGE, params);
 
     return systemState;
 }

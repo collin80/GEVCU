@@ -290,8 +290,8 @@ void ICHIPWIFI::handleTick()
                 paramCache.temperatureController = motorController->getTemperatureController();
                 setParam(Constants::temperatureController, paramCache.temperatureController / 10.0f, 1);
             }
-            if (paramCache.gear != motorController->getSelectedGear()) {
-                paramCache.gear = motorController->getSelectedGear();
+            if (paramCache.gear != motorController->getGear()) {
+                paramCache.gear = motorController->getGear();
                 setParam(Constants::gear, (uint16_t) paramCache.gear);
             }
         }
@@ -673,14 +673,14 @@ bool ICHIPWIFI::processParameterChangeMotor(char *key, char *value)
                 config->torqueSlewRate = atof(value) * 10;
             } else if (!strcmp(key, Constants::speedSlewRate)) {
                 config->speedSlewRate = atof(value) * 10;
+            } else if (!strcmp(key, Constants::maxMechanicalPowerMotor)) {
+                config->maxMechanicalPowerMotor = atof(value) * 10;
+            } else if (!strcmp(key, Constants::maxMechanicalPowerRegen)) {
+                config->maxMechanicalPowerRegen = atof(value) * 10;
             } else if (motorController->getId() == BRUSA_DMC5) {
                 BrusaDMC5Configuration *dmc5Config = (BrusaDMC5Configuration *) config;
 
-                if (!strcmp(key, Constants::maxMechanicalPowerMotor)) {
-                    dmc5Config->maxMechanicalPowerMotor = atol(value) / 4;
-                } else if (!strcmp(key, Constants::maxMechanicalPowerRegen)) {
-                    dmc5Config->maxMechanicalPowerRegen = atol(value) / 4;
-                } else if (!strcmp(key, Constants::dcVoltLimitMotor)) {
+                if (!strcmp(key, Constants::dcVoltLimitMotor)) {
                     dmc5Config->dcVoltLimitMotor = atof(value) * 10;
                 } else if (!strcmp(key, Constants::dcVoltLimitRegen)) {
                     dmc5Config->dcVoltLimitRegen = atof(value) * 10;
@@ -933,10 +933,10 @@ void ICHIPWIFI::loadParametersMotor()
             setParam(Constants::invertDirection, (uint8_t)(config->invertDirection ? 1 : 0));
             setParam(Constants::torqueSlewRate, config->torqueSlewRate / 10.0f, 1);
             setParam(Constants::speedSlewRate, config->speedSlewRate / 10.0f, 1);
+            setParam(Constants::maxMechanicalPowerMotor, config->maxMechanicalPowerMotor / 10.0f, 1);
+            setParam(Constants::maxMechanicalPowerRegen, config->maxMechanicalPowerRegen / 10.0f, 1);
             if (motorController->getId() == BRUSA_DMC5) {
                 BrusaDMC5Configuration *dmc5Config = (BrusaDMC5Configuration *) config;
-                setParam(Constants::maxMechanicalPowerMotor, (uint32_t)(dmc5Config->maxMechanicalPowerMotor * 4));
-                setParam(Constants::maxMechanicalPowerRegen, (uint32_t)(dmc5Config->maxMechanicalPowerRegen * 4));
                 setParam(Constants::dcVoltLimitMotor, dmc5Config->dcVoltLimitMotor / 10.0f, 1);
                 setParam(Constants::dcVoltLimitRegen, dmc5Config->dcVoltLimitRegen / 10.0f, 1);
                 setParam(Constants::dcCurrentLimitMotor, dmc5Config->dcCurrentLimitMotor / 10.0f, 1);

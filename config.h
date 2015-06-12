@@ -142,9 +142,6 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #define CoolingTemperatureOff 35 //temperature to turn it off
 #define InterlockInput 255
 
-#define MaxRegenWatts   40000 //in actual watts, there is no scale here
-#define MaxAccelWatts   150000
-
 
 /*
  * ARRAY SIZE

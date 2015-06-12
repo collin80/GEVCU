@@ -50,10 +50,10 @@ DeviceType DcDcConverter::getType() {
  * act on messages the super-class does not react upon, like state change
  * to ready or running which should enable/disable the power-stage of the converter
  */
-void DcDcConverter::handleStateChange(Status::SystemState state) {
-    Device::handleStateChange(state);
-    if (state == Status::ready || state == Status::charging || state == Status::charged
-            || state == Status::running || state == Status::batteryHeating) {
+void DcDcConverter::handleStateChange(Status::SystemState oldState, Status::SystemState newState) {
+    Device::handleStateChange(oldState, newState);
+    if (newState == Status::ready || newState == Status::charging || newState == Status::charged
+            || newState == Status::running || newState == Status::batteryHeating) {
         powerOn = true;
     } else {
         powerOn = false;

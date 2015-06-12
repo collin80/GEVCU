@@ -79,13 +79,19 @@ public:
         NOACTION = 3
     };
 
+    enum OperationState {
+        DISABLE = 0,
+        STANDBY = 1,
+        ENABLE = 2,
+        POWERDOWN = 3
+    };
+
 public:
     virtual void handleTick();
     virtual void handleCanFrame(CAN_FRAME *frame);
-    void handleStateChange(Status::SystemState state);
+    void handleStateChange(Status::SystemState, Status::SystemState);
     virtual void setup();
     virtual void tearDown();
-    void setGear(Gears gear);
 
     DmocMotorController();
     DeviceId getId();
@@ -94,9 +100,7 @@ public:
     virtual void saveConfiguration();
 
 private:
-    Gears actualGear;
     int step;
-    byte online; //counter for whether DMOC appears to be operating
     byte alive;
     int activityCount;
 

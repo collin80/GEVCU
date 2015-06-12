@@ -166,8 +166,8 @@ void Device::handleMessage(uint32_t msgType, void* message)
         enable();
         break;
     case MSG_STATE_CHANGE:
-        Status::SystemState state = *(Status::SystemState *) message;
-        handleStateChange(state);
+        Status::SystemState *state = (Status::SystemState *) message;
+        handleStateChange(state[0], state[1]);
         break;
     }
 }
@@ -176,9 +176,9 @@ void Device::handleMessage(uint32_t msgType, void* message)
  * React on state changes.
  * Subclasses may overwrite the method but should call the parent.
  */
-void Device::handleStateChange(Status::SystemState state)
+void Device::handleStateChange(Status::SystemState oldState, Status::SystemState newState)
 {
-    switch (state) {
+    switch (newState) {
     case Status::init:
         this->setup();
         break;

@@ -60,11 +60,6 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 class BrusaDMC5Configuration : public MotorControllerConfiguration
 {
 public:
-    // DMC_CTRL2
-    uint16_t maxMechanicalPowerMotor; // maximal mechanical power of motor in 4W steps
-    uint16_t maxMechanicalPowerRegen; // maximal mechanical power of regen in 4W steps
-
-    // DMC_LIM
     uint16_t dcVoltLimitMotor; // minimum DC voltage limit for motoring in 0.1V
     uint16_t dcVoltLimitRegen; //  maximum DC voltage limit for regen in 0.1V
     uint16_t dcCurrentLimitMotor; // current limit for motoring in 0.1A
@@ -162,7 +157,7 @@ public:
     BrusaDMC5();
     void handleTick();
     void handleCanFrame(CAN_FRAME *frame);
-    void handleStateChange(Status::SystemState state);
+    void handleStateChange(Status::SystemState, Status::SystemState);
     void setup();
     void tearDown();
     DeviceId getId();
@@ -176,7 +171,6 @@ private:
     int16_t minNegativeTorque; // minimum negative available torque in 0.01Nm
     uint8_t limiterStateNumber; // state number of active limiter
     uint32_t bitfield; // various bit fields
-    bool firstMessageSent; // flag if the first message has been sent after enabling the controller (to prevent "enable" flag sent with first message)
 
     int tickCounter; // count how many times handleTick() was called
     CAN_FRAME outputFrame; // the output CAN frame;

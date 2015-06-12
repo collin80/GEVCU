@@ -129,10 +129,10 @@ void BrusaNLG5::sendControl()
  * This is special for chargers as they should not run while driving in
  * order not to consume CPU cycles unnecessarily.
  */
-void BrusaNLG5::handleStateChange(Status::SystemState state)
+void BrusaNLG5::handleStateChange(Status::SystemState oldState, Status::SystemState newState)
 {
-    Charger::handleStateChange(state);
-    if (state == Status::charging) {
+    Charger::handleStateChange(oldState, newState);
+    if (newState == Status::charging) {
         tickHandler->attach(this, CFG_TICK_INTERVAL_CHARGE_NLG5);
         canTickCounter = 0;
     } else {

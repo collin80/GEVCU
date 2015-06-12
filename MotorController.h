@@ -56,6 +56,8 @@ public:
     uint16_t torqueMax; // maximum torque in 0.1 Nm
     uint16_t torqueSlewRate; // for torque mode only: slew rate of torque value, 0=disabled, in 0.1Nm/sec
     uint16_t speedSlewRate; //  for speed mode only: slew rate of speed value, 0=disabled, in rpm/sec
+    uint16_t maxMechanicalPowerMotor; // maximal mechanical power of motor in 100W steps
+    uint16_t maxMechanicalPowerRegen; // maximal mechanical power of regen in 100W steps
     uint8_t reversePercent;
     uint16_t nominalVolt; //nominal pack voltage in tenths of a volt
     PowerMode powerMode;
@@ -71,25 +73,20 @@ public:
         ERROR = 3
     };
 
-    enum OperationState {
-        DISABLED = 0,
-        STANDBY = 1,
-        ENABLE = 2,
-        POWERDOWN = 3
-    };
-
     MotorController();
     DeviceType getType();
     void setup();
+    void tearDown();
     void handleTick();
     void handleCanFrame(CAN_FRAME *);
-    void handleStateChange(Status::SystemState);
+    void handleStateChange(Status::SystemState, Status::SystemState);
 
     void loadConfiguration();
     void saveConfiguration();
 
-    int16_t getThrottle();
-    Gears getSelectedGear();
+    int16_t getThrottleLevel();
+    Gears getGear();
+    void setGear(Gears gear);
     int16_t getSpeedRequested();
     int16_t getSpeedActual();
     int16_t getTorqueRequested();
@@ -108,13 +105,7 @@ public:
 protected:
     CanHandler *canHandlerEv;
 
-    Gears selectedGear;
-    OperationState actualState; // the operation state the controller is reporting
-
-    int16_t throttleRequested; // -1000 to 1000 (per mille of throttle level)
-    int16_t speedRequested; // in rpm
     int16_t speedActual; // in rpm
-    int16_t torqueRequested; // in 0.1 Nm
     int16_t torqueActual; // in 0.1 Nm
     int16_t torqueAvailable; // the maximum available torque in 0.1Nm
 
@@ -128,6 +119,13 @@ protected:
 
     uint32_t skipcounter;
     uint32_t milliStamp;
+
+private:
+    int16_t throttleLevel; // -1000 to 1000 (per mille of throttle level)
+    int16_t torqueRequested; // in 0.1 Nm, calculated in MotorController - must not be manipulated by subclasses
+    int16_t speedRequested; // in rpm, calculated in MotorController - must not be manipulated by subclasses
+    Gears gear;
+    void updatePowerConsumption();
 };
 
 #endif

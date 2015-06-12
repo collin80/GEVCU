@@ -61,7 +61,7 @@ public:
 
     virtual void handleTick();
     virtual void handleMessage(uint32_t, void*);
-    virtual void handleStateChange(Status::SystemState);
+    virtual void handleStateChange(Status::SystemState, Status::SystemState);
 
     virtual DeviceType getType();
     virtual DeviceId getId();

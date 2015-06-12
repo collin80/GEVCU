@@ -44,7 +44,6 @@ BrusaDMC5::BrusaDMC5() : MotorController()
     maxPositiveTorque = 0;
     minNegativeTorque = 0;
     limiterStateNumber = 0;
-    firstMessageSent = false;
     tickCounter = 0;
 
     commonName = "Brusa DMC5 Inverter";
@@ -64,8 +63,7 @@ void BrusaDMC5::setup()
     canHandlerEv->attach(this, CAN_MASKED_ID_1, CAN_MASK_1, false);
     canHandlerEv->attach(this, CAN_MASKED_ID_2, CAN_MASK_2, false);
 
-    tickCounter = 4; // this will result in the limmit and control2 messages being sent in the first tick - prevents msg lost errors
-    firstMessageSent = false; // prevent the first controll message sent having enable flag set (causes error in the controller)
+//    tickCounter = 4; // this will result in the limit and control2 messages being sent in the first tick - prevents msg lost errors
 
     tickHandler->attach(this, CFG_TICK_INTERVAL_MOTOR_CONTROLLER_BRUSA);
 }
@@ -80,21 +78,19 @@ void BrusaDMC5::tearDown()
     canHandlerEv->detach(this, CAN_MASKED_ID_1, CAN_MASK_1);
     canHandlerEv->detach(this, CAN_MASKED_ID_2, CAN_MASK_2);
 
-    throttleRequested = 0;
     sendControl();
 }
 
 /**
  * act on messages the super-class does not react upon, like state change
- * to ready or running which should enable/disable the power-stage of the controller
+ * to ready or running which should enable/disable the controller
  */
-void BrusaDMC5::handleStateChange(Status::SystemState state)
+void BrusaDMC5::handleStateChange(Status::SystemState oldState, Status::SystemState newState)
 {
-    MotorController::handleStateChange(state);
+    MotorController::handleStateChange(oldState, newState);
 
     // for safety reasons at power off first request 0 torque - this allows the controller to dissipate residual fields first
     if (!powerOn) {
-        throttleRequested = 0;
         sendControl();
     }
 
@@ -132,56 +128,46 @@ void BrusaDMC5::sendControl()
     BrusaDMC5Configuration *config = (BrusaDMC5Configuration *) getConfiguration();
     canHandlerEv->prepareOutputFrame(&outputFrame, CAN_ID_CONTROL);
 
-    speedRequested = 0;
-    torqueRequested = 0;
-
-    outputFrame.data.bytes[0] = (config->invertDirection ? enableNegativeTorqueSpeed : enablePositiveTorqueSpeed);
-
-    if ((status->canControlMessageLost || status->canControl2MessageLost || status->canLimitMessageLost) && firstMessageSent) {
+    if ((status->canControlMessageLost || status->canControl2MessageLost || status->canLimitMessageLost)) {
         outputFrame.data.bytes[0] |= clearErrorLatch;
-        Logger::info(BRUSA_DMC5, "clearing error latch - ctrl lost: %t, ctrl2 lost: %t, limit lost: %t", status->canControlMessageLost, status->canControl2MessageLost, status->canLimitMessageLost);
+        Logger::error(BRUSA_DMC5, "clearing error latch - ctrl lost: %t, ctrl2 lost: %t, limit lost: %t", status->canControlMessageLost,
+                status->canControl2MessageLost, status->canLimitMessageLost);
     } else {
-	  if (ready && (powerOn || (speedActual > 1000)) && firstMessageSent) {   // see warning about field weakening current to prevent uncontrollable regen
+        // to safe energy only enable the power-stage if positive acceleration is requested or the motor is still spinning (to control regen)
+        // see warning in Brusa docs about field weakening current to prevent uncontrollable regen
+        if (ready && (((getThrottleLevel() > 0) && powerOn) || (speedActual != 0))) {
             outputFrame.data.bytes[0] |= enablePowerStage;
         }
 
-//TODO: move this block and speedrequested and torque requested calculation to superclass
-
         if (powerOn && running) {
+            int16_t speedCommand = getSpeedRequested();
+            int16_t torqueCommand = getTorqueRequested();
+            outputFrame.data.bytes[0] = (config->invertDirection ? enableNegativeTorqueSpeed : enablePositiveTorqueSpeed);
+
+            if (config->powerMode == modeSpeed) {
+                outputFrame.data.bytes[0] |= enableSpeedMode;
+                if (config->invertDirection) { // reverse the motor direction if specified
+                    speedCommand *= -1;
+                }
+            } else {
+                if (config->invertDirection) { // reverse the motor direction if specified
+                    torqueCommand *= -1;
+                }
+            }
+
             if (config->enableOscillationLimiter) {
                 outputFrame.data.bytes[0] |= enableOscillationLimiter;
             }
 
-            if (config->powerMode == modeSpeed) {
-                outputFrame.data.bytes[0] |= enableSpeedMode;
-                speedRequested = throttleRequested * config->speedMax / 1000;
-                torqueRequested = config->torqueMax; // positive number used for both speed directions
-                if (config->invertDirection) { // reverse the motor direction if specified
-                     speedRequested *= -1;
-                }
-           } else { // torque mode
-                speedRequested = config->speedMax; // positive number used for both torque directions
-                torqueRequested = throttleRequested * config->torqueMax / 1000;
-                if (config->invertDirection) { // reverse the motor direction if specified
-                    torqueRequested *= -1;
-                }
-            }
-
             // set the speed in rpm
-            outputFrame.data.bytes[2] = (speedRequested & 0xFF00) >> 8;
-            outputFrame.data.bytes[3] = (speedRequested & 0x00FF);
+            outputFrame.data.bytes[2] = (speedCommand & 0xFF00) >> 8;
+            outputFrame.data.bytes[3] = (speedCommand & 0x00FF);
 
             // set the torque in 0.01Nm (GEVCU uses 0.1Nm -> multiply by 10)
-            outputFrame.data.bytes[4] = ((torqueRequested * 10) & 0xFF00) >> 8;
-            outputFrame.data.bytes[5] = ((torqueRequested * 10) & 0x00FF);
+            outputFrame.data.bytes[4] = ((torqueCommand * 10) & 0xFF00) >> 8;
+            outputFrame.data.bytes[5] = ((torqueCommand * 10) & 0x00FF);
         }
     }
-
-    if (Logger::isDebug()) {
-        Logger::debug(BRUSA_DMC5, "throttle: %f%%, requested Speed: %l rpm, requested Torque: %f Nm", (float) throttleRequested / 10.0f, speedRequested, (float) torqueRequested / 10.0F);
-    }
-
-    firstMessageSent = true;
     canHandlerEv->sendFrame(outputFrame);
 }
 
@@ -199,10 +185,10 @@ void BrusaDMC5::sendControl2()
     outputFrame.data.bytes[1] = ((config->torqueSlewRate * 10) & 0x00FF);
     outputFrame.data.bytes[2] = (config->speedSlewRate & 0xFF00) >> 8;
     outputFrame.data.bytes[3] = (config->speedSlewRate & 0x00FF);
-    outputFrame.data.bytes[4] = (config->maxMechanicalPowerMotor & 0xFF00) >> 8;
-    outputFrame.data.bytes[5] = (config->maxMechanicalPowerMotor & 0x00FF);
-    outputFrame.data.bytes[6] = (config->maxMechanicalPowerRegen & 0xFF00) >> 8;
-    outputFrame.data.bytes[7] = (config->maxMechanicalPowerRegen & 0x00FF);
+    outputFrame.data.bytes[4] = ((config->maxMechanicalPowerMotor * 25)& 0xFF00) >> 8;
+    outputFrame.data.bytes[5] = ((config->maxMechanicalPowerMotor * 25) & 0x00FF);
+    outputFrame.data.bytes[6] = ((config->maxMechanicalPowerRegen * 25) & 0xFF00) >> 8;
+    outputFrame.data.bytes[7] = ((config->maxMechanicalPowerRegen * 25) & 0x00FF);
 
     canHandlerEv->sendFrame(outputFrame);
 }
@@ -239,25 +225,25 @@ void BrusaDMC5::sendLimits()
 void BrusaDMC5::handleCanFrame(CAN_FRAME *frame)
 {
     switch (frame->id) {
-        case CAN_ID_STATUS:
-            processStatus(frame->data.bytes);
-            break;
+    case CAN_ID_STATUS:
+        processStatus(frame->data.bytes);
+        break;
 
-        case CAN_ID_ACTUAL_VALUES:
-            processActualValues(frame->data.bytes);
-            break;
+    case CAN_ID_ACTUAL_VALUES:
+        processActualValues(frame->data.bytes);
+        break;
 
-        case CAN_ID_ERRORS:
-            processErrors(frame->data.bytes);
-            break;
+    case CAN_ID_ERRORS:
+        processErrors(frame->data.bytes);
+        break;
 
-        case CAN_ID_TORQUE_LIMIT:
-            processTorqueLimit(frame->data.bytes);
-            break;
+    case CAN_ID_TORQUE_LIMIT:
+        processTorqueLimit(frame->data.bytes);
+        break;
 
-        case CAN_ID_TEMP:
-            processTemperature(frame->data.bytes);
-            break;
+    case CAN_ID_TEMP:
+        processTemperature(frame->data.bytes);
+        break;
     }
 }
 
@@ -269,22 +255,21 @@ void BrusaDMC5::handleCanFrame(CAN_FRAME *frame)
  */
 void BrusaDMC5::processStatus(uint8_t data[])
 {
-    bitfield = (uint32_t)(data[1] | (data[0] << 8));
-    torqueAvailable = (int16_t)(data[3] | (data[2] << 8)) / 10;
-    torqueActual = (int16_t)(data[5] | (data[4] << 8)) / 10;
-    speedActual = (int16_t)(data[7] | (data[6] << 8));
+    bitfield = (uint32_t) (data[1] | (data[0] << 8));
+    torqueAvailable = (int16_t) (data[3] | (data[2] << 8)) / 10;
+    torqueActual = (int16_t) (data[5] | (data[4] << 8)) / 10;
+    speedActual = (int16_t) (data[7] | (data[6] << 8));
 
     if (Logger::isDebug()) {
-        Logger::debug(BRUSA_DMC5, "status: %X, torque avail: %fNm, actual torque: %fNm, speed actual: %drpm", bitfield, (float) torqueAvailable / 100.0F, (float) torqueActual / 100.0F, speedActual);
+        Logger::debug(BRUSA_DMC5, "status: %X (%B), torque avail: %fNm, actual torque: %fNm, speed actual: %drpm", bitfield, bitfield,
+                torqueAvailable / 100.0F, torqueActual / 100.0F, speedActual);
     }
 
     ready = (bitfield & dmc5Ready) ? true : false;
     running = (bitfield & dmc5Running) ? true : false;
     if ((bitfield & errorFlag) && status->getSystemState() != Status::error) {
         Logger::error(BRUSA_DMC5, "Error reported from motor controller!");
-        if(firstMessageSent) {
-            status->setSystemState(Status::error);
-        }
+        status->setSystemState(Status::error);
     }
     status->warning = (bitfield & warningFlag) ? true : false;
     status->limitationTorque = (bitfield & torqueLimitation) ? true : false;
@@ -308,13 +293,14 @@ void BrusaDMC5::processStatus(uint8_t data[])
  */
 void BrusaDMC5::processActualValues(uint8_t data[])
 {
-    dcVoltage = (uint16_t)(data[1] | (data[0] << 8));
-    dcCurrent = (int16_t)(data[3] | (data[2] << 8));
-    acCurrent = (uint16_t)(data[5] | (data[4] << 8)) / 2.5;
-    mechanicalPower = (int16_t)(data[7] | (data[6] << 8)) / 6.25;
+    dcVoltage = (uint16_t) (data[1] | (data[0] << 8));
+    dcCurrent = (int16_t) (data[3] | (data[2] << 8));
+    acCurrent = (uint16_t) (data[5] | (data[4] << 8)) / 2.5;
+    mechanicalPower = (int16_t) (data[7] | (data[6] << 8)) / 6.25;
 
     if (Logger::isDebug()) {
-        Logger::debug(BRUSA_DMC5, "actual values: DC Volts: %fV, DC current: %fA, AC current: %fA, mechPower: %fkW", (float) dcVoltage / 10.0F, (float) dcCurrent / 10.0F, (float) acCurrent / 10.0F, (float) mechanicalPower / 10.0F);
+        Logger::debug(BRUSA_DMC5, "actual values: DC Volts: %fV, DC current: %fA, AC current: %fA, mechPower: %fkW", dcVoltage / 10.0F,
+                dcCurrent / 10.0F, acCurrent / 10.0F, mechanicalPower / 10.0F);
     }
 }
 
@@ -327,7 +313,7 @@ void BrusaDMC5::processActualValues(uint8_t data[])
  */
 void BrusaDMC5::processErrors(uint8_t data[])
 {
-    bitfield = (uint32_t)(data[1] | (data[0] << 8) | (data[5] << 16) | (data[4] << 24));
+    bitfield = (uint32_t) (data[1] | (data[0] << 8) | (data[5] << 16) | (data[4] << 24));
 
     status->speedSensorSupply = (bitfield & speedSensorSupply) ? true : false;
     status->speedSensor = (bitfield & speedSensor) ? true : false;
@@ -358,24 +344,24 @@ void BrusaDMC5::processErrors(uint8_t data[])
     status->osTrap = (bitfield & osTrap) ? true : false;
 
     if (bitfield) {
-        Logger::error(BRUSA_DMC5, "%X", bitfield);
+        Logger::error(BRUSA_DMC5, "%X (%B)", bitfield, bitfield);
     }
 
-    bitfield = (uint32_t)(data[7] | (data[6] << 8));
+    bitfield = (uint32_t) (data[7] | (data[6] << 8));
 
-    status-> systemCheckActive = (bitfield & systemCheckActive) ? true : false;
-    status-> externalShutdownPath2Off = (bitfield & externalShutdownPathAw2Off) ? true : false;
-    status-> externalShutdownPath1Off = (bitfield & externalShutdownPathAw1Off) ? true : false;
-    status-> oscillationLimitControllerActive = (bitfield & oscillationLimitControllerActive) ? true : false;
-    status-> driverShutdownPathActive = (bitfield & driverShutdownPathActive) ? true : false;
-    status-> powerMismatch = (bitfield & powerMismatchDetected) ? true : false;
-    status-> speedSensorSignal = (bitfield & speedSensorSignal) ? true : false;
-    status-> hvUndervoltage = (bitfield & hvUndervoltage) ? true : false;
-    status-> maximumModulationLimiter = (bitfield & maximumModulationLimiter) ? true : false;
-    status-> temperatureSensor = (bitfield & temperatureSensor) ? true : false;
+    status->systemCheckActive = (bitfield & systemCheckActive) ? true : false;
+    status->externalShutdownPath2Off = (bitfield & externalShutdownPathAw2Off) ? true : false;
+    status->externalShutdownPath1Off = (bitfield & externalShutdownPathAw1Off) ? true : false;
+    status->oscillationLimitControllerActive = (bitfield & oscillationLimitControllerActive) ? true : false;
+    status->driverShutdownPathActive = (bitfield & driverShutdownPathActive) ? true : false;
+    status->powerMismatch = (bitfield & powerMismatchDetected) ? true : false;
+    status->speedSensorSignal = (bitfield & speedSensorSignal) ? true : false;
+    status->hvUndervoltage = (bitfield & hvUndervoltage) ? true : false;
+    status->maximumModulationLimiter = (bitfield & maximumModulationLimiter) ? true : false;
+    status->temperatureSensor = (bitfield & temperatureSensor) ? true : false;
 
     if (bitfield) {
-        Logger::warn(BRUSA_DMC5, "%X", bitfield);
+        Logger::warn(BRUSA_DMC5, "%X (%B)", bitfield, bitfield);
     }
 }
 
@@ -386,12 +372,13 @@ void BrusaDMC5::processErrors(uint8_t data[])
  */
 void BrusaDMC5::processTorqueLimit(uint8_t data[])
 {
-    maxPositiveTorque = (int16_t)(data[1] | (data[0] << 8)) / 10;
-    minNegativeTorque = (int16_t)(data[3] | (data[2] << 8)) / 10;
+    maxPositiveTorque = (int16_t) (data[1] | (data[0] << 8)) / 10;
+    minNegativeTorque = (int16_t) (data[3] | (data[2] << 8)) / 10;
     limiterStateNumber = (uint8_t) data[4];
 
     if (Logger::isDebug()) {
-        Logger::debug(BRUSA_DMC5, "torque limit: max positive: %fNm, min negative: %fNm", (float) maxPositiveTorque / 10.0F, (float) minNegativeTorque / 10.0F, limiterStateNumber);
+        Logger::debug(BRUSA_DMC5, "torque limit: max positive: %fNm, min negative: %fNm", maxPositiveTorque / 10.0F, minNegativeTorque / 10.0F,
+                limiterStateNumber);
     }
 }
 
@@ -403,11 +390,12 @@ void BrusaDMC5::processTorqueLimit(uint8_t data[])
 void BrusaDMC5::processTemperature(uint8_t data[])
 {
     int16_t temperaturePowerStage;
-    temperaturePowerStage = (int16_t)(data[1] | (data[0] << 8)) * 5;
-    temperatureMotor = (int16_t)(data[3] | (data[2] << 8)) * 5;
-    temperatureController = (int16_t)(data[4] - 50) * 10;
+    temperaturePowerStage = (int16_t) (data[1] | (data[0] << 8)) * 5;
+    temperatureMotor = (int16_t) (data[3] | (data[2] << 8)) * 5;
+    temperatureController = (int16_t) (data[4] - 50) * 10;
     if (Logger::isDebug()) {
-        Logger::debug(BRUSA_DMC5, "temperature: powerStage: %fC, motor: %fC, system: %fC", (float) temperaturePowerStage / 10.0F, (float) temperatureMotor / 10.0F, (float) temperatureController / 10.0F);
+        Logger::debug(BRUSA_DMC5, "temperature: powerStage: %fC, motor: %fC, system: %fC", temperaturePowerStage / 10.0F, temperatureMotor / 10.0F,
+                temperatureController / 10.0F);
     }
     if (temperaturePowerStage > temperatureController) {
         temperatureController = temperaturePowerStage;
@@ -445,8 +433,6 @@ void BrusaDMC5::loadConfiguration()
     if (prefsHandler->checksumValid()) { //checksum is good, read in the values stored in EEPROM
 #endif
         uint8_t temp;
-        prefsHandler->read(EEMC_MAX_MECH_POWER_MOTOR, &config->maxMechanicalPowerMotor);
-        prefsHandler->read(EEMC_MAX_MECH_POWER_REGEN, &config->maxMechanicalPowerRegen);
         prefsHandler->read(EEMC_DC_VOLT_LIMIT_MOTOR, &config->dcVoltLimitMotor);
         prefsHandler->read(EEMC_DC_VOLT_LIMIT_REGEN, &config->dcVoltLimitRegen);
         prefsHandler->read(EEMC_DC_CURRENT_LIMIT_MOTOR, &config->dcCurrentLimitMotor);
@@ -454,18 +440,16 @@ void BrusaDMC5::loadConfiguration()
         prefsHandler->read(EEMC_OSCILLATION_LIMITER, &temp);
         config->enableOscillationLimiter = (temp != 0);
     } else { //checksum invalid. Reinitialize values and store to EEPROM
-        config->maxMechanicalPowerMotor = 50000;
-        config->maxMechanicalPowerRegen = 50000;
         config->dcVoltLimitMotor = 1000;
-        config->dcVoltLimitRegen =  4200;
+        config->dcVoltLimitRegen = 4200;
         config->dcCurrentLimitMotor = 3000;
         config->dcCurrentLimitRegen = 3000;
         config->enableOscillationLimiter = false;
         saveConfiguration();
     }
-    Logger::info(BRUSA_DMC5, "Max mech power motor: %d kW, max mech power regen: %d kW", config->maxMechanicalPowerMotor * 4, config->maxMechanicalPowerRegen * 4);
     Logger::info(BRUSA_DMC5, "DC limit motor: %f Volt, DC limit regen: %f Volt", config->dcVoltLimitMotor / 10.0f, config->dcVoltLimitRegen / 10.0f);
-    Logger::info(BRUSA_DMC5, "DC limit motor: %f Amps, DC limit regen: %f Amps", config->dcCurrentLimitMotor / 10.0f, config->dcCurrentLimitRegen / 10.0f);
+    Logger::info(BRUSA_DMC5, "DC limit motor: %f Amps, DC limit regen: %f Amps", config->dcCurrentLimitMotor / 10.0f,
+            config->dcCurrentLimitRegen / 10.0f);
 }
 
 /*
@@ -483,6 +467,6 @@ void BrusaDMC5::saveConfiguration()
     prefsHandler->write(EEMC_DC_VOLT_LIMIT_REGEN, config->dcVoltLimitRegen);
     prefsHandler->write(EEMC_DC_CURRENT_LIMIT_MOTOR, config->dcCurrentLimitMotor);
     prefsHandler->write(EEMC_DC_CURRENT_LIMIT_REGEN, config->dcCurrentLimitRegen);
-    prefsHandler->write(EEMC_OSCILLATION_LIMITER, (uint8_t)(config->enableOscillationLimiter ? 1 : 0));
+    prefsHandler->write(EEMC_OSCILLATION_LIMITER, (uint8_t) (config->enableOscillationLimiter ? 1 : 0));
     prefsHandler->saveChecksum();
 }

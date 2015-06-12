@@ -156,7 +156,7 @@ bool OBD2Handler::processShowData(uint8_t pid, char *inData, char *outData)
             break;
 
         case 0x11: //Throttle position (A * 100 / 255) - Percentage
-            temp = motorController->getThrottle() / 10; //getThrottle returns in 10ths of a percent
+            temp = motorController->getThrottleLevel() / 10; //getThrottle returns in 10ths of a percent
 
             if (temp < 0) {
                 temp = 0;    //negative throttle can't be shown for OBDII
