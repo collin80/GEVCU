@@ -138,22 +138,22 @@ void BrusaDMC5::sendControl()
     } else {
         // to safe energy only enable the power-stage when positive acceleration is requested or the motor is still spinning (to control regen)
         // see warning in Brusa docs about field weakening current to prevent uncontrollable regen
-        if (ready && (((getThrottleLevel() > 0) && powerOn) || (speedActual != 0))) {
+        if (ready && ((getThrottleLevel() > 0 && powerOn) || (speedActual != 0))) {
             outputFrame.data.bytes[0] |= enablePowerStage;
         }
-//TODO add support for gears
+
         if (powerOn && running) {
             int16_t speedCommand = getSpeedRequested();
             int16_t torqueCommand = getTorqueRequested();
-            outputFrame.data.bytes[0] = (config->invertDirection ? enableNegativeTorqueSpeed : enablePositiveTorqueSpeed);
+            outputFrame.data.bytes[0] = (config->invertDirection ^ (getGear() == REVERSE) ? enableNegativeTorqueSpeed : enablePositiveTorqueSpeed);
 
             if (config->powerMode == modeSpeed) {
                 outputFrame.data.bytes[0] |= enableSpeedMode;
-                if (config->invertDirection) { // reverse the motor direction if specified
+                if (config->invertDirection ^ (getGear() == REVERSE)) { // reverse the motor direction if specified
                     speedCommand *= -1;
                 }
             } else {
-                if (config->invertDirection) { // reverse the motor direction if specified
+                if (config->invertDirection ^ (getGear() == REVERSE)) { // reverse the motor direction if specified
                     torqueCommand *= -1;
                 }
             }

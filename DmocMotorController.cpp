@@ -186,17 +186,13 @@ void DmocMotorController::sendCmd1()
     DmocMotorControllerConfiguration *config = (DmocMotorControllerConfiguration *) getConfiguration();
     OperationState newstate;
     CAN_FRAME output;
+
     canHandlerEv->prepareOutputFrame(&output, CAN_ID_COMMAND);
     alive = (alive + 2) & 0x0F;
 
     uint16_t speedCommand = 20000;
-
-    if (config->powerMode == modeSpeed && powerOn && running && getGear() != NEUTRAL) {
-        if (config->invertDirection) {
-            speedCommand -= getSpeedRequested();
-        } else {
-            speedCommand += getSpeedRequested();
-        }
+    if (getSpeedRequested() != 0 && powerOn && running && getGear() != NEUTRAL && config->powerMode == modeSpeed) {
+        speedCommand += getSpeedRequested();
     }
 
     output.data.bytes[0] = (speedCommand & 0xFF00) >> 8;
@@ -236,24 +232,20 @@ void DmocMotorController::sendCmd2()
 {
     DmocMotorControllerConfiguration *config = (DmocMotorControllerConfiguration *) getConfiguration();
     CAN_FRAME output;
+
     canHandlerEv->prepareOutputFrame(&output, CAN_ID_LIMIT);
 
     if (config->powerMode == modeTorque) {
         //30000 is the base point where torque = 0
         //torqueRequested and torqueMax is in tenths Nm like it should be.
         uint16_t torqueCommand = 3000; //set offset  for zero torque commanded
-        int16_t torqueRequested = (speedActual < config->speedMax ? getTorqueRequested() : getTorqueRequested() / 1.3);
-
-        if (config->invertDirection) {
-            torqueRequested *= -1;
-        }
         if (running) { //don't even try sending torque commands until the DMOC reports it is ready
-            if (getGear() == DRIVE) {
-                torqueCommand += torqueRequested;
+            int16_t torqueRequested = (speedActual < config->speedMax ? getTorqueRequested() : getTorqueRequested() / 1.3);
+
+            if (config->invertDirection ^ getGear() == REVERSE) {
+                torqueRequested *= -1;
             }
-            if (getGear() == REVERSE) {
-                torqueCommand -= torqueRequested;
-            }
+            torqueCommand += torqueRequested;
         }
 
         //data 0-1 is upper limit, 2-3 is lower limit. They are set to same value to lock torque to this value
