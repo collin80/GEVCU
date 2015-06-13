@@ -39,6 +39,7 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 ELM327Emu::ELM327Emu()
 {
     prefsHandler = new PrefHandler(ELM327EMU);
+    elmProc = new ELM327Processor();
 
     uint8_t sys_type;
     sysPrefs->read(EESYS_SYSTEM_TYPE, &sys_type);
@@ -48,19 +49,12 @@ ELM327Emu::ELM327Emu()
     } else { //older hardware used this instead
         serialInterface = &Serial3;
     }
+    serialInterface->begin(9600);
 
     commonName = "ELM327 Emulator over Bluetooth";
-}
 
-/*
- * Constructor. Pass serial interface to use
- */
-ELM327Emu::ELM327Emu(USARTClass *which)
-{
-    prefsHandler = new PrefHandler(ELM327EMU);
-    serialInterface = which;
+    ibWritePtr = 0;
 }
-
 
 /*
  * Initialization of hardware and parameters
@@ -69,11 +63,6 @@ void ELM327Emu::setup()
 {
     tickHandler->detach(this);
 
-    tickCounter = 0;
-    ibWritePtr = 0;
-    serialInterface->begin(9600);
-
-    elmProc = new ELM327Processor();
     ready = true;
     running = true;
 

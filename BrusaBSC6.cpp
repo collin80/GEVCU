@@ -51,6 +51,7 @@ BrusaBSC6::BrusaBSC6() : DcDcConverter()
     lsActualCurrent = 0;
     lsCommandedCurrent = 0;
     internalOperationState = 0;
+    bitfield = 0;
 }
 
 /*

@@ -38,6 +38,7 @@ Charger::Charger() : Device()
     ampereMilliSeconds = 0;
     wattMilliSeconds = 0;
     chargeStartTime = 0;
+    requestedOutputCurrent = 0;
     lastTick = 0;
 }
 

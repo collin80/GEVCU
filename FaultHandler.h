@@ -54,6 +54,8 @@ typedef struct {
 class FaultHandler : public TickObserver {
   public:
   FaultHandler(); //constructor
+  virtual ~FaultHandler();
+
   uint16_t raiseFault(uint16_t device, uint16_t code, bool ongoing); //raise a new fault. Returns the fault # where this was stored
   void cancelOngoingFault(uint16_t device, uint16_t code); //if this fault was registered as ongoing then cancel it (set not ongoing) otherwise do nothing
   bool getNextFault(FAULT*); //get the next un-ack'd fault. Will also get first fault if the first call and you forgot to call getFirstFault
@@ -62,8 +64,8 @@ class FaultHandler : public TickObserver {
   void handleTick();
   void setup();
 
-  uint16_t setFaultACK(uint16_t fault); //acknowledge the fault # - returns fault # if successful (0xFFFF otherwise)
-  uint16_t setFaultOngoing(uint16_t fault, bool ongoing); //set value of ongoing flag - returns fault # on success
+  void setFaultACK(uint16_t fault); //acknowledge the fault # - returns fault # if successful (0xFFFF otherwise)
+  void setFaultOngoing(uint16_t fault, bool ongoing); //set value of ongoing flag - returns fault # on success
   
   private:
   void loadFromEEPROM();

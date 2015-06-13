@@ -93,7 +93,6 @@ private:
     uint8_t cache_findpage();
     uint8_t cache_readpage(uint32_t addr);
     boolean cache_writepage(uint8_t page);
-    uint8_t agingTimer;
 };
 
 #endif /* MEM_CACHE_H_ */

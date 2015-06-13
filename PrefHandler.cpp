@@ -29,13 +29,6 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 #include "PrefHandler.h"
 
-PrefHandler::PrefHandler()
-{
-    deviceId = INVALID;
-    lkg_address = EE_MAIN_OFFSET; //default to normal mode
-    base_address = 0;
-}
-
 void PrefHandler::initDevTable()
 {
     uint16_t id;

@@ -106,7 +106,6 @@ protected:
 private:
     CanHandler *canHandlerEv;
     CAN_FRAME outputFrame; // the output CAN frame;
-    CanIOConfiguration *configuration;
 
     void processExternalTemperature(byte []);
     void sendIOStatus();

@@ -47,6 +47,8 @@ BrusaNLG5::BrusaNLG5() : Charger()
     temperatureExtSensor1 = 0;
     temperatureExtSensor2 = 0;
     temperatureExtSensor3 = 0;
+    bitfield = 0;
+    canTickCounter = 0;
 }
 
 /*

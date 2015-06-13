@@ -34,6 +34,7 @@
 ICHIPWIFI::ICHIPWIFI()
 {
     prefsHandler = new PrefHandler(ICHIP2128);
+    elmProc = new ELM327Processor();
 
     uint8_t sys_type;
     sysPrefs->read(EESYS_SYSTEM_TYPE, &sys_type);
@@ -43,17 +44,22 @@ ICHIPWIFI::ICHIPWIFI()
     } else { //older hardware used this instead
         serialInterface = &Serial3;
     }
+    serialInterface->begin(115200);
 
     commonName = "WIFI (iChip2128)";
-}
 
-/*
- * Constructor. Pass serial interface to use for ichip communication
- */
-ICHIPWIFI::ICHIPWIFI(USARTClass *which)
-{
-    prefsHandler = new PrefHandler(ICHIP2128);
-    serialInterface = which;
+    didParamLoad = false;
+    didTCPListener = false;
+
+    tickCounter = 0;
+    ibWritePtr = 0;
+    psWritePtr = 0;
+    psReadPtr = 0;
+    listeningSocket = 0;
+    lastSendTime = 0;
+    lastSentState = IDLE;
+    state = IDLE;
+    lastSentCmd = String("");
 }
 
 /*
@@ -63,31 +69,17 @@ void ICHIPWIFI::setup()
 {
     tickHandler->detach(this);
 
-    tickCounter = 0;
-    ibWritePtr = 0;
-    psWritePtr = 0;
-    psReadPtr = 0;
-    listeningSocket = 0;
-
     lastSendTime = millis();
     lastSentState = IDLE;
-    lastSentCmd = String("");
+    state = IDLE;
 
     activeSockets[0] = -1;
     activeSockets[1] = -1;
     activeSockets[2] = -1;
     activeSockets[3] = -1;
 
-    state = IDLE;
-
-    didParamLoad = false;
-    didTCPListener = false;
-
-    serialInterface->begin(115200);
-
     paramCache.timeRunning = 0;
 
-    elmProc = new ELM327Processor();
     ready = true;
     running = true;
 

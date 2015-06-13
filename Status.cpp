@@ -54,6 +54,7 @@ Status::Status() {
     speedSensorSignal               = false;
     maximumModulationLimiter        = false;
     temperatureSensor               = false;
+    systemCheckActive               = false;
 
     speedSensor                     = false;
     speedSensorSupply               = false;
@@ -104,6 +105,7 @@ Status::Status() {
     enableIn            = false;
     chargePowerAvailable= false;
     interlockPresent    = false;
+    reverseInput        = false;
 
     for (int i = 0; i < CFG_NUMBER_DIGITAL_OUTPUTS; i++) {
         digitalOutput[i] = false;

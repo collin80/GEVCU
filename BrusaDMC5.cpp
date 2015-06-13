@@ -45,6 +45,7 @@ BrusaDMC5::BrusaDMC5() : MotorController()
     minNegativeTorque = 0;
     limiterStateNumber = 0;
     tickCounter = 0;
+    bitfield = 0;
 
     commonName = "Brusa DMC5 Inverter";
 }

@@ -156,7 +156,6 @@ private:
     int psWritePtr;
     int psReadPtr;
     int tickCounter;
-    int currReply;
     char buffer[30]; // a buffer for various string conversions
     ParamCache paramCache;
     ICHIP_COMM_STATE state;

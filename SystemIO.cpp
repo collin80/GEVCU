@@ -45,6 +45,7 @@ SystemIO::SystemIO() {
     prefsHandler = new PrefHandler(SYSTEM);
     status = Status::getInstance();
     preChargeStart = 0;
+    useRawADC = false;
 }
 
 SystemIO::~SystemIO() {

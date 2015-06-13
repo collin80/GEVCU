@@ -29,6 +29,14 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
   FaultHandler::FaultHandler()
   {
+      baseTime = 0;
+      globalTime = 0;
+      faultReadPointer = 0;
+      faultWritePointer = 0;
+  }
+
+  FaultHandler::~FaultHandler()
+  {
   }
 
   void FaultHandler::setup() 
@@ -203,7 +211,7 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 	  return false;
   }
   
-  uint16_t FaultHandler::setFaultACK(uint16_t fault)
+  void FaultHandler::setFaultACK(uint16_t fault)
   {
 	  if (fault > 0 && fault < CFG_FAULT_HISTORY_SIZE) 
 	  {
@@ -212,7 +220,7 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 	  }
   }
 
-  uint16_t FaultHandler::setFaultOngoing(uint16_t fault, bool ongoing)
+  void FaultHandler::setFaultOngoing(uint16_t fault, bool ongoing)
   {
 	  if (fault > 0 && fault < CFG_FAULT_HISTORY_SIZE) 
 	  {
