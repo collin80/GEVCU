@@ -195,6 +195,7 @@ private:
     void loadParametersDcDc();
     void loadParametersSystemIO();
     void loadParametersDevices();
+    void factoryDefaults();
 };
 
 #endif

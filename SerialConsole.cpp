@@ -977,44 +977,7 @@ void SerialConsole::handleShortCmd()
 
         case 'w':
         Logger::console("Resetting wifi to factory defaults and setting up to auto connect to open APs, this takes about 50sec, please stand-by");
-        // restore factory defaults and give it some time
-        // pinMode(43,OUTPUT);
-        //  digitalWrite(43, HIGH);
-        //  delay(3000);
-        //  digitalWrite(43, LOW);
-        //  delay(3000);
-        deviceManager->sendMessage(DEVICE_WIFI, ICHIP2128, MSG_COMMAND, (void *) "FD");
-        delay(3000);
-        deviceManager->sendMessage(DEVICE_WIFI, ICHIP2128, MSG_COMMAND, (void *)"HIF=1");//Set for RS-232 serial.
-        delay(1000);
-        // set-up specific ad-hoc network
-        deviceManager->sendMessage(DEVICE_WIFI, ICHIP2128, MSG_COMMAND, (void *) "BDRA");
-        delay(1000);
-        deviceManager->sendMessage(DEVICE_WIFI, ICHIP2128, MSG_COMMAND, (void *) "WLCH=1");//use whichever channel an AP wants to use
-        delay(1000);
-        deviceManager->sendMessage(DEVICE_WIFI, ICHIP2128, MSG_COMMAND, (void *) "WLSI=!GEVCU");//set no SSID which enables auto searching for an open hotspot
-        delay(1000);
-        deviceManager->sendMessage(DEVICE_WIFI, ICHIP2128, MSG_COMMAND, (void *) "DIP=192.168.3.10");//enable searching for a proper IP via DHCP
-        delay(1000);
-        deviceManager->sendMessage(DEVICE_WIFI, ICHIP2128, MSG_COMMAND, (void *) "DPSZ=10");// enable DHCP server for 10 IPs
-        delay(1000);
-#ifdef CFG_WIFI_WPA2
-        deviceManager->sendMessage(DEVICE_WIFI, ICHIP2128, MSG_COMMAND, (void *) "WST0=4");// enable WPA2-PSK security
-        delay(1000);
-        deviceManager->sendMessage(DEVICE_WIFI, ICHIP2128, MSG_COMMAND, (void *) "WSEC=1");// use WPA2-AES protocol
-        delay(1000);
-        deviceManager->sendMessage(DEVICE_WIFI, ICHIP2128, MSG_COMMAND, (void *) "WPP0=verysecret");// WPA2 password
-        delay(25000); // it really takes that long to calculate the key !!
-#endif
-        deviceManager->sendMessage(DEVICE_WIFI, ICHIP2128, MSG_COMMAND, (void *) "RPG=secret");// set the configuration password for /ichip
-        delay(1000);
-        deviceManager->sendMessage(DEVICE_WIFI, ICHIP2128, MSG_COMMAND, (void *) "WPWD=secret");// set the password to update config params
-        delay(1000);
-        deviceManager->sendMessage(DEVICE_WIFI, ICHIP2128, MSG_COMMAND, (void *) "AWS=1");//turn on web server for three clients
-        delay(1000);
-        deviceManager->sendMessage(DEVICE_WIFI, ICHIP2128, MSG_COMMAND, (void *) "DOWN");//cause a reset to allow it to come up with the settings
-        delay(5000);// a 5 second delay is required for the chip to come back up ! Otherwise commands will be lost
-
+        deviceManager->sendMessage(DEVICE_WIFI, ICHIP2128, MSG_RESET, NULL);
         deviceManager->sendMessage(DEVICE_WIFI, ICHIP2128, MSG_CONFIG_CHANGE, NULL);// reload configuration params as they were lost
         Logger::console("Wifi 4.2 initialized");
         break;

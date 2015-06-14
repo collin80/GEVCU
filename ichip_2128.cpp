@@ -69,6 +69,14 @@ void ICHIPWIFI::setup()
 {
     tickHandler->detach(this);
 
+    //MSEL pin
+//    pinMode(18, OUTPUT); /pin 18 conflicts with GEVCU 2 memcache !!
+//    digitalWrite(18, HIGH);
+
+    //RESET pin
+    pinMode(42, OUTPUT);
+    digitalWrite(42, HIGH);
+
     lastSendTime = millis();
     lastSentState = IDLE;
     state = IDLE;
@@ -330,6 +338,10 @@ void ICHIPWIFI::handleMessage(uint32_t messageType, void* message)
     case MSG_COMMAND:
         sendCmd((char *) message);
         loop();
+        break;
+
+    case MSG_RESET:
+        factoryDefaults();
         break;
     }
 }
@@ -1035,6 +1047,56 @@ void ICHIPWIFI::loadParametersDevices()
             setParam(idHex, (uint8_t)((device->isEnabled() == true) ? 1 : 0));
         }
     }
+}
+
+/*
+ * Reset to ichip to factory defaults and set-up GEVCU network
+ */
+void ICHIPWIFI::factoryDefaults() {
+    tickHandler->detach(this); // stop other activity
+    psReadPtr = psWritePtr = 0; // purge send buffer
+
+    // pinMode(43,OUTPUT);
+    //  digitalWrite(43, HIGH);
+    //  delay(3000);
+    //  digitalWrite(43, LOW);
+
+    delay(1000);
+    sendCmd("", IDLE); // just in case something was still on the line
+    delay(1000);
+    sendCmd("FD", IDLE);
+    delay(3000);
+    sendCmd("HIF=1", IDLE);//Set for RS-232 serial.
+    delay(1000);
+    // set-up specific ad-hoc network
+    sendCmd("BDRA", IDLE);
+    delay(1000);
+    sendCmd("WLCH=1", IDLE);//use whichever channel an AP wants to use
+    delay(1000);
+    sendCmd("WLSI=!GEVCU", IDLE);//set SSID
+    delay(1000);
+    sendCmd("DIP=192.168.3.10", IDLE);//enable searching for a proper IP via DHCP
+    delay(1000);
+    sendCmd("DPSZ=10", IDLE);// enable DHCP server for 10 IPs
+    delay(1000);
+#ifdef CFG_WIFI_WPA2
+    sendCmd("WST0=4", IDLE);// enable WPA2-PSK security
+    delay(1000);
+    sendCmd("WSEC=1", IDLE);// use WPA2-AES protocol
+    delay(1000);
+    sendCmd("WPP0=verysecret", IDLE);// WPA2 password
+    delay(25000); // it really takes that long to calculate the key !!
+#endif
+    sendCmd("RPG=secret", IDLE);// set the configuration password for /ichip
+    delay(1000);
+    sendCmd("WPWD=secret", IDLE);// set the password to update config params
+    delay(1000);
+    sendCmd("AWS=1", IDLE);//turn on web server for three clients
+    delay(1000);
+    sendCmd("DOWN", IDLE);//cause a reset to allow it to come up with the settings
+    delay(5000);// a 5 second delay is required for the chip to come back up ! Otherwise commands will be lost
+
+    tickHandler->attach(this, CFG_TICK_INTERVAL_WIFI);
 }
 
 DeviceType ICHIPWIFI::getType()

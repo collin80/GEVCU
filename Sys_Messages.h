@@ -36,7 +36,8 @@ enum SystemMessage {
     MSG_CONFIG_CHANGE = 0x4001,
     MSG_COMMAND = 0x4002,
     MSG_STATE_CHANGE = 0x4003,
-    MSG_UPDATE = 0x4004
+    MSG_UPDATE = 0x4004,
+    MSG_RESET = 0x4005
 };
 
 #endif
