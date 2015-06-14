@@ -108,16 +108,16 @@ void BrusaNLG5::sendControl()
 //        outputFrame.data.bytes[0] |= errorLatch;
 //        clearErrorLatch = false;
 //    }
-    outputFrame.data.bytes[1] = (config->maximumInputCurrent & 0xFF00) >> 8;
-    outputFrame.data.bytes[2] = (config->maximumInputCurrent & 0x00FF);
+    outputFrame.data.bytes[1] = (constrain(config->maximumInputCurrent, 0, 500) & 0xFF00) >> 8;
+    outputFrame.data.bytes[2] = (constrain(config->maximumInputCurrent, 0, 500) & 0x00FF);
 
     uint16_t voltage = getOutputVoltage();
-    outputFrame.data.bytes[3] = (voltage & 0xFF00) >> 8;
-    outputFrame.data.bytes[4] = (voltage & 0x00FF);
+    outputFrame.data.bytes[3] = (constrain(voltage, 0, 10000) & 0xFF00) >> 8;
+    outputFrame.data.bytes[4] = (constrain(voltage, 0, 10000) & 0x00FF);
 
     uint16_t current = getOutputCurrent();
-    outputFrame.data.bytes[5] = (current & 0xFF00) >> 8;
-    outputFrame.data.bytes[6] = (current & 0x00FF);
+    outputFrame.data.bytes[5] = (constrain(current, 0, 1500) & 0xFF00) >> 8;
+    outputFrame.data.bytes[6] = (constrain(current, 0, 1500) & 0x00FF);
     outputFrame.length = 7;
 
     canHandlerEv->sendFrame(outputFrame);
@@ -318,8 +318,8 @@ void BrusaNLG5::processError(uint8_t data[])
 //    crcNVSRAM
 //    crcFlashMemory
 
-    if (Logger::isDebug()) {
-        Logger::debug(BRUSA_NLG5, "error bitfield: %X", bitfield);
+    if (bitfield != 0) {
+        Logger::error(BRUSA_NLG5, "%X (%B)", bitfield, bitfield);
     }
 
     bitfield = (uint32_t)data[4];
@@ -333,15 +333,9 @@ void BrusaNLG5::processError(uint8_t data[])
 //    limitLowBatteryVoltage
 //    limitLowMainsVoltage
 
-    if (Logger::isDebug()) {
-        Logger::debug(BRUSA_NLG5, "warning bitfield: %X", bitfield);
+    if (bitfield != 0) {
+        Logger::warn(BRUSA_NLG5, "%X (%B)", bitfield, bitfield);
     }
-
-}
-
-long BrusaNLG5::getTickInterval()
-{
-    return CFG_TICK_INTERVAL_CHARGE_NLG5;
 }
 
 /*

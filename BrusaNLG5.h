@@ -164,7 +164,6 @@ public:
     void saveConfiguration();
 
 protected:
-    long getTickInterval();
 
 private:
     CanHandler *canHandlerEv;

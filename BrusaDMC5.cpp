@@ -168,11 +168,11 @@ void BrusaDMC5::sendControl()
                 outputFrame.data.bytes[0] |= enableOscillationLimiter;
             }
 
-            // set the speed in rpm, the values are constrained to prevent a fatal overfow
+            // set the speed in rpm, the values are constrained to prevent a fatal overflow
             outputFrame.data.bytes[2] = (constrain(speedCommand, -32760, 32760) & 0xFF00) >> 8;
             outputFrame.data.bytes[3] = (constrain(speedCommand, -32760, 32760) & 0x00FF);
 
-            // set the torque in 0.01Nm (GEVCU uses 0.1Nm -> multiply by 10), the values are constrained to prevent a fatal overfow
+            // set the torque in 0.01Nm (GEVCU uses 0.1Nm -> multiply by 10), the values are constrained to prevent a fatal overflow
             outputFrame.data.bytes[4] = ((constrain(torqueCommand, -3275, 3275) * 10) & 0xFF00) >> 8;
             outputFrame.data.bytes[5] = ((constrain(torqueCommand, -3275, 3275) * 10) & 0x00FF);
         }
@@ -313,7 +313,7 @@ void BrusaDMC5::processActualValues(uint8_t data[])
     mechanicalPower = (int16_t) (data[7] | (data[6] << 8)) / 6.25;
 
     if (Logger::isDebug()) {
-        Logger::debug(BRUSA_DMC5, "actual values: DC Volts: %fV, DC current: %fA, AC current: %fA, mechPower: %fkW", dcVoltage / 10.0F,
+        Logger::debug(BRUSA_DMC5, "DC Volts: %fV, DC current: %fA, AC current: %fA, mechPower: %fkW", dcVoltage / 10.0F,
                 dcCurrent / 10.0F, acCurrent / 10.0F, mechanicalPower / 10.0F);
     }
 }
