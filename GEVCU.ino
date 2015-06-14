@@ -53,12 +53,9 @@ Random comments on things that should be coded up soon:
 
 // The following includes are required in the .ino file by the Arduino IDE in order to properly
 // identify the required libraries for the build.
-#include <due_rtc.h>
 #include <due_can.h>
 #include <due_wire.h>
 #include <DueTimer.h>
-
-//RTC_clock rtc_clock(XTAL); //init RTC with the external 32k crystal as a reference
 
 //Evil, global variables
 SystemIO *systemIO;
