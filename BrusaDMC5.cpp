@@ -114,9 +114,13 @@ void BrusaDMC5::handleTick()
 
     sendControl();  // send CTRL every 20ms
 
-    if (tickCounter > 4) {
+    if (tickCounter == 2) {
         sendControl2(); // send CTRL_2 every 100ms
+    }
+    if (tickCounter == 4) {
         sendLimits();   // send LIMIT every 100ms
+    }
+    if (tickCounter > 4) {
         tickCounter = 0;
     }
 }
@@ -143,10 +147,11 @@ void BrusaDMC5::sendControl()
             outputFrame.data.bytes[0] |= enablePowerStage;
         }
 
-        if (powerOn && running) {
+        if (powerOn && ready) {
             int16_t speedCommand = getSpeedRequested();
             int16_t torqueCommand = getTorqueRequested();
-            outputFrame.data.bytes[0] = (config->invertDirection ^ (getGear() == REVERSE) ? enableNegativeTorqueSpeed : enablePositiveTorqueSpeed);
+
+            outputFrame.data.bytes[0] |= (config->invertDirection ^ (getGear() == REVERSE) ? enableNegativeTorqueSpeed : enablePositiveTorqueSpeed);
 
             if (config->powerMode == modeSpeed) {
                 outputFrame.data.bytes[0] |= enableSpeedMode;
@@ -163,13 +168,13 @@ void BrusaDMC5::sendControl()
                 outputFrame.data.bytes[0] |= enableOscillationLimiter;
             }
 
-            // set the speed in rpm
-            outputFrame.data.bytes[2] = (speedCommand & 0xFF00) >> 8;
-            outputFrame.data.bytes[3] = (speedCommand & 0x00FF);
+            // set the speed in rpm, the values are constrained to prevent a fatal overfow
+            outputFrame.data.bytes[2] = (constrain(speedCommand, -32760, 32760) & 0xFF00) >> 8;
+            outputFrame.data.bytes[3] = (constrain(speedCommand, -32760, 32760) & 0x00FF);
 
-            // set the torque in 0.01Nm (GEVCU uses 0.1Nm -> multiply by 10)
-            outputFrame.data.bytes[4] = ((torqueCommand * 10) & 0xFF00) >> 8;
-            outputFrame.data.bytes[5] = ((torqueCommand * 10) & 0x00FF);
+            // set the torque in 0.01Nm (GEVCU uses 0.1Nm -> multiply by 10), the values are constrained to prevent a fatal overfow
+            outputFrame.data.bytes[4] = ((constrain(torqueCommand, -3275, 3275) * 10) & 0xFF00) >> 8;
+            outputFrame.data.bytes[5] = ((constrain(torqueCommand, -3275, 3275) * 10) & 0x00FF);
         }
     }
     canHandlerEv->sendFrame(outputFrame);
@@ -185,14 +190,14 @@ void BrusaDMC5::sendControl2()
     BrusaDMC5Configuration *config = (BrusaDMC5Configuration *) getConfiguration();
 
     canHandlerEv->prepareOutputFrame(&outputFrame, CAN_ID_CONTROL_2);
-    outputFrame.data.bytes[0] = ((config->torqueSlewRate * 10) & 0xFF00) >> 8;
-    outputFrame.data.bytes[1] = ((config->torqueSlewRate * 10) & 0x00FF);
-    outputFrame.data.bytes[2] = (config->speedSlewRate & 0xFF00) >> 8;
-    outputFrame.data.bytes[3] = (config->speedSlewRate & 0x00FF);
-    outputFrame.data.bytes[4] = ((config->maxMechanicalPowerMotor * 25)& 0xFF00) >> 8;
-    outputFrame.data.bytes[5] = ((config->maxMechanicalPowerMotor * 25) & 0x00FF);
-    outputFrame.data.bytes[6] = ((config->maxMechanicalPowerRegen * 25) & 0xFF00) >> 8;
-    outputFrame.data.bytes[7] = ((config->maxMechanicalPowerRegen * 25) & 0x00FF);
+    outputFrame.data.bytes[0] = ((constrain(config->torqueSlewRate, 0, 6553) * 10) & 0xFF00) >> 8;
+    outputFrame.data.bytes[1] = ((constrain(config->torqueSlewRate, 0, 6553) * 10) & 0x00FF);
+    outputFrame.data.bytes[2] = (constrain(config->speedSlewRate, 0, 65535) & 0xFF00) >> 8;
+    outputFrame.data.bytes[3] = (constrain(config->speedSlewRate, 0, 65535) & 0x00FF);
+    outputFrame.data.bytes[4] = ((constrain(config->maxMechanicalPowerMotor, 0, 2621) * 25) & 0xFF00) >> 8;
+    outputFrame.data.bytes[5] = ((constrain(config->maxMechanicalPowerMotor, 0, 2621) * 25) & 0x00FF);
+    outputFrame.data.bytes[6] = ((constrain(config->maxMechanicalPowerRegen, 0, 2621) * 25) & 0xFF00) >> 8;
+    outputFrame.data.bytes[7] = ((constrain(config->maxMechanicalPowerRegen, 0, 2621) * 25) & 0x00FF);
 
     canHandlerEv->sendFrame(outputFrame);
 }
@@ -207,14 +212,14 @@ void BrusaDMC5::sendLimits()
     BrusaDMC5Configuration *config = (BrusaDMC5Configuration *) getConfiguration();
 
     canHandlerEv->prepareOutputFrame(&outputFrame, CAN_ID_LIMIT);
-    outputFrame.data.bytes[0] = (config->dcVoltLimitMotor & 0xFF00) >> 8;
-    outputFrame.data.bytes[1] = (config->dcVoltLimitMotor & 0x00FF);
-    outputFrame.data.bytes[2] = (config->dcVoltLimitRegen & 0xFF00) >> 8;
-    outputFrame.data.bytes[3] = (config->dcVoltLimitRegen & 0x00FF);
-    outputFrame.data.bytes[4] = (config->dcCurrentLimitMotor & 0xFF00) >> 8;
-    outputFrame.data.bytes[5] = (config->dcCurrentLimitMotor & 0x00FF);
-    outputFrame.data.bytes[6] = (config->dcCurrentLimitRegen & 0xFF00) >> 8;
-    outputFrame.data.bytes[7] = (config->dcCurrentLimitRegen & 0x00FF);
+    outputFrame.data.bytes[0] = (constrain(config->dcVoltLimitMotor, 0, 65535) & 0xFF00) >> 8;
+    outputFrame.data.bytes[1] = (constrain(config->dcVoltLimitMotor, 0, 65535) & 0x00FF);
+    outputFrame.data.bytes[2] = (constrain(config->dcVoltLimitRegen, 0, 65535) & 0xFF00) >> 8;
+    outputFrame.data.bytes[3] = (constrain(config->dcVoltLimitRegen, 0, 65535) & 0x00FF);
+    outputFrame.data.bytes[4] = (constrain(config->dcCurrentLimitMotor, 0, 65535) & 0xFF00) >> 8;
+    outputFrame.data.bytes[5] = (constrain(config->dcCurrentLimitMotor, 0, 65535) & 0x00FF);
+    outputFrame.data.bytes[6] = (constrain(config->dcCurrentLimitRegen, 0, 65535) & 0xFF00) >> 8;
+    outputFrame.data.bytes[7] = (constrain(config->dcCurrentLimitRegen, 0, 65535) & 0x00FF);
 
     canHandlerEv->sendFrame(outputFrame);
 }
@@ -269,11 +274,6 @@ void BrusaDMC5::processStatus(uint8_t data[])
     torqueActual = (int16_t) (data[5] | (data[4] << 8)) / 10;
     speedActual = (int16_t) (data[7] | (data[6] << 8));
 
-    if (Logger::isDebug()) {
-        Logger::debug(BRUSA_DMC5, "status: %X (%B), torque avail: %fNm, actual torque: %fNm, speed actual: %drpm", bitfield, bitfield,
-                torqueAvailable / 100.0F, torqueActual / 100.0F, speedActual);
-    }
-
     ready = (bitfield & dmc5Ready) ? true : false;
     running = (bitfield & dmc5Running) ? true : false;
     if ((bitfield & errorFlag) && status->getSystemState() != Status::error) {
@@ -292,6 +292,11 @@ void BrusaDMC5::processStatus(uint8_t data[])
     status->limitationDcCurrent = (bitfield & currentLimitation) ? true : false;
     status->limitationSlewRate = (bitfield & slewRateLimitation) ? true : false;
     status->limitationMotorTemperature = (bitfield & motorTemperatureLimitation) ? true : false;
+
+    if (Logger::isDebug()) {
+        Logger::debug(BRUSA_DMC5, "status: %X (%B), ready: %t, running: %t, torque avail: %fNm, actual : %fNm, speed actual: %drpm", bitfield, bitfield,
+                ready, running, torqueAvailable / 100.0F, torqueActual / 100.0F, speedActual);
+    }
 }
 
 /*
