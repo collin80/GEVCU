@@ -94,7 +94,7 @@ void MotorController::updatePowerConsumption()
 void MotorController::reportActivity() {
     if (!running) //if we're newly running then cancel faults if necessary.
     {
-        faultHandler.cancelOngoingFault(getId(), FAULT_MOTORCTRL_COMM);
+//        faultHandler.cancelOngoingFault(getId(), FAULT_MOTORCTRL_COMM);
     }
     ticksNoMessage = 0;
 }
@@ -113,7 +113,7 @@ void MotorController::checkActivity() {
     if (ticksNoMessage > CFG_MOTORCTRL_MAX_NUM_LOST_MSG && status->getSystemState() == Status::running) {
         running = false;
         ready = false;
-        faultHandler.raiseFault(getId(), FAULT_MOTORCTRL_COMM, true);
+//        faultHandler.raiseFault(getId(), FAULT_MOTORCTRL_COMM, true);
     }
 }
 
@@ -133,7 +133,7 @@ void MotorController::processThrottleLevel()
     torqueRequested = 0;
     speedRequested = 0;
 
-    if (powerOn && running) {
+    if (powerOn && ready) {
         if (accelerator) {
             throttleLevel = accelerator->getLevel();
         }
