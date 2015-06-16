@@ -65,6 +65,9 @@ void Throttle::handleTick()
         level = 0;
         running = false;
     }
+    if(Logger::isDebug()) {
+        Logger::debug(getId(), "raw: %d, level: %d, running: %t", rawSignals->input1, level, running);
+    }
 }
 
 /*

@@ -44,8 +44,6 @@
 #define SYSTEM_DUED     2
 #define SYSTEM_GEVCU3   3
 
-extern MemCache *memCache;
-
 class PrefHandler {
 public:
 
@@ -65,7 +63,6 @@ public:
     void forceCacheWrite();
     bool isEnabled();
     bool setEnabled(bool en);
-    void initSysEEPROM();
 
 private:
     DeviceId deviceId; // the device id the handler is assigned to

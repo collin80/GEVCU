@@ -37,9 +37,8 @@ ICHIPWIFI::ICHIPWIFI()
     elmProc = new ELM327Processor();
 
     uint8_t sys_type;
-    sysPrefs->read(EESYS_SYSTEM_TYPE, &sys_type);
 
-    if (sys_type == 3 || sys_type == 4) {
+    if (systemIO.getSystemType() == GEVCU3 || systemIO.getSystemType() == GEVCU4) {
         serialInterface = &Serial2;
     } else { //older hardware used this instead
         serialInterface = &Serial3;
@@ -67,11 +66,7 @@ ICHIPWIFI::ICHIPWIFI()
  */
 void ICHIPWIFI::setup()
 {
-    tickHandler->detach(this);
-
-    //MSEL pin
-//    pinMode(18, OUTPUT); /pin 18 conflicts with GEVCU 2 memcache !!
-//    digitalWrite(18, HIGH);
+    tickHandler.detach(this);
 
     //RESET pin
     pinMode(42, OUTPUT);
@@ -91,7 +86,7 @@ void ICHIPWIFI::setup()
     ready = true;
     running = true;
 
-    tickHandler->attach(this, CFG_TICK_INTERVAL_WIFI);
+    tickHandler.attach(this, CFG_TICK_INTERVAL_WIFI);
 }
 
 /**
@@ -101,7 +96,7 @@ void ICHIPWIFI::tearDown()
 {
     Device::tearDown();
 
-    //TODO: if there is a way to physically power off the device, do it here. but also power it on during setup()
+    digitalWrite(42, LOW);
 }
 
 //A version of sendCmd that defaults to SET_PARAM which is what most of the code used to assume.
@@ -157,10 +152,9 @@ void ICHIPWIFI::sendToSocket(int socket, String data)
 //TODO: See the processing function below for a more detailed explanation - can't send so many setParam commands in a row
 void ICHIPWIFI::handleTick()
 {
-    DeviceManager *deviceManager = DeviceManager::getInstance();
-    MotorController* motorController = deviceManager->getMotorController();
-    Throttle *accelerator = deviceManager->getAccelerator();
-    Throttle *brake = deviceManager->getBrake();
+    MotorController* motorController = deviceManager.getMotorController();
+    Throttle *accelerator = deviceManager.getAccelerator();
+    Throttle *brake = deviceManager.getBrake();
     static int pollListening = 0;
     static int pollSocket = 0;
     uint32_t ms = millis();
@@ -257,21 +251,21 @@ void ICHIPWIFI::handleTick()
                 setParam(Constants::kiloWattHours, paramCache.kiloWattHours / 10.0f, 1);
             }
         }
-        if (paramCache.systemState != status->getSystemState()) {
-            paramCache.systemState = status->getSystemState();
-            setParam(Constants::systemState, status->systemStateToStr(status->getSystemState()));
+        if (paramCache.systemState != status.getSystemState()) {
+            paramCache.systemState = status.getSystemState();
+            setParam(Constants::systemState, status.systemStateToStr(status.getSystemState()));
         }
     } else if (tickCounter == 3) {
-        if (paramCache.bitfield1 != status->getBitField1()) {
-            paramCache.bitfield1 = status->getBitField1();
+        if (paramCache.bitfield1 != status.getBitField1()) {
+            paramCache.bitfield1 = status.getBitField1();
             setParam(Constants::bitfield1, paramCache.bitfield1);
         }
-        if (paramCache.bitfield2 != status->getBitField2()) {
-            paramCache.bitfield2 = status->getBitField2();
+        if (paramCache.bitfield2 != status.getBitField2()) {
+            paramCache.bitfield2 = status.getBitField2();
             setParam(Constants::bitfield2, paramCache.bitfield2);
         }
-        if (paramCache.bitfield3 != status->getBitField3()) {
-            paramCache.bitfield3 = status->getBitField3();
+        if (paramCache.bitfield3 != status.getBitField3()) {
+            paramCache.bitfield3 = status.getBitField3();
             setParam(Constants::bitfield3, paramCache.bitfield3);
         }
         if (motorController) {
@@ -587,7 +581,7 @@ void ICHIPWIFI::processParameterChange(char *key)
 
 bool ICHIPWIFI::processParameterChangeThrottle(char *key, char *value)
 {
-    Throttle *throttle = DeviceManager::getInstance()->getAccelerator();
+    Throttle *throttle = deviceManager.getAccelerator();
 
     if (throttle) {
         PotThrottleConfiguration *config = (PotThrottleConfiguration *) throttle->getConfiguration();
@@ -631,7 +625,7 @@ bool ICHIPWIFI::processParameterChangeThrottle(char *key, char *value)
 
 bool ICHIPWIFI::processParameterChangeBrake(char *key, char *value)
 {
-    Throttle *brake = DeviceManager::getInstance()->getBrake();
+    Throttle *brake = deviceManager.getBrake();
 
     if (brake) {
         PotThrottleConfiguration *config = (PotThrottleConfiguration *) brake->getConfiguration();
@@ -657,7 +651,7 @@ bool ICHIPWIFI::processParameterChangeBrake(char *key, char *value)
 
 bool ICHIPWIFI::processParameterChangeMotor(char *key, char *value)
 {
-    MotorController *motorController = DeviceManager::getInstance()->getMotorController();
+    MotorController *motorController = deviceManager.getMotorController();
 
     if (motorController) {
         MotorControllerConfiguration *config = (MotorControllerConfiguration *) motorController->getConfiguration();
@@ -709,7 +703,7 @@ bool ICHIPWIFI::processParameterChangeMotor(char *key, char *value)
 
 bool ICHIPWIFI::processParameterChangeCharger(char *key, char *value)
 {
-    Charger *charger = DeviceManager::getInstance()->getCharger();
+    Charger *charger = deviceManager.getCharger();
 
     if (charger) {
         ChargerConfiguration *config = (ChargerConfiguration *) charger->getConfiguration();
@@ -755,7 +749,7 @@ bool ICHIPWIFI::processParameterChangeCharger(char *key, char *value)
 
 bool ICHIPWIFI::processParameterChangeDcDc(char *key, char *value)
 {
-    DcDcConverter *dcDcConverter = DeviceManager::getInstance()->getDcDcConverter();
+    DcDcConverter *dcDcConverter = deviceManager.getDcDcConverter();
 
     if (dcDcConverter) {
         DcDcConverterConfiguration *config = (DcDcConverterConfiguration *) dcDcConverter->getConfiguration();
@@ -791,7 +785,7 @@ bool ICHIPWIFI::processParameterChangeDcDc(char *key, char *value)
 
 bool ICHIPWIFI::processParameterChangeSystemIO(char *key, char *value)
 {
-    SystemIOConfiguration *config = (SystemIOConfiguration *) systemIO->getConfiguration();
+    SystemIOConfiguration *config = (SystemIOConfiguration *) systemIO.getConfiguration();
 
     if (!strcmp(key, Constants::enableInput)) {
         config->enableInput = atol(value);
@@ -835,7 +829,7 @@ bool ICHIPWIFI::processParameterChangeSystemIO(char *key, char *value)
         config->brakeLightOutput = atol(value);
     } else if (!strcmp(key, Constants::reverseLightOutput)) {
         config->reverseLightOutput = atol(value);
-        systemIO->saveConfiguration();
+        systemIO.saveConfiguration();
     } else if (!strcmp(key, Constants::warningOutput)) {
         config->warningOutput = atol(value);
     } else if (!strcmp(key, Constants::powerLimitationOutput)) {
@@ -843,7 +837,7 @@ bool ICHIPWIFI::processParameterChangeSystemIO(char *key, char *value)
     } else {
         return false;
     }
-    systemIO->saveConfiguration();
+    systemIO.saveConfiguration();
     return true;
 }
 
@@ -852,11 +846,10 @@ bool ICHIPWIFI::processParameterChangeDevices(char *key, char *value)
     if (!strcmp(key, Constants::logLevel)) {
         Logger::LogLevel logLevel = (Logger::LogLevel) atoi(value);
         Logger::setLoglevel(logLevel);
-        sysPrefs->write(EESYS_LOG_LEVEL, (uint8_t) logLevel);
-        sysPrefs->saveChecksum();
+        systemIO.setLogLevel(logLevel);
     } else if (key[0] == 'x' && atol(&key[1]) > 0) {
         long deviceId = strtol(key + 1, 0, 16);
-        DeviceManager::getInstance()->sendMessage(DEVICE_ANY, (DeviceId) deviceId, (atol(value) ? MSG_ENABLE : MSG_DISABLE), NULL);
+        deviceManager.sendMessage(DEVICE_ANY, (DeviceId) deviceId, (atol(value) ? MSG_ENABLE : MSG_DISABLE), NULL);
         return true;
     }
     return false;
@@ -883,18 +876,20 @@ void ICHIPWIFI::loadParameters()
 
 void ICHIPWIFI::loadParametersThrottle()
 {
-    Throttle *throttle = DeviceManager::getInstance()->getAccelerator();
+    Throttle *throttle = deviceManager.getAccelerator();
 
     if (throttle) {
         PotThrottleConfiguration *throttleConfig = (PotThrottleConfiguration *) throttle->getConfiguration();
 
         if (throttleConfig) {
-            setParam(Constants::numberPotMeters, throttleConfig->numberPotMeters);
-            setParam(Constants::throttleSubType, throttleConfig->throttleSubType);
+            if (throttle->getId() == POTACCELPEDAL) {
+                setParam(Constants::numberPotMeters, throttleConfig->numberPotMeters);
+                setParam(Constants::throttleSubType, throttleConfig->throttleSubType);
+                setParam(Constants::minimumLevel2, throttleConfig->minimumLevel2);
+                setParam(Constants::maximumLevel2, throttleConfig->maximumLevel2);
+            }
             setParam(Constants::minimumLevel, throttleConfig->minimumLevel);
-            setParam(Constants::minimumLevel2, throttleConfig->minimumLevel2);
             setParam(Constants::maximumLevel, throttleConfig->maximumLevel);
-            setParam(Constants::maximumLevel2, throttleConfig->maximumLevel2);
             setParam(Constants::positionRegenMaximum, (uint16_t) (throttleConfig->positionRegenMaximum / 10));
             setParam(Constants::positionRegenMinimum, (uint16_t) (throttleConfig->positionRegenMinimum / 10));
             setParam(Constants::positionForwardMotionStart, (uint16_t) (throttleConfig->positionForwardMotionStart / 10));
@@ -908,7 +903,7 @@ void ICHIPWIFI::loadParametersThrottle()
 
 void ICHIPWIFI::loadParametersBrake()
 {
-    Throttle *brake = DeviceManager::getInstance()->getBrake();
+    Throttle *brake = deviceManager.getBrake();
 
     if (brake) {
         PotThrottleConfiguration *brakeConfig = (PotThrottleConfiguration *) brake->getConfiguration();
@@ -924,7 +919,7 @@ void ICHIPWIFI::loadParametersBrake()
 
 void ICHIPWIFI::loadParametersMotor()
 {
-    MotorController *motorController = DeviceManager::getInstance()->getMotorController();
+    MotorController *motorController = deviceManager.getMotorController();
 
     if (motorController) {
         MotorControllerConfiguration *config = (MotorControllerConfiguration *) motorController->getConfiguration();
@@ -953,7 +948,7 @@ void ICHIPWIFI::loadParametersMotor()
 
 void ICHIPWIFI::loadParametersCharger()
 {
-    Charger *charger = DeviceManager::getInstance()->getCharger();
+    Charger *charger = deviceManager.getCharger();
 
     if (charger) {
         ChargerConfiguration *config = (ChargerConfiguration *) charger->getConfiguration();
@@ -979,7 +974,7 @@ void ICHIPWIFI::loadParametersCharger()
 
 void ICHIPWIFI::loadParametersDcDc()
 {
-    DcDcConverter *dcDcConverter = DeviceManager::getInstance()->getDcDcConverter();
+    DcDcConverter *dcDcConverter = deviceManager.getDcDcConverter();
 
     if (dcDcConverter) {
         DcDcConverterConfiguration *dcDcConfig = (DcDcConverterConfiguration *) dcDcConverter->getConfiguration();
@@ -1000,7 +995,7 @@ void ICHIPWIFI::loadParametersDcDc()
 
 void ICHIPWIFI::loadParametersSystemIO()
 {
-    SystemIOConfiguration *config = (SystemIOConfiguration *) systemIO->getConfiguration();
+    SystemIOConfiguration *config = (SystemIOConfiguration *) systemIO.getConfiguration();
 
     if (config) {
         setParam(Constants::enableInput, config->enableInput);
@@ -1041,7 +1036,7 @@ void ICHIPWIFI::loadParametersDevices()
 
     setParam(Constants::logLevel, (uint8_t) Logger::getLogLevel());
     for (int i = 0; i < size; i++) {
-        device = DeviceManager::getInstance()->getDeviceByID(deviceIds[i]);
+        device = deviceManager.getDeviceByID(deviceIds[i]);
         if (device != NULL) {
             sprintf(idHex, "x%x", deviceIds[i]);
             setParam(idHex, (uint8_t)((device->isEnabled() == true) ? 1 : 0));
@@ -1053,7 +1048,7 @@ void ICHIPWIFI::loadParametersDevices()
  * Reset to ichip to factory defaults and set-up GEVCU network
  */
 void ICHIPWIFI::factoryDefaults() {
-    tickHandler->detach(this); // stop other activity
+    tickHandler.detach(this); // stop other activity
     psReadPtr = psWritePtr = 0; // purge send buffer
 
     // pinMode(43,OUTPUT);
@@ -1096,7 +1091,7 @@ void ICHIPWIFI::factoryDefaults() {
     sendCmd("DOWN", IDLE);//cause a reset to allow it to come up with the settings
     delay(5000);// a 5 second delay is required for the chip to come back up ! Otherwise commands will be lost
 
-    tickHandler->attach(this, CFG_TICK_INTERVAL_WIFI);
+    tickHandler.attach(this, CFG_TICK_INTERVAL_WIFI);
 }
 
 DeviceType ICHIPWIFI::getType()

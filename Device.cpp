@@ -32,9 +32,6 @@
  */
 Device::Device()
 {
-    status = Status::getInstance();
-    tickHandler = TickHandler::getInstance();
-    systemIO = SystemIO::getInstance();
     prefsHandler = NULL;
 
     commonName = "Generic Device";
@@ -70,7 +67,7 @@ void Device::setup()
  */
 void Device::tearDown()
 {
-    tickHandler->detach(this);
+    tickHandler.detach(this);
     ready = false;
     running = false;
     powerOn = false;

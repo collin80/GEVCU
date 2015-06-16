@@ -58,8 +58,6 @@ AT RV (adapter voltage) - Send something like 14.4V
 #include "DeviceTypes.h"
 #include "ELM327Processor.h"
 
-extern PrefHandler *sysPrefs;
-
 /*
  * The extended configuration class with additional parameters for ichip WLAN
  */

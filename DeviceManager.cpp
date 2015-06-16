@@ -37,6 +37,8 @@
 
 #include "DeviceManager.h"
 
+DeviceManager deviceManager;
+
 DeviceManager::DeviceManager()
 {
     throttle = NULL;
@@ -48,19 +50,6 @@ DeviceManager::DeviceManager()
     for (int i = 0; i < CFG_DEV_MGR_MAX_DEVICES; i++) {
         devices[i] = NULL;
     }
-}
-
-/*
- * Get the instance of the DeviceManager (singleton pattern)
- *
- * Note: It's a simple singleton implementation - no worries about
- * thread-safety and memory-leaks, this object lives as long as the
- * Arduino has power.
- */
-DeviceManager *DeviceManager::getInstance()
-{
-    static DeviceManager* deviceManager = new DeviceManager();
-    return deviceManager;
 }
 
 /*
@@ -79,20 +68,6 @@ void DeviceManager::addDevice(Device *device)
             Logger::error(device->getId(), "unable to register device, max number of devices reached.");
         }
     }
-
-    /*
-    switch (device->getType()) {
-    case DEVICE_THROTTLE:
-        throttle = (Throttle *) device;
-        break;
-    case DEVICE_BRAKE:
-        brake = (Throttle *) device;
-        break;
-    case DEVICE_MOTORCTRL:
-        motorController = (MotorController *) device;
-        break;
-    }
-    */
 }
 
 /*

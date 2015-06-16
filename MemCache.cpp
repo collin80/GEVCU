@@ -26,6 +26,8 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 #include "MemCache.h"
 
+MemCache memCache;
+
 MemCache::MemCache()
 {
 }
@@ -36,7 +38,9 @@ MemCache::~MemCache()
 
 void MemCache::setup()
 {
-    TickHandler::getInstance()->detach(this);
+    tickHandler.detach(this);
+
+    Logger::info("add MemCache (id: %X, %X)", MEMCACHE, &memCache);
 
     for (U8 c = 0; c < NUM_CACHED_PAGES; c++) {
         pages[c].address = 0xFFFFFF; //maximum number. This is way over what our chip will actually support so it signals unused
@@ -51,7 +55,7 @@ void MemCache::setup()
 
     pinMode(19, OUTPUT);
     digitalWrite(19, LOW);
-    TickHandler::getInstance()->attach(this, CFG_TICK_INTERVAL_MEM_CACHE);
+    tickHandler.attach(this, CFG_TICK_INTERVAL_MEM_CACHE);
 }
 
 //Handle aging of dirty pages and flushing of aged out dirty pages

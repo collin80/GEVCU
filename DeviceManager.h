@@ -40,7 +40,7 @@ class MotorController; // cyclic reference between MotorController and DeviceMan
 class DeviceManager
 {
 public:
-    static DeviceManager *getInstance();
+    DeviceManager();
     void addDevice(Device *device);
     void removeDevice(Device *device);
     bool sendMessage(DeviceType deviceType, DeviceId deviceId, uint32_t msgType, void* message);
@@ -58,8 +58,6 @@ public:
 protected:
 
 private:
-    DeviceManager();    // private constructor
-
     Device *devices[CFG_DEV_MGR_MAX_DEVICES];
     Throttle *throttle;
     Throttle *brake;
@@ -69,5 +67,7 @@ private:
 
     int8_t findDevice(Device *device);
 };
+
+extern DeviceManager deviceManager;
 
 #endif

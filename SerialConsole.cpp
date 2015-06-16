@@ -26,17 +26,10 @@
 
 #include "SerialConsole.h"
 
-extern PrefHandler *sysPrefs;
+SerialConsole serialConsole;
 
-SerialConsole::SerialConsole(MemCache* memCache) :
-        memCache(memCache) {
-    init();
-}
-
-void SerialConsole::init() {
+SerialConsole::SerialConsole() {
     handlingEvent = false;
-
-    //State variables for serial console
     ptrBuffer = 0;
     state = STATE_ROOT_MENU;
 }
@@ -50,17 +43,14 @@ void SerialConsole::loop() {
 }
 
 void SerialConsole::printMenu() {
-    DeviceManager *deviceManager = DeviceManager::getInstance();
-    Status *status = Status::getInstance();
-
     //Show build # here as well in case people are using the native port and don't get to see the start up messages
     Logger::console("\nBuild number: %i", CFG_BUILD_NUM);
-    Logger::console("System State: %s", status->systemStateToStr(status->getSystemState()));
+    Logger::console("System State: %s", status.systemStateToStr(status.getSystemState()));
     Logger::console("System Menu:\n");
     Logger::console("Enable line endings of some sort (LF, CR, CRLF)\n");
     Logger::console("Short Commands:");
     Logger::console("h = help (displays this message)");
-    Device *heartbeat = deviceManager->getDeviceByID(HEARTBEAT);
+    Device *heartbeat = deviceManager.getDeviceByID(HEARTBEAT);
     if (heartbeat != NULL && heartbeat->isEnabled()) {
         Logger::console("L = show raw analog/digital input/output values (toggle)");
     }
@@ -80,13 +70,11 @@ void SerialConsole::printMenu() {
 
     Logger::console("\nConfig Commands (enter command=newvalue)\n");
     Logger::console("LOGLEVEL=%i - set log level (0=debug, 1=info, 2=warn, 3=error, 4=off)", Logger::getLogLevel());
-    uint8_t systype;
-    sysPrefs->read(EESYS_SYSTEM_TYPE, &systype);
-    Logger::console("SYSTYPE=%i - Set board revision (Dued=2, GEVCU3=3, GEVCU4=4)\n", systype);
+    Logger::console("SYSTYPE=%i - Set board revision (Dued=2, GEVCU3=3, GEVCU4=4)\n", systemIO.getSystemType());
     Logger::console("WLAN - send a AT+i command to the wlan device");
     Logger::console("NUKE=1 - Resets all device settings in EEPROM. You have been warned.");
 
-    deviceManager->printDeviceList();
+    deviceManager.printDeviceList();
 
     printMenuMotorController();
     printMenuThrottle();
@@ -97,7 +85,7 @@ void SerialConsole::printMenu() {
 }
 
 void SerialConsole::printMenuMotorController() {
-    MotorController* motorController = (MotorController*) DeviceManager::getInstance()->getMotorController();
+    MotorController* motorController = (MotorController*) deviceManager.getMotorController();
 
     if (motorController && motorController->getConfiguration()) {
         MotorControllerConfiguration *config = (MotorControllerConfiguration *) motorController->getConfiguration();
@@ -124,7 +112,7 @@ void SerialConsole::printMenuMotorController() {
 }
 
 void SerialConsole::printMenuThrottle() {
-    Throttle *accelerator = DeviceManager::getInstance()->getAccelerator();
+    Throttle *accelerator = deviceManager.getAccelerator();
 
     if (accelerator && accelerator->getConfiguration()) {
         ThrottleConfiguration *config = (ThrottleConfiguration *) accelerator->getConfiguration();
@@ -157,7 +145,7 @@ void SerialConsole::printMenuThrottle() {
 }
 
 void SerialConsole::printMenuBrake() {
-    Throttle *brake = DeviceManager::getInstance()->getBrake();
+    Throttle *brake = deviceManager.getBrake();
 
     if (brake && brake->getConfiguration()) {
         ThrottleConfiguration *config = (ThrottleConfiguration *) brake->getConfiguration();
@@ -174,10 +162,9 @@ void SerialConsole::printMenuBrake() {
 }
 
 void SerialConsole::printMenuSystemIO() {
-    SystemIO *systemIO = SystemIO::getInstance();
+    SystemIOConfiguration *config = systemIO.getConfiguration();
 
-    if (systemIO && systemIO->getConfiguration()) {
-        SystemIOConfiguration *config = systemIO->getConfiguration();
+    if (config) {
         Logger::console("\nSYSTEM I/O\n");
         Logger::console("ENABLEI=%i - Digital input to use for enable signal (255 to disable)", config->enableInput);
         Logger::console("CHARGEI=%i - Digital input to use for charger signal (255 to disable)", config->chargePowerAvailableInput);
@@ -211,7 +198,7 @@ void SerialConsole::printMenuSystemIO() {
 }
 
 void SerialConsole::printMenuCharger() {
-    Charger *charger = DeviceManager::getInstance()->getCharger();
+    Charger *charger = deviceManager.getCharger();
 
     if (charger && charger->getConfiguration()) {
         ChargerConfiguration *config = (ChargerConfiguration *) charger->getConfiguration();
@@ -234,7 +221,7 @@ void SerialConsole::printMenuCharger() {
 }
 
 void SerialConsole::printMenuDcDcConverter() {
-    DcDcConverter *dcDcConverter = DeviceManager::getInstance()->getDcDcConverter();
+    DcDcConverter *dcDcConverter = deviceManager.getDcDcConverter();
 
     if (dcDcConverter && dcDcConverter->getConfiguration()) {
         DcDcConverterConfiguration *config = (DcDcConverterConfiguration *) dcDcConverter->getConfiguration();
@@ -339,12 +326,12 @@ void SerialConsole::handleConfigCmd() {
 
     // send updates to ichip wifi
     if (updateWifi) {
-        DeviceManager::getInstance()->sendMessage(DEVICE_WIFI, ICHIP2128, MSG_CONFIG_CHANGE, NULL);
+        deviceManager.sendMessage(DEVICE_WIFI, ICHIP2128, MSG_CONFIG_CHANGE, NULL);
     }
 }
 
 bool SerialConsole::handleConfigCmdMotorController(String command, long value) {
-    MotorController *motorController = DeviceManager::getInstance()->getMotorController();
+    MotorController *motorController = deviceManager.getMotorController();
     MotorControllerConfiguration *config = NULL;
 
     if (!motorController) {
@@ -408,7 +395,7 @@ bool SerialConsole::handleConfigCmdMotorController(String command, long value) {
 }
 
 bool SerialConsole::handleConfigCmdThrottle(String command, long value) {
-    Throttle *throttle = DeviceManager::getInstance()->getAccelerator();
+    Throttle *throttle = deviceManager.getAccelerator();
     ThrottleConfiguration *config = NULL;
 
     if (!throttle) {
@@ -481,7 +468,7 @@ bool SerialConsole::handleConfigCmdThrottle(String command, long value) {
 }
 
 bool SerialConsole::handleConfigCmdBrake(String command, long value) {
-    Throttle *brake = DeviceManager::getInstance()->getBrake();
+    Throttle *brake = deviceManager.getBrake();
     ThrottleConfiguration *config = NULL;
 
     if (!brake) {
@@ -514,8 +501,7 @@ bool SerialConsole::handleConfigCmdBrake(String command, long value) {
 }
 
 bool SerialConsole::handleConfigCmdSystemIO(String command, long value) {
-    SystemIO *systemIO = SystemIO::getInstance();
-    SystemIOConfiguration *config = systemIO->getConfiguration();
+    SystemIOConfiguration *config = systemIO.getConfiguration();
 
     if (command == String("ENABLEI")) {
         if (value <= CFG_NUMBER_DIGITAL_INPUTS && value >= 0) {
@@ -612,20 +598,20 @@ bool SerialConsole::handleConfigCmdSystemIO(String command, long value) {
         Logger::console("Limit signal set to output %i.", value);
         config->powerLimitationOutput = value;
     } else if (command == String("OUTPUT") && value < 8) {
-        Logger::console("DOUT%d,  STATE: %t", value, systemIO->getDigitalOut(value));
-        systemIO->setDigitalOut(value, !systemIO->getDigitalOut(value));
-        Logger::console("DOUT0:%d, DOUT1:%d, DOUT2:%d, DOUT3:%d, DOUT4:%d, DOUT5:%d, DOUT6:%d, DOUT7:%d", systemIO->getDigitalOut(0),
-                systemIO->getDigitalOut(1), systemIO->getDigitalOut(2), systemIO->getDigitalOut(3), systemIO->getDigitalOut(4),
-                systemIO->getDigitalOut(5), systemIO->getDigitalOut(6), systemIO->getDigitalOut(7));
+        Logger::console("DOUT%d,  STATE: %t", value, systemIO.getDigitalOut(value));
+        systemIO.setDigitalOut(value, !systemIO.getDigitalOut(value));
+        Logger::console("DOUT0:%d, DOUT1:%d, DOUT2:%d, DOUT3:%d, DOUT4:%d, DOUT5:%d, DOUT6:%d, DOUT7:%d", systemIO.getDigitalOut(0),
+                systemIO.getDigitalOut(1), systemIO.getDigitalOut(2), systemIO.getDigitalOut(3), systemIO.getDigitalOut(4),
+                systemIO.getDigitalOut(5), systemIO.getDigitalOut(6), systemIO.getDigitalOut(7));
     } else {
         return false;
     }
-    systemIO->saveConfiguration();
+    systemIO.saveConfiguration();
     return true;
 }
 
 bool SerialConsole::handleConfigCmdCharger(String command, long value) {
-    Charger *charger = DeviceManager::getInstance()->getCharger();
+    Charger *charger = deviceManager.getCharger();
     ChargerConfiguration *config = NULL;
 
     if (!charger) {
@@ -697,7 +683,7 @@ bool SerialConsole::handleConfigCmdCharger(String command, long value) {
 }
 
 bool SerialConsole::handleConfigCmdDcDcConverter(String command, long value) {
-    DcDcConverter *dcdcConverter = DeviceManager::getInstance()->getDcDcConverter();
+    DcDcConverter *dcdcConverter = deviceManager.getDcDcConverter();
     DcDcConverterConfiguration *config = NULL;
 
     if (!dcdcConverter) {
@@ -750,22 +736,16 @@ bool SerialConsole::handleConfigCmdDcDcConverter(String command, long value) {
 bool SerialConsole::handleConfigCmdSystem(String command, long value) {
 
     if (command == String("ENABLE")) {
-        if(!DeviceManager::getInstance()->sendMessage(DEVICE_ANY, (DeviceId) value, MSG_ENABLE, NULL)) {
+        if(!deviceManager.sendMessage(DEVICE_ANY, (DeviceId) value, MSG_ENABLE, NULL)) {
             Logger::console("Invalid device ID (%X, %d)", value, value);
         }
     } else if (command == String("DISABLE")) {
-        if(!DeviceManager::getInstance()->sendMessage(DEVICE_ANY, (DeviceId) value, MSG_DISABLE, NULL)) {
+        if(!deviceManager.sendMessage(DEVICE_ANY, (DeviceId) value, MSG_DISABLE, NULL)) {
             Logger::console("Invalid device ID (%X, %d)", value, value);
         }
     } else if (command == String("SYSTYPE")) {
-        if (value < 5 && value > 0) {
-            sysPrefs->write(EESYS_SYSTEM_TYPE, (uint8_t)(value));
-            sysPrefs->saveChecksum();
-            sysPrefs->forceCacheWrite(); //just in case someone takes us literally and power cycles quickly
-            Logger::console("System type updated. Power cycle to apply.");
-        } else {
-            Logger::console("Invalid system type. Please enter a value 1 - 4");
-        }
+        systemIO.setSystemType((SystemType) constrain(value, GEVCU1, GEVCU4));
+        Logger::console("System type updated. Power cycle to apply.");
     } else if (command == String("LOGLEVEL")) {
         switch (value) {
             case 0:
@@ -793,15 +773,14 @@ bool SerialConsole::handleConfigCmdSystem(String command, long value) {
             Logger::setLoglevel(Logger::Off);
             break;
         }
-        sysPrefs->write(EESYS_LOG_LEVEL, (uint8_t) value);
-        sysPrefs->saveChecksum();
+        systemIO.setLogLevel(Logger::getLogLevel());
     } else if (command == String("NUKE")) {
         if (value == 1) {
             // write zero to the checksum location of every device in the table.
             uint8_t zeroVal = 0;
             for (int j = 0; j < 64; j++) {
-                memCache->Write(EE_DEVICES_BASE + (EE_DEVICE_SIZE * j), zeroVal);
-                memCache->FlushAllPages();
+                memCache.Write(EE_DEVICES_BASE + (EE_DEVICE_SIZE * j), zeroVal);
+                memCache.FlushAllPages();
             }
             Logger::console("Device settings have been nuked. Reboot to reload default settings");
         }
@@ -813,7 +792,7 @@ bool SerialConsole::handleConfigCmdSystem(String command, long value) {
 
 bool SerialConsole::handleConfigCmdWifi(String command, String parameter) {
     if (command == String("WLAN")) {
-        DeviceManager::getInstance()->sendMessage(DEVICE_WIFI, ICHIP2128, MSG_COMMAND, (void *) parameter.c_str());
+        deviceManager.sendMessage(DEVICE_WIFI, ICHIP2128, MSG_COMMAND, (void *) parameter.c_str());
         Logger::info("sent \"%s%s\" to wifi device", Constants::ichipCommandPrefix, parameter.c_str());
     } else if (command == String("SSID")) {
         sendWifiCommand("WLSI=", parameter);
@@ -828,7 +807,7 @@ bool SerialConsole::handleConfigCmdWifi(String command, String parameter) {
     } else {
         return false;
     }
-    DeviceManager::getInstance()->sendMessage(DEVICE_WIFI, ICHIP2128, MSG_COMMAND, (void *) "DOWN");
+    deviceManager.sendMessage(DEVICE_WIFI, ICHIP2128, MSG_COMMAND, (void *) "DOWN");
 
     return true;
 }
@@ -837,17 +816,16 @@ void SerialConsole::sendWifiCommand(String command, String parameter) {
     command.concat("=");
     command.concat(parameter);
     Logger::info("sent \"%s%s\" to wifi device", Constants::ichipCommandPrefix, command.c_str());
-    DeviceManager::getInstance()->sendMessage(DEVICE_WIFI, ICHIP2128, MSG_COMMAND, (void *) command.c_str());
+    deviceManager.sendMessage(DEVICE_WIFI, ICHIP2128, MSG_COMMAND, (void *) command.c_str());
 }
 
 void SerialConsole::handleShortCmd()
 {
     uint8_t val;
-    DeviceManager *deviceManager = DeviceManager::getInstance();
-    MotorController* motorController = (MotorController*) deviceManager->getMotorController();
-    Throttle *accelerator = deviceManager->getAccelerator();
-    Throttle *brake = deviceManager->getBrake();
-    Heartbeat *heartbeat = (Heartbeat *) deviceManager->getDeviceByID(HEARTBEAT);
+    MotorController* motorController = (MotorController*) deviceManager.getMotorController();
+    Throttle *accelerator = deviceManager.getAccelerator();
+    Throttle *brake = deviceManager.getBrake();
+    Heartbeat *heartbeat = (Heartbeat *) deviceManager.getDeviceByID(HEARTBEAT);
 
     switch (cmdBuffer[0]) {
         case 'h':
@@ -872,12 +850,12 @@ void SerialConsole::handleShortCmd()
         Logger::console("Adding a sequence of values from 0 to 255 into eeprom");
 
         for (int i = 0; i < 256; i++) {
-            memCache->Write(1000 + i, (uint8_t) i);
+            memCache.Write(1000 + i, (uint8_t) i);
         }
 
         Logger::info("Flushing cache");
-        memCache->FlushAllPages(); //write everything to eeprom
-        memCache->InvalidateAll();//remove all data from cache
+        memCache.FlushAllPages(); //write everything to eeprom
+        memCache.InvalidateAll();//remove all data from cache
         Logger::console("Operation complete.");
         break;
 
@@ -885,7 +863,7 @@ void SerialConsole::handleShortCmd()
         Logger::console("Retrieving data previously saved");
 
         for (int i = 0; i < 256; i++) {
-            memCache->Read(1000 + i, &val);
+            memCache.Read(1000 + i, &val);
             Logger::console("%d: %d", i, val);
         }
         break;
@@ -894,14 +872,14 @@ void SerialConsole::handleShortCmd()
         Logger::console("Reading System EEPROM values");
 
         for (int i = 0; i < 256; i++) {
-            memCache->Read(EE_SYSTEM_START + i, &val);
+            memCache.Read(EE_SYSTEM_START + i, &val);
             Logger::console("%d: %d", i, val);
         }
         break;
 
         case 'K': //set all outputs high
         for (int tout = 0; tout < CFG_NUMBER_DIGITAL_OUTPUTS; tout++) {
-            SystemIO::getInstance()->setDigitalOut(tout, true);
+            systemIO.setDigitalOut(tout, true);
         }
 
         Logger::console("all outputs: ON");
@@ -909,7 +887,7 @@ void SerialConsole::handleShortCmd()
 
         case 'J': //set the four outputs low
         for (int tout = 0; tout < CFG_NUMBER_DIGITAL_OUTPUTS; tout++) {
-            SystemIO::getInstance()->setDigitalOut(tout, false);
+            systemIO.setDigitalOut(tout, false);
         }
 
         Logger::console("all outputs: OFF");
@@ -961,24 +939,24 @@ void SerialConsole::handleShortCmd()
         break;
 
         case 'S':
-        deviceManager->printDeviceList();
+        deviceManager.printDeviceList();
         break;
 
         case 's':
         Logger::console("Finding and listing all nearby WiFi access points");
-        deviceManager->sendMessage(DEVICE_WIFI, ICHIP2128, MSG_COMMAND, (void *) "RP20");
+        deviceManager.sendMessage(DEVICE_WIFI, ICHIP2128, MSG_COMMAND, (void *) "RP20");
         break;
 
         case 'W':
         Logger::console("Setting Wifi Adapter to WPS mode (make sure you press the WPS button on your router)");
         // restore factory defaults and give it some time
-        deviceManager->sendMessage(DEVICE_WIFI, ICHIP2128, MSG_COMMAND, (void *) "AWPS");
+        deviceManager.sendMessage(DEVICE_WIFI, ICHIP2128, MSG_COMMAND, (void *) "AWPS");
         break;
 
         case 'w':
         Logger::console("Resetting wifi to factory defaults and setting up to auto connect to open APs, this takes about 50sec, please stand-by");
-        deviceManager->sendMessage(DEVICE_WIFI, ICHIP2128, MSG_RESET, NULL);
-        deviceManager->sendMessage(DEVICE_WIFI, ICHIP2128, MSG_CONFIG_CHANGE, NULL);// reload configuration params as they were lost
+        deviceManager.sendMessage(DEVICE_WIFI, ICHIP2128, MSG_RESET, NULL);
+        deviceManager.sendMessage(DEVICE_WIFI, ICHIP2128, MSG_CONFIG_CHANGE, NULL);// reload configuration params as they were lost
         Logger::console("Wifi 4.2 initialized");
         break;
 

@@ -33,7 +33,7 @@ void PrefHandler::initDevTable()
 {
     uint16_t id;
 
-    memCache->Read(EE_DEVICE_TABLE, &id);
+    memCache.Read(EE_DEVICE_TABLE, &id);
 
     if (id == 0xDEAD) {
         return;
@@ -45,12 +45,12 @@ void PrefHandler::initDevTable()
     id = 0;
 
     for (int x = 1; x < 64; x++) {
-        memCache->Write(EE_DEVICE_TABLE + (2 * x), id);
+        memCache.Write(EE_DEVICE_TABLE + (2 * x), id);
     }
 
     //write out magic entry
     id = 0xDEAD;
-    memCache->Write(EE_DEVICE_TABLE, id);
+    memCache.Write(EE_DEVICE_TABLE, id);
 }
 
 bool PrefHandler::isEnabled()
@@ -71,7 +71,7 @@ bool PrefHandler::setEnabled(bool en)
 		id &= 0x7FFF; //clear enabled bit
 	}
 
-	return memCache->Write(EE_DEVICE_TABLE + (2 * position), id);
+	return memCache.Write(EE_DEVICE_TABLE + (2 * position), id);
 }
 
 /*
@@ -82,7 +82,7 @@ int8_t PrefHandler::findDevice(DeviceId deviceId)
     uint16_t id;
 
     for (int pos = 1; pos < 64; pos++) {
-        memCache->Read(EE_DEVICE_TABLE + (2 * pos), &id);
+        memCache.Read(EE_DEVICE_TABLE + (2 * pos), &id);
 
         if ((id & 0x7FFF) == deviceId) {
             return pos;
@@ -103,7 +103,7 @@ PrefHandler::PrefHandler(DeviceId id_in)
     initDevTable();
     position = findDevice(deviceId);
     if (position > -1) {
-        memCache->Read(EE_DEVICE_TABLE + (2 * position), &id);
+        memCache.Read(EE_DEVICE_TABLE + (2 * position), &id);
         if (id & 0x8000) {
             enabled = true;
         }
@@ -119,7 +119,7 @@ PrefHandler::PrefHandler(DeviceId id_in)
     if (position > -1) {
         base_address = EE_DEVICES_BASE + (EE_DEVICE_SIZE * position);
         lkg_address = EE_MAIN_OFFSET;
-        memCache->Write(EE_DEVICE_TABLE + (2 * position), (uint16_t)deviceId);
+        memCache.Write(EE_DEVICE_TABLE + (2 * position), (uint16_t)deviceId);
         Logger::debug(deviceId, "Device ID: %X was placed into device table at entry: %i", (int) deviceId, position);
         return;
     }
@@ -148,7 +148,7 @@ bool PrefHandler::write(uint16_t address, uint8_t val)
     if (address >= EE_DEVICE_SIZE) {
         return false;
     }
-    return memCache->Write((uint32_t) address + base_address + lkg_address, val);
+    return memCache.Write((uint32_t) address + base_address + lkg_address, val);
 }
 
 bool PrefHandler::write(uint16_t address, uint16_t val)
@@ -156,7 +156,7 @@ bool PrefHandler::write(uint16_t address, uint16_t val)
     if (address >= EE_DEVICE_SIZE) {
         return false;
     }
-    return memCache->Write((uint32_t) address + base_address + lkg_address, val);
+    return memCache.Write((uint32_t) address + base_address + lkg_address, val);
 }
 
 bool PrefHandler::write(uint16_t address, uint32_t val)
@@ -164,7 +164,7 @@ bool PrefHandler::write(uint16_t address, uint32_t val)
     if (address >= EE_DEVICE_SIZE) {
         return false;
     }
-    return memCache->Write((uint32_t) address + base_address + lkg_address, val);
+    return memCache.Write((uint32_t) address + base_address + lkg_address, val);
 }
 
 bool PrefHandler::read(uint16_t address, uint8_t *val)
@@ -172,7 +172,7 @@ bool PrefHandler::read(uint16_t address, uint8_t *val)
     if (address >= EE_DEVICE_SIZE) {
         return false;
     }
-    return memCache->Read((uint32_t) address + base_address + lkg_address, val);
+    return memCache.Read((uint32_t) address + base_address + lkg_address, val);
 }
 
 bool PrefHandler::read(uint16_t address, uint16_t *val)
@@ -180,7 +180,7 @@ bool PrefHandler::read(uint16_t address, uint16_t *val)
     if (address >= EE_DEVICE_SIZE) {
         return false;
     }
-    return memCache->Read((uint32_t) address + base_address + lkg_address, val);
+    return memCache.Read((uint32_t) address + base_address + lkg_address, val);
 }
 
 bool PrefHandler::read(uint16_t address, uint32_t *val)
@@ -188,7 +188,7 @@ bool PrefHandler::read(uint16_t address, uint32_t *val)
     if (address >= EE_DEVICE_SIZE) {
         return false;
     }
-    return memCache->Read((uint32_t) address + base_address + lkg_address, val);
+    return memCache.Read((uint32_t) address + base_address + lkg_address, val);
 }
 
 uint8_t PrefHandler::calcChecksum()
@@ -198,7 +198,7 @@ uint8_t PrefHandler::calcChecksum()
     uint8_t temp;
 
     for (counter = 1; counter < EE_DEVICE_SIZE; counter++) {
-        memCache->Read((uint32_t) counter + base_address + lkg_address, &temp);
+        memCache.Read((uint32_t) counter + base_address + lkg_address, &temp);
         accum += temp;
     }
 
@@ -210,7 +210,7 @@ void PrefHandler::saveChecksum()
 {
     uint8_t csum;
     csum = calcChecksum();
-    memCache->Write(EE_CHECKSUM + base_address + lkg_address, csum);
+    memCache.Write(EE_CHECKSUM + base_address + lkg_address, csum);
 }
 
 bool PrefHandler::checksumValid()
@@ -218,7 +218,7 @@ bool PrefHandler::checksumValid()
     //get checksum from EEPROM and calculate the current checksum to see if they match
     uint8_t stored_chk, calc_chk;
 
-    memCache->Read(EE_CHECKSUM + base_address + lkg_address, &stored_chk);
+    memCache.Read(EE_CHECKSUM + base_address + lkg_address, &stored_chk);
     calc_chk = calcChecksum();
     if (stored_chk == calc_chk) {
         Logger::debug(deviceId, "valid checksum, using stored config values");
@@ -231,38 +231,5 @@ bool PrefHandler::checksumValid()
 
 void PrefHandler::forceCacheWrite()
 {
-    memCache->FlushAllPages();
+    memCache.FlushAllPages();
 }
-
-//initializes all the system EEPROM values. Chances are this should be broken out a bit but
-//there is only one checksum check for all of them so it's simple to do it all here.
-void PrefHandler::initSysEEPROM()
-{
-    //three temporary storage places to make saving to EEPROM easy
-    uint8_t eight;
-    uint16_t sixteen;
-    uint32_t thirtytwo;
-
-    Logger::info("Initializing EEPROM");
-
-    eight = SYSTEM_DUED;
-    write(EESYS_SYSTEM_TYPE, eight);
-
-    sixteen = 1024; //no gain
-    write(EESIO_ADC0_GAIN, sixteen);
-    write(EESIO_ADC1_GAIN, sixteen);
-    write(EESIO_ADC2_GAIN, sixteen);
-    write(EESIO_ADC3_GAIN, sixteen);
-
-    sixteen = 0; //no offset
-    write(EESIO_ADC0_OFFSET, sixteen);
-    write(EESIO_ADC1_OFFSET, sixteen);
-    write(EESIO_ADC2_OFFSET, sixteen);
-    write(EESIO_ADC3_OFFSET, sixteen);
-
-    eight = 1;
-    write(EESYS_LOG_LEVEL, eight);
-
-    saveChecksum();
-}
-

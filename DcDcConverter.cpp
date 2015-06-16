@@ -58,7 +58,7 @@ void DcDcConverter::handleStateChange(Status::SystemState oldState, Status::Syst
     } else {
         powerOn = false;
     }
-    systemIO->setEnableDcDc(powerOn);
+    systemIO.setEnableDcDc(powerOn);
 }
 
 /*

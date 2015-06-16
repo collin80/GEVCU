@@ -102,7 +102,7 @@ void ThrottleDetector::detect()
     startTime = millis();
     state = DetectMinWait;
 
-    TickHandler::getInstance()->attach(this, CFG_TICK_INTERVAL_POT_THROTTLE);
+    tickHandler.attach(this, CFG_TICK_INTERVAL_POT_THROTTLE);
 }
 
 /*
@@ -316,10 +316,10 @@ void ThrottleDetector::detectMaxCalibrate()
 
         // Done!
         state = DoNothing;
-        TickHandler::getInstance()->detach(this);
+        tickHandler.detach(this);
 
         // send updates to ichip wifi
-        DeviceManager::getInstance()->sendMessage(DEVICE_WIFI, ICHIP2128, MSG_CONFIG_CHANGE, NULL);
+        deviceManager.sendMessage(DEVICE_WIFI, ICHIP2128, MSG_CONFIG_CHANGE, NULL);
     }
 }
 

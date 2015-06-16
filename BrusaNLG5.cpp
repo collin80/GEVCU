@@ -32,7 +32,6 @@
  */
 BrusaNLG5::BrusaNLG5() : Charger()
 {
-    canHandlerEv = CanHandler::getInstanceEV();
     prefsHandler = new PrefHandler(BRUSA_NLG5);
     commonName = "Brusa NLG5 Charger";
 
@@ -56,7 +55,7 @@ BrusaNLG5::BrusaNLG5() : Charger()
  */
 void BrusaNLG5::setup()
 {
-    tickHandler->detach(this);
+    tickHandler.detach(this);
 
     loadConfiguration();
     Charger::setup(); // call parent
@@ -69,7 +68,7 @@ void BrusaNLG5::tearDown()
 {
     Charger::tearDown();
 
-    canHandlerEv->detach(this, CAN_MASKED_ID, CAN_MASK);
+    canHandlerEv.detach(this, CAN_MASKED_ID, CAN_MASK);
     sendControl();
 }
 
@@ -99,7 +98,7 @@ void BrusaNLG5::handleTick()
 void BrusaNLG5::sendControl()
 {
     BrusaNLG5Configuration *config = (BrusaNLG5Configuration *) getConfiguration();
-    canHandlerEv->prepareOutputFrame(&outputFrame, CAN_ID_COMMAND);
+    canHandlerEv.prepareOutputFrame(&outputFrame, CAN_ID_COMMAND);
 
     if (powerOn && (ready || running)) {
         outputFrame.data.bytes[0] |= enable;
@@ -120,7 +119,7 @@ void BrusaNLG5::sendControl()
     outputFrame.data.bytes[6] = (constrain(current, 0, 1500) & 0x00FF);
     outputFrame.length = 7;
 
-    canHandlerEv->sendFrame(outputFrame);
+    canHandlerEv.sendFrame(outputFrame);
 }
 
 /**
@@ -133,8 +132,8 @@ void BrusaNLG5::handleStateChange(Status::SystemState oldState, Status::SystemSt
     Charger::handleStateChange(oldState, newState);
 
     if (newState == Status::charging) {
-        tickHandler->attach(this, CFG_TICK_INTERVAL_CHARGE_NLG5);
-        canHandlerEv->attach(this, CAN_MASKED_ID, CAN_MASK, false);
+        tickHandler.attach(this, CFG_TICK_INTERVAL_CHARGE_NLG5);
+        canHandlerEv.attach(this, CAN_MASKED_ID, CAN_MASK, false);
         canTickCounter = 0;
     } else {
         tearDown();

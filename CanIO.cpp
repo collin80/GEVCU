@@ -29,23 +29,22 @@
 CanIO::CanIO() : Device()
 {
     prefsHandler = new PrefHandler(CANIO);
-    canHandlerEv = CanHandler::getInstanceEV();
     commonName = "CAN I/O";
 }
 
 void CanIO::setup()
 {
-    tickHandler->detach(this);
+    tickHandler.detach(this);
 
     loadConfiguration();
     Device::setup();
 
-    canHandlerEv->attach(this, CAN_MASKED_ID, CAN_MASK, false);
+    canHandlerEv.attach(this, CAN_MASKED_ID, CAN_MASK, false);
 
     ready = true;
     running = true;
 
-    tickHandler->attach(this, CFG_TICK_INTERVAL_CAN_IO);
+    tickHandler.attach(this, CFG_TICK_INTERVAL_CAN_IO);
 }
 
 /**
@@ -56,7 +55,7 @@ void CanIO::tearDown()
     Device::tearDown();
     sendIOStatus(); // so the error state is transmitted
 
-    canHandlerEv->detach(this, CAN_MASKED_ID, CAN_MASK);
+    canHandlerEv.detach(this, CAN_MASKED_ID, CAN_MASK);
 }
 
 void CanIO::handleTick()
@@ -99,60 +98,60 @@ void CanIO::handleMessage(uint32_t msgType, void* message)
  */
 void CanIO::sendIOStatus()
 {
-    canHandlerEv->prepareOutputFrame(&outputFrame, CAN_ID_GEVCU_STATUS);
+    canHandlerEv.prepareOutputFrame(&outputFrame, CAN_ID_GEVCU_STATUS);
 
     uint16_t rawIO = 0;
-    rawIO |= status->digitalInput[0] ? digitalIn1 : 0;
-    rawIO |= status->digitalInput[1] ? digitalIn2 : 0;
-    rawIO |= status->digitalInput[2] ? digitalIn3 : 0;
-    rawIO |= status->digitalInput[3] ? digitalIn4 : 0;
-    rawIO |= status->digitalOutput[0] ? digitalOut1 : 0;
-    rawIO |= status->digitalOutput[1] ? digitalOut2 : 0;
-    rawIO |= status->digitalOutput[2] ? digitalOut3 : 0;
-    rawIO |= status->digitalOutput[3] ? digitalOut4 : 0;
-    rawIO |= status->digitalOutput[4] ? digitalOut5 : 0;
-    rawIO |= status->digitalOutput[5] ? digitalOut6 : 0;
-    rawIO |= status->digitalOutput[6] ? digitalOut7 : 0;
-    rawIO |= status->digitalOutput[7] ? digitalOut8 : 0;
+    rawIO |= status.digitalInput[0] ? digitalIn1 : 0;
+    rawIO |= status.digitalInput[1] ? digitalIn2 : 0;
+    rawIO |= status.digitalInput[2] ? digitalIn3 : 0;
+    rawIO |= status.digitalInput[3] ? digitalIn4 : 0;
+    rawIO |= status.digitalOutput[0] ? digitalOut1 : 0;
+    rawIO |= status.digitalOutput[1] ? digitalOut2 : 0;
+    rawIO |= status.digitalOutput[2] ? digitalOut3 : 0;
+    rawIO |= status.digitalOutput[3] ? digitalOut4 : 0;
+    rawIO |= status.digitalOutput[4] ? digitalOut5 : 0;
+    rawIO |= status.digitalOutput[5] ? digitalOut6 : 0;
+    rawIO |= status.digitalOutput[6] ? digitalOut7 : 0;
+    rawIO |= status.digitalOutput[7] ? digitalOut8 : 0;
 
     outputFrame.data.byte[0] = (rawIO & 0xFF00) >> 8;
     outputFrame.data.byte[1] = (rawIO & 0x00FF);
 
     uint16_t logicIO = 0;
-    logicIO |= status->preChargeRelay ? preChargeRelay : 0;
-    logicIO |= status->mainContactor ? mainContactor : 0;
-    logicIO |= status->secondaryContactor ? secondaryContactor : 0;
-    logicIO |= status->fastChargeContactor ? fastChargeContactor : 0;
+    logicIO |= status.preChargeRelay ? preChargeRelay : 0;
+    logicIO |= status.mainContactor ? mainContactor : 0;
+    logicIO |= status.secondaryContactor ? secondaryContactor : 0;
+    logicIO |= status.fastChargeContactor ? fastChargeContactor : 0;
 
-    logicIO |= status->enableMotor ? enableMotor : 0;
-    logicIO |= status->enableCharger ? enableCharger : 0;
-    logicIO |= status->enableDcDc ? enableDcDc : 0;
-    logicIO |= status->enableHeater ? enableHeater : 0;
+    logicIO |= status.enableMotor ? enableMotor : 0;
+    logicIO |= status.enableCharger ? enableCharger : 0;
+    logicIO |= status.enableDcDc ? enableDcDc : 0;
+    logicIO |= status.enableHeater ? enableHeater : 0;
 
-    logicIO |= status->heaterValve ? heaterValve : 0;
-    logicIO |= status->heaterPump ? heaterPump : 0;
-    logicIO |= status->coolingPump ? coolingPump : 0;
-    logicIO |= status->coolingFan ? coolingFan : 0;
+    logicIO |= status.heaterValve ? heaterValve : 0;
+    logicIO |= status.heaterPump ? heaterPump : 0;
+    logicIO |= status.coolingPump ? coolingPump : 0;
+    logicIO |= status.coolingFan ? coolingFan : 0;
 
-    logicIO |= status->brakeLight ? brakeLight : 0;
-    logicIO |= status->reverseLight ? reverseLight : 0;
-    logicIO |= status->warning ? warning : 0;
-    logicIO |= status->limitationTorque ? powerLimitation : 0;
+    logicIO |= status.brakeLight ? brakeLight : 0;
+    logicIO |= status.reverseLight ? reverseLight : 0;
+    logicIO |= status.warning ? warning : 0;
+    logicIO |= status.limitationTorque ? powerLimitation : 0;
 
     outputFrame.data.byte[2] = (logicIO & 0xFF00) >> 8;
     outputFrame.data.byte[3] = (logicIO & 0x00FF);
 
-    outputFrame.data.byte[4] = status->getSystemState();
+    outputFrame.data.byte[4] = status.getSystemState();
 
-    canHandlerEv->sendFrame(outputFrame);
+    canHandlerEv.sendFrame(outputFrame);
 }
 
 void CanIO::processExternalTemperature(byte bytes[])
 {
     for (int i = 0; i < CFG_NUMBER_TEMPERATURE_SENSORS; i++) {
         if (bytes[i] != 0) {
-            status->externalTemperature[i] = bytes[i] - 50;
-Logger::info(CANIO, "external temperature %d: %d", i, status->externalTemperature[i]);
+            status.externalTemperature[i] = bytes[i] - 50;
+Logger::info(CANIO, "external temperature %d: %d", i, status.externalTemperature[i]);
         }
     }
 }

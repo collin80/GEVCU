@@ -32,11 +32,10 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 OBD2Handler::OBD2Handler()
 {
-    DeviceManager *deviceManager = DeviceManager::getInstance();
-    motorController = (MotorController*) deviceManager->getMotorController();
-    accelPedal = (Throttle*) deviceManager->getAccelerator();
-    brakePedal = (Throttle*) deviceManager->getBrake();
-    BMS = (BatteryManager*) deviceManager->getDeviceByType(DEVICE_BMS);
+    motorController = (MotorController*) deviceManager.getMotorController();
+    accelPedal = (Throttle*) deviceManager.getAccelerator();
+    brakePedal = (Throttle*) deviceManager.getBrake();
+    BMS = (BatteryManager*) deviceManager.getDeviceByType(DEVICE_BMS);
 }
 
 OBD2Handler *OBD2Handler::getInstance()

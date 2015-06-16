@@ -116,7 +116,6 @@ public:
     void saveConfiguration();
 
 private:
-    CanHandler *canHandlerEv;
     uint32_t bitfield; // various bit fields
     uint8_t mode; // operation mode / status
     uint8_t lvCurrentAvailable; // 0-250A in 1A

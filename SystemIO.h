@@ -40,6 +40,13 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 class Status;
 
+enum SystemType {
+    GEVCU1 = 1,
+    GEVCU2 = 2,
+    GEVCU3 = 3,
+    GEVCU4 = 4
+};
+
 class SystemIOConfiguration
 {
 public:
@@ -70,12 +77,16 @@ public:
     uint8_t reverseLightOutput; // #of output for reverse light or 255 if not used
     uint8_t warningOutput; // #of output for warning light/relay or 255 if not used
     uint8_t powerLimitationOutput; // #of output for power limitation light or 255 if not used
+
+    SystemType systemType; // the system type
+    Logger::LogLevel logLevel; // the system's loglevel
 };
 
 class SystemIO : public TickObserver
 {
 public:
-    static SystemIO *getInstance();
+    SystemIO();
+    virtual ~SystemIO();
     void setup();
     void handleCanFrame(CAN_FRAME *frame);
     void handleTick();
@@ -112,6 +123,11 @@ public:
     uint32_t getNextADCBuffer();
     void printIOStatus();
 
+    void setSystemType(SystemType);
+    SystemType getSystemType();
+    void setLogLevel(Logger::LogLevel);
+    Logger::LogLevel getLogLevel();
+
 protected:
 
 private:
@@ -138,11 +154,8 @@ private:
     bool useRawADC;
     uint32_t preChargeStart; // time-stamp when pre-charge cycle has started
     SystemIOConfiguration *configuration;
-    Status *status;
     PrefHandler *prefsHandler;
 
-    SystemIO();
-    virtual ~SystemIO();
     void initializePinTables();
     void initGevcu2PinTable();
     void initGevcu3PinTable();
@@ -171,5 +184,7 @@ private:
     void setFastChargeContactor(bool);
 
 };
+
+extern SystemIO systemIO;
 
 #endif

@@ -129,7 +129,7 @@ public:
 
     int16_t externalTemperature[CFG_NUMBER_TEMPERATURE_SENSORS]; // temperature reported via CAN from external device
 
-    static Status *getInstance();
+    Status();
     SystemState getSystemState();
     SystemState setSystemState(SystemState);
     char *systemStateToStr(SystemState);
@@ -140,7 +140,9 @@ public:
     int16_t getHighestExternalTemperature();
 
 private:
-    Status();
     SystemState systemState; // the current state of the system, to be modified by the state machine of this class only
 };
+
+extern Status status;
+
 #endif /* STATUS_H_ */

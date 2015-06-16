@@ -32,7 +32,6 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 CanPIDListener::CanPIDListener() : Device()
 {
-    canHandlerEv = CanHandler::getInstanceEV();
     prefsHandler = new PrefHandler(PIDLISTENER);
 
     responseId = 0;
@@ -48,8 +47,8 @@ void CanPIDListener::setup()
     Device::setup();
 
     //TODO: FIXME Quickly coded as hard coded values. This is naughty.
-    canHandlerEv->attach(this, 0x7DF, 0x7DF, false);
-    canHandlerEv->attach(this, 0x7E0, 0x7E0, false);
+    canHandlerEv.attach(this, 0x7DF, 0x7DF, false);
+    canHandlerEv.attach(this, 0x7E0, 0x7E0, false);
 
     ready = true;
     running = true;
@@ -64,8 +63,8 @@ void CanPIDListener::tearDown()
 {
     Device::tearDown();
 
-    canHandlerEv->detach(this, 0x7DF, 0x7DF);
-    canHandlerEv->detach(this, 0x7E0, 0x7E0);
+    canHandlerEv.detach(this, 0x7DF, 0x7DF);
+    canHandlerEv.detach(this, 0x7E0, 0x7E0);
 }
 
 /*
@@ -166,7 +165,7 @@ void CanPIDListener::handleCanFrame(CAN_FRAME *frame)
         //here is where we'd send out response. Right now it sends over canbus but when we support other
         //alteratives they'll be sending here too.
         if (ret) {
-            canHandlerEv->sendFrame(outputFrame);
+            canHandlerEv.sendFrame(outputFrame);
         }
     }
 }
@@ -175,7 +174,7 @@ void CanPIDListener::handleCanFrame(CAN_FRAME *frame)
 //Process SAE standard PID requests. Function returns whether it handled the request or not.
 bool CanPIDListener::processShowData(CAN_FRAME* inFrame, CAN_FRAME& outFrame)
 {
-    MotorController* motorController = DeviceManager::getInstance()->getMotorController();
+    MotorController* motorController = deviceManager.getMotorController();
     int temp;
 
     switch (inFrame->data.bytes[2]) {

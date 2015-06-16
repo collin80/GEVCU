@@ -5,10 +5,10 @@
 			<storageModule buildSystemId="org.eclipse.cdt.managedbuilder.core.configurationDataProvider" id="it.baeyens.arduino.core.toolChain.release.686383860" moduleId="org.eclipse.cdt.core.settings" name="Release">
 				<externalSettings/>
 				<extensions>
+					<extension id="org.eclipse.cdt.core.ELF" point="org.eclipse.cdt.core.BinaryParser"/>
 					<extension id="org.eclipse.cdt.core.MakeErrorParser" point="org.eclipse.cdt.core.ErrorParser"/>
 					<extension id="org.eclipse.cdt.core.GCCErrorParser" point="org.eclipse.cdt.core.ErrorParser"/>
 					<extension id="org.eclipse.cdt.core.GLDErrorParser" point="org.eclipse.cdt.core.ErrorParser"/>
-					<extension id="org.eclipse.cdt.core.ELF" point="org.eclipse.cdt.core.BinaryParser"/>
 				</extensions>
 			</storageModule>
 			<storageModule moduleId="cdtBuildSystem" version="4.0.0">
@@ -21,7 +21,6 @@
 								<option id="it.baeyens.arduino.compiler.cpp.sketch.option.incpath.647762845" name="Include Paths (-I)" superClass="it.baeyens.arduino.compiler.cpp.sketch.option.incpath" valueType="includePath">
 									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/GEVCU/arduino/core}&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/GEVCU/Libraries/due_can}&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/GEVCU/Libraries/due_rtc}&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/GEVCU/Libraries/due_wire}&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/GEVCU/Libraries/DueTimer}&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/GEVCU/arduino/variant}&quot;"/>
@@ -32,7 +31,6 @@
 								<option id="it.baeyens.arduino.compiler.c.sketch.option.incpath.1237971842" name="Include Paths (-I)" superClass="it.baeyens.arduino.compiler.c.sketch.option.incpath" valueType="includePath">
 									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/GEVCU/arduino/core}&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/GEVCU/Libraries/due_can}&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/GEVCU/Libraries/due_rtc}&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/GEVCU/Libraries/due_wire}&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/GEVCU/Libraries/DueTimer}&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/GEVCU/arduino/variant}&quot;"/>

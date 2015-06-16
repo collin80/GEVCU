@@ -54,16 +54,16 @@ DmocMotorController::DmocMotorController() : MotorController()
 
 void DmocMotorController::setup()
 {
-    tickHandler->detach(this);
+    tickHandler.detach(this);
 
     loadConfiguration();
     MotorController::setup(); // run the parent class version of this function
 
     // register ourselves as observer of 0x23x and 0x65x can frames
-    canHandlerEv->attach(this, CAN_MASKED_ID_1, CAN_MASK_1, false);
-    canHandlerEv->attach(this, CAN_MASKED_ID_2, CAN_MASK_2, false);
+    canHandlerEv.attach(this, CAN_MASKED_ID_1, CAN_MASK_1, false);
+    canHandlerEv.attach(this, CAN_MASKED_ID_2, CAN_MASK_2, false);
 
-    tickHandler->attach(this, CFG_TICK_INTERVAL_MOTOR_CONTROLLER_DMOC);
+    tickHandler.attach(this, CFG_TICK_INTERVAL_MOTOR_CONTROLLER_DMOC);
 }
 
 /**
@@ -73,8 +73,8 @@ void DmocMotorController::tearDown()
 {
     MotorController::tearDown();
 
-    canHandlerEv->detach(this, CAN_MASKED_ID_1, CAN_MASK_1);
-    canHandlerEv->detach(this, CAN_MASKED_ID_2, CAN_MASK_2);
+    canHandlerEv.detach(this, CAN_MASKED_ID_1, CAN_MASK_1);
+    canHandlerEv.detach(this, CAN_MASKED_ID_2, CAN_MASK_2);
 
     sendCmd1();
     sendCmd2();
@@ -137,17 +137,17 @@ void DmocMotorController::handleCanFrame(CAN_FRAME *frame)
         switch (actualState) {
         case 5: //Fault
             Logger::error(DMOC645, "Inverter reports fault");
-            status->setSystemState(Status::error);
+            status.setSystemState(Status::error);
             break;
 
         case 6: //Critical Fault
             Logger::error(DMOC645, "Inverter reports critical fault");
-            status->setSystemState(Status::error);
+            status.setSystemState(Status::error);
             break;
 
         case 7: //LOS
             Logger::error(DMOC645, "Inverter reports LOS");
-            status->setSystemState(Status::error);
+            status.setSystemState(Status::error);
             break;
         }
         reportActivity();
@@ -188,7 +188,7 @@ void DmocMotorController::sendCmd1()
     OperationState newstate;
     CAN_FRAME output;
 
-    canHandlerEv->prepareOutputFrame(&output, CAN_ID_COMMAND);
+    canHandlerEv.prepareOutputFrame(&output, CAN_ID_COMMAND);
     alive = (alive + 2) & 0x0F;
 
     uint16_t speedCommand = 20000;
@@ -225,7 +225,7 @@ void DmocMotorController::sendCmd1()
 
     output.data.bytes[7] = calcChecksum(output);
 
-    canHandlerEv->sendFrame(output);
+    canHandlerEv.sendFrame(output);
 }
 
 //Torque limits
@@ -234,7 +234,7 @@ void DmocMotorController::sendCmd2()
     DmocMotorControllerConfiguration *config = (DmocMotorControllerConfiguration *) getConfiguration();
     CAN_FRAME output;
 
-    canHandlerEv->prepareOutputFrame(&output, CAN_ID_LIMIT);
+    canHandlerEv.prepareOutputFrame(&output, CAN_ID_LIMIT);
 
     if (config->powerMode == modeTorque) {
         //30000 is the base point where torque = 0
@@ -267,7 +267,7 @@ void DmocMotorController::sendCmd2()
     output.data.bytes[6] = alive;
     output.data.bytes[7] = calcChecksum(output);
 
-    canHandlerEv->sendFrame(output);
+    canHandlerEv.sendFrame(output);
 }
 
 //Power limits plus setting ambient temp and whether to cool power train or go into limp mode
@@ -275,7 +275,7 @@ void DmocMotorController::sendCmd3()
 {
     DmocMotorControllerConfiguration *config = (DmocMotorControllerConfiguration *) getConfiguration();
     CAN_FRAME output;
-    canHandlerEv->prepareOutputFrame(&output, CAN_ID_LIMIT2);
+    canHandlerEv.prepareOutputFrame(&output, CAN_ID_LIMIT2);
 
     int regenCalc = 65000 - (config->maxMechanicalPowerRegen * 25);
     int accelCalc = (config->maxMechanicalPowerMotor * 25);
@@ -288,14 +288,14 @@ void DmocMotorController::sendCmd3()
     output.data.bytes[6] = alive;
     output.data.bytes[7] = calcChecksum(output);
 
-    canHandlerEv->sendFrame(output);
+    canHandlerEv.sendFrame(output);
 }
 
 //challenge/response frame 1 - Really doesn't contain anything we need I dont think
 void DmocMotorController::sendCmd4()
 {
     CAN_FRAME output;
-    canHandlerEv->prepareOutputFrame(&output, CAN_ID_CHALLENGE);
+    canHandlerEv.prepareOutputFrame(&output, CAN_ID_CHALLENGE);
     output.data.bytes[0] = 37; //i don't know what all these values are
     output.data.bytes[1] = 11; //they're just copied from real traffic
     output.data.bytes[4] = 6;
@@ -303,14 +303,14 @@ void DmocMotorController::sendCmd4()
     output.data.bytes[6] = alive;
     output.data.bytes[7] = calcChecksum(output);
 
-    canHandlerEv->sendFrame(output);
+    canHandlerEv.sendFrame(output);
 }
 
 //Another C/R frame but this one also specifies which shifter position we're in
 void DmocMotorController::sendCmd5()
 {
     CAN_FRAME output;
-    canHandlerEv->prepareOutputFrame(&output, CAN_ID_CHALLENGE2);
+    canHandlerEv.prepareOutputFrame(&output, CAN_ID_CHALLENGE2);
     output.data.bytes[0] = 2;
     output.data.bytes[1] = 127;
 
@@ -328,7 +328,7 @@ void DmocMotorController::sendCmd5()
     output.data.bytes[6] = alive;
     output.data.bytes[7] = calcChecksum(output);
 
-    canHandlerEv->sendFrame(output);
+    canHandlerEv.sendFrame(output);
 }
 
 //this might look stupid. You might not believe this is real. It is. This is how you

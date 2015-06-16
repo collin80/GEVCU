@@ -52,15 +52,15 @@ CodaMotorController::CodaMotorController() : MotorController() {
 }
 
 void CodaMotorController::setup() {
-    tickHandler->detach(this);
+    tickHandler.detach(this);
 
     loadConfiguration();
     MotorController::setup(); // run the parent class version of this function
 
     // register ourselves as observer of all 0x20x can frames for UQM
-    canHandlerEv->attach(this, 0x200, 0x7f0, false);
+    canHandlerEv.attach(this, 0x200, 0x7f0, false);
 
-    tickHandler->attach(this, CFG_TICK_INTERVAL_MOTOR_CONTROLLER_CODAUQM);
+    tickHandler.attach(this, CFG_TICK_INTERVAL_MOTOR_CONTROLLER_CODAUQM);
 }
 
 void CodaMotorController::handleCanFrame(CAN_FRAME *frame) {
@@ -121,7 +121,7 @@ void CodaMotorController::handleCanFrame(CAN_FRAME *frame) {
 
     case 0x20F:    //CAN Watchdog Status Message
         Logger::debug(CODAUQM, "20F CAN Watchdog status error");
-        status->warning = true;
+        status.warning = true;
         running = false;
         sendCmd2(); //If we get a Watchdog status, we need to respond with Watchdog reset
         reportActivity();
@@ -163,7 +163,7 @@ void CodaMotorController::sendCmd1() {
     CodaMotorControllerConfiguration *config = (CodaMotorControllerConfiguration *) getConfiguration();
 
     CAN_FRAME output;
-    canHandlerEv->prepareOutputFrame(&output, 0x204);
+    canHandlerEv.prepareOutputFrame(&output, 0x204);
 
     if ((ready || running) && powerOn) {
         output.data.bytes[1] = 0x80; //1000 0000 enable
@@ -197,7 +197,7 @@ void CodaMotorController::sendCmd1() {
     output.data.bytes[2] = (torqueCommand & 0x00FF);
     output.data.bytes[4] = genCodaCRC(output.data.bytes[1], output.data.bytes[2], output.data.bytes[3]); //Calculate security byte
 
-    canHandlerEv->sendFrame(output);  //Mail it.
+    canHandlerEv.sendFrame(output);  //Mail it.
 
     if (Logger::isDebug()) {
         Logger::debug(CODAUQM, "Torque command: %X   %X  ControlByte: %X  LSB %X  MSB: %X  CRC: %X", output.id, output.data.bytes[0],
@@ -217,17 +217,17 @@ void CodaMotorController::sendCmd2() {
      */
 
     CAN_FRAME output;
-    canHandlerEv->prepareOutputFrame(&output, 0x207);
+    canHandlerEv.prepareOutputFrame(&output, 0x207);
     output.data.bytes[0] = 0xa5; //This is simply three given values.  The 5A appears to be
     output.data.bytes[1] = 0xa5; //the important one.
     output.data.bytes[2] = 0x5a;
 
-    canHandlerEv->sendFrame(output);
+    canHandlerEv.sendFrame(output);
     if (Logger::isDebug()) {
         Logger::debug(CODAUQM, "Watchdog reset: %X  %X  %X", output.data.bytes[0], output.data.bytes[1], output.data.bytes[2]);
     }
 
-    status->warning = false;
+    status.warning = false;
 }
 
 DeviceId CodaMotorController::getId() {

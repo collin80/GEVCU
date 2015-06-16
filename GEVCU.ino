@@ -58,35 +58,26 @@ Random comments on things that should be coded up soon:
 #include <DueTimer.h>
 
 //Evil, global variables
-SystemIO *systemIO;
-CanHandler *canHandlerEV;
-CanHandler *canHandlerCar;
-TickHandler *tickHandler;
-PrefHandler *sysPrefs;
-MemCache *memCache;
-SerialConsole *serialConsole;
 Device *wifiDevice;
 Device *btDevice;
 PerfTimer *mainLoopTimer;
 
 void createDevices()
 {
-    DeviceManager *deviceManager = DeviceManager::getInstance();
-
-    deviceManager->addDevice(new Heartbeat());
-    deviceManager->addDevice(new PotThrottle());
-    deviceManager->addDevice(new CanThrottle());
-    deviceManager->addDevice(new PotBrake());
-    deviceManager->addDevice(new CanBrake());
-    deviceManager->addDevice(new DmocMotorController());
-    deviceManager->addDevice(new CodaMotorController());
-    deviceManager->addDevice(new BrusaDMC5());
-    deviceManager->addDevice(new BrusaBSC6());
-    deviceManager->addDevice(new BrusaNLG5());
-    deviceManager->addDevice(new ThinkBatteryManager());
-//    deviceManager->addDevice(new ELM327Emu());
-    deviceManager->addDevice(new ICHIPWIFI());
-    deviceManager->addDevice(new CanIO());
+    deviceManager.addDevice(new Heartbeat());
+    deviceManager.addDevice(new PotThrottle());
+    deviceManager.addDevice(new CanThrottle());
+    deviceManager.addDevice(new PotBrake());
+    deviceManager.addDevice(new CanBrake());
+    deviceManager.addDevice(new DmocMotorController());
+    deviceManager.addDevice(new CodaMotorController());
+    deviceManager.addDevice(new BrusaDMC5());
+    deviceManager.addDevice(new BrusaBSC6());
+    deviceManager.addDevice(new BrusaNLG5());
+    deviceManager.addDevice(new ThinkBatteryManager());
+//    deviceManager.addDevice(new ELM327Emu());
+    deviceManager.addDevice(new ICHIPWIFI());
+    deviceManager.addDevice(new CanIO());
 }
 
 void setup()
@@ -101,34 +92,16 @@ void setup()
     Wire.begin();
     Logger::info("TWI init ok");
 
-    memCache = new MemCache();
-    Logger::info("add MemCache (id: %X, %X)", MEMCACHE, memCache);
-    memCache->setup();
-    sysPrefs = new PrefHandler(SYSTEM);
-
-    if (!sysPrefs->checksumValid()) {
-        sysPrefs->initSysEEPROM();
-    } else {  //checksum is good, read in the values stored in EEPROM
-        Logger::info("Using existing EEPROM values");
-    }
-
-    uint8_t loglevel;
-    sysPrefs->read(EESYS_LOG_LEVEL, &loglevel);
-    Logger::setLoglevel((Logger::LogLevel) loglevel);
-//    Logger::setLoglevel(Logger::Debug);
+    memCache.setup();
 
     //fault handler is always enabled too - its also statically allocated so no using -> here
     //This is initialized before the other devices so that they can go ahead and use it if they fault upon start up
     faultHandler.setup();
+    systemIO.setup();
 
-    tickHandler = TickHandler::getInstance();
+    canHandlerEv.setup();
+    canHandlerCar.setup();
 
-    canHandlerEV = CanHandler::getInstanceEV();
-    canHandlerCar = CanHandler::getInstanceCar();
-    canHandlerEV->initialize();
-    canHandlerCar->initialize();
-
-    systemIO = SystemIO::getInstance();
     createDevices();
     /*
      *  We defer setting up the devices until here. This allows all objects to be instantiated
@@ -136,16 +109,14 @@ void setup()
      *  out there as they initialize. For instance, a motor controller could see if a BMS
      *  exists and supports a function that the motor controller wants to access.
      */
-    systemIO->setup();
-    Status::getInstance()->setSystemState(Status::init);
+    status.setSystemState(Status::init);
 
-    serialConsole = new SerialConsole(memCache);
-    serialConsole->printMenu();
+    serialConsole.printMenu();
 
-    wifiDevice = DeviceManager::getInstance()->getDeviceByID(ICHIP2128);
-    btDevice = DeviceManager::getInstance()->getDeviceByID(ELM327EMU);
+    wifiDevice = deviceManager.getDeviceByID(ICHIP2128);
+    btDevice = deviceManager.getDeviceByID(ELM327EMU);
 
-    Status::getInstance()->setSystemState(Status::preCharge);
+    status.setSystemState(Status::preCharge);
 
 #ifdef CFG_EFFICIENCY_CALCS
 	mainLoopTimer = new PerfTimer();
@@ -165,13 +136,13 @@ void loop()
 	mainLoopTimer->start();
 #endif
 
-    tickHandler->process();
+    tickHandler.process();
 
     // check if incoming frames are available in the can buffer and process them
-    canHandlerEV->process();
-    canHandlerCar->process();
+    canHandlerEv.process();
+    canHandlerCar.process();
 
-    serialConsole->loop();
+    serialConsole.loop();
 
     //TODO: this is dumb... shouldn't have to manually do this. Devices should be able to register loop functions
     if (wifiDevice != NULL) {
@@ -183,7 +154,7 @@ void loop()
 //    }
 
     //this should still be here. It checks for a flag set during an interrupt
-    systemIO->ADCPoll();
+    systemIO.ADCPoll();
 
 #ifdef CFG_EFFICIENCY_CALCS
 	mainLoopTimer->stop();

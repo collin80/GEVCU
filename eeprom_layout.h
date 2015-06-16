@@ -137,6 +137,8 @@ the end of the stardard data. The below numbers are offsets from the device's ee
 #define CHRG_HYSTERESE_RESUME               46 // 2 bytes, temperature where chargin is resumed in 0.1deg C
 
 // System I/O
+#define EESYS_SYSTEM_TYPE                   10 //1 byte - 1 = Old school protoboards 2 = GEVCU2/DUED 3 = GEVCU3 - Defaults to 2 if invalid or not set up
+#define EESYS_LOG_LEVEL                     11 //1 byte - the log level
 #define EESIO_RAWADC                        20 //1 byte - if not zero then use raw ADC mode (no preconditioning or buffering or differential).
 #define EESIO_ADC0_GAIN                     30 //2 bytes - ADC gain centered at 1024 being 1 to 1 gain, thus 512 is 0.5 gain, 2048 is double, etc
 #define EESIO_ADC0_OFFSET                   32 //2 bytes - ADC offset from zero - ADC reads 12 bit so the offset will be [0,4095] - Offset is subtracted from read ADC value
@@ -169,10 +171,6 @@ the end of the stardard data. The below numbers are offsets from the device's ee
 #define EESIO_WARNING_OUTPUT                66 // 1 byte - digital output for warning signal (255 = no output)
 #define EESIO_POWER_LIMITATION_OUTPUT       67 // 1 byte - digital output for power limitation signal (255 = no output)
 #define EESIO_REVERSE_INPUT                 68 // 1 byte - digital input for reverse signal (255 = no input)
-
-//System Data
-#define EESYS_SYSTEM_TYPE                   10 //1 byte - 1 = Old school protoboards 2 = GEVCU2/DUED 3 = GEVCU3 - Defaults to 2 if invalid or not set up
-#define EESYS_LOG_LEVEL                     11 //1 byte - the log level
 
 // Fault Handler
 #define EEFAULT_VALID                       0 //1 byte - Set to value of 0xB2 if fault data has been initialized

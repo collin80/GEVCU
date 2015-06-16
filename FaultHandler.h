@@ -38,8 +38,6 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include "FaultCodes.h"
 #include "MemCache.h"
 
-extern MemCache *memCache;
-
 //structure to use for storing and retrieving faults.
 //Stores the info a fault record will contain.
 typedef struct {

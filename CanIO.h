@@ -104,7 +104,6 @@ public:
 protected:
 
 private:
-    CanHandler *canHandlerEv;
     CAN_FRAME outputFrame; // the output CAN frame;
 
     void processExternalTemperature(byte []);

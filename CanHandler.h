@@ -48,14 +48,13 @@ public:
         CAN_BUS_CAR // CAN1 is intended to be connected to the car's high speed bus (the one with the ECU)
     };
 
-    void initialize();
+    CanHandler(CanBusNode busNumber);
+    void setup();
     void attach(CanObserver *observer, uint32_t id, uint32_t mask, bool extended);
     void detach(CanObserver *observer, uint32_t id, uint32_t mask);
     void process();
     void prepareOutputFrame(CAN_FRAME *frame, uint32_t id);
     void sendFrame(CAN_FRAME& frame);
-    static CanHandler *getInstanceCar();
-    static CanHandler *getInstanceEV();
 protected:
 
 private:
@@ -66,17 +65,17 @@ private:
         uint8_t mailbox;    // which mailbox is this observer assigned to
         CanObserver *observer;  // the observer object (e.g. a device)
     };
-    static CanHandler *canHandlerEV;    // singleton reference to the EV instance (CAN0)
-    static CanHandler *canHandlerCar;   // singleton reference to the car instance (CAN1)
 
     CanBusNode canBusNode;  // indicator to which can bus this instance is assigned to
     CANRaw *bus;    // the can bus instance which this CanHandler instance is assigned to
     CanObserverData observerData[CFG_CAN_NUM_OBSERVERS];    // Can observers
 
-    CanHandler(CanBusNode busNumber);
     void logFrame(CAN_FRAME& frame);
     int8_t findFreeObserverData();
     int8_t findFreeMailbox();
 };
+
+extern CanHandler canHandlerEv;
+extern CanHandler canHandlerCar;
 
 #endif /* CAN_HANDLER_H_ */

@@ -166,7 +166,6 @@ public:
 protected:
 
 private:
-    CanHandler *canHandlerEv;
     uint32_t bitfield; // various bit fields
     uint16_t currentLimitControlPilot; // 0 - 100A in 0.1A
     uint8_t currentLimitPowerIndicator; // 0 - 20A in 0.1A

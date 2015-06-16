@@ -103,8 +103,6 @@ public:
     int16_t getNominalVolt();
 
 protected:
-    CanHandler *canHandlerEv;
-
     int16_t speedActual; // in rpm
     int16_t torqueActual; // in 0.1 Nm
     int16_t torqueAvailable; // the maximum available torque in 0.1Nm

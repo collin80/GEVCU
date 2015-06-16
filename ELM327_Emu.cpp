@@ -41,10 +41,7 @@ ELM327Emu::ELM327Emu()
     prefsHandler = new PrefHandler(ELM327EMU);
     elmProc = new ELM327Processor();
 
-    uint8_t sys_type;
-    sysPrefs->read(EESYS_SYSTEM_TYPE, &sys_type);
-
-    if (sys_type == 3 || sys_type == 4) {
+    if (systemIO.getSystemType() == GEVCU3 || GEVCU4) {
         serialInterface = &Serial2;
     } else { //older hardware used this instead
         serialInterface = &Serial3;
@@ -61,14 +58,14 @@ ELM327Emu::ELM327Emu()
  */
 void ELM327Emu::setup()
 {
-    tickHandler->detach(this);
+    tickHandler.detach(this);
 
     ready = true;
     running = true;
 
     //this isn't a wifi link but the timer interval can be the same
     //because it serves a similar function and has similar timing requirements
-    tickHandler->attach(this, CFG_TICK_INTERVAL_WIFI);
+    tickHandler.attach(this, CFG_TICK_INTERVAL_WIFI);
 }
 
 /*

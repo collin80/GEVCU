@@ -30,8 +30,6 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 MotorController::MotorController() : Device()
 {
-    canHandlerEv = CanHandler::getInstanceEV();
-
     temperatureMotor = 0;
     temperatureController = 0;
 
@@ -110,7 +108,7 @@ void MotorController::checkActivity() {
     }
     // We haven't received frames from the controller for a defined number of ticks
     // But we're in system state "running", so we've lost communications.
-    if (ticksNoMessage > CFG_MOTORCTRL_MAX_NUM_LOST_MSG && status->getSystemState() == Status::running) {
+    if (ticksNoMessage > CFG_MOTORCTRL_MAX_NUM_LOST_MSG && status.getSystemState() == Status::running) {
         running = false;
         ready = false;
 //        faultHandler.raiseFault(getId(), FAULT_MOTORCTRL_COMM, true);
@@ -125,9 +123,8 @@ void MotorController::checkActivity() {
 void MotorController::processThrottleLevel()
 {
     MotorControllerConfiguration *config = (MotorControllerConfiguration *) getConfiguration();
-    DeviceManager *deviceManager = DeviceManager::getInstance();
-    Throttle *accelerator = deviceManager->getAccelerator();
-    Throttle *brake = deviceManager->getBrake();
+    Throttle *accelerator = deviceManager.getAccelerator();
+    Throttle *brake = deviceManager.getBrake();
 
     throttleLevel = 0; //force to zero in case not in operational condition
     torqueRequested = 0;
@@ -155,7 +152,7 @@ void MotorController::processThrottleLevel()
 void MotorController::updateGear()
 {
     if (powerOn && running) {
-        gear = (systemIO->isReverseSignalPresent() ? REVERSE : DRIVE);
+        gear = (systemIO.isReverseSignalPresent() ? REVERSE : DRIVE);
     } else {
         gear = NEUTRAL; // stay in neutral until the controller reports that it's running
     }
@@ -195,7 +192,7 @@ void MotorController::handleStateChange(Status::SystemState oldState, Status::Sy
         throttleLevel = 0;
         gear = NEUTRAL;
     }
-    systemIO->setEnableMotor(powerOn);
+    systemIO.setEnableMotor(newState == Status::ready || newState == Status::running);
 }
 
 void MotorController::setup()

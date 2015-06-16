@@ -27,6 +27,8 @@
 #include "Status.h"
 #include "DeviceManager.h"
 
+Status status;
+
 /*
  * Constructor
  */
@@ -116,15 +118,6 @@ Status::Status() {
     for (int i = 0; i < CFG_NUMBER_TEMPERATURE_SENSORS; i++) {
         externalTemperature[i] = CFG_NO_TEMPERATURE_DATA;
     }
-
-}
-
-/*
- * Get the singleton instance of the class
- */
-Status *Status::getInstance() {
-    static Status *status = new Status();
-    return status;
 }
 
 /*
@@ -211,7 +204,7 @@ Status::SystemState Status::setSystemState(SystemState newSystemState) {
     }
 
     SystemState params[] = { oldSystemState, newSystemState };
-    DeviceManager::getInstance()->sendMessage(DEVICE_ANY, INVALID, MSG_STATE_CHANGE, params);
+    deviceManager.sendMessage(DEVICE_ANY, INVALID, MSG_STATE_CHANGE, params);
 
     return systemState;
 }

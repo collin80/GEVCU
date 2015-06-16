@@ -41,7 +41,7 @@ PotBrake::PotBrake() : Throttle()
  */
 void PotBrake::setup()
 {
-    tickHandler->detach(this);  // unregister from TickHandler first
+    tickHandler.detach(this);  // unregister from TickHandler first
 
     Throttle::setup(); //call base class
 
@@ -51,7 +51,7 @@ void PotBrake::setup()
     loadConfiguration();
     ready = true;
 
-    tickHandler->attach(this, CFG_TICK_INTERVAL_POT_THROTTLE);
+    tickHandler.attach(this, CFG_TICK_INTERVAL_POT_THROTTLE);
 }
 
 /*
@@ -68,8 +68,8 @@ void PotBrake::handleTick()
 RawSignalData *PotBrake::acquireRawSignal()
 {
     PotBrakeConfiguration *config = (PotBrakeConfiguration *) getConfiguration();
-    systemIO->ADCPoll();
-    rawSignal.input1 = systemIO->getAnalogIn(config->AdcPin1);
+    systemIO.ADCPoll();
+    rawSignal.input1 = systemIO.getAnalogIn(config->AdcPin1);
     return &rawSignal;
 }
 

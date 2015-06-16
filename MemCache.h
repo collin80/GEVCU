@@ -95,4 +95,6 @@ private:
     boolean cache_writepage(uint8_t page);
 };
 
+extern MemCache memCache;
+
 #endif /* MEM_CACHE_H_ */

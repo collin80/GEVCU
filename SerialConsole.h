@@ -44,8 +44,7 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 class SerialConsole
 {
 public:
-    SerialConsole(MemCache* memCache);
-    SerialConsole(MemCache* memCache, Heartbeat* heartbeat);
+    SerialConsole();
     void loop();
     void printMenu();
 
@@ -55,13 +54,11 @@ protected:
     };
 
 private:
-    MemCache* memCache;
     bool handlingEvent;
     char cmdBuffer[80];
     int ptrBuffer;
     int state;
 
-    void init();
     void serialEvent();
     void sendWifiCommand(String command, String parameter);
     void handleConsoleCmd();
@@ -82,5 +79,7 @@ private:
     void printMenuCharger();
     void printMenuDcDcConverter();
 };
+
+extern SerialConsole serialConsole;
 
 #endif /* SERIALCONSOLE_H_ */

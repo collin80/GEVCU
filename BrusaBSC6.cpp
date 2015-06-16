@@ -32,7 +32,6 @@
  */
 BrusaBSC6::BrusaBSC6() : DcDcConverter()
 {
-    canHandlerEv = CanHandler::getInstanceEV();
     prefsHandler = new PrefHandler(BRUSA_BSC6);
     commonName = "Brusa BSC6 DC-DC Converter";
 
@@ -59,7 +58,7 @@ BrusaBSC6::BrusaBSC6() : DcDcConverter()
  */
 void BrusaBSC6::setup()
 {
-    tickHandler->detach(this);
+    tickHandler.detach(this);
 
     loadConfiguration();
     DcDcConverter::setup(); // call parent
@@ -71,7 +70,7 @@ void BrusaBSC6::setup()
 void BrusaBSC6::tearDown()
 {
     DcDcConverter::tearDown();
-    canHandlerEv->detach(this, CAN_MASKED_ID, CAN_MASK);
+    canHandlerEv.detach(this, CAN_MASKED_ID, CAN_MASK);
     sendCommand(); // as powerOn is false now, send last command to deactivate controller
 }
 
@@ -82,8 +81,8 @@ void BrusaBSC6::handleStateChange(Status::SystemState oldState, Status::SystemSt
     if (powerOn) {
         if (!ready && !running) {
             // register ourselves as observer of 0x26a-0x26f can frames
-            canHandlerEv->attach(this, CAN_MASKED_ID, CAN_MASK, false);
-            tickHandler->attach(this, CFG_TICK_INTERVAL_DCDC_BSC6);
+            canHandlerEv.attach(this, CAN_MASKED_ID, CAN_MASK, false);
+            tickHandler.attach(this, CFG_TICK_INTERVAL_DCDC_BSC6);
         }
     } else {
         tearDown();
@@ -110,7 +109,7 @@ void BrusaBSC6::handleTick()
 void BrusaBSC6::sendCommand()
 {
     BrusaBSC6Configuration *config = (BrusaBSC6Configuration *) getConfiguration();
-    canHandlerEv->prepareOutputFrame(&outputFrame, CAN_ID_COMMAND);
+    canHandlerEv.prepareOutputFrame(&outputFrame, CAN_ID_COMMAND);
 
     if ((ready || running) && powerOn) {
         outputFrame.data.bytes[0] |= enable;
@@ -126,7 +125,7 @@ void BrusaBSC6::sendCommand()
     outputFrame.data.bytes[2] = constrain(config->highVoltageCommand - 170, 20, 255); // 190-425V in 1V, offset = 170V
 
     outputFrame.length = 3;
-    canHandlerEv->sendFrame(outputFrame);
+    canHandlerEv.sendFrame(outputFrame);
 }
 
 /*
@@ -137,7 +136,7 @@ void BrusaBSC6::sendCommand()
 void BrusaBSC6::sendLimits()
 {
     BrusaBSC6Configuration *config = (BrusaBSC6Configuration *) getConfiguration();
-    canHandlerEv->prepareOutputFrame(&outputFrame, CAN_ID_LIMIT);
+    canHandlerEv.prepareOutputFrame(&outputFrame, CAN_ID_LIMIT);
 
     outputFrame.data.bytes[0] = constrain(config->hvUndervoltageLimit - 170, 0, 255);
     outputFrame.data.bytes[1] = constrain(config->lvBuckModeCurrentLimit, 0, 250);
@@ -147,7 +146,7 @@ void BrusaBSC6::sendLimits()
     outputFrame.data.bytes[5] = constrain(config->hvBoostModeCurrentLimit, 0, 250);
     outputFrame.length = 6;
 
-    canHandlerEv->sendFrame(outputFrame);
+    canHandlerEv.sendFrame(outputFrame);
 }
 
 /*

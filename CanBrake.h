@@ -61,7 +61,6 @@ protected:
     bool validateSignal(RawSignalData *);
     uint16_t calculatePedalPosition(RawSignalData *);
     int16_t mapPedalPosition(int16_t);
-    CanHandler *canHandlerCar;
 
 private:
     CAN_FRAME requestFrame; // the request frame sent to the car

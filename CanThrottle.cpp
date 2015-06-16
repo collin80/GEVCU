@@ -28,7 +28,6 @@
 
 CanThrottle::CanThrottle() : Throttle()
 {
-    canHandlerCar = CanHandler::getInstanceCar();
     prefsHandler = new PrefHandler(CANACCELPEDAL);
     rawSignal.input1 = 0;
     rawSignal.input2 = 0;
@@ -43,7 +42,7 @@ CanThrottle::CanThrottle() : Throttle()
 
 void CanThrottle::setup()
 {
-    tickHandler->detach(this);
+    tickHandler.detach(this);
 
     loadConfiguration();
     Throttle::setup();
@@ -87,7 +86,7 @@ void CanThrottle::tearDown()
 {
     Throttle::tearDown();
 
-    canHandlerCar->detach(this, responseId, responseMask);
+    canHandlerCar.detach(this, responseId, responseMask);
 }
 
 /**
@@ -98,11 +97,11 @@ void CanThrottle::handleStateChange(Status::SystemState oldState, Status::System
 {
     Throttle::handleStateChange(oldState, newState);
 
-    if (newState == Status::running) {
-        canHandlerCar->attach(this, responseId, responseMask, responseExtended);
-        tickHandler->attach(this, CFG_TICK_INTERVAL_CAN_THROTTLE);
+    if (newState == Status::ready || newState == Status::running) {
+        canHandlerCar.attach(this, responseId, responseMask, responseExtended);
+        tickHandler.attach(this, CFG_TICK_INTERVAL_CAN_THROTTLE);
     } else {
-        if (oldState == Status::running) {
+        if (oldState == Status::ready || oldState == Status::running) {
             tearDown();
         }
     }
@@ -116,7 +115,7 @@ void CanThrottle::handleTick()
 {
     Throttle::handleTick(); // Call parent handleTick
 
-    canHandlerCar->sendFrame(requestFrame);
+    canHandlerCar.sendFrame(requestFrame);
 
     if (ticksNoResponse < 255) { // make sure it doesn't overflow
         ticksNoResponse++;

@@ -46,7 +46,7 @@ public:
 class TickHandler
 {
 public:
-    static TickHandler *getInstance();
+    TickHandler();
     void attach(TickObserver *observer, uint32_t interval);
     void detach(TickObserver *observer);
     void handleInterrupt(int timerNumber);  // must be public when from the non-class functions
@@ -64,10 +64,11 @@ private:
     TickObserver *tickBuffer[CFG_TIMER_BUFFER_SIZE];
     volatile uint16_t bufferHead, bufferTail;
 
-    TickHandler();
     int findTimer(long interval);
     int findObserver(int timerNumber, TickObserver *observer);
 };
+
+extern TickHandler tickHandler;
 
 void timer0Interrupt();
 void timer1Interrupt();

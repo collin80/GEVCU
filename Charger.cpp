@@ -91,7 +91,7 @@ void Charger::handleStateChange(Status::SystemState oldState, Status::SystemStat
         requestedOutputCurrent = 0;
         powerOn = false;
     }
-    systemIO->setEnableCharger(powerOn);
+    systemIO.setEnableCharger(powerOn);
 }
 
 /**
@@ -129,39 +129,39 @@ uint16_t Charger::getOutputCurrent()
         if (requestedOutputCurrent < config->terminateCurrent ||
                 ((millis() - chargeStartTime) > 5000 && batteryCurrent < config->terminateCurrent)) { // give the charger 5sec to ramp up the current
             requestedOutputCurrent = 0;
-            status->setSystemState(Status::charged);
+            status.setSystemState(Status::charged);
         }
         if ((millis() - chargeStartTime) > config->maximumChargeTime * 60000) {
             requestedOutputCurrent = 0;
             Logger::error(getId(), "Maximum charge time exceeded (%imin)", (millis() - chargeStartTime) / 60000);
-            status->setSystemState(Status::error);
+            status.setSystemState(Status::error);
         }
         if (batteryVoltage > config->maximumBatteryVoltage) {
             requestedOutputCurrent = 0;
             Logger::error(getId(), "Maximum battery voltage exceeded (%fV)", (float) batteryVoltage / 10.0f);
-            status->setSystemState(Status::error);
+            status.setSystemState(Status::error);
         }
         if (batteryVoltage < config->minimumBatteryVoltage) {
             requestedOutputCurrent = 0;
             Logger::error(getId(), "Battery voltage too low (%fV)", (float) batteryVoltage / 10.0f);
-            status->setSystemState(Status::error);
+            status.setSystemState(Status::error);
         }
         if (ampereMilliSeconds / 36000000 > config->maximumAmpereHours) {
             requestedOutputCurrent = 0;
             Logger::error(getId(), "Maximum ampere hours exceeded (%f)", (float) ampereMilliSeconds / 360000000.0f);
-            status->setSystemState(Status::error);
+            status.setSystemState(Status::error);
         }
         temperature = getHighestBatteryTemperature();
         if (temperature != CFG_NO_TEMPERATURE_DATA && temperature > config->maximumTemperature) {
             requestedOutputCurrent = 0;
             Logger::error(getId(), "Battery temperature too high (%f deg C)", (float) temperature / 10.0f);
-            status->setSystemState(Status::error);
+            status.setSystemState(Status::error);
         }
         temperature = getLowestBatteryTemperature();
         if (temperature != CFG_NO_TEMPERATURE_DATA && temperature < config->minimumTemperature) {
             requestedOutputCurrent = 0;
             Logger::error(getId(), "Battery temperature too low (%f deg C)", (float) temperature / 10.0f);
-            status->setSystemState(Status::error);
+            status.setSystemState(Status::error);
         }
         return requestedOutputCurrent;
     }
@@ -174,9 +174,9 @@ uint16_t Charger::getOutputCurrent()
 int16_t Charger::getHighestBatteryTemperature()
 {
     int16_t temperature = batteryTemperature;
-    if (status->getHighestExternalTemperature() != CFG_NO_TEMPERATURE_DATA &&
-            status->getHighestExternalTemperature() * 10 > temperature) {
-        temperature = status->getHighestExternalTemperature() * 10;
+    if (status.getHighestExternalTemperature() != CFG_NO_TEMPERATURE_DATA &&
+            status.getHighestExternalTemperature() * 10 > temperature) {
+        temperature = status.getHighestExternalTemperature() * 10;
     }
     return temperature;
 }
@@ -188,9 +188,9 @@ int16_t Charger::getLowestBatteryTemperature()
 {
     int16_t temperature = batteryTemperature;
 
-    if (status->getLowestExternalTemperature() != CFG_NO_TEMPERATURE_DATA &&
-            status->getLowestExternalTemperature() * 10 < temperature) {
-        temperature = status->getLowestExternalTemperature() * 10;
+    if (status.getLowestExternalTemperature() != CFG_NO_TEMPERATURE_DATA &&
+            status.getLowestExternalTemperature() * 10 < temperature) {
+        temperature = status.getLowestExternalTemperature() * 10;
     }
     return temperature;
 }

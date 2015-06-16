@@ -55,7 +55,7 @@ BrusaDMC5::BrusaDMC5() : MotorController()
  */
 void BrusaDMC5::setup()
 {
-    tickHandler->detach(this);
+    tickHandler.detach(this);
 
     loadConfiguration();
     MotorController::setup(); // run the parent class version of this function
@@ -71,8 +71,8 @@ void BrusaDMC5::tearDown()
 {
     MotorController::tearDown();
 
-    canHandlerEv->detach(this, CAN_MASKED_ID_1, CAN_MASK_1);
-    canHandlerEv->detach(this, CAN_MASKED_ID_2, CAN_MASK_2);
+    canHandlerEv.detach(this, CAN_MASKED_ID_1, CAN_MASK_1);
+    canHandlerEv.detach(this, CAN_MASKED_ID_2, CAN_MASK_2);
 
     // for safety reasons at power off, first request 0 torque
     // this allows the controller to dissipate residual fields first
@@ -88,14 +88,14 @@ void BrusaDMC5::handleStateChange(Status::SystemState oldState, Status::SystemSt
     MotorController::handleStateChange(oldState, newState);
 
     // as the DMC is not sending/receiving messages as long as the enable signal is low
-    // (state != running), attach to can/tick handler only when running.
-    if (newState == Status::running) {
+    // (state != ready / running), attach to can/tick handler only when running.
+    if (newState == Status::ready || newState == Status::running) {
         // register ourselves as observer of 0x258-0x268 and 0x458 can frames
-        canHandlerEv->attach(this, CAN_MASKED_ID_1, CAN_MASK_1, false);
-        canHandlerEv->attach(this, CAN_MASKED_ID_2, CAN_MASK_2, false);
-        tickHandler->attach(this, CFG_TICK_INTERVAL_MOTOR_CONTROLLER_BRUSA);
+        canHandlerEv.attach(this, CAN_MASKED_ID_1, CAN_MASK_1, false);
+        canHandlerEv.attach(this, CAN_MASKED_ID_2, CAN_MASK_2, false);
+        tickHandler.attach(this, CFG_TICK_INTERVAL_MOTOR_CONTROLLER_BRUSA);
     } else {
-        if (oldState == Status::running) {
+        if (oldState == Status::ready || oldState == Status::running) {
             tearDown();
         }
     }
@@ -134,12 +134,11 @@ void BrusaDMC5::handleTick()
 void BrusaDMC5::sendControl()
 {
     BrusaDMC5Configuration *config = (BrusaDMC5Configuration *) getConfiguration();
-    canHandlerEv->prepareOutputFrame(&outputFrame, CAN_ID_CONTROL);
-
-    if ((status->canControlMessageLost || status->canControl2MessageLost || status->canLimitMessageLost)) {
+    canHandlerEv.prepareOutputFrame(&outputFrame, CAN_ID_CONTROL);
+    if ((status.canControlMessageLost || status.canControl2MessageLost || status.canLimitMessageLost)) {
         outputFrame.data.bytes[0] |= clearErrorLatch;
-        Logger::error(BRUSA_DMC5, "clearing error latch - ctrl lost: %t, ctrl2 lost: %t, limit lost: %t", status->canControlMessageLost,
-                status->canControl2MessageLost, status->canLimitMessageLost);
+        Logger::error(BRUSA_DMC5, "clearing error latch - ctrl lost: %t, ctrl2 lost: %t, limit lost: %t", status.canControlMessageLost,
+                status.canControl2MessageLost, status.canLimitMessageLost);
     } else {
         // to safe energy only enable the power-stage when positive acceleration is requested or the motor is still spinning (to control regen)
         // see warning in Brusa docs about field weakening current to prevent uncontrollable regen
@@ -177,7 +176,7 @@ void BrusaDMC5::sendControl()
             outputFrame.data.bytes[5] = ((constrain(torqueCommand, -3275, 3275) * 10) & 0x00FF);
         }
     }
-    canHandlerEv->sendFrame(outputFrame);
+    canHandlerEv.sendFrame(outputFrame);
 }
 
 /*
@@ -189,7 +188,7 @@ void BrusaDMC5::sendControl2()
 {
     BrusaDMC5Configuration *config = (BrusaDMC5Configuration *) getConfiguration();
 
-    canHandlerEv->prepareOutputFrame(&outputFrame, CAN_ID_CONTROL_2);
+    canHandlerEv.prepareOutputFrame(&outputFrame, CAN_ID_CONTROL_2);
     outputFrame.data.bytes[0] = ((constrain(config->torqueSlewRate, 0, 6553) * 10) & 0xFF00) >> 8;
     outputFrame.data.bytes[1] = ((constrain(config->torqueSlewRate, 0, 6553) * 10) & 0x00FF);
     outputFrame.data.bytes[2] = (constrain(config->speedSlewRate, 0, 65535) & 0xFF00) >> 8;
@@ -199,7 +198,7 @@ void BrusaDMC5::sendControl2()
     outputFrame.data.bytes[6] = ((constrain(config->maxMechanicalPowerRegen, 0, 2621) * 25) & 0xFF00) >> 8;
     outputFrame.data.bytes[7] = ((constrain(config->maxMechanicalPowerRegen, 0, 2621) * 25) & 0x00FF);
 
-    canHandlerEv->sendFrame(outputFrame);
+    canHandlerEv.sendFrame(outputFrame);
 }
 
 /*
@@ -211,7 +210,7 @@ void BrusaDMC5::sendLimits()
 {
     BrusaDMC5Configuration *config = (BrusaDMC5Configuration *) getConfiguration();
 
-    canHandlerEv->prepareOutputFrame(&outputFrame, CAN_ID_LIMIT);
+    canHandlerEv.prepareOutputFrame(&outputFrame, CAN_ID_LIMIT);
     outputFrame.data.bytes[0] = (constrain(config->dcVoltLimitMotor, 0, 65535) & 0xFF00) >> 8;
     outputFrame.data.bytes[1] = (constrain(config->dcVoltLimitMotor, 0, 65535) & 0x00FF);
     outputFrame.data.bytes[2] = (constrain(config->dcVoltLimitRegen, 0, 65535) & 0xFF00) >> 8;
@@ -221,7 +220,7 @@ void BrusaDMC5::sendLimits()
     outputFrame.data.bytes[6] = (constrain(config->dcCurrentLimitRegen, 0, 65535) & 0xFF00) >> 8;
     outputFrame.data.bytes[7] = (constrain(config->dcCurrentLimitRegen, 0, 65535) & 0x00FF);
 
-    canHandlerEv->sendFrame(outputFrame);
+    canHandlerEv.sendFrame(outputFrame);
 }
 
 /*
@@ -269,29 +268,36 @@ void BrusaDMC5::handleCanFrame(CAN_FRAME *frame)
  */
 void BrusaDMC5::processStatus(uint8_t data[])
 {
+    BrusaDMC5Configuration *config = (BrusaDMC5Configuration *) getConfiguration();
+
     bitfield = (uint32_t) (data[1] | (data[0] << 8));
     torqueAvailable = (int16_t) (data[3] | (data[2] << 8)) / 10;
     torqueActual = (int16_t) (data[5] | (data[4] << 8)) / 10;
     speedActual = (int16_t) (data[7] | (data[6] << 8));
 
+    if (config->invertDirection) {
+        speedActual *= -1;
+        torqueActual *= -1;
+    }
+
     ready = (bitfield & dmc5Ready) ? true : false;
     running = (bitfield & dmc5Running) ? true : false;
-    if ((bitfield & errorFlag) && status->getSystemState() != Status::error) {
+    if ((bitfield & errorFlag) && status.getSystemState() != Status::error) {
         Logger::error(BRUSA_DMC5, "Error reported from motor controller!");
-        status->setSystemState(Status::error);
+        status.setSystemState(Status::error);
     }
-    status->warning = (bitfield & warningFlag) ? true : false;
-    status->limitationTorque = (bitfield & torqueLimitation) ? true : false;
-    status->limitationMotorModel = (bitfield & motorModelLimitation) ? true : false;
-    status->limitationMechanicalPower = (bitfield & mechanicalPowerLimitation) ? true : false;
-    status->limitationMaxTorque = (bitfield & maxTorqueLimitation) ? true : false;
-    status->limitationAcCurrent = (bitfield & acCurrentLimitation) ? true : false;
-    status->limitationControllerTemperature = (bitfield & temperatureLimitation) ? true : false;
-    status->limitationSpeed = (bitfield & speedLimitation) ? true : false;
-    status->limitationDcVoltage = (bitfield & voltageLimitation) ? true : false;
-    status->limitationDcCurrent = (bitfield & currentLimitation) ? true : false;
-    status->limitationSlewRate = (bitfield & slewRateLimitation) ? true : false;
-    status->limitationMotorTemperature = (bitfield & motorTemperatureLimitation) ? true : false;
+    status.warning = (bitfield & warningFlag) ? true : false;
+    status.limitationTorque = (bitfield & torqueLimitation) ? true : false;
+    status.limitationMotorModel = (bitfield & motorModelLimitation) ? true : false;
+    status.limitationMechanicalPower = (bitfield & mechanicalPowerLimitation) ? true : false;
+    status.limitationMaxTorque = (bitfield & maxTorqueLimitation) ? true : false;
+    status.limitationAcCurrent = (bitfield & acCurrentLimitation) ? true : false;
+    status.limitationControllerTemperature = (bitfield & temperatureLimitation) ? true : false;
+    status.limitationSpeed = (bitfield & speedLimitation) ? true : false;
+    status.limitationDcVoltage = (bitfield & voltageLimitation) ? true : false;
+    status.limitationDcCurrent = (bitfield & currentLimitation) ? true : false;
+    status.limitationSlewRate = (bitfield & slewRateLimitation) ? true : false;
+    status.limitationMotorTemperature = (bitfield & motorTemperatureLimitation) ? true : false;
 
     if (Logger::isDebug()) {
         Logger::debug(BRUSA_DMC5, "status: %X (%B), ready: %t, running: %t, torque avail: %fNm, actual : %fNm, speed actual: %drpm", bitfield, bitfield,
@@ -329,33 +335,33 @@ void BrusaDMC5::processErrors(uint8_t data[])
 {
     bitfield = (uint32_t) (data[1] | (data[0] << 8) | (data[5] << 16) | (data[4] << 24));
 
-    status->speedSensorSupply = (bitfield & speedSensorSupply) ? true : false;
-    status->speedSensor = (bitfield & speedSensor) ? true : false;
-    status->canLimitMessageInvalid = (bitfield & canLimitMessageInvalid) ? true : false;
-    status->canControlMessageInvalid = (bitfield & canControlMessageInvalid) ? true : false;
-    status->canLimitMessageLost = (bitfield & canLimitMessageLost) ? true : false;
-    status->overvoltageInternalSupply = (bitfield & overvoltageSkyConverter) ? true : false;
-    status->voltageMeasurement = (bitfield & voltageMeasurement) ? true : false;
-    status->shortCircuit = (bitfield & shortCircuit) ? true : false;
-    status->canControlMessageLost = (bitfield & canControlMessageLost) ? true : false;
-    status->overtempController = (bitfield & overtemp) ? true : false;
-    status->overtempMotor = (bitfield & overtempMotor) ? true : false;
-    status->overspeed = (bitfield & overspeed) ? true : false;
-    status->hvUndervoltage = (bitfield & undervoltage) ? true : false;
-    status->hvOvervoltage = (bitfield & overvoltage) ? true : false;
-    status->hvOvercurrent = (bitfield & overcurrent) ? true : false;
-    status->initalisation = (bitfield & initalisation) ? true : false;
-    status->analogInput = (bitfield & analogInput) ? true : false;
-    status->unexpectedShutdown = (bitfield & driverShutdown) ? true : false;
-    status->powerMismatch = (bitfield & powerMismatch) ? true : false;
-    status->canControl2MessageLost = (bitfield & canControl2MessageLost) ? true : false;
-    status->motorEeprom = (bitfield & motorEeprom) ? true : false;
-    status->storage = (bitfield & storage) ? true : false;
-    status->enableSignalLost = (bitfield & enablePinSignalLost) ? true : false;
-    status->canCommunicationStartup = (bitfield & canCommunicationStartup) ? true : false;
-    status->internalSupply = (bitfield & internalSupply) ? true : false;
-    status->acOvercurrent = (bitfield & acOvercurrent) ? true : false;
-    status->osTrap = (bitfield & osTrap) ? true : false;
+    status.speedSensorSupply = (bitfield & speedSensorSupply) ? true : false;
+    status.speedSensor = (bitfield & speedSensor) ? true : false;
+    status.canLimitMessageInvalid = (bitfield & canLimitMessageInvalid) ? true : false;
+    status.canControlMessageInvalid = (bitfield & canControlMessageInvalid) ? true : false;
+    status.canLimitMessageLost = (bitfield & canLimitMessageLost) ? true : false;
+    status.overvoltageInternalSupply = (bitfield & overvoltageSkyConverter) ? true : false;
+    status.voltageMeasurement = (bitfield & voltageMeasurement) ? true : false;
+    status.shortCircuit = (bitfield & shortCircuit) ? true : false;
+    status.canControlMessageLost = (bitfield & canControlMessageLost) ? true : false;
+    status.overtempController = (bitfield & overtemp) ? true : false;
+    status.overtempMotor = (bitfield & overtempMotor) ? true : false;
+    status.overspeed = (bitfield & overspeed) ? true : false;
+    status.hvUndervoltage = (bitfield & undervoltage) ? true : false;
+    status.hvOvervoltage = (bitfield & overvoltage) ? true : false;
+    status.hvOvercurrent = (bitfield & overcurrent) ? true : false;
+    status.initalisation = (bitfield & initalisation) ? true : false;
+    status.analogInput = (bitfield & analogInput) ? true : false;
+    status.unexpectedShutdown = (bitfield & driverShutdown) ? true : false;
+    status.powerMismatch = (bitfield & powerMismatch) ? true : false;
+    status.canControl2MessageLost = (bitfield & canControl2MessageLost) ? true : false;
+    status.motorEeprom = (bitfield & motorEeprom) ? true : false;
+    status.storage = (bitfield & storage) ? true : false;
+    status.enableSignalLost = (bitfield & enablePinSignalLost) ? true : false;
+    status.canCommunicationStartup = (bitfield & canCommunicationStartup) ? true : false;
+    status.internalSupply = (bitfield & internalSupply) ? true : false;
+    status.acOvercurrent = (bitfield & acOvercurrent) ? true : false;
+    status.osTrap = (bitfield & osTrap) ? true : false;
 
     if (bitfield) {
         Logger::error(BRUSA_DMC5, "%X (%B)", bitfield, bitfield);
@@ -363,16 +369,16 @@ void BrusaDMC5::processErrors(uint8_t data[])
 
     bitfield = (uint32_t) (data[7] | (data[6] << 8));
 
-    status->systemCheckActive = (bitfield & systemCheckActive) ? true : false;
-    status->externalShutdownPath2Off = (bitfield & externalShutdownPathAw2Off) ? true : false;
-    status->externalShutdownPath1Off = (bitfield & externalShutdownPathAw1Off) ? true : false;
-    status->oscillationLimitControllerActive = (bitfield & oscillationLimitControllerActive) ? true : false;
-    status->driverShutdownPathActive = (bitfield & driverShutdownPathActive) ? true : false;
-    status->powerMismatch = (bitfield & powerMismatchDetected) ? true : false;
-    status->speedSensorSignal = (bitfield & speedSensorSignal) ? true : false;
-    status->hvUndervoltage = (bitfield & hvUndervoltage) ? true : false;
-    status->maximumModulationLimiter = (bitfield & maximumModulationLimiter) ? true : false;
-    status->temperatureSensor = (bitfield & temperatureSensor) ? true : false;
+    status.systemCheckActive = (bitfield & systemCheckActive) ? true : false;
+    status.externalShutdownPath2Off = (bitfield & externalShutdownPathAw2Off) ? true : false;
+    status.externalShutdownPath1Off = (bitfield & externalShutdownPathAw1Off) ? true : false;
+    status.oscillationLimitControllerActive = (bitfield & oscillationLimitControllerActive) ? true : false;
+    status.driverShutdownPathActive = (bitfield & driverShutdownPathActive) ? true : false;
+    status.powerMismatch = (bitfield & powerMismatchDetected) ? true : false;
+    status.speedSensorSignal = (bitfield & speedSensorSignal) ? true : false;
+    status.hvUndervoltage = (bitfield & hvUndervoltage) ? true : false;
+    status.maximumModulationLimiter = (bitfield & maximumModulationLimiter) ? true : false;
+    status.temperatureSensor = (bitfield & temperatureSensor) ? true : false;
 
     if (bitfield) {
         Logger::warn(BRUSA_DMC5, "%X (%B)", bitfield, bitfield);
