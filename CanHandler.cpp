@@ -29,11 +29,11 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 #include "CanHandler.h"
 
-CanHandler *CanHandler::canHandlerEV = NULL;
-CanHandler *CanHandler::canHandlerCar = NULL;
+CanHandler canHandlerEv = CanHandler(CanHandler::CAN_BUS_EV);
+CanHandler canHandlerCar = CanHandler(CanHandler::CAN_BUS_CAR);
 
 /*
- * Private constructor of the can handler
+ * Constructor of the can handler
  */
 CanHandler::CanHandler(CanBusNode canBusNode)
 {
@@ -52,39 +52,9 @@ CanHandler::CanHandler(CanBusNode canBusNode)
 }
 
 /*
- * Retrieve the singleton instance of the CanHandler which is responsible
- * for the EV can bus (CAN0)
- *
- * \retval the CanHandler instance for the EV can bus
- */
-CanHandler* CanHandler::getInstanceEV()
-{
-    if (canHandlerEV == NULL) {
-        canHandlerEV = new CanHandler(CAN_BUS_EV);
-    }
-
-    return canHandlerEV;
-}
-
-/*
- * Retrieve the singleton instance of the CanHandler which is responsible
- * for the car can bus (CAN1)
- *
- * \retval the CanHandler instance for the car can bus
- */
-CanHandler* CanHandler::getInstanceCar()
-{
-    if (canHandlerCar == NULL) {
-        canHandlerCar = new CanHandler(CAN_BUS_CAR);
-    }
-
-    return canHandlerCar;
-}
-
-/*
  * Initialization of the CAN bus
  */
-void CanHandler::initialize()
+void CanHandler::setup()
 {
     // Initialize the canbus at the specified baudrate
     bus->init(canBusNode == CAN_BUS_EV ? CFG_CAN0_SPEED : CFG_CAN1_SPEED);

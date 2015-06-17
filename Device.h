@@ -55,12 +55,13 @@ class Device: public TickObserver
 {
 public:
     Device();
+    virtual ~Device();
     virtual void setup();
     virtual void tearDown();
 
     virtual void handleTick();
     virtual void handleMessage(uint32_t, void*);
-    virtual void handleStateChange(Status::SystemState);
+    virtual void handleStateChange(Status::SystemState, Status::SystemState);
 
     virtual DeviceType getType();
     virtual DeviceId getId();
@@ -79,9 +80,6 @@ public:
     void setConfiguration(DeviceConfiguration *);
 
 protected:
-    SystemIO *systemIO; // pointer to SystemIO singleton
-    Status *status; // pointer to Status singleton
-    TickHandler *tickHandler; // pointer to TickHandler singleton
     PrefHandler *prefsHandler; // pointer to device specific instance of PrefHandler
     char *commonName; // the device's common name
 

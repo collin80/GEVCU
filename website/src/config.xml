@@ -1,35 +1,44 @@
 <?xml version="1.0" encoding="utf-8"?>
 <config>
-	<numThrottlePots>~numThrottlePots~</numThrottlePots>
+	<numberPotMeters>~numberPotMeters~</numberPotMeters>
 	<throttleSubType>~throttleSubType~</throttleSubType>
-	<throttleMin1>~throttleMin1~</throttleMin1>
-	<throttleMin2>~throttleMin2~</throttleMin2>
-	<throttleMax1>~throttleMax1~</throttleMax1>
-	<throttleMax2>~throttleMax2~</throttleMax2>
-	<throttleRegenMax>~throttleRegenMax~</throttleRegenMax>
-	<throttleRegenMin>~throttleRegenMin~</throttleRegenMin>
-	<throttleFwd>~throttleFwd~</throttleFwd>
-	<throttleMap>~throttleMap~</throttleMap>
-	<throttleMinRegen>~throttleMinRegen~</throttleMinRegen>
-	<throttleMaxRegen>~throttleMaxRegen~</throttleMaxRegen>
-	<throttleCreep>~throttleCreep~</throttleCreep>
-	<brakeMin>~brakeMin~</brakeMin>
-	<brakeMax>~brakeMax~</brakeMax>
-	<brakeMinRegen>~brakeMinRegen~</brakeMinRegen>
-	<brakeMaxRegen>~brakeMaxRegen~</brakeMaxRegen>
+	<minimumLevel>~minimumLevel~</minimumLevel>
+	<minimumLevel2>~minimumLevel2~</minimumLevel2>
+	<maximumLevel>~maximumLevel~</maximumLevel>
+	<maximumLevel2>~maximumLevel2~</maximumLevel2>
+	<positionRegenMaximum>~positionRegenMaximum~</positionRegenMaximum>
+	<positionRegenMinimum>~positionRegenMinimum~</positionRegenMinimum>
+	<positionForwardStart>~positionForwardStart~</positionForwardStart>
+	<positionHalfPower>~positionHalfPower~</positionHalfPower>
+	<minimumRegen>~minimumRegen~</minimumRegen>
+	<maximumRegen>~maximumRegen~</maximumRegen>
+	<creep>~creep~</creep>
+	<brakeMinimumLevel>~brakeMinimumLevel~</brakeMinimumLevel>
+	<brakeMaximumLevel>~brakeMaximumLevel~</brakeMaximumLevel>
+	<brakeMinimumRegen>~brakeMinimumRegen~</brakeMinimumRegen>
+	<brakeMaximumRegen>~brakeMaximumRegen~</brakeMaximumRegen>
+
 	<speedMax>~speedMax~</speedMax>
 	<torqueMax>~torqueMax~</torqueMax>
-	<logLevel>~logLevel~</logLevel>
-	<enableInput>~enableInput~</enableInput>
-	<prechargeOutput>~prechargeOutput~</prechargeOutput>
-	<mainContactorOutput>~mainContactorOutput~</mainContactorOutput>
-	<secContactorOutput>~secContactorOutput~</secContactorOutput>
-	<enableOutput>~enableOutput~</enableOutput>
-	<prechargeMillis>~prechargeMillis~</prechargeMillis>
-	<coolingTempOn>~coolingTempOn~</coolingTempOn>
-	<coolingTempOff>~coolingTempOff~</coolingTempOff>
-	<coolingFanOutput>~coolingFanOutput~</coolingFanOutput>
-	<brakeLightOutput>~brakeLightOutput~</brakeLightOutput>
-	<reverseLightOutput>~reverseLightOutput~</reverseLightOutput>
+	<motorMode>~motorMode~</motorMode>
 	<nominalVolt>~nominalVolt~</nominalVolt>
+	<invertDirection>~invertDirection~</invertDirection>
+	<torqueSlewRate>~torqueSlewRate~</torqueSlewRate>
+	<speedSlewRate>~speedSlewRate~</speedSlewRate>
+
+	<maxMechPowerMotor>~maxMechPowerMotor~</maxMechPowerMotor>
+	<maxMechPowerRegen>~maxMechPowerRegen~</maxMechPowerRegen>
+	<dcVoltLimitMotor>~dcVoltLimitMotor~</dcVoltLimitMotor>
+	<dcVoltLimitRegen>~dcVoltLimitRegen~</dcVoltLimitRegen>
+	<dcCurrentLimitMotor>~dcCurrentLimitMotor~</dcCurrentLimitMotor>
+	<dcCurrentLimitRegen>~dcCurrentLimitRegen~</dcCurrentLimitRegen>
+	<enableOscLimiter>~enableOscLimiter~</enableOscLimiter>
+
+	<device_x1000>~x1000~</device_x1000>
+	<device_x1001>~x1001~</device_x1001>
+	<device_x1002>~x1002~</device_x1002>
+	<device_x1031>~x1031~</device_x1031>
+	<device_x1032>~x1032~</device_x1032>
+	<device_x1033>~x1033~</device_x1033>
+	<device_x1034>~x1034~</device_x1034>
 </config>

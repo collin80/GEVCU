@@ -28,21 +28,24 @@
 
 Heartbeat::Heartbeat() : Device()
 {
+    prefsHandler = new PrefHandler(HEARTBEAT);
     led = false;
     throttleDebug = false;
+    dotCount = 0;
+    lastTickTime = 0;
     commonName = "Heartbeat";
 }
 
 void Heartbeat::setup()
 {
-    tickHandler->detach(this);
+    tickHandler.detach(this);
 
     pinMode(CFG_BLINK_LED, OUTPUT);
     digitalWrite(CFG_BLINK_LED, LOW);
     ready = true;
     running = true;
 
-    tickHandler->attach(this, CFG_TICK_INTERVAL_HEARTBEAT);
+    tickHandler.attach(this, CFG_TICK_INTERVAL_HEARTBEAT);
 }
 
 void Heartbeat::setThrottleDebug(bool debug)
@@ -77,14 +80,14 @@ void Heartbeat::handleTick()
     led = !led;
 
     if (throttleDebug) {
-        MotorController *motorController = DeviceManager::getInstance()->getMotorController();
-        Throttle *accelerator = DeviceManager::getInstance()->getAccelerator();
-        Throttle *brake = DeviceManager::getInstance()->getBrake();
+        MotorController *motorController = deviceManager.getMotorController();
+        Throttle *accelerator = deviceManager.getAccelerator();
+        Throttle *brake = deviceManager.getBrake();
 
         Logger::console("");
 
-        Logger::console("System State: %s", status->systemStateToStr(status->getSystemState()));
-        systemIO->printIOStatus();
+        Logger::console("System State: %s", status.systemStateToStr(status.getSystemState()));
+        systemIO.printIOStatus();
 
         if (accelerator) {
             Logger::console("Throttle Status: isFaulted: %T level: %i", accelerator->isFaulted(), accelerator->getLevel());
@@ -108,4 +111,23 @@ DeviceType Heartbeat::getType()
 DeviceId Heartbeat::getId()
 {
     return HEARTBEAT;
+}
+
+void Heartbeat::loadConfiguration()
+{
+//    HeartbeatConfiguration *config = (HeartbeatConfiguration *) getConfiguration();
+
+    if (prefsHandler->checksumValid()) { //checksum is good, read in the values stored in EEPROM
+//      prefsHandler->read(EESYS_, &config->);
+    } else {
+        saveConfiguration();
+    }
+}
+
+void Heartbeat::saveConfiguration()
+{
+//    HeartbeatConfiguration *config = (HeartbeatConfiguration *) getConfiguration();
+
+//  prefsHandler->write(EESYS_, config->);
+    prefsHandler->saveChecksum();
 }

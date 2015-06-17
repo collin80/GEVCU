@@ -26,7 +26,7 @@ IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY
 CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT,
 TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
 SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
- */
+ */ 
 
 
 #ifndef FAULT_H_
@@ -35,34 +35,46 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include <Arduino.h>
 #include "config.h"
 #include "Logger.h"
+#include "FaultCodes.h"
+#include "MemCache.h"
 
 //structure to use for storing and retrieving faults.
 //Stores the info a fault record will contain.
 typedef struct {
-    uint32_t timeStamp;
-    uint16_t device; //which device is generating this fault
-    uint16_t faultCode; //set by the device itself. This only has meaning to a device
-    uint8_t faultDescription[40]; //a short description of the problem in plain text
-    uint8_t ack; //whether this fault has been acknowledged or not 1 = ack'd
-    uint8_t ongoing; //whether fault still seems to be happening currently 1 = still going on
-} FAULT; //50 bytes
+  uint32_t timeStamp; //number of 
+  uint16_t device; //which device is generating this fault
+  uint16_t faultCode; //set by the device itself. There is a universal list of codes
+  uint8_t ack : 1; ////whether this fault has been acknowledged or not 1 = ack'd 
+  uint8_t ongoing : 1; //whether fault still seems to be happening currently 1 = still going on
+} FAULT; //should be 9 bytes because the bottom two are bit fields in a single byte
 
 
-class FaultHandler
-{
-public:
-    FaultHandler(); //constructor
-    uint16_t raiseFault(uint16_t device, uint16_t code, char* msg);  //raise a new fault. Returns the fault # where this was stored
-    FAULT getNextFault(); //get the next un-ack'd fault. Will also get first fault if the first call and you forgot to call getFirstFault
-    FAULT getFirstFault(); //get the first un-acknowledged fault
-    FAULT getFault(uint16_t fault);
+class FaultHandler : public TickObserver {
+  public:
+  FaultHandler(); //constructor
+  virtual ~FaultHandler();
 
-    uint16_t setFaultACK(uint16_t fault);  //acknowledge the fault # - returns fault # if successful (0xFFFF otherwise)
-    uint16_t setFaultOngoing(uint16_t fault, bool ongoing);  //set value of ongoing flag - returns fault # on success
+  uint16_t raiseFault(uint16_t device, uint16_t code, bool ongoing); //raise a new fault. Returns the fault # where this was stored
+  void cancelOngoingFault(uint16_t device, uint16_t code); //if this fault was registered as ongoing then cancel it (set not ongoing) otherwise do nothing
+  bool getNextFault(FAULT*); //get the next un-ack'd fault. Will also get first fault if the first call and you forgot to call getFirstFault
+  bool getFault(uint16_t fault, FAULT*);
+  uint16_t getFaultCount();
+  void handleTick();
+  void setup();
 
-private:
-    uint16_t  faultWritePointer; //fault # we're up to for writing. Location in EEPROM is start + (fault_ptr * sizeof(FAULT))
-    uint16_t  faultReadPointer;  //fault # we're at when reading.
+  void setFaultACK(uint16_t fault); //acknowledge the fault # - returns fault # if successful (0xFFFF otherwise)
+  void setFaultOngoing(uint16_t fault, bool ongoing); //set value of ongoing flag - returns fault # on success
+  
+  private:
+  void loadFromEEPROM();
+  void saveToEEPROM();
+  void writeFaultToEEPROM(int faultnum);
+
+  uint16_t  faultWritePointer; //fault # we're up to for writing. Location in EEPROM is start + (fault_ptr * sizeof(FAULT))
+  uint16_t  faultReadPointer;  //fault # we're at when reading.
+  FAULT faultList[CFG_FAULT_HISTORY_SIZE]; //store up to 50 faults for a long history. 50*9 = 450 bytes of EEPROM
+  uint32_t globalTime; //how long the unit has been running in total (across all start ups).
+  uint32_t baseTime; //the time loaded at system start up. millis() / 100 is added to this to get the above time
 };
 
 extern FaultHandler faultHandler;

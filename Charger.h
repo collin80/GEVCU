@@ -43,15 +43,14 @@ public:
 
     uint16_t minimumBatteryVoltage; // minimum battery voltage in 0.1V where to start the charge process
     uint16_t maximumBatteryVoltage; // maximum battery voltage in 0.1V - if exceeded, the charge process will terminate
-    uint16_t minimumTemperature; // temperature in 0.1 deg Celsius below which charging will not occur
+    int16_t minimumTemperature; // temperature in 0.1 deg Celsius below which charging will not occur
     uint16_t maximumTemperature; // temperature in 0.1 deg Celsius where charging is terminated
     uint16_t maximumAmpereHours; // charge in 0.1 Ah where charging is terminated
     uint16_t maximumChargeTime; // charge time in 1 minutes at which charging is terminated
 
-    bool useTemperatureDerating; // if true derating is used at high temperatures, otherwise hysterese at fixed temperatures will be used
-    uint16_t deratingTemperature; // 0.1Ah per deg Celsius
-    uint16_t deratingReferenceTemperature; // 0.1 deg Celsius where derating will reach 0 Amp
-    uint16_t hystereseStopTemperature; // 0.1 deg Celsius where charging will stop in hysterese mode
+    uint16_t deratingRate; // 0.1Ah per deg Celsius
+    uint16_t deratingReferenceTemperature; // 0.1 deg Celsius where derating will reach 0 Amp (0=disable)
+    uint16_t hystereseStopTemperature; // 0.1 deg Celsius where charging will stop in hysterese mode (0=disable)
     uint16_t hystereseResumeTemperature; // 0.1 deg Celsius where charging is resumed
 };
 
@@ -61,7 +60,7 @@ public:
     Charger();
     ~Charger();
     void handleTick();
-    void handleStateChange(Status::SystemState);
+    void handleStateChange(Status::SystemState, Status::SystemState);
     DeviceType getType();
 
     void loadConfiguration();

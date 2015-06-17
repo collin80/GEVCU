@@ -38,6 +38,7 @@ Charger::Charger() : Device()
     ampereMilliSeconds = 0;
     wattMilliSeconds = 0;
     chargeStartTime = 0;
+    requestedOutputCurrent = 0;
     lastTick = 0;
 }
 
@@ -65,10 +66,10 @@ void Charger::handleTick()
  * Act on messages the super-class does not react upon, like state change
  * to charging which should enable the charger
  */
-void Charger::handleStateChange(Status::SystemState state)
+void Charger::handleStateChange(Status::SystemState oldState, Status::SystemState newState)
 {
-    Device::handleStateChange(state);
-    if (state == Status::charging) {
+    Device::handleStateChange(oldState, newState);
+    if (newState == Status::charging) {
         ChargerConfiguration *config = (ChargerConfiguration *) getConfiguration();
 
         // re-initialize variables
@@ -85,12 +86,12 @@ void Charger::handleStateChange(Status::SystemState state)
         powerOn = true;
     } else {
         if (powerOn) {
-            Logger::info(getId(), "Charging finished after %d min, %f Ah / %f kWh, final voltage %f, final current %f", (millis() - chargeStartTime) / 60000, (float) ampereMilliSeconds / 360000000.0f, (float) wattMilliSeconds / 3600000000000.0f, batteryVoltage, batteryCurrent);
+            Logger::info(getId(), "Charging finished after %d min, %f Ah / %f kWh", (millis() - chargeStartTime) / 60000, (float) ampereMilliSeconds / 360000000.0f, (float) wattMilliSeconds / 3600000000000.0f);
         }
         requestedOutputCurrent = 0;
         powerOn = false;
     }
-    systemIO->setEnableCharger(powerOn);
+    systemIO.setEnableCharger(powerOn);
 }
 
 /**
@@ -128,39 +129,39 @@ uint16_t Charger::getOutputCurrent()
         if (requestedOutputCurrent < config->terminateCurrent ||
                 ((millis() - chargeStartTime) > 5000 && batteryCurrent < config->terminateCurrent)) { // give the charger 5sec to ramp up the current
             requestedOutputCurrent = 0;
-            status->setSystemState(Status::charged);
+            status.setSystemState(Status::charged);
         }
         if ((millis() - chargeStartTime) > config->maximumChargeTime * 60000) {
             requestedOutputCurrent = 0;
             Logger::error(getId(), "Maximum charge time exceeded (%imin)", (millis() - chargeStartTime) / 60000);
-            status->setSystemState(Status::error);
+            status.setSystemState(Status::error);
         }
         if (batteryVoltage > config->maximumBatteryVoltage) {
             requestedOutputCurrent = 0;
             Logger::error(getId(), "Maximum battery voltage exceeded (%fV)", (float) batteryVoltage / 10.0f);
-            status->setSystemState(Status::error);
+            status.setSystemState(Status::error);
         }
         if (batteryVoltage < config->minimumBatteryVoltage) {
             requestedOutputCurrent = 0;
             Logger::error(getId(), "Battery voltage too low (%fV)", (float) batteryVoltage / 10.0f);
-            status->setSystemState(Status::error);
+            status.setSystemState(Status::error);
         }
         if (ampereMilliSeconds / 36000000 > config->maximumAmpereHours) {
             requestedOutputCurrent = 0;
             Logger::error(getId(), "Maximum ampere hours exceeded (%f)", (float) ampereMilliSeconds / 360000000.0f);
-            status->setSystemState(Status::error);
+            status.setSystemState(Status::error);
         }
         temperature = getHighestBatteryTemperature();
         if (temperature != CFG_NO_TEMPERATURE_DATA && temperature > config->maximumTemperature) {
             requestedOutputCurrent = 0;
             Logger::error(getId(), "Battery temperature too high (%f deg C)", (float) temperature / 10.0f);
-            status->setSystemState(Status::error);
+            status.setSystemState(Status::error);
         }
         temperature = getLowestBatteryTemperature();
         if (temperature != CFG_NO_TEMPERATURE_DATA && temperature < config->minimumTemperature) {
             requestedOutputCurrent = 0;
             Logger::error(getId(), "Battery temperature too low (%f deg C)", (float) temperature / 10.0f);
-            status->setSystemState(Status::error);
+            status.setSystemState(Status::error);
         }
         return requestedOutputCurrent;
     }
@@ -173,9 +174,9 @@ uint16_t Charger::getOutputCurrent()
 int16_t Charger::getHighestBatteryTemperature()
 {
     int16_t temperature = batteryTemperature;
-    if (status->getHighestExternalTemperature() != CFG_NO_TEMPERATURE_DATA &&
-            status->getHighestExternalTemperature() * 10 > temperature) {
-        temperature = status->getHighestExternalTemperature() * 10;
+    if (status.getHighestExternalTemperature() != CFG_NO_TEMPERATURE_DATA &&
+            status.getHighestExternalTemperature() * 10 > temperature) {
+        temperature = status.getHighestExternalTemperature() * 10;
     }
     return temperature;
 }
@@ -187,9 +188,9 @@ int16_t Charger::getLowestBatteryTemperature()
 {
     int16_t temperature = batteryTemperature;
 
-    if (status->getLowestExternalTemperature() != CFG_NO_TEMPERATURE_DATA &&
-            status->getLowestExternalTemperature() * 10 < temperature) {
-        temperature = status->getLowestExternalTemperature() * 10;
+    if (status.getLowestExternalTemperature() != CFG_NO_TEMPERATURE_DATA &&
+            status.getLowestExternalTemperature() * 10 < temperature) {
+        temperature = status.getLowestExternalTemperature() * 10;
     }
     return temperature;
 }
@@ -255,27 +256,21 @@ void Charger::loadConfiguration()
 #else
     if (prefsHandler->checksumValid()) { //checksum is good, read in the values stored in EEPROM
 #endif
-        uint8_t temp;
-        Logger::debug(getId(), (char *) Constants::validChecksum);
-
         prefsHandler->read(CHRG_MAX_INPUT_CURRENT, &config->maximumInputCurrent);
         prefsHandler->read(CHRG_CONSTANT_CURRENT, &config->constantCurrent);
         prefsHandler->read(CHRG_CONSTANT_VOLTAGE, &config->constantVoltage);
         prefsHandler->read(CHRG_TERMINATE_CURRENT, &config->terminateCurrent);
         prefsHandler->read(CHRG_MIN_BATTERY_VOLTAGE, &config->minimumBatteryVoltage);
         prefsHandler->read(CHRG_MAX_BATTERY_VOLTAGE, &config->maximumBatteryVoltage);
-        prefsHandler->read(CHRG_MIN_BATTERY_TEMPERATURE, &config->minimumTemperature);
+        prefsHandler->read(CHRG_MIN_BATTERY_TEMPERATURE, (uint16_t *) &config->minimumTemperature);
         prefsHandler->read(CHRG_MAX_BATTERY_TEMPERATURE, &config->maximumTemperature);
         prefsHandler->read(CHRG_MAX_AMPERE_HOURS, &config->maximumAmpereHours);
         prefsHandler->read(CHRG_MAX_CHARGE_TIME, &config->maximumChargeTime);
-        prefsHandler->read(CHRG_TEMPERATURE_MODE, &temp);
-        config->useTemperatureDerating = (temp == 1);
-        prefsHandler->read(CHRG_DERATING_TEMPERATURE, &config->deratingTemperature);
+        prefsHandler->read(CHRG_DERATING_TEMPERATURE, &config->deratingRate);
         prefsHandler->read(CHRG_DERATING_REFERENCE, &config->deratingReferenceTemperature);
         prefsHandler->read(CHRG_HYSTERESE_STOP, &config->hystereseStopTemperature);
         prefsHandler->read(CHRG_HYSTERESE_RESUME, &config->hystereseResumeTemperature);
     } else { //checksum invalid. Reinitialize values and store to EEPROM
-        Logger::warn(getId(), (char *) Constants::invalidChecksum);
         config->maximumInputCurrent = 100;
         config->constantCurrent = 100;
         config->constantVoltage = 4165;
@@ -286,8 +281,7 @@ void Charger::loadConfiguration()
         config->maximumTemperature = 600;
         config->maximumAmpereHours = 1200;
         config->maximumChargeTime = 600;
-        config->useTemperatureDerating = 0;
-        config->deratingTemperature = 1;
+        config->deratingRate = 1;
         config->deratingReferenceTemperature = 500;
         config->hystereseStopTemperature = 600;
         config->hystereseResumeTemperature = 500;
@@ -313,12 +307,11 @@ void Charger::saveConfiguration()
     prefsHandler->write(CHRG_TERMINATE_CURRENT, config->terminateCurrent);
     prefsHandler->write(CHRG_MIN_BATTERY_VOLTAGE, config->minimumBatteryVoltage);
     prefsHandler->write(CHRG_MAX_BATTERY_VOLTAGE, config->maximumBatteryVoltage);
-    prefsHandler->write(CHRG_MIN_BATTERY_TEMPERATURE, config->minimumTemperature);
+    prefsHandler->write(CHRG_MIN_BATTERY_TEMPERATURE, (uint16_t) config->minimumTemperature);
     prefsHandler->write(CHRG_MAX_BATTERY_TEMPERATURE, config->maximumTemperature);
     prefsHandler->write(CHRG_MAX_AMPERE_HOURS, config->maximumAmpereHours);
     prefsHandler->write(CHRG_MAX_CHARGE_TIME, config->maximumChargeTime);
-    prefsHandler->write(CHRG_TEMPERATURE_MODE, (uint8_t)(config->useTemperatureDerating ? 1 : 0));
-    prefsHandler->write(CHRG_DERATING_TEMPERATURE, config->deratingTemperature);
+    prefsHandler->write(CHRG_DERATING_TEMPERATURE, config->deratingRate);
     prefsHandler->write(CHRG_DERATING_REFERENCE, config->deratingReferenceTemperature);
     prefsHandler->write(CHRG_HYSTERESE_STOP, config->hystereseStopTemperature);
     prefsHandler->write(CHRG_HYSTERESE_RESUME, config->hystereseResumeTemperature);

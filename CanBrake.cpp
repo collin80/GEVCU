@@ -28,7 +28,6 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 CanBrake::CanBrake() : Throttle()
 {
-    canHandlerCar = CanHandler::getInstanceCar();
     prefsHandler = new PrefHandler(CANBRAKEPEDAL);
 
     rawSignal.input1 = 0;
@@ -44,7 +43,7 @@ CanBrake::CanBrake() : Throttle()
 
 void CanBrake::setup()
 {
-    tickHandler->detach(this);
+    tickHandler.detach(this);
 
     loadConfiguration();
     Throttle::setup();
@@ -81,8 +80,6 @@ void CanBrake::setup()
         default:
             Logger::error(CANBRAKEPEDAL, "no valid car type defined.");
     }
-    canHandlerCar->attach(this, responseId, responseMask, responseExtended);
-    tickHandler->attach(this, CFG_TICK_INTERVAL_CAN_THROTTLE);
 }
 
 /**
@@ -91,7 +88,25 @@ void CanBrake::setup()
 void CanBrake::tearDown()
 {
     Throttle::tearDown();
-    canHandlerCar->detach(this, responseId, responseMask);
+    canHandlerCar.detach(this, responseId, responseMask);
+}
+
+/**
+ * act on messages the super-class does not react upon, like state change
+ * to ready or running which should enable/disable the controller
+ */
+void CanBrake::handleStateChange(Status::SystemState oldState, Status::SystemState newState)
+{
+    Throttle::handleStateChange(oldState, newState);
+
+    if (newState == Status::ready || newState == Status::running) {
+        canHandlerCar.attach(this, responseId, responseMask, responseExtended);
+        tickHandler.attach(this, CFG_TICK_INTERVAL_CAN_THROTTLE);
+    } else {
+        if (oldState == Status::ready || oldState == Status::running) {
+            tearDown();
+        }
+    }
 }
 
 /*
@@ -102,7 +117,7 @@ void CanBrake::handleTick()
 {
     Throttle::handleTick(); // Call parent handleTick
 
-    canHandlerCar->sendFrame(requestFrame);
+    canHandlerCar.sendFrame(requestFrame);
 
     if (ticksNoResponse < 255) { // make sure it doesn't overflow
         ticksNoResponse++;
@@ -241,15 +256,13 @@ void CanBrake::loadConfiguration()
 
     if (prefsHandler->checksumValid()) { //checksum is good, read in the values stored in EEPROM
 #endif
-        Logger::debug(CANBRAKEPEDAL, (char *) Constants::validChecksum);
         prefsHandler->read(EETH_CAR_TYPE, &config->carType);
     } else { //checksum invalid. Reinitialize values and store to EEPROM
-        Logger::warn(CANBRAKEPEDAL, (char *) Constants::invalidChecksum);
         config->carType = Volvo_S80_Gas;
         saveConfiguration();
     }
 
-    Logger::debug(CANBRAKEPEDAL, "T1 MIN: %l MAX: %l Type: %d", config->minimumLevel, config->maximumLevel, config->carType);
+    Logger::info(CANBRAKEPEDAL, "T1 MIN: %l MAX: %l Type: %d", config->minimumLevel, config->maximumLevel, config->carType);
 }
 
 /*

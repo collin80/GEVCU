@@ -1,58 +1,59 @@
 <table>
 	<tr>
-		<td colspan="6"><h2>Motor Control</h2></td>
-		<td colspan="2"><h2>Throttle / Brake</h2></td>
+		<td colspan="3"><h2>System</h2></td>
+        <td colspan="3"><h2>Temperature/Battery</h2></td>
+		<td colspan="2"><h2>Throttle/Motor</h2></td>
 	</tr>
 	<tr>
-		<td>State</td>
-		<td>: <span id="systemState"></span></td>
+        <td>State</td>
+        <td>: <span id="systemState"></span></td>
 		<td>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</td>
-		<td>Operating Time</td>
-		<td>: <span id="timeRunning"></span></td>
+        <td>Temperature Controller</td>
+        <td>: <span id="temperatureController"></span> &#176;C</td>
 		<td>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</td>
 		<td>Throttle Level</td>
 		<td>: <span id="throttle"></span> %</td>
 	</tr>
 	<tr>
-		<td>Gearswitch</td>
-		<td>: <span id="gear"></span></td>
-		<td></td>
-		<td>Temperature System</td>
-		<td>: <span id="temperatureSystem"></span> &#176;C</td>
-		<td></td>
+        <td>Operating Time</td>
+        <td>: <span id="timeRunning"></span></td>
+        <td></td>
+        <td>Temperature Motor</td>
+        <td>: <span id="temperatureMotor"></span> &#176;C</td>
+        <td></td>
 		<td>Brake Level</td>
 		<td>: <span id="brake"></span> %</td>
 	</tr>
 	<tr>
-		<td>Motor Temp</td>
-		<td>: <span id="temperatureMotor"></span> &#176;C</td>
+        <td>Gearswitch</td>
+        <td>: <span id="gear"></span></td>
+        <td></td>
+        <td>Battery Voltage</td>
+        <td>: <span id="dcVoltage"></span> Volt</td>
 		<td></td>
-		<td>Inverter Temp</td>
-		<td>: <span id="temperatureInverter"></span> &#176;C</td>
-		<td></td>
-		<td>Power</td>
-		<td>: <span id="mechanicalPower"></span> kW</td>
+        <td>Requested Torque</td>
+        <td>: <span id="torqueRequested"></span> Nm</td>
 	</tr>
-		<tr>
-		<td>Requested Torque</td>
-		<td>: <span id="torqueRequested"></span> Nm</td>
+    <tr>
+        <td>Power</td>
+        <td>: <span id="mechanicalPower"></span> kW</td>
 		<td></td>
+        <td>Battery Current</td>
+        <td>: <span id="dcCurrent"></span> Ampere</td>
+        <td></td>
 		<td>Actual Torque</td>
 		<td>: <span id="torqueActual"></span> Nm</td>
-		<td></td>
-		<td>Energy used</td>
-		<td>: <span id="kiloWattHours"></span> kWh</td>
 	</tr>
 	
 	<tr>
-		<td>DC Voltage</td>
-		<td>: <span id="dcVoltage"></span> Volt</td>
+        <td>Energy used</td>
+        <td>: <span id="kiloWattHours"></span> kWh</td>
+        <td></td>
+        <td></td>
+        <td></td>
 		<td></td>
-		<td>DC Current</td>
-		<td>: <span id="dcCurrent"></span> Ampere</td>
-		<td></td>
-		<td></td>
-		<td></td>
+		<td>Actual Speed</td>
+        <td>: <span id="speedActual"></span> rpm</td>
 	</tr>
 	<tr>
 		<td colspan="6"><h2>ANNUNCIATORS</h2></td>

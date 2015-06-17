@@ -3,26 +3,26 @@
  *
  * Interface to the DMOC - Handles sending of commands and reception of status frames
  *
-Copyright (c) 2013 Collin Kidder, Michael Neuweiler, Charles Galpin
+ Copyright (c) 2013 Collin Kidder, Michael Neuweiler, Charles Galpin
 
-Permission is hereby granted, free of charge, to any person obtaining
-a copy of this software and associated documentation files (the
-"Software"), to deal in the Software without restriction, including
-without limitation the rights to use, copy, modify, merge, publish,
-distribute, sublicense, and/or sell copies of the Software, and to
-permit persons to whom the Software is furnished to do so, subject to
-the following conditions:
+ Permission is hereby granted, free of charge, to any person obtaining
+ a copy of this software and associated documentation files (the
+ "Software"), to deal in the Software without restriction, including
+ without limitation the rights to use, copy, modify, merge, publish,
+ distribute, sublicense, and/or sell copies of the Software, and to
+ permit persons to whom the Software is furnished to do so, subject to
+ the following conditions:
 
-The above copyright notice and this permission notice shall be included
-in all copies or substantial portions of the Software.
+ The above copyright notice and this permission notice shall be included
+ in all copies or substantial portions of the Software.
 
-THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
-EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
-MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.
-IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY
-CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT,
-TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
-SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+ EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
+ MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.
+ IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY
+ CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT,
+ TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
+ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
  */
 
@@ -46,28 +46,24 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 DmocMotorController::DmocMotorController() : MotorController()
 {
     prefsHandler = new PrefHandler(DMOC645);
+
     step = SPEED_TORQUE;
-    actualState = DISABLED;
-    online = 0;
-    activityCount = 0;
+    alive = 0;
     commonName = "DMOC645 Inverter";
 }
 
 void DmocMotorController::setup()
 {
-    tickHandler->detach(this);
+    tickHandler.detach(this);
 
     loadConfiguration();
     MotorController::setup(); // run the parent class version of this function
 
     // register ourselves as observer of 0x23x and 0x65x can frames
-    canHandlerEv->attach(this, CAN_MASKED_ID_1, CAN_MASK_1, false);
-    canHandlerEv->attach(this, CAN_MASKED_ID_2, CAN_MASK_2, false);
+    canHandlerEv.attach(this, CAN_MASKED_ID_1, CAN_MASK_1, false);
+    canHandlerEv.attach(this, CAN_MASKED_ID_2, CAN_MASK_2, false);
 
-    actualGear = NEUTRAL;
-//    running = true;
-
-    tickHandler->attach(this, CFG_TICK_INTERVAL_MOTOR_CONTROLLER_DMOC);
+    tickHandler.attach(this, CFG_TICK_INTERVAL_MOTOR_CONTROLLER_DMOC);
 }
 
 /**
@@ -77,11 +73,9 @@ void DmocMotorController::tearDown()
 {
     MotorController::tearDown();
 
-    canHandlerEv->detach(this, CAN_MASKED_ID_1, CAN_MASK_1);
-    canHandlerEv->detach(this, CAN_MASKED_ID_2, CAN_MASK_2);
+    canHandlerEv.detach(this, CAN_MASKED_ID_1, CAN_MASK_1);
+    canHandlerEv.detach(this, CAN_MASKED_ID_2, CAN_MASK_2);
 
-    throttleRequested = 0;
-    setGear(NEUTRAL);
     sendCmd1();
     sendCmd2();
     sendCmd3();
@@ -91,20 +85,16 @@ void DmocMotorController::tearDown()
  * act on messages the super-class does not react upon, like state change
  * to ready or running which should enable/disable the power-stage of the controller
  */
-void DmocMotorController::handleStateChange(Status::SystemState state)
+void DmocMotorController::handleStateChange(Status::SystemState oldState, Status::SystemState newState)
 {
-    MotorController::handleStateChange(state);
+    MotorController::handleStateChange(oldState, newState);
 
     // for safety reasons at power off first request 0 torque - this allows the controller to dissipate residual fields first
     if (!powerOn) {
-        throttleRequested = 0;
-        setGear(NEUTRAL);
         sendCmd1();
         sendCmd2();
         sendCmd3();
     }
-
-    systemIO->setEnableMotor(powerOn);
 }
 
 /*
@@ -117,185 +107,125 @@ void DmocMotorController::handleStateChange(Status::SystemState state)
 
 void DmocMotorController::handleCanFrame(CAN_FRAME *frame)
 {
-    int rotorTemp, invTemp, statorTemp;
-    int temp;
-    online = 1; //if a frame got to here then it passed the filter and must have been from the DMOC
+    int invTemp, rotorTemp, statorTemp, actualState;
 
-    //Logger::debug("dmoc msg: %i", frame->id);
     switch (frame->id) {
-        case CAN_ID_TEMPERATURE:
-            rotorTemp = frame->data.bytes[0];
-            invTemp = frame->data.bytes[1];
-            statorTemp = frame->data.bytes[2];
-            temperatureController = invTemp * 10;
+    case CAN_ID_TEMPERATURE:
+        rotorTemp = frame->data.bytes[0];
+        invTemp = frame->data.bytes[1];
+        statorTemp = frame->data.bytes[2];
+        temperatureController = (invTemp - 40) * 10;
+        temperatureMotor = (max(rotorTemp, statorTemp) - 40) * 10;
+        reportActivity();
+        break;
 
-            //now pick highest of motor temps and report it
-            if (rotorTemp > statorTemp) {
-                temperatureMotor = rotorTemp * 10;
-            } else {
-                temperatureMotor = statorTemp * 10;
-            }
+    case CAN_ID_TORQUE:
+        torqueActual = ((frame->data.bytes[0] * 256) + frame->data.bytes[1]) - 30000;
+        reportActivity();
+        break;
 
-            activityCount++;
+    case CAN_ID_STATUS:
+        speedActual = abs(((frame->data.bytes[0] * 256) + frame->data.bytes[1]) - 20000);
+
+        // 0: Initializing, 1: disabled, 2: ready (standby), 3: enabled, 4: Power Down
+        // 5: Fault, 6: Critical Fault, 7: LOS
+        actualState = frame->data.bytes[6] >> 4;
+
+        ready = (actualState == 2 || actualState == 3 ? true : false);
+        running = (actualState == 3 ? true : false);
+
+        switch (actualState) {
+        case 5: //Fault
+            Logger::error(DMOC645, "Inverter reports fault");
+            status.setSystemState(Status::error);
             break;
 
-        case CAN_ID_TORQUE:
-            torqueActual = ((frame->data.bytes[0] * 256) + frame->data.bytes[1]) - 30000;
-            activityCount++;
+        case 6: //Critical Fault
+            Logger::error(DMOC645, "Inverter reports critical fault");
+            status.setSystemState(Status::error);
             break;
 
-        case CAN_ID_STATUS:
-            speedActual = ((frame->data.bytes[0] * 256) + frame->data.bytes[1]) - 20000;
-            temp = (OperationState)(frame->data.bytes[6] >> 4);
-
-            //actually, the above is an operation status report which doesn't correspond
-            //to the state enum so translate here.
-            switch (temp) {
-                case 0: //Initializing
-                    actualState = DISABLED;
-                    break;
-
-                case 1: //disabled
-                    actualState = DISABLED;
-                    break;
-
-                case 2: //ready (standby)
-                    actualState = STANDBY;
-                    break;
-
-                case 3: //enabled
-                    actualState = ENABLE;
-                    break;
-
-                case 4: //Power Down
-                    actualState = POWERDOWN;
-                    break;
-
-                case 5: //Fault
-                    actualState = DISABLED;
-                    Logger::error(DMOC645, "Inverter reports fault");
-                    status->setSystemState(Status::error);
-                    break;
-
-                case 6: //Critical Fault
-                    actualState = DISABLED;
-                    Logger::error(DMOC645, "Inverter reports critical fault");
-                    status->setSystemState(Status::error);
-                    break;
-
-                case 7: //LOS
-                    actualState = DISABLED;
-                    Logger::error(DMOC645, "Inverter reports LOS");
-                    status->setSystemState(Status::error);
-                    break;
-            }
-
-            ready = (actualState == STANDBY) || (actualState == ENABLE) ? true : false;
-            running = (actualState == ENABLE) ? true : false;
-
-//      Logger::debug("OpState: %d", temp);
-            activityCount++;
+        case 7: //LOS
+            Logger::error(DMOC645, "Inverter reports LOS");
+            status.setSystemState(Status::error);
             break;
+        }
+        reportActivity();
+        break;
 
-            //case 0x23E: //electrical status
-            //gives volts and amps for D and Q but does the firmware really care?
-            //break;
-        case CAN_ID_HV_STATUS:
-            dcVoltage = ((frame->data.bytes[0] * 256) + frame->data.bytes[1]);
-            dcCurrent = ((frame->data.bytes[2] * 256) + frame->data.bytes[3]) - 5000;  //offset is 500A, unit = .1A
-            activityCount++;
-            break;
+    //case 0x23E: //electrical status
+        //gives volts and amps for D and Q but does the firmware really care?
+        //break;
+
+    case CAN_ID_HV_STATUS:
+        dcVoltage = ((frame->data.bytes[0] * 256) + frame->data.bytes[1]);
+        dcCurrent = ((frame->data.bytes[2] * 256) + frame->data.bytes[3]) - 5000; //offset is 500A, unit = .1A
+        reportActivity();
+        break;
     }
 }
 
 /*Do note that the DMOC expects all three command frames and it expect them to happen at least twice a second. So, probably it'd be ok to essentially
  rotate through all of them, one per tick. That gives us a time frame of 30ms for each command frame. That should be plenty fast.
-*/
+ */
 void DmocMotorController::handleTick()
 {
-    MotorController::handleTick(); //kick the ball up to papa
+    DmocMotorControllerConfiguration *config = (DmocMotorControllerConfiguration *) getConfiguration();
+    MotorController::handleTick();
 
-    if (activityCount > 0) {
-        activityCount--;
-
-        if (activityCount > 60) {
-            activityCount = 60;
-        }
-
-        if (powerOn && activityCount > 40) {
-            setGear(DRIVE);
-        }
-    } else {
-        setGear(NEUTRAL);
-    }
-
-    //TODO: this check somehow duplicates functionality in MotorController !
-    //if the first digital input is high we'll enable drive so we can go!
-    //if (getDigital(0)) {
-    //setGear(DRIVE);
-    //runThrottle = true;
-    setPowerMode(modeTorque);
-    //}
-
-    //if (online == 1) { //only send out commands if the controller is really there.
     step = CHAL_RESP;
     sendCmd1();
     sendCmd2();
     sendCmd3();
     //sendCmd4();
     //sendCmd5();
-    //}
 }
 
 //Commanded RPM plus state of key and gear selector
 void DmocMotorController::sendCmd1()
 {
     DmocMotorControllerConfiguration *config = (DmocMotorControllerConfiguration *) getConfiguration();
-    CAN_FRAME output;
     OperationState newstate;
-    alive = (alive + 2) & 0x0F;
-    output.length = 8;
-    output.id = CAN_ID_COMMAND;
-    output.extended = 0; //standard frame
-    output.rtr = 0;
+    CAN_FRAME output;
 
-    if (throttleRequested > 0 && powerOn && selectedGear != NEUTRAL && powerMode == modeSpeed) {
-        speedRequested = 20000 + (((long) throttleRequested * (long) config->speedMax) / 1000);
-    } else {
-        speedRequested = 20000;
+    canHandlerEv.prepareOutputFrame(&output, CAN_ID_COMMAND);
+    alive = (alive + 2) & 0x0F;
+
+    uint16_t speedCommand = 20000;
+    if (getSpeedRequested() != 0 && powerOn && running && getGear() != NEUTRAL && config->powerMode == modeSpeed) {
+        speedCommand += getSpeedRequested();
     }
 
-    output.data.bytes[0] = (speedRequested & 0xFF00) >> 8;
-    output.data.bytes[1] = (speedRequested & 0x00FF);
-    output.data.bytes[2] = 0; //not used
-    output.data.bytes[3] = 0; //not used
-    output.data.bytes[4] = 0; //not used
+    output.data.bytes[0] = (speedCommand & 0xFF00) >> 8;
+    output.data.bytes[1] = (speedCommand & 0x00FF);
     output.data.bytes[5] = ON; //key state
 
     //handle proper state transitions
-    newstate = DISABLED;
-
-    if (actualState == DISABLED && powerOn) {
+    newstate = DISABLE;
+    if (!ready && powerOn) {
         newstate = STANDBY;
     }
-
-    if ((actualState == STANDBY || actualState == ENABLE) && powerOn) {
+    if ((ready || running) && powerOn) {
         newstate = ENABLE;
     }
-
     if (!powerOn) {
         newstate = POWERDOWN;
     }
 
-    if (actualState == ENABLE) {
-        output.data.bytes[6] = alive + ((byte) selectedGear << 4) + ((byte) newstate << 6);   //use new automatic state system.
+    Gears gear = getGear();
+    if (running) {
+       if(config->invertDirection) {
+           gear = (gear == DRIVE ? REVERSE : DRIVE);
+       }
     } else { //force neutral gear until the system is enabled.
-        output.data.bytes[6] = alive + ((byte) NEUTRAL << 4) + ((byte) newstate << 6);   //use new automatic state system.
+        gear = NEUTRAL;
     }
+
+    output.data.bytes[6] = alive + ((byte) gear << 4) + ((byte) newstate << 6);
 
     output.data.bytes[7] = calcChecksum(output);
 
-    canHandlerEv->sendFrame(output);
+    canHandlerEv.sendFrame(output);
 }
 
 //Torque limits
@@ -303,31 +233,25 @@ void DmocMotorController::sendCmd2()
 {
     DmocMotorControllerConfiguration *config = (DmocMotorControllerConfiguration *) getConfiguration();
     CAN_FRAME output;
-    output.length = 8;
-    output.id = CAN_ID_LIMIT;
-    output.extended = 0; //standard frame
-    output.rtr = 0;
-    //30000 is the base point where torque = 0
-    //MaxTorque is in tenths like it should be.
-    //Requested throttle is [-1000, 1000]
-    //data 0-1 is upper limit, 2-3 is lower limit. They are set to same value to lock torque to this value
-    //torqueRequested = 30000L + (((long)throttleRequested * (long)MaxTorque) / 1000L);
 
-    torqueRequested = 30000; //set upper torque to zero if not drive enabled
+    canHandlerEv.prepareOutputFrame(&output, CAN_ID_LIMIT);
 
-    if (powerMode == modeTorque) {
-        if (actualState == ENABLE) { //don't even try sending torque commands until the DMOC reports it is ready
-            if (selectedGear == DRIVE) {
-                torqueRequested = 30000L + (((long) throttleRequested * (long) config->torqueMax) / 1000L);
+    if (config->powerMode == modeTorque) {
+        //30000 is the base point where torque = 0
+        //torqueRequested and torqueMax is in tenths Nm like it should be.
+        uint16_t torqueCommand = 3000; //set offset  for zero torque commanded
+        if (running) { //don't even try sending torque commands until the DMOC reports it is ready
+            int16_t torqueRequested = (speedActual < config->speedMax ? getTorqueRequested() : getTorqueRequested() / 1.3);
+
+            if (config->invertDirection ^ getGear() == REVERSE) {
+                torqueRequested *= -1;
             }
-
-            if (selectedGear == REVERSE) {
-                torqueRequested = 30000L - (((long) throttleRequested * (long) config->torqueMax) / 1000L);
-            }
+            torqueCommand += torqueRequested;
         }
 
-        output.data.bytes[0] = (torqueRequested & 0xFF00) >> 8;
-        output.data.bytes[1] = (torqueRequested & 0x00FF);
+        //data 0-1 is upper limit, 2-3 is lower limit. They are set to same value to lock torque to this value
+        output.data.bytes[0] = (torqueCommand & 0xFF00) >> 8;
+        output.data.bytes[1] = (torqueCommand & 0x00FF);
         output.data.bytes[2] = output.data.bytes[0];
         output.data.bytes[3] = output.data.bytes[1];
     } else { //RPM mode so request max torque as upper limit and zero torque as lower limit
@@ -343,24 +267,18 @@ void DmocMotorController::sendCmd2()
     output.data.bytes[6] = alive;
     output.data.bytes[7] = calcChecksum(output);
 
-    //Logger::debug("max torque: %i", maxTorque);
-
-    //Logger::debug("requested torque: %i",(((long) throttleRequested * (long) maxTorque) / 1000L));
-
-    canHandlerEv->sendFrame(output);
+    canHandlerEv.sendFrame(output);
 }
 
 //Power limits plus setting ambient temp and whether to cool power train or go into limp mode
 void DmocMotorController::sendCmd3()
 {
+    DmocMotorControllerConfiguration *config = (DmocMotorControllerConfiguration *) getConfiguration();
     CAN_FRAME output;
-    output.length = 8;
-    output.id = CAN_ID_LIMIT2;
-    output.extended = 0; //standard frame
-    output.rtr = 0;
+    canHandlerEv.prepareOutputFrame(&output, CAN_ID_LIMIT2);
 
-    int regenCalc = 65000 - (MaxRegenWatts / 4);
-    int accelCalc = (MaxAccelWatts / 4);
+    int regenCalc = 65000 - (config->maxMechanicalPowerRegen * 25);
+    int accelCalc = (config->maxMechanicalPowerMotor * 25);
     output.data.bytes[0] = ((regenCalc & 0xFF00) >> 8);  //msb of regen watt limit
     output.data.bytes[1] = (regenCalc & 0xFF); //lsb
     output.data.bytes[2] = ((accelCalc & 0xFF00) >> 8);  //msb of acceleration limit
@@ -370,42 +288,33 @@ void DmocMotorController::sendCmd3()
     output.data.bytes[6] = alive;
     output.data.bytes[7] = calcChecksum(output);
 
-    canHandlerEv->sendFrame(output);
+    canHandlerEv.sendFrame(output);
 }
 
 //challenge/response frame 1 - Really doesn't contain anything we need I dont think
 void DmocMotorController::sendCmd4()
 {
     CAN_FRAME output;
-    output.length = 8;
-    output.id = CAN_ID_CHALLENGE;
-    output.extended = 0; //standard frame
-    output.rtr = 0;
+    canHandlerEv.prepareOutputFrame(&output, CAN_ID_CHALLENGE);
     output.data.bytes[0] = 37; //i don't know what all these values are
     output.data.bytes[1] = 11; //they're just copied from real traffic
-    output.data.bytes[2] = 0;
-    output.data.bytes[3] = 0;
     output.data.bytes[4] = 6;
     output.data.bytes[5] = 1;
     output.data.bytes[6] = alive;
     output.data.bytes[7] = calcChecksum(output);
 
-    canHandlerEv->sendFrame(output);
+    canHandlerEv.sendFrame(output);
 }
 
 //Another C/R frame but this one also specifies which shifter position we're in
 void DmocMotorController::sendCmd5()
 {
     CAN_FRAME output;
-    output.length = 8;
-    output.id = CAN_ID_CHALLENGE2;
-    output.extended = 0; //standard frame
-    output.rtr = 0;
+    canHandlerEv.prepareOutputFrame(&output, CAN_ID_CHALLENGE2);
     output.data.bytes[0] = 2;
     output.data.bytes[1] = 127;
-    output.data.bytes[2] = 0;
 
-    if (powerOn && selectedGear != NEUTRAL) {
+    if (powerOn && getGear() != NEUTRAL) {
         output.data.bytes[3] = 52;
         output.data.bytes[4] = 26;
         output.data.bytes[5] = 59; //drive
@@ -419,14 +328,7 @@ void DmocMotorController::sendCmd5()
     output.data.bytes[6] = alive;
     output.data.bytes[7] = calcChecksum(output);
 
-    canHandlerEv->sendFrame(output);
-}
-
-void DmocMotorController::setGear(Gears gear)
-{
-    selectedGear = gear;
-    //should it be set to standby when selecting neutral? I don't know. Doing that prevents regen
-    //when in neutral and I don't think people will like that.
+    canHandlerEv.sendFrame(output);
 }
 
 //this might look stupid. You might not believe this is real. It is. This is how you

@@ -1,238 +1,160 @@
 <form method="POST" action="">
-	<table width="100%">
+	<table id="configTable">
 		<tr>
-			<td colspan="5"><h2>Throttle</h2></td>
+			<td colspan="5"><h3>Throttle</h3></td>
 		</tr>
-		<tr>
+		<tr id="device_x1031">
 			<td>Number of Throttle Pots</td>
-			<td><select name="numThrottlePots" title="Some throttles have two outputs, main, and a second sanity check output">
-				<option value="1">1</option>
-				<option value="2">2</option>
+			<td><select name="numberPotMeters" title="Some throttles have two outputs, main, and a second sanity check output">
+					<option value="1">1</option>
+					<option value="2">2</option>
 			</select></td>
-			<td>&nbsp;</td>
+			<td></td>
 			<td>Throttle Type</td>
 			<td><select name="throttleSubType">
-				<option value="0">unknown</option>
-				<option value="1">linear</option>
-				<option value="2">inverse</option>
+					<option value="0">unknown</option>
+					<option value="1">linear</option>
+					<option value="2">inverse</option>
 			</select></td>
 		</tr>
 		<tr>
-			<td>Minimum Signal Level 1</td>
-			<td nowrap="nowrap"><span id="throttleMin1Span" title="Raw ADC numeric output with foot off throttle"></span></td>
+			<td>Minimum Signal Level</td>
+			<td nowrap="nowrap"><span id="minimumLevelSpan" title="Raw ADC numeric output with foot off throttle"></span></td>
 			<td></td>
-			<td>Pedal Position Regen Maximum</td>
-			<td nowrap="nowrap"><span id="throttleRegenMaxSpan" title="Percent throttle where maximum regenerative braking occurs/ends"></span> %</td>
+			<td>Maximum Signal Level</td>
+			<td><span id="maximumLevelSpan" title="Raw ADC numeric output with full throttle (floored)"></span></td>
+		</tr>
+		<tr id="device_x1031">
+			<td>Minimum Signal Level 2</td>
+			<td><span id="minimumLevel2Span" title="Raw ADC numeric output of second throttle sensor with foot off throttle"></span></td>
+			<td></td>
+			<td>Maximum Signal Level 2</td>
+			<td><span id="maximumLevel2Span" title="Raw ADC numeric output of second throttle sensor with full throttle (floored)"></span></td>
 		</tr>
 		<tr>
-			<td>Maximum Signal Level 1</td>
-			<td><span id="throttleMax1Span" title="Raw ADC numeric output with full throttle (floored)"></span></td>
+			<td>Pedal Position Regen Maximum</td>
+			<td nowrap="nowrap"><span id="positionRegenMaximumSpan" title="Percent throttle where maximum regenerative braking occurs/ends"></span> %</td>
 			<td></td>
 			<td>Pedal Position Regen Minimum</td>
-			<td nowrap="nowrap"><span id="throttleRegenMinSpan" title="Percent throttle where minimum regenerative braking begins"></span> %</td>
+			<td><span id="positionRegenMinimumSpan" title="Percent throttle where minimum regenerative braking begins"></span> %</td>
 		</tr>
 		<tr>
-			<td>Minimum Signal Level 2</td>
-			<td><span id="throttleMin2Span" title="Raw ADC numeric output of second throttle sensor with foot off throttle"></span></td>
-			<td></td>
 			<td>Pedal Position Forward Motion Start</td>
-			<td><span id="throttleFwdSpan" title="Percent throttle where minimum forward torque begins"></span> %</td>
+			<td><span id="positionForwardStartSpan" title="Percent throttle where minimum forward torque begins"></span> %</td>
+			<td></td>
+			<td>Pedal Position 50 % throttle</td>
+			<td><span id="positionHalfPowerSpan"
+				title="Percent throttle where 50 % forward torque occurs. Adjust to higher percentage to increase control in lower half of forward pedal"></span>
+				%</td>
 		</tr>
 		<tr>
-			<td>Maximum Signal Level 2</td>
-			<td><span id="throttleMax2Span" title="Raw ADC numeric output of second throttle sensor with full throttle (floored)"></span></td>
+			<td>Minimum Throttle Regen</td>
+			<td><span id="minimumRegenSpan" title="Percent of maximum torque to apply for minimum throttle regen"></span> %</td>
 			<td></td>
-			<td>Pedal Position 50% throttle</td>
-			<td><span id="throttleMapSpan" title="Percent throttle where 50% forward torque occurs. Adjust to higher percentage to increase control in lower half of forward pedal"></span> %</td>
+			<td>Maximum Throttle Regen</td>
+			<td><span id="maximumRegenSpan" title="Percent of maximum torque to apply for maximum throttle regen"></span> %</td>
 		</tr>
 		<tr>
 			<td>Creep Level</td>
-			<td><span id="throttleCreepSpan" title="Percent of maximum torque to apply for creep (0% throttle, simulate automatic transmission creep)"></span> %</td>
-			<td></td>
-			<td>Minimum Throttle Regen</td>
-			<td><span id="throttleMinRegenSpan" title="Percent of maximum torque to apply for minimum throttle regen"></span> %</td>
-		</tr>
-		<tr>
+			<td><span id="creepSpan" title="Percent of maximum torque to apply for creep (0 % throttle, simulate automatic transmission creep)"></span> %</td>
 			<td></td>
 			<td></td>
 			<td></td>
-			<td>Maximum Throttle Regen</td>
-			<td><span id="throttleMaxRegenSpan" title="Percent of maximum torque to apply for maximum throttle regen"></span> %</td>
 		</tr>
 		<tr>
 			<td colspan="5"><canvas id="throttleCanvas" height="400">Your browser does not support the HTML5 canvas tag.</canvas></td>
 		</tr>
-		<tr>
-			<td colspan="5"><h2>Brake</h2></td>
+		<tr id="device_x1032,device_x1034">
+			<td colspan="5"><h3>Brake</h3></td>
 		</tr>
-		<tr>
+		<tr id="device_x1032,device_x1034">
 			<td>Minimum Signal Level</td>
-			<td><span id="brakeMinSpan" title="Raw ADC numeric output of brake transducer with very light brake pedal pressure"></span></td>
+			<td><span id="brakeMinimumLevelSpan" title="Raw ADC numeric output of brake transducer with very light brake pedal pressure"></span></td>
 			<td></td>
-			<td>Minimum Brake Regen</td>
-			<td><span id="brakeMinRegenSpan" title="Percent of maximum torque for regen with minimum brake value"></span> %</td>
-		</tr>
-		<tr>
 			<td>Maximum Signal Level</td>
-			<td><span id="brakeMaxSpan" title="Raw ADC numeric output of brake transducer with full brake pedal pressure applied"></span></td>
+			<td><span id="brakeMaximumLevelSpan" title="Raw ADC numeric output of brake transducer with full brake pedal pressure applied"></span></td>
+		</tr>
+		<tr id="device_x1032,device_x1034">
+			<td>Minimum Brake Regen</td>
+			<td><span id="brakeMinimumRegenSpan" title="Percent of maximum torque for regen with minimum brake value"></span> %</td>
 			<td></td>
 			<td>Maximum Brake Regen</td>
-			<td><span id="brakeMaxRegenSpan" title="Percent of maximum torque for regen with full brake pedal pressure"></span> %</td>
+			<td><span id="brakeMaximumRegenSpan" title="Percent of maximum torque for regen with full brake pedal pressure"></span> %</td>
 		</tr>
 		<tr>
-			<td colspan="5"><h2>Motor Control</h2></td>
+			<td colspan="5"><h3>Motor Control</h3></td>
 		</tr>
 		<tr>
-			<td>Maximum Speed</td>
-			<td><input name="speedMax" type="text"  title="Maximum speed or RPM controller will apply to motor"/> rpm</td>
+			<td>Motor Mode</td>
+			<td><select name="motorMode">
+					<option value="0">Torque</option>
+					<option value="1">Speed</option>
+			</select></td>
 			<td></td>
+			<td>Motor Direction</td>
+			<td><select name="invertDirection" title="The motor spin direction">
+					<option value="0">normal</option>
+					<option value="1">inverted</option>
+			</select>
+		</tr>
+		<tr>
 			<td>Maximum Torque</td>
-			<td><input name="torqueMax" type="text" title="Maximum torque or power controller will apply to motor"/> Nm</td>
+			<td><input name="torqueMax" type="text" maxlength="6" title="Maximum torque or power controller will apply to motor" /> Nm</td>
+			<td></td>
+			<td>Maximum Speed</td>
+			<td><input name="speedMax" type="text" maxlength="6" title="Maximum speed or RPM controller will apply to motor" /> rpm</td>
+		</tr>
+		<tr id="device_x1001">
+			<td>Torque Slew Rate</td>
+			<td><input name="torqueSlewRate" type="text" maxlength="6" title="Slew rate for torque changes (0=off)" /> Nm/sec</td>
+			<td></td>
+			<td>Speed Slew Rate</td>
+			<td><input name="speedSlewRate" type="text" maxlength="6" title="Slew rate for speed changes (0=off)" /> rpm/sec</td>
 		</tr>
 		<tr>
-			<td colspan="5"><h2>System</h2></td>
+			<td>Maximum Mechanical Power Motoring</td>
+			<td><input name="maxMechPowerMotor" type="text" maxlength="7" title="The maximum power that can be applied for motoring" /> kW</td>
+			<td></td>
+			<td>Maximum Mechanical Power Regen</td>
+			<td><input name="maxMechPowerRegen" type="text" maxlength="7" title="The maximum power that can be applied for regen" /> kW</td>
 		</tr>
-		<tr>
-			<td>Log Level</td>
-			<td><select name="logLevel" title="The level of log messages written">
-				<option value="0">Debug</option>
-				<option value="1">Info</option>
-				<option value="2">Warning</option>
-				<option value="3">Error</option>
-				<option value="4">Off</option>
+		<tr id="device_x1001">
+			<td>Minimum DC Voltage Motoring</td>
+			<td><input name="dcVoltLimitMotor" type="text" maxlength="6" title="The minimum battery voltage for motoring, may limit motoring power" /> V</td>
+			<td></td>
+			<td>Maximum DC Voltage Regen</td>
+			<td><input name="dcVoltLimitRegen" type="text" maxlength="6" title="The maximum battery voltage for regen, may limit regen power" /> V</td>
+		</tr>
+		<tr id="device_x1001">
+			<td>Maximum DC Current Motoring</td>
+			<td><input name="dcCurrentLimitMotor" type="text" maxlength="6" title="The maximum battery current for motoring, may limit motoring power" />
+				A</td>
+			<td></td>
+			<td>Maximum DC Current Regen</td>
+			<td><input name="dcCurrentLimitRegen" type="text" maxlength="6" title="The maximum battery current for regen may limit regen power" /> A</td>
+		</tr>
+		<tr id="device_x1001">
+			<td>Oscillation Limiter</td>
+			<td><select name="enableOscLimiter" title="The oscillation limiter reduces unwanted power fluctuations">
+					<option value="0">-</option>
+					<option value="1">enabled</option>
 			</select></td>
 			<td></td>
-			<td>Enable Input</td>
-			<td><select name="enableInput" title="Input port for the enable signal">
-				<option value="0">0</option>
-				<option value="1">1</option>
-				<option value="2">2</option>
-				<option value="3">3</option>
-			</select></td>
+			<td></td>
 			<td></td>
 		</tr>
 		<tr>
-			<td>Precharge Relay</td>
-			<td><select name="prechargeOutput" title="Output port to set precharge relay">
-				<option value="255">None</option>
-				<option value="0">0</option>
-				<option value="1">1</option>
-				<option value="2">2</option>
-				<option value="3">3</option>
-				<option value="4">4</option>
-				<option value="5">5</option>
-				<option value="6">6</option>
-				<option value="7">7</option>
-			</select></td>
-			<td></td>
-			<td>Secondary Contactor Relay</td>
-			<td><select name="secContactorOutput" title="Output port to set secondary contactor">
-				<option value="255">None</option>
-				<option value="0">0</option>
-				<option value="1">1</option>
-				<option value="2">2</option>
-				<option value="3">3</option>
-				<option value="4">4</option>
-				<option value="5">5</option>
-				<option value="6">6</option>
-				<option value="7">7</option>
-				</select></td>
+			<td>Nominal Volt</td>
+			<td><input name="nominalVolt" type="text" maxlength="6" title="Nominal voltage of battery pack to reset kWh counter" /> V</td>
 			<td></td>
 			<td></td>
 			<td></td>
 		</tr>
 		<tr>
-			<td>Main Contactor Relay</td>
-			<td><select name="mainContactorOutput" title="Output port to set main contactor">
-				<option value="255">None</option>
-				<option value="0">0</option>
-				<option value="1">1</option>
-				<option value="2">2</option>
-				<option value="3">3</option>
-				<option value="4">4</option>
-				<option value="5">5</option>
-				<option value="6">6</option>
-				<option value="7">7</option>
-			</select></td>
-			<td></td>
-			<td>Precharge Delay</td>
-			<td><input name="prechargeMillis" type="text" title="Precharge delay in ms"/> milliseconds</td>
-			<td></td>
+			<td colspan="5"><br></td>
 		</tr>
 		<tr>
-			<td>Enable Relay</td>
-			<td><select name="enableOutput" title="Output port to turn on enable signal on motor controller">
-				<option value="255">None</option>
-				<option value="0">0</option>
-				<option value="1">1</option>
-				<option value="2">2</option>
-				<option value="3">3</option>
-				<option value="4">4</option>
-				<option value="5">5</option>
-				<option value="6">6</option>
-				<option value="7">7</option>
-				</select></td>
-			<td></td>
-			<td>Battery Voltage</td>
-			<td><input name="nominalVolt" type="text" title="Fully charged pack voltage"/> vdc</td>
-			<td></td>
-		</tr>
-		<tr>
-			<td>Cooling Fan Relay</td>
-			<td><select name="coolingFanOutput" title="Output port to set cooling fan relay">
-				<option value="255">None</option>
-				<option value="0">0</option>
-				<option value="1">1</option>
-				<option value="2">2</option>
-				<option value="3">3</option>
-				<option value="4">4</option>
-				<option value="5">5</option>
-				<option value="6">6</option>
-				<option value="7">7</option>
-				</select></td>
-			<td></td>
-			<td>Cooling Fan ON Temperature</td>
-			<td><input name="coolingTempOn" type="text"  title="Temp degree Celsius to turn cooling fan ON"/> &#176;C</td>
-			<td></td>
-		</tr>
-		<tr>
-			<td>Brake Light</td>
-			<td><select name="brakeLightOutput" title="Output port to turn on brake light">
-				<option value="255">None</option>
-				<option value="0">0</option>
-				<option value="1">1</option>
-				<option value="2">2</option>
-				<option value="3">3</option>
-				<option value="4">4</option>
-				<option value="5">5</option>
-				<option value="6">6</option>
-				<option value="7">7</option>
-				</select></td>
-			<td></td>
-			<td>Cooling Fan OFF Temperature</td>
-			<td><input name="coolingTempOff" type="text" title="Temp degree Celsius to turn cooling fan OFF"/> &#176;C</td>
-			<td></td>
-		</tr>
-		<tr>
-			<td>Reverse Light</td>
-			<td><select name="reverseLightOutput" title="Output port to turn on reverse light">
-				<option value="255">None</option>
-				<option value="0">0</option>
-				<option value="1">1</option>
-				<option value="2">2</option>
-				<option value="3">3</option>
-				<option value="4">4</option>
-				<option value="5">5</option>
-				<option value="6">6</option>
-				<option value="7">7</option>
-				</select></td>
-			<td></td>
-			<td></td>
-			<td></td>
-			<td></td>
+			<td colspan="5" align="center"><input type="submit" value="Save" /></td>
 		</tr>
 	</table>
- 	<center>
-		<input type="submit" value="Save"> </input>
-	</center>
 </form>

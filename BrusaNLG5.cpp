@@ -32,7 +32,6 @@
  */
 BrusaNLG5::BrusaNLG5() : Charger()
 {
-    canHandlerEv = CanHandler::getInstanceEV();
     prefsHandler = new PrefHandler(BRUSA_NLG5);
     commonName = "Brusa NLG5 Charger";
 
@@ -47,6 +46,8 @@ BrusaNLG5::BrusaNLG5() : Charger()
     temperatureExtSensor1 = 0;
     temperatureExtSensor2 = 0;
     temperatureExtSensor3 = 0;
+    bitfield = 0;
+    canTickCounter = 0;
 }
 
 /*
@@ -54,13 +55,10 @@ BrusaNLG5::BrusaNLG5() : Charger()
  */
 void BrusaNLG5::setup()
 {
-    tickHandler->detach(this);
+    tickHandler.detach(this);
 
     loadConfiguration();
     Charger::setup(); // call parent
-
-    // register ourselves as observer of 0x26a-0x26f can frames
-    canHandlerEv->attach(this, CAN_MASKED_ID, CAN_MASK, false);
 }
 
 /**
@@ -70,7 +68,7 @@ void BrusaNLG5::tearDown()
 {
     Charger::tearDown();
 
-    canHandlerEv->detach(this, CAN_MASKED_ID, CAN_MASK);
+    canHandlerEv.detach(this, CAN_MASKED_ID, CAN_MASK);
     sendControl();
 }
 
@@ -100,7 +98,7 @@ void BrusaNLG5::handleTick()
 void BrusaNLG5::sendControl()
 {
     BrusaNLG5Configuration *config = (BrusaNLG5Configuration *) getConfiguration();
-    canHandlerEv->prepareOutputFrame(&outputFrame, CAN_ID_COMMAND);
+    canHandlerEv.prepareOutputFrame(&outputFrame, CAN_ID_COMMAND);
 
     if (powerOn && (ready || running)) {
         outputFrame.data.bytes[0] |= enable;
@@ -109,19 +107,19 @@ void BrusaNLG5::sendControl()
 //        outputFrame.data.bytes[0] |= errorLatch;
 //        clearErrorLatch = false;
 //    }
-    outputFrame.data.bytes[1] = (config->maximumInputCurrent & 0xFF00) >> 8;
-    outputFrame.data.bytes[2] = (config->maximumInputCurrent & 0x00FF);
+    outputFrame.data.bytes[1] = (constrain(config->maximumInputCurrent, 0, 500) & 0xFF00) >> 8;
+    outputFrame.data.bytes[2] = (constrain(config->maximumInputCurrent, 0, 500) & 0x00FF);
 
     uint16_t voltage = getOutputVoltage();
-    outputFrame.data.bytes[3] = (voltage & 0xFF00) >> 8;
-    outputFrame.data.bytes[4] = (voltage & 0x00FF);
+    outputFrame.data.bytes[3] = (constrain(voltage, 0, 10000) & 0xFF00) >> 8;
+    outputFrame.data.bytes[4] = (constrain(voltage, 0, 10000) & 0x00FF);
 
     uint16_t current = getOutputCurrent();
-    outputFrame.data.bytes[5] = (current & 0xFF00) >> 8;
-    outputFrame.data.bytes[6] = (current & 0x00FF);
+    outputFrame.data.bytes[5] = (constrain(current, 0, 1500) & 0xFF00) >> 8;
+    outputFrame.data.bytes[6] = (constrain(current, 0, 1500) & 0x00FF);
     outputFrame.length = 7;
 
-    canHandlerEv->sendFrame(outputFrame);
+    canHandlerEv.sendFrame(outputFrame);
 }
 
 /**
@@ -129,14 +127,16 @@ void BrusaNLG5::sendControl()
  * This is special for chargers as they should not run while driving in
  * order not to consume CPU cycles unnecessarily.
  */
-void BrusaNLG5::handleStateChange(Status::SystemState state)
+void BrusaNLG5::handleStateChange(Status::SystemState oldState, Status::SystemState newState)
 {
-    Charger::handleStateChange(state);
-    if (state == Status::charging) {
-        tickHandler->attach(this, CFG_TICK_INTERVAL_CHARGE_NLG5);
+    Charger::handleStateChange(oldState, newState);
+
+    if (newState == Status::charging) {
+        tickHandler.attach(this, CFG_TICK_INTERVAL_CHARGE_NLG5);
+        canHandlerEv.attach(this, CAN_MASKED_ID, CAN_MASK, false);
         canTickCounter = 0;
     } else {
-        tickHandler->detach(this);
+        tearDown();
     }
 }
 
@@ -317,8 +317,8 @@ void BrusaNLG5::processError(uint8_t data[])
 //    crcNVSRAM
 //    crcFlashMemory
 
-    if (Logger::isDebug()) {
-        Logger::debug(BRUSA_NLG5, "error bitfield: %X", bitfield);
+    if (bitfield != 0) {
+        Logger::error(BRUSA_NLG5, "%X (%B)", bitfield, bitfield);
     }
 
     bitfield = (uint32_t)data[4];
@@ -332,15 +332,9 @@ void BrusaNLG5::processError(uint8_t data[])
 //    limitLowBatteryVoltage
 //    limitLowMainsVoltage
 
-    if (Logger::isDebug()) {
-        Logger::debug(BRUSA_NLG5, "warning bitfield: %X", bitfield);
+    if (bitfield != 0) {
+        Logger::warn(BRUSA_NLG5, "%X (%B)", bitfield, bitfield);
     }
-
-}
-
-long BrusaNLG5::getTickInterval()
-{
-    return CFG_TICK_INTERVAL_CHARGE_NLG5;
 }
 
 /*

@@ -32,9 +32,6 @@
  */
 Device::Device()
 {
-    status = Status::getInstance();
-    tickHandler = TickHandler::getInstance();
-    systemIO = SystemIO::getInstance();
     prefsHandler = NULL;
 
     commonName = "Generic Device";
@@ -46,12 +43,22 @@ Device::Device()
 }
 
 /**
+ * Destructor
+ */
+Device::~Device()
+{
+}
+
+/**
  * Called during initialization of the device.
  * May be called multiple times e.g. when recovering from an error
  * or disabling and re-enabling the device.
  */
 void Device::setup()
 {
+    ready = false;
+    running = false;
+    powerOn = false;
 }
 
 /**
@@ -60,7 +67,7 @@ void Device::setup()
  */
 void Device::tearDown()
 {
-    tickHandler->detach(this);
+    tickHandler.detach(this);
     ready = false;
     running = false;
     powerOn = false;
@@ -89,7 +96,7 @@ void Device::enable()
     if (isEnabled()) {
         return;
     }
-    if (prefsHandler->setDeviceStatus(getId(), true)) {
+    if (prefsHandler->setEnabled(true)) {
         prefsHandler->forceCacheWrite(); //just in case someone power cycles quickly
         Logger::info(getId(), "Successfully enabled device %s.(%X)", commonName, getId());
     }
@@ -104,7 +111,7 @@ void Device::disable()
     if (!isEnabled()) {
         return;
     }
-    if(prefsHandler->setDeviceStatus(getId(), false)) {
+    if(prefsHandler->setEnabled(false)) {
         prefsHandler->forceCacheWrite(); //just in case someone power cycles quickly
         Logger::info(getId(), "Successfully disabled device %s.(%X)", commonName, getId());
     }
@@ -156,8 +163,8 @@ void Device::handleMessage(uint32_t msgType, void* message)
         enable();
         break;
     case MSG_STATE_CHANGE:
-        Status::SystemState state = *(Status::SystemState *) message;
-        handleStateChange(state);
+        Status::SystemState *state = (Status::SystemState *) message;
+        handleStateChange(state[0], state[1]);
         break;
     }
 }
@@ -166,9 +173,9 @@ void Device::handleMessage(uint32_t msgType, void* message)
  * React on state changes.
  * Subclasses may overwrite the method but should call the parent.
  */
-void Device::handleStateChange(Status::SystemState state)
+void Device::handleStateChange(Status::SystemState oldState, Status::SystemState newState)
 {
-    switch (state) {
+    switch (newState) {
     case Status::init:
         this->setup();
         break;

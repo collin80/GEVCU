@@ -33,17 +33,18 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include "config.h"
 #include "SystemIO.h"
 #include "PotThrottle.h"
+#include "PotBrake.h"
 #include "CanThrottle.h"
 #include "DeviceManager.h"
 #include "MotorController.h"
+#include "BrusaDMC5.h"
 #include "ThrottleDetector.h"
 #include "ichip_2128.h"
 
 class SerialConsole
 {
 public:
-    SerialConsole(MemCache* memCache);
-    SerialConsole(MemCache* memCache, Heartbeat* heartbeat);
+    SerialConsole();
     void loop();
     void printMenu();
 
@@ -53,14 +54,13 @@ protected:
     };
 
 private:
-    MemCache* memCache;
     bool handlingEvent;
     char cmdBuffer[80];
     int ptrBuffer;
     int state;
 
-    void init();
     void serialEvent();
+    void sendWifiCommand(String command, String parameter);
     void handleConsoleCmd();
     void handleShortCmd();
     void handleConfigCmd();
@@ -71,6 +71,7 @@ private:
     bool handleConfigCmdCharger(String command, long value);
     bool handleConfigCmdDcDcConverter(String command, long value);
     bool handleConfigCmdSystem(String command, long value);
+    bool handleConfigCmdWifi(String command, String parameter);
     void printMenuMotorController();
     void printMenuThrottle();
     void printMenuBrake();
@@ -78,5 +79,7 @@ private:
     void printMenuCharger();
     void printMenuDcDcConverter();
 };
+
+extern SerialConsole serialConsole;
 
 #endif /* SERIALCONSOLE_H_ */

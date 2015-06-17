@@ -39,7 +39,7 @@ function showTab(pageId) {
 		if ( intervalId ) {
 			clearInterval(intervalId);
 		}
-		intervalId = setInterval(function(){loadData(pageId)}, 300);
+		intervalId = setInterval(function(){loadData(pageId)}, 200);
 	} else {
 		if (intervalId) {
 			clearInterval(intervalId);
@@ -74,42 +74,71 @@ function loadPage(pageId) {
 	xmlhttp.send();
 }
 
-// load data from dynamic xml and replace values in div's
+// find an attribute of a node by attribute name
+function findAttribute(node, attributeName) {
+	for (var x = 0; x < node.attributes.length; x++) {
+		if (node.attributes[x].nodeName.toUpperCase() == attributeName.toUpperCase()) {
+			return node.attributes[x];
+		}
+	}
+	return null;
+}
+
+function setNodeValue(name, value) {
+	if (name.indexOf('bitfield') == -1) { // a normal div/span/input to update
+		var target = document.getElementById(name);
+		
+		if (!target) { // id not found, try to find by name
+			var namedElements = document.getElementsByName(name);
+			if (namedElements && namedElements.length)
+				target = namedElements[0];
+		}
+
+		if (target) { // found an element, update according to its type
+			if (target.nodeName.toUpperCase() == 'DIV' || target.nodeName.toUpperCase() == 'SPAN')
+				target.innerHTML = value;
+			if (target.nodeName.toUpperCase() == 'INPUT') {
+				var type = findAttribute(target, "type");
+				if (type && (type.value.toUpperCase() == 'CHECKBOX' || type.value.toUpperCase() == 'RADIO')) {
+					target.checked = (value.toUpperCase() == 'TRUE' || value == '1');
+				} else {
+					target.value = value;
+					var slider = document.getElementById(name + "Level"); // find corresponding slider element
+					if (slider) {
+						slider.value = value;
+					}
+				}
+			}
+			if (target.nodeName.toUpperCase() == 'SELECT') {
+				selectItemByValue(target, value);
+			}
+		}
+	} else { // an annunciator field of a bitfield value
+		updateAnnunciatorFields(name, value);
+//		updateAnnunciatorFields(name, Math.round(Math.random() * 0x100000000));
+	}
+}
+
+// load data from dynamic xml and replace values in input fields, div's, gauges
 function loadData(pageId) {
 	try {
 		var xmlhttp = new XMLHttpRequest();
 		xmlhttp.onreadystatechange = function() {
 			if (xmlhttp.readyState == 4 && xmlhttp.status == 200) {
+				hideDeviceTr(); // hide device dependent TR's so they can be shown if configured
 				var root = xmlhttp.responseXML.firstChild;
 				for (var i = 0; i < root.childNodes.length; i++) {
 					var node = root.childNodes[i]; // scan through the nodes
 					if (node.nodeType == 1 && node.childNodes[0]) {
 						var name = node.nodeName;
 						var value = node.childNodes[0].nodeValue;
-						refreshGaugeValue(name, value);
-						if (name.indexOf('bitfield') == -1) { // a normal div/span to update
-							var target = document.getElementById(name);
-							if (!target) { // id not found, try to find by name
-								var namedElements = document.getElementsByName(name);
-								if (namedElements && namedElements.length)
-									target = namedElements[0];
-							}
-							if (target) { // found an element, update according to its type
-								if (target.nodeName.toUpperCase() == 'DIV' || target.nodeName.toUpperCase() == 'SPAN')
-									target.innerHTML = value;
-								if (target.nodeName.toUpperCase() == 'INPUT') {
-									target.value = value;
-									var slider = document.getElementById(name + "Level");
-									if (slider)
-										slider.value = value;
-								}
-								if (target.nodeName.toUpperCase() == 'SELECT') {
-									selectItemByValue(target, value);
-								}
-							}
-						} else { // an annunciator field of a bitfield value
-							updateAnnunciatorFields(name, value);
-//							updateAnnunciatorFields(name, Math.round(Math.random() * 0x100000000));
+						
+						if (name.indexOf('device_x') == 0 && value == '1') {
+							setTrVisibility(name, true); // it's a device config, update device specific visibility
+						} else if (pageId == 'dashboard') {
+							refreshGaugeValue(name, value);
+						} else {
+							setNodeValue(name, value);
 						}
 					}
 				}
@@ -121,7 +150,7 @@ function loadData(pageId) {
 		xmlhttp.open("GET", pageId + ".xml", true);
 		xmlhttp.send();
 	} catch (err) {
-		//
+		alert("unable to retrieve data for page " + pageId);
 	}
 }
 
@@ -137,71 +166,70 @@ function selectItemByValue(node, value) {
 
 function updateRangeValue(id, source) {
 	var val = parseInt(source.value);
-//	if (val > 1000)
-//		val = 1000;
+
 	if (val < 0 || isNaN(val))
 		val = 0;
-	
-	if (id == 'throttleMin1') {
-		var max = getIntValue("throttleMax1");
+
+	if (id == 'minimumLevel') {
+		var max = getIntValue("maximumLevel");
 		if (val > max)
 			val = max;
-	} else if (id == 'throttleMax1') {
-		var min = getIntValue("throttleMin1");
+	} else if (id == 'maximumLevel') {
+		var min = getIntValue("minimumLevel");
 		if (val < min)
 			val = min;
-	} else if (id == 'throttleMin2') {
-		var max = getIntValue("throttleMax2");
+	} else if (id == 'minimumLevel2') {
+		var max = getIntValue("maximumLevel2");
 		if (val > max)
 			val = max;
-	} else if (id == 'throttleMax2') {
-		var min = getIntValue("throttleMin2");
+	} else if (id == 'maximumLevel2') {
+		var min = getIntValue("minimumLevel2");
 		if (val < min)
 			val = min;
-	} else if (id == 'throttleRegenMax') {
-		var regen = getIntValue("throttleRegenMin");
+	} else if (id == 'positionRegenMaximum') {
+		var regen = getIntValue("positionRegenMinimum");
 		if (val > regen)
 			val = regen;
-	} else if (id == 'throttleRegenMin') {
-		var regen = getIntValue("throttleRegenMax");
-		var fwd = getIntValue("throttleFwd");
+	} else if (id == 'positionRegenMinimum') {
+		var regen = getIntValue("positionRegenMaximum");
+		var fwd = getIntValue("positionForwardStart");
 		if (val < regen)
 			val = regen;
 		if (val > fwd)
 			val = fwd;
-	} else if (id == 'throttleFwd') {
-		var regen = getIntValue("throttleRegenMin");
-		var map = getIntValue("throttleMap");
+	} else if (id == 'positionForwardStart') {
+		var regen = getIntValue("positionRegenMinimum");
+		var half = getIntValue("positionHalfPower");
 		if (val < regen)
 			val = regen;
-		if (val > map)
-			val = map;
-	} else if (id == 'throttleMap') {
-		var map = getIntValue("throttleFwd");
-		if (val < map)
-			val = map;
-	} else if (id == 'throttleMinRegen') {
-		var regen = getIntValue("throttleMaxRegen");
+		if (val > half)
+			val = half;
+	} else if (id == 'positionHalfPower') {
+		var half = getIntValue("positionForwardStart");
+		if (val < half)
+			val = half;
+	} else if (id == 'minimumRegen') {
+		var regen = getIntValue("maximumRegen");
 		if (val > regen)
 			val = regen;
-	} else if (id == 'throttleMaxRegen') {
-		var regen = getIntValue("throttleMinRegen");
+	} else if (id == 'maximumRegen') {
+		var regen = getIntValue("minimumRegen");
 		if (val < regen)
 			val = regen;
-	} else if (id == 'brakeMin') {
-		var max = getIntValue("brakeMax");
+	} else if (id == 'brakeMinimumLevel') {
+		var max = getIntValue("brakeMaximumLevel");
 		if (val > max)
 			val = max;
-	} else if (id == 'brakeMax') {
-		var min = getIntValue("brakeMin");
+	} else if (id == 'brakeMaximumLevel') {
+		var min = getIntValue("brakeMinimumLevel");
 		if (val < min)
 			val = min;
-	} else if (id == 'brakeMinRegen') {
-		var max = getIntValue("brakeMaxRegen");
+	} else if (id == 'brakeMinimumRegen') {
+		var max = getIntValue("brakeMaximumRegen");
 		if (val > max)
 			val = max;
-	} else if (id == 'brakeMaxRegen') {
-		var min = getIntValue("brakeMinRegen");
+	} else if (id == 'brakeMaximumRegen') {
+		var min = getIntValue("brakeMinimumRegen");
 		if (val < min)
 			val = min;
 	}
@@ -216,12 +244,12 @@ function refreshThrottleVisualization() {
 		canvas = new ThrottleSettingsCanvas();
 	}
 	canvas.draw();
-	
-	var throttleRegenMin = document.getElementById('throttleRegenMin');
-	var throttleFwd = document.getElementById('throttleFwd');
-	if ( throttleRegenMin && throttleFwd ) {
-		updateThrottleGaugeHighlights(throttleRegenMin.value, throttleFwd.value);
-	}
+
+//	var positionRegenMinimum = document.getElementById('positionRegenMinimum');
+//	var positionForwardStart = document.getElementById('positionForwardStart');
+//	if ( positionRegenMinimum && positionForwardStart ) {
+//		updateThrottleGaugeHighlights(positionRegenMinimum.value, positionForwardStart.value);
+//	}
 }
 
 function getIntValue(id) {
@@ -232,26 +260,51 @@ function getIntValue(id) {
 }
 
 function generateRangeControls() {
-	addRangeControl("throttleMin1", 0, 4095);
-	addRangeControl("throttleMin2", 0, 4095);
-	addRangeControl("throttleMax1", 0, 4095);
-	addRangeControl("throttleMax2", 0, 4095);
-	addRangeControl("throttleRegenMax", 0, 100);
-	addRangeControl("throttleRegenMin", 0, 100);
-	addRangeControl("throttleFwd", 0, 100);
-	addRangeControl("throttleMap", 0, 100);
-	addRangeControl("throttleMinRegen", 0, 100);
-	addRangeControl("throttleMaxRegen", 0, 100);
-	addRangeControl("throttleCreep", 0, 100);
-	addRangeControl("brakeMin", 0, 4095);
-	addRangeControl("brakeMinRegen", 0, 100);
-	addRangeControl("brakeMax", 0, 4095);
-	addRangeControl("brakeMaxRegen", 0, 100);
-	addRangeControl("coolOn", 0, 200);
-	addRangeControl("coolOff", 0, 200);
+	addRangeControl("minimumLevel", 0, 4095);
+	addRangeControl("minimumLevel2", 0, 4095);
+	addRangeControl("maximumLevel", 0, 4095);
+	addRangeControl("maximumLevel2", 0, 4095);
+	addRangeControl("positionRegenMaximum", 0, 100);
+	addRangeControl("positionRegenMinimum", 0, 100);
+	addRangeControl("positionForwardStart", 0, 100);
+	addRangeControl("positionHalfPower", 0, 100);
+	addRangeControl("minimumRegen", 0, 100);
+	addRangeControl("maximumRegen", 0, 100);
+	addRangeControl("creep", 0, 100);
+	addRangeControl("brakeMinimumLevel", 0, 4095);
+	addRangeControl("brakeMinimumRegen", 0, 100);
+	addRangeControl("brakeMaximumLevel", 0, 4095);
+	addRangeControl("brakeMaximumRegen", 0, 100);
 }
 
 function addRangeControl(id, min, max) {
 	var node = document.getElementById(id + "Span");
-	node.innerHTML = "<input id='"+id+"Level' type='range' min='"+min+"' max='"+max+"' onchange=\"updateRangeValue('"+id+"', this);\" onmousemove=\"updateRangeValue('"+id+"', this);\" /><input type='number' id='"+id+"' name='"+id+"' min='"+min+"' max='"+max+"' maxlength='4' size='4' onchange=\"updateRangeValue('"+id+"Level', this);\"/>";
+	if (node)
+		node.innerHTML = "<input id='"+id+"Level' type='range' min='"+min+"' max='"+max+"' onchange=\"updateRangeValue('"+id+"', this);\" onmousemove=\"updateRangeValue('"+id+"', this);\" /><input type='number' id='"+id+"' name='"+id+"' min='"+min+"' max='"+max+"' maxlength='4' size='4' onchange=\"updateRangeValue('"+id+"Level', this);\"/>";
+}
+
+//hides rows with device depandent visibility (as a pre-requisite to re-enable it)
+function hideDeviceTr() {
+	tr = document.getElementsByTagName('tr')
+	for (i = 0; i < tr.length; i++) {
+		var idStr = tr[i].getAttribute('id');
+		if (idStr && idStr.indexOf('device_x') != -1) {
+			tr[i].style.display = 'none';
+		}
+	}
+}
+
+// shows/hides rows of a table with a certain id value (used for device specific parameters)
+function setTrVisibility(id, visible) {
+	tr = document.getElementsByTagName('tr')
+	for (i = 0; i < tr.length; i++) {
+		var idStr = tr[i].getAttribute('id');
+		if (idStr && idStr.indexOf(id) != -1) {
+			if (visible != 0) {
+				tr[i].style.display = '';
+			} else {
+				tr[i].style.display = 'none';
+			}
+		}
+	}
 }

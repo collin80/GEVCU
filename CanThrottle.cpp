@@ -1,26 +1,26 @@
 /*
  * CanThrottle.cpp
  *
-Copyright (c) 2013 Collin Kidder, Michael Neuweiler, Charles Galpin
+ Copyright (c) 2013 Collin Kidder, Michael Neuweiler, Charles Galpin
 
-Permission is hereby granted, free of charge, to any person obtaining
-a copy of this software and associated documentation files (the
-"Software"), to deal in the Software without restriction, including
-without limitation the rights to use, copy, modify, merge, publish,
-distribute, sublicense, and/or sell copies of the Software, and to
-permit persons to whom the Software is furnished to do so, subject to
-the following conditions:
+ Permission is hereby granted, free of charge, to any person obtaining
+ a copy of this software and associated documentation files (the
+ "Software"), to deal in the Software without restriction, including
+ without limitation the rights to use, copy, modify, merge, publish,
+ distribute, sublicense, and/or sell copies of the Software, and to
+ permit persons to whom the Software is furnished to do so, subject to
+ the following conditions:
 
-The above copyright notice and this permission notice shall be included
-in all copies or substantial portions of the Software.
+ The above copyright notice and this permission notice shall be included
+ in all copies or substantial portions of the Software.
 
-THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
-EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
-MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.
-IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY
-CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT,
-TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
-SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+ EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
+ MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.
+ IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY
+ CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT,
+ TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
+ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
  */
 
@@ -28,7 +28,6 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 CanThrottle::CanThrottle() : Throttle()
 {
-    canHandlerCar = CanHandler::getInstanceCar();
     prefsHandler = new PrefHandler(CANACCELPEDAL);
     rawSignal.input1 = 0;
     rawSignal.input2 = 0;
@@ -43,7 +42,7 @@ CanThrottle::CanThrottle() : Throttle()
 
 void CanThrottle::setup()
 {
-    tickHandler->detach(this);
+    tickHandler.detach(this);
 
     loadConfiguration();
     Throttle::setup();
@@ -55,36 +54,29 @@ void CanThrottle::setup()
     CanThrottleConfiguration *config = (CanThrottleConfiguration *) getConfiguration();
 
     switch (config->carType) {
-        case Volvo_S80_Gas:
-            // Request: dlc=0x08 fid=0x7e0 id=0x7e0 ide=0x00 rtr=0x00 data=0x03,0x22,0xEE,0xCB,0x00,0x00,0x00,0x00 (vida: [0x00, 0x00, 0x07, 0xe0, 0x22, 0xee, 0xcb])
-            // Raw response: dlc=0x08 fid=0x7e8 id=0x7e8 ide=0x00 rtr=0x00 data=0x04,0x62,0xEE,0xCB,0x14,0x00,0x00,0x00 (vida: [0x00, 0x00, 0x07, 0xe8, 0x62, 0xee, 0xcb, 0x14])
-            requestFrame.id = 0x7e0;
-            memcpy(requestFrame.data.bytes, (const uint8_t[]) {
-                0x03, 0x22, 0xee, 0xcb, 0x00, 0x00, 0x00, 0x00
-            }, 8);
-            responseId = 0x7e8;
-            ready = true;
-            break;
+    case Volvo_S80_Gas:
+        // Request: dlc=0x08 fid=0x7e0 id=0x7e0 ide=0x00 rtr=0x00 data=0x03,0x22,0xEE,0xCB,0x00,0x00,0x00,0x00 (vida: [0x00, 0x00, 0x07, 0xe0, 0x22, 0xee, 0xcb])
+        // Raw response: dlc=0x08 fid=0x7e8 id=0x7e8 ide=0x00 rtr=0x00 data=0x04,0x62,0xEE,0xCB,0x14,0x00,0x00,0x00 (vida: [0x00, 0x00, 0x07, 0xe8, 0x62, 0xee, 0xcb, 0x14])
+        requestFrame.id = 0x7e0;
+        memcpy(requestFrame.data.bytes, (const uint8_t[] ) { 0x03, 0x22, 0xee, 0xcb, 0x00, 0x00, 0x00, 0x00 }, 8);
+        responseId = 0x7e8;
+        ready = true;
+        break;
 
-        case Volvo_V50_Diesel:
-            // Request: dlc=0x08 fid=0xFFFFE id=0x3FFFE ide=0x01 rtr=0x00 data=0xCD,0x11,0xA6,0x00,0x24,0x01,0x00,0x00 ([0x00, 0xf, 0xff, 0xfe, 0xcd, 0x11, 0xa6, 0x00, 0x24, 0x01, 0x00, 0x00])
-            // Response: dlc=0x08 fid=0x400021 id=0x21 ide=0x01 rtr=0x00 data=0xCE,0x11,0xE6,0x00,0x24,0x03,0xFD,0x00 (vida: [0x00, 0x40, 0x00, 0x21, 0xce, 0x11, 0xe6, 0x00, 0x24, 0x03, 0xfd, 0x00])
-            requestFrame.id = 0x3FFFE;
-            requestFrame.extended = 0x01;
-            memcpy(requestFrame.data.bytes, (const uint8_t[]) {
-                0xce, 0x11, 0xe6, 0x00, 0x24, 0x03, 0xfd, 0x00
-            }, 8);
-            responseId = 0x21;
-            responseExtended = true;
-            ready = true;
-            break;
+    case Volvo_V50_Diesel:
+        // Request: dlc=0x08 fid=0xFFFFE id=0x3FFFE ide=0x01 rtr=0x00 data=0xCD,0x11,0xA6,0x00,0x24,0x01,0x00,0x00 (vida: [0x00, 0xf, 0xff, 0xfe, 0xcd, 0x11, 0xa6, 0x00, 0x24, 0x01, 0x00, 0x00])
+        // Response: dlc=0x08 fid=0x400021 id=0x21 ide=0x01 rtr=0x00 data=0xCE,0x11,0xE6,0x00,0x24,0x03,0xFD,0x00 (vida: [0x00, 0x40, 0x00, 0x21, 0xce, 0x11, 0xe6, 0x00, 0x24, 0x03, 0xfd, 0x00])
+        requestFrame.id = 0x3FFFE;
+        requestFrame.extended = 0x01;
+        memcpy(requestFrame.data.bytes, (const uint8_t[] ) { 0xce, 0x11, 0xe6, 0x00, 0x24, 0x03, 0xfd, 0x00 }, 8);
+        responseId = 0x21;
+        responseExtended = true;
+        ready = true;
+        break;
 
-        default:
-            Logger::error(CANACCELPEDAL, "no valid car type defined.");
+    default:
+        Logger::error(CANACCELPEDAL, "no valid car type defined.");
     }
-
-    canHandlerCar->attach(this, responseId, responseMask, responseExtended);
-    tickHandler->attach(this, CFG_TICK_INTERVAL_CAN_THROTTLE);
 }
 
 /**
@@ -94,7 +86,25 @@ void CanThrottle::tearDown()
 {
     Throttle::tearDown();
 
-    canHandlerCar->detach(this, responseId, responseMask);
+    canHandlerCar.detach(this, responseId, responseMask);
+}
+
+/**
+ * act on messages the super-class does not react upon, like state change
+ * to ready or running which should enable/disable the controller
+ */
+void CanThrottle::handleStateChange(Status::SystemState oldState, Status::SystemState newState)
+{
+    Throttle::handleStateChange(oldState, newState);
+
+    if (newState == Status::ready || newState == Status::running) {
+        canHandlerCar.attach(this, responseId, responseMask, responseExtended);
+        tickHandler.attach(this, CFG_TICK_INTERVAL_CAN_THROTTLE);
+    } else {
+        if (oldState == Status::ready || oldState == Status::running) {
+            tearDown();
+        }
+    }
 }
 
 /*
@@ -105,7 +115,7 @@ void CanThrottle::handleTick()
 {
     Throttle::handleTick(); // Call parent handleTick
 
-    canHandlerCar->sendFrame(requestFrame);
+    canHandlerCar.sendFrame(requestFrame);
 
     if (ticksNoResponse < 255) { // make sure it doesn't overflow
         ticksNoResponse++;
@@ -122,15 +132,23 @@ void CanThrottle::handleCanFrame(CAN_FRAME *frame)
 
     if (frame->id == responseId) {
         switch (config->carType) {
-            case Volvo_S80_Gas:
+        case Volvo_S80_Gas:
+            // only evaluate messages with payload 0x04,0x62,0xEE,0xCB as other ECU data is also sent by with 0x738 - this must not cause the motor to spin up (e.g. diagnostic software)
+            if (frame->data.bytes[0] == 0x04 && frame->data.bytes[1] == 0x62 && frame->data.bytes[2] == 0xee && frame->data.bytes[3] == 0xcb) {
                 rawSignal.input1 = frame->data.bytes[4];
-                break;
+                ticksNoResponse = 0;
+            }
+            break;
 
-            case Volvo_V50_Diesel:
+        case Volvo_V50_Diesel:
+            // only evaluate messages with payload 0xCE,0x11,0xE6,0x00,0x2
+            if (frame->data.bytes[0] == 0xce && frame->data.bytes[1] == 0x11 && frame->data.bytes[2] == 0x6E && frame->data.bytes[3] == 0x00
+                    && frame->data.bytes[4] == 0x02) {
                 rawSignal.input1 = (frame->data.bytes[5] + 1) * frame->data.bytes[6];
-                break;
+                ticksNoResponse = 0;
+            }
+            break;
         }
-        ticksNoResponse = 0;
     }
 }
 
@@ -209,15 +227,13 @@ void CanThrottle::loadConfiguration()
 
     if (prefsHandler->checksumValid()) { //checksum is good, read in the values stored in EEPROM
 #endif
-        Logger::debug(CANACCELPEDAL, (char *) Constants::validChecksum);
         prefsHandler->read(EETH_CAR_TYPE, &config->carType);
-    } else { //checksum invalid. Reinitialize values and store to EEPROM
-        Logger::warn(CANACCELPEDAL, (char *) Constants::invalidChecksum);
+    } else {
         config->carType = Volvo_S80_Gas;
         saveConfiguration();
     }
 
-    Logger::debug(CANACCELPEDAL, "T1 MIN: %l MAX: %l Type: %d", config->minimumLevel, config->maximumLevel, config->carType);
+    Logger::info(CANACCELPEDAL, "MIN: %l MAX: %l Type: %d", config->minimumLevel, config->maximumLevel, config->carType);
 }
 
 /*

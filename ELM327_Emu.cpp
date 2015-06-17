@@ -39,47 +39,33 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 ELM327Emu::ELM327Emu()
 {
     prefsHandler = new PrefHandler(ELM327EMU);
+    elmProc = new ELM327Processor();
 
-    uint8_t sys_type;
-    sysPrefs->read(EESYS_SYSTEM_TYPE, &sys_type);
-
-    if (sys_type == 3 || sys_type == 4) {
+    if (systemIO.getSystemType() == GEVCU3 || GEVCU4) {
         serialInterface = &Serial2;
     } else { //older hardware used this instead
         serialInterface = &Serial3;
     }
+    serialInterface->begin(9600);
 
     commonName = "ELM327 Emulator over Bluetooth";
-}
 
-/*
- * Constructor. Pass serial interface to use
- */
-ELM327Emu::ELM327Emu(USARTClass *which)
-{
-    prefsHandler = new PrefHandler(ELM327EMU);
-    serialInterface = which;
+    ibWritePtr = 0;
 }
-
 
 /*
  * Initialization of hardware and parameters
  */
 void ELM327Emu::setup()
 {
-    tickHandler->detach(this);
+    tickHandler.detach(this);
 
-    tickCounter = 0;
-    ibWritePtr = 0;
-    serialInterface->begin(9600);
-
-    elmProc = new ELM327Processor();
     ready = true;
     running = true;
 
     //this isn't a wifi link but the timer interval can be the same
     //because it serves a similar function and has similar timing requirements
-    tickHandler->attach(this, CFG_TICK_INTERVAL_WIFI);
+    tickHandler.attach(this, CFG_TICK_INTERVAL_WIFI);
 }
 
 /*
@@ -191,9 +177,10 @@ void ELM327Emu::loadConfiguration()
     ELM327Configuration *config = (ELM327Configuration *) getConfiguration();
 
     if (prefsHandler->checksumValid()) { //checksum is good, read in the values stored in EEPROM
-        Logger::debug(ELM327EMU, "Valid checksum so using stored elm327 emulator config values");
         //TODO: implement processing of config params for WIFI
 //      prefsHandler->read(EESYS_WIFI0_SSID, &config->ssid);
+    } else {
+        saveConfiguration();
     }
 }
 
@@ -203,5 +190,5 @@ void ELM327Emu::saveConfiguration()
 
     //TODO: implement processing of config params for WIFI
 //  prefsHandler->write(EESYS_WIFI0_SSID, config->ssid);
-//  prefsHandler->saveChecksum();
+    prefsHandler->saveChecksum();
 }

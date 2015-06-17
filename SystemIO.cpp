@@ -35,29 +35,27 @@
 
 #undef HID_ENABLED
 
-extern PrefHandler *sysPrefs;
+SystemIO systemIO;
 
 /*
  * Constructor
  */
 SystemIO::SystemIO() {
     configuration = new SystemIOConfiguration();
-    prefsHandler = new PrefHandler(SYSTEM);
-    status = Status::getInstance();
+    prefsHandler = NULL;
     preChargeStart = 0;
-    coolflag = false;
+    useRawADC = false;
 }
 
-/*
- * Get the instance of the SystemIO (singleton pattern)
- */
-SystemIO *SystemIO::getInstance() {
-    static SystemIO *systemIO = new SystemIO();
-    return systemIO;
+SystemIO::~SystemIO() {
 }
 
 void SystemIO::setup() {
-    TickHandler::getInstance()->detach(this);
+    tickHandler.detach(this);
+
+    if (prefsHandler == NULL) {
+        prefsHandler = new PrefHandler(SYSTEM); // must not be instantiated in the constructor because this class is stack instantiated (pref/memcache are not ready in the contructor)
+    }
 
     loadConfiguration();
 
@@ -66,11 +64,11 @@ void SystemIO::setup() {
     initializeAnalogIO();
     printIOStatus();
 
-    TickHandler::getInstance()->attach(this, CFG_TICK_INTERVAL_SYSTEM_IO);
+    tickHandler.attach(this, CFG_TICK_INTERVAL_SYSTEM_IO);
 }
 
 void SystemIO::handleTick() {
-    Status::SystemState state = status->getSystemState();
+    Status::SystemState state = status.getSystemState();
 
     if (state == Status::error) {
         powerDownSystem();
@@ -79,18 +77,18 @@ void SystemIO::handleTick() {
 
     if (!isInterlockPresent()) {
         Logger::error("Interlock circuit open - security risk, disabling HV !!");
-        status->setSystemState(Status::error);
+        status.setSystemState(Status::error);
     }
 
     if (isEnableSignalPresent()) {
         // if the system is ready and the enable input is high, then switch to state "running", this should enable the motor controller
         if (state == Status::ready) {
-            status->setSystemState(Status::running);
+            status.setSystemState(Status::running);
         }
     } else {
         // if enable input is low and the motor controller is running, then disable it by switching to state "ready"
         if (state == Status::running) {
-            status->setSystemState(Status::ready);
+            status.setSystemState(Status::ready);
         }
     }
 
@@ -99,11 +97,13 @@ void SystemIO::handleTick() {
     }
 
     if (state == Status::preCharged) {
-        state = status->setSystemState(Status::ready);
+        state = status.setSystemState(Status::ready);
     }
 
     handleCooling();
     handleCharging();
+    handleBrakeLight();
+    handleReverseLight();
 
     updateDigitalInputStatus();
 }
@@ -112,10 +112,10 @@ void SystemIO::handleTick() {
  * Update the status flags so the input signal can be monitored in the status web page.
  */
 void SystemIO::updateDigitalInputStatus() {
-    status->digitalInput[0] = getDigitalIn(0);
-    status->digitalInput[1] = getDigitalIn(1);
-    status->digitalInput[2] = getDigitalIn(2);
-    status->digitalInput[3] = getDigitalIn(3);
+    status.digitalInput[0] = getDigitalIn(0);
+    status.digitalInput[1] = getDigitalIn(1);
+    status.digitalInput[2] = getDigitalIn(2);
+    status.digitalInput[3] = getDigitalIn(3);
 }
 
 /**
@@ -150,7 +150,7 @@ void SystemIO::handlePreCharge() {
     if (configuration->prechargeMillis == 0) { // we don't want to pre-charge
         Logger::info("Pre-charging not enabled");
         setMainContactor(true);
-        status->setSystemState(Status::preCharged);
+        status.setSystemState(Status::preCharged);
         return;
     }
 
@@ -173,7 +173,7 @@ void SystemIO::handlePreCharge() {
             delay(CFG_PRE_CHARGE_RELAY_DELAY);
             setPrechargeRelay(false);
 
-            status->setSystemState(Status::preCharged);
+            status.setSystemState(Status::preCharged);
             Logger::info("Pre-charge sequence complete after %i milliseconds", millis() - preChargeStart);
         }
     }
@@ -184,20 +184,29 @@ void SystemIO::handlePreCharge() {
  * the motor controller
  */
 void SystemIO::handleCooling() {
-    if (status->temperatureController == CFG_NO_TEMPERATURE_DATA) {
-        return;
+    MotorController *motorController = deviceManager.getMotorController();
+    Status::SystemState state = status.getSystemState();
+
+    if ((state == Status::ready || state == Status::running || state == Status::charging || state == Status::charged
+            || state == Status::batteryHeating) && !status.coolingPump) {
+        setCoolingPump(true);
+    }
+//TODO: what if it stays in mode "charged" for hours ?? will drain the battery , probably power off after 1h ?
+    if ((state != Status::ready && state != Status::running && state != Status::charging && state != Status::charged
+            && state != Status::batteryHeating) && status.coolingPump) {
+        setCoolingPump(false);
     }
 
-    if (status->temperatureController / 10 > configuration->coolingTempOn) {
-        if (!coolflag) {
-            coolflag = true;
+    if (motorController) {
+        if (motorController->getTemperatureController() == CFG_NO_TEMPERATURE_DATA) {
+            return;
+        }
+
+        if (motorController->getTemperatureController() / 10 > configuration->coolingTempOn && !status.coolingFan) {
             setCoolingFan(true);
         }
-    }
 
-    if (status->temperatureController / 10 < configuration->coolingTempOff) {
-        if (coolflag) {
-            coolflag = false;
+        if (motorController->getTemperatureController() / 10 < configuration->coolingTempOff && status.coolingFan) {
             setCoolingFan(false);
         }
     }
@@ -208,24 +217,58 @@ void SystemIO::handleCooling() {
  * (including an evtl. heating period for the batteries)
  */
 void SystemIO::handleCharging() {
-    Status::SystemState state = status->getSystemState();
+    Status::SystemState state = status.getSystemState();
 
     if (isChargePowerAvailable()) { // we're connected to "shore" power
         if (state == Status::running) {
-            state = status->setSystemState(Status::ready);
+            state = status.setSystemState(Status::ready);
         }
         if (state == Status::ready || state == Status::batteryHeating) {
-            int16_t batteryTemp = status->getLowestExternalTemperature();
+            int16_t batteryTemp = status.getLowestExternalTemperature();
             if (batteryTemp == CFG_NO_TEMPERATURE_DATA || batteryTemp >= CFG_MIN_BATTERY_CHARGE_TEMPERATURE) {
-                state = status->setSystemState(Status::charging);
+                state = status.setSystemState(Status::charging);
             } else {
-                state = status->setSystemState(Status::batteryHeating);
+                state = status.setSystemState(Status::batteryHeating);
             }
         }
     } else {
         // terminate all charge related activities and return to ready if GEVCU is still powered on
         if (state == Status::charging || state == Status::charged || state == Status::batteryHeating) {
-            state = status->setSystemState(Status::ready);
+            state = status.setSystemState(Status::ready);
+        }
+    }
+}
+
+/**
+ * Turn on/off the brake light at a configured level of actual torque
+ */
+void SystemIO::handleBrakeLight() {
+    MotorController *motorController = deviceManager.getMotorController();
+
+    if (motorController && motorController->getTorqueActual() < CFG_TORQUE_BRAKE_LIGHT_ON) {
+        if (!status.brakeLight) {
+            setBrakeLight(true); //Turn on brake light output
+        }
+    } else {
+        if (status.brakeLight) {
+            setBrakeLight(false); //Turn off brake light output
+        }
+    }
+}
+
+/**
+ * Turn on/off the reverse light if we're in reverse mode.
+ */
+void SystemIO::handleReverseLight() {
+    MotorController *motorController = deviceManager.getMotorController();
+
+    if (motorController && motorController->getGear() == MotorController::REVERSE) {
+        if (!status.reverseLight) {
+            setReverseLight(true);
+        }
+    } else {
+        if (status.reverseLight) {
+            setReverseLight(false);
         }
     }
 }
@@ -235,7 +278,7 @@ void SystemIO::handleCharging() {
  */
 bool SystemIO::isEnableSignalPresent() {
     bool flag = getDigitalIn(configuration->enableInput);
-    status->enableIn = flag;
+    status.enableIn = flag;
     return flag;
 }
 
@@ -244,7 +287,7 @@ bool SystemIO::isEnableSignalPresent() {
  */
 bool SystemIO::isChargePowerAvailable() {
     bool flag = getDigitalIn(configuration->chargePowerAvailableInput);
-    status->chargePowerAvailable = flag;
+    status.chargePowerAvailable = flag;
     return flag;
 }
 
@@ -258,7 +301,16 @@ bool SystemIO::isInterlockPresent() {
     }
 
     bool flag = getDigitalIn(configuration->interlockInput);
-    status->interlockPresent = flag;
+    status.interlockPresent = flag;
+    return flag;
+}
+
+/*
+ * Get the the input signal which indicates if the car is connected to a charge station
+ */
+bool SystemIO::isReverseSignalPresent() {
+    bool flag = getDigitalIn(configuration->reverseInput);
+    status.reverseInput = flag;
     return flag;
 }
 
@@ -267,8 +319,8 @@ bool SystemIO::isInterlockPresent() {
  */
 void SystemIO::setPrechargeRelay(bool enabled) {
     setDigitalOut(configuration->prechargeRelayOutput, enabled);
-    status->preChargeRelay = enabled;
-    DeviceManager::getInstance()->sendMessage(DEVICE_IO, CANIO, MSG_UPDATE, NULL);
+    status.preChargeRelay = enabled;
+    deviceManager.sendMessage(DEVICE_IO, CANIO, MSG_UPDATE, NULL);
 }
 
 /*
@@ -276,8 +328,8 @@ void SystemIO::setPrechargeRelay(bool enabled) {
  */
 void SystemIO::setMainContactor(bool enabled) {
     setDigitalOut(configuration->mainContactorOutput, enabled);
-    status->mainContactor = enabled;
-    DeviceManager::getInstance()->sendMessage(DEVICE_IO, CANIO, MSG_UPDATE, NULL);
+    status.mainContactor = enabled;
+    deviceManager.sendMessage(DEVICE_IO, CANIO, MSG_UPDATE, NULL);
 }
 
 /*
@@ -285,8 +337,8 @@ void SystemIO::setMainContactor(bool enabled) {
  */
 void SystemIO::setSecondaryContactor(bool enabled) {
     setDigitalOut(configuration->secondaryContactorOutput, enabled);
-    status->secondaryContactor = enabled;
-    DeviceManager::getInstance()->sendMessage(DEVICE_IO, CANIO, MSG_UPDATE, NULL);
+    status.secondaryContactor = enabled;
+    deviceManager.sendMessage(DEVICE_IO, CANIO, MSG_UPDATE, NULL);
 }
 
 /*
@@ -294,8 +346,8 @@ void SystemIO::setSecondaryContactor(bool enabled) {
  */
 void SystemIO::setFastChargeContactor(bool enabled) {
     setDigitalOut(configuration->fastChargeContactorOutput, enabled);
-    status->fastChargeContactor = enabled;
-    DeviceManager::getInstance()->sendMessage(DEVICE_IO, CANIO, MSG_UPDATE, NULL);
+    status.fastChargeContactor = enabled;
+    deviceManager.sendMessage(DEVICE_IO, CANIO, MSG_UPDATE, NULL);
 }
 
 /*
@@ -303,8 +355,8 @@ void SystemIO::setFastChargeContactor(bool enabled) {
  */
 void SystemIO::setEnableMotor(bool enabled) {
     setDigitalOut(configuration->enableMotorOutput, enabled);
-    status->enableMotor = enabled;
-    DeviceManager::getInstance()->sendMessage(DEVICE_IO, CANIO, MSG_UPDATE, NULL);
+    status.enableMotor = enabled;
+    deviceManager.sendMessage(DEVICE_IO, CANIO, MSG_UPDATE, NULL);
 }
 
 /*
@@ -312,8 +364,8 @@ void SystemIO::setEnableMotor(bool enabled) {
  */
 void SystemIO::setEnableCharger(bool enabled) {
     setDigitalOut(configuration->enableChargerOutput, enabled);
-    status->enableCharger = enabled;
-    DeviceManager::getInstance()->sendMessage(DEVICE_IO, CANIO, MSG_UPDATE, NULL);
+    status.enableCharger = enabled;
+    deviceManager.sendMessage(DEVICE_IO, CANIO, MSG_UPDATE, NULL);
 }
 
 /*
@@ -321,8 +373,8 @@ void SystemIO::setEnableCharger(bool enabled) {
  */
 void SystemIO::setEnableDcDc(bool enabled) {
     setDigitalOut(configuration->enableDcDcOutput, enabled);
-    status->enableDcDc = enabled;
-    DeviceManager::getInstance()->sendMessage(DEVICE_IO, CANIO, MSG_UPDATE, NULL);
+    status.enableDcDc = enabled;
+    deviceManager.sendMessage(DEVICE_IO, CANIO, MSG_UPDATE, NULL);
 }
 
 /*
@@ -330,8 +382,8 @@ void SystemIO::setEnableDcDc(bool enabled) {
  */
 void SystemIO::setEnableHeater(bool enabled) {
     setDigitalOut(configuration->enableHeaterOutput, enabled);
-    status->enableHeater = enabled;
-    DeviceManager::getInstance()->sendMessage(DEVICE_IO, CANIO, MSG_UPDATE, NULL);
+    status.enableHeater = enabled;
+    deviceManager.sendMessage(DEVICE_IO, CANIO, MSG_UPDATE, NULL);
 }
 
 /*
@@ -339,8 +391,8 @@ void SystemIO::setEnableHeater(bool enabled) {
  */
 void SystemIO::setHeaterValve(bool enabled) {
     setDigitalOut(configuration->heaterValveOutput, enabled);
-    status->heaterValve = enabled;
-    DeviceManager::getInstance()->sendMessage(DEVICE_IO, CANIO, MSG_UPDATE, NULL);
+    status.heaterValve = enabled;
+    deviceManager.sendMessage(DEVICE_IO, CANIO, MSG_UPDATE, NULL);
 }
 
 /*
@@ -348,8 +400,8 @@ void SystemIO::setHeaterValve(bool enabled) {
  */
 void SystemIO::setHeaterPump(bool enabled) {
     setDigitalOut(configuration->heaterPumpOutput, enabled);
-    status->heaterPump = enabled;
-    DeviceManager::getInstance()->sendMessage(DEVICE_IO, CANIO, MSG_UPDATE, NULL);
+    status.heaterPump = enabled;
+    deviceManager.sendMessage(DEVICE_IO, CANIO, MSG_UPDATE, NULL);
 }
 
 /*
@@ -357,8 +409,8 @@ void SystemIO::setHeaterPump(bool enabled) {
  */
 void SystemIO::setCoolingPump(bool enabled) {
     setDigitalOut(configuration->coolingPumpOutput, enabled);
-    status->coolingPump = enabled;
-    DeviceManager::getInstance()->sendMessage(DEVICE_IO, CANIO, MSG_UPDATE, NULL);
+    status.coolingPump = enabled;
+    deviceManager.sendMessage(DEVICE_IO, CANIO, MSG_UPDATE, NULL);
 }
 
 /*
@@ -366,8 +418,8 @@ void SystemIO::setCoolingPump(bool enabled) {
  */
 void SystemIO::setCoolingFan(bool enabled) {
     setDigitalOut(configuration->coolingFanOutput, enabled);
-    status->coolingFan = enabled;
-    DeviceManager::getInstance()->sendMessage(DEVICE_IO, CANIO, MSG_UPDATE, NULL);
+    status.coolingFan = enabled;
+    deviceManager.sendMessage(DEVICE_IO, CANIO, MSG_UPDATE, NULL);
 }
 
 /*
@@ -375,8 +427,8 @@ void SystemIO::setCoolingFan(bool enabled) {
  */
 void SystemIO::setBrakeLight(bool enabled) {
     setDigitalOut(configuration->brakeLightOutput, enabled);
-    status->brakeLight = enabled;
-    DeviceManager::getInstance()->sendMessage(DEVICE_IO, CANIO, MSG_UPDATE, NULL);
+    status.brakeLight = enabled;
+    deviceManager.sendMessage(DEVICE_IO, CANIO, MSG_UPDATE, NULL);
 }
 
 /*
@@ -384,8 +436,8 @@ void SystemIO::setBrakeLight(bool enabled) {
  */
 void SystemIO::setReverseLight(bool enabled) {
     setDigitalOut(configuration->reverseLightOutput, enabled);
-    status->reverseLight = enabled;
-    DeviceManager::getInstance()->sendMessage(DEVICE_IO, CANIO, MSG_UPDATE, NULL);
+    status.reverseLight = enabled;
+    deviceManager.sendMessage(DEVICE_IO, CANIO, MSG_UPDATE, NULL);
 }
 
 /*
@@ -393,8 +445,8 @@ void SystemIO::setReverseLight(bool enabled) {
  */
 void SystemIO::setWarning(bool enabled) {
     setDigitalOut(configuration->warningOutput, enabled);
-    status->warning = enabled;
-    DeviceManager::getInstance()->sendMessage(DEVICE_IO, CANIO, MSG_UPDATE, NULL);
+    status.warning = enabled;
+    deviceManager.sendMessage(DEVICE_IO, CANIO, MSG_UPDATE, NULL);
 }
 
 /*
@@ -402,8 +454,8 @@ void SystemIO::setWarning(bool enabled) {
  */
 void SystemIO::setPowerLimitation(bool enabled) {
     setDigitalOut(configuration->powerLimitationOutput, enabled);
-    status->limitationTorque = enabled;
-    DeviceManager::getInstance()->sendMessage(DEVICE_IO, CANIO, MSG_UPDATE, NULL);
+    status.limitationTorque = enabled;
+    deviceManager.sendMessage(DEVICE_IO, CANIO, MSG_UPDATE, NULL);
 }
 
 /*
@@ -489,7 +541,7 @@ uint16_t SystemIO::getAnalogIn(uint8_t which) {
  * Get value of one of the 4 digital inputs.
  * If input is not configured, false is returned.
  */
-boolean SystemIO::getDigitalIn(uint8_t which) {
+bool SystemIO::getDigitalIn(uint8_t which) {
     if (which >= CFG_NUMBER_DIGITAL_INPUTS) {
         return false;
     }
@@ -512,14 +564,14 @@ void SystemIO::setDigitalOut(uint8_t which, boolean active) {
     }
 
     digitalWrite(out[which], active ? HIGH : LOW);
-    status->digitalOutput[which] = active;
+    status.digitalOutput[which] = active;
     printIOStatus();
 }
 
 /*
  * Get current state of digital output (high or low?)
  */
-boolean SystemIO::getDigitalOut(uint8_t which) {
+bool SystemIO::getDigitalOut(uint8_t which) {
     if (which >= CFG_NUMBER_DIGITAL_OUTPUTS) {
         return false;
     }
@@ -610,7 +662,7 @@ uint16_t SystemIO::getRawADC(uint8_t which) {
  */
 void SystemIO::initializePinTables() {
     uint8_t rawadc;
-    sysPrefs->read(EESYS_RAWADC, &rawadc);
+    prefsHandler->read(EESIO_RAWADC, &rawadc);
 
     if (rawadc != 0) {
         useRawADC = true;
@@ -620,16 +672,19 @@ void SystemIO::initializePinTables() {
     }
 
 //    numberADCSamples = 64;
-    uint8_t sys_type;
-    sysPrefs->read(EESYS_SYSTEM_TYPE, &sys_type);
-    if (sys_type == 2) {
+    switch (getSystemType()) {
+    case GEVCU2:
         initGevcu2PinTable();
-    } else if (sys_type == 3) {
+        break;
+    case GEVCU3:
         initGevcu3PinTable();
-    } else if (sys_type == 4) {
+        break;
+    case GEVCU4:
         initGevcu4PinTable();
-    } else {
+        break;
+    default:
         initGevcuLegacyPinTable();
+        break;
     }
 }
 
@@ -760,8 +815,8 @@ void SystemIO::initializeAnalogIO() {
 
     //requires the value to be contiguous in memory
     for (int i = 0; i < CFG_NUMBER_ANALOG_INPUTS; i++) {
-        sysPrefs->read(EESYS_ADC0_GAIN + 4 * i, &adcComp[i].gain);
-        sysPrefs->read(EESYS_ADC0_OFFSET + 4 * i, &adcComp[i].offset);
+        prefsHandler->read(EESIO_ADC0_GAIN + 4 * i, &adcComp[i].gain);
+        prefsHandler->read(EESIO_ADC0_OFFSET + 4 * i, &adcComp[i].offset);
 
         //Logger::debug("ADC:%d GAIN: %d Offset: %d", i, adc_comp[i].gain, adc_comp[i].offset);
 //        for (int j = 0; j < numberADCSamples; j++) {
@@ -852,9 +907,29 @@ void ADC_Handler() {
     int f = ADC->ADC_ISR;
 
     if (f & (1 << 27)) { //receive counter end of buffer
-        ADC->ADC_RNPR = SystemIO::getInstance()->getNextADCBuffer();
+        ADC->ADC_RNPR = systemIO.getNextADCBuffer();
         ADC->ADC_RNCR = 256;
     }
+}
+
+void SystemIO::setSystemType(SystemType systemType) {
+    SystemIOConfiguration *config = (SystemIOConfiguration *) getConfiguration();
+    config->systemType = systemType;
+    saveConfiguration();
+}
+SystemType SystemIO::getSystemType() {
+    SystemIOConfiguration *config = (SystemIOConfiguration *) getConfiguration();
+    return config->systemType;
+}
+void SystemIO::setLogLevel(Logger::LogLevel logLevel) {
+    SystemIOConfiguration *config = (SystemIOConfiguration *) getConfiguration();
+    config->logLevel = logLevel;
+    saveConfiguration();
+}
+
+Logger::LogLevel SystemIO::getLogLevel() {
+    SystemIOConfiguration *config = (SystemIOConfiguration *) getConfiguration();
+    return config->logLevel;
 }
 
 /*
@@ -892,38 +967,43 @@ void SystemIO::loadConfiguration() {
 #else
     if (prefsHandler->checksumValid()) { //checksum is good, read in the values stored in EEPROM
 #endif
-        Logger::debug((char *) Constants::validChecksum);
-        prefsHandler->read(EESYS_ENABLE_INPUT, &configuration->enableInput);
-        prefsHandler->read(EESYS_CHARGE_POWER_AVAILABLE_INPUT, &configuration->chargePowerAvailableInput);
-        prefsHandler->read(EESYS_INTERLOCK_INPUT, &configuration->interlockInput);
+        prefsHandler->read(EESIO_ENABLE_INPUT, &configuration->enableInput);
+        prefsHandler->read(EESIO_CHARGE_POWER_AVAILABLE_INPUT, &configuration->chargePowerAvailableInput);
+        prefsHandler->read(EESIO_INTERLOCK_INPUT, &configuration->interlockInput);
+        prefsHandler->read(EESIO_REVERSE_INPUT, &configuration->reverseInput);
 
-        prefsHandler->read(EESYS_PRECHARGE_MILLIS, &configuration->prechargeMillis);
-        prefsHandler->read(EESYS_PRECHARGE_RELAY_OUTPUT, &configuration->prechargeRelayOutput);
-        prefsHandler->read(EESYS_MAIN_CONTACTOR_OUTPUT, &configuration->mainContactorOutput);
-        prefsHandler->read(EESYS_SECONDARY_CONTACTOR_OUTPUT, &configuration->secondaryContactorOutput);
-        prefsHandler->read(EESYS_FAST_CHARGE_CONTACTOR_OUTPUT, &configuration->fastChargeContactorOutput);
+        prefsHandler->read(EESIO_PRECHARGE_MILLIS, &configuration->prechargeMillis);
+        prefsHandler->read(EESIO_PRECHARGE_RELAY_OUTPUT, &configuration->prechargeRelayOutput);
+        prefsHandler->read(EESIO_MAIN_CONTACTOR_OUTPUT, &configuration->mainContactorOutput);
+        prefsHandler->read(EESIO_SECONDARY_CONTACTOR_OUTPUT, &configuration->secondaryContactorOutput);
+        prefsHandler->read(EESIO_FAST_CHARGE_CONTACTOR_OUTPUT, &configuration->fastChargeContactorOutput);
 
-        prefsHandler->read(EESYS_ENABLE_MOTOR_OUTPUT, &configuration->enableMotorOutput);
-        prefsHandler->read(EESYS_ENABLE_CHARGER_OUTPUT, &configuration->enableChargerOutput);
-        prefsHandler->read(EESYS_ENABLE_DCDC_OUTPUT, &configuration->enableDcDcOutput);
-        prefsHandler->read(EESYS_ENABLE_HEATER_OUTPUT, &configuration->enableHeaterOutput);
+        prefsHandler->read(EESIO_ENABLE_MOTOR_OUTPUT, &configuration->enableMotorOutput);
+        prefsHandler->read(EESIO_ENABLE_CHARGER_OUTPUT, &configuration->enableChargerOutput);
+        prefsHandler->read(EESIO_ENABLE_DCDC_OUTPUT, &configuration->enableDcDcOutput);
+        prefsHandler->read(EESIO_ENABLE_HEATER_OUTPUT, &configuration->enableHeaterOutput);
 
-        prefsHandler->read(EESYS_HEATER_VALVE_OUTPUT, &configuration->heaterValveOutput);
-        prefsHandler->read(EESYS_HEATER_PUMP_OUTPUT, &configuration->heaterPumpOutput);
-        prefsHandler->read(EESYS_COOLING_PUMP_OUTPUT, &configuration->coolingPumpOutput);
-        prefsHandler->read(EESYS_COOLING_FAN_OUTPUT, &configuration->coolingFanOutput);
-        prefsHandler->read(EESYS_COOLING_TEMP_ON, &configuration->coolingTempOn);
-        prefsHandler->read(EESYS_COOLING_TEMP_OFF, &configuration->coolingTempOff);
+        prefsHandler->read(EESIO_HEATER_VALVE_OUTPUT, &configuration->heaterValveOutput);
+        prefsHandler->read(EESIO_HEATER_PUMP_OUTPUT, &configuration->heaterPumpOutput);
+        prefsHandler->read(EESIO_COOLING_PUMP_OUTPUT, &configuration->coolingPumpOutput);
+        prefsHandler->read(EESIO_COOLING_FAN_OUTPUT, &configuration->coolingFanOutput);
+        prefsHandler->read(EESIO_COOLING_TEMP_ON, &configuration->coolingTempOn);
+        prefsHandler->read(EESIO_COOLING_TEMP_OFF, &configuration->coolingTempOff);
 
-        prefsHandler->read(EESYS_BRAKE_LIGHT_OUTPUT, &configuration->brakeLightOutput);
-        prefsHandler->read(EESYS_REVERSE_LIGHT_OUTPUT, &configuration->reverseLightOutput);
-        prefsHandler->read(EESYS_WARNING_OUTPUT, &configuration->warningOutput);
-        prefsHandler->read(EESYS_POWER_LIMITATION_OUTPUT, &configuration->powerLimitationOutput);
+        prefsHandler->read(EESIO_BRAKE_LIGHT_OUTPUT, &configuration->brakeLightOutput);
+        prefsHandler->read(EESIO_REVERSE_LIGHT_OUTPUT, &configuration->reverseLightOutput);
+        prefsHandler->read(EESIO_WARNING_OUTPUT, &configuration->warningOutput);
+        prefsHandler->read(EESIO_POWER_LIMITATION_OUTPUT, &configuration->powerLimitationOutput);
+
+        prefsHandler->read(EESYS_SYSTEM_TYPE, (uint8_t *) &configuration->systemType);
+        prefsHandler->read(EESYS_LOG_LEVEL, (uint8_t *) &configuration->logLevel);
+        Logger::setLoglevel((Logger::LogLevel) configuration->logLevel);
+
     } else { //checksum invalid. Reinitialize values and store to EEPROM
-        Logger::warn((char *) Constants::invalidChecksum);
         configuration->enableInput = EnableInput;
         configuration->chargePowerAvailableInput = CFG_OUTPUT_NONE;
         configuration->interlockInput = InterlockInput;
+        configuration->reverseInput = CFG_OUTPUT_NONE;
 
         configuration->prechargeMillis = PrechargeMillis;
         configuration->prechargeRelayOutput = PrechargeRelayOutput;
@@ -947,44 +1027,53 @@ void SystemIO::loadConfiguration() {
         configuration->reverseLightOutput = ReverseLightOutput;
         configuration->warningOutput = CFG_OUTPUT_NONE;
         configuration->powerLimitationOutput = CFG_OUTPUT_NONE;
+
+        configuration->systemType = GEVCU2;
+        configuration->logLevel = Logger::Info;
+
         saveConfiguration();
     }
-    Logger::info("GEVCU enable input: %d, charge power avail input: %d, interlock input: %d", configuration->enableInput, configuration->chargePowerAvailableInput, configuration->interlockInput);
+    Logger::info("enable input: %d, charge power avail input: %d, interlock input: %d, reverse input: %d", configuration->enableInput, configuration->chargePowerAvailableInput, configuration->interlockInput, configuration->reverseInput);
     Logger::info("pre-charge milliseconds: %d, pre-charge relay: %d, main contactor: %d", configuration->prechargeMillis, configuration->prechargeRelayOutput, configuration->mainContactorOutput);
     Logger::info("secondary contactor: %d, fast charge contactor: %d", configuration->secondaryContactorOutput, configuration->fastChargeContactorOutput);
     Logger::info("enable motor: %d, enable charger: %d, enable DCDC: %d, enable heater: %d", configuration->enableMotorOutput, configuration->enableChargerOutput, configuration->enableDcDcOutput, configuration->enableHeaterOutput);
     Logger::info("heater valve: %d, heater pump: %d", configuration->heaterValveOutput, configuration->heaterPumpOutput);
     Logger::info("cooling pump: %d, cooling fan: %d, cooling temperature ON: %d, cooling tempreature Off: %d", configuration->coolingPumpOutput, configuration->coolingFanOutput, configuration->coolingTempOn, configuration->coolingTempOff);
     Logger::info("brake light: %d, reverse light: %d, warning: %d, power limitation: %d", configuration->brakeLightOutput, configuration->reverseLightOutput, configuration->warningOutput, configuration->powerLimitationOutput);
+    Logger::info("sys type: %d, log level: %d", configuration->systemType, configuration->logLevel);
 }
 
 void SystemIO::saveConfiguration() {
-    prefsHandler->write(EESYS_ENABLE_INPUT, configuration->enableInput);
-    prefsHandler->write(EESYS_CHARGE_POWER_AVAILABLE_INPUT, configuration->chargePowerAvailableInput);
-    prefsHandler->write(EESYS_INTERLOCK_INPUT, configuration->interlockInput);
+    prefsHandler->write(EESIO_ENABLE_INPUT, configuration->enableInput);
+    prefsHandler->write(EESIO_CHARGE_POWER_AVAILABLE_INPUT, configuration->chargePowerAvailableInput);
+    prefsHandler->write(EESIO_INTERLOCK_INPUT, configuration->interlockInput);
+    prefsHandler->write(EESIO_REVERSE_INPUT, configuration->reverseInput);
 
-    prefsHandler->write(EESYS_PRECHARGE_MILLIS, configuration->prechargeMillis);
-    prefsHandler->write(EESYS_PRECHARGE_RELAY_OUTPUT, configuration->prechargeRelayOutput);
-    prefsHandler->write(EESYS_MAIN_CONTACTOR_OUTPUT, configuration->mainContactorOutput);
-    prefsHandler->write(EESYS_SECONDARY_CONTACTOR_OUTPUT, configuration->secondaryContactorOutput);
-    prefsHandler->write(EESYS_FAST_CHARGE_CONTACTOR_OUTPUT, configuration->fastChargeContactorOutput);
+    prefsHandler->write(EESIO_PRECHARGE_MILLIS, configuration->prechargeMillis);
+    prefsHandler->write(EESIO_PRECHARGE_RELAY_OUTPUT, configuration->prechargeRelayOutput);
+    prefsHandler->write(EESIO_MAIN_CONTACTOR_OUTPUT, configuration->mainContactorOutput);
+    prefsHandler->write(EESIO_SECONDARY_CONTACTOR_OUTPUT, configuration->secondaryContactorOutput);
+    prefsHandler->write(EESIO_FAST_CHARGE_CONTACTOR_OUTPUT, configuration->fastChargeContactorOutput);
 
-    prefsHandler->write(EESYS_ENABLE_MOTOR_OUTPUT, configuration->enableMotorOutput);
-    prefsHandler->write(EESYS_ENABLE_CHARGER_OUTPUT, configuration->enableChargerOutput);
-    prefsHandler->write(EESYS_ENABLE_DCDC_OUTPUT, configuration->enableDcDcOutput);
-    prefsHandler->write(EESYS_ENABLE_HEATER_OUTPUT, configuration->enableHeaterOutput);
+    prefsHandler->write(EESIO_ENABLE_MOTOR_OUTPUT, configuration->enableMotorOutput);
+    prefsHandler->write(EESIO_ENABLE_CHARGER_OUTPUT, configuration->enableChargerOutput);
+    prefsHandler->write(EESIO_ENABLE_DCDC_OUTPUT, configuration->enableDcDcOutput);
+    prefsHandler->write(EESIO_ENABLE_HEATER_OUTPUT, configuration->enableHeaterOutput);
 
-    prefsHandler->write(EESYS_HEATER_VALVE_OUTPUT, configuration->heaterValveOutput);
-    prefsHandler->write(EESYS_HEATER_PUMP_OUTPUT, configuration->heaterPumpOutput);
-    prefsHandler->write(EESYS_COOLING_PUMP_OUTPUT, configuration->coolingPumpOutput);
-    prefsHandler->write(EESYS_COOLING_FAN_OUTPUT, configuration->coolingFanOutput);
-    prefsHandler->write(EESYS_COOLING_TEMP_ON, configuration->coolingTempOn);
-    prefsHandler->write(EESYS_COOLING_TEMP_OFF, configuration->coolingTempOff);
+    prefsHandler->write(EESIO_HEATER_VALVE_OUTPUT, configuration->heaterValveOutput);
+    prefsHandler->write(EESIO_HEATER_PUMP_OUTPUT, configuration->heaterPumpOutput);
+    prefsHandler->write(EESIO_COOLING_PUMP_OUTPUT, configuration->coolingPumpOutput);
+    prefsHandler->write(EESIO_COOLING_FAN_OUTPUT, configuration->coolingFanOutput);
+    prefsHandler->write(EESIO_COOLING_TEMP_ON, configuration->coolingTempOn);
+    prefsHandler->write(EESIO_COOLING_TEMP_OFF, configuration->coolingTempOff);
 
-    prefsHandler->write(EESYS_BRAKE_LIGHT_OUTPUT, configuration->brakeLightOutput);
-    prefsHandler->write(EESYS_REVERSE_LIGHT_OUTPUT, configuration->reverseLightOutput);
-    prefsHandler->write(EESYS_WARNING_OUTPUT, configuration->warningOutput);
-    prefsHandler->write(EESYS_POWER_LIMITATION_OUTPUT, configuration->powerLimitationOutput);
+    prefsHandler->write(EESIO_BRAKE_LIGHT_OUTPUT, configuration->brakeLightOutput);
+    prefsHandler->write(EESIO_REVERSE_LIGHT_OUTPUT, configuration->reverseLightOutput);
+    prefsHandler->write(EESIO_WARNING_OUTPUT, configuration->warningOutput);
+    prefsHandler->write(EESIO_POWER_LIMITATION_OUTPUT, configuration->powerLimitationOutput);
+
+    prefsHandler->write(EESYS_SYSTEM_TYPE, (uint8_t) configuration->systemType);
+    prefsHandler->write(EESYS_LOG_LEVEL, (uint8_t) configuration->logLevel);
 
     prefsHandler->saveChecksum();
 }

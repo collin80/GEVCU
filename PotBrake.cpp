@@ -41,7 +41,7 @@ PotBrake::PotBrake() : Throttle()
  */
 void PotBrake::setup()
 {
-    tickHandler->detach(this);  // unregister from TickHandler first
+    tickHandler.detach(this);  // unregister from TickHandler first
 
     Throttle::setup(); //call base class
 
@@ -51,7 +51,7 @@ void PotBrake::setup()
     loadConfiguration();
     ready = true;
 
-    tickHandler->attach(this, CFG_TICK_INTERVAL_POT_THROTTLE);
+    tickHandler.attach(this, CFG_TICK_INTERVAL_POT_THROTTLE);
 }
 
 /*
@@ -68,8 +68,8 @@ void PotBrake::handleTick()
 RawSignalData *PotBrake::acquireRawSignal()
 {
     PotBrakeConfiguration *config = (PotBrakeConfiguration *) getConfiguration();
-    systemIO->ADCPoll();
-    rawSignal.input1 = systemIO->getAnalogIn(config->AdcPin1);
+    systemIO.ADCPoll();
+    rawSignal.input1 = systemIO.getAnalogIn(config->AdcPin1);
     return &rawSignal;
 }
 
@@ -178,6 +178,7 @@ void PotBrake::loadConfiguration()
     setConfiguration(config);
 
     // we deliberately do not load config via parent class here !
+    Logger::info("Pot brake configuration:");
 
 #ifdef USE_HARD_CODED
 
@@ -191,13 +192,7 @@ void PotBrake::loadConfiguration()
         prefsHandler->read(EETH_MAX_BRAKE_REGEN, &config->maximumRegen);
         prefsHandler->read(EETH_MIN_BRAKE_REGEN, &config->minimumRegen);
         prefsHandler->read(EETH_ADC_1, &config->AdcPin1);
-
-        config->AdcPin1 = BrakeADC; //TODO: This is hard coded because of old defaults. Fix this soon.
-
-        Logger::debug(POTBRAKEPEDAL, "BRAKE MIN: %l MAX: %l", config->minimumLevel, config->maximumLevel);
-        Logger::debug(POTBRAKEPEDAL, "Min: %l MaxRegen: %l", config->minimumRegen, config->maximumRegen);
-    } else { //checksum invalid. Reinitialize values and store to EEPROM
-
+    } else {
         //these four values are ADC values
         //The next three are tenths of a percent
         config->maximumRegen = BrakeMaxRegenValue; //percentage of full power to use for regen at brake pedal transducer
@@ -207,6 +202,9 @@ void PotBrake::loadConfiguration()
         config->AdcPin1 = BrakeADC;
         saveConfiguration();
     }
+
+    Logger::info(POTBRAKEPEDAL, "MIN: %l, MAX: %l", config->minimumLevel, config->maximumLevel);
+    Logger::info(POTBRAKEPEDAL, "Min regen: %l Max Regen: %l", config->minimumRegen, config->maximumRegen);
 }
 
 /*

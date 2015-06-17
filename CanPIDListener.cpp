@@ -32,7 +32,6 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 CanPIDListener::CanPIDListener() : Device()
 {
-    canHandlerEv = CanHandler::getInstanceEV();
     prefsHandler = new PrefHandler(PIDLISTENER);
 
     responseId = 0;
@@ -48,8 +47,8 @@ void CanPIDListener::setup()
     Device::setup();
 
     //TODO: FIXME Quickly coded as hard coded values. This is naughty.
-    canHandlerEv->attach(this, 0x7DF, 0x7DF, false);
-    canHandlerEv->attach(this, 0x7E0, 0x7E0, false);
+    canHandlerEv.attach(this, 0x7DF, 0x7DF, false);
+    canHandlerEv.attach(this, 0x7E0, 0x7E0, false);
 
     ready = true;
     running = true;
@@ -64,8 +63,8 @@ void CanPIDListener::tearDown()
 {
     Device::tearDown();
 
-    canHandlerEv->detach(this, 0x7DF, 0x7DF);
-    canHandlerEv->detach(this, 0x7E0, 0x7E0);
+    canHandlerEv.detach(this, 0x7DF, 0x7DF);
+    canHandlerEv.detach(this, 0x7E0, 0x7E0);
 }
 
 /*
@@ -166,7 +165,7 @@ void CanPIDListener::handleCanFrame(CAN_FRAME *frame)
         //here is where we'd send out response. Right now it sends over canbus but when we support other
         //alteratives they'll be sending here too.
         if (ret) {
-            canHandlerEv->sendFrame(outputFrame);
+            canHandlerEv.sendFrame(outputFrame);
         }
     }
 }
@@ -175,7 +174,7 @@ void CanPIDListener::handleCanFrame(CAN_FRAME *frame)
 //Process SAE standard PID requests. Function returns whether it handled the request or not.
 bool CanPIDListener::processShowData(CAN_FRAME* inFrame, CAN_FRAME& outFrame)
 {
-    MotorController* motorController = DeviceManager::getInstance()->getMotorController();
+    MotorController* motorController = deviceManager.getMotorController();
     int temp;
 
     switch (inFrame->data.bytes[2]) {
@@ -236,7 +235,7 @@ bool CanPIDListener::processShowData(CAN_FRAME* inFrame, CAN_FRAME& outFrame)
             break;
 
         case 0x11: //Throttle position (A * 100 / 255) - Percentage
-            temp = motorController->getThrottle() / 10; //getThrottle returns in 10ths of a percent
+            temp = motorController->getThrottleLevel() / 10; //getThrottle returns in 10ths of a percent
 
             if (temp < 0) {
                 temp = 0;    //negative throttle can't be shown for OBDII
@@ -360,6 +359,7 @@ void CanPIDListener::loadConfiguration()
     }
 
     Device::loadConfiguration(); // call parent
+    Logger::info(PIDLISTENER, "CAN PID listener configuration:");
 
 #ifdef USE_HARD_CODED
 
@@ -368,19 +368,15 @@ void CanPIDListener::loadConfiguration()
 
     if (prefsHandler->checksumValid()) { //checksum is good, read in the values stored in EEPROM
 #endif
-        Logger::debug(PIDLISTENER, (char *) Constants::validChecksum);
-        //prefsHandler->read(EETH_MIN_ONE, &config->minimumLevel1);
-        //prefsHandler->read(EETH_MAX_ONE, &config->maximumLevel1);
-        //prefsHandler->read(EETH_CAR_TYPE, &config->carType);
+        //prefsHandler->write(EE_, &config->pidId);
+        //prefsHandler->write(EE_, &config->pidMask);
     } else { //checksum invalid. Reinitialize values and store to EEPROM
-        Logger::warn(PIDLISTENER, (char *) Constants::invalidChecksum);
-        //config->minimumLevel1 = Throttle1MinValue;
-        //config->maximumLevel1 = Throttle1MaxValue;
-        //config->carType = Volvo_S80_Gas;
+        config->pidId = 0x200;
+        config->pidMask = 0x7ff;
         saveConfiguration();
     }
 
-    //Logger::debug(CANACCELPEDAL, "T1 MIN: %l MAX: %l Type: %d", config->minimumLevel1, config->maximumLevel1, config->carType);
+    Logger::info(PIDLISTENER, "pid: %d pid mask: %d", config->pidId, config->pidMask);
 }
 
 /*
@@ -392,9 +388,8 @@ void CanPIDListener::saveConfiguration()
 
     Device::saveConfiguration(); // call parent
 
-    //prefsHandler->write(EETH_MIN_ONE, config->minimumLevel1);
-    //prefsHandler->write(EETH_MAX_ONE, config->maximumLevel1);
-    //prefsHandler->write(EETH_CAR_TYPE, config->carType);
-    //prefsHandler->saveChecksum();
+    //prefsHandler->write(EE_, config->pidId);
+    //prefsHandler->write(EE_, config->pidMask);
+    prefsHandler->saveChecksum();
 }
 

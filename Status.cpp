@@ -27,6 +27,8 @@
 #include "Status.h"
 #include "DeviceManager.h"
 
+Status status;
+
 /*
  * Constructor
  */
@@ -54,6 +56,7 @@ Status::Status() {
     speedSensorSignal               = false;
     maximumModulationLimiter        = false;
     temperatureSensor               = false;
+    systemCheckActive               = false;
 
     speedSensor                     = false;
     speedSensorSupply               = false;
@@ -104,9 +107,7 @@ Status::Status() {
     enableIn            = false;
     chargePowerAvailable= false;
     interlockPresent    = false;
-
-    temperatureController = CFG_NO_TEMPERATURE_DATA;
-    temperatureMotor = CFG_NO_TEMPERATURE_DATA;
+    reverseInput        = false;
 
     for (int i = 0; i < CFG_NUMBER_DIGITAL_OUTPUTS; i++) {
         digitalOutput[i] = false;
@@ -117,15 +118,6 @@ Status::Status() {
     for (int i = 0; i < CFG_NUMBER_TEMPERATURE_SENSORS; i++) {
         externalTemperature[i] = CFG_NO_TEMPERATURE_DATA;
     }
-
-}
-
-/*
- * Get the singleton instance of the class
- */
-Status *Status::getInstance() {
-    static Status *status = new Status();
-    return status;
 }
 
 /*
@@ -145,6 +137,8 @@ Status::SystemState Status::setSystemState(SystemState newSystemState) {
     if (systemState == newSystemState) {
         return systemState;
     }
+
+    SystemState oldSystemState = systemState;
 
     if (newSystemState == error) {
         systemState = error;
@@ -209,7 +203,8 @@ Status::SystemState Status::setSystemState(SystemState newSystemState) {
         systemState = error;
     }
 
-    DeviceManager::getInstance()->sendMessage(DEVICE_ANY, INVALID, MSG_STATE_CHANGE, &newSystemState);
+    SystemState params[] = { oldSystemState, newSystemState };
+    deviceManager.sendMessage(DEVICE_ANY, INVALID, MSG_STATE_CHANGE, params);
 
     return systemState;
 }

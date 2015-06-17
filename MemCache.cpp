@@ -26,13 +26,21 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 #include "MemCache.h"
 
+MemCache memCache;
+
 MemCache::MemCache()
+{
+}
+
+MemCache::~MemCache()
 {
 }
 
 void MemCache::setup()
 {
-    TickHandler::getInstance()->detach(this);
+    tickHandler.detach(this);
+
+    Logger::info("add MemCache (id: %X, %X)", MEMCACHE, &memCache);
 
     for (U8 c = 0; c < NUM_CACHED_PAGES; c++) {
         pages[c].address = 0xFFFFFF; //maximum number. This is way over what our chip will actually support so it signals unused
@@ -42,12 +50,15 @@ void MemCache::setup()
 
     //WriteTimer = 0;
 
-    //digital pin 19 is connected to the write protect function of the EEPROM. It is active high so set it low to enable writes
+    //digital pin 18 is connected to the write protect function of the EEPROM. It is active high so set it low to enable writes
+//TODO: pin 18 on GEVCU 2, pin 19 on GEVCU 4 !!!
+
     pinMode(19, OUTPUT);
     digitalWrite(19, LOW);
-    TickHandler::getInstance()->attach(this, CFG_TICK_INTERVAL_MEM_CACHE);
+    tickHandler.attach(this, CFG_TICK_INTERVAL_MEM_CACHE);
 }
 
+//Handle aging of dirty pages and flushing of aged out dirty pages
 void MemCache::handleTick()
 {
     U8 c;
@@ -62,7 +73,7 @@ void MemCache::handleTick()
 }
 
 //this function flushes the first dirty page it finds. It should try to wait until enough time as elapsed since
-//a previous page has been written.
+//a previous page has been written. Remember that page writes take about 7ms.
 void MemCache::FlushSinglePage()
 {
     U8 c;
@@ -92,6 +103,7 @@ void MemCache::FlushAllPages()
     }
 }
 
+//Flush a given page by the page ID. This is NOT by address so act accordingly. Likely no external code should ever use this
 void MemCache::FlushPage(uint8_t page)
 {
     if (pages[page].dirty) {
@@ -101,6 +113,7 @@ void MemCache::FlushPage(uint8_t page)
     }
 }
 
+//Like FlushPage but also marks the page invalid (unused) so if another read request comes it it'll have to be re-read from EEPROM
 void MemCache::InvalidatePage(uint8_t page)
 {
     if (page > NUM_CACHED_PAGES - 1) {
@@ -116,6 +129,7 @@ void MemCache::InvalidatePage(uint8_t page)
     pages[page].age = 0;
 }
 
+//Mark a given page unused given an address within that page. Will write the page out if it was dirty.
 void MemCache::InvalidateAddress(uint32_t address)
 {
     uint32_t addr;
@@ -128,7 +142,7 @@ void MemCache::InvalidateAddress(uint32_t address)
         InvalidatePage(c);
     }
 }
-
+//Mark all page cache entries unused (go back to clean slate). It will try to write any dirty pages so be prepared to wait.
 void MemCache::InvalidateAll()
 {
     uint8_t c;
@@ -138,6 +152,7 @@ void MemCache::InvalidateAll()
     }
 }
 
+//Cause a given page to be fully aged which will cause it to be written at the next opportunity
 void MemCache::AgeFullyPage(uint8_t page)
 {
     if (page < NUM_CACHED_PAGES) { //if we did indeed have that page in cache
@@ -145,6 +160,7 @@ void MemCache::AgeFullyPage(uint8_t page)
     }
 }
 
+//Cause the page containing the given address to be fully aged and thus written as soon as possible.
 void MemCache::AgeFullyAddress(uint32_t address)
 {
     uint8_t thisCache;
@@ -158,7 +174,8 @@ void MemCache::AgeFullyAddress(uint32_t address)
     }
 }
 
-
+//Write data into the memory cache. Takes the place of direct EEPROM writes
+//There are lots of versions of this
 boolean MemCache::Write(uint32_t address, uint8_t valu)
 {
     uint32_t addr;
@@ -393,7 +410,6 @@ uint8_t MemCache::cache_readpage(uint32_t addr)
     uint8_t i2c_id;
     c = cache_findpage();
 
-//  Logger::debug("r");
     if (c != 0xFF) {
         buffer[0] = ((address & 0xFF00) >> 8);
         //buffer[1] = (address & 0x00FF);

@@ -42,8 +42,8 @@ public:
         batteryHeating = 4, // before charging, the batteries need to be heated
         charging    = 5, // the batteries are being charged
         charged     = 6, // the charging is finished
-        ready       = 7, // the system is ready to accept commands but the motor controller's power stage is inactive (next states: running, error)
-        running     = 8, // the system is running and the power stage of the motor controller is active (next states: ready, error)
+        ready       = 7, // the system is ready to accept commands but the motor controller is not enabled yet (next states: running, error)
+        running     = 8, // the system is running and the motor controller is to be enabled (next states: ready, error)
         error       = 99 // the system is in an error state and not operational (no power on motor, turn of power stage)
     };
 
@@ -70,6 +70,7 @@ public:
     bool speedSensorSignal; // the speed sensor signal is bad but not bad enough to report an error (e.g. certain amount of lost position counts or invalid transitions)
     bool maximumModulationLimiter; // the motor's maximum modulation limiter is active
     bool temperatureSensor; // invalid data is received from one or a group of temperature sensors
+    bool systemCheckActive; // is the system not ready yet because of a system check?
 
     // error flags
     bool speedSensor; // the encoder or position sensor deliver a faulty signal
@@ -121,15 +122,14 @@ public:
     bool enableIn; // is the 'enable' input signal active ?
     bool chargePowerAvailable; // is shore power available (connected to charging station)
     bool interlockPresent; // is the interlock circuit closed and the signal available ?
+    bool reverseInput; // is the reverse signal present ?
 
     bool digitalInput[CFG_NUMBER_DIGITAL_INPUTS]; // the the digital input x activated ?
     bool digitalOutput[CFG_NUMBER_DIGITAL_OUTPUTS]; // the the digital output x activated ?
 
-    int16_t temperatureController; // temperature reported by the motor controller (in 0.1 degree celsius)
-    int16_t temperatureMotor; // temperature reported by the motor (in 0.1 degree celsius)
     int16_t externalTemperature[CFG_NUMBER_TEMPERATURE_SENSORS]; // temperature reported via CAN from external device
 
-    static Status *getInstance();
+    Status();
     SystemState getSystemState();
     SystemState setSystemState(SystemState);
     char *systemStateToStr(SystemState);
@@ -140,7 +140,9 @@ public:
     int16_t getHighestExternalTemperature();
 
 private:
-    Status();
     SystemState systemState; // the current state of the system, to be modified by the state machine of this class only
 };
+
+extern Status status;
+
 #endif /* STATUS_H_ */

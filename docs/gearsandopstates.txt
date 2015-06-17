@@ -1,0 +1,41 @@
+running  = true if we have completed settup
+online  = true if we are receiving CAN from DMOC
+alive
+
+activitycount = increments with each major frame received from DMOc
+
+operationState=	DISABLED = 0,
+				STANDBY = 1,
+				ENABLE = 2,
+				POWERDOWN = 3
+				void setOpState(OperationState op) ; operationState
+				OperationState getOpState() ;		 operationState
+				
+				OperationState operationState;		 We set and get this one, either in DMOC or in Motor
+				OperationState actualState           This can be checked directly - it is actually set by DMOC645
+				
+
+selectedGear  NEUTRAL =0
+			  DRIVE =1
+			  REVERSE=2
+			  ERROR=3
+			  
+			  void setSelectedGear(Gears gear); sets selectedGear motorcontroller version
+			  
+			  Gears getSelectedGear();
+			  setGear(Gears gear)  - sets selectedGear - DMOC version
+			  Gears selectedGear;
+			  Gears actualGear;
+
+			  
+			  
+GearSwitch   GS_NEUTRAL,
+        	 GS_FORWARD,
+			 GS_REVERSE,
+			 GS_FAULT
+			 
+getGearSwitch()
+setGear()
+
+
+we do send alive, opstate, and gear information to DMOC645 as part of SendCmd1.

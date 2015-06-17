@@ -65,6 +65,9 @@ void Throttle::handleTick()
         level = 0;
         running = false;
     }
+    if(Logger::isDebug()) {
+        Logger::debug(getId(), "raw: %d, level: %d, running: %t", rawSignals->input1, level, running);
+    }
 }
 
 /*
@@ -112,10 +115,9 @@ int16_t Throttle::mapPedalPosition(int16_t pedalPosition)
                 throttleLevel = -10 * config->minimumRegen + (config->maximumRegen - config->minimumRegen) * (100 - value * 100 / range) / -10;
             }
         } else {
-            // no ramping yet below positionRegenMaximum, just drop to 0
-//          range = config->positionRegenMaximum;
-//          value = pedalPosition;
-//          throttleLevel = -10 * config->maximumRegen * value / range;
+            range = config->positionRegenMaximum;
+            value = pedalPosition;
+            throttleLevel = -10 * config->maximumRegen * value / range;
         }
     }
 
@@ -219,6 +221,7 @@ void Throttle::loadConfiguration()
     ThrottleConfiguration *config = (ThrottleConfiguration *) getConfiguration();
 
     Device::loadConfiguration(); // call parent
+    Logger::info(getId(), "Throttle configuration:");
 
 #ifdef USE_HARD_CODED
 
@@ -248,9 +251,10 @@ void Throttle::loadConfiguration()
         config->maximumRegen = ThrottleMaxRegenValue; //percentage of full power to use for regen at throttle
     }
 
-    Logger::debug(THROTTLE, "RegenMax: %l RegenMin: %l Fwd: %l Map: %l", config->positionRegenMaximum, config->positionRegenMinimum,
+    Logger::info(getId(), "RegenMax: %l RegenMin: %l Fwd: %l Map: %l", config->positionRegenMaximum, config->positionRegenMinimum,
                   config->positionForwardMotionStart, config->positionHalfPower);
-    Logger::debug(THROTTLE, "MinRegen: %d MaxRegen: %d", config->minimumRegen, config->maximumRegen);
+    Logger::info(getId(), "MinRegen: %d MaxRegen: %d", config->minimumRegen, config->maximumRegen);
+    Logger::info(getId(), "T1 MIN: %l, T1 MAX: %l", config->minimumLevel, config->maximumLevel);
 }
 
 /*

@@ -50,15 +50,15 @@ DeviceType DcDcConverter::getType() {
  * act on messages the super-class does not react upon, like state change
  * to ready or running which should enable/disable the power-stage of the converter
  */
-void DcDcConverter::handleStateChange(Status::SystemState state) {
-    Device::handleStateChange(state);
-    if (state == Status::ready || state == Status::charging || state == Status::charged
-            || state == Status::running || state == Status::batteryHeating) {
+void DcDcConverter::handleStateChange(Status::SystemState oldState, Status::SystemState newState) {
+    Device::handleStateChange(oldState, newState);
+    if (newState == Status::ready || newState == Status::charging || newState == Status::charged
+            || newState == Status::running || newState == Status::batteryHeating) {
         powerOn = true;
     } else {
         powerOn = false;
     }
-    systemIO->setEnableDcDc(powerOn);
+    systemIO.setEnableDcDc(powerOn);
 }
 
 /*
@@ -85,10 +85,7 @@ void DcDcConverter::loadConfiguration()
     if (prefsHandler->checksumValid()) { //checksum is good, read in the values stored in EEPROM
 #endif
         uint8_t temp;
-        Logger::debug(getId(), (char *) Constants::validChecksum);
-
-        prefsHandler->read(DCDC_BOOST_MODE, &temp);
-        config->boostMode = (temp != 0);
+        prefsHandler->read(DCDC_BOOST_MODE, &config->mode);
         prefsHandler->read(DCDC_LOW_VOLTAGE, &config->lowVoltageCommand);
         prefsHandler->read(DCDC_HV_UNDERVOLTAGE_LIMIT, &config->hvUndervoltageLimit);
         prefsHandler->read(DCDC_LV_BUCK_CURRENT_LIMIT, &config->lvBuckModeCurrentLimit);
@@ -98,8 +95,7 @@ void DcDcConverter::loadConfiguration()
         prefsHandler->read(DCDC_LV_BOOST_CURRENT_LIMIT, &config->lvBoostModeCurrentLinit);
         prefsHandler->read(DCDC_HV_BOOST_CURRENT_LIMIT, &config->hvBoostModeCurrentLimit);
     } else { //checksum invalid. Reinitialize values and store to EEPROM
-        Logger::warn(getId(), (char *) Constants::invalidChecksum);
-        config->boostMode = false; // default mode: buck, meaning: reduce from HV to LV
+        config->mode = false; // default mode: buck, meaning: reduce from HV to LV
         config->lowVoltageCommand = 135; // 13.5 V
         config->hvUndervoltageLimit = 330; // 330 V
         config->lvBuckModeCurrentLimit = 250; // 250 A
@@ -111,7 +107,7 @@ void DcDcConverter::loadConfiguration()
         saveConfiguration();
     }
 
-    Logger::info(getId(), "operation mode: %s", (config->boostMode ? "boost" : "buck"));
+    Logger::info(getId(), "operation mode: %s", (config->mode ? "boost" : "buck"));
     Logger::info(getId(), "buck : LV command %fV (max %dA), HV min %dV (max %fA)", (float) config->lowVoltageCommand / 10.0F, config->lvBuckModeCurrentLimit, config->hvUndervoltageLimit, (float) config->hvBuckModeCurrentLimit / 10.0F);
     Logger::info(getId(), "boost: HV command %dV (max %fA), LV min %fV (max %dA)", config->highVoltageCommand, (float) config->hvBoostModeCurrentLimit / 10.0, (float) config->lvUndervoltageLimit / 10.0F, config->lvBoostModeCurrentLinit);
 }
@@ -125,7 +121,7 @@ void DcDcConverter::saveConfiguration()
 
     Device::saveConfiguration(); // call parent
 
-    prefsHandler->write(DCDC_BOOST_MODE, (uint8_t) (config->boostMode ? 1 : 0));
+    prefsHandler->write(DCDC_BOOST_MODE, config->mode);
     prefsHandler->write(DCDC_LOW_VOLTAGE, config->lowVoltageCommand);
     prefsHandler->write(DCDC_HV_UNDERVOLTAGE_LIMIT, config->hvUndervoltageLimit);
     prefsHandler->write(DCDC_LV_BUCK_CURRENT_LIMIT, config->lvBuckModeCurrentLimit);

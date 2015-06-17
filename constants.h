@@ -30,8 +30,7 @@
 #ifndef CONSTANTS_H_
 #define CONSTANTS_H_
 
-namespace Constants
-{
+namespace Constants {
 // misc
 static const char* trueStr = "true";
 static const char* falseStr = "false";
@@ -39,47 +38,110 @@ static const char* notAvailable = "n/a";
 static const char* ichipCommandPrefix = "AT+i";
 static const char* ichipErrorString = "I/ERROR";
 
-// configuration
-static const char* numThrottlePots = "numThrottlePots";
+// messages
+static const char* valueOutOfRange = "value out of range: %l";
+static const char* normalOperation = "normal operation restored";
+
+/*
+ * The following constants are names of ichip variables (see xml files in website)
+ * They must be <=20 characters - this is why the content sometimes differs from the internal param name.
+ */
+
+// configuration throttle + motor
+static const char* numberPotMeters = "numberPotMeters";
 static const char* throttleSubType = "throttleSubType";
-static const char* throttleMin1 = "throttleMin1";
-static const char* throttleMin2 = "throttleMin2";
-static const char* throttleMax1 = "throttleMax1";
-static const char* throttleMax2 = "throttleMax2";
-static const char* throttleRegenMax = "throttleRegenMax";
-static const char* throttleRegenMin = "throttleRegenMin";
-static const char* throttleFwd = "throttleFwd";
-static const char* throttleMap = "throttleMap";
-static const char* throttleMinRegen = "throttleMinRegen";
-static const char* throttleMaxRegen = "throttleMaxRegen";
-static const char* throttleCreep = "throttleCreep";
-static const char* brakeMin = "brakeMin";
-static const char* brakeMax = "brakeMax";
-static const char* brakeMinRegen = "brakeMinRegen";
-static const char* brakeMaxRegen = "brakeMaxRegen";
-static const char* brakeLightOutput = "brakeLightOutput";
-static const char* reverseLightOutput = "reverseLightOutput";
+static const char* minimumLevel = "minimumLevel";
+static const char* minimumLevel2 = "minimumLevel2";
+static const char* maximumLevel = "maximumLevel";
+static const char* maximumLevel2 = "maximumLevel2";
+static const char* positionRegenMaximum = "positionRegenMaximum";
+static const char* positionRegenMinimum = "positionRegenMinimum";
+static const char* positionForwardMotionStart = "positionForwardStart";
+static const char* positionHalfPower = "positionHalfPower";
+static const char* minimumRegen = "minimumRegen";
+static const char* maximumRegen = "maximumRegen";
+static const char* creep = "creep";
+static const char* brakeMinimumLevel = "brakeMinimumLevel";
+static const char* brakeMaximumLevel = "brakeMaximumLevel";
+static const char* brakeMinimumRegen = "brakeMinimumRegen";
+static const char* brakeMaximumRegen = "brakeMaximumRegen";
 static const char* speedMax = "speedMax";
 static const char* torqueMax = "torqueMax";
 static const char* logLevel = "logLevel";
+static const char* nominalVolt = "nominalVolt";
+static const char* motorMode = "motorMode";
+static const char* invertDirection = "invertDirection";
+static const char* torqueSlewRate = "torqueSlewRate";
+static const char* speedSlewRate = "speedSlewRate";
+
+static const char* maxMechanicalPowerMotor = "maxMechPowerMotor";
+static const char* maxMechanicalPowerRegen = "maxMechPowerRegen";
+static const char* dcVoltLimitMotor = "dcVoltLimitMotor";
+static const char* dcVoltLimitRegen = "dcVoltLimitRegen";
+static const char* dcCurrentLimitMotor = "dcCurrentLimitMotor";
+static const char* dcCurrentLimitRegen = "dcCurrentLimitRegen";
+static const char* enableOscillationLimiter = "enableOscLimiter";
+
+// input
+static const char* reverseInput = "reverseInput";
 static const char* enableInput = "enableInput";
+static const char* chargePowerAvailableInput = "chargePwrAvailInput";
+static const char* interlockInput = "interlockInput";
+
+// output
+static const char* brakeLightOutput = "brakeLightOutput";
+static const char* reverseLightOutput = "reverseLightOutput";
 static const char* prechargeMillis = "prechargeMillis";
-static const char* prechargeRelayOutput = "prechargeOutput";
+static const char* prechargeRelayOutput = "prechargeRelayOutput";
 static const char* mainContactorOutput = "mainContactorOutput";
-static const char* secondaryContactorOutput = "secContactorOutput";
-static const char* enableMotorOutput = "enableOutput";
+static const char* secondaryContactorOutput = "secondaryContOutput";
+static const char* enableMotorOutput = "enableMotorOutput";
 static const char* coolingFanOutput = "coolingFanOutput";
 static const char* coolingTempOn = "coolingTempOn";
 static const char* coolingTempOff = "coolingTempOff";
-static const char* nominalVolt = "nominalVolt";
+static const char* fastChargeContactorOutput = "fastChargeContOutput";
+static const char* enableChargerOutput = "enableChargerOutput";
+static const char* enableDcDcOutput = "enableDcDcOutput";
+static const char* enableHeaterOutput = "enableHeaterOutput";
+static const char* heaterValveOutput = "heaterValveOutput";
+static const char* heaterPumpOutput = "heaterPumpOutput";
+static const char* coolingPumpOutput = "coolingPumpOutput";
+static const char* warningOutput = "warningOutput";
+static const char* powerLimitationOutput = "powerLimitOutput";
 
-// status
+// charger
+static const char* maximumInputCurrent = "maximumInputCurrent";
+static const char* constantCurrent = "constantCurrent";
+static const char* constantVoltage = "constantVoltage";
+static const char* terminateCurrent = "terminateCurrent";
+static const char* minimumBatteryVoltage = "minBatteryVoltage";
+static const char* maximumBatteryVoltage = "maxBatteryVoltage";
+static const char* minimumTemperature = "minimumTemperature";
+static const char* maximumTemperature = "maximumTemperature";
+static const char* maximumAmpereHours = "maximumAmpereHours";
+static const char* maximumChargeTime = "maximumChargeTime";
+static const char* deratingRate = "deratingRate";
+static const char* deratingReferenceTemperature = "deratingReferenceTmp";
+static const char* hystereseStopTemperature = "hystereseStopTemp";
+static const char* hystereseResumeTemperature = "hystereseResumeTemp";
+
+// dc dc converter
+static const char* dcDcMode = "dcDcMode";
+static const char* lowVoltageCommand = "lowVoltageCommand";
+static const char* hvUndervoltageLimit = "hvUndervoltageLimit";
+static const char* lvBuckModeCurrentLimit = "lvBuckCurrentLimit";
+static const char* hvBuckModeCurrentLimit = "hvBuckCurrentLimit";
+static const char* highVoltageCommand = "highVoltageCommand";
+static const char* lvUndervoltageLimit = "lvUndervoltageLimit";
+static const char* lvBoostModeCurrentLimit = "lvBoostCurrentLimit";
+static const char* hvBoostModeCurrentLimit = "hvBoostCurrentLimit";
+
+// status + dashboard
 static const char* timeRunning = "timeRunning";
 static const char* torqueRequested = "torqueRequested";
 static const char* torqueActual = "torqueActual";
 static const char* throttle = "throttle";
 static const char* brake = "brake";
-static const char* speedRequested = "speedRequested";
 static const char* speedActual = "speedActual";
 static const char* dcVoltage = "dcVoltage";
 static const char* dcCurrent = "dcCurrent";
@@ -89,16 +151,9 @@ static const char* bitfield2 = "bitfield2";
 static const char* bitfield3 = "bitfield3";
 static const char* systemState = "systemState";
 static const char* gear = "gear";
-static const char* tempMotor = "tempMotor";
-static const char* tempController = "tempController";
-static const char* tempSystem = "tempSystem";
-static const char* mechPower = "mechPower";
-
-// messages
-static const char* validChecksum = "Valid checksum, using stored config values";
-static const char* invalidChecksum = "Invalid checksum, using hard coded config values";
-static const char* valueOutOfRange = "value out of range: %l";
-static const char* normalOperation = "normal operation restored";
+static const char* temperatureMotor = "temperatureMotor";
+static const char* temperatureController = "tempController";
+static const char* mechanicalPower = "mechanicalPower";
 }
 
 #endif /* CONSTANTS_H_ */

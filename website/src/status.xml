@@ -2,20 +2,18 @@
 <status>
 	<timeRunning>~timeRunning~</timeRunning>
 	<systemState>~systemState~</systemState>
-	<temperatureMotor>~tempMotor~</temperatureMotor>
-	<temperatureController>~tempController~</temperatureController>
-	<temperatureSystem>~tempSystem~</temperatureSystem>
 	<throttle>~throttle~</throttle>
 	<brake>~brake~</brake>
 	<gear>~gear~</gear>
+	<temperatureMotor>~temperatureMotor~</temperatureMotor>
+	<temperatureController>~tempController~</temperatureController>
 	<torqueRequested>~torqueRequested~</torqueRequested>
 	<torqueActual>~torqueActual~</torqueActual>
-	<speedRequested>~speedRequested~</speedRequested>
 	<speedActual>~speedActual~</speedActual>
+	<mechanicalPower>~mechanicalPower~</mechanicalPower>
+	<kiloWattHours>~kiloWattHours~</kiloWattHours>
 	<dcVoltage>~dcVoltage~</dcVoltage>
 	<dcCurrent>~dcCurrent~</dcCurrent>
-	<kiloWattHours>~kiloWattHours~</kiloWattHours>
-	<mechanicalPower>~mechPower~</mechanicalPower>
 	<bitfield1>~bitfield1~</bitfield1>
 	<bitfield2>~bitfield2~</bitfield2>
 	<bitfield3>~bitfield3~</bitfield3>

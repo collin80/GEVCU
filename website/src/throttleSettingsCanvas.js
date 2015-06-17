@@ -1,13 +1,13 @@
 function ThrottleSettingsCanvas() {
 	// Just hard code theses Ids. HTML just needs to be kept in sync
     this.canvasId = "throttleCanvas";
-    this.throttleRegenMaxId = "throttleRegenMax";
-    this.throttleRegenMinId = "throttleRegenMin";
-    this.throttleFwdId = "throttleFwd";
-    this.throttleMapId = "throttleMap";
-    this.throttleMinRegenId = "throttleMinRegen";
-    this.throttleMaxRegenId = "throttleMaxRegen";
-    this.throttleCreepId = "throttleCreep";
+    this.throttleRegenMaxId = "positionRegenMaximum";
+    this.throttleRegenMinId = "positionRegenMinimum";
+    this.throttleFwdId = "positionForwardStart";
+    this.throttleMapId = "positionHalfPower";
+    this.throttleMinRegenId = "minimumRegen";
+    this.throttleMaxRegenId = "maximumRegen";
+    this.throttleCreepId = "creep";
     
     // default to white lines/text
     this.lineColor = "#FFFFFF";

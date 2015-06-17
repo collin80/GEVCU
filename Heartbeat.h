@@ -44,6 +44,9 @@ public:
     void setThrottleDebug(bool debug);
     bool getThrottleDebug();
 
+    void loadConfiguration();
+    void saveConfiguration();
+
 protected:
 
 private:

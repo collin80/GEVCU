@@ -32,10 +32,15 @@ BatteryManager::BatteryManager() : Device()
 {
     packVoltage = 0;
     packCurrent = 0;
-}
-
-BatteryManager::~BatteryManager()
-{
+    lowestCellV = 0;
+    lowestCellTemp = 0;
+    SOC = 0;
+    allowDischarge = false;
+    chargeLimit = 0;
+    highestCellV = 0;
+    highestCellTemp = 0;
+    allowCharge = false;
+    dischargeLimit = 0;
 }
 
 DeviceType BatteryManager::getType()
@@ -49,20 +54,7 @@ void BatteryManager::handleTick()
 
 void BatteryManager::setup()
 {
-    //tickHandler->detach(this);
-
-#ifndef USE_HARD_CODED
-
-    if (prefsHandler->checksumValid()) { //checksum is good, read in the values stored in EEPROM
-    } else { //checksum invalid. Reinitialize values and store to EEPROM
-        //prefsHandler->saveChecksum();
-    }
-
-#else
-#endif
-
-//tickHandler->attach(this, CFG_TICK_INTERVAL_MOTOR_CONTROLLER_DMOC);
-
+    Device::setup();
 }
 
 int BatteryManager::getPackVoltage()

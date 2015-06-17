@@ -1,0 +1,167 @@
+<form method="POST" action="">
+	<table id="configTable">
+		<tr>
+			<th colspan="5">Device Selection/Activation</th>
+		</tr>
+		<tr>
+			<td colspan="2"><h3>Motor Controllers/Inverters</h3></td>
+			<td></td>
+			<td colspan="2"><h3>Throttle and Brake</h3></td>
+		</tr>
+		<tr>
+			<td>Azure Dynamics DMOC645</td>
+			<td><select name="x1000" title="DMOC645">
+					<option value="0">-</option>
+					<option value="1">enabled</option>
+			</select></td>
+			<td></td>
+			<td>Potentiometer/Hall Effect Throttle</td>
+			<td><select name="x1031" title="Pot/Hall Throttle">
+					<option value="0">-</option>
+					<option value="1">enabled</option>
+			</select></td>
+		</tr>
+		<tr>
+			<td>UQM Powerphase 100</td>
+			<td><select name="x1002" title="UQM Powerphase 100">
+					<option value="0">-</option>
+					<option value="1">enabled</option>
+			</select></td>
+			<td></td>
+			<td>Potentiometer/Hall Effect Brake</td>
+			<td><select name="x1032" title="Pot/Hall Brake">
+					<option value="0">-</option>
+					<option value="1">enabled</option>
+			</select></td>
+		</tr>
+		<tr>
+			<td>Brusa DMC5</td>
+			<td><select name="x1001" title="Brusa DMC5">
+					<option value="0">-</option>
+					<option value="1">enabled</option>
+			</select></td>
+			<td></td>
+			<td>CAN bus Throttle</td>
+			<td><select name="x1033" title="CAN bus Throttle">
+					<option value="0">-</option>
+					<option value="1">enabled</option>
+			</select></td>
+		</tr>
+		<tr>
+			<td></td>
+			<td></td>
+			<td></td>
+			<td>CAN bus Brake</td>
+			<td><select name="x1034" title="CAN bus Brake">
+					<option value="0">-</option>
+					<option value="1">enabled</option>
+			</select></td>
+		</tr>
+		<tr>
+			<td colspan="2"><h3>Communication Interfaces</h3></td>
+			<td></td>
+			<td colspan="2"><h3>Battery Chargers and Management</h3></td>
+		</tr>
+		<tr>
+			<td>ConnectOne WiReach WiFi</td>
+			<td><select name="x1040"
+				title="This Website - Connect One WiReach">
+					<option value="0">-</option>
+					<option value="1">enabled</option>
+			</select></td>
+			<td></td>
+			<td>Brusa NLG5 Charger</td>
+			<td><select name="x1010" title="Brusa charger - enable if controlled via CAN by GEVCU, disable if auto mode is configured">
+					<option value="0">-</option>
+					<option value="1">enabled</option>
+			</select></td>
+		</tr>
+		<tr>
+			<td>ELM327 OBDII Wireless</td>
+			<td><select name="x6500" title="ELM Wireless OBDII">
+					<option value="0">-</option>
+					<option value="1">enabled</option>
+			</select></td>
+			<td></td>
+			<td>TCCH/Elcon Charger</td>
+			<td><select name="x1020" title="TCCH/Elcon" disabled="disabled">
+					<option value="0">-</option>
+					<option value="1">enabled</option>
+			</select></td>
+		</tr>
+		<tr>
+			<td>OBDII PID Listener</td>
+			<td><select name="x6000" title="OBDII PID Listener">
+					<option value="0">-</option>
+					<option value="1">enabled</option>
+			</select></td>
+			<td></td>
+			<td>Lear Charger</td>
+			<td><select name="x1022" title="Lear" disabled="disabled">
+					<option value="0">-</option>
+					<option value="1">enabled</option>
+			</select></td>
+		</tr>
+		<tr>
+			<td></td>
+			<td></td>
+			<td></td>
+			<td>THINK Systems BMS</td>
+			<td><select name="x2000" title="THINK Systems BMS">
+					<option value="0">-</option>
+					<option value="1">enabled</option>
+			</select></td>
+		</tr>
+		<tr>
+			<td colspan="2"><h3>System</h3></td>
+			<td></td>
+			<td colspan="2"><h3>DC-DC Converters</h3></td>
+		</tr>
+		<tr>
+			<td>Log Level</td>
+			<td><select name="logLevel"
+				title="The level of log messages written">
+					<option value="0">Debug</option>
+					<option value="1">Info</option>
+					<option value="2">Warning</option>
+					<option value="3">Error</option>
+					<option value="4">Off</option>
+			</select></td>
+			<td></td>
+			<td>Brusa BSC6</td>
+			<td><select name="x3000" title="Brusa BSC6 - enable if controlled via CAN by GEVCU, disable if auto mode is configured">
+					<option value="0">-</option>
+					<option value="1">enabled</option>
+			</select></td>
+		</tr>
+		<tr>
+			<td>Heartbeat</td>
+			<td><select name="x5001"
+				title="Heartbeat device which indicates if the system is alive">
+					<option value="0">-</option>
+					<option value="1">enabled</option>
+			</select></td>
+			<td></td>
+			<td></td>
+			<td></td>
+		</tr>
+		<tr>
+			<td>CAN I/O</td>
+			<td><select name="x5003"
+				title="System I/O data is sent/received via EV CAN bus">
+					<option value="0">-</option>
+					<option value="1">enabled</option>
+			</select></td>
+			<td></td>
+			<td></td>
+			<td></td>
+		</tr>
+		<tr>
+			<td colspan="5"><br></td>
+		</tr>
+		<tr>
+			<td colspan="5" align="center"><input type="submit" value="Save" />
+			</td>
+		</tr>
+	</table>
+</form>

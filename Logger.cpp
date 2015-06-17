@@ -382,6 +382,10 @@ void Logger::printDeviceName(DeviceId deviceId)
             SerialUSB.print("DMOC645");
             break;
 
+        case CODAUQM:
+            SerialUSB.print("CODAUQM");
+            break;
+
         case BRUSA_DMC5:
             SerialUSB.print("DMC5");
             break;
@@ -396,10 +400,6 @@ void Logger::printDeviceName(DeviceId deviceId)
 
         case TCCHCHARGE:
             SerialUSB.print("TCCH");
-            break;
-
-        case THROTTLE:
-            SerialUSB.print("THROTTLE");
             break;
 
         case POTACCELPEDAL:

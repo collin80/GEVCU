@@ -54,6 +54,7 @@ public:
     void setup();
     void tearDown();
     void handleTick();
+    void handleStateChange(Status::SystemState, Status::SystemState);
     void handleCanFrame(CAN_FRAME *frame);
     DeviceId getId();
 
@@ -64,7 +65,6 @@ public:
 protected:
     bool validateSignal(RawSignalData *);
     uint16_t calculatePedalPosition(RawSignalData *);
-    CanHandler *canHandlerCar;
 
 private:
     CAN_FRAME requestFrame; // the request frame sent to the car

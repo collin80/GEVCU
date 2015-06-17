@@ -33,7 +33,7 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 /*
 List of AT commands to support:
 AT E0 (turn echo off)
-AT H (0/1) - Turn headers on or off - headers are used to determine how many ECU’s present (hint: only send one response to 0100 and emulate a single ECU system to save time coding)
+AT H (0/1) - Turn headers on or off - headers are used to determine how many ECUï¿½s present (hint: only send one response to 0100 and emulate a single ECU system to save time coding)
 AT L0 (Turn linefeeds off - just use CR)
 AT Z (reset)
 AT SH - Set header address - seems to set the ECU address to send to (though you may be able to ignore this if you wish)
@@ -57,8 +57,6 @@ AT RV (adapter voltage) - Send something like 14.4V
 #include "Sys_Messages.h"
 #include "DeviceTypes.h"
 #include "ELM327Processor.h"
-
-extern PrefHandler *sysPrefs;
 
 /*
  * The extended configuration class with additional parameters for ichip WLAN
@@ -89,9 +87,7 @@ private:
     USARTClass *serialInterface; //Allows for retargetting which serial port we use
     ELM327Processor *elmProc;
     char incomingBuffer[128]; //storage for one incoming line
-    int tickCounter;
     int ibWritePtr;
-    int currReply;
     char buffer[30]; // a buffer for various string conversions
 
     void processCmd();

@@ -40,12 +40,20 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 class Status;
 
+enum SystemType {
+    GEVCU1 = 1,
+    GEVCU2 = 2,
+    GEVCU3 = 3,
+    GEVCU4 = 4
+};
+
 class SystemIOConfiguration
 {
 public:
     uint8_t enableInput; // # of input for enable signal - required so that GEVCU enables the controller and requests torque/speed > 0
     uint8_t chargePowerAvailableInput; // # of input to signal availability of charging power (shore power)
     uint8_t interlockInput; // # of input to signal if the interlock circuit is closed and HV voltage can be applied
+    uint8_t reverseInput; // # of input to signal if reverse mode is selected
 
     uint16_t prechargeMillis; // milliseconds required for the pre-charge cycle
     uint8_t prechargeRelayOutput; // # of output to use for the pre-charge relay or 255 if not used
@@ -69,12 +77,16 @@ public:
     uint8_t reverseLightOutput; // #of output for reverse light or 255 if not used
     uint8_t warningOutput; // #of output for warning light/relay or 255 if not used
     uint8_t powerLimitationOutput; // #of output for power limitation light or 255 if not used
+
+    SystemType systemType; // the system type
+    Logger::LogLevel logLevel; // the system's loglevel
 };
 
 class SystemIO : public TickObserver
 {
 public:
-    static SystemIO *getInstance();
+    SystemIO();
+    virtual ~SystemIO();
     void setup();
     void handleCanFrame(CAN_FRAME *frame);
     void handleTick();
@@ -86,6 +98,7 @@ public:
     bool isEnableSignalPresent();
     bool isChargePowerAvailable();
     bool isInterlockPresent();
+    bool isReverseSignalPresent();
 
     void setEnableMotor(bool);
     void setEnableCharger(bool);
@@ -103,12 +116,17 @@ public:
     void setPowerLimitation(bool);
 
     uint16_t getAnalogIn(uint8_t which);
-    boolean getDigitalIn(uint8_t which);
+    bool getDigitalIn(uint8_t which);
     void setDigitalOut(uint8_t which, boolean active);
-    boolean getDigitalOut(uint8_t which);
+    bool getDigitalOut(uint8_t which);
     void ADCPoll();
     uint32_t getNextADCBuffer();
     void printIOStatus();
+
+    void setSystemType(SystemType);
+    SystemType getSystemType();
+    void setLogLevel(Logger::LogLevel);
+    Logger::LogLevel getLogLevel();
 
 protected:
 
@@ -135,12 +153,9 @@ private:
 
     bool useRawADC;
     uint32_t preChargeStart; // time-stamp when pre-charge cycle has started
-    bool coolflag;
     SystemIOConfiguration *configuration;
-    Status *status;
     PrefHandler *prefsHandler;
 
-    SystemIO();
     void initializePinTables();
     void initGevcu2PinTable();
     void initGevcu3PinTable();
@@ -159,6 +174,8 @@ private:
     void handleCooling();
     void handlePreCharge();
     void handleCharging();
+    void handleBrakeLight();
+    void handleReverseLight();
 
     // for security reasons, these should stay private
     void setPrechargeRelay(bool);
@@ -167,5 +184,7 @@ private:
     void setFastChargeContactor(bool);
 
 };
+
+extern SystemIO systemIO;
 
 #endif

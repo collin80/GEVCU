@@ -35,6 +35,7 @@
 #include "Throttle.h"
 #include "CanHandler.h"
 #include "DeviceManager.h"
+#include "FaultHandler.h"
 
 #define MOTORCTL_INPUT_DRIVE_EN    3
 #define MOTORCTL_INPUT_FORWARD     4
@@ -43,15 +44,24 @@
 
 class CanHandler;
 
+enum PowerMode {
+    modeTorque = 0,
+    modeSpeed = 1
+};
+
 class MotorControllerConfiguration : public DeviceConfiguration
 {
 public:
+    bool invertDirection; // should an AC motor run in reverse mode? (e.g. negative speed for forward motion)
     uint16_t speedMax; // in rpm
     uint16_t torqueMax; // maximum torque in 0.1 Nm
     uint16_t torqueSlewRate; // for torque mode only: slew rate of torque value, 0=disabled, in 0.1Nm/sec
     uint16_t speedSlewRate; //  for speed mode only: slew rate of speed value, 0=disabled, in rpm/sec
+    uint16_t maxMechanicalPowerMotor; // maximal mechanical power of motor in 100W steps
+    uint16_t maxMechanicalPowerRegen; // maximal mechanical power of regen in 100W steps
     uint8_t reversePercent;
     uint16_t nominalVolt; //nominal pack voltage in tenths of a volt
+    PowerMode powerMode;
 };
 
 class MotorController: public Device, public CanObserver
@@ -61,28 +71,22 @@ public:
         NEUTRAL = 0,
         DRIVE = 1,
         REVERSE = 2,
-        ERROR = 3,
-    };
-
-    enum PowerMode {
-        modeTorque,
-        modeSpeed
+        ERROR = 3
     };
 
     MotorController();
     DeviceType getType();
     void setup();
+    void tearDown();
     void handleTick();
     void handleCanFrame(CAN_FRAME *);
-    void handleStateChange(Status::SystemState);
+    void handleStateChange(Status::SystemState, Status::SystemState);
 
     void loadConfiguration();
     void saveConfiguration();
 
-    void setPowerMode(PowerMode mode);
-    PowerMode getPowerMode();
-    int16_t getThrottle();
-    int16_t getselectedGear();
+    int16_t getThrottleLevel();
+    Gears getGear();
     int16_t getSpeedRequested();
     int16_t getSpeedActual();
     int16_t getTorqueRequested();
@@ -98,18 +102,8 @@ public:
     int16_t getTemperatureController();
     int16_t getNominalVolt();
 
-    Gears getSelectedGear();
-
 protected:
-    CanHandler *canHandlerEv;
-
-    Gears selectedGear;
-    PowerMode powerMode;
-
-    int16_t throttleRequested; // -1000 to 1000 (per mille of throttle level)
-    int16_t speedRequested; // in rpm
     int16_t speedActual; // in rpm
-    int16_t torqueRequested; // in 0.1 Nm
     int16_t torqueActual; // in 0.1 Nm
     int16_t torqueAvailable; // the maximum available torque in 0.1Nm
 
@@ -123,6 +117,19 @@ protected:
 
     uint32_t skipcounter;
     uint32_t milliStamp;
+    void reportActivity();
+
+private:
+    int16_t throttleLevel; // -1000 to 1000 (per mille of throttle level)
+    int16_t torqueRequested; // in 0.1 Nm, calculated in MotorController - must not be manipulated by subclasses
+    int16_t speedRequested; // in rpm, calculated in MotorController - must not be manipulated by subclasses
+    uint8_t ticksNoMessage; // counter how many ticks the device went through without any message from the controller
+    Gears gear;
+
+    void updatePowerConsumption();
+    void checkActivity();
+    void processThrottleLevel();
+    void updateGear();
 };
 
 #endif
