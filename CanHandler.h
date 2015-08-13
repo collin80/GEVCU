@@ -34,6 +34,7 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include <DueTimer.h>
 #include "Logger.h"
 #include "DeviceManager.h"
+#include "sys_io.h"
 
 class Device;
 
@@ -54,6 +55,7 @@ public:
 	void detach(CanObserver *observer, uint32_t id, uint32_t mask);
 	void process();
 	void sendFrame(CAN_FRAME& frame);
+  void CANIO(CAN_FRAME& frame); 
 	static CanHandler *getInstanceCar();
 	static CanHandler *getInstanceEV();
 protected:

@@ -59,9 +59,7 @@ void DCDCController::setup()
 	loadConfiguration();
 	Device::setup(); // run the parent class version of this function
 
-	// ‚Äì√ü‚Äì‚àè‚Äî√á‚Äì‚àû‚Äì¬µ‚Äì¬∫ ‚Äî√á‚Äì√¶‚Äì¬™‚Äî√•‚Äì‚à´‚Äì√¶ ‚Äì√¶‚Äì¬•‚Äì‚àè‚ÄìŒ© ‚Äì‚à´‚Äì‚àû‚Äì¬•‚Äî√Ñ
-        CanHandler::getInstanceCar()->attach(this, 0x1D5, 0x7ff, false);
-        //‚Äì¬∞‚Äî√á‚Äì‚àû‚Äì‚â§‚Äì‚àè‚Äì¬∫ ‚Äî√á‚Äì‚àû‚ÄìœÄ‚Äì¬∫‚Äì¬µ‚Äî√Ñ ‚ÄìŒ©‚Äì‚àû 25‚Äì¬∫‚Äî√Ö.
+	     CanHandler::getInstanceCar()->attach(this, 0x1D5, 0x7ff, false);
         //Watch for 0x1D5 messages from Delphi converter
 	TickHandler::getInstance()->attach(this, CFG_TICK_INTERVAL_DCDC);
 }
