@@ -146,16 +146,21 @@ void CodaMotorController::handleCanFrame(CAN_FRAME *frame)
 
 
 void CodaMotorController::handleTick() {
-
+  
 	MotorController::handleTick(); //kick the ball up to papa
         sendCmd1();   //Send our lone torque command
-        if (millis()-mss>2000 && online==0)
-          {
-            running=false; // We haven't received any UQM frames for over 2 seconds.  Otherwise online would be 1.
-            mss=millis();   //So we've lost communications.  Let's turn off the running light.
-			faultHandler.raiseFault(CODAUQM, FAULT_MOTORCTRL_COMM, true);
-          }
-        online=0;//This flag will be set to 1 by received frames.
+        
+          if(!online)  //This routine checks to see if we have received any frames from the inverter.  If so, ONLINE would be true and
+            {          //we set the RUNNING light on.  If no frames are received for 2 seconds, we set running OFF.
+              if (millis()-mss>2000)  
+                {
+                  running=false; // We haven't received any frames for over 2 seconds.  Otherwise online would be true.
+                  mss=millis();   //Reset our 2 second timer
+                }
+             }
+             else running=true;
+          online=false;//This flag will be set to true by received frames      
+        
 }
 
 
@@ -329,4 +334,6 @@ void CodaMotorController::timestamp()
     //sprintf(buffer,"%02d:%02d:%02d.%03d", hours, minutes, seconds, milliseconds);
    // Serial<<buffer<<"\n";
 }
+
+
 

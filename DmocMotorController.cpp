@@ -91,7 +91,7 @@ void DmocMotorController::setup() {
 void DmocMotorController::handleCanFrame(CAN_FRAME *frame) {
 	int RotorTemp, invTemp, StatorTemp;
 	int temp;
-	online = 1; //if a frame got to here then it passed the filter and must have been from the DMOC
+	online = true; //if a frame got to here then it passed the filter and must have been from the DMOC
       
         Logger::debug("DMOC CAN received: %X  %X  %X  %X  %X  %X  %X  %X  %X", frame->id,frame->data.bytes[0] ,frame->data.bytes[1],frame->data.bytes[2],frame->data.bytes[3],frame->data.bytes[4],frame->data.bytes[5],frame->data.bytes[6],frame->data.bytes[70]);
   
@@ -203,14 +203,19 @@ void DmocMotorController::handleTick() {
 		setSelectedGear(NEUTRAL); //We will stay in NEUTRAL until we get at least 40 frames ahead indicating continous communications.	
 	}
 
-	if (millis()-ms>2000 && online==0)
-    {
-		running=false; // We haven't received any frames for over 2 seconds.  Otherwise online would be 1.
-		ms=millis();   //So we've lost communications.  Let's turn off the running light.
-    }
-    running=online;
-    online=0;//This flag will be set to 1 by received frames.
-
+	 
+          if(!online)  //This routine checks to see if we have received any frames from the inverter.  If so, ONLINE would be true and
+            {          //we set the RUNNING light on.  If no frames are received for 2 seconds, we set running OFF.
+              if ((millis()-ms)>2000)  
+                {
+                  running=false; // We haven't received any frames for over 2 seconds.  Otherwise online would be true.
+                  ms=millis();   //Reset our 2 second timer
+                }
+             }
+             else running=true;
+          online=false;//This flag will be set to 1 by received frames.
+          
+          
 	sendCmd1();  //This actually sets our GEAR and our actualstate cycle
 	sendCmd2();  //This is our torque command
 	sendCmd3();
@@ -440,3 +445,5 @@ void DmocMotorController::timestamp()
     
 
 }
+
+

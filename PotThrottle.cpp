@@ -281,3 +281,5 @@ void PotThrottle::saveConfiguration() {
 	prefsHandler->write(EETH_ADC_2, config->AdcPin2);
 	prefsHandler->saveChecksum();
 }
+
+

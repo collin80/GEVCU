@@ -73,3 +73,5 @@ private:
 };
 
 #endif /* DEVICE_H_ */
+
+

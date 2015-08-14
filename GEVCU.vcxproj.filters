@@ -123,6 +123,12 @@
     <ClInclude Include="FaultCodes.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="DCDCController.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="EVIC.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <Text Include="GEVCU.ino" />
@@ -210,6 +216,12 @@
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="CodaMotorController.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="DCDCController.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="EVIC.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>

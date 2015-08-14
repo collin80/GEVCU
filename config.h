@@ -35,8 +35,8 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 #include <due_can.h>
 
-#define CFG_BUILD_NUM	1051        //increment this every time a git commit is done. 
-#define CFG_VERSION "GEVCU 2014-09-16"
+#define CFG_BUILD_NUM	5220        //increment this every time a git commit is done. 
+#define CFG_VERSION "GEVCU 2015-02-19"
 
 
 /*
@@ -67,15 +67,17 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #define CFG_TICK_INTERVAL_MEM_CACHE			40000
 #define CFG_TICK_INTERVAL_BMS_THINK			500000
 #define CFG_TICK_INTERVAL_WIFI				200000
+#define CFG_TICK_INTERVAL_DCDC                          200000
+#define CFG_TICK_INTERVAL_EVIC                          100000
 
 
 /*
  * CAN BUS CONFIGURATION
  */
 #define CFG_CAN0_SPEED CAN_BPS_500K // specify the speed of the CAN0 bus (EV)
-#define CFG_CAN1_SPEED CAN_BPS_500K // specify the speed of the CAN1 bus (Car)
-#define CFG_CAN0_NUM_RX_MAILBOXES 7 // amount of CAN bus receive mailboxes for CAN0
-#define CFG_CAN1_NUM_RX_MAILBOXES 7 // amount of CAN bus receive mailboxes for CAN1
+#define CFG_CAN1_SPEED CAN_BPS_250K // specify the speed of the CAN1 bus (Car)
+#define CFG_CAN0_NUM_RX_MAILBOXES 9 // amount of CAN bus receive mailboxes for CAN0
+#define CFG_CAN1_NUM_RX_MAILBOXES 9 // amount of CAN bus receive mailboxes for CAN1
 #define CFG_CANTHROTTLE_MAX_NUM_LOST_MSG 3 // maximum number of lost messages allowed
 
 /*
@@ -115,16 +117,16 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #define BrakeADC				2       //which ADC pin to use
 
 
-#define MaxTorqueValue		3000 //in tenths of a Nm
+#define MaxTorqueValue		        3000 //in tenths of a Nm
 #define	MaxRPMValue			6000 //DMOC will ignore this but we can use it ourselves for limiting
-#define RPMSlewRateValue	10000 // rpm/sec the requested speed should change (speed mode)
-#define TorqueSlewRateValue	6000 // 0.1Nm/sec the requested torque output should change (torque mode)
+#define RPMSlewRateValue	        10000 // rpm/sec the requested speed should change (speed mode)
+#define TorqueSlewRateValue	        6000 // 0.1Nm/sec the requested torque output should change (torque mode)
 #define KilowattHrs			11000 //not currently used
 #define PrechargeR			3000 //millliseconds precharge
 #define NominalVolt			3300 //a reasonable figure for a lithium cell pack driving the DMOC (in tenths of a volt)
-#define PrechargeRelay		4 //third output
-#define MainContactorRelay	5 //fourth output
-#define ReversePercent		50
+#define PrechargeRelay		        4 //third output
+#define MainContactorRelay	        5 //fourth output
+#define ReversePercent		        50
 #define CoolFan				255  //output to use for cooling fan
 #define CoolOn				40 //temperature (in C) to turn on cooling fan
 #define BrakeLight			255 //temperature to turn it off
@@ -132,8 +134,9 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #define RevLight			255 //temperature to turn it off
 #define EnableIn			255//temperature to turn it off
 #define ReverseIn			255 //temperature to turn it off
-#define MaxRegenWatts	40000 //in actual watts, there is no scale here
-#define MaxAccelWatts	150000
+#define MaxRegenWatts	                40000 //in actual watts, there is no scale here
+#define MaxAccelWatts	                150000
+#define BatteryCapacity                 100
 
 
 /*
@@ -142,9 +145,9 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  * Define the maximum number of various object lists.
  * These values should normally not be changed.
  */
-#define CFG_DEV_MGR_MAX_DEVICES 20 // the maximum number of devices supported by the DeviceManager
-#define CFG_CAN_NUM_OBSERVERS	5 // maximum number of device subscriptions per CAN bus
-#define CFG_TIMER_NUM_OBSERVERS	9 // the maximum number of supported observers per timer
+#define CFG_DEV_MGR_MAX_DEVICES 30 // the maximum number of devices supported by the DeviceManager
+#define CFG_CAN_NUM_OBSERVERS	7 // maximum number of device subscriptions per CAN bus
+#define CFG_TIMER_NUM_OBSERVERS	7 // the maximum number of supported observers per timer
 #define CFG_TIMER_USE_QUEUING	// if defined, TickHandler uses a queuing buffer instead of direct calls from interrupts
 #define CFG_TIMER_BUFFER_SIZE	100 // the size of the queuing buffer for TickHandler
 #define CFG_FAULT_HISTORY_SIZE	50 //number of faults to store in eeprom. A circular buffer so the last 50 faults are always stored.
@@ -159,4 +162,14 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #define NUM_DIGITAL	4
 #define NUM_OUTPUT	8
 
+//CAN message ID ASSIGNMENTS FOR I/0 MANAGEMENT
+#define CAN_SWITCH 0x606
+#define CAN_OUTPUTS 0x607
+#define CAN_ANALOG_INPUTS 0x608
+#define CAN_DIGITAL_INPUTS 0x609
+
+
+
 #endif /* CONFIG_H_ */
+
+

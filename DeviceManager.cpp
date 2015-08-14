@@ -298,7 +298,7 @@ void DeviceManager::updateWifi() {
   
         sendMessage(DEVICE_WIFI, ICHIP2128, MSG_CONFIG_CHANGE, NULL);  //Load all our other parameters first
         
-        char param [2][20];  //A two element array containing id and enable state
+        char param [2][30];  //A two element array containing id and enable state
         char *paramPtr[2] = { &param[0][0], &param[1][0] }; //A two element array of pointers, pointing to the addresses of row 1 and row 2 of array.
                                                             //paramPtr[0] then contains address of param row 0 element 0
                                                             //paramPtr[1] then contains address of param row 1 element 0.
@@ -327,5 +327,7 @@ void DeviceManager::updateWifi() {
 
        
 }
+
+
 
 

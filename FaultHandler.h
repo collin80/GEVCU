@@ -80,3 +80,5 @@ class FaultHandler : public TickObserver {
 extern FaultHandler faultHandler;
 
 #endif /* FAULT_H_ */
+
+

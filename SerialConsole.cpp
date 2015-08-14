@@ -98,7 +98,7 @@ void SerialConsole::printMenu() {
 	SerialUSB.println("p = enable wifi passthrough (reboot required to resume normal operation)");
 	SerialUSB.println("S = show possible device IDs");
 	SerialUSB.println("w = GEVCU 4.2 reset wifi to factory defaults, setup GEVCU ad-hoc network");
-	SerialUSB.println("W = GEVCU 5.2 reset wifi to factory defaults, setup GEVCU as 10.0.0.1 Access Point");
+	SerialUSB.println("W = GEVCU 5.2 reset wifi to factory defaults, setup GEVCU as Access Point");
 	SerialUSB.println("s = Scan WiFi for nearby access points");
 	SerialUSB.println();
 	SerialUSB.println("Config Commands (enter command=newvalue). Current values shown in parenthesis:");
@@ -192,10 +192,11 @@ void SerialConsole::printMenu() {
 	        SerialUSB.println();
 
 		Logger::console("NOMV=%i - Fully charged pack voltage that automatically resets kWh counter", config->nominalVolt/10);
+            	Logger::console("CAPACITY=%i - capacity of battery pack in ampere-hours", config->capacity);
+           
                 Logger::console("kWh=%d - kiloWatt Hours of energy used", config->kilowattHrs/3600000);
 		Logger::console("OUTPUT=<0-7> - toggles state of specified digital output");
-		Logger::console("NUKE=1 - Resets all device settings in EEPROM. You have been warned.");
-             
+                Logger::console("NUKE=1 - Resets all device settings in EEPROM. You have been warned.");
 	}
 
 	
@@ -244,10 +245,11 @@ void SerialConsole::handleConfigCmd() {
 	PotThrottleConfiguration *acceleratorConfig = NULL;
 	PotThrottleConfiguration *brakeConfig = NULL;
 	MotorControllerConfiguration *motorConfig = NULL;
+       
 	Throttle *accelerator = DeviceManager::getInstance()->getAccelerator();
 	Throttle *brake = DeviceManager::getInstance()->getBrake();
 	MotorController *motorController = DeviceManager::getInstance()->getMotorController();
-	int i;
+    	int i;
 	int newValue;
 	bool updateWifi = true;
 
@@ -549,7 +551,21 @@ void SerialConsole::handleConfigCmd() {
                   
              
         Logger::console("DOUT0:%d, DOUT1:%d, DOUT2:%d, DOUT3:%d, DOUT4:%d, DOUT5:%d, DOUT6:%d, DOUT7:%d", getOutput(0), getOutput(1), getOutput(2), getOutput(3), getOutput(4), getOutput(5), getOutput(6), getOutput(7));
-	} else if (cmdString == String("NUKE")) {
+	
+                } else if (cmdString == String("CAPACITY") ) {
+                  motorConfig->capacity = newValue;
+		  motorController->saveConfiguration();
+              	  Logger::console("Battery Pack Capacity set to: %d",motorConfig->capacity);
+              
+                } else if (cmdString == String("KWH") ) {
+             
+                  motorController->kiloWattHours = newValue*3600000;
+		  motorController->saveConfiguration();
+              	  Logger::console("kWh set to: %d",motorController->kiloWattHours);
+
+            
+
+              } else if (cmdString == String("NUKE")) {
 		if (newValue == 1) 
 		{   //write zero to the checksum location of every device in the table.
 			//Logger::console("Start of EEPROM Nuke");
@@ -561,7 +577,7 @@ void SerialConsole::handleConfigCmd() {
 			}			
 			Logger::console("Device settings have been nuked. Reboot to reload default settings");
 		}
-	} else {
+                } else {
 		Logger::console("Unknown command");
 		updateWifi = false;
 	}
@@ -685,19 +701,8 @@ void SerialConsole::handleShortCmd() {
 		deviceManager->sendMessage(DEVICE_WIFI, ICHIP2128, MSG_COMMAND, (void *)"RP20");
 		break;
 	case 'W':
-		Logger::console("Setting Wifi Adapter to WPS mode (make sure you press the WPS button on your router)");
-		// restore factory defaults and give it some time
-		deviceManager->sendMessage(DEVICE_WIFI, ICHIP2128, MSG_COMMAND, (void *)"AWPS");
-		break;
-	case 'w':
-		Logger::console("Resetting wifi to factory defaults and setting up GEVCU4.2 Ad Hoc network");
-		// restore factory defaults and give it some time
-        // pinMode(43,OUTPUT);
-        //  digitalWrite(43, LOW); //Pin 43 held low for 5 seconds puts Version 4.2 in Recovery mode
-        //  delay(6000);
-        //  digitalWrite(43, HIGH);
-       // delay(3000);
-                deviceManager->sendMessage(DEVICE_WIFI, ICHIP2128, MSG_COMMAND, (void *)"FD");//Reset
+		Logger::console("Resetting wifi to factory defaults and setting up GEVCU5.2 Access Point");
+	        deviceManager->sendMessage(DEVICE_WIFI, ICHIP2128, MSG_COMMAND, (void *)"FD");//Reset
 		  delay(2000);
                 deviceManager->sendMessage(DEVICE_WIFI, ICHIP2128, MSG_COMMAND, (void *)"HIF=1");  //Set for RS-232 serial.
 		  delay(1000);
@@ -705,8 +710,12 @@ void SerialConsole::handleShortCmd() {
 		  delay(1000);
 		deviceManager->sendMessage(DEVICE_WIFI, ICHIP2128, MSG_COMMAND, (void *)"WLCH=9"); //use whichever channel an AP wants to use
 		  delay(1000);
-		deviceManager->sendMessage(DEVICE_WIFI, ICHIP2128, MSG_COMMAND, (void *)"WLSI=!GEVCU"); //set for GEVCU aS AP.
+		deviceManager->sendMessage(DEVICE_WIFI, ICHIP2128, MSG_COMMAND, (void *)"WLSI=GEVCU"); //set for GEVCU aS AP.
 		  delay(1000);
+
+		deviceManager->sendMessage(DEVICE_WIFI, ICHIP2128, MSG_COMMAND, (void *)"STAP=1"); //enable IP 
+		  delay(1000);
+
 		deviceManager->sendMessage(DEVICE_WIFI, ICHIP2128, MSG_COMMAND, (void *)"DIP=192.168.3.10"); //enable IP 
 		  delay(1000);
 		deviceManager->sendMessage(DEVICE_WIFI, ICHIP2128, MSG_COMMAND, (void *)"DPSZ=8"); //set DHCP server for 8
@@ -721,11 +730,64 @@ void SerialConsole::handleShortCmd() {
 		  delay(5000); // a 5 second delay is required for the chip to come back up ! Otherwise commands will be lost
   
 		deviceManager->sendMessage(DEVICE_WIFI, ICHIP2128, MSG_CONFIG_CHANGE, NULL); // reload configuration params as they were lost
-		Logger::console("Wifi 4.2 initialized");
-		break;
-        
+		Logger::console("Wifi 5.2 initialized");
+	        break;
+	case 'w':
+		Logger::console("Resetting wifi to factory defaults and setting up GEVCU4.2 Ad Hoc network");
+		resetWiReachMini();
+		deviceManager->sendMessage(DEVICE_WIFI, ICHIP2128, MSG_CONFIG_CHANGE, NULL); // reload configuration params as they were lost
+                break;
+
 	case 'X':
 		setup(); //this is probably a bad idea. Do not do this while connected to anything you care about - only for debugging in safety!
 		break;
 	}
 }
+
+void SerialConsole::resetWiReachMini() {
+
+  //Serial2.begin(115200);
+              while (Serial2.available()) {
+		SerialUSB.write(Serial2.read());
+                }
+              Serial2.println("AT+iFD");
+              getResponse();
+              Serial2.println("AT+iHIF=1");
+              getResponse();
+              Serial2.println("AT+iBDRA");
+              getResponse();
+              Serial2.println("AT+iWLCH=9");
+              getResponse();
+              Serial2.println("AT+iWLSI=!GEVCU");
+              getResponse();
+              Serial2.println("AT+iDIP=192.168.3.10");
+              getResponse();
+              Serial2.println("AT+iDPSZ=8");
+              getResponse();
+              Serial2.println("AT+iRPG=secret");
+              getResponse();
+              Serial2.println("AT+iWPWD=secret");
+              getResponse();
+              Serial2.println("AT+iAWS=1");
+              getResponse();
+              Serial2.println("AT+iDOWN");
+              getResponse();
+               getResponse();
+             
+              
+
+		Logger::console("Wifi 4.2 initialized");
+}
+
+void SerialConsole::getResponse(){
+      
+       while (Serial2.available()) {
+		SerialUSB.write(Serial2.read());
+                }
+              SerialUSB.println();
+                delay(4000);
+              
+}
+        
+
+

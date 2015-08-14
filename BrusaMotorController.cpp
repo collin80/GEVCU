@@ -376,3 +376,5 @@ void BrusaMotorController::saveConfiguration() {
 //	prefsHandler->write(EEMC_, config->enableOscillationLimiter);
 	prefsHandler->saveChecksum();
 }
+
+

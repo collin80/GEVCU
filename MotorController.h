@@ -60,6 +60,7 @@ public:
 	uint8_t revLight;
 	uint8_t enableIn;
 	uint8_t reverseIn;
+        uint8_t capacity;
         
 };
 
@@ -116,7 +117,8 @@ uint32_t statusBitfield1; // bitfield variable for use of the specific implement
 uint32_t statusBitfield2;
 uint32_t statusBitfield3;
 uint32_t statusBitfield4;
-
+uint32_t kiloWattHours;
+	
 
 
 
@@ -162,7 +164,8 @@ uint32_t statusBitfield4;
         int minutes;
         int hours ;
         int premillis;
-
+        uint16_t nominalVolts; //nominal pack voltage in 1/10 of a volt
+        uint8_t capacity;
 	
 
 protected:
@@ -190,15 +193,13 @@ protected:
 	uint16_t dcVoltage; // DC voltage in 0.1 Volts
 	int16_t dcCurrent; // DC current in 0.1 Amps
 	uint16_t acCurrent; // AC current in 0.1 Amps
-	uint32_t kiloWattHours;
 	int16_t mechanicalPower; // mechanical power of the motor 0.1 kW
 	int16_t temperatureMotor; // temperature of motor in 0.1 degree C
 	int16_t temperatureInverter; // temperature of inverter power stage in 0.1 degree C
 	int16_t temperatureSystem; // temperature of controller in 0.1 degree C
 
 	
-	uint16_t nominalVolts; //nominal pack voltage in 1/10 of a volt
-
+	
 	uint16_t prechargeTime; //time in ms that precharge should last
 	uint32_t milliStamp; //how long we have precharged so far
 	bool donePrecharge; //already completed the precharge cycle?
@@ -207,3 +208,5 @@ protected:
 };
 
 #endif
+
+

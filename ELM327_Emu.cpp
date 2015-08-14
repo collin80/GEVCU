@@ -184,3 +184,5 @@ void ELM327Emu::saveConfiguration() {
 //	prefsHandler->saveChecksum();
 }
  
+
+

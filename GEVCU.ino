@@ -71,6 +71,7 @@ SerialConsole *serialConsole;
 Device *wifiDevice;
 Device *btDevice;
 
+
 byte i = 0;
 
 
@@ -86,8 +87,8 @@ void initWiReach()
 SerialUSB.begin(115200); // use SerialUSB only as the programming port doesn't work
 Serial2.begin(115200); // use Serial3 for GEVCU2, use Serial2 for GEVCU3+4
 
-sendWiReach("AT+iFD");//Host connection set to serial port
-delay(5000);
+//sendWiReach("AT+iFD");//Host connection set to serial port
+//delay(5000);
 sendWiReach("AT+iHIF=1");//Host connection set to serial port
 sendWiReach("AT+iBDRF=9");//Automatic baud rate on host serial port
 sendWiReach("AT+iRPG=secret"); //Password for iChip wbsite
@@ -215,13 +216,14 @@ void createObjects() {
 	CanBrake *cbrake = new CanBrake();
 	DmocMotorController *dmotorController = new DmocMotorController();
     CodaMotorController *cmotorController = new CodaMotorController();
+        DCDCController *dcdcController = new DCDCController();
 	BrusaMotorController *bmotorController = new BrusaMotorController();
 	ThinkBatteryManager *BMS = new ThinkBatteryManager();
 	ELM327Emu *emu = new ELM327Emu();
 	ICHIPWIFI *iChip = new ICHIPWIFI();	
+        EVIC *eVIC = new EVIC();
 }
-
-void initializeDevices() {
+     void initializeDevices() {
 	DeviceManager *deviceManager = DeviceManager::getInstance();
 
 	//heartbeat is always enabled now
@@ -270,7 +272,7 @@ void setup() {
             {
 	      Logger::info("Initializing EEPROM");
 	      initSysEEPROM();
-              initWiReach();
+             // initWiReach();
 	    } 
           else {Logger::info("Using existing EEPROM values");}//checksum is good, read in the values stored in EEPROM
 
@@ -319,5 +321,7 @@ void loop() {
 	//this should still be here. It checks for a flag set during an interrupt
 	sys_io_adc_poll();
 }
+
+
 
 

@@ -250,3 +250,5 @@ void timer8Interrupt() {
 void TickObserver::handleTick() {
 	Logger::error("TickObserver does not implement handleTick()");
 }
+
+

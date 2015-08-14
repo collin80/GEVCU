@@ -68,46 +68,46 @@ the end of the stardard data. The below numbers are offsets from the device's ee
 #define EE_DEVICE_ID		1 //2 bytes - the value of the ENUM DEVID of this device.
 
 //Motor controller data
-#define EEMC_MAX_RPM			20 //2 bytes, unsigned int for maximum allowable RPM
-#define EEMC_MAX_TORQUE			22 //2 bytes, unsigned int - maximum torque in tenths of a Nm
+#define EEMC_MAX_RPM		20 //2 bytes, unsigned int for maximum allowable RPM
+#define EEMC_MAX_TORQUE		22 //2 bytes, unsigned int - maximum torque in tenths of a Nm
 #define EEMC_PRECHARGE_RELAY	24 //1 byte - 255 = no precharge relay 0-3 = yes, there is one (and the output is the number stored)
 #define EEMC_CONTACTOR_RELAY	25 //1 byte - 255 = no contactor relay 0-3 = yes there is
-#define EEMC_COOL_FAN			26 //1 byte output controlling external cooling relay
-#define EEMC_COOL_ON	  		27 //1 bytes temperature at which external cooling is switched on
-#define EEMC_COOL_OFF			28 //1 byte temperature at which external cooling is switched off
-#define EEMC_KILOWATTHRS		29 //4 bytes - capacitance of controller capacitor bank in micro farads (uf) - set to zero to disable RC precharge
-#define EEMC_PRECHARGE_R		33 //2 bytes - Resistance of precharge resistor in tenths of an ohm
-#define EEMC_NOMINAL_V			35 //2 bytes - nominal system voltage to expect (in tenths of a volt)
-#define EEMC_REVERSE_LIMIT		37 //2 bytes - a percentage to knock the requested torque down by while in reverse.
-#define EEMC_RPM_SLEW_RATE		39 //2 bytes - slew rate (rpm/sec) at which speed should change (only in speed mode)
+#define EEMC_COOL_FAN		26 //1 byte output controlling external cooling relay
+#define EEMC_COOL_ON	  	27 //1 bytes temperature at which external cooling is switched on
+#define EEMC_COOL_OFF		28 //1 byte temperature at which external cooling is switched off
+#define EEMC_KILOWATTHRS	29 //4 bytes - capacitance of controller capacitor bank in micro farads (uf) - set to zero to disable RC precharge
+#define EEMC_PRECHARGE_R	33 //2 bytes - Resistance of precharge resistor in tenths of an ohm
+#define EEMC_NOMINAL_V		35 //2 bytes - nominal system voltage to expect (in tenths of a volt)
+#define EEMC_REVERSE_LIMIT	37 //2 bytes - a percentage to knock the requested torque down by while in reverse.
+#define EEMC_RPM_SLEW_RATE	39 //2 bytes - slew rate (rpm/sec) at which speed should change (only in speed mode)
 #define EEMC_TORQUE_SLEW_RATE	41 //2 bytes - slew rate (0.1Nm/sec) at which the torque should change
 #define EEMC_BRAKE_LIGHT        42
-#define EEMC_REV_LIGHT			43
-#define EEMC_ENABLE_IN			44
-#define EEMC_REVERSE_IN			45
-#define EEMC_MOTOR_MODE			46
+#define EEMC_REV_LIGHT		43
+#define EEMC_ENABLE_IN		44
+#define EEMC_REVERSE_IN		45
+#define EEMC_MOTOR_MODE		46
 
 //throttle data
-#define EETH_MIN_ONE			20 //2 bytes - ADC value of minimum value for first channel
-#define EETH_MAX_ONE			22 //2 bytes - ADC value of maximum value for first channel
-#define EETH_MIN_TWO			24 //2 bytes - ADC value of minimum value for second channel
-#define EETH_MAX_TWO			26 //2 bytes - ADC value of maximum value for second channel
+#define EETH_MIN_ONE		20 //2 bytes - ADC value of minimum value for first channel
+#define EETH_MAX_ONE		22 //2 bytes - ADC value of maximum value for first channel
+#define EETH_MIN_TWO		24 //2 bytes - ADC value of minimum value for second channel
+#define EETH_MAX_TWO		26 //2 bytes - ADC value of maximum value for second channel
 #define EETH_REGEN_MIN	        28 //2 bytes - unsigned int - tenths of a percent (0-1000) of pedal position where regen stops
-#define EETH_FWD				30 //2 bytes - unsigned int - tenths of a percent (0-1000) of pedal position where forward motion starts 
-#define EETH_MAP				32 //2 bytes - unsigned int - tenths of a percent (0-1000) of pedal position where forward motion is at 50% throttle
-#define EETH_BRAKE_MIN			34 //2 bytes - ADC value of minimum value for brake input
-#define EETH_BRAKE_MAX			36 //2 bytes - ADC value of max value for brake input
+#define EETH_FWD		30 //2 bytes - unsigned int - tenths of a percent (0-1000) of pedal position where forward motion starts 
+#define EETH_MAP		32 //2 bytes - unsigned int - tenths of a percent (0-1000) of pedal position where forward motion is at 50% throttle
+#define EETH_BRAKE_MIN		34 //2 bytes - ADC value of minimum value for brake input
+#define EETH_BRAKE_MAX		36 //2 bytes - ADC value of max value for brake input
 #define EETH_MAX_ACCEL_REGEN	38 //2 bytes - maximum percentage of throttle to command on accel pedal regen
 #define EETH_MAX_BRAKE_REGEN	40 //2 bytes - maximum percentage of throttle to command for braking regen. Starts at min brake regen and works up to here.
-#define EETH_NUM_THROTTLES		42 //1 byte - How many throttle inputs should we use? (1 or 2)
-#define EETH_THROTTLE_TYPE		43 //1 byte - Allow for different throttle types. For now 1 = Linear pots, 2 = Inverse relationship between pots. See Throttle.h
+#define EETH_NUM_THROTTLES	42 //1 byte - How many throttle inputs should we use? (1 or 2)
+#define EETH_THROTTLE_TYPE	43 //1 byte - Allow for different throttle types. For now 1 = Linear pots, 2 = Inverse relationship between pots. See Throttle.h
 #define EETH_MIN_BRAKE_REGEN	44 //2 bytes - the starting level for brake regen as a percentage of throttle
 #define EETH_MIN_ACCEL_REGEN	46 //2 bytes - the starting level for accelerator regen as a percentage of throttle
 #define EETH_REGEN_MAX	        48 //2 bytes - unsigned int - tenths of a percent (0-1000) of pedal position where regen is at maximum
-#define EETH_CREEP		        50 //2 bytes - percentage of throttle used to simulate creep
-#define EETH_CAR_TYPE			52 //1 byte - type of car for querying the throttle position via CAN bus
-#define EETH_ADC_1				53 //1 byte - which ADC port to use for first throttle input
-#define EETH_ADC_2				54 //1 byte - which ADC port to use for second throttle input
+#define EETH_CREEP		50 //2 bytes - percentage of throttle used to simulate creep
+#define EETH_CAR_TYPE		52 //1 byte - type of car for querying the throttle position via CAN bus
+#define EETH_ADC_1		53 //1 byte - which ADC port to use for first throttle input
+#define EETH_ADC_2		54 //1 byte - which ADC port to use for second throttle input
 
 //System Data
 #define EESYS_SYSTEM_TYPE        10  //1 byte - 1 = Old school protoboards 2 = GEVCU2/DUED 3 = GEVCU3 - Defaults to 2 if invalid or not set up
@@ -154,6 +154,8 @@ the end of the stardard data. The below numbers are offsets from the device's ee
 #define EESYS_CAN_FILTER5        244 //4 bytes - sixth canbus filter - not valid on Macchina, Mask 5 on Due
 #define EESYS_CAN_MASK6          248 //4 bytes - seventh canbus mask - bit 31 sets whether it is extended or not (set = extended)
 #define EESYS_CAN_FILTER6        252 //4 bytes - seventh canbus filter - not valid on Macchina, Mask 6 on Due
+#define EESYS_CAPACITY           256 // 1 byte - battery pack capacity in AH
+#define EESYS_AH                257 // 2 bytes - current cumulative ampere hours 
 
 //Allow for a few defined WIFI SSIDs that the GEVCU will try to automatically connect to. 
 #define EESYS_WIFI0_SSID	 300 //32 bytes - the SSID to create or use (prefixed with ! if create ad-hoc)
@@ -170,33 +172,35 @@ the end of the stardard data. The below numbers are offsets from the device's ee
 #define EESYS_WIFI1_IPADDR       435 //4 bytes - IP address to use if DHCP is off
 #define EESYS_WIFI1_KEY          439 //40 bytes - the security key (13 bytes for WEP, 8 - 83 for WPA but only up to 40 here
 
-#define EESYS_WIFI2_SSID		500 //32 bytes - the SSID to create or use (prefixed with ! if create ad-hoc)
-#define EESYS_WIFI2_CHAN		532 //1 byte - the wifi channel (1 - 11) to use
-#define EESYS_WIFI2_DHCP		533 //1 byte - DHCP mode, 0 = off, 1 = server, 2 = client
-#define EESYS_WIFI2_MODE		534 //1 byte - 0 = B, 1 = G
-#define EESYS_WIFI2_IPADDR		535 //4 bytes - IP address to use if DHCP is off
-#define EESYS_WIFI2_KEY			539 //40 bytes - the security key (13 bytes for WEP, 8 - 83 for WPA but only up to 40 here
+#define EESYS_WIFI2_SSID	500 //32 bytes - the SSID to create or use (prefixed with ! if create ad-hoc)
+#define EESYS_WIFI2_CHAN	532 //1 byte - the wifi channel (1 - 11) to use
+#define EESYS_WIFI2_DHCP	533 //1 byte - DHCP mode, 0 = off, 1 = server, 2 = client
+#define EESYS_WIFI2_MODE	534 //1 byte - 0 = B, 1 = G
+#define EESYS_WIFI2_IPADDR	535 //4 bytes - IP address to use if DHCP is off
+#define EESYS_WIFI2_KEY		539 //40 bytes - the security key (13 bytes for WEP, 8 - 83 for WPA but only up to 40 here
 
 //If the above networks can't be joined then try to form our own adhoc network
 //with the below parameters.
-#define EESYS_WIFIX_SSID		579 //32 bytes - the SSID to create or use (prefixed with ! if create ad-hoc)
-#define EESYS_WIFIX_CHAN		611 //1 byte - the wifi channel (1 - 11) to use
-#define EESYS_WIFIX_DHCP		612 //1 byte - DHCP mode, 0 = off, 1 = server, 2 = client
+#define EESYS_WIFIX_SSID	579 //32 bytes - the SSID to create or use (prefixed with ! if create ad-hoc)
+#define EESYS_WIFIX_CHAN	611 //1 byte - the wifi channel (1 - 11) to use
+#define EESYS_WIFIX_DHCP	612 //1 byte - DHCP mode, 0 = off, 1 = server, 2 = client
 #define EESYS_WIFIX_MODE        613 //1 byte - 0 = B, 1 = G
 #define EESYS_WIFIX_IPADDR      614 //4 bytes - IP address to use if DHCP is off
 #define EESYS_WIFIX_KEY         618 //40 bytes - the security key (13 bytes for WEP, 8 - 83 for WPA but only up to 40 here
 
 #define EESYS_LOG_LEVEL         658 //1 byte - the log level
-#define EESYS_AMPHOURS			659 //1 byte - ???
-#define EESYS_BRAKELIGHT		660 //1 byte - 
-#define EESYS_xxxx				661 //1 byte -
+#define EESYS_AMPHOURS		659 //1 byte - ???
+#define EESYS_BRAKELIGHT	660 //1 byte - 
+#define EESYS_xxxx		661 //1 byte -
 
-#define EEFAULT_VALID			0 //1 byte - Set to value of 0xB2 if fault data has been initialized
-#define EEFAULT_READPTR			1 //2 bytes - index where reading should start (first unacknowledged fault)
-#define EEFAULT_WRITEPTR		3 //2 bytes - index where writing should occur for new faults
-#define EEFAULT_RUNTIME			5 //4 bytes - stores the number of seconds (in tenths) that the system has been turned on for - total time ever
+#define EEFAULT_VALID		0 //1 byte - Set to value of 0xB2 if fault data has been initialized
+#define EEFAULT_READPTR		1 //2 bytes - index where reading should start (first unacknowledged fault)
+#define EEFAULT_WRITEPTR	3 //2 bytes - index where writing should occur for new faults
+#define EEFAULT_RUNTIME		5 //4 bytes - stores the number of seconds (in tenths) that the system has been turned on for - total time ever
 #define EEFAULT_FAULTS_START	10 //a bunch of faults stored one after the other start at this location
 
 
 #endif
+
+
 

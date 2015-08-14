@@ -191,3 +191,5 @@ bool ThinkBatteryManager::isDischargeOK()
 	return allowDischarge;
 }
 
+
+

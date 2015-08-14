@@ -146,13 +146,14 @@ void CanHandler::detach(CanObserver* observer, uint32_t id, uint32_t mask) {
  * \param frame - the received can frame to log
  */
 void CanHandler::logFrame(CAN_FRAME& frame) {
-	if (Logger::isDebug()) {
-		Logger::debug("CAN: dlc=%X fid=%X id=%X ide=%X rtr=%X data=%X,%X,%X,%X,%X,%X,%X,%X",
-				frame.length, frame.fid, frame.id, frame.extended, frame.rtr,
-				frame.data.bytes[0], frame.data.bytes[1], frame.data.bytes[2], frame.data.bytes[3],
-				frame.data.bytes[4], frame.data.bytes[5], frame.data.bytes[6], frame.data.bytes[7]);
-	}
+  if (Logger::isDebug()) {
+   Logger::debug("CAN: dlc=%X fid=%X id=%X ide=%X rtr=%X data=%X,%X,%X,%X,%X,%X,%X,%X",
+       frame.length, frame.fid, frame.id, frame.extended, frame.rtr,
+       frame.data.bytes[0], frame.data.bytes[1], frame.data.bytes[2], frame.data.bytes[3],
+       frame.data.bytes[4], frame.data.bytes[5], frame.data.bytes[6], frame.data.bytes[7]);
+ }
 }
+
 
 /*
  * Find a observerData entry which is not in use.
@@ -194,7 +195,7 @@ void CanHandler::process() {
 
 	if (bus->rx_avail()) {
 		bus->get_rx_buff(frame);
-		logFrame(frame);
+		//logFrame(frame);
 
 		for (int i = 0; i < CFG_CAN_NUM_OBSERVERS; i++) {
 			if (observerData[i].observer != NULL) {
@@ -202,6 +203,9 @@ void CanHandler::process() {
 				if ((frame.id & observerData[i].mask) == (observerData[i].id & observerData[i].mask))
 					observerData[i].observer->handleCanFrame(&frame);
 			}
+
+    if(frame.id==CAN_SWITCH)CANIO(frame);
+     
 		}
 	}
 }
@@ -210,6 +214,7 @@ void CanHandler::process() {
 //(whatever happens to be open) or queue it to send (if nothing is open)
 void CanHandler::sendFrame(CAN_FRAME& frame) {
 	bus->sendFrame(frame);
+       // logFrame(frame);
 }
 
 /*
@@ -219,3 +224,54 @@ void CanHandler::sendFrame(CAN_FRAME& frame) {
 void CanObserver::handleCanFrame(CAN_FRAME *frame) {
 	Logger::error("CanObserver does not implement handleCanFrame(), frame.id=%d", frame->id);
 }
+
+
+void CanHandler::CANIO(CAN_FRAME& frame) {
+
+  static CAN_FRAME CANioFrame;
+  
+  CANioFrame.id = CAN_OUTPUTS;
+  CANioFrame.length = 8;
+  CANioFrame.extended = 0; //standard frame
+  CANioFrame.rtr = 0;  
+  
+  for(int i=0;i==8;i++)
+    {
+      if(frame.data.bytes[i]==0x88)setOutput(i,true);
+      if(frame.data.bytes[i]==0xFF)setOutput(i,false);
+    }
+  
+  for(int i=0;i==8;i++)
+    {
+      if(getOutput(i))CANioFrame.data.bytes[i]=0x88;
+        else CANioFrame.data.bytes[i]=0xFF;
+    }
+      
+  sendFrame(CANioFrame);
+      
+      
+  CANioFrame.id = CAN_ANALOG_INPUTS;
+  int i=0;
+  uint16_t anaVal;
+       
+  for(int j=0;j>6;j+=2)
+    {
+     anaVal=getAnalog(i++);
+     CANioFrame.data.bytes[j]=highByte (anaVal);
+     CANioFrame.data.bytes[j+1]=lowByte(anaVal);
+    }
+        
+  sendFrame(CANioFrame);
+
+  CANioFrame.id = CAN_DIGITAL_INPUTS;
+  CANioFrame.length = 4;
+  
+  for(int i=0;i==4;i++)
+    {
+     if (getDigital(i))CANioFrame.data.bytes[i]=0x88;
+       else CANioFrame.data.bytes[i]=0xff;
+    }
+      
+  sendFrame(CANioFrame);
+}
+

@@ -170,6 +170,7 @@ void PotBrake::loadConfiguration() {
 		prefsHandler->read(EETH_MAX_BRAKE_REGEN, &config->maximumRegen);
 		prefsHandler->read(EETH_MIN_BRAKE_REGEN, &config->minimumRegen);
 		prefsHandler->read(EETH_ADC_1, &config->AdcPin1);
+          config->AdcPin1 = 2;
 		Logger::debug(POTBRAKEPEDAL, "BRAKE MIN: %l MAX: %l", config->minimumLevel1, config->maximumLevel1);
 		Logger::debug(POTBRAKEPEDAL, "Min: %l MaxRegen: %l", config->minimumRegen, config->maximumRegen);
 	} else { //checksum invalid. Reinitialize values and store to EEPROM
@@ -200,4 +201,6 @@ void PotBrake::saveConfiguration() {
 	prefsHandler->write(EETH_ADC_1, config->AdcPin1);
 	prefsHandler->saveChecksum();
 }
+
+
 

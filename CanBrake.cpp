@@ -224,3 +224,5 @@ void CanBrake::saveConfiguration() {
 	prefsHandler->write(EETH_CAR_TYPE, config->carType);
 	prefsHandler->saveChecksum();
 }
+
+
