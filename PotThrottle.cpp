@@ -39,10 +39,6 @@ PotThrottle::PotThrottle() : Throttle()
  */
 void PotThrottle::setup()
 {
-    tickHandler.detach(this);  // unregister from TickHandler first
-
-    loadConfiguration();
-
     Throttle::setup(); //call base class
     ready = true;
 

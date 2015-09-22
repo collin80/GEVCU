@@ -49,20 +49,6 @@ BrusaDMC5::BrusaDMC5() : MotorController()
     commonName = "Brusa DMC5 Inverter";
 }
 
-/*
- * Setup the device if it is enabled in configuration.
- */
-void BrusaDMC5::setup()
-{
-    tickHandler.detach(this);
-
-    loadConfiguration();
-    MotorController::setup(); // run the parent class version of this function
-
-    // we do not attach to CanHandler and TickHandler yet
-    // this only happens when the state changes to running.
-}
-
 /**
  * Tear down the controller in a safe way.
  */

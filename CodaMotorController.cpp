@@ -51,9 +51,6 @@ CodaMotorController::CodaMotorController() : MotorController() {
 }
 
 void CodaMotorController::setup() {
-    tickHandler.detach(this);
-
-    loadConfiguration();
     MotorController::setup(); // run the parent class version of this function
 
     // register ourselves as observer of all 0x20x can frames for UQM

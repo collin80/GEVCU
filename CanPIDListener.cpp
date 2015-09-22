@@ -39,9 +39,6 @@ CanPIDListener::CanPIDListener() : Device()
 
 void CanPIDListener::setup()
 {
-    //tickHandler->detach(this);
-
-    loadConfiguration();
     Device::setup();
 
     //TODO: FIXME Quickly coded as hard coded values. This is naughty.

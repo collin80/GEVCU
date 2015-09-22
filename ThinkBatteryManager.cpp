@@ -38,8 +38,6 @@ ThinkBatteryManager::ThinkBatteryManager() :
 
 void ThinkBatteryManager::setup()
 {
-    tickHandler.detach(this);
-
     BatteryManager::setup(); // run the parent class version of this function
 
     //Relevant BMS messages are 0x300 - 0x30F

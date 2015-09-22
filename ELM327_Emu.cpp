@@ -57,8 +57,6 @@ ELM327Emu::ELM327Emu()
  */
 void ELM327Emu::setup()
 {
-    tickHandler.detach(this);
-
     ready = true;
     running = true;
 

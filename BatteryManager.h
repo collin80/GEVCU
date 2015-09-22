@@ -42,7 +42,6 @@ public:
     //bool allowCharging();
     //bool allowDischarging();
     DeviceType getType();
-    void setup();
     void handleTick();
     //a bunch of boolean functions. Derived classes must implment
     //these functions to tell everyone else what they support

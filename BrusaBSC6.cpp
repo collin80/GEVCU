@@ -52,17 +52,6 @@ BrusaBSC6::BrusaBSC6() : DcDcConverter()
     bitfield = 0;
 }
 
-/*
- * Setup the device if it is enabled in configuration.
- */
-void BrusaBSC6::setup()
-{
-    tickHandler.detach(this);
-
-    loadConfiguration();
-    DcDcConverter::setup(); // call parent
-}
-
 /**
  * Tear down the controller in a safe way.
  */

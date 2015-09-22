@@ -197,10 +197,10 @@ void MotorController::handleStateChange(Status::SystemState oldState, Status::Sy
 
 void MotorController::setup()
 {
+    Device::setup();
+
     MotorControllerConfiguration *config = (MotorControllerConfiguration *) getConfiguration();
     prefsHandler->read(EEMC_KILOWATTHRS, &kiloWattHours);  //retrieve kilowatt hours from EEPROM
-
-    Device::setup();
 }
 
 /**

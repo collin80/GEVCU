@@ -33,9 +33,6 @@ CanIO::CanIO() : Device()
 
 void CanIO::setup()
 {
-    tickHandler.detach(this);
-
-    loadConfiguration();
     Device::setup();
 
     canHandlerEv.attach(this, CAN_MASKED_ID, CAN_MASK, false);

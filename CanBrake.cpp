@@ -41,9 +41,6 @@ CanBrake::CanBrake() : Throttle()
 
 void CanBrake::setup()
 {
-    tickHandler.detach(this);
-
-    loadConfiguration();
     Throttle::setup();
 
     requestFrame.length = 0x08;

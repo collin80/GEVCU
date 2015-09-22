@@ -52,9 +52,6 @@ DmocMotorController::DmocMotorController() : MotorController()
 
 void DmocMotorController::setup()
 {
-    tickHandler.detach(this);
-
-    loadConfiguration();
     MotorController::setup(); // run the parent class version of this function
 
     // register ourselves as observer of 0x23x and 0x65x can frames

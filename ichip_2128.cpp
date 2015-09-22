@@ -65,8 +65,6 @@ ICHIPWIFI::ICHIPWIFI()
  */
 void ICHIPWIFI::setup()
 {
-    tickHandler.detach(this);
-
     //RESET pin
     pinMode(42, OUTPUT);
     digitalWrite(42, HIGH);
