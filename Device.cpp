@@ -32,7 +32,7 @@
  */
 Device::Device()
 {
-    prefsHandler = NULL;
+    prefsHandler = new PrefHandler(getId());
 
     commonName = "Generic Device";
     deviceConfiguration = NULL;

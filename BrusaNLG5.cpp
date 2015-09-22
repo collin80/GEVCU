@@ -32,7 +32,6 @@
  */
 BrusaNLG5::BrusaNLG5() : Charger()
 {
-    prefsHandler = new PrefHandler(BRUSA_NLG5);
     commonName = "Brusa NLG5 Charger";
 
     errorPresent = false;

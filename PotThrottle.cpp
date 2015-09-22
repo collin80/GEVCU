@@ -31,7 +31,6 @@
  */
 PotThrottle::PotThrottle() : Throttle()
 {
-    prefsHandler = new PrefHandler(POTACCELPEDAL);
     commonName = "Potentiometer (analog) accelerator";
 }
 

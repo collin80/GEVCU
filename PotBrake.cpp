@@ -32,7 +32,6 @@
  */
 PotBrake::PotBrake() : Throttle()
 {
-    prefsHandler = new PrefHandler(POTBRAKEPEDAL);
     commonName = "Potentiometer (analog) brake";
 }
 

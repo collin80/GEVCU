@@ -28,7 +28,6 @@
 
 CanIO::CanIO() : Device()
 {
-    prefsHandler = new PrefHandler(CANIO);
     commonName = "CAN I/O";
 }
 

@@ -32,8 +32,6 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 CanPIDListener::CanPIDListener() : Device()
 {
-    prefsHandler = new PrefHandler(PIDLISTENER);
-
     responseId = 0;
     responseMask = 0x7ff;
     responseExtended = false;

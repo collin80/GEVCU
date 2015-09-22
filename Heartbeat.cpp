@@ -28,7 +28,6 @@
 
 Heartbeat::Heartbeat() : Device()
 {
-    prefsHandler = new PrefHandler(HEARTBEAT);
     led = false;
     throttleDebug = false;
     dotCount = 0;

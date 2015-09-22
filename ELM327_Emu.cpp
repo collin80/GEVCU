@@ -38,7 +38,6 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 ELM327Emu::ELM327Emu()
 {
-    prefsHandler = new PrefHandler(ELM327EMU);
     elmProc = new ELM327Processor();
 
     if (systemIO.getSystemType() == GEVCU3 || GEVCU4) {

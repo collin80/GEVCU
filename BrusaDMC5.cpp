@@ -39,7 +39,6 @@
  */
 BrusaDMC5::BrusaDMC5() : MotorController()
 {
-    prefsHandler = new PrefHandler(BRUSA_DMC5);
     torqueAvailable = 0;
     maxPositiveTorque = 0;
     minNegativeTorque = 0;
@@ -89,7 +88,7 @@ void BrusaDMC5::handleStateChange(Status::SystemState oldState, Status::SystemSt
 
     // as the DMC is not sending/receiving messages as long as the enable signal is low
     // (state != ready / running), attach to can/tick handler only when running.
-    if (newState == Status::ready || newState == Status::running) {
+    if (newState == Status::running) {
         // register ourselves as observer of 0x258-0x268 and 0x458 can frames
         canHandlerEv.attach(this, CAN_MASKED_ID_1, CAN_MASK_1, false);
         canHandlerEv.attach(this, CAN_MASKED_ID_2, CAN_MASK_2, false);
