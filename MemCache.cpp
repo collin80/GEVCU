@@ -42,6 +42,7 @@ void MemCache::setup()
 
     Logger::info("add MemCache (id: %X, %X)", MEMCACHE, &memCache);
 
+    Wire.begin();
     for (U8 c = 0; c < NUM_CACHED_PAGES; c++) {
         pages[c].address = 0xFFFFFF; //maximum number. This is way over what our chip will actually support so it signals unused
         pages[c].age = 0;

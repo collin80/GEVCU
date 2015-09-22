@@ -89,9 +89,6 @@ void setup()
     SerialUSB.print("Build number: ");
     SerialUSB.println(CFG_BUILD_NUM);
 
-    Wire.begin();
-    Logger::info("TWI init ok");
-
     memCache.setup();
 
     //fault handler is always enabled too - its also statically allocated so no using -> here
