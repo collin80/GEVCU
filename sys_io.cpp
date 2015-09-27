@@ -57,6 +57,20 @@ ADC_COMP adc_comp[NUM_ANALOG];
 
 bool useRawADC = false;
 
+/*
+There have been problems where the digital outputs of GEVCU aren't set to digital outputs with low state early enough and for some
+people this triggers their connected relays. This code doesn't need EEPROM and so can execute very early in initialization. It assumes
+that one has at least a GEVCU3 board which basically 99.9% of people do. Only the early developers would have anything earlier.
+With this assumption in place it is possible to initialize all possible digital outputs right when the board starts up.
+*/
+void sys_boot_setup()
+{
+	for (int i = 2; i < 10; i++) { //possible digital outs are 2 - 9
+		pinMode(out[i], OUTPUT);
+		digitalWrite(out[i], LOW);
+	}
+}
+
 //forces the digital I/O ports to a safe state. This is called very early in initialization.
 void sys_early_setup() {
 	int i;

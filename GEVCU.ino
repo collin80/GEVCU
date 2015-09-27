@@ -253,6 +253,8 @@ void createObjects() {
 }
 
 void setup() {
+	sys_boot_setup(); //sets digital outputs to "off" right as soon as the sketch gets control.
+	
         //delay(5000);  //This delay lets you see startup.  But it breaks DMOC645 really badly.  You have to have comm way before 5 seconds.
        
         //initWiReach();
