@@ -29,7 +29,7 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 #include "PrefHandler.h"
 
-void PrefHandler::initDevTable()
+void PrefHandler::initDeviceTable()
 {
     uint16_t id;
 
@@ -44,7 +44,7 @@ void PrefHandler::initDevTable()
     //initialize table with zeros
     id = 0;
 
-    for (int x = 1; x < 64; x++) {
+    for (int x = 1; x <= EE_NUM_DEVICES; x++) {
         memCache.Write(EE_DEVICE_TABLE + (2 * x), id);
     }
 
@@ -81,7 +81,7 @@ int8_t PrefHandler::findDevice(DeviceId deviceId)
 {
     uint16_t id;
 
-    for (int pos = 1; pos < 64; pos++) {
+    for (int pos = 1; pos <= EE_NUM_DEVICES; pos++) {
         memCache.Read(EE_DEVICE_TABLE + (2 * pos), &id);
 
         if ((id & 0x7FFF) == deviceId) {
@@ -91,7 +91,7 @@ int8_t PrefHandler::findDevice(DeviceId deviceId)
     return -1;
 }
 
-//Given a device ID we must search the 64 entry table found in EEPROM to see if the device
+//Given a device ID we must search the EE_NUM_DEVICES entry table found in EEPROM to see if the device
 //has a spot in EEPROM. If it does not then
 PrefHandler::PrefHandler(DeviceId id_in)
 {
@@ -100,7 +100,7 @@ PrefHandler::PrefHandler(DeviceId id_in)
     deviceId = id_in;
 	enabled = false; 
 
-    initDevTable();
+    initDeviceTable();
     position = findDevice(deviceId);
     if (position > -1) {
         memCache.Read(EE_DEVICE_TABLE + (2 * position), &id);

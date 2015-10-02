@@ -108,6 +108,7 @@ private:
 
     void processExternalTemperature(byte []);
     void sendIOStatus();
+    void sendAnalogData();
 };
 
 #endif /* CANIO_H_ */

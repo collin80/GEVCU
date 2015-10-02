@@ -45,6 +45,8 @@
 
 DmocMotorController::DmocMotorController() : MotorController()
 {
+    prefsHandler = new PrefHandler(DMOC645);
+
     step = SPEED_TORQUE;
     alive = 0;
     commonName = "DMOC645 Inverter";

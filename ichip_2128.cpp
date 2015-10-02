@@ -33,6 +33,7 @@
  */
 ICHIPWIFI::ICHIPWIFI()
 {
+    prefsHandler = new PrefHandler(ICHIP2128);
     elmProc = new ELM327Processor();
 
     uint8_t sys_type;

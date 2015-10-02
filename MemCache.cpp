@@ -52,10 +52,8 @@ void MemCache::setup()
     //WriteTimer = 0;
 
     //digital pin 18 is connected to the write protect function of the EEPROM. It is active high so set it low to enable writes
-//TODO: pin 18 on GEVCU 2, pin 19 on GEVCU 4 !!!
-
-    pinMode(19, OUTPUT);
-    digitalWrite(19, LOW);
+    pinMode(CFG_EEPROM_WRITE_PROTECT, OUTPUT);
+    digitalWrite(CFG_EEPROM_WRITE_PROTECT, LOW);
     tickHandler.attach(this, CFG_TICK_INTERVAL_MEM_CACHE);
 }
 

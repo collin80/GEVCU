@@ -42,12 +42,50 @@ Devices are considered enabled if their highest ID bit is set (0x8000) otherwise
 they're disabled.
 This means that valid IDs must be under 0x8000 but that still leaves a couple of open IDs ;)
 First device entry is 0xDEAD if valid - otherwise table is initialized
+
+Layout :
+
+Range EE_DEVICES_TABLE to EE_DEVICES_TABLE + (EE_NUM_DEVICES + 1) * 2 - 1
+ 0000-0001 : GEVCU marker (0xDEAD)
+ 0002-0003 : ID of device 1 (enabled if bit 0x8000 of ID is set)
+ 0004-0005 : ID of device 2 (enabled if bit 0x8000 of ID is set)
+ 0006-0007 : ID of device 3 (enabled if bit 0x8000 of ID is set)
+ 0008-0009 : ID of device 4 (enabled if bit 0x8000 of ID is set)
+ ...
+ 0126-0127 : ID of device 63 (enabled if bit 0x8000 of ID is set)
+
+Range EE_DEVICES_TABLE + (EE_NUM_DEVICES + 1) * 2 to EE_DEVICES_BASE - 1
+ 0128-1023 : unused
+
+Range EE_DEVICES_BASE to EE_DEVICES_BASE + EE_NUM_DEVICES * EE_DEVICE_SIZE - 1
+ 1024-1535 : config device 1 (first byte = checksum)
+ 1536-2047 : config device 2 (first byte = checksum)
+ 2048-2559 : config device 3 (first byte = checksum)
+ ...
+ 32768-33279 : config device 63 (first byte = checksum)
+
+Range
+ 33280-34815 : unused
+
+Range EE_LKG_OFFSET to LGK_OFFSET + EE_NUM_DEVICES * EE_DEVICE_SIZE - 1
+ 34816-35327 : lkg config device 1 (first byte = checksum)
+ 35328-35839 : lkg config device 2 (first byte = checksum)
+ ...
+ 66560-67071 : lkg config device 63 (first byte = checksum)
+
+Range EE_SYS_LOG to EE_FAULT_LOG - 1
+ 69632-102399 : system log
+
+Range EE_FAULT_LOG to eeprom size - 1 ?
+ 102400-...
+
 */
 #define EE_DEVICE_TABLE     0 //where is the table of devices found in EEPROM?
+#define EE_NUM_DEVICES		63 // the number of supported device entries
+#define EE_GEVCU_MARKER     0xDEAD // marker at position 0 to identify EEPROM was initialized
 
 #define EE_DEVICE_SIZE      512 //# of bytes allocated to each device
 #define EE_DEVICES_BASE     1024 //start of where devices in the table can use
-#define EE_SYSTEM_START     128
 
 #define EE_MAIN_OFFSET          0 //offset from start of EEPROM where main config is
 #define EE_LKG_OFFSET           34816  //start EEPROM addr where last known good config is
@@ -58,7 +96,6 @@ First device entry is 0xDEAD if valid - otherwise table is initialized
 //start EEPROM addr for fault log (Used by fault_handler)
 #define EE_FAULT_LOG            102400
 
-
 /*Now, all devices also have a default list of things that WILL be stored in EEPROM. Each actual
 implementation for a given device can store it's own custom info as well. This data must come after
 the end of the stardard data. The below numbers are offsets from the device's eeprom section
@@ -66,7 +103,6 @@ the end of the stardard data. The below numbers are offsets from the device's ee
 
 //first, things in common to all devices - leave 20 bytes for this
 #define EE_CHECKSUM                         0 //1 byte - checksum for this section of EEPROM to makesure it is valid
-#define EE_DEVICE_ID                        1 //2 bytes - the value of the ENUM DEVID of this device.
 
 // Motor controller data
 #define EEMC_MAX_RPM                        20 //2 bytes, unsigned int for maximum allowable RPM

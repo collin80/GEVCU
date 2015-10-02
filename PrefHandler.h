@@ -71,7 +71,7 @@ private:
     bool use_lkg; //use last known good config?
     bool enabled;
     int position; //position within the device table
-    void initDevTable();
+    void initDeviceTable();
     static int8_t findDevice(DeviceId);
 };
 

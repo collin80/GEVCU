@@ -32,6 +32,7 @@
  */
 BrusaBSC6::BrusaBSC6() : DcDcConverter()
 {
+    prefsHandler = new PrefHandler(BRUSA_BSC6);
     commonName = "Brusa BSC6 DC-DC Converter";
 
     mode = 0;

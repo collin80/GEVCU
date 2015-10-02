@@ -28,6 +28,7 @@
 
 CanThrottle::CanThrottle() : Throttle()
 {
+    prefsHandler = new PrefHandler(CANACCELPEDAL);
     rawSignal.input1 = 0;
     rawSignal.input2 = 0;
     rawSignal.input3 = 0;

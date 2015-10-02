@@ -39,6 +39,7 @@
  */
 BrusaDMC5::BrusaDMC5() : MotorController()
 {
+    prefsHandler = new PrefHandler(BRUSA_DMC5);
     torqueAvailable = 0;
     maxPositiveTorque = 0;
     minNegativeTorque = 0;
