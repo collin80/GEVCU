@@ -57,7 +57,6 @@ void SerialConsole::printMenu() {
     Logger::console("K = set all outputs high");
     Logger::console("J = set all outputs low");
     //Logger::console("U,I = test EEPROM routines");
-    Logger::console("E = dump system eeprom values");
     Logger::console("z = detect throttle min/max, num throttles and subtype");
     Logger::console("Z = save throttle values");
     Logger::console("b = detect brake min/max");
@@ -864,15 +863,6 @@ void SerialConsole::handleShortCmd()
 
         for (int i = 0; i < 256; i++) {
             memCache.Read(1000 + i, &val);
-            Logger::console("%d: %d", i, val);
-        }
-        break;
-
-        case 'E':
-        Logger::console("Reading System EEPROM values");
-
-        for (int i = 0; i < 256; i++) {
-            memCache.Read(EE_SYSTEM_START + i, &val);
             Logger::console("%d: %d", i, val);
         }
         break;
