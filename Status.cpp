@@ -203,7 +203,7 @@ Status::SystemState Status::setSystemState(SystemState newSystemState) {
         systemState = error;
     }
 
-    SystemState params[] = { oldSystemState, newSystemState };
+    SystemState params[] = { oldSystemState, systemState };
     deviceManager.sendMessage(DEVICE_ANY, INVALID, MSG_STATE_CHANGE, params);
 
     return systemState;
