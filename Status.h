@@ -115,6 +115,7 @@ public:
     bool heaterPump; // is the heater pump relay enabled ?
     bool coolingPump; // is the cooling pump relay activated ?
     bool coolingFan; // is the cooling relay activated ?
+    bool powerSteering; // is the power steering pump activated ?
 
     bool brakeLight; // is the brake light relay activated ?
     bool reverseLight; // is the reverse light relay activated ?

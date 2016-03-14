@@ -132,7 +132,7 @@ void CanIO::sendIOStatus()
 
     logicIO |= status.brakeLight ? brakeLight : 0;
     logicIO |= status.reverseLight ? reverseLight : 0;
-    logicIO |= status.warning ? warning : 0;
+    logicIO |= status.powerSteering ? powerSteering : 0;
     logicIO |= status.limitationTorque ? powerLimitation : 0;
 
     outputFrame.data.s1 = logicIO;

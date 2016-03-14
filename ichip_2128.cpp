@@ -158,11 +158,10 @@ void ICHIPWIFI::handleTick()
     uint32_t ms = millis();
     tickCounter++;
 
-    if (ms < 1000) {
-        return;    //wait 1 seconds for things to settle before doing a thing
+    if (ms < 3000) {
+        return;    //wait a bit for things to settle before doing a thing
     }
 
-    // Do a delayed parameter load once about a second after startup
     if (!didParamLoad) {
         loadParameters();
         didParamLoad = true;
@@ -235,7 +234,7 @@ void ICHIPWIFI::handleTick()
         if (brake) {
             if (paramCache.brake != brake->getLevel()) {
                 paramCache.brake = brake->getLevel();
-                setParam(Constants::brake, paramCache.brake / 10.0f, 1);
+                setParam(Constants::brake, paramCache.brake / -10.0f, 1); // divide by negative to get positive values for breaking
             }
         }
     } else if (tickCounter == 2) {
@@ -877,14 +876,20 @@ void ICHIPWIFI::loadParametersThrottle()
     Throttle *throttle = deviceManager.getAccelerator();
 
     if (throttle) {
-        PotThrottleConfiguration *throttleConfig = (PotThrottleConfiguration *) throttle->getConfiguration();
+        ThrottleConfiguration *throttleConfig = (ThrottleConfiguration *) throttle->getConfiguration();
 
         if (throttleConfig) {
             if (throttle->getId() == POTACCELPEDAL) {
-                setParam(Constants::numberPotMeters, throttleConfig->numberPotMeters);
-                setParam(Constants::throttleSubType, throttleConfig->throttleSubType);
-                setParam(Constants::minimumLevel2, throttleConfig->minimumLevel2);
-                setParam(Constants::maximumLevel2, throttleConfig->maximumLevel2);
+                PotThrottleConfiguration *potThrottleConfig = (PotThrottleConfiguration *) throttleConfig;
+                setParam(Constants::numberPotMeters, potThrottleConfig->numberPotMeters);
+                setParam(Constants::throttleSubType, potThrottleConfig->throttleSubType);
+                setParam(Constants::minimumLevel2, potThrottleConfig->minimumLevel2);
+                setParam(Constants::maximumLevel2, potThrottleConfig->maximumLevel2);
+            } else { // set reasonable values so the config page can be saved
+                setParam(Constants::numberPotMeters, (uint8_t) 1);
+                setParam(Constants::throttleSubType, (uint8_t)0);
+                setParam(Constants::minimumLevel2, (uint16_t) 50);
+                setParam(Constants::maximumLevel2, (uint16_t) 4095);
             }
             setParam(Constants::minimumLevel, throttleConfig->minimumLevel);
             setParam(Constants::maximumLevel, throttleConfig->maximumLevel);
@@ -904,7 +909,7 @@ void ICHIPWIFI::loadParametersBrake()
     Throttle *brake = deviceManager.getBrake();
 
     if (brake) {
-        PotThrottleConfiguration *brakeConfig = (PotThrottleConfiguration *) brake->getConfiguration();
+        ThrottleConfiguration *brakeConfig = (ThrottleConfiguration *) brake->getConfiguration();
 
         if (brakeConfig) {
             setParam(Constants::brakeMinimumLevel, brakeConfig->minimumLevel);

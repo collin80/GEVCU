@@ -261,7 +261,7 @@ void BrusaDMC5::processStatus(uint8_t data[])
     torqueActual = (int16_t) (data[5] | (data[4] << 8)) / 10;
     speedActual = (int16_t) (data[7] | (data[6] << 8));
 
-    if (config->invertDirection) {
+    if (config->invertDirection ^ (getGear() == REVERSE)) {
         speedActual *= -1;
         torqueActual *= -1;
     }

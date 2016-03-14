@@ -75,7 +75,7 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 #define CFG_CAN0_SPEED CAN_BPS_500K // specify the speed of the CAN0 bus (EV)
 #define CFG_CAN1_SPEED CAN_BPS_500K // specify the speed of the CAN1 bus (Car)
-#define CFG_CAN0_NUM_TX_MAILBOXES 3 // how many of 8 mailboxes are used for TX for CAN0, rest is used for RX
+#define CFG_CAN0_NUM_TX_MAILBOXES 1 // how many of 8 mailboxes are used for TX for CAN0, rest is used for RX
 #define CFG_CAN1_NUM_TX_MAILBOXES 3 // how many of 8 mailboxes are used for TX for CAN1, rest is used for RX
 #define CFG_CANTHROTTLE_MAX_NUM_LOST_MSG 3 // maximum number of lost messages allowed (max 255)
 #define CFG_MOTORCTRL_MAX_NUM_LOST_MSG 20 // maximum number of ticks the controller may not send messages (max 255)
