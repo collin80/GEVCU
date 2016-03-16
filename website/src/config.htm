@@ -95,7 +95,7 @@
 			<td><select name="invertDirection" title="The motor spin direction">
 					<option value="0">normal</option>
 					<option value="1">inverted</option>
-			</select>
+			</select></td>
 		</tr>
 		<tr>
 			<td>Maximum Torque</td>
@@ -105,11 +105,15 @@
 			<td><input name="speedMax" type="text" maxlength="6" title="Maximum speed or RPM controller will apply to motor" /> rpm</td>
 		</tr>
 		<tr id="device_x1001">
-			<td>Torque Slew Rate</td>
-			<td><input name="torqueSlewRate" type="text" maxlength="6" title="Slew rate for torque changes (0=off)" /> Nm/sec</td>
+			<td>Slew Type</td>
+			<td><select name="slewType">
+					<option value="0">off</option>
+					<option value="1">linear</option>
+					<option value="2">exponential</option>
+			</select></td>
 			<td></td>
-			<td>Speed Slew Rate</td>
-			<td><input name="speedSlewRate" type="text" maxlength="6" title="Slew rate for speed changes (0=off)" /> rpm/sec</td>
+			<td>Slew Rate</td>
+			<td><input name="slewRate" type="text" maxlength="6" title="Slew rate for torque/speed changes" /> %/sec</td>
 		</tr>
 		<tr>
 			<td>Maximum Mechanical Power Motoring</td>
@@ -136,7 +140,7 @@
 		<tr id="device_x1001">
 			<td>Oscillation Limiter</td>
 			<td><select name="enableOscLimiter" title="The oscillation limiter reduces unwanted power fluctuations">
-					<option value="0">-</option>
+					<option value="0">off</option>
 					<option value="1">enabled</option>
 			</select></td>
 			<td></td>

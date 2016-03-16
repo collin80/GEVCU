@@ -93,8 +93,8 @@ void SerialConsole::printMenuMotorController() {
         Logger::console("RPMS=%i - Set maximum speed (in RPMs)", config->speedMax);
         Logger::console("REVLIM=%i - How much torque to allow in reverse (in 0.1%%)", config->reversePercent);
         Logger::console("MOINVD=%i - invert the direction of the motor (0=normal, 1=invert)", config->invertDirection);
-        Logger::console("MOTQSL=%i - torque slew rate (in Nm/sec, 0=off)", config->torqueSlewRate);
-        Logger::console("MOSPSL=%i - speed slew rate (in rpm/sec, 0=off)", config->speedSlewRate);
+        Logger::console("MOSLWT=%i - slew type (0=off, 1=linear, 2=exponential)", config->slewType);
+        Logger::console("MOSLEW=%i - slew rate (in 0.1 percent/sec)", config->slewRate);
         Logger::console("MOMWMX=%i - maximal mechanical power of motor (in 100W steps)", config->maxMechanicalPowerMotor);
         Logger::console("MORWMX=%i - maximal mechanical power of regen (in 100W steps)", config->maxMechanicalPowerRegen);
         Logger::console("NOMV=%i - Fully charged pack voltage that automatically resets the kWh counter (in 0.1V)", config->nominalVolt);
@@ -358,12 +358,13 @@ bool SerialConsole::handleConfigCmdMotorController(String command, long value) {
         value = constrain(value, 0, 1);
         Logger::console("Setting motor direction to %s", (value ? "inverted" : "normal"));
         config->invertDirection = value;
-    } else if (command == String("MOTQSL")) {
-        Logger::console("Setting torque slew rate to %d Nm/sec", value);
-        config->torqueSlewRate = value;
-    } else if (command == String("MOSPSL")) {
-        Logger::console("Setting speed slew rate to %d rpm/sec", value);
-        config->speedSlewRate = value;
+    } else if (command == String("MOSLWT")) {
+        value = constrain(value, 0, 1);
+        Logger::console("Setting slew type to %d", value);
+        config->slewType = value;
+    } else if (command == String("MOSLEW")) {
+        Logger::console("Setting slew rate to %f percent/sec", value / 10.0f);
+        config->slewRate = value;
     } else if (command == String("MOMWMX")) {
         Logger::console("Setting maximal mechanical power of motor to %fkW", value / 10.0f);
         config->maxMechanicalPowerMotor = value;

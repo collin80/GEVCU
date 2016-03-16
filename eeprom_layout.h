@@ -110,8 +110,9 @@ the end of the stardard data. The below numbers are offsets from the device's ee
 #define EEMC_KILOWATTHRS                    40 //4 bytes - capacitance of controller capacitor bank in micro farads (uf) - set to zero to disable RC precharge
 #define EEMC_NOMINAL_V                      46 //2 bytes - nominal system voltage to expect (in tenths of a volt)
 #define EEMC_REVERSE_LIMIT                  48 //2 bytes - a percentage to knock the requested torque down by while in reverse.
-#define EEMC_RPM_SLEW_RATE                  50 //2 bytes - slew rate (rpm/sec) at which speed should change (only in speed mode)
-#define EEMC_TORQUE_SLEW_RATE               52 //2 bytes - slew rate (0.1Nm/sec) at which the torque should change
+#define EEMC_SLEW_TYPE                      50 //1 byte - slew type
+#define EEMC_UNUSED                         51 // 1 byte - unused
+#define EEMC_SLEW_RATE                      52 // 2 bytes - slew rate
 #define EEMC_MAX_MECH_POWER_MOTOR           54 // 2 bytes - max mechanical power motoring in 4W steps
 #define EEMC_MAX_MECH_POWER_REGEN           56 // 2 bytes - max mechanical power regen in 4W steps
 #define EEMC_DC_VOLT_LIMIT_MOTOR            58 // 2 bytes - DC volt limit for motoring in 0.1V

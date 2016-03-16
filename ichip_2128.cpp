@@ -664,10 +664,10 @@ bool ICHIPWIFI::processParameterChangeMotor(char *key, char *value)
                 config->powerMode = (atol(value) ? modeSpeed : modeTorque);
             } else if (!strcmp(key, Constants::invertDirection)) {
                 config->invertDirection = atol(value);
-            } else if (!strcmp(key, Constants::torqueSlewRate)) {
-                config->torqueSlewRate = atof(value) * 10;
-            } else if (!strcmp(key, Constants::speedSlewRate)) {
-                config->speedSlewRate = atof(value) * 10;
+            } else if (!strcmp(key, Constants::slewType)) {
+                config->slewType = atol(value);
+            } else if (!strcmp(key, Constants::slewRate)) {
+                config->slewRate = atof(value) * 10;
             } else if (!strcmp(key, Constants::maxMechanicalPowerMotor)) {
                 config->maxMechanicalPowerMotor = atof(value) * 10;
             } else if (!strcmp(key, Constants::maxMechanicalPowerRegen)) {
@@ -933,8 +933,8 @@ void ICHIPWIFI::loadParametersMotor()
             setParam(Constants::torqueMax, config->torqueMax / 10.0f, 1);
             setParam(Constants::motorMode, (uint8_t) config->powerMode);
             setParam(Constants::invertDirection, (uint8_t)(config->invertDirection ? 1 : 0));
-            setParam(Constants::torqueSlewRate, config->torqueSlewRate / 10.0f, 1);
-            setParam(Constants::speedSlewRate, config->speedSlewRate / 10.0f, 1);
+            setParam(Constants::slewType, config->slewType);
+            setParam(Constants::slewRate, config->slewRate / 10.0f, 1);
             setParam(Constants::maxMechanicalPowerMotor, config->maxMechanicalPowerMotor / 10.0f, 1);
             setParam(Constants::maxMechanicalPowerRegen, config->maxMechanicalPowerRegen / 10.0f, 1);
             if (motorController->getId() == BRUSA_DMC5) {

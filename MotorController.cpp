@@ -3,32 +3,33 @@
  *
  * Parent class for all motor controllers.
  *
-Copyright (c) 2013 Collin Kidder, Michael Neuweiler, Charles Galpin
+ Copyright (c) 2013 Collin Kidder, Michael Neuweiler, Charles Galpin
 
-Permission is hereby granted, free of charge, to any person obtaining
-a copy of this software and associated documentation files (the
-"Software"), to deal in the Software without restriction, including
-without limitation the rights to use, copy, modify, merge, publish,
-distribute, sublicense, and/or sell copies of the Software, and to
-permit persons to whom the Software is furnished to do so, subject to
-the following conditions:
+ Permission is hereby granted, free of charge, to any person obtaining
+ a copy of this software and associated documentation files (the
+ "Software"), to deal in the Software without restriction, including
+ without limitation the rights to use, copy, modify, merge, publish,
+ distribute, sublicense, and/or sell copies of the Software, and to
+ permit persons to whom the Software is furnished to do so, subject to
+ the following conditions:
 
-The above copyright notice and this permission notice shall be included
-in all copies or substantial portions of the Software.
+ The above copyright notice and this permission notice shall be included
+ in all copies or substantial portions of the Software.
 
-THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
-EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
-MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.
-IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY
-CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT,
-TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
-SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+ EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
+ MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.
+ IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY
+ CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT,
+ TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
+ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
  */
 
 #include "MotorController.h"
 
-MotorController::MotorController() : Device()
+MotorController::MotorController() :
+        Device()
 {
     temperatureMotor = 0;
     temperatureController = 0;
@@ -89,7 +90,8 @@ void MotorController::updatePowerConsumption()
  * The sub-classes must use this function to report activity/messages from the controller.
  * In subsequent calls to checkActivity() it is verified if we ran into a timeout.
  */
-void MotorController::reportActivity() {
+void MotorController::reportActivity()
+{
     if (!running) //if we're newly running then cancel faults if necessary.
     {
 //        faultHandler.cancelOngoingFault(getId(), FAULT_MOTORCTRL_COMM);
@@ -102,7 +104,8 @@ void MotorController::reportActivity() {
  * Otherwise the controller's status flags "ready" and "running"
  * are set to false and a fault is raised
  */
-void MotorController::checkActivity() {
+void MotorController::checkActivity()
+{
     if (ticksNoMessage < 255) { // make sure it doesn't overflow
         ticksNoMessage++;
     }
@@ -125,11 +128,10 @@ void MotorController::processThrottleLevel()
     MotorControllerConfiguration *config = (MotorControllerConfiguration *) getConfiguration();
     Throttle *accelerator = deviceManager.getAccelerator();
     Throttle *brake = deviceManager.getBrake();
+    boolean disableSlew = false;
 
     throttleLevel = 0; //force to zero in case not in operational condition
-    torqueRequested = 0;
-    speedRequested = 0;
-
+powerOn = true; ready= true;
     if (powerOn && ready) {
         if (accelerator) {
             throttleLevel = accelerator->getLevel();
@@ -137,15 +139,52 @@ void MotorController::processThrottleLevel()
         // if the brake has been pressed it may override the accelerator
         if (brake && brake->getLevel() < 0 && brake->getLevel() < accelerator->getLevel()) {
             throttleLevel = brake->getLevel();
+            disableSlew = true;
         }
         if (config->powerMode == modeSpeed) {
-            speedRequested = throttleLevel * config->speedMax / 1000;
+            int16_t speedTarget = throttleLevel * config->speedMax / 1000;
             torqueRequested = config->torqueMax;
         } else {
             // torque mode
             speedRequested = config->speedMax;
-            torqueRequested = throttleLevel * config->torqueMax / 1000;
+            int16_t torqueTarget = throttleLevel * config->torqueMax / 1000;
+
+            if (config->slewType == 0 || disableSlew) {
+                torqueRequested = torqueTarget;
+            } else {
+                uint32_t currentTimestamp = millis();
+
+                // no torque or requested and target have different sign -> request 0 power
+                if (torqueTarget == 0 || (torqueTarget < 0 && torqueRequested > 0) || (torqueTarget > 0 && torqueRequested < 0)) {
+                    torqueRequested = 0;
+                } else if (abs(torqueTarget) <= abs(torqueRequested)) { // target closer to 0 then last time -> no slew, reduce power immediately
+                    torqueRequested = torqueTarget;
+                } else { // increase power -> apply slew
+                    int16_t slewPart = 0;
+                    if (config->slewType == 2) { // exponential
+                        slewPart = 0; //TODO
+                    } else { // linear
+                        slewPart = config->torqueMax * config->slewRate / 1000 * (currentTimestamp - slewTimestamp) / 1000;
+                    }
+                    if (torqueTarget < 0) {
+                        torqueRequested -= slewPart;
+                        if (torqueRequested < torqueTarget) {
+                            torqueRequested = torqueTarget;
+                        }
+                    } else {
+                        torqueRequested += slewPart;
+                        if (torqueRequested > torqueTarget) {
+                            torqueRequested = torqueTarget;
+                        }
+                    }
+                }
+//Logger::info("torque target: %l, requested: %l", torqueTarget, torqueRequested);
+                slewTimestamp = currentTimestamp;
+            }
         }
+    } else {
+        torqueRequested = 0;
+        speedRequested = 0;
     }
 }
 
@@ -172,7 +211,6 @@ void MotorController::handleTick()
                 torqueRequested / 10.0F, gear);
     }
 }
-
 
 void MotorController::handleCanFrame(CAN_FRAME *frame)
 {
@@ -201,6 +239,8 @@ void MotorController::setup()
 
     MotorControllerConfiguration *config = (MotorControllerConfiguration *) getConfiguration();
     prefsHandler->read(EEMC_KILOWATTHRS, &kiloWattHours);  //retrieve kilowatt hours from EEPROM
+
+    slewTimestamp = millis();
 }
 
 /**
@@ -303,8 +343,8 @@ void MotorController::loadConfiguration()
         config->invertDirection = temp;
         prefsHandler->read(EEMC_MAX_RPM, &config->speedMax);
         prefsHandler->read(EEMC_MAX_TORQUE, &config->torqueMax);
-        prefsHandler->read(EEMC_RPM_SLEW_RATE, &config->speedSlewRate);
-        prefsHandler->read(EEMC_TORQUE_SLEW_RATE, &config->torqueSlewRate);
+        prefsHandler->read(EEMC_SLEW_TYPE, &config->slewType);
+        prefsHandler->read(EEMC_SLEW_RATE, &config->slewRate);
         prefsHandler->read(EEMC_MAX_MECH_POWER_MOTOR, &config->maxMechanicalPowerMotor);
         prefsHandler->read(EEMC_MAX_MECH_POWER_REGEN, &config->maxMechanicalPowerRegen);
         prefsHandler->read(EEMC_REVERSE_LIMIT, &config->reversePercent);
@@ -314,8 +354,8 @@ void MotorController::loadConfiguration()
         config->invertDirection = false;
         config->speedMax = MaxRPMValue;
         config->torqueMax = MaxTorqueValue;
-        config->speedSlewRate = RPMSlewRateValue;
-        config->torqueSlewRate = TorqueSlewRateValue;
+        config->slewType = SlewType;
+        config->slewRate = SlewRateValue;
         config->maxMechanicalPowerMotor = 2000;
         config->maxMechanicalPowerRegen = 400;
         config->reversePercent = ReversePercent;
@@ -323,8 +363,9 @@ void MotorController::loadConfiguration()
         config->powerMode = modeTorque;
     }
 
-    Logger::info(getId(), "Power mode: %s, Max torque: %i, Max RPM: %i", (config->powerMode == modeTorque ? "torque" : "speed"), config->torqueMax, config->speedMax);
-    Logger::info(getId(), "Torque slew rate: %i, Speed slew rate: %i", config->torqueSlewRate, config->speedSlewRate);
+    Logger::info(getId(), "Power mode: %s, Max torque: %i, Max RPM: %i", (config->powerMode == modeTorque ? "torque" : "speed"), config->torqueMax,
+            config->speedMax);
+    Logger::info(getId(), "Slew rate: %i, Slew rate: %i", config->slewRate, config->slewType);
     Logger::info(getId(), "Max mech power motor: %fkW, Max mech power regen: %fkW", config->maxMechanicalPowerMotor / 10.0f,
             config->maxMechanicalPowerRegen / 10.0f);
 }
@@ -335,11 +376,11 @@ void MotorController::saveConfiguration()
 
     Device::saveConfiguration(); // call parent
 
-    prefsHandler->write(EEMC_INVERT_DIRECTION, (uint8_t)(config->invertDirection ? 1 : 0));
+    prefsHandler->write(EEMC_INVERT_DIRECTION, (uint8_t) (config->invertDirection ? 1 : 0));
     prefsHandler->write(EEMC_MAX_RPM, config->speedMax);
     prefsHandler->write(EEMC_MAX_TORQUE, config->torqueMax);
-    prefsHandler->write(EEMC_RPM_SLEW_RATE, config->speedSlewRate);
-    prefsHandler->write(EEMC_TORQUE_SLEW_RATE, config->torqueSlewRate);
+    prefsHandler->write(EEMC_SLEW_TYPE, config->slewType);
+    prefsHandler->write(EEMC_SLEW_RATE, config->slewRate);
     prefsHandler->write(EEMC_REVERSE_LIMIT, config->reversePercent);
     prefsHandler->write(EEMC_NOMINAL_V, config->nominalVolt);
     prefsHandler->write(EEMC_POWER_MODE, (uint8_t) config->powerMode);

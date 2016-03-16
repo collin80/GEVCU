@@ -55,8 +55,8 @@ public:
     bool invertDirection; // should an AC motor run in reverse mode? (e.g. negative speed for forward motion)
     uint16_t speedMax; // in rpm
     uint16_t torqueMax; // maximum torque in 0.1 Nm
-    uint16_t torqueSlewRate; // for torque mode only: slew rate of torque value, 0=disabled, in 0.1Nm/sec
-    uint16_t speedSlewRate; //  for speed mode only: slew rate of speed value, 0=disabled, in rpm/sec
+    uint8_t slewType; //  curve type of slew rate, 0=off, 1=linear, 2=exponential
+    uint16_t slewRate; // slew rate of torque/speed value in 0.1 percent/sec
     uint16_t maxMechanicalPowerMotor; // maximal mechanical power of motor in 100W steps
     uint16_t maxMechanicalPowerRegen; // maximal mechanical power of regen in 100W steps
     uint8_t reversePercent;
@@ -124,6 +124,7 @@ private:
     int16_t torqueRequested; // in 0.1 Nm, calculated in MotorController - must not be manipulated by subclasses
     int16_t speedRequested; // in rpm, calculated in MotorController - must not be manipulated by subclasses
     uint8_t ticksNoMessage; // counter how many ticks the device went through without any message from the controller
+    uint32_t slewTimestamp; // time stamp of last slew rate calculation
     Gears gear;
 
     void updatePowerConsumption();
