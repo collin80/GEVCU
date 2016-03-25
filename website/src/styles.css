@@ -54,6 +54,10 @@ div.tabs {
 	overflow: hidden;
 }
 
+div.gauges {
+	text-align: center;
+}
+
 div.annunciators {
 	padding: 0px;
 	margin: 10px 20px;
