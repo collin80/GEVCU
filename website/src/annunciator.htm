@@ -1,94 +1,74 @@
 <center>
-	<table class="annunciators">
-		<tr>
-			<td><span id="ready">READY</span></td>
-			<td><span id="running">RUNNING</span></td>
-			<td><span id="warning">WARNING</span></td>
-			<td><span id="error">ERROR</span></td>
-			<td><span id="preChargeRelay">PRECHARGE RELAY</span></td>
-			<td><span id="mainContactorRelay">MAIN CONTACTOR</span></td>
-			<td><span id="secondaryContactorRelay">SEC. CONTACTOR</span></td>
-			<td><span id="enableOut">ENABLE OUTPUT</span></td>
-		</tr>
-		<tr>
-			<td><span id="digitalInput0">INPUT 0</span></td>
-			<td><span id="digitalInput1">INPUT 1</span></td>
-			<td><span id="digitalInput2">INPUT 2</span></td>
-			<td><span id="digitalInput3">INPUT 3</span></td>
-			<td><span id="coolingRelay">COOLING RELAY</span></td>
-			<td><span id="brakeLight">BRAKE LIGHT</span></td>
-			<td><span id="reverseLight">REVERSE LIGHT</span></td>
-			<td><span id="enableIn">ENABLE INPUT</span></td>
-		</tr>
-		<tr>
-			<td><span id="digitalOutput0">OUTPUT 0</span></td>
-			<td><span id="digitalOutput1">OUTPUT 1</span></td>
-			<td><span id="digitalOutput2">OUTPUT 2</span></td>
-			<td><span id="digitalOutput3">OUTPUT 3</span></td>
-			<td><span id="digitalOutput4">OUTPUT 4</span></td>
-			<td><span id="digitalOutput5">OUTPUT 5</span></td>
-			<td><span id="digitalOutput6">OUTPUT 6</span></td>
-			<td><span id="digitalOutput7">OUTPUT 7</span></td>
-		</tr>
-		<tr>
-			<td><span id="overtempController">OVERTEMP CONTROLLER</span></td>
-			<td><span id="overtempMotor">OVERTEMP MOTOR</span></td>
-			<td><span id="hvOvervoltage">OVERVOLTAGE</span></td>
-			<td><span id="hvOvercurrent">OVERCURRENT</span></td>
-			<td><span id="limitationTorque">TORQUE LIMIT</span></td>
-			<td><span id="overspeed">OVERSPEED</span></td>
-			<td><span id="shortCircuit">SHORT CIRCUIT</span></td>
-			<td><span id="initalisation">INITIALIZATION</span></td>
-		</tr>
-		<tr>
-			<td><span id="acOvercurrent">AC OVERCURRENT</span></td>
-			<td><span id="voltageMeasurement">VOLTAGE MEASUREMENT</span></td>
-			<td><span id="overvoltageInternalSupply">OVERVOLTAGE INT. SUPPLY</span></td>
-			<td><span id="oscillationLimitControllerActive">OSC LIMIT<br/>CTRL ACTIVE</span></td>
-			<td><span id="speedSensor">SPEED SENSOR</span></td>
-			<td><span id="speedSensorSupply">SPEED SENSOR SUPPLY</span></td>
-			<td><span id="internalSupply">INTERNAL SUPPLY</span></td>
-			<td><span id="osTrap">OS TRAP</span></td>
-		</tr>
-		<tr>
-			<td><span id="enableSignalLost">ENABLE<br/>SIGNAL LOST</span></td>
-			<td><span id="unexpectedShutdown">UNEXPECTED SHUTDOWN</span></td>
-			<td><span id="analogInput">ANALOG INPUT</span></td>
-			<td><span id="hvUndervoltage">HV UNDERVOLTAGE</span></td>
-			<td><span id="canControlMessageInvalid">CAN CTRL<br/>MSG INVALID</span></td>
-			<td><span id="canControlMessageLost">CAN CTRL<br/>MSG LOST</span></td>
-			<td><span id="canControl2MessageLost">CAN CTRL2<br/>MSG LOST</span></td>
-			<td><span id="canLimitMessageInvalid">CAN LIMIT<br/>MSG INVALID</span></td>
-		</tr>
-		<tr>
-			<td><span id="canLimitMessageLost">CAN LIMIT<br/>MSG LOST</span></td>
-			<td><span id="canCommunicationStartup">CAN COMM STARTUP</span></td>
-			<td><span id="powerMismatch">POWER MISMATCH</span></td>
-			<td><span id="maximumModulationLimiter">MAX MODULATION LIMITER</span></td>
-			<td><span id="externalShutdownPath1Off">EXT AW1 OFF</span></td>
-			<td><span id="externalShutdownPath2Off">EXT AW2 OFF</span></td>
-			<td><span id="driverShutdownPathActive">DRIVER SHUTDN PATH</span></td>
-			<td><span id="speedSensorSignal">SPEED SENSOR SIGNAL</span></td>
-		</tr>
-		<tr>
-			<td><span id="temperatureSensor">TEMPERATURE SENSOR</span></td>
-			<td><span id="motorEeprom">MOTOR EEPROM</span></td>
-			<td><span id="storage">STORAGE</span></td>
-			<td><span id="limitationAcVoltage">TORQ LIMIT AC VOLTAGE</span></td>
-			<td><span id="limitationMotorModel">TORQ LIMIT MOTOR MODEL</span></td>
-			<td><span id="limitationMechanicalPower">TORQ LIMIT<br/>MECH POWER</span></td>
-			<td><span id="limitationMaxTorque">TORQ LIMIT<br/>MAX TORQUE</span></td>
-			<td><span id="limitationAcCurrent">TORQ LIMIT<br/>AC CURRENT</span></td>
-		</tr>
-		<tr>
-			<td><span id="limitationControllerTemperature">TORQ LIMIT TEMPERATURE</span></td>
-			<td><span id="limitationSpeed">TORQ LIMIT<br/>SPEED</span></td>
-			<td><span id="limitationDcVoltage">TORQ LIMIT<br/>DC VOLTS</span></td>
-			<td><span id="limitationDcCurrent">TORQ LIMIT<br/>DC AMPS</span></td>
-			<td><span id="limitationSlewRate">TORQ LIMIT<br/>SLEW RATE</span></td>
-			<td><span id="limitationMotorTemperature">TORQ LIMIT MOTOR TEMP</span></td>
-			<td><span id="res">res.</span></td>
-			<td><span id="res">res.</span></td>
-		</tr>
-	</table>
+	<div class="annunciators">
+		<span id="ready">READY</span>
+		<span id="running">RUNNING</span>
+		<span id="warning">WARNING</span>
+		<span id="error">ERROR</span>
+		<span id="preChargeRelay">PRECHARGE RELAY</span>
+		<span id="mainContactorRelay">MAIN CONTACTOR</span>
+		<span id="secondaryContactorRelay">SEC. CONTACTOR</span>
+		<span id="enableOut">ENABLE OUTPUT</span>
+		<span id="digitalInput0">INPUT 0</span>
+		<span id="digitalInput1">INPUT 1</span>
+		<span id="digitalInput2">INPUT 2</span>
+		<span id="digitalInput3">INPUT 3</span>
+		<span id="coolingRelay">COOLING RELAY</span>
+		<span id="brakeLight">BRAKE LIGHT</span>
+		<span id="reverseLight">REVERSE LIGHT</span>
+		<span id="enableIn">ENABLE INPUT</span>
+		<span id="digitalOutput0">OUTPUT 0</span>
+		<span id="digitalOutput1">OUTPUT 1</span>
+		<span id="digitalOutput2">OUTPUT 2</span>
+		<span id="digitalOutput3">OUTPUT 3</span>
+		<span id="digitalOutput4">OUTPUT 4</span>
+		<span id="digitalOutput5">OUTPUT 5</span>
+		<span id="digitalOutput6">OUTPUT 6</span>
+		<span id="digitalOutput7">OUTPUT 7</span>
+		<span id="overtempController">OVERTEMP CONTROLLER</span>
+		<span id="overtempMotor">OVERTEMP MOTOR</span>
+		<span id="hvOvervoltage">OVERVOLTAGE</span>
+		<span id="hvOvercurrent">OVERCURRENT</span>
+		<span id="limitationTorque">TORQUE LIMIT</span>
+		<span id="overspeed">OVERSPEED</span>
+		<span id="shortCircuit">SHORT CIRCUIT</span>
+		<span id="initalisation">INITIALIZATION</span>
+		<span id="acOvercurrent">AC OVERCURRENT</span>
+		<span id="voltageMeasurement">VOLTAGE MEASUREMENT</span>
+		<span id="overvoltageInternalSupply">OVERVOLTAGE INT. SUPPLY</span>
+		<span id="oscillationLimitControllerActive">OSC LIMITCTRL ACTIVE</span>
+		<span id="speedSensor">SPEED SENSOR</span>
+		<span id="speedSensorSupply">SPEED SENSOR SUPPLY</span>
+		<span id="internalSupply">INTERNAL SUPPLY</span>
+		<span id="osTrap">OS TRAP</span>
+		<span id="enableSignalLost">ENABLESIGNAL LOST</span>
+		<span id="unexpectedShutdown">UNEXPECTED SHUTDOWN</span>
+		<span id="analogInput">ANALOG INPUT</span>
+		<span id="hvUndervoltage">HV UNDERVOLTAGE</span>
+		<span id="canControlMessageInvalid">CAN CTRLMSG INVALID</span>
+		<span id="canControlMessageLost">CAN CTRLMSG LOST</span>
+		<span id="canControl2MessageLost">CAN CTRL2MSG LOST</span>
+		<span id="canLimitMessageInvalid">CAN LIMITMSG INVALID</span>
+		<span id="canLimitMessageLost">CAN LIMITMSG LOST</span>
+		<span id="canCommunicationStartup">CAN COMM STARTUP</span>
+		<span id="powerMismatch">POWER MISMATCH</span>
+		<span id="maximumModulationLimiter">MAX MODULATION LIMITER</span>
+		<span id="externalShutdownPath1Off">EXT AW1 OFF</span>
+		<span id="externalShutdownPath2Off">EXT AW2 OFF</span>
+		<span id="driverShutdownPathActive">DRIVER SHUTDN PATH</span>
+		<span id="speedSensorSignal">SPEED SENSOR SIGNAL</span>
+		<span id="temperatureSensor">TEMPERATURE SENSOR</span>
+		<span id="motorEeprom">MOTOR EEPROM</span>
+		<span id="storage">STORAGE</span>
+		<span id="limitationAcVoltage">TORQ LIMIT AC VOLTAGE</span>
+		<span id="limitationMotorModel">TORQ LIMIT MOTOR MODEL</span>
+		<span id="limitationMechanicalPower">TORQ LIMITMECH POWER</span>
+		<span id="limitationMaxTorque">TORQ LIMITMAX TORQUE</span>
+		<span id="limitationAcCurrent">TORQ LIMITAC CURRENT</span>
+		<span id="limitationControllerTemperature">TORQ LIMIT TEMPERATURE</span>
+		<span id="limitationSpeed">TORQ LIMITSPEED</span>
+		<span id="limitationDcVoltage">TORQ LIMITDC VOLTS</span>
+		<span id="limitationDcCurrent">TORQ LIMITDC AMPS</span>
+		<span id="limitationSlewRate">TORQ LIMITSLEW RATE</span>
+		<span id="limitationMotorTemperature">TORQ LIMIT MOTOR TEMP</span>
+	</div>
 </center>
