@@ -160,7 +160,7 @@ powerOn = true; ready= true;
                 } else if (abs(torqueTarget) <= abs(torqueRequested)) { // target closer to 0 then last time -> no slew, reduce power immediately
                     torqueRequested = torqueTarget;
                 } else { // increase power -> apply slew
-                    int16_t slewPart = 0;
+                    uint16_t slewPart = 0;
                     if (config->slewType == 2) { // exponential
                         slewPart = 0; //TODO
                     } else { // linear

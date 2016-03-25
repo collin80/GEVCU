@@ -87,7 +87,7 @@ public:
         brakeLight              = 1 << 12, // 0x1000, data[2], Motorola bit 3
         reverseLight            = 1 << 13, // 0x2000, data[2], Motorola bit 2
         powerSteering           = 1 << 14, // 0x4000, data[2], Motorola bit 1
-        powerLimitation         = 1 << 15  // 0x8000, data[2], Motorola bit 0
+        unused                  = 1 << 15  // 0x8000, data[2], Motorola bit 0
     };
 
     CanIO();

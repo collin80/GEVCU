@@ -221,7 +221,7 @@ void ICHIPWIFI::handleTick()
     // make small slices so the main loop is not blocked for too long
     if (tickCounter == 1) {
         // just update this every second or so
-        if (ms > paramCache.timeRunning + 1000) {
+        if (ms > paramCache.timeRunning + 900) {
             paramCache.timeRunning = ms;
             setParam(Constants::timeRunning, getTimeRunning());
         }

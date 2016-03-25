@@ -115,15 +115,18 @@ public:
     bool heaterPump; // is the heater pump relay enabled ?
     bool coolingPump; // is the cooling pump relay activated ?
     bool coolingFan; // is the cooling relay activated ?
-    bool powerSteering; // is the power steering pump activated ?
 
     bool brakeLight; // is the brake light relay activated ?
     bool reverseLight; // is the reverse light relay activated ?
+    bool powerSteering; // is the power steering activated ?
+    bool unused; // is the ... activated ?
 
     bool enableIn; // is the 'enable' input signal active ?
     bool chargePowerAvailable; // is shore power available (connected to charging station)
     bool interlockPresent; // is the interlock circuit closed and the signal available ?
     bool reverseInput; // is the reverse signal present ?
+
+    uint8_t stateOfCharge; // 0 to 255 to indicate the state of charge (divide by 2.55 to get percent)
 
     bool digitalInput[CFG_NUMBER_DIGITAL_INPUTS]; // the the digital input x activated ?
     bool digitalOutput[CFG_NUMBER_DIGITAL_OUTPUTS]; // the the digital output x activated ?

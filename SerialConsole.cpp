@@ -190,8 +190,12 @@ void SerialConsole::printMenuSystemIO() {
 
         Logger::console("BRAKELT=%i - Digital output to use for brake light (255 to disable)", config->brakeLightOutput);
         Logger::console("REVLT=%i - Digital output to use for reverse light (255 to disable)", config->reverseLightOutput);
+        Logger::console("PWRSTR=%i - Digital output to use to enable power steering (255 to disable)", config->powerSteeringOutput);
+//        Logger::console("TBD=%i - Digital output to use to xxxxxx (255 to disable)", config->unusedOutput);
+
         Logger::console("WARNLT=%i - Digital output to use for reverse light (255 to disable)", config->warningOutput);
         Logger::console("LIMITLT=%i - Digital output to use for reverse light (255 to disable)", config->powerLimitationOutput);
+        Logger::console("SOCHG=%i - Analog output to use to indicate state of charge (255 to disable)", config->stateOfChargeOutput);
         Logger::console("OUTPUT=<0-7> - toggles state of specified digital output");
     }
 }
@@ -205,7 +209,7 @@ void SerialConsole::printMenuCharger() {
         Logger::console("CHCC=%i - Constant current (in 0.1A)", config->constantCurrent);
         Logger::console("CHCV=%i - Constant voltage (in 0.1V)", config->constantVoltage);
         Logger::console("CHTC=%i - Terminate current (in 0.1A)", config->terminateCurrent);
-        Logger::console("CHICMX=%i - Maximum Input current (in 0.1V)", config->maximumInputCurrent);
+        Logger::console("CHICMX=%i - Maximum Input current (in 0.1A)", config->maximumInputCurrent);
         Logger::console("CHBVMN=%i - Minimum battery voltage (in 0.1V)", config->minimumBatteryVoltage);
         Logger::console("CHBVMX=%i - Maximum battery voltage (in 0.1V)", config->maximumBatteryVoltage);
         Logger::console("CHTPMN=%i - Minimum battery temperature for charging (in 0.1 deg C)", config->minimumTemperature);
@@ -213,9 +217,9 @@ void SerialConsole::printMenuCharger() {
         Logger::console("CHAHMX=%i - Maximum ampere hours (in 0.1Ah)", config->maximumAmpereHours);
         Logger::console("CHCTMX=%i - Maximum charge time (in 1 min)", config->maximumChargeTime);
         Logger::console("CHTDRC=%i - Derating of charge current (in 0.1Ah per deg C)", config->deratingRate);
-        Logger::console("CHTDRS=%i - Reference temperature for derating (in 1 deg C)", config->deratingReferenceTemperature);
-        Logger::console("CHTHYS=%i - Hysterese temperature where charging will be stopped (in 1 deg C)", config->hystereseStopTemperature);
-        Logger::console("CHTHYR=%i - Hysterese temperature where charging will resume (in 1 deg C)", config->hystereseResumeTemperature);
+        Logger::console("CHTDRS=%i - Reference temperature for derating (in 0.1 deg C)", config->deratingReferenceTemperature);
+        Logger::console("CHTHYS=%i - Hysterese temperature where charging will be stopped (in 0.1 deg C)", config->hystereseStopTemperature);
+        Logger::console("CHTHYR=%i - Hysterese temperature where charging will resume (in 0.1 deg C)", config->hystereseResumeTemperature);
     }
 }
 
@@ -589,6 +593,10 @@ bool SerialConsole::handleConfigCmdSystemIO(String command, long value) {
         value = constrain(value, 0, 255);
         Logger::console("Reverse light signal set to output %i.", value);
         config->reverseLightOutput = value;
+    } else if (command == String("PWRSTR")) {
+        value = constrain(value, 0, 255);
+        Logger::console("Power steering signal set to output %i.", value);
+        config->powerSteeringOutput = value;
     } else if (command == String("WARNLT")) {
         value = constrain(value, 0, 255);
         Logger::console("Warning signal set to output %i.", value);
@@ -597,6 +605,10 @@ bool SerialConsole::handleConfigCmdSystemIO(String command, long value) {
         value = constrain(value, 0, 255);
         Logger::console("Limit signal set to output %i.", value);
         config->powerLimitationOutput = value;
+    } else if (command == String("SOCHG")) {
+        value = constrain(value, 0, 255);
+        Logger::console("State of charge set to output %i.", value);
+        config->stateOfChargeOutput = value;
     } else if (command == String("OUTPUT") && value < 8) {
         Logger::console("DOUT%d,  STATE: %t", value, systemIO.getDigitalOut(value));
         systemIO.setDigitalOut(value, !systemIO.getDigitalOut(value));
@@ -665,15 +677,15 @@ bool SerialConsole::handleConfigCmdCharger(String command, long value) {
         config->deratingRate = value;
     } else if (command == String("CHTDRS")) {
         value = constrain(value, 0, 10000);
-        Logger::console("Setting derating reference temp to %i deg C", value);
+        Logger::console("Setting derating reference temp to %f deg C", value / 10.0f);
         config->deratingReferenceTemperature = value;
     } else if (command == String("CHTHYS")) {
         value = constrain(value, config->hystereseResumeTemperature, 10000);
-        Logger::console("Setting hysterese temp to stop charging to %i deg C", value);
+        Logger::console("Setting hysterese temp to stop charging to %f deg C", value / 10.0f);
         config->hystereseStopTemperature = value;
     } else if (command == String("CHTHYR")) {
         value = constrain(value, 0, config->hystereseStopTemperature);
-        Logger::console("Setting hysterese temp to resume charging to %i deg C", value);
+        Logger::console("Setting hysterese temp to resume charging to %f deg C", value / 10.0f);
         config->hystereseResumeTemperature = value;
     } else {
         return false;

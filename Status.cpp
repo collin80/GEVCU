@@ -103,6 +103,8 @@ Status::Status() {
 
     brakeLight = false;
     reverseLight = false;
+    powerSteering = false;
+    unused = false;
 
     enableIn            = false;
     chargePowerAvailable= false;
@@ -118,6 +120,8 @@ Status::Status() {
     for (int i = 0; i < CFG_NUMBER_TEMPERATURE_SENSORS; i++) {
         externalTemperature[i] = CFG_NO_TEMPERATURE_DATA;
     }
+
+    stateOfCharge = 0;
 }
 
 /*

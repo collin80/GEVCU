@@ -133,7 +133,7 @@ void CanIO::sendIOStatus()
     logicIO |= status.brakeLight ? brakeLight : 0;
     logicIO |= status.reverseLight ? reverseLight : 0;
     logicIO |= status.powerSteering ? powerSteering : 0;
-    logicIO |= status.limitationTorque ? powerLimitation : 0;
+    logicIO |= status.unused ? unused : 0;
 
     outputFrame.data.s1 = logicIO;
 
@@ -159,7 +159,7 @@ void CanIO::processExternalTemperature(byte bytes[])
 {
     for (int i = 0; i < CFG_NUMBER_TEMPERATURE_SENSORS; i++) {
         if (bytes[i] != 0) {
-            status.externalTemperature[i] = bytes[i] - 50;
+            status.externalTemperature[i] = bytes[i] - CFG_CAN_TEMPERATURE_OFFSET;
 Logger::info(CANIO, "external temperature %d: %d", i, status.externalTemperature[i]);
         }
     }

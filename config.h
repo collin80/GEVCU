@@ -34,8 +34,8 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 #include <due_can.h>
 
-#define CFG_BUILD_NUM	1052        //increment this every time a git commit is done.
-#define CFG_VERSION "GEVCU 2015-06-08"
+#define CFG_BUILD_NUM	1053        //increment this every time a git commit is done.
+#define CFG_VERSION "GEVCU 2016-03-23"
 
 //define this to add in latency and efficiency calculations. Comment it out for builds you're going to 
 //use in an actual car. No need to waste cycles for 99% of everyone using the code.
@@ -92,6 +92,7 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #define CFG_MIN_BATTERY_CHARGE_TEMPERATURE 5 // GEVCU won't start the battery charging process if the battery temp is below 5 deg C
 #define CFG_TORQUE_BRAKE_LIGHT_ON -100 // torque in 0.1Nm where brake light should be turned on - to prevent being kissed from behind
 #define CFG_WIFI_WPA2 // enable WPA2 encryption for ad-hoc wifi network at wifi reset (via command 'w'), comment line to disable
+#define CFG_CAN_TEMPERATURE_OFFSET 50 // offset of temperatures reported via CAN bus - make sure GEVCU extension uses the same value!
 
 /*
  * HARD CODED PARAMETERS
