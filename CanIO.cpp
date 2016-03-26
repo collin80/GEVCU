@@ -34,9 +34,6 @@ CanIO::CanIO() : Device()
 
 void CanIO::setup()
 {
-    tickHandler.detach(this);
-
-    loadConfiguration();
     Device::setup();
 
     canHandlerEv.attach(this, CAN_MASKED_ID, CAN_MASK, false);
@@ -61,6 +58,7 @@ void CanIO::tearDown()
 void CanIO::handleTick()
 {
     sendIOStatus();
+    sendAnalogData();
 }
 
 /*
@@ -114,8 +112,7 @@ void CanIO::sendIOStatus()
     rawIO |= status.digitalOutput[6] ? digitalOut7 : 0;
     rawIO |= status.digitalOutput[7] ? digitalOut8 : 0;
 
-    outputFrame.data.byte[0] = (rawIO & 0xFF00) >> 8;
-    outputFrame.data.byte[1] = (rawIO & 0x00FF);
+    outputFrame.data.s0 = rawIO;
 
     uint16_t logicIO = 0;
     logicIO |= status.preChargeRelay ? preChargeRelay : 0;
@@ -135,14 +132,26 @@ void CanIO::sendIOStatus()
 
     logicIO |= status.brakeLight ? brakeLight : 0;
     logicIO |= status.reverseLight ? reverseLight : 0;
-    logicIO |= status.warning ? warning : 0;
-    logicIO |= status.limitationTorque ? powerLimitation : 0;
+    logicIO |= status.powerSteering ? powerSteering : 0;
+    logicIO |= status.unused ? unused : 0;
 
-    outputFrame.data.byte[2] = (logicIO & 0xFF00) >> 8;
-    outputFrame.data.byte[3] = (logicIO & 0x00FF);
+    outputFrame.data.s1 = logicIO;
 
     outputFrame.data.byte[4] = status.getSystemState();
 
+    canHandlerEv.sendFrame(outputFrame);
+}
+
+/*
+ * Send the values of the analog inputs over CAN so it can be used by other devices.
+ */
+void CanIO::sendAnalogData()
+{
+    canHandlerEv.prepareOutputFrame(&outputFrame, CAN_ID_GEVCU_ANALOG_IO);
+    outputFrame.data.s0 = systemIO.getAnalogIn(0);
+    outputFrame.data.s1 = systemIO.getAnalogIn(1);
+    outputFrame.data.s2 = systemIO.getAnalogIn(2);
+    outputFrame.data.s3 = systemIO.getAnalogIn(3);
     canHandlerEv.sendFrame(outputFrame);
 }
 
@@ -150,7 +159,7 @@ void CanIO::processExternalTemperature(byte bytes[])
 {
     for (int i = 0; i < CFG_NUMBER_TEMPERATURE_SENSORS; i++) {
         if (bytes[i] != 0) {
-            status.externalTemperature[i] = bytes[i] - 50;
+            status.externalTemperature[i] = bytes[i] - CFG_CAN_TEMPERATURE_OFFSET;
 Logger::info(CANIO, "external temperature %d: %d", i, status.externalTemperature[i]);
         }
     }

@@ -66,8 +66,6 @@ ICHIPWIFI::ICHIPWIFI()
  */
 void ICHIPWIFI::setup()
 {
-    tickHandler.detach(this);
-
     //RESET pin
     pinMode(42, OUTPUT);
     digitalWrite(42, HIGH);
@@ -160,11 +158,10 @@ void ICHIPWIFI::handleTick()
     uint32_t ms = millis();
     tickCounter++;
 
-    if (ms < 1000) {
-        return;    //wait 1 seconds for things to settle before doing a thing
+    if (ms < 3000) {
+        return;    //wait a bit for things to settle before doing a thing
     }
 
-    // Do a delayed parameter load once about a second after startup
     if (!didParamLoad) {
         loadParameters();
         didParamLoad = true;
@@ -224,7 +221,7 @@ void ICHIPWIFI::handleTick()
     // make small slices so the main loop is not blocked for too long
     if (tickCounter == 1) {
         // just update this every second or so
-        if (ms > paramCache.timeRunning + 1000) {
+        if (ms > paramCache.timeRunning + 900) {
             paramCache.timeRunning = ms;
             setParam(Constants::timeRunning, getTimeRunning());
         }
@@ -237,7 +234,7 @@ void ICHIPWIFI::handleTick()
         if (brake) {
             if (paramCache.brake != brake->getLevel()) {
                 paramCache.brake = brake->getLevel();
-                setParam(Constants::brake, paramCache.brake / 10.0f, 1);
+                setParam(Constants::brake, paramCache.brake / -10.0f, 1); // divide by negative to get positive values for breaking
             }
         }
     } else if (tickCounter == 2) {
@@ -667,10 +664,10 @@ bool ICHIPWIFI::processParameterChangeMotor(char *key, char *value)
                 config->powerMode = (atol(value) ? modeSpeed : modeTorque);
             } else if (!strcmp(key, Constants::invertDirection)) {
                 config->invertDirection = atol(value);
-            } else if (!strcmp(key, Constants::torqueSlewRate)) {
-                config->torqueSlewRate = atof(value) * 10;
-            } else if (!strcmp(key, Constants::speedSlewRate)) {
-                config->speedSlewRate = atof(value) * 10;
+            } else if (!strcmp(key, Constants::slewType)) {
+                config->slewType = atol(value);
+            } else if (!strcmp(key, Constants::slewRate)) {
+                config->slewRate = atof(value) * 10;
             } else if (!strcmp(key, Constants::maxMechanicalPowerMotor)) {
                 config->maxMechanicalPowerMotor = atof(value) * 10;
             } else if (!strcmp(key, Constants::maxMechanicalPowerRegen)) {
@@ -879,14 +876,20 @@ void ICHIPWIFI::loadParametersThrottle()
     Throttle *throttle = deviceManager.getAccelerator();
 
     if (throttle) {
-        PotThrottleConfiguration *throttleConfig = (PotThrottleConfiguration *) throttle->getConfiguration();
+        ThrottleConfiguration *throttleConfig = (ThrottleConfiguration *) throttle->getConfiguration();
 
         if (throttleConfig) {
             if (throttle->getId() == POTACCELPEDAL) {
-                setParam(Constants::numberPotMeters, throttleConfig->numberPotMeters);
-                setParam(Constants::throttleSubType, throttleConfig->throttleSubType);
-                setParam(Constants::minimumLevel2, throttleConfig->minimumLevel2);
-                setParam(Constants::maximumLevel2, throttleConfig->maximumLevel2);
+                PotThrottleConfiguration *potThrottleConfig = (PotThrottleConfiguration *) throttleConfig;
+                setParam(Constants::numberPotMeters, potThrottleConfig->numberPotMeters);
+                setParam(Constants::throttleSubType, potThrottleConfig->throttleSubType);
+                setParam(Constants::minimumLevel2, potThrottleConfig->minimumLevel2);
+                setParam(Constants::maximumLevel2, potThrottleConfig->maximumLevel2);
+            } else { // set reasonable values so the config page can be saved
+                setParam(Constants::numberPotMeters, (uint8_t) 1);
+                setParam(Constants::throttleSubType, (uint8_t)0);
+                setParam(Constants::minimumLevel2, (uint16_t) 50);
+                setParam(Constants::maximumLevel2, (uint16_t) 4095);
             }
             setParam(Constants::minimumLevel, throttleConfig->minimumLevel);
             setParam(Constants::maximumLevel, throttleConfig->maximumLevel);
@@ -906,7 +909,7 @@ void ICHIPWIFI::loadParametersBrake()
     Throttle *brake = deviceManager.getBrake();
 
     if (brake) {
-        PotThrottleConfiguration *brakeConfig = (PotThrottleConfiguration *) brake->getConfiguration();
+        ThrottleConfiguration *brakeConfig = (ThrottleConfiguration *) brake->getConfiguration();
 
         if (brakeConfig) {
             setParam(Constants::brakeMinimumLevel, brakeConfig->minimumLevel);
@@ -930,8 +933,8 @@ void ICHIPWIFI::loadParametersMotor()
             setParam(Constants::torqueMax, config->torqueMax / 10.0f, 1);
             setParam(Constants::motorMode, (uint8_t) config->powerMode);
             setParam(Constants::invertDirection, (uint8_t)(config->invertDirection ? 1 : 0));
-            setParam(Constants::torqueSlewRate, config->torqueSlewRate / 10.0f, 1);
-            setParam(Constants::speedSlewRate, config->speedSlewRate / 10.0f, 1);
+            setParam(Constants::slewType, config->slewType);
+            setParam(Constants::slewRate, config->slewRate / 10.0f, 1);
             setParam(Constants::maxMechanicalPowerMotor, config->maxMechanicalPowerMotor / 10.0f, 1);
             setParam(Constants::maxMechanicalPowerRegen, config->maxMechanicalPowerRegen / 10.0f, 1);
             if (motorController->getId() == BRUSA_DMC5) {

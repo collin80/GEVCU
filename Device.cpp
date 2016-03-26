@@ -56,9 +56,13 @@ Device::~Device()
  */
 void Device::setup()
 {
+    tickHandler.detach(this);
+
     ready = false;
     running = false;
     powerOn = false;
+
+    loadConfiguration();
 }
 
 /**

@@ -71,8 +71,8 @@ static const char* logLevel = "logLevel";
 static const char* nominalVolt = "nominalVolt";
 static const char* motorMode = "motorMode";
 static const char* invertDirection = "invertDirection";
-static const char* torqueSlewRate = "torqueSlewRate";
-static const char* speedSlewRate = "speedSlewRate";
+static const char* slewRate = "slewRate";
+static const char* slewType = "slewType";
 
 static const char* maxMechanicalPowerMotor = "maxMechPowerMotor";
 static const char* maxMechanicalPowerRegen = "maxMechPowerRegen";
@@ -91,6 +91,8 @@ static const char* interlockInput = "interlockInput";
 // output
 static const char* brakeLightOutput = "brakeLightOutput";
 static const char* reverseLightOutput = "reverseLightOutput";
+static const char* powerSteeringOutput = "powerSteeringOutput";
+static const char* unusedOutput = "unusedOutput";
 static const char* prechargeMillis = "prechargeMillis";
 static const char* prechargeRelayOutput = "prechargeRelayOutput";
 static const char* mainContactorOutput = "mainContactorOutput";

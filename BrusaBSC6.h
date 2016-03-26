@@ -108,7 +108,6 @@ public:
     void handleStateChange(Status::SystemState, Status::SystemState);
     void handleTick();
     void handleCanFrame(CAN_FRAME *frame);
-    void setup();
     void tearDown();
     DeviceId getId();
 

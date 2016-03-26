@@ -84,11 +84,13 @@ void SystemIO::handleTick() {
         // if the system is ready and the enable input is high, then switch to state "running", this should enable the motor controller
         if (state == Status::ready) {
             status.setSystemState(Status::running);
+            setPowerSteering(true); // TODO move this somewhere else, own device ?
         }
     } else {
         // if enable input is low and the motor controller is running, then disable it by switching to state "ready"
         if (state == Status::running) {
             status.setSystemState(Status::ready);
+            setPowerSteering(false); // TODO move this somewhere else, own device ?
         }
     }
 
@@ -99,6 +101,14 @@ void SystemIO::handleTick() {
     if (state == Status::preCharged) {
         state = status.setSystemState(Status::ready);
     }
+
+    //TODO move to method and configure max kWh and if inverted or not
+    MotorController *motor = deviceManager.getMotorController();
+    if (motor != NULL) {
+        setStateOfCharge(map(motor->getKiloWattHours(), 0, 100, 0, 255));
+    }
+
+
 
     handleCooling();
     handleCharging();
@@ -139,6 +149,9 @@ void SystemIO::powerDownSystem() {
 
     setBrakeLight(false);
     setReverseLight(false);
+    setPowerSteering(false);
+    setUnused(false);
+
     setWarning(false);
     setPowerLimitation(false);
 }
@@ -441,12 +454,29 @@ void SystemIO::setReverseLight(bool enabled) {
 }
 
 /*
+ * Enable / disable the power steering output and set the status flag.
+ */
+void SystemIO::setPowerSteering(bool enabled) {
+    setDigitalOut(configuration->powerSteeringOutput, enabled);
+    status.powerSteering = enabled;
+    deviceManager.sendMessage(DEVICE_IO, CANIO, MSG_UPDATE, NULL);
+}
+
+/*
+ * Enable / disable the power steering output and set the status flag.
+ */
+void SystemIO::setUnused(bool enabled) {
+    setDigitalOut(configuration->unusedOutput, enabled);
+    status.unused = enabled;
+    deviceManager.sendMessage(DEVICE_IO, CANIO, MSG_UPDATE, NULL);
+}
+
+/*
  * Enable / disable the warning light output and set the status flag.
  */
 void SystemIO::setWarning(bool enabled) {
     setDigitalOut(configuration->warningOutput, enabled);
     status.warning = enabled;
-    deviceManager.sendMessage(DEVICE_IO, CANIO, MSG_UPDATE, NULL);
 }
 
 /*
@@ -455,7 +485,14 @@ void SystemIO::setWarning(bool enabled) {
 void SystemIO::setPowerLimitation(bool enabled) {
     setDigitalOut(configuration->powerLimitationOutput, enabled);
     status.limitationTorque = enabled;
-    deviceManager.sendMessage(DEVICE_IO, CANIO, MSG_UPDATE, NULL);
+}
+
+/*
+ * Set the value of the estimated state of charge in the range of 0 to 255 (e.g. for a gas tank display)
+ */
+void SystemIO::setStateOfCharge(uint8_t value) {
+    setAnalogOut(configuration->stateOfChargeOutput, value);
+    status.stateOfCharge = value;
 }
 
 /*
@@ -580,6 +617,22 @@ bool SystemIO::getDigitalOut(uint8_t which) {
     }
 
     return digitalRead(out[which]);
+}
+
+/*
+ * Set analog output to a specific value (PWM on digital out).
+ */
+void SystemIO::setAnalogOut(uint8_t which, uint8_t value) {
+    if (which >= CFG_NUMBER_DIGITAL_OUTPUTS) {
+        return;
+    }
+    if (out[which] == CFG_OUTPUT_NONE) {
+        return;
+    }
+
+    analogWrite(out[which], value);
+    status.digitalOutput[which] = value != 0;
+    printIOStatus();
 }
 
 /*
@@ -992,8 +1045,12 @@ void SystemIO::loadConfiguration() {
 
         prefsHandler->read(EESIO_BRAKE_LIGHT_OUTPUT, &configuration->brakeLightOutput);
         prefsHandler->read(EESIO_REVERSE_LIGHT_OUTPUT, &configuration->reverseLightOutput);
+        prefsHandler->read(EESIO_POWER_STEERING_OUTPUT, &configuration->powerSteeringOutput);
+        prefsHandler->read(EESIO_UNUSED_OUTPUT, &configuration->unusedOutput);
+
         prefsHandler->read(EESIO_WARNING_OUTPUT, &configuration->warningOutput);
         prefsHandler->read(EESIO_POWER_LIMITATION_OUTPUT, &configuration->powerLimitationOutput);
+        prefsHandler->read(EESIO_STATE_OF_CHARGE_OUTPUT, &configuration->stateOfChargeOutput);
 
         prefsHandler->read(EESYS_SYSTEM_TYPE, (uint8_t *) &configuration->systemType);
         prefsHandler->read(EESYS_LOG_LEVEL, (uint8_t *) &configuration->logLevel);
@@ -1025,8 +1082,12 @@ void SystemIO::loadConfiguration() {
 
         configuration->brakeLightOutput = BrakeLightOutput;
         configuration->reverseLightOutput = ReverseLightOutput;
+        configuration->powerSteeringOutput = CFG_OUTPUT_NONE;
+        configuration->unusedOutput = CFG_OUTPUT_NONE;
+
         configuration->warningOutput = CFG_OUTPUT_NONE;
         configuration->powerLimitationOutput = CFG_OUTPUT_NONE;
+        configuration->stateOfChargeOutput = CFG_OUTPUT_NONE;
 
         configuration->systemType = GEVCU2;
         configuration->logLevel = Logger::Info;
@@ -1039,7 +1100,8 @@ void SystemIO::loadConfiguration() {
     Logger::info("enable motor: %d, enable charger: %d, enable DCDC: %d, enable heater: %d", configuration->enableMotorOutput, configuration->enableChargerOutput, configuration->enableDcDcOutput, configuration->enableHeaterOutput);
     Logger::info("heater valve: %d, heater pump: %d", configuration->heaterValveOutput, configuration->heaterPumpOutput);
     Logger::info("cooling pump: %d, cooling fan: %d, cooling temperature ON: %d, cooling tempreature Off: %d", configuration->coolingPumpOutput, configuration->coolingFanOutput, configuration->coolingTempOn, configuration->coolingTempOff);
-    Logger::info("brake light: %d, reverse light: %d, warning: %d, power limitation: %d", configuration->brakeLightOutput, configuration->reverseLightOutput, configuration->warningOutput, configuration->powerLimitationOutput);
+    Logger::info("brake light: %d, reverse light: %d, power steering: %d, unused: %d", configuration->brakeLightOutput, configuration->reverseLightOutput, configuration->powerSteeringOutput, configuration->unusedOutput);
+    Logger::info("warning: %d, power limitation: %d, soc: %d", configuration->warningOutput, configuration->powerLimitationOutput, configuration->stateOfChargeOutput);
     Logger::info("sys type: %d, log level: %d", configuration->systemType, configuration->logLevel);
 }
 
@@ -1069,8 +1131,12 @@ void SystemIO::saveConfiguration() {
 
     prefsHandler->write(EESIO_BRAKE_LIGHT_OUTPUT, configuration->brakeLightOutput);
     prefsHandler->write(EESIO_REVERSE_LIGHT_OUTPUT, configuration->reverseLightOutput);
+    prefsHandler->write(EESIO_POWER_STEERING_OUTPUT, configuration->powerSteeringOutput);
+    prefsHandler->write(EESIO_UNUSED_OUTPUT, configuration->unusedOutput);
+
     prefsHandler->write(EESIO_WARNING_OUTPUT, configuration->warningOutput);
     prefsHandler->write(EESIO_POWER_LIMITATION_OUTPUT, configuration->powerLimitationOutput);
+    prefsHandler->write(EESIO_STATE_OF_CHARGE_OUTPUT, configuration->stateOfChargeOutput);
 
     prefsHandler->write(EESYS_SYSTEM_TYPE, (uint8_t) configuration->systemType);
     prefsHandler->write(EESYS_LOG_LEVEL, (uint8_t) configuration->logLevel);

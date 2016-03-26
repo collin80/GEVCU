@@ -52,11 +52,6 @@ void BatteryManager::handleTick()
 {
 }
 
-void BatteryManager::setup()
-{
-    Device::setup();
-}
-
 int BatteryManager::getPackVoltage()
 {
     return packVoltage;

@@ -34,18 +34,14 @@ function showTab(pageId) {
 		}
 	}
 
-	// on the status && dashboard pages, set a 500ms repeating interval to load the data
-	if (pageId == 'status' || pageId == 'dashboard') {
-		if ( intervalId ) {
-			clearInterval(intervalId);
-		}
+	// on the dashboard page, set a 200ms repeating interval to load the data, otherwise clear it
+	if ( intervalId ) {
+		clearInterval(intervalId);
+		intervalId = null;
+	}
+	if (pageId == 'dashboard') {
 		intervalId = setInterval(function(){loadData(pageId)}, 200);
 	} else {
-		if (intervalId) {
-			clearInterval(intervalId);
-			intervalId = null;
-		}
-		
 		if ( pageId == 'config' ) {
 			resizeThrottleCanvas();
 		}
@@ -62,10 +58,8 @@ function loadPage(pageId) {
 			document.getElementById(pageId).innerHTML = xmlhttp.responseText;
 			if (pageId == 'config')
 				generateRangeControls();
-			if (pageId == 'status') {
-				loadPage("annunciator");
-			}
 			if (pageId == 'dashboard') {
+				loadPage("annunciator");
 				generateGauges();
 			}
 		}
@@ -112,6 +106,8 @@ function setNodeValue(name, value) {
 			if (target.nodeName.toUpperCase() == 'SELECT') {
 				selectItemByValue(target, value);
 			}
+		} else {
+			refreshGaugeValue(name, value);
 		}
 	} else { // an annunciator field of a bitfield value
 		updateAnnunciatorFields(name, value);
@@ -135,8 +131,6 @@ function loadData(pageId) {
 						
 						if (name.indexOf('device_x') == 0 && value == '1') {
 							setTrVisibility(name, true); // it's a device config, update device specific visibility
-						} else if (pageId == 'dashboard') {
-							refreshGaugeValue(name, value);
 						} else {
 							setNodeValue(name, value);
 						}

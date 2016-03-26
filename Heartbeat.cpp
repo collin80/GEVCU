@@ -38,8 +38,6 @@ Heartbeat::Heartbeat() : Device()
 
 void Heartbeat::setup()
 {
-    tickHandler.detach(this);
-
     pinMode(CFG_BLINK_LED, OUTPUT);
     digitalWrite(CFG_BLINK_LED, LOW);
     ready = true;

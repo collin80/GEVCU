@@ -103,6 +103,8 @@ Status::Status() {
 
     brakeLight = false;
     reverseLight = false;
+    powerSteering = false;
+    unused = false;
 
     enableIn            = false;
     chargePowerAvailable= false;
@@ -118,6 +120,8 @@ Status::Status() {
     for (int i = 0; i < CFG_NUMBER_TEMPERATURE_SENSORS; i++) {
         externalTemperature[i] = CFG_NO_TEMPERATURE_DATA;
     }
+
+    stateOfCharge = 0;
 }
 
 /*
@@ -203,7 +207,7 @@ Status::SystemState Status::setSystemState(SystemState newSystemState) {
         systemState = error;
     }
 
-    SystemState params[] = { oldSystemState, newSystemState };
+    SystemState params[] = { oldSystemState, systemState };
     deviceManager.sendMessage(DEVICE_ANY, INVALID, MSG_STATE_CHANGE, params);
 
     return systemState;

@@ -55,6 +55,7 @@ public:
     void process();
     void prepareOutputFrame(CAN_FRAME *frame, uint32_t id);
     void sendFrame(CAN_FRAME& frame);
+    void logFrame(CAN_FRAME& frame);
 protected:
 
 private:
@@ -70,7 +71,6 @@ private:
     CANRaw *bus;    // the can bus instance which this CanHandler instance is assigned to
     CanObserverData observerData[CFG_CAN_NUM_OBSERVERS];    // Can observers
 
-    void logFrame(CAN_FRAME& frame);
     int8_t findFreeObserverData();
     int8_t findFreeMailbox();
 };

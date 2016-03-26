@@ -41,14 +41,11 @@ PotBrake::PotBrake() : Throttle()
  */
 void PotBrake::setup()
 {
-    tickHandler.detach(this);  // unregister from TickHandler first
-
     Throttle::setup(); //call base class
 
     //set digital ports to inputs and pull them up all inputs currently active low
     //pinMode(THROTTLE_INPUT_BRAKELIGHT, INPUT_PULLUP); //Brake light switch
 
-    loadConfiguration();
     ready = true;
 
     tickHandler.attach(this, CFG_TICK_INTERVAL_POT_THROTTLE);

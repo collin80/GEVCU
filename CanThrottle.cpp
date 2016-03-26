@@ -42,9 +42,6 @@ CanThrottle::CanThrottle() : Throttle()
 
 void CanThrottle::setup()
 {
-    tickHandler.detach(this);
-
-    loadConfiguration();
     Throttle::setup();
 
     requestFrame.length = 0x08;

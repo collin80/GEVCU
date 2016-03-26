@@ -50,20 +50,6 @@ BrusaDMC5::BrusaDMC5() : MotorController()
     commonName = "Brusa DMC5 Inverter";
 }
 
-/*
- * Setup the device if it is enabled in configuration.
- */
-void BrusaDMC5::setup()
-{
-    tickHandler.detach(this);
-
-    loadConfiguration();
-    MotorController::setup(); // run the parent class version of this function
-
-    // we do not attach to CanHandler and TickHandler yet
-    // this only happens when the state changes to running.
-}
-
 /**
  * Tear down the controller in a safe way.
  */
@@ -89,7 +75,7 @@ void BrusaDMC5::handleStateChange(Status::SystemState oldState, Status::SystemSt
 
     // as the DMC is not sending/receiving messages as long as the enable signal is low
     // (state != ready / running), attach to can/tick handler only when running.
-    if (newState == Status::ready || newState == Status::running) {
+    if (newState == Status::running) {
         // register ourselves as observer of 0x258-0x268 and 0x458 can frames
         canHandlerEv.attach(this, CAN_MASKED_ID_1, CAN_MASK_1, false);
         canHandlerEv.attach(this, CAN_MASKED_ID_2, CAN_MASK_2, false);
@@ -189,10 +175,11 @@ void BrusaDMC5::sendControl2()
     BrusaDMC5Configuration *config = (BrusaDMC5Configuration *) getConfiguration();
 
     canHandlerEv.prepareOutputFrame(&outputFrame, CAN_ID_CONTROL_2);
-    outputFrame.data.bytes[0] = ((constrain(config->torqueSlewRate, 0, 6553) * 10) & 0xFF00) >> 8;
-    outputFrame.data.bytes[1] = ((constrain(config->torqueSlewRate, 0, 6553) * 10) & 0x00FF);
-    outputFrame.data.bytes[2] = (constrain(config->speedSlewRate, 0, 65535) & 0xFF00) >> 8;
-    outputFrame.data.bytes[3] = (constrain(config->speedSlewRate, 0, 65535) & 0x00FF);
+// slew rate is not working in firmware --> use GEVCU's own implementation and leave value at zero
+//    outputFrame.data.bytes[0] = ((constrain(config->slewRate, 0, 100) * 655) & 0xFF00) >> 8;
+//    outputFrame.data.bytes[1] = ((constrain(config->slewRate, 0, 100) * 655) & 0x00FF);
+//    outputFrame.data.bytes[2] = ((constrain(config->slewRate, 0, 100) * 655) & 0xFF00) >> 8;
+//    outputFrame.data.bytes[3] = ((constrain(config->slewRate, 0, 100) * 655) & 0x00FF);
     outputFrame.data.bytes[4] = ((constrain(config->maxMechanicalPowerMotor, 0, 2621) * 25) & 0xFF00) >> 8;
     outputFrame.data.bytes[5] = ((constrain(config->maxMechanicalPowerMotor, 0, 2621) * 25) & 0x00FF);
     outputFrame.data.bytes[6] = ((constrain(config->maxMechanicalPowerRegen, 0, 2621) * 25) & 0xFF00) >> 8;
@@ -275,7 +262,7 @@ void BrusaDMC5::processStatus(uint8_t data[])
     torqueActual = (int16_t) (data[5] | (data[4] << 8)) / 10;
     speedActual = (int16_t) (data[7] | (data[6] << 8));
 
-    if (config->invertDirection) {
+    if (config->invertDirection ^ (getGear() == REVERSE)) {
         speedActual *= -1;
         torqueActual *= -1;
     }

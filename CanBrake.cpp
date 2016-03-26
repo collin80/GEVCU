@@ -29,7 +29,6 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 CanBrake::CanBrake() : Throttle()
 {
     prefsHandler = new PrefHandler(CANBRAKEPEDAL);
-
     rawSignal.input1 = 0;
     rawSignal.input2 = 0;
     rawSignal.input3 = 0;
@@ -43,9 +42,6 @@ CanBrake::CanBrake() : Throttle()
 
 void CanBrake::setup()
 {
-    tickHandler.detach(this);
-
-    loadConfiguration();
     Throttle::setup();
 
     requestFrame.length = 0x08;

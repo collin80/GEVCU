@@ -1,38 +1,20 @@
-<div id="gauges">
-	<center>
-			<canvas id="throttleGauge">
-		Your browser does not support the HTML5 canvas tag.</canvas>
-
-
-		<canvas id="torqueActualGauge">
-		Your browser does not support the HTML5 canvas tag.</canvas>
-		
-		<canvas id="dcCurrentGauge">
-		Your browser does not support the HTML5 canvas tag.</canvas>
-	
-
-			<canvas id="speedActualGauge">
-		Your browser does not support the HTML5 canvas tag.</canvas>
-	</center>
-	
-	<br clear="all"/>
-	
-	<center>
-		<canvas id="temperatureMotorGauge">
-		Your browser does not support the HTML5 canvas tag.</canvas>
-
-		<canvas id="temperatureControllerGauge">
-		Your browser does not support the HTML5 canvas tag.</canvas>
-		
-	
-			<canvas id="dcVoltageGauge">
-		Your browser does not support the HTML5 canvas tag.</canvas>
-	
-		
-		<canvas id="kiloWattHoursGauge">
-		Your browser does not support the HTML5 canvas tag.</canvas> 
-	
-		<canvas id="mechanicalPowerGauge">
-		Your browser does not support the HTML5 canvas tag.</canvas>
-	</center>
+<div class="gauges">
+	<canvas id="throttleGauge">Your browser does not support the HTML5 canvas tag.</canvas>
+	<canvas id="torqueActualGauge">Your browser does not support the HTML5 canvas tag.</canvas>
+	<canvas id="dcCurrentGauge">Your browser does not support the HTML5 canvas tag.</canvas>
+	<canvas id="speedActualGauge">Your browser does not support the HTML5 canvas tag.</canvas>
+	<br clear="all" />
+	<canvas id="temperatureMotorGauge">Your browser does not support the HTML5 canvas tag.</canvas>
+	<canvas id="temperatureControllerGauge">Your browser does not support the HTML5 canvas tag.</canvas>
+	<canvas id="dcVoltageGauge">Your browser does not support the HTML5 canvas tag.</canvas>
+	<canvas id="kiloWattHoursGauge">Your browser does not support the HTML5 canvas tag.</canvas>
+	<canvas id="mechanicalPowerGauge">Your browser does not support the HTML5 canvas tag.</canvas>
 </div>
+<table style="padding: 0px 20px ; width: 100%;">
+	<tr>
+		<td align="left" width="33%">State: <span id="systemState">--</span></td>
+		<td align="center" width="33%">Gear: <span id="gear">--</span></td>
+		<td align="right" width="33%">Time running: <span id="timeRunning">--:--:--</span></td>
+	</tr>
+</table>
+<div id="annunciator"></div>

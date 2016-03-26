@@ -34,8 +34,8 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 #include <due_can.h>
 
-#define CFG_BUILD_NUM	1052        //increment this every time a git commit is done.
-#define CFG_VERSION "GEVCU 2015-06-08"
+#define CFG_BUILD_NUM	1053        //increment this every time a git commit is done.
+#define CFG_VERSION "GEVCU 2016-03-23"
 
 //define this to add in latency and efficiency calculations. Comment it out for builds you're going to 
 //use in an actual car. No need to waste cycles for 99% of everyone using the code.
@@ -75,8 +75,8 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 #define CFG_CAN0_SPEED CAN_BPS_500K // specify the speed of the CAN0 bus (EV)
 #define CFG_CAN1_SPEED CAN_BPS_500K // specify the speed of the CAN1 bus (Car)
-#define CFG_CAN0_NUM_RX_MAILBOXES 7 // amount of CAN bus receive mailboxes for CAN0
-#define CFG_CAN1_NUM_RX_MAILBOXES 7 // amount of CAN bus receive mailboxes for CAN1
+#define CFG_CAN0_NUM_TX_MAILBOXES 1 // how many of 8 mailboxes are used for TX for CAN0, rest is used for RX
+#define CFG_CAN1_NUM_TX_MAILBOXES 3 // how many of 8 mailboxes are used for TX for CAN1, rest is used for RX
 #define CFG_CANTHROTTLE_MAX_NUM_LOST_MSG 3 // maximum number of lost messages allowed (max 255)
 #define CFG_MOTORCTRL_MAX_NUM_LOST_MSG 20 // maximum number of ticks the controller may not send messages (max 255)
 
@@ -92,6 +92,7 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #define CFG_MIN_BATTERY_CHARGE_TEMPERATURE 5 // GEVCU won't start the battery charging process if the battery temp is below 5 deg C
 #define CFG_TORQUE_BRAKE_LIGHT_ON -100 // torque in 0.1Nm where brake light should be turned on - to prevent being kissed from behind
 #define CFG_WIFI_WPA2 // enable WPA2 encryption for ad-hoc wifi network at wifi reset (via command 'w'), comment line to disable
+#define CFG_CAN_TEMPERATURE_OFFSET 50 // offset of temperatures reported via CAN bus - make sure GEVCU extension uses the same value!
 
 /*
  * HARD CODED PARAMETERS
@@ -125,8 +126,8 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 #define MaxTorqueValue		3000 //in tenths of a Nm
 #define MaxRPMValue         6000 //DMOC will ignore this but we can use it ourselves for limiting
-#define RPMSlewRateValue    0 // rpm/sec the requested speed should change (speed mode)
-#define TorqueSlewRateValue 0 // 0.1Nm/sec the requested torque output should change (torque mode)
+#define SlewType            0 // 0=linear slew slope, 1=exponential
+#define SlewRateValue       0 // 0.1 percent/sec the requested torque/speed output should change
 #define KilowattHrs         11000 //not currently used
 #define EnableInput         255 // digital input port for enable signal
 #define PrechargeMillis     3000 // milliseconds for pre-charge cycle
@@ -160,8 +161,9 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 /*
  * PIN ASSIGNMENT
  */
-#define CFG_OUTPUT_NONE    255
-#define CFG_BLINK_LED       73 //13 is L, 73 is TX, 72 is RX
+#define CFG_OUTPUT_NONE    				255
+#define CFG_BLINK_LED       			73 //13 is L, 73 is TX, 72 is RX
+#define CFG_EEPROM_WRITE_PROTECT		19 // pin used to control the write-enable signal for the eeprom, use 18 for GEVCU 2.x
 
 #define CFG_NUMBER_ANALOG_INPUTS  4
 #define CFG_NUMBER_DIGITAL_INPUTS 4

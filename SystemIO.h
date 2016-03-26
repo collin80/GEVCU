@@ -75,8 +75,12 @@ public:
 
     uint8_t brakeLightOutput; // #of output for brake light at regen or 255 if not used
     uint8_t reverseLightOutput; // #of output for reverse light or 255 if not used
+    uint8_t powerSteeringOutput; // #of output for power steering or 255 if not used
+    uint8_t unusedOutput; // #of output for ... or 255 if not used
+
     uint8_t warningOutput; // #of output for warning light/relay or 255 if not used
     uint8_t powerLimitationOutput; // #of output for power limitation light or 255 if not used
+    uint8_t stateOfChargeOutput; // #of output to indicate the SoC or 255 if not used
 
     SystemType systemType; // the system type
     Logger::LogLevel logLevel; // the system's loglevel
@@ -112,11 +116,14 @@ public:
 
     void setBrakeLight(bool);
     void setReverseLight(bool);
+    void setPowerSteering(bool);
+    void setUnused(bool);
+
     void setWarning(bool);
     void setPowerLimitation(bool);
+    void setStateOfCharge(uint8_t);
 
     uint16_t getAnalogIn(uint8_t which);
-    bool getDigitalIn(uint8_t which);
     void setDigitalOut(uint8_t which, boolean active);
     bool getDigitalOut(uint8_t which);
     void ADCPoll();
@@ -176,6 +183,9 @@ private:
     void handleCharging();
     void handleBrakeLight();
     void handleReverseLight();
+
+    bool getDigitalIn(uint8_t which);
+    void setAnalogOut(uint8_t which, uint8_t value);
 
     // for security reasons, these should stay private
     void setPrechargeRelay(bool);

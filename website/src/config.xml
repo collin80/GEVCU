@@ -23,8 +23,8 @@
 	<motorMode>~motorMode~</motorMode>
 	<nominalVolt>~nominalVolt~</nominalVolt>
 	<invertDirection>~invertDirection~</invertDirection>
-	<torqueSlewRate>~torqueSlewRate~</torqueSlewRate>
-	<speedSlewRate>~speedSlewRate~</speedSlewRate>
+	<slewRate>~slewRate~</slewRate>
+	<slewType>~slewType~</slewType>
 
 	<maxMechPowerMotor>~maxMechPowerMotor~</maxMechPowerMotor>
 	<maxMechPowerRegen>~maxMechPowerRegen~</maxMechPowerRegen>

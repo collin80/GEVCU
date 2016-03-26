@@ -50,17 +50,6 @@ BrusaNLG5::BrusaNLG5() : Charger()
     canTickCounter = 0;
 }
 
-/*
- * Setup the device if it is enabled in configuration.
- */
-void BrusaNLG5::setup()
-{
-    tickHandler.detach(this);
-
-    loadConfiguration();
-    Charger::setup(); // call parent
-}
-
 /**
  * Tear down the controller in a safe way.
  */
