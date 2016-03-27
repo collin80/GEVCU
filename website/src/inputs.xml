@@ -1,7 +1,6 @@
-<?xml version="1.0" encoding="utf-8"?>
-<inputs>
-	<enableInput>~enableInput~</enableInput>
-	<reverseInput>~reverseInput~</reverseInput>
-	<chargePwrAvailInput>~chargePwrAvailInput~</chargePwrAvailInput>
-	<interlockInput>~interlockInput~</interlockInput>
-</inputs>
+{
+	"enableInput": ~enableInput~,
+	"reverseInput": ~reverseInput~,
+	"chargePwrAvailInput": ~chargePwrAvailInput~,
+	"interlockInput": ~interlockInput~,
+}

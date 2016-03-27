@@ -1,0 +1,21 @@
+{
+	"prechargeMillis": ~prechargeMillis~,
+	"prechargeRelayOutput": ~prechargeRelayOutput~,
+	"mainContactorOutput": ~mainContactorOutput~,
+	"secondaryContOutput": ~secondaryContOutput~,
+	"fastChargeContOutput": ~fastChargeContOutput~,
+	"enableMotorOutput": ~enableMotorOutput~,
+	"enableChargerOutput": ~enableChargerOutput~,
+	"enableDcDcOutput": ~enableDcDcOutput~,
+	"enableHeaterOutput": ~enableHeaterOutput~,
+	"heaterValveOutput": ~heaterValveOutput~,
+	"heaterPumpOutput": ~heaterPumpOutput~,
+	"coolingPumpOutput": ~coolingPumpOutput~,
+	"coolingFanOutput": ~coolingFanOutput~,
+	"coolingTempOn": ~coolingTempOn~,
+	"coolingTempOff": ~coolingTempOff~,
+	"brakeLightOutput": ~brakeLightOutput~,
+	"reverseLightOutput": ~reverseLightOutput~,
+	"warningOutput": ~warningOutput~,
+	"powerLimitOutput": ~powerLimitOutput~
+}

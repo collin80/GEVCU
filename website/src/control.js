@@ -115,36 +115,35 @@ function setNodeValue(name, value) {
 	}
 }
 
-// load data from dynamic xml and replace values in input fields, div's, gauges
+// load data from dynamic json and replace values in input fields, div's, gauges
 function loadData(pageId) {
 	try {
 		var xmlhttp = new XMLHttpRequest();
 		xmlhttp.onreadystatechange = function() {
 			if (xmlhttp.readyState == 4 && xmlhttp.status == 200) {
-				hideDeviceTr(); // hide device dependent TR's so they can be shown if configured
-				var root = xmlhttp.responseXML.firstChild;
-				for (var i = 0; i < root.childNodes.length; i++) {
-					var node = root.childNodes[i]; // scan through the nodes
-					if (node.nodeType == 1 && node.childNodes[0]) {
-						var name = node.nodeName;
-						var value = node.childNodes[0].nodeValue;
-						
-						if (name.indexOf('device_x') == 0 && value == '1') {
-							setTrVisibility(name, true); // it's a device config, update device specific visibility
-						} else {
-							setNodeValue(name, value);
-						}
-					}
-				}
+				var data = JSON.parse(xmlhttp.responseText);
+				processData(data);
 				if (pageId == 'config') {
 					refreshThrottleVisualization();
 				}
 			}
 		};
-		xmlhttp.open("GET", pageId + ".xml", true);
+		xmlhttp.open("GET", pageId + ".json", true);
 		xmlhttp.send();
 	} catch (err) {
 		alert("unable to retrieve data for page " + pageId);
+	}
+}
+
+function processData(data) {
+	hideDeviceTr(); // hide device dependent TR's so they can be shown if configured
+	for (name in data) {
+		var value = data[name];
+		if (name.indexOf('device_x') == 0 && value == '1') {
+			setTrVisibility(name, true); // it's a device config, update device specific visibility
+		} else {
+			setNodeValue(name, value);
+		}
 	}
 }
 

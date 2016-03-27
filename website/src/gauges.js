@@ -106,8 +106,8 @@ function generateGauges() {
 
 	var rpmGauge = new Gauge({
 		renderTo    : 'speedActualGauge',
-		width       : 250,
-		height      : 250,
+		width       : 300,
+		height      : 300,
 		glow        : true,
 		units       : 'x1000',
 		title       : "RPM",
@@ -116,7 +116,7 @@ function generateGauges() {
 		majorTicks  : ['0','1','2','3','4','5','6','7','8','9','10'],
 		minorTicks  : 2,
 		strokeTicks : false,
-		valueFormat      : { "int" : 5, "dec" : 0 },
+		valueFormat      : { "int" : 4, "dec" : 0 },
 		highlights  : [
 			{ from : 0, to : 6000, color : 'rgba(0, 255,  0, .75)' },
 			{ from : 6000, to : 7000, color : 'rgba(180, 255, 0, .75)' },
@@ -243,8 +243,8 @@ function generateGauges() {
 	
 	var dcCurrentGauge = new Gauge({
 		renderTo    : 'dcCurrentGauge',
-		width       : 300,
-		height      : 300,
+		width       : 250,
+		height      : 250,
 		glow        : true,
 		units       : 'Amps',
 		title       : "DC Current",
