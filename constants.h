@@ -156,6 +156,17 @@ static const char* gear = "gear";
 static const char* temperatureMotor = "temperatureMotor";
 static const char* temperatureController = "tempController";
 static const char* mechanicalPower = "mechanicalPower";
+
+static const char* torqueRange = "torqueRange";
+static const char* rpmRange = "rpmRange";
+static const char* currentRange = "currentRange";
+static const char* motorTempRange = "motorTempRange";
+static const char* controllerTempRange = "controllerTempRange";
+static const char* batteryRangeLow = "batteryRangeLow";
+static const char* batteryRangeHigh = "batteryRangeHigh";
+static const char* energyRange = "energyRange";
+static const char* powerRange = "powerRange";
+static const char* extTemperatureRange = "extTemperatureRange";
 }
 
 #endif /* CONSTANTS_H_ */

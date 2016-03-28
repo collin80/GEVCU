@@ -193,6 +193,7 @@ private:
     void loadParametersDcDc();
     void loadParametersSystemIO();
     void loadParametersDevices();
+    void loadParametersDashboard();
     void factoryDefaults();
 };
 

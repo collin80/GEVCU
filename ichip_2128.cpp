@@ -867,6 +867,7 @@ void ICHIPWIFI::loadParameters()
     loadParametersDcDc();
     loadParametersSystemIO();
     loadParametersDevices();
+    loadParametersDashboard();
 
     Logger::info("wifi parameters loaded");
 }
@@ -1044,6 +1045,29 @@ void ICHIPWIFI::loadParametersDevices()
             sprintf(idHex, "x%x", deviceIds[i]);
             setParam(idHex, (uint8_t)((device->isEnabled() == true) ? 1 : 0));
         }
+    }
+}
+
+void ICHIPWIFI::loadParametersDashboard()
+{
+    MotorController *motorController = deviceManager.getMotorController();
+
+    if (motorController) {
+        MotorControllerConfiguration *config = (MotorControllerConfiguration *) motorController->getConfiguration();
+
+        if (config) {
+            setParam(Constants::torqueRange, -1 * config->torqueMax + "," + config->torqueMax);
+            setParam(Constants::rpmRange, "0," + config->speedMax);
+        }
+        //TODO make params configurable
+        setParam(Constants::currentRange, "-275,275");
+        setParam(Constants::motorTempRange, "0,140,170");
+        setParam(Constants::controllerTempRange, "0,80,90");
+        setParam(Constants::batteryRangeLow, "297,357,368");
+        setParam(Constants::batteryRangeHigh, "402,416,428");
+        setParam(Constants::energyRange, "0,30,38");
+        setParam(Constants::powerRange, "-110,110");
+        setParam(Constants::extTemperatureRange, "-30,100");
     }
 }
 

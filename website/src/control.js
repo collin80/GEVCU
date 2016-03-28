@@ -1,14 +1,14 @@
-var intervalId=null;
+var intervalId = null;
 
 var canvas; // global throttle canvas object
-		
+
 // resize the canvas to fill browser window dynamically
 window.addEventListener('resize', resizeThrottleCanvas, false);
 
 function resizeThrottleCanvas() {
 	// adjust the width to the page width
-	var canvasElement=document.getElementById("throttleCanvas");
-	if ( canvasElement ) {
+	var canvasElement = document.getElementById("throttleCanvas");
+	if (canvasElement) {
 		canvasElement.width = window.innerWidth - 60; // needs to be slightly narrower than the page width
 	}
 	refreshThrottleVisualization();
@@ -34,19 +34,21 @@ function showTab(pageId) {
 		}
 	}
 
-	// on the dashboard page, set a 200ms repeating interval to load the data, otherwise clear it
-	if ( intervalId ) {
+	if (pageId == 'config') {
+		resizeThrottleCanvas();
+	}
+
+	// on the dashboard page, set a 200ms repeating interval to load the data,
+	// otherwise clear it and load the page data only once
+	if (intervalId) {
 		clearInterval(intervalId);
 		intervalId = null;
 	}
 	if (pageId == 'dashboard') {
-		intervalId = setInterval(function(){loadData(pageId)}, 200);
+		intervalId = setInterval(function() { loadData(pageId) }, 200);
 	} else {
-		if ( pageId == 'config' ) {
-			resizeThrottleCanvas();
-		}
+		loadData(pageId);
 	}
-	loadData(pageId);
 }
 
 // lazy load of page, replaces content of div with id==<pageId> with
@@ -60,7 +62,17 @@ function loadPage(pageId) {
 				generateRangeControls();
 			if (pageId == 'dashboard') {
 				loadPage("annunciator");
-				generateGauges();
+
+				// load config for dashboard gauges, then generate them
+				var dashConfig = new XMLHttpRequest();
+				dashConfig.onreadystatechange = function() {
+					if (dashConfig.readyState == 4 && dashConfig.status == 200) {
+						var data = JSON.parse(dashConfig.responseText);
+						generateGauges(data);
+					}
+				};
+				dashConfig.open("GET", "dashboard_config.json", true);
+				dashConfig.send();
 			}
 		}
 	};
@@ -81,7 +93,7 @@ function findAttribute(node, attributeName) {
 function setNodeValue(name, value) {
 	if (name.indexOf('bitfield') == -1) { // a normal div/span/input to update
 		var target = document.getElementById(name);
-		
+
 		if (!target) { // id not found, try to find by name
 			var namedElements = document.getElementsByName(name);
 			if (namedElements && namedElements.length)
@@ -111,7 +123,7 @@ function setNodeValue(name, value) {
 		}
 	} else { // an annunciator field of a bitfield value
 		updateAnnunciatorFields(name, value);
-//		updateAnnunciatorFields(name, Math.round(Math.random() * 0x100000000));
+		// updateAnnunciatorFields(name, Math.round(Math.random() * 0x100000000));
 	}
 }
 
@@ -226,7 +238,7 @@ function updateRangeValue(id, source) {
 		if (val < min)
 			val = min;
 	}
-		
+
 	document.getElementById(id).value = val;
 	source.value = val;
 	refreshThrottleVisualization();
@@ -237,12 +249,6 @@ function refreshThrottleVisualization() {
 		canvas = new ThrottleSettingsCanvas();
 	}
 	canvas.draw();
-
-//	var positionRegenMinimum = document.getElementById('positionRegenMinimum');
-//	var positionForwardStart = document.getElementById('positionForwardStart');
-//	if ( positionRegenMinimum && positionForwardStart ) {
-//		updateThrottleGaugeHighlights(positionRegenMinimum.value, positionForwardStart.value);
-//	}
 }
 
 function getIntValue(id) {
@@ -273,10 +279,12 @@ function generateRangeControls() {
 function addRangeControl(id, min, max) {
 	var node = document.getElementById(id + "Span");
 	if (node)
-		node.innerHTML = "<input id='"+id+"Level' type='range' min='"+min+"' max='"+max+"' onchange=\"updateRangeValue('"+id+"', this);\" onmousemove=\"updateRangeValue('"+id+"', this);\" /><input type='number' id='"+id+"' name='"+id+"' min='"+min+"' max='"+max+"' maxlength='4' size='4' onchange=\"updateRangeValue('"+id+"Level', this);\"/>";
+		node.innerHTML = "<input id='" + id + "Level' type='range' min='" + min + "' max='" + max + "' onchange=\"updateRangeValue('" + id
+				+ "', this);\" onmousemove=\"updateRangeValue('" + id + "', this);\" /><input type='number' id='" + id + "' name='" + id + "' min='"
+				+ min + "' max='" + max + "' maxlength='4' size='4' onchange=\"updateRangeValue('" + id + "Level', this);\"/>";
 }
 
-//hides rows with device depandent visibility (as a pre-requisite to re-enable it)
+// hides rows with device depandent visibility (as a pre-requisite to re-enable it)
 function hideDeviceTr() {
 	tr = document.getElementsByTagName('tr')
 	for (i = 0; i < tr.length; i++) {

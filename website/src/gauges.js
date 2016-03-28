@@ -3,26 +3,6 @@
  *
  */
 
-function updateThrottleGaugeHighlights(positionRegenMinimum, positionForwardStart) {
-
-	Gauge.Collection.get('throttleGauge').updateConfig({
-		highlights  : [
-			{ from : 0,   to : positionRegenMinimum, color : 'rgba(255, 0, 0, .75)' },
-			{ from : positionRegenMinimum, to : positionForwardStart, color : 'rgba(255, 255, 0, .75)' },
-			{ from : positionForwardStart, to : 100, color : 'rgba(0, 255,  0, .75)' }
-		]
-	});
-}
-function updateTemperatureControllerGaugeHighlights(coolingTempOff, coolingTempOn) {
-
-	Gauge.Collection.get('temperatureControllerGauge').updateConfig({
-		highlights  : [
-			{ from : 0,   to : coolingTempOff, color : 'rgba(255, 0, 0, .75)' },
-			{ from : coolingTempOff, to : coolingTempOn, color : 'rgba(255, 255, 0, .75)' },
-			{ from : coolingTempOn, to : 120, color : 'rgba(0, 255,  0, .75)' }
-		]
-	});
-}
 function refreshGaugeValue(setting, value) {
 	var id = setting + 'Gauge';
 	var gauge = document.getElementById(id);
@@ -39,7 +19,22 @@ function refreshGaugeValue(setting, value) {
 	}
 }
 
-function generateGauges() {
+// calculate the min/max and ticks for a gauge
+function calcRange(low, high) {
+	var j = 0;
+	var ticks = new Array();
+	var step = Math.ceil((high - low) / 50) * 5;
+	var min = ((low == 0) ? 0 : (low - (low + 1) % step - step + 1));
+	var max = high - (high - 1) % step + step - 1;
+	for (i = min; i <= max; i += step) {
+		ticks[j++] = i;
+	}
+	var result = {"min": min, "max": max, "ticks": ticks};
+	return result;
+}
+
+function generateGauges(config) {
+	var result = calcRange(-100,100);	
 	var throttleGauge = new Gauge({
 		renderTo    : 'throttleGauge',
 		width       : 250,
@@ -47,19 +42,16 @@ function generateGauges() {
 		glow        : true,
 		units       : '%',
 		title       : "Throttle",
-		minValue    : -100,
-		maxValue    : 100,
-		majorTicks  : ['-100','-80','-60','-40','-20','0','20','40','60','80','100'],
+		minValue    : result.min,
+		maxValue    : result.max,
+		majorTicks  : result.ticks,
 		minorTicks  : 2,
 		strokeTicks : false,
 		valueFormat      : { "int" : 3, "dec" : 1 },
-
-	
 		highlights  : [
 		   			{ from : -100,   to : 0, color : 'rgba(0, 180, 255, .75)' },
 					{ from : 0,   to : 100, color : 'rgba(0, 255, 0, .75)' }
 		],
-	
 		colors      : {
 			plate      : '#222',
 			majorTicks : '#f5f5f5',
@@ -72,6 +64,7 @@ function generateGauges() {
 	});
 	throttleGauge.draw();
 
+	result = calcRange(config.torqueRange[0], config.torqueRange[1]);
 	var torqueGauge = new Gauge({
 		renderTo    : 'torqueActualGauge',
 		width       : 300,
@@ -79,19 +72,16 @@ function generateGauges() {
 		glow        : true,
 		units       : 'Nm',
 		title       : "Torque",
-		minValue    : -200,
-		maxValue    : 300,
-		majorTicks  : ['-200','-150','-100','-50','0','50','100','150','200','250','300'],
+		minValue    : result.min,
+		maxValue    : result.max,
+		majorTicks  : result.ticks,
 		minorTicks  : 5,
 		strokeTicks : false,
 		valueFormat      : { "int" : 3, "dec" : 1 },
-
-	
 		highlights  : [
-			{ from : -200,   to : 0, color : 'rgba(0, 180, 255, .75)' },
-			{ from : 0, to : 300, color : 'rgba(0, 255,  0, .75)' }
+			{ from : result.min, to : 0, color : 'rgba(0, 180, 255, .75)' },
+			{ from : 0, to : result.max, color : 'rgba(0, 255,  0, .75)' }
 		],
-	
 		colors      : {
 			plate      : '#222',
 			majorTicks : '#f5f5f5',
@@ -104,6 +94,7 @@ function generateGauges() {
 	});
 	torqueGauge.draw();
 
+	result = calcRange(config.rpmRange[0], config.rpmRange[1] + 1000);
 	var rpmGauge = new Gauge({
 		renderTo    : 'speedActualGauge',
 		width       : 300,
@@ -111,18 +102,17 @@ function generateGauges() {
 		glow        : true,
 		units       : 'x1000',
 		title       : "RPM",
-		minValue    : 0,
-		maxValue    : 10000,
-		majorTicks  : ['0','1','2','3','4','5','6','7','8','9','10'],
-		minorTicks  : 2,
+		minValue    : result.min,
+		maxValue    : result.max,
+		majorTicks  : result.ticks,
+		minorTicks  : 5,
 		strokeTicks : false,
 		valueFormat      : { "int" : 4, "dec" : 0 },
 		highlights  : [
-			{ from : 0, to : 6000, color : 'rgba(0, 255,  0, .75)' },
-			{ from : 6000, to : 7000, color : 'rgba(180, 255, 0, .75)' },
-			{ from : 7000, to : 8000, color : 'rgba(255, 255, 0, .75)' },
-			{ from : 8000, to : 9000, color : 'rgba(255, 127, 0, .75)' },
-			{ from : 9000, to : 10000, color : 'rgba(255, 0, 0, .75)' }
+			{ from : result.min, to : config.rpmRange[1] - 2000, color : 'rgba(0, 255,  0, .75)' },
+			{ from : config.rpmRange[1] - 2000, to : config.rpmRange[1] - 1000, color : 'rgba(255, 255, 0, .75)' },
+			{ from : config.rpmRange[1] - 1000, to : config.rpmRange[1], color : 'rgba(255, 127, 0, .75)' },
+			{ from : config.rpmRange[1], to : result.max, color : 'rgba(255, 0, 0, .75)' }
 		],
 	
 		colors      : {
@@ -137,27 +127,28 @@ function generateGauges() {
 	});
 	rpmGauge.draw();
 
+	var interval = (config.motorTempRange[2] - config.motorTempRange[1]) / 2;
+	result = calcRange(config.motorTempRange[0], config.motorTempRange[2] + interval);
 	var temperatureMotorGauge = new Gauge({
 		renderTo    : 'temperatureMotorGauge',
 		width       : 200,
 		height      : 200,
 		glow        : true,
-		units       : 'C',
+		units       : '\u2103',
 		title       : "Motor",
-		minValue    : 0,
-		maxValue    : 160,
-		majorTicks  : ['0','20','40','60','80','100','120','140','160'],
-		minorTicks  : 2,
+		minValue    : result.min,
+		maxValue    : result.max,
+		majorTicks  : result.ticks,
+		minorTicks  : 5,
 		strokeTicks : false,
 		valueFormat      : { "int" : 3, "dec" : 1 },
 		highlights  : [
-			{ from : 0,   to : 80, color : 'rgba(0, 255,  0, .75)' },
-			{ from : 80,  to : 100, color : 'rgba(180, 255, 0, .75)' },
-			{ from : 100, to : 120, color : 'rgba(255, 255, 0, .75)' },
-			{ from : 120, to : 140, color : 'rgba(255, 127, 0, .75)' },
-			{ from : 140, to : 160, color : 'rgba(255, 0, 0, .75)' }
+			{ from : result.min, to : config.motorTempRange[1] - interval, color : 'rgba(0, 255,  0, .75)' },
+			{ from : config.motorTempRange[1] - interval, to : config.motorTempRange[1], color : 'rgba(180, 255, 0, .75)' },
+			{ from : config.motorTempRange[1], to : config.motorTempRange[2] - interval, color : 'rgba(255, 220, 0, .75)' },
+			{ from : config.motorTempRange[2] - interval, to : config.motorTempRange[2], color : 'rgba(255, 127, 0, .75)' },
+			{ from : config.motorTempRange[2], to : result.max, color : 'rgba(255, 0, 0, .75)' }
 		],
-
 		colors      : {
 			plate      : '#222',
 			majorTicks : '#f5f5f5',
@@ -170,27 +161,28 @@ function generateGauges() {
 	});
 	temperatureMotorGauge.draw();
 	
+	interval = (config.controllerTempRange[2] - config.controllerTempRange[1]) / 2;
+	result = calcRange(config.controllerTempRange[0], config.controllerTempRange[2] + interval);
 	var temperatureControllerGauge = new Gauge({
 		renderTo    : 'temperatureControllerGauge',
 		width       : 200,
 		height      : 200,
 		glow        : true,
-		units       : 'C',
+		units       : '\u2103',
 		title       : "Controller",
-		minValue    : 0,
-		maxValue    : 100,
-		majorTicks  : ['0','10','20','30','40','50','60','70','80','90','100'],
-		minorTicks  : 2,
+		minValue    : result.min,
+		maxValue    : result.max,
+		majorTicks  : result.ticks,
+		minorTicks  : 5,
 		strokeTicks : false,
 		valueFormat      : { "int" : 3, "dec" : 1 },
 		highlights  : [
-			{ from : 0,   to : 60, color : 'rgba(0, 255,  0, .75)' },
-			{ from : 60, to : 70, color : 'rgba(180, 255, 0, .75)' },
-			{ from : 70, to : 80, color : 'rgba(255, 255, 0, .75)' },
-			{ from : 80, to : 90, color : 'rgba(255, 127, 0, .75)' },
-			{ from : 90, to : 100, color : 'rgba(255, 0, 0, .75)' }
+   			{ from : result.min, to : config.controllerTempRange[1] - interval, color : 'rgba(0, 255,  0, .75)' },
+			{ from : config.controllerTempRange[1] - interval, to : config.controllerTempRange[1], color : 'rgba(180, 255, 0, .75)' },
+			{ from : config.controllerTempRange[1], to : config.controllerTempRange[2] - interval, color : 'rgba(255, 220, 0, .75)' },
+			{ from : config.controllerTempRange[2] - interval, to : config.controllerTempRange[2], color : 'rgba(255, 127, 0, .75)' },
+			{ from : config.controllerTempRange[2], to : result.max, color : 'rgba(255, 0, 0, .75)' }
 		],
-
 		colors      : {
 			plate      : '#222',
 			majorTicks : '#f5f5f5',
@@ -202,7 +194,10 @@ function generateGauges() {
 		}
 	});
 	temperatureControllerGauge.draw();
-	
+
+	var intervalLow = Math.round((config.batteryRangeLow[2] - config.batteryRangeLow[1]) / 2);
+	var intervalHigh = Math.round((config.batteryRangeHigh[2] - config.batteryRangeHigh[1]) / 2);
+	result = calcRange(config.batteryRangeLow[0] - intervalLow, config.batteryRangeHigh[2] + intervalHigh);
 	var dcVoltageGauge = new Gauge({
 		renderTo    : 'dcVoltageGauge',
 		width       : 200,
@@ -210,25 +205,23 @@ function generateGauges() {
 		glow        : true,
 		units       : 'Vdc',
 		title       : "Battery",
-		minValue    : 275,
-		maxValue    : 450,
-		majorTicks  : ['275','300','325','350','375','400','425','450'],
+		minValue    : result.min,
+		maxValue    : result.max,
+		majorTicks  : result.ticks,
 		minorTicks  : 5,
 		strokeTicks : false,
 		valueFormat      : { "int" : 3, "dec" : 1 },
 		highlights  : [
-			{ from : 275,   to : 300, color : 'rgba(255, 0, 0, .75)' },
-			{ from : 300,   to : 320, color : 'rgba(255, 127, 0, .75)' },
-			{ from : 320, to : 350, color : 'rgba(255, 255, 0, .75)' },
-			{ from : 350, to : 370, color : 'rgba(180, 255, 0, .75)' },
-			{ from : 370, to : 410, color : 'rgba(0, 255,  0, .75)' },
-			{ from : 410, to : 415, color : 'rgba(180, 255, 0, .75)' },
-			{ from : 415, to : 420, color : 'rgba(255, 255, 0, .75)' },
-			{ from : 420, to : 430, color : 'rgba(255, 127, 0, .75)' },
-			{ from : 430, to : 450, color :  'rgba(255, 0, 0, .75)'}
-		
+			{ from : result.min, to : config.batteryRangeLow[0], color : 'rgba(255, 0, 0, .75)' },
+			{ from : config.batteryRangeLow[0], to : config.batteryRangeLow[1], color : 'rgba(255, 127, 0, .75)' },
+			{ from : config.batteryRangeLow[1], to : config.batteryRangeLow[2], color : 'rgba(255, 220, 0, .75)' },
+			{ from : config.batteryRangeLow[2], to : config.batteryRangeLow[2] + intervalLow, color : 'rgba(180, 255, 0, .75)' },
+			{ from : config.batteryRangeLow[2] + intervalLow, to : config.batteryRangeHigh[0], color : 'rgba(0, 255,  0, .75)' },
+			{ from : config.batteryRangeHigh[0], to : config.batteryRangeHigh[0] + intervalHigh, color : 'rgba(180, 255, 0, .75)' },
+			{ from : config.batteryRangeHigh[0] + intervalHigh, to : config.batteryRangeHigh[1], color : 'rgba(255, 220, 0, .75)' },
+			{ from : config.batteryRangeHigh[1], to : config.batteryRangeHigh[2], color : 'rgba(255, 127, 0, .75)' },
+			{ from : config.batteryRangeHigh[2], to : result.max, color :  'rgba(255, 0, 0, .75)'}
 		],
-
 		colors      : {
 			plate      : '#222',
 			majorTicks : '#f5f5f5',
@@ -240,7 +233,8 @@ function generateGauges() {
 		}
 	});
 	dcVoltageGauge.draw();
-	
+
+	var result = calcRange(config.currentRange[0], config.currentRange[1]);
 	var dcCurrentGauge = new Gauge({
 		renderTo    : 'dcCurrentGauge',
 		width       : 250,
@@ -248,19 +242,18 @@ function generateGauges() {
 		glow        : true,
 		units       : 'Amps',
 		title       : "DC Current",
-		minValue    : -200,
-		maxValue    : 400,
-		majorTicks  : ['-200','-150','-100','-50','0','50','100','150','200','250','300','350','400'],
+		minValue    : result.min,
+		maxValue    : result.max,
+		majorTicks  : result.ticks,
 		minorTicks  : 5,
 		strokeTicks : false,
 		valueFormat      : { "int" : 3, "dec" : 1 },
 		highlights  : [
-		{ from : -200, to : 0, color : 'rgba(0, 180, 255, .75)' },
-			{ from : 0,   to :350, color : 'rgba(0, 255,  0, .75)' },
-			{ from : 350, to : 400, color : 'rgba(255, 255, 0, .75)' }
-			
+   			{ from : result.min, to : config.currentRange[0] * .9, color : 'rgba(180, 180, 255, .75)' },
+			{ from : config.currentRange[0] *.9, to : 0, color : 'rgba(0, 180, 255, .75)' },
+			{ from : 0, to : config.currentRange[1] * .9, color : 'rgba(0, 255,  0, .75)' },
+			{ from : config.currentRange[1] * .9, to : result.max, color : 'rgba(255, 255, 0, .75)' }
 		],
-
 		colors      : {
 			plate      : '#222',
 			majorTicks : '#f5f5f5',
@@ -273,6 +266,14 @@ function generateGauges() {
 	});
 	dcCurrentGauge.draw();
 	
+	j = 0;
+	ticks = new Array();
+	interval = Math.round((config.energyRange[2] - config.energyRange[1]) / 2);
+	for (i = config.energyRange[0] ; i <= (config.energyRange[2] + 5); i += 5) {
+		ticks[j++] = i;
+	} 
+	
+	var result = calcRange(config.energyRange[0], config.energyRange[2]);
 	var kiloWattHoursGauge = new Gauge({
 		renderTo    : 'kiloWattHoursGauge',
 		width       : 200,
@@ -280,17 +281,19 @@ function generateGauges() {
 		glow        : true,
 		units       : 'kWh',
 		title       : "Energy",
-		minValue    : 0,
-		maxValue    : 40,
-		majorTicks  : ['0','5','10','15','20','25','30','35','40'],
+		minValue    : result.min,
+		maxValue    : result.max,
+		majorTicks  : result.ticks,
 		minorTicks  : 5,
 		strokeTicks : false,
 		valueFormat      : { "int" : 2, "dec" : 1 },
 		highlights  : [
-			{ from : 0,   to : 40, color : 'rgba(0, 255,  0, .75)' }
-			
+			{ from : result.min, to : config.energyRange[1] - interval, color : 'rgba(0, 255,  0, .75)' },
+			{ from : config.energyRange[1] - interval, to : config.energyRange[1], color : 'rgba(180, 255,  0, .75)' },
+			{ from : config.energyRange[1], to : config.energyRange[2] - interval, color : 'rgba(255, 220,  0, .75)' },
+			{ from : config.energyRange[2] - interval, to : config.energyRange[2], color : 'rgba(255, 127,  0, .75)' },
+			{ from : config.energyRange[2], to : result.max, color : 'rgba(255, 0,  0, .75)' }
 		],
-
 		colors      : {
 			plate      : '#222',
 			majorTicks : '#f5f5f5',
@@ -303,6 +306,7 @@ function generateGauges() {
 	});
 	kiloWattHoursGauge.draw();
 	
+	var result = calcRange(config.powerRange[0], config.powerRange[1]);
 	var mechanicalPowerGauge = new Gauge({
 		renderTo    : 'mechanicalPowerGauge',
 		width       : 200,
@@ -310,17 +314,18 @@ function generateGauges() {
 		glow        : true,
 		units       : 'kW',
 		title       : "Power",
-		minValue    : -25,
-		maxValue    : 150,
-		majorTicks  : ['-25','0','25','50','75','100','125','150'],
+		minValue    : result.min,
+		maxValue    : result.max,
+		majorTicks  : result.ticks,
 		minorTicks  : 5,
 		strokeTicks : false,
-		valueFormat      : { "int" : 3, "dec" : 1 },
+		valueFormat : { "int" : 3, "dec" : 1 },
 		highlights  : [
-			{ from : -25, to : 0, color : 'rgba(0, 180, 255, .75)' },
-			{ from : 0, to : 150, color : 'rgba(0, 255,  0, .75)' }
+  			{ from : result.min, to : config.powerRange[0] * .9, color : 'rgba(180, 180, 255, .75)' },
+			{ from : config.powerRange[0] *.9, to : 0, color : 'rgba(0, 180, 255, .75)' },
+			{ from : 0, to : config.powerRange[1] * .9, color : 'rgba(0, 255,  0, .75)' },
+			{ from : config.powerRange[1] * .9, to : result.max, color : 'rgba(255, 255, 0, .75)' }
 		],
-
 		colors      : {
 			plate      : '#222',
 			majorTicks : '#f5f5f5',

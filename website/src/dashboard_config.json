@@ -1,0 +1,11 @@
+{
+	"torqueRange": [ ~torqueRange~ ],
+	"rpmRange": [ ~rpmRange~ ],
+	"currentRange": [ ~currentRange~ ],
+	"motorTempRange": [ ~motorTempRange~ ],
+	"controllerTempRange": [ ~controllerTempRange~ ],
+	"batteryRange": [ ~batteryRange~ ],
+	"energyRange": [ ~energyRange~ ],
+	"powerRange": [ ~powerRange~ ],
+	"extTemperatureRange": [ ~extTemperatureRange~ ]
+}
