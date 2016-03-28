@@ -365,7 +365,7 @@ void MotorController::loadConfiguration()
 
     Logger::info(getId(), "Power mode: %s, Max torque: %i, Max RPM: %i", (config->powerMode == modeTorque ? "torque" : "speed"), config->torqueMax,
             config->speedMax);
-    Logger::info(getId(), "Slew rate: %i, Slew rate: %i", config->slewRate, config->slewType);
+    Logger::info(getId(), "Slew rate: %i, Slew type: %i", config->slewRate, config->slewType);
     Logger::info(getId(), "Max mech power motor: %fkW, Max mech power regen: %fkW", config->maxMechanicalPowerMotor / 10.0f,
             config->maxMechanicalPowerRegen / 10.0f);
 }
