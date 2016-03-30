@@ -235,6 +235,7 @@ void SystemIO::handleCharging() {
     if (isChargePowerAvailable()) { // we're connected to "shore" power
         if (state == Status::running) {
             state = status.setSystemState(Status::ready);
+            setPowerSteering(false); //TODO movre somewhere else !
         }
         if (state == Status::ready || state == Status::batteryHeating) {
             int16_t batteryTemp = status.getLowestExternalTemperature();

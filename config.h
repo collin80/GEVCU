@@ -155,8 +155,10 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #define CFG_CAN_NUM_OBSERVERS 10 // maximum number of device subscriptions per CAN bus
 #define CFG_TIMER_NUM_OBSERVERS 9 // the maximum number of supported observers per timer
 #define CFG_TIMER_BUFFER_SIZE 100 // the size of the queuing buffer for TickHandler
-#define CFG_SERIAL_SEND_BUFFER_SIZE 100
+#define CFG_SERIAL_SEND_BUFFER_SIZE 120
 #define CFG_FAULT_HISTORY_SIZE	50 //number of faults to store in eeprom. A circular buffer so the last 50 faults are always stored.
+#define CFG_WEBSOCKET_BUFFER_SIZE 50 // number of characters an incoming socket frame may contain
+#define CFG_WIFI_BUFFER_SIZE 128 // size of buffer for incoming data from wifi
 
 /*
  * PIN ASSIGNMENT

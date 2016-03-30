@@ -131,7 +131,6 @@ void MotorController::processThrottleLevel()
     boolean disableSlew = false;
 
     throttleLevel = 0; //force to zero in case not in operational condition
-powerOn = true; ready= true;
     if (powerOn && ready) {
         if (accelerator) {
             throttleLevel = accelerator->getLevel();

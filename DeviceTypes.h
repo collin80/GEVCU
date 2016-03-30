@@ -75,8 +75,8 @@ const DeviceId deviceIds[] = {
         BRUSA_DMC5,
         CODAUQM,
         BRUSA_NLG5,
-//        TCCHCHARGE,
-//        LEARCHARGE,
+        TCCHCHARGE,
+        LEARCHARGE,
         POTACCELPEDAL,
         POTBRAKEPEDAL,
         CANACCELPEDAL,
@@ -86,8 +86,8 @@ const DeviceId deviceIds[] = {
         BRUSA_BSC6,
         HEARTBEAT,
         CANIO,
-//        PIDLISTENER,
-//        ELM327EMU
+        PIDLISTENER,
+        ELM327EMU
 };
 
 #endif /* DEVICE_TYPES_H_ */

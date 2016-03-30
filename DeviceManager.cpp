@@ -233,7 +233,7 @@ Device *DeviceManager::getDeviceByID(DeviceId id)
     }
 
     Logger::debug("getDeviceByID - No device with ID: %X", (int) id);
-    return 0; //NULL!
+    return NULL;
 }
 
 /*
@@ -249,7 +249,7 @@ Device *DeviceManager::getDeviceByType(DeviceType type)
             }
         }
     }
-    return 0; //NULL!
+    return NULL;
 }
 
 /*

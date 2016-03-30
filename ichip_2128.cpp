@@ -35,6 +35,7 @@ ICHIPWIFI::ICHIPWIFI()
 {
     prefsHandler = new PrefHandler(ICHIP2128);
     elmProc = new ELM327Processor();
+    webSocket = new WebSocket();
 
     uint8_t sys_type;
 
@@ -58,7 +59,6 @@ ICHIPWIFI::ICHIPWIFI()
     lastSendTime = 0;
     lastSentState = IDLE;
     state = IDLE;
-    lastSentCmd = String("");
 }
 
 /*
@@ -79,8 +79,6 @@ void ICHIPWIFI::setup()
     activeSockets[2] = -1;
     activeSockets[3] = -1;
 
-    paramCache.timeRunning = 0;
-
     ready = true;
     running = true;
 
@@ -97,7 +95,7 @@ void ICHIPWIFI::tearDown()
     digitalWrite(42, LOW);
 }
 
-//A version of sendCmd that defaults to SET_PARAM which is what most of the code used to assume.
+//A version of sendCmd that defaults to IDLE which is what most of the code used to assume.
 void ICHIPWIFI::sendCmd(String cmd)
 {
     sendCmd(cmd, IDLE);
@@ -109,7 +107,8 @@ void ICHIPWIFI::sendCmd(String cmd)
  */
 void ICHIPWIFI::sendCmd(String cmd, ICHIP_COMM_STATE cmdstate)
 {
-    if (state != IDLE) { //if the comm is tied up then buffer this parameter for sending later
+    //if the comm is tied up and we're not sending to a socket, then buffer this parameter for sending later
+    if (state != IDLE && cmdstate != SEND_SOCKET && cmdstate != GET_SOCKET) {
         sendBuffer[psWritePtr].cmd = cmd;
         sendBuffer[psWritePtr++].state = cmdstate;
         if (psWritePtr >= CFG_SERIAL_SEND_BUFFER_SIZE) {
@@ -124,7 +123,6 @@ void ICHIPWIFI::sendCmd(String cmd, ICHIP_COMM_STATE cmdstate)
         serialInterface->write(13);
         state = cmdstate;
         lastSendTime = millis();
-        lastSentCmd = String(cmd);
         lastSentState = cmdstate;
 
         if (Logger::isDebug()) {
@@ -133,30 +131,42 @@ void ICHIPWIFI::sendCmd(String cmd, ICHIP_COMM_STATE cmdstate)
     }
 }
 
+void ICHIPWIFI::sendBufferedCommand()
+{
+    if (psReadPtr != psWritePtr) {
+        //if there is a parameter in the buffer to send then do it
+        if (Logger::isDebug()) {
+            Logger::debug(ICHIP2128, "Sending buffered cmd: %s", sendBuffer[psReadPtr].cmd.c_str());
+        }
+        state = IDLE;
+        sendCmd(sendBuffer[psReadPtr].cmd, sendBuffer[psReadPtr++].state);
+        if (psReadPtr >= CFG_SERIAL_SEND_BUFFER_SIZE) {
+            psReadPtr = 0;
+        }
+    }
+}
+
 void ICHIPWIFI::sendToSocket(int socket, String data)
 {
     char buff[6];
     sprintf(buff, "%03i", socket);
-    String temp = "SSND%%:" + String(buff);
+    String temp = "SSND%:" + String(buff);
     sprintf(buff, ",%i:", data.length());
-    temp = temp + String(buff) + data;
+    temp.concat(buff);
+    temp.concat(data);
     sendCmd(temp, SEND_SOCKET);
 }
 
 /*
- * Periodic updates of parameters to ichip RAM.
- * Also query for changed parameters of the config page.
+ * Query for changed parameters of the config page, socket status
+ * and query for incoming data on sockets
  */
-//TODO: See the processing function below for a more detailed explanation - can't send so many setParam commands in a row
 void ICHIPWIFI::handleTick()
 {
-    MotorController* motorController = deviceManager.getMotorController();
-    Throttle *accelerator = deviceManager.getAccelerator();
-    Throttle *brake = deviceManager.getBrake();
     static int pollListening = 0;
     static int pollSocket = 0;
     uint32_t ms = millis();
-    tickCounter++;
+    tickCounter++; //TODO merge pollListening and tickCounter into one
 
     if (ms < 3000) {
         return;    //wait a bit for things to settle before doing a thing
@@ -167,7 +177,7 @@ void ICHIPWIFI::handleTick()
         didParamLoad = true;
     }
 
-    //At 12 seconds start up a listening socket for OBDII
+    //At 12 seconds start up a listening socket for OBDII and WebSocket
     if (!didTCPListener && ms > 12000) {
         sendCmd("LTCP:2000,4", START_TCP_LISTENER);
         didTCPListener = true;
@@ -185,125 +195,27 @@ void ICHIPWIFI::handleTick()
         }
     }
 
-    //read any information waiting on active sockets
-    for (int c = 0; c < 4; c++) {
-        if (activeSockets[c] != -1) {
-            char buff[6];
-            sprintf(buff, "%03i", activeSockets[c]);
-            String temp = "SRCV:" + String(buff) + ",80";
-            sendCmd(temp, GET_SOCKET);
+    //read any information waiting on active sockets if we're not already in midst of it
+    if (state != GET_SOCKET) {
+        for (int c = 0; c < 4; c++) {
+            if (activeSockets[c] != -1) {
+                char buff[6];
+                sprintf(buff, "%03i", activeSockets[c]);
+                String temp = "SRCV:" + String(buff) + ",1024";
+                sendCmd(temp, GET_SOCKET);
+            }
         }
     }
 
-    // update main gauges every tick
-    if (motorController) {
-        if (paramCache.speedActual != motorController->getSpeedActual()) {
-            paramCache.speedActual = motorController->getSpeedActual();
-            setParam(Constants::speedActual, paramCache.speedActual);
-        }
-        if (paramCache.torqueActual != motorController->getTorqueActual()) {
-            paramCache.torqueActual = motorController->getTorqueActual();
-            setParam(Constants::torqueActual, paramCache.torqueActual / 10.0f, 1);
-        }
-        if (paramCache.dcCurrent != motorController->getDcCurrent()) {
-            paramCache.dcCurrent = motorController->getDcCurrent();
-            setParam(Constants::dcCurrent, paramCache.dcCurrent / 10.0f, 1);
-        }
-    }
-    if (accelerator) {
-        if (paramCache.throttle != accelerator->getLevel()) {
-            paramCache.throttle = accelerator->getLevel();
-            setParam(Constants::throttle, paramCache.throttle / 10.0f, 1);
-        }
-    }
-
-
-    // make small slices so the main loop is not blocked for too long
-    if (tickCounter == 1) {
-        // just update this every second or so
-        if (ms > paramCache.timeRunning + 900) {
-            paramCache.timeRunning = ms;
-            setParam(Constants::timeRunning, getTimeRunning());
-        }
-        if (motorController) {
-            if (paramCache.torqueRequested != motorController->getTorqueRequested()) {
-                paramCache.torqueRequested = motorController->getTorqueRequested();
-                setParam(Constants::torqueRequested, paramCache.torqueRequested / 10.0f, 1);
-            }
-        }
-        if (brake) {
-            if (paramCache.brake != brake->getLevel()) {
-                paramCache.brake = brake->getLevel();
-                setParam(Constants::brake, paramCache.brake / -10.0f, 1); // divide by negative to get positive values for breaking
-            }
-        }
-    } else if (tickCounter == 2) {
-        if (motorController) {
-            if (paramCache.dcVoltage != motorController->getDcVoltage()) {
-                paramCache.dcVoltage = motorController->getDcVoltage();
-                setParam(Constants::dcVoltage, paramCache.dcVoltage / 10.0f, 1);
-            }
-            if (paramCache.kiloWattHours != motorController->getKiloWattHours() / 3600000) {
-                paramCache.kiloWattHours = motorController->getKiloWattHours() / 3600000;
-                setParam(Constants::kiloWattHours, paramCache.kiloWattHours / 10.0f, 1);
-            }
-        }
-        if (paramCache.systemState != status.getSystemState()) {
-            paramCache.systemState = status.getSystemState();
-            setParam(Constants::systemState, status.systemStateToStr(status.getSystemState()));
-        }
-    } else if (tickCounter == 3) {
-        if (paramCache.bitfield1 != status.getBitField1()) {
-            paramCache.bitfield1 = status.getBitField1();
-            setParam(Constants::bitfield1, paramCache.bitfield1);
-        }
-        if (paramCache.bitfield2 != status.getBitField2()) {
-            paramCache.bitfield2 = status.getBitField2();
-            setParam(Constants::bitfield2, paramCache.bitfield2);
-        }
-        if (paramCache.bitfield3 != status.getBitField3()) {
-            paramCache.bitfield3 = status.getBitField3();
-            setParam(Constants::bitfield3, paramCache.bitfield3);
-        }
-        if (motorController) {
-            if (paramCache.mechanicalPower != motorController->getMechanicalPower()) {
-                paramCache.mechanicalPower = motorController->getMechanicalPower();
-                setParam(Constants::mechanicalPower, paramCache.mechanicalPower / 10.0f, 1);
-            }
-        }
-    } else if (tickCounter > 3) {
-        if (motorController) {
-            if (paramCache.temperatureMotor != motorController->getTemperatureMotor()) {
-                paramCache.temperatureMotor = motorController->getTemperatureMotor();
-                setParam(Constants::temperatureMotor, paramCache.temperatureMotor / 10.0f, 1);
-            }
-            if (paramCache.temperatureController != motorController->getTemperatureController()) {
-                paramCache.temperatureController = motorController->getTemperatureController();
-                setParam(Constants::temperatureController, paramCache.temperatureController / 10.0f, 1);
-            }
-            if (paramCache.gear != motorController->getGear()) {
-                paramCache.gear = motorController->getGear();
-                setParam(Constants::gear, (uint16_t) paramCache.gear);
-            }
-        }
+    // check if params have changed, but only if idle so we don't mess-up other incoming data
+    if (tickCounter > 3 && state == IDLE) {
         tickCounter = 0;
         getNextParam();
     }
-}
 
-/*
- * Calculate the runtime in hh:mm:ss
- This runtime calculation is good for about 50 days of uptime.
- Of course, the sprintf is only good to 99 hours so that's a bit less time.
- */
-char *ICHIPWIFI::getTimeRunning()
-{
-    uint32_t ms = millis();
-    int seconds = (int) (ms / 1000) % 60;
-    int minutes = (int) ((ms / (1000 * 60)) % 60);
-    int hours = (int) ((ms / (1000 * 3600)) % 24);
-    sprintf(buffer, "%02d:%02d:%02d", hours, minutes, seconds);
-    return buffer;
+    if (webSocket->isConnected()) {
+        sendToSocket(0, webSocket->getUpdate());
+    }
 }
 
 /*
@@ -424,121 +336,150 @@ void ICHIPWIFI::setParam(String paramName, float value, int precision)
  * until we get 13 (CR) and then process it.
  *
  */
-
 void ICHIPWIFI::loop()
 {
     int incoming;
     while (serialInterface->available()) {
         incoming = serialInterface->read();
-
-        if (incoming != -1) { //and there is no reason it should be -1
-            if (incoming == 13 || ibWritePtr > 126) { // on CR or full buffer, process the line
-                incomingBuffer[ibWritePtr] = 0; //null terminate the string
-                ibWritePtr = 0; //reset the write pointer
-
-                //what we do with the input depends on what state the ICHIP comm was set to.
-                if (Logger::isDebug()) {
-                    Logger::debug(ICHIP2128, "incoming: '%s', state: %d", incomingBuffer, state);
-                }
-
-                //The ichip echoes our commands back at us. The safer option might be to verify that the command
-                //we think we're about to process is really proper by validating the echo here. But, for now
-                //just ignore echoes.
-                if (strncmp(incomingBuffer, Constants::ichipCommandPrefix, 4) != 0) {
-                    switch (state) {
-                    case GET_PARAM: //reply from an attempt to read changed parameters from ichip
-                        if (strchr(incomingBuffer, '=')) {
-                            processParameterChange(incomingBuffer);
-                        }
-                        break;
-
-                    case SET_PARAM: //reply from sending parameters to the ichip
-                        break;
-
-                    case START_TCP_LISTENER: //reply from turning on a listening socket
-
-                        //reply hopefully has the listening socket #.
-                        if (strcmp(incomingBuffer, Constants::ichipErrorString)) {
-                            listeningSocket = atoi(&incomingBuffer[2]);
-                            if (listeningSocket < 10 || listeningSocket > 11) {
-                                listeningSocket = 0;
-                            }
-                            if (Logger::isDebug()) {
-                                Logger::debug(ICHIP2128, "%i", listeningSocket);
-                            }
-                        }
-                        break;
-
-                    case GET_ACTIVE_SOCKETS: //reply from asking for active connections
-                        if (strcmp(incomingBuffer, Constants::ichipErrorString)) {
-                            activeSockets[0] = atoi(strtok(&incomingBuffer[3], ","));
-                            activeSockets[1] = atoi(strtok(NULL, ","));
-                            activeSockets[2] = atoi(strtok(NULL, ","));
-                            activeSockets[3] = atoi(strtok(NULL, ","));
-
-                            if (Logger::isDebug()) {
-                                Logger::debug(ICHIP2128, "%i, %i, %i, %i", activeSockets[0], activeSockets[1], activeSockets[2], activeSockets[3]);
-                            }
-                        }
-                        break;
-
-                    case POLL_SOCKET: //reply from asking about state of socket and how much data it has
-                        break;
-
-                    case SEND_SOCKET: //reply from sending data over a socket
-                        break;
-
-                    case GET_SOCKET: //reply requesting the data pending on a socket
-                        //reply is I/<size>:data
-                        int dLen;
-
-                        //do not do anything if the socket read returned an error.
-                        if (strstr(incomingBuffer, "ERROR") == NULL) {
-                            if (strcmp(incomingBuffer, Constants::ichipErrorString)) {
-                                dLen = atoi(strtok(&incomingBuffer[2], ":"));
-                                String datastr = strtok(0, ":");  //get the rest of the string
-                                datastr.toLowerCase();
-                                String ret = elmProc->processELMCmd((char *) datastr.c_str());
-                                sendToSocket(0, ret);  //TODO: need to actually track which socket requested this data
-                            }
-                        }
-                        break;
-
-                    case IDLE: //not sure whether to leave this info or go to debug. The ichip shouldn't be sending things in idle state
-                    default:
-                        //Logger::info(ICHIP2128, incomingBuffer);
-                        break;
-
-                    }
-                    //if we got an I/ in the reply then the command is done sending data. So, see if there is a buffered cmd to send.
-                    if (incomingBuffer[0] == 'I' && incomingBuffer[1] == '/') {
-                        if (psReadPtr != psWritePtr) { //if there is a parameter in the buffer to send then do it
-                            if (Logger::isDebug()) {
-                                Logger::debug(ICHIP2128, "Sending buffered cmd: %s", sendBuffer[psReadPtr].cmd.c_str());
-                            }
-                            state = IDLE;
-                            sendCmd(sendBuffer[psReadPtr].cmd, sendBuffer[psReadPtr++].state);
-                            if (psReadPtr >= CFG_SERIAL_SEND_BUFFER_SIZE) {
-                                psReadPtr = 0;
-                            }
-                        }
-                    }
-                }
-                return; // before processing the next line, return to the loop() to allow other devices to process.
-            } else { // add more characters
-                if (incoming != 10) { // don't add a LF character
-                    incomingBuffer[ibWritePtr++] = (char) incoming;
-                }
-            }
-        } else {
+        if (incoming == -1) { //and there is no reason it should be -1
             return;
         }
-    }
+SerialUSB.print((char)incoming);
 
-    if (millis() > lastSendTime + 1000) { //if the last sent command hasn't gotten a reply in 1 second
+        if (incoming == 13 || ibWritePtr > (CFG_WIFI_BUFFER_SIZE - 2)) { // on CR or full buffer, process the line
+            incomingBuffer[ibWritePtr] = 0; //null terminate the string
+            ibWritePtr = 0; //reset the write pointer
+
+            if (Logger::isDebug()) {
+                Logger::debug(ICHIP2128, "incoming: '%s', state: %d", incomingBuffer, state);
+            }
+
+            //The ichip echoes our commands back at us. The safer option might be to verify that the command
+            //we think we're about to process is really proper by validating the echo here. But, for now
+            //just ignore echoes - except for SSDN (socket send, where an error might be added at the end)
+            if (strncmp(incomingBuffer, Constants::ichipCommandPrefix, 4) != 0) {
+                switch (state) {
+                case GET_PARAM: //reply from an attempt to read changed parameters from ichip
+                    processParameterChange(incomingBuffer);
+                    break;
+                case SET_PARAM: //reply from sending parameters to the ichip
+                    break;
+                case START_TCP_LISTENER: //reply from turning on a listening socket
+                    processStartTcpListenerRepsonse();
+                    break;
+                case GET_ACTIVE_SOCKETS: //reply from asking for active connections
+                    processGetActiveSocketsResponse();
+                    break;
+                case POLL_SOCKET: //reply from asking about state of socket and how much data it has
+                    break;
+                case SEND_SOCKET: //reply from sending data over a socket
+                    break;
+                case GET_SOCKET: //reply requesting the data pending on a socket
+                    processGetSocketResponse();
+                    break;
+                case IDLE:
+                default:
+                    //Logger::info(ICHIP2128, incomingBuffer);
+                    break;
+                }
+                // if we got an I/OK or I/ERROR in the reply then the command is done sending data. So, see if there is a buffered cmd to send.
+                if (strstr(incomingBuffer, "I/OK") || strstr(incomingBuffer, Constants::ichipErrorString)) {
+                    sendBufferedCommand();
+                }
+            } else {
+                processSocketSendResponse();
+            }
+            return; // before processing the next line, return to the loop() to allow other devices to process.
+        } else { // add more characters
+            if (incoming != 10) { // don't add a LF character
+                incomingBuffer[ibWritePtr++] = (char) incoming;
+            }
+        }
+    }
+    if (millis() > lastSendTime + 1000) {
         state = IDLE; //something went wrong so reset state
-        //sendCmd(lastSentCmd, lastSentState); //try to resend it
-        //The sendCmd call resets lastSentTime so this will at most be called every second until the iChip interface decides to cooperate.
+    }
+}
+
+void ICHIPWIFI::processStartTcpListenerRepsonse()
+{
+    //reply hopefully has the listening socket #.
+    if (strcmp(incomingBuffer, Constants::ichipErrorString)) {
+        listeningSocket = atoi(&incomingBuffer[2]);
+        if (listeningSocket < 10 || listeningSocket > 11) {
+            listeningSocket = 0;
+        }
+        if (Logger::isDebug()) {
+            Logger::debug(ICHIP2128, "%i", listeningSocket);
+        }
+    }
+}
+
+void ICHIPWIFI::processGetActiveSocketsResponse()
+{
+    if (strcmp(incomingBuffer, Constants::ichipErrorString)) {
+        activeSockets[0] = atoi(strtok(&incomingBuffer[3], ","));
+        activeSockets[1] = atoi(strtok(NULL, ","));
+        activeSockets[2] = atoi(strtok(NULL, ","));
+        activeSockets[3] = atoi(strtok(NULL, ","));
+        if (Logger::isDebug()) {
+            Logger::debug(ICHIP2128, "%i, %i, %i, %i", activeSockets[0], activeSockets[1], activeSockets[2], activeSockets[3]);
+        }
+    }
+}
+
+void ICHIPWIFI::processGetSocketResponse()
+{
+    char* datastr;
+    //reply is I/<size>:data  or it's just the next line (rest) from the previous SRCV request
+    if (incomingBuffer[0] == 'I' && incomingBuffer[1] == '/' && isDigit(incomingBuffer[2])) {
+        int dLen = atoi(strtok(&incomingBuffer[2], ":"));
+        datastr = strtok(0, ":"); // get the rest of the string
+        if (dLen == 0) {
+            state = IDLE;
+            return;
+        }
+    } else {
+        datastr = incomingBuffer;
+    }
+    String ret;
+    if (true) {
+        // TODO do real differentiation between OBDII and WebSocket messages
+        ret = webSocket->processCmd(datastr);
+    } else {
+        String data = datastr;
+        data.toLowerCase();
+        ret = elmProc->processELMCmd((char*) (data.c_str()));
+    }
+    if (ret.length() > 0) {
+        sendToSocket(0, ret); //TODO: need to actually track which socket requested this data
+    }
+    // empty line marks end of transmission -> switch back to IDLE to be able to send (buffered) messages
+    // beware that WebSocket relies on empty lines to indicate the end of transmission
+    if (strlen(incomingBuffer) == 0) {
+        state = IDLE;
+    }
+}
+
+void ICHIPWIFI::processSocketSendResponse()
+{
+    // although we ignore all echo's of "AT+i", the "AT+iSSND" has the I/OK or I/ERROR in-line
+    if (strstr(incomingBuffer, "AT+iSSND") != NULL) {
+        // we get an error with SSND, when the socket was closed (e.g. "AT+iSSND%:000,24:I/ERROR (203)")
+        if (strstr(incomingBuffer, Constants::ichipErrorString) != NULL) {
+            webSocket->disconnected();
+            Logger::info(ICHIP2128, "connection closed by remote client (%s), closing socket", incomingBuffer);
+            for (int c = 0; c < 4; c++) {
+                if (activeSockets[c] != -1) {
+                    char buff[6];
+                    sprintf(buff, "%03i", activeSockets[c]);
+                    String temp = "!SCLS:" + String(buff);
+                    sendCmd(temp, GET_SOCKET);
+                    activeSockets[c] = -1;
+                }
+            }
+        }
+        sendBufferedCommand(); // give the others also a chance
     }
 }
 
@@ -1040,11 +981,13 @@ void ICHIPWIFI::loadParametersDevices()
 
     setParam(Constants::logLevel, (uint8_t) Logger::getLogLevel());
     for (int i = 0; i < size; i++) {
+        sprintf(idHex, "x%x", deviceIds[i]);
         device = deviceManager.getDeviceByID(deviceIds[i]);
         if (device != NULL) {
-            sprintf(idHex, "x%x", deviceIds[i]);
             setParam(idHex, (uint8_t)((device->isEnabled() == true) ? 1 : 0));
-        }
+        } else {
+            setParam(idHex, (uint8_t)0);
+		}
     }
 }
 
@@ -1055,10 +998,13 @@ void ICHIPWIFI::loadParametersDashboard()
     if (motorController) {
         MotorControllerConfiguration *config = (MotorControllerConfiguration *) motorController->getConfiguration();
 
-        if (config) {
-            setParam(Constants::torqueRange, -1 * config->torqueMax + "," + config->torqueMax);
-            setParam(Constants::rpmRange, "0," + config->speedMax);
-        }
+//        if (config) {
+//            setParam(Constants::torqueRange, -1 * config->torqueMax + "," + config->torqueMax);
+//            setParam(Constants::rpmRange, "0," + config->speedMax);
+//        }
+        setParam(Constants::torqueRange, "-250,250");
+        setParam(Constants::rpmRange, "0,8000");
+
         //TODO make params configurable
         setParam(Constants::currentRange, "-275,275");
         setParam(Constants::motorTempRange, "0,140,170");

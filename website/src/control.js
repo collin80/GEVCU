@@ -1,4 +1,4 @@
-var intervalId = null;
+var socketConnection = null;
 
 var canvas; // global throttle canvas object
 
@@ -38,17 +38,33 @@ function showTab(pageId) {
 		resizeThrottleCanvas();
 	}
 
-	// on the dashboard page, set a 200ms repeating interval to load the data,
-	// otherwise clear it and load the page data only once
-	if (intervalId) {
-		clearInterval(intervalId);
-		intervalId = null;
+	// on the dashboard page, open a WebSocket to receive updates,
+	// otherwise close the connection
+	if (socketConnection) {
+		socketConnection.close();
+		socketConnection = null;
 	}
 	if (pageId == 'dashboard') {
-		intervalId = setInterval(function() { loadData(pageId) }, 200);
+		startWebSocketCommunication();
 	} else {
 		loadData(pageId);
 	}
+}
+
+function startWebSocketCommunication() {
+	socketConnection = new WebSocket( "ws://192.168.3.10:2000" );
+	//When the connection is open, send some data to the server
+	// Log errors
+	socketConnection.onerror = function (error) {
+	  console.log('WebSocket Error ' + error);
+	  socketConnection.close();
+	  socketConnection = null;
+	};
+	// process messages from the server
+	socketConnection.onmessage = function (message) {
+	  var data = JSON.parse(message.data);
+	  processData(data);
+	};
 }
 
 // lazy load of page, replaces content of div with id==<pageId> with
@@ -71,7 +87,7 @@ function loadPage(pageId) {
 						generateGauges(data);
 					}
 				};
-				dashConfig.open("GET", "dashboard_config.json", true);
+				dashConfig.open("GET", "dashboard_config.js", true);
 				dashConfig.send();
 			}
 		}
@@ -140,7 +156,7 @@ function loadData(pageId) {
 				}
 			}
 		};
-		xmlhttp.open("GET", pageId + ".json", true);
+		xmlhttp.open("GET", pageId + ".js", true);
 		xmlhttp.send();
 	} catch (err) {
 		alert("unable to retrieve data for page " + pageId);

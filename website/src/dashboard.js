@@ -12,7 +12,7 @@
 	"speedActual": ~speedActual~,
 	"dcVoltage": ~dcVoltage~,
 	"dcCurrent": ~dcCurrent~,
-	"kiloWattHours": ~kiloWattHours,
+	"kiloWattHours": ~kiloWattHours~,
 	"mechanicalPower": ~mechanicalPower~,
 	"temperatureMotor": ~temperatureMotor~,
 	"temperatureController": ~tempController~

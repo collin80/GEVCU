@@ -4,7 +4,8 @@
 	"currentRange": [ ~currentRange~ ],
 	"motorTempRange": [ ~motorTempRange~ ],
 	"controllerTempRange": [ ~controllerTempRange~ ],
-	"batteryRange": [ ~batteryRange~ ],
+	"batteryRangeLow": [ ~batteryRangeLow~ ],
+	"batteryRangeHigh": [ ~batteryRangeHigh~ ],
 	"energyRange": [ ~energyRange~ ],
 	"powerRange": [ ~powerRange~ ],
 	"extTemperatureRange": [ ~extTemperatureRange~ ]

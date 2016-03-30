@@ -39,5 +39,5 @@
 	"device_x1031": ~x1031~,
 	"device_x1032": ~x1032~,
 	"device_x1033": ~x1033~,
-	"device_x1034": ~x1034~,
+	"device_x1034": ~x1034~
 }
