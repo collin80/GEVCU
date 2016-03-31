@@ -170,7 +170,11 @@ function updateAnnunciatorFields(name, bitfield) {
 }
 
 function updateField(id, fieldClass, flag) {
-	var target = document.getElementById(id);
+	var target = nodecache[id];
+	if (!target) {
+		target = document.getElementById(id);
+		nodecache[id] = target;
+	}
 	if (target)
 		target.className = (flag == 0 ? FieldClass.off : fieldClass);
 }

@@ -1,6 +1,7 @@
 var socketConnection = null;
 
 var canvas; // global throttle canvas object
+var nodecache = new Array(); // a cache with references to nodes - for faster location than DOM traversal
 
 // resize the canvas to fill browser window dynamically
 window.addEventListener('resize', resizeThrottleCanvas, false);
@@ -50,7 +51,6 @@ function showTab(pageId) {
 }
 
 function openWebSocket() {
-	console.log("url: " + location.hostname);
 	socketConnection = new WebSocket("ws://" + location.hostname + ":2000");
 
 	// send some data to the server Log errors
@@ -112,40 +112,52 @@ function findAttribute(node, attributeName) {
 }
 
 function setNodeValue(name, value) {
-	if (name.indexOf('bitfield') == -1) { // a normal div/span/input to update
-		var target = document.getElementById(name);
-
-		if (!target) { // id not found, try to find by name
-			var namedElements = document.getElementsByName(name);
-			if (namedElements && namedElements.length)
-				target = namedElements[0];
-		}
-
-		if (target) { // found an element, update according to its type
-			if (target.nodeName.toUpperCase() == 'DIV' || target.nodeName.toUpperCase() == 'SPAN')
-				target.innerHTML = value;
-			if (target.nodeName.toUpperCase() == 'INPUT') {
-				var type = findAttribute(target, "type");
-				if (type && (type.value.toUpperCase() == 'CHECKBOX' || type.value.toUpperCase() == 'RADIO')) {
-					target.checked = (value.toUpperCase() == 'TRUE' || value == '1');
-				} else {
-					target.value = value;
-					// find corresponding slider element
-					var slider = document.getElementById(name + "Level");
-					if (slider) {
-						slider.value = value;
-					}
-				}
-			}
-			if (target.nodeName.toUpperCase() == 'SELECT') {
-				selectItemByValue(target, value);
-			}
-		} else {
-			refreshGaugeValue(name, value);
-		}
-	} else { // an annunciator field of a bitfield value
+	// a bitfield value for annunciator fields
+	if (name.indexOf('bitfield') != -1) {
 		updateAnnunciatorFields(name, value);
 		// updateAnnunciatorFields(name, Math.round(Math.random() * 0x100000000));
+		return;
+	}
+
+	var target = nodecache[name + "Gauge"];
+	if (target) {
+		Gauge.Collection.get(name + "Gauge").setRawValue(value);
+		return;
+	}
+
+	// a normal div/span/input to update
+	target = nodecache[name];
+	if (!target) {
+		target = document.getElementById(name);
+		nodecache[name]=target;
+	}
+	if (!target) { // id not found, try to find by name
+		var namedElements = document.getElementsByName(name);
+		if (namedElements && namedElements.length) {
+			target = namedElements[0];
+			nodecache[name] = target;
+		}
+	}
+
+	if (target) { // found an element, update according to its type
+		if (target.nodeName.toUpperCase() == 'DIV' || target.nodeName.toUpperCase() == 'SPAN')
+			target.innerHTML = value;
+		if (target.nodeName.toUpperCase() == 'INPUT') {
+			var type = findAttribute(target, "type");
+			if (type && (type.value.toUpperCase() == 'CHECKBOX' || type.value.toUpperCase() == 'RADIO')) {
+				target.checked = (value.toUpperCase() == 'TRUE' || value == '1');
+			} else {
+				target.value = value;
+				// find corresponding slider element
+				var slider = document.getElementById(name + "Level");
+				if (slider) {
+					slider.value = value;
+				}
+			}
+		}
+		if (target.nodeName.toUpperCase() == 'SELECT') {
+			selectItemByValue(target, value);
+		}
 	}
 }
 
