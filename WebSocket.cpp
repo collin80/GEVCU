@@ -51,44 +51,127 @@ void WebSocket::disconnected()
 /*
  * Process requests from a web socket client
  */
-String WebSocket::processCmd(char *cmd)
+void WebSocket::processInput(String &response, char *input)
 {
-    String header = String();
+    if (connected) {
+        if (input[0] != 0) { // don't process empty strings
+            processData(response, input);
+        }
+    } else {
+        processHeader(response, input);
+    }
+}
 
+void WebSocket::initParamCache()
+{
+    paramCache.timeRunning = 0;
+    paramCache.torqueRequested = -1;
+    paramCache.torqueActual = -1;
+    paramCache.throttle = -1;
+    paramCache.brake = -1;
+    paramCache.speedActual = -1;
+    paramCache.dcVoltage = -1;
+    paramCache.dcCurrent = -1;
+    paramCache.acCurrent = -1;
+    paramCache.nominalVolt = -1;
+    paramCache.kiloWattHours = -1;
+    paramCache.bitfield1 = 0;
+    paramCache.bitfield2 = 0;
+    paramCache.bitfield3 = 0;
+    paramCache.systemState = 0;
+    paramCache.gear = MotorController::ERROR;
+    paramCache.temperatureMotor = -1;
+    paramCache.temperatureController = -1;
+    paramCache.mechanicalPower = -1;
+}
+
+void WebSocket::processHeader(String &response, char *input)
+{
     // grab the key
-    char *key = strstr(cmd, webSocketKeyName);
+    char* key = strstr(input, webSocketKeyName);
     if (key != NULL) {
         webSocketKey = new String(key + strlen(webSocketKeyName) + 2);
         Logger::debug("websocket: found key: %s", webSocketKey->c_str());
     }
-
-    // they're done (empty line), send our header
-    if (webSocketKey != NULL && webSocketKey->length() > 0 && strlen(cmd) == 0) {
+    // they're done (empty line), send our response
+    if (webSocketKey != NULL && strlen(input) == 0) {
         char acceptHash[128];
-
         Logger::debug("websocket: got a key and an empty line, let's go");
         webSocketKey->concat(websocketUid); // append the UID to the key
-
         // generate SHA1 hash of new key
         Sha1.init();
         Sha1.print(webSocketKey->c_str());
-        uint8_t *hash = Sha1.result();
-
+        uint8_t* hash = Sha1.result();
         // base64 encode the hash of the new key
-        base64_encode(acceptHash, (char*)hash, 20);
-
-        header.concat("HTTP/1.1 101 Switching Protocols\r\n");
-        header.concat("Upgrade: websocket\r\n");
-        header.concat("Connection: Upgrade\r\n");
-        header.concat("Sec-WebSocket-Accept: ");
-        header.concat(acceptHash);
-        header.concat("\r\n\r\n");
-
+        base64_encode(acceptHash, (char*) (hash), 20);
+        response.concat("HTTP/1.1 101 Switching Protocols\r\n");
+        response.concat("Upgrade: websocket\r\n");
+        response.concat("Connection: Upgrade\r\n");
+        response.concat("Sec-WebSocket-Accept: ");
+        response.concat(acceptHash);
+        response.concat("\r\n\r\n");
         connected = true;
         webSocketKey = NULL;
+        initParamCache();
     }
-    return header;
 }
+
+void WebSocket::processData(String &response, char *input)
+{
+    bool fin = (input[0] & 0x80) != 0;
+    int opcode = (input[0] & 0x0f);
+    bool mask = (input[1] & 0x80) != 0;
+    long payloadLength = input[1] & 0x7f;
+    String data = String();
+
+    Logger::debug("websocket: fin: %B, opcode: %X, mask: %B, length: %d", fin, opcode, mask, payloadLength);
+
+    uint8_t offset = 2;
+    if (payloadLength == 0x7e) { // 126 -> use next two bytes as unsigned 16bit length of payload
+        payloadLength = input[offset] << 8 + input[offset + 1];
+        Logger::debug("websoextended 16-bit lenght: %d", payloadLength);
+        offset += 2;
+    }
+    if (payloadLength == 0x7f) {
+        Logger::error("websocket: >64k frames not supported");
+        return;
+    }
+
+    byte key[] = { input[offset], input[offset + 1], input[offset + 2], input[offset + 3] };
+    offset += 4;
+    Logger::debug("key: %X %X %X %X", key[0],key[1],key[2],key[3]);
+
+    if (mask) {
+        for (int i = 0; i < payloadLength; i++) {
+            input[offset + i] = (input[offset + i] ^ key[i % 4]);
+        }
+    }
+
+    switch (opcode) {
+    case OPCODE_CONTINUATION:
+        Logger::error("websocket: continuation frames not supported");
+        break;
+    case OPCODE_TEXT:
+        Logger::info("text frame: '%s'", &input[offset]);
+        break;
+    case OPCODE_BINARY:
+        Logger::error("websocket: binary frames not supported");
+        break;
+    case OPCODE_CLOSE:
+        Logger::error("websocket: close connection request");
+        data.concat((char)(input[offset]));
+        data.concat((char)(input[offset + 1]));
+        response.concat(prepareWebSocketFrame(OPCODE_CLOSE, data));
+        connected = false; // signal to close the connection
+        break;
+    case OPCODE_PING:
+        Logger::error("websocket: ping not supported");
+        break;
+    case OPCODE_PONG:
+        break;
+    }
+}
+
 
 /**
  * prepare a JSON object which contains only changed values
@@ -186,17 +269,17 @@ String WebSocket::getUpdate()
     }
 
     data.concat("\r}\r"); // close JSON object
-    return prepareWebSocketFrame(data);
+    return prepareWebSocketFrame(OPCODE_TEXT, data);
 }
 
 /**
  * Wrap data into a web socket frame with the necessary header information (see Rfc 6455)
  */
-String WebSocket::prepareWebSocketFrame(String data)
+String WebSocket::prepareWebSocketFrame(uint8_t opcode, String data)
 {
     String frame = String();
 
-    frame.concat((char)0b10000001); // FIN and opcode = 0x1
+    frame.concat((char)(0b10000000 | opcode)); // FIN and opcode
     if (data.length() < 126) {
         frame.concat((char)(data.length() & 0x7f)); // mask = 0, length in one byte
     } else if (data.length() < 0xffff) {
@@ -210,16 +293,7 @@ String WebSocket::prepareWebSocketFrame(String data)
         frame.concat((char)(data.length() >> 8)); // write high byte of length
         frame.concat((char)(data.length() & 0xff)); // write low byte of length
     } else {
-        // TODO this won't work yet because of the 0x00 -- but do we really need more than 64k of data ?
-        frame.concat((char)0x7f); // mask = 0, length in following 8 bytes
-        frame.concat((char)(data.length() >> 56));
-        frame.concat((char)((data.length() >> 48) & 0xff));
-        frame.concat((char)((data.length() >> 40) & 0xff));
-        frame.concat((char)((data.length() >> 32) & 0xff));
-        frame.concat((char)((data.length() >> 24) & 0xff));
-        frame.concat((char)((data.length() >> 16) & 0xff));
-        frame.concat((char)((data.length() >> 8) & 0xff));
-        frame.concat((char)(data.length() & 0xff));
+        // we won't send frames > 64k
     }
     frame.concat(data);
     return frame;

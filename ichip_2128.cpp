@@ -35,7 +35,7 @@ ICHIPWIFI::ICHIPWIFI()
 {
     prefsHandler = new PrefHandler(ICHIP2128);
     elmProc = new ELM327Processor();
-    webSocket = new WebSocket();
+    webSocket = new WebSocket(); //TODO each socket handler should get its own WebSocket class
 
     uint8_t sys_type;
 
@@ -59,6 +59,7 @@ ICHIPWIFI::ICHIPWIFI()
     lastSendTime = 0;
     lastSentState = IDLE;
     state = IDLE;
+    remainingSocketRead = -1;
 }
 
 /*
@@ -107,8 +108,8 @@ void ICHIPWIFI::sendCmd(String cmd)
  */
 void ICHIPWIFI::sendCmd(String cmd, ICHIP_COMM_STATE cmdstate)
 {
-    //if the comm is tied up and we're not sending to a socket, then buffer this parameter for sending later
-    if (state != IDLE && cmdstate != SEND_SOCKET && cmdstate != GET_SOCKET) {
+    //if the comm is tied up, then buffer this parameter for sending later
+    if (state != IDLE) {
         sendBuffer[psWritePtr].cmd = cmd;
         sendBuffer[psWritePtr++].state = cmdstate;
         if (psWritePtr >= CFG_SERIAL_SEND_BUFFER_SIZE) {
@@ -126,19 +127,19 @@ void ICHIPWIFI::sendCmd(String cmd, ICHIP_COMM_STATE cmdstate)
         lastSentState = cmdstate;
 
         if (Logger::isDebug()) {
-            Logger::debug(ICHIP2128, "Send to ichip cmd: %s", cmd.c_str());
+            Logger::debug(ICHIP2128, "Send cmd: %s", cmd.c_str());
         }
     }
 }
 
 void ICHIPWIFI::sendBufferedCommand()
 {
+    state = IDLE;
     if (psReadPtr != psWritePtr) {
         //if there is a parameter in the buffer to send then do it
         if (Logger::isDebug()) {
-            Logger::debug(ICHIP2128, "Sending buffered cmd: %s", sendBuffer[psReadPtr].cmd.c_str());
+            Logger::debug(ICHIP2128, "Sending buffered cmd");
         }
-        state = IDLE;
         sendCmd(sendBuffer[psReadPtr].cmd, sendBuffer[psReadPtr++].state);
         if (psReadPtr >= CFG_SERIAL_SEND_BUFFER_SIZE) {
             psReadPtr = 0;
@@ -183,6 +184,10 @@ void ICHIPWIFI::handleTick()
         didTCPListener = true;
     }
 
+    if (webSocket->isConnected()) {
+        sendToSocket(0, webSocket->getUpdate());
+    }
+
     if (listeningSocket > 9) {
         pollListening++;
 
@@ -211,10 +216,6 @@ void ICHIPWIFI::handleTick()
     if (tickCounter > 3 && state == IDLE) {
         tickCounter = 0;
         getNextParam();
-    }
-
-    if (webSocket->isConnected()) {
-        sendToSocket(0, webSocket->getUpdate());
     }
 }
 
@@ -344,9 +345,18 @@ void ICHIPWIFI::loop()
         if (incoming == -1) { //and there is no reason it should be -1
             return;
         }
-SerialUSB.print((char)incoming);
+        if (remainingSocketRead > 0) {
+            remainingSocketRead--;
+        }
 
-        if (incoming == 13 || ibWritePtr > (CFG_WIFI_BUFFER_SIZE - 2)) { // on CR or full buffer, process the line
+        // in GET_SOCKET mode, check if we need to parse the size info from a SRCV command yet
+        if (state == GET_SOCKET && remainingSocketRead == -1 && ibWritePtr > 2 && incoming == ':' &&
+                incomingBuffer[0] == 'I' && incomingBuffer[1] == '/' && isdigit(incomingBuffer[2])) {
+            processSocketResponseSize();
+            return;
+        }
+
+        if (incoming == 13 || ibWritePtr > (CFG_WIFI_BUFFER_SIZE - 2) || remainingSocketRead == 0) { // on CR or full buffer, process the line
             incomingBuffer[ibWritePtr] = 0; //null terminate the string
             ibWritePtr = 0; //reset the write pointer
 
@@ -356,7 +366,7 @@ SerialUSB.print((char)incoming);
 
             //The ichip echoes our commands back at us. The safer option might be to verify that the command
             //we think we're about to process is really proper by validating the echo here. But, for now
-            //just ignore echoes - except for SSDN (socket send, where an error might be added at the end)
+            //just ignore echoes - except for SSND (socket send, where an error might be added at the end)
             if (strncmp(incomingBuffer, Constants::ichipCommandPrefix, 4) != 0) {
                 switch (state) {
                 case GET_PARAM: //reply from an attempt to read changed parameters from ichip
@@ -375,19 +385,19 @@ SerialUSB.print((char)incoming);
                 case SEND_SOCKET: //reply from sending data over a socket
                     break;
                 case GET_SOCKET: //reply requesting the data pending on a socket
-                    processGetSocketResponse();
+                    processSocketGetResponse();
                     break;
                 case IDLE:
                 default:
                     //Logger::info(ICHIP2128, incomingBuffer);
                     break;
                 }
-                // if we got an I/OK or I/ERROR in the reply then the command is done sending data. So, see if there is a buffered cmd to send.
-                if (strstr(incomingBuffer, "I/OK") || strstr(incomingBuffer, Constants::ichipErrorString)) {
-                    sendBufferedCommand();
-                }
             } else {
                 processSocketSendResponse();
+            }
+            // if we got an I/OK or I/ERROR in the reply then the command is done sending data. So, see if there is a buffered cmd to send.
+            if (strstr(incomingBuffer, "I/OK") != NULL || strstr(incomingBuffer, Constants::ichipErrorString) != NULL) {
+                sendBufferedCommand();
             }
             return; // before processing the next line, return to the loop() to allow other devices to process.
         } else { // add more characters
@@ -410,7 +420,7 @@ void ICHIPWIFI::processStartTcpListenerRepsonse()
             listeningSocket = 0;
         }
         if (Logger::isDebug()) {
-            Logger::debug(ICHIP2128, "%i", listeningSocket);
+            Logger::debug(ICHIP2128, "socket handle: %i", listeningSocket);
         }
     }
 }
@@ -418,46 +428,69 @@ void ICHIPWIFI::processStartTcpListenerRepsonse()
 void ICHIPWIFI::processGetActiveSocketsResponse()
 {
     if (strcmp(incomingBuffer, Constants::ichipErrorString)) {
-        activeSockets[0] = atoi(strtok(&incomingBuffer[3], ","));
-        activeSockets[1] = atoi(strtok(NULL, ","));
-        activeSockets[2] = atoi(strtok(NULL, ","));
-        activeSockets[3] = atoi(strtok(NULL, ","));
-        if (Logger::isDebug()) {
-            Logger::debug(ICHIP2128, "%i, %i, %i, %i", activeSockets[0], activeSockets[1], activeSockets[2], activeSockets[3]);
-        }
-    }
-}
-
-void ICHIPWIFI::processGetSocketResponse()
-{
-    char* datastr;
-    //reply is I/<size>:data  or it's just the next line (rest) from the previous SRCV request
-    if (incomingBuffer[0] == 'I' && incomingBuffer[1] == '/' && isDigit(incomingBuffer[2])) {
-        int dLen = atoi(strtok(&incomingBuffer[2], ":"));
-        datastr = strtok(0, ":"); // get the rest of the string
-        if (dLen == 0) {
-            state = IDLE;
-            return;
+        if (strncmp(incomingBuffer, "I/(", 3) == 0) {
+            activeSockets[0] = atoi(strtok(&incomingBuffer[3], ","));
+            activeSockets[1] = atoi(strtok(NULL, ","));
+            activeSockets[2] = atoi(strtok(NULL, ","));
+            activeSockets[3] = atoi(strtok(NULL, ","));
+            if (Logger::isDebug()) {
+                Logger::debug(ICHIP2128, "sockets: %i, %i, %i, %i", activeSockets[0], activeSockets[1], activeSockets[2], activeSockets[3]);
+            }
         }
     } else {
-        datastr = incomingBuffer;
+        closeSockets();
     }
+    // as the reply only contains "I/(000,-1,-1,-1)" it won't be recognized in loop() as "I/OK" or "I/ERROR",
+    // to proceed with processing the buffer, we need to call it here.
+    sendBufferedCommand();
+}
+
+void ICHIPWIFI::processSocketResponseSize()
+{
+    incomingBuffer[ibWritePtr] = 0; //null terminate the string
+    ibWritePtr = 0; //reset the write pointer
+    remainingSocketRead = atoi(&incomingBuffer[2]) - 1;
+}
+
+void ICHIPWIFI::processSocketGetResponse()
+{
+    if (strstr(incomingBuffer, Constants::ichipErrorString) != NULL) {
+        closeSockets();
+    }
+    if (strcmp(incomingBuffer, "I/0") == 0) { // nothing to read, move on to next command
+        remainingSocketRead = -1;
+        sendBufferedCommand();
+        return;
+    }
+
     String ret;
     if (true) {
         // TODO do real differentiation between OBDII and WebSocket messages
-        ret = webSocket->processCmd(datastr);
+        ret = String();
+        bool previouslyConnected = webSocket->isConnected();
+        webSocket->processInput(ret, incomingBuffer);
+        if (ret.length() > 0) {
+            sendToSocket(0, ret); //TODO: need to actually track which socket requested this data
+        }
+        if (previouslyConnected && !webSocket->isConnected()) { // e.g. by receiving a close request
+            closeSockets(); //TODO close only related socket
+        }
+        if (!previouslyConnected && webSocket->isConnected()) { // established connection but the line was empty
+            remainingSocketRead = -1;
+            sendBufferedCommand();
+            return;
+        }
     } else {
-        String data = datastr;
+        String data = incomingBuffer;
         data.toLowerCase();
         ret = elmProc->processELMCmd((char*) (data.c_str()));
-    }
-    if (ret.length() > 0) {
         sendToSocket(0, ret); //TODO: need to actually track which socket requested this data
     }
     // empty line marks end of transmission -> switch back to IDLE to be able to send (buffered) messages
     // beware that WebSocket relies on empty lines to indicate the end of transmission
-    if (strlen(incomingBuffer) == 0) {
-        state = IDLE;
+    if (remainingSocketRead < 1 && strlen(incomingBuffer) != 0) {
+        remainingSocketRead = -1;
+        sendBufferedCommand();
     }
 }
 
@@ -469,20 +502,22 @@ void ICHIPWIFI::processSocketSendResponse()
         if (strstr(incomingBuffer, Constants::ichipErrorString) != NULL) {
             webSocket->disconnected();
             Logger::info(ICHIP2128, "connection closed by remote client (%s), closing socket", incomingBuffer);
-            for (int c = 0; c < 4; c++) {
-                if (activeSockets[c] != -1) {
-                    char buff[6];
-                    sprintf(buff, "%03i", activeSockets[c]);
-                    String temp = "!SCLS:" + String(buff);
-                    sendCmd(temp, GET_SOCKET);
-                    activeSockets[c] = -1;
-                }
-            }
+            closeSockets();
         }
-        sendBufferedCommand(); // give the others also a chance
     }
 }
 
+void ICHIPWIFI::closeSockets() {
+    for (int c = 0; c < 4; c++) {
+        if (activeSockets[c] != -1) {
+            char buff[6];
+            sprintf(buff, "%03i", activeSockets[c]);
+            String temp = "!SCLS:" + String(buff);
+            sendCmd(temp, GET_SOCKET);
+            activeSockets[c] = -1;
+        }
+    }
+}
 /*
  * Process the parameter update from ichip we received as a response to AT+iWNXT.
  * The response usually looks like this : key="value", so the key can be isolated

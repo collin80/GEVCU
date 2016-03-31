@@ -39,29 +39,31 @@ struct ParamCache {
     int16_t mechanicalPower;
 };
 
-
 class WebSocket {
 public:
     WebSocket();
-    String processCmd(char *cmd);
+    void processInput(String &response, char *input);
     String getUpdate();
     bool isConnected();
     void disconnected();
 
 private:
+    enum { OPCODE_CONTINUATION = 0x0, OPCODE_TEXT = 0x1, OPCODE_BINARY = 0x2, OPCODE_CLOSE = 0x8, OPCODE_PING = 0x9, OPCODE_PONG = 0xa };
     ParamCache paramCache;
     bool connected;
     bool isFirst;
     char buffer[30];
     String *webSocketKey;
 
-    String prepareWebSocketFrame(String data);
+    void processHeader(String &response, char *input);
+    void processData(String &response, char *input);
+    String prepareWebSocketFrame(uint8_t opcode, String data);
     String getResponseKey(String key);
     void addParam(String &data, const char* key, char *value, bool isNumeric);
     void addParam(String &data, const char *key, float value, int precision);
     void addParam(String &data, const char *key, uint32_t value);
     char *getTimeRunning();
-
+    void initParamCache();
 };
 
 

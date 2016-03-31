@@ -137,6 +137,7 @@ private:
     int activeSockets[4]; //support for four sockets. Lowest byte is socket #, next byte is size of data waiting in that socket
     uint32_t lastSendTime;
 	ICHIP_COMM_STATE lastSentState;
+    int remainingSocketRead;
 
     void getNextParam(); //get next changed parameter
     void getParamById(String paramName);  //try to retrieve the value of the given parameter
@@ -153,8 +154,9 @@ private:
     void sendToSocket(int socket, String data);
     void processStartTcpListenerRepsonse();
     void processGetActiveSocketsResponse();
-    void processGetSocketResponse();
+    void processSocketGetResponse();
     void processSocketSendResponse();
+    void closeSockets();
     void processParameterChange(char *response);
     bool processParameterChangeThrottle(char *key, char *value);
     bool processParameterChangeBrake(char *key, char *value);
@@ -173,6 +175,7 @@ private:
     void loadParametersDevices();
     void loadParametersDashboard();
     void factoryDefaults();
+    void processSocketResponseSize();
 };
 
 #endif

@@ -9,7 +9,8 @@ function resizeThrottleCanvas() {
 	// adjust the width to the page width
 	var canvasElement = document.getElementById("throttleCanvas");
 	if (canvasElement) {
-		canvasElement.width = window.innerWidth - 60; // needs to be slightly narrower than the page width
+		// needs to be slightly narrower than the page width
+		canvasElement.width = window.innerWidth - 60;
 	}
 	refreshThrottleVisualization();
 }
@@ -40,31 +41,35 @@ function showTab(pageId) {
 
 	// on the dashboard page, open a WebSocket to receive updates,
 	// otherwise close the connection
-	if (socketConnection) {
-		socketConnection.close();
-		socketConnection = null;
-	}
+	closeWebSocket();
 	if (pageId == 'dashboard') {
-		startWebSocketCommunication();
+		openWebSocket();
 	} else {
 		loadData(pageId);
 	}
 }
 
-function startWebSocketCommunication() {
-	socketConnection = new WebSocket( "ws://192.168.3.10:2000" );
-	//When the connection is open, send some data to the server
-	// Log errors
-	socketConnection.onerror = function (error) {
-	  console.log('WebSocket Error ' + error);
-	  socketConnection.close();
-	  socketConnection = null;
+function openWebSocket() {
+	console.log("url: " + location.hostname);
+	socketConnection = new WebSocket("ws://" + location.hostname + ":2000");
+
+	// send some data to the server Log errors
+	socketConnection.onerror = function(error) {
+		console.log('WebSocket Error ' + error);
+		closeWebSocket();
 	};
 	// process messages from the server
-	socketConnection.onmessage = function (message) {
-	  var data = JSON.parse(message.data);
-	  processData(data);
+	socketConnection.onmessage = function(message) {
+		var data = JSON.parse(message.data);
+		processData(data);
 	};
+}
+
+function closeWebSocket() {
+	if (socketConnection) {
+		socketConnection.close();
+		socketConnection = null;
+	}
 }
 
 // lazy load of page, replaces content of div with id==<pageId> with
@@ -87,7 +92,7 @@ function loadPage(pageId) {
 						generateGauges(data);
 					}
 				};
-				dashConfig.open("GET", "dashboard_config.js", true);
+				dashConfig.open("GET", "dashboard.js", true);
 				dashConfig.send();
 			}
 		}
@@ -125,7 +130,8 @@ function setNodeValue(name, value) {
 					target.checked = (value.toUpperCase() == 'TRUE' || value == '1');
 				} else {
 					target.value = value;
-					var slider = document.getElementById(name + "Level"); // find corresponding slider element
+					// find corresponding slider element
+					var slider = document.getElementById(name + "Level");
 					if (slider) {
 						slider.value = value;
 					}
@@ -164,18 +170,21 @@ function loadData(pageId) {
 }
 
 function processData(data) {
-	hideDeviceTr(); // hide device dependent TR's so they can be shown if configured
+	// hide device dependent TR's so they can be shown if configured
+	hideDeviceTr();
 	for (name in data) {
 		var value = data[name];
 		if (name.indexOf('device_x') == 0 && value == '1') {
-			setTrVisibility(name, true); // it's a device config, update device specific visibility
+			// it's a device config, update device specific visibility
+			setTrVisibility(name, true);
 		} else {
 			setNodeValue(name, value);
 		}
 	}
 }
 
-// scan through the options of a select input field and activate the one with the given value
+// scan through the options of a select input field and activate the one with
+// the given value
 function selectItemByValue(node, value) {
 	for (var i = 0; i < node.options.length; i++) {
 		if (node.options[i].value === value) {
@@ -300,7 +309,8 @@ function addRangeControl(id, min, max) {
 				+ min + "' max='" + max + "' maxlength='4' size='4' onchange=\"updateRangeValue('" + id + "Level', this);\"/>";
 }
 
-// hides rows with device depandent visibility (as a pre-requisite to re-enable it)
+// hides rows with device depandent visibility
+// (as a pre-requisite to re-enable it)
 function hideDeviceTr() {
 	tr = document.getElementsByTagName('tr')
 	for (i = 0; i < tr.length; i++) {
@@ -311,7 +321,8 @@ function hideDeviceTr() {
 	}
 }
 
-// shows/hides rows of a table with a certain id value (used for device specific parameters)
+// shows/hides rows of a table with a certain id value
+// (used for device specific parameters)
 function setTrVisibility(id, visible) {
 	tr = document.getElementsByTagName('tr')
 	for (i = 0; i < tr.length; i++) {

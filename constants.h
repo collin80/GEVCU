@@ -30,7 +30,8 @@
 #ifndef CONSTANTS_H_
 #define CONSTANTS_H_
 
-namespace Constants {
+namespace Constants
+{
 // misc
 static const char* trueStr = "true";
 static const char* falseStr = "false";
@@ -154,7 +155,7 @@ static const char* bitfield3 = "bitfield3";
 static const char* systemState = "systemState";
 static const char* gear = "gear";
 static const char* temperatureMotor = "temperatureMotor";
-static const char* temperatureController = "tempController";
+static const char* temperatureController = "temperatureController";
 static const char* mechanicalPower = "mechanicalPower";
 
 static const char* torqueRange = "torqueRange";
