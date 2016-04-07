@@ -6,6 +6,11 @@
 	</projects>
 	<buildSpec>
 		<buildCommand>
+			<name>it.baeyens.arduino.core.inoToCpp</name>
+			<arguments>
+			</arguments>
+		</buildCommand>
+		<buildCommand>
 			<name>org.eclipse.cdt.managedbuilder.core.genmakebuilder</name>
 			<triggers>clean,full,incremental,</triggers>
 			<arguments>
@@ -27,48 +32,29 @@
 	</natures>
 	<linkedResources>
 		<link>
-			<name>Libraries/DueTimer</name>
+			<name>core/core</name>
 			<type>2</type>
-			<locationURI>ArduinoPivateLibPath/DueTimer</locationURI>
+			<location>/Applications/Eclipse.app/Contents/Eclipse/arduinoPlugin/packages/arduino/hardware/sam/1.6.7/cores/arduino</location>
 		</link>
 		<link>
-			<name>Libraries/due_can</name>
+			<name>core/variant</name>
 			<type>2</type>
-			<locationURI>ArduinoPivateLibPath/due_can</locationURI>
+			<location>/Applications/Eclipse.app/Contents/Eclipse/arduinoPlugin/packages/arduino/hardware/sam/1.6.7/variants/arduino_due_x</location>
 		</link>
 		<link>
-			<name>Libraries/due_rtc</name>
+			<name>libraries/DueTimer</name>
 			<type>2</type>
-			<locationURI>ArduinoPivateLibPath/due_rtc</locationURI>
+			<location>/Volumes/Data/development/source/arduino/libraries/DueTimer</location>
 		</link>
 		<link>
-			<name>Libraries/due_wire</name>
+			<name>libraries/due_can</name>
 			<type>2</type>
-			<locationURI>ArduinoPivateLibPath/due_wire</locationURI>
+			<location>/Volumes/Data/development/source/arduino/libraries/due_can</location>
 		</link>
 		<link>
-			<name>arduino/core</name>
+			<name>libraries/due_wire</name>
 			<type>2</type>
-			<locationURI>ArduinoPlatformPath/cores/arduino</locationURI>
-		</link>
-		<link>
-			<name>arduino/variant</name>
-			<type>2</type>
-			<locationURI>ArduinoPinPath/arduino_due_x</locationURI>
+			<location>/Volumes/Data/development/source/arduino/libraries/due_wire</location>
 		</link>
 	</linkedResources>
-	<variableList>
-		<variable>
-			<name>ArduinoHardwareLibPath</name>
-			<value>file:/Z:/development/arduino/arduino-1.5.2_win_32bit/hardware/arduino/sam/libraries</value>
-		</variable>
-		<variable>
-			<name>ArduinoPinPath</name>
-			<value>file:/Z:/development/arduino/arduino-1.5.2_win_32bit/hardware/arduino/sam/variants</value>
-		</variable>
-		<variable>
-			<name>ArduinoPlatformPath</name>
-			<value>file:/Z:/development/arduino/arduino-1.5.2_win_32bit/hardware/arduino/sam</value>
-		</variable>
-	</variableList>
 </projectDescription>
