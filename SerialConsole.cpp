@@ -194,7 +194,7 @@ void SerialConsole::printMenuSystemIO() {
 //        Logger::console("TBD=%i - Digital output to use to xxxxxx (255 to disable)", config->unusedOutput);
 
         Logger::console("WARNLT=%i - Digital output to use for reverse light (255 to disable)", config->warningOutput);
-        Logger::console("LIMITLT=%i - Digital output to use for reverse light (255 to disable)", config->powerLimitationOutput);
+        Logger::console("LIMITLT=%i - Digital output to use for limitation indicator (255 to disable)", config->powerLimitationOutput);
         Logger::console("SOCHG=%i - Analog output to use to indicate state of charge (255 to disable)", config->stateOfChargeOutput);
         Logger::console("OUTPUT=<0-7> - toggles state of specified digital output");
     }
