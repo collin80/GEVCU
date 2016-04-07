@@ -199,7 +199,7 @@ function processData(data) {
 // the given value
 function selectItemByValue(node, value) {
 	for (var i = 0; i < node.options.length; i++) {
-		if (node.options[i].value === value) {
+		if (node.options[i].value == value) {
 			node.selectedIndex = i;
 			break;
 		}
