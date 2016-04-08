@@ -23,7 +23,6 @@
 	"nominalVolt": ~nominalVolt~,
 	"invertDirection": ~invertDirection~,
 	"slewRate": ~slewRate~,
-	"slewType": ~slewType~,
 
 	"maxMechPowerMotor": ~maxMechPowerMotor~,
 	"maxMechPowerRegen": ~maxMechPowerRegen~,

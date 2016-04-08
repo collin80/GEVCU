@@ -73,7 +73,6 @@ static const char* nominalVolt = "nominalVolt";
 static const char* motorMode = "motorMode";
 static const char* invertDirection = "invertDirection";
 static const char* slewRate = "slewRate";
-static const char* slewType = "slewType";
 
 static const char* maxMechanicalPowerMotor = "maxMechPowerMotor";
 static const char* maxMechanicalPowerRegen = "maxMechPowerRegen";

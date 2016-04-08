@@ -148,7 +148,7 @@ void MotorController::processThrottleLevel()
             speedRequested = config->speedMax;
             int16_t torqueTarget = throttleLevel * config->torqueMax / 1000;
 
-            if (config->slewType == 0 || disableSlew) {
+            if (config->slewRate == 0 || disableSlew) {
                 torqueRequested = torqueTarget;
             } else {
                 uint32_t currentTimestamp = millis();
@@ -160,11 +160,7 @@ void MotorController::processThrottleLevel()
                     torqueRequested = torqueTarget;
                 } else { // increase power -> apply slew
                     uint16_t slewPart = 0;
-                    if (config->slewType == 2) { // exponential
-                        slewPart = 0; //TODO
-                    } else { // linear
-                        slewPart = config->torqueMax * config->slewRate / 1000 * (currentTimestamp - slewTimestamp) / 1000;
-                    }
+                    slewPart = config->torqueMax * config->slewRate / 1000 * (currentTimestamp - slewTimestamp) / 1000;
                     if (torqueTarget < 0) {
                         torqueRequested -= slewPart;
                         if (torqueRequested < torqueTarget) {
@@ -342,7 +338,6 @@ void MotorController::loadConfiguration()
         config->invertDirection = temp;
         prefsHandler->read(EEMC_MAX_RPM, &config->speedMax);
         prefsHandler->read(EEMC_MAX_TORQUE, &config->torqueMax);
-        prefsHandler->read(EEMC_SLEW_TYPE, &config->slewType);
         prefsHandler->read(EEMC_SLEW_RATE, &config->slewRate);
         prefsHandler->read(EEMC_MAX_MECH_POWER_MOTOR, &config->maxMechanicalPowerMotor);
         prefsHandler->read(EEMC_MAX_MECH_POWER_REGEN, &config->maxMechanicalPowerRegen);
@@ -353,7 +348,6 @@ void MotorController::loadConfiguration()
         config->invertDirection = false;
         config->speedMax = MaxRPMValue;
         config->torqueMax = MaxTorqueValue;
-        config->slewType = SlewType;
         config->slewRate = SlewRateValue;
         config->maxMechanicalPowerMotor = 2000;
         config->maxMechanicalPowerRegen = 400;
@@ -362,9 +356,8 @@ void MotorController::loadConfiguration()
         config->powerMode = modeTorque;
     }
 
-    Logger::info(getId(), "Power mode: %s, Max torque: %i, Max RPM: %i", (config->powerMode == modeTorque ? "torque" : "speed"), config->torqueMax,
-            config->speedMax);
-    Logger::info(getId(), "Slew rate: %i, Slew type: %i", config->slewRate, config->slewType);
+    Logger::info(getId(), "Power mode: %s, Max torque: %i", (config->powerMode == modeTorque ? "torque" : "speed"), config->torqueMax);
+    Logger::info(getId(), "Max RPM: %i, Slew rate: %i", config->speedMax, config->slewRate);
     Logger::info(getId(), "Max mech power motor: %fkW, Max mech power regen: %fkW", config->maxMechanicalPowerMotor / 10.0f,
             config->maxMechanicalPowerRegen / 10.0f);
 }
@@ -378,7 +371,6 @@ void MotorController::saveConfiguration()
     prefsHandler->write(EEMC_INVERT_DIRECTION, (uint8_t) (config->invertDirection ? 1 : 0));
     prefsHandler->write(EEMC_MAX_RPM, config->speedMax);
     prefsHandler->write(EEMC_MAX_TORQUE, config->torqueMax);
-    prefsHandler->write(EEMC_SLEW_TYPE, config->slewType);
     prefsHandler->write(EEMC_SLEW_RATE, config->slewRate);
     prefsHandler->write(EEMC_REVERSE_LIMIT, config->reversePercent);
     prefsHandler->write(EEMC_NOMINAL_V, config->nominalVolt);

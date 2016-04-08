@@ -75,7 +75,7 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 #define CFG_CAN0_SPEED CAN_BPS_500K // specify the speed of the CAN0 bus (EV)
 #define CFG_CAN1_SPEED CAN_BPS_500K // specify the speed of the CAN1 bus (Car)
-#define CFG_CAN0_NUM_TX_MAILBOXES 1 // how many of 8 mailboxes are used for TX for CAN0, rest is used for RX
+#define CFG_CAN0_NUM_TX_MAILBOXES 2 // how many of 8 mailboxes are used for TX for CAN0, rest is used for RX
 #define CFG_CAN1_NUM_TX_MAILBOXES 3 // how many of 8 mailboxes are used for TX for CAN1, rest is used for RX
 #define CFG_CANTHROTTLE_MAX_NUM_LOST_MSG 3 // maximum number of lost messages allowed (max 255)
 #define CFG_MOTORCTRL_MAX_NUM_LOST_MSG 20 // maximum number of ticks the controller may not send messages (max 255)
@@ -126,7 +126,6 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 #define MaxTorqueValue		3000 //in tenths of a Nm
 #define MaxRPMValue         6000 //DMOC will ignore this but we can use it ourselves for limiting
-#define SlewType            0 // 0=linear slew slope, 1=exponential
 #define SlewRateValue       0 // 0.1 percent/sec the requested torque/speed output should change
 #define KilowattHrs         11000 //not currently used
 #define EnableInput         255 // digital input port for enable signal

@@ -640,8 +640,6 @@ bool ICHIPWIFI::processParameterChangeMotor(char *key, char *value)
                 config->powerMode = (atol(value) ? modeSpeed : modeTorque);
             } else if (!strcmp(key, Constants::invertDirection)) {
                 config->invertDirection = atol(value);
-            } else if (!strcmp(key, Constants::slewType)) {
-                config->slewType = atol(value);
             } else if (!strcmp(key, Constants::slewRate)) {
                 config->slewRate = atof(value) * 10;
             } else if (!strcmp(key, Constants::maxMechanicalPowerMotor)) {
@@ -910,7 +908,6 @@ void ICHIPWIFI::loadParametersMotor()
             setParam(Constants::torqueMax, config->torqueMax / 10.0f, 1);
             setParam(Constants::motorMode, (uint8_t) config->powerMode);
             setParam(Constants::invertDirection, (uint8_t)(config->invertDirection ? 1 : 0));
-            setParam(Constants::slewType, config->slewType);
             setParam(Constants::slewRate, config->slewRate / 10.0f, 1);
             setParam(Constants::maxMechanicalPowerMotor, config->maxMechanicalPowerMotor / 10.0f, 1);
             setParam(Constants::maxMechanicalPowerRegen, config->maxMechanicalPowerRegen / 10.0f, 1);
@@ -1033,12 +1030,15 @@ void ICHIPWIFI::loadParametersDashboard()
     if (motorController) {
         MotorControllerConfiguration *config = (MotorControllerConfiguration *) motorController->getConfiguration();
 
-//        if (config) {
-//            setParam(Constants::torqueRange, -1 * config->torqueMax + "," + config->torqueMax);
-//            setParam(Constants::rpmRange, "0," + config->speedMax);
-//        }
-        setParam(Constants::torqueRange, "-250,250");
-        setParam(Constants::rpmRange, "0,8000");
+        if (config) {
+            setParam(Constants::torqueRange, "" + (-1 * config->torqueMax) + "," + config->torqueMax);
+            setParam(Constants::rpmRange, "0," + config->speedMax);
+            setParam(Constants::powerRange, "" + (config->maxMechanicalPowerRegen * -1) + "," + config->maxMechanicalPowerMotor);
+        } else {
+            setParam(Constants::torqueRange, "-300,300");
+            setParam(Constants::rpmRange, "0,8000");
+            setParam(Constants::powerRange, "-250,250");
+        }
 
         //TODO make params configurable
         setParam(Constants::currentRange, "-275,275");
@@ -1047,7 +1047,6 @@ void ICHIPWIFI::loadParametersDashboard()
         setParam(Constants::batteryRangeLow, "297,357,368");
         setParam(Constants::batteryRangeHigh, "402,416,428");
         setParam(Constants::energyRange, "0,30,38");
-        setParam(Constants::powerRange, "-110,110");
         setParam(Constants::extTemperatureRange, "-30,100");
     }
 }
