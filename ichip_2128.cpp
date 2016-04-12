@@ -92,7 +92,6 @@ void ICHIPWIFI::setup()
 void ICHIPWIFI::tearDown()
 {
     Device::tearDown();
-
     digitalWrite(42, LOW);
 }
 
@@ -125,7 +124,6 @@ void ICHIPWIFI::sendCmd(String cmd, ICHIP_COMM_STATE cmdstate)
         state = cmdstate;
         lastSendTime = millis();
         lastSentState = cmdstate;
-
         if (Logger::isDebug()) {
             Logger::debug(ICHIP2128, "Send cmd: %s", cmd.c_str());
         }
@@ -137,9 +135,6 @@ void ICHIPWIFI::sendBufferedCommand()
     state = IDLE;
     if (psReadPtr != psWritePtr) {
         //if there is a parameter in the buffer to send then do it
-        if (Logger::isDebug()) {
-            Logger::debug(ICHIP2128, "Sending buffered cmd");
-        }
         sendCmd(sendBuffer[psReadPtr].cmd, sendBuffer[psReadPtr++].state);
         if (psReadPtr >= CFG_SERIAL_SEND_BUFFER_SIZE) {
             psReadPtr = 0;
@@ -190,7 +185,6 @@ void ICHIPWIFI::handleTick()
 
     if (listeningSocket > 9) {
         pollListening++;
-
         if (pollListening > 8) {
             pollListening = 0;
             char buff[5];
@@ -342,6 +336,7 @@ void ICHIPWIFI::loop()
     int incoming;
     while (serialInterface->available()) {
         incoming = serialInterface->read();
+SerialUSB.print((char)incoming);
         if (incoming == -1) { //and there is no reason it should be -1
             return;
         }
@@ -393,7 +388,10 @@ void ICHIPWIFI::loop()
                     break;
                 }
             } else {
-                processSocketSendResponse();
+                // although we ignore all echo's of "AT+i", the "AT+iSSND" has the I/OK or I/ERROR in-line
+                if (strstr(incomingBuffer, "AT+iSSND") != NULL) {
+                    processSocketSendResponse();
+                }
             }
             // if we got an I/OK or I/ERROR in the reply then the command is done sending data. So, see if there is a buffered cmd to send.
             if (strstr(incomingBuffer, "I/OK") != NULL || strstr(incomingBuffer, Constants::ichipErrorString) != NULL) {
@@ -496,14 +494,11 @@ void ICHIPWIFI::processSocketGetResponse()
 
 void ICHIPWIFI::processSocketSendResponse()
 {
-    // although we ignore all echo's of "AT+i", the "AT+iSSND" has the I/OK or I/ERROR in-line
-    if (strstr(incomingBuffer, "AT+iSSND") != NULL) {
-        // we get an error with SSND, when the socket was closed (e.g. "AT+iSSND%:000,24:I/ERROR (203)")
-        if (strstr(incomingBuffer, Constants::ichipErrorString) != NULL) {
-            webSocket->disconnected();
-            Logger::info(ICHIP2128, "connection closed by remote client (%s), closing socket", incomingBuffer);
-            closeSockets();
-        }
+    // we get an error with SSND, when the socket was closed (e.g. "AT+iSSND%:000,24:I/ERROR (203)")
+    if (strstr(incomingBuffer, Constants::ichipErrorString) != NULL) {
+        webSocket->disconnected();
+        Logger::info(ICHIP2128, "connection closed by remote client (%s), closing socket", incomingBuffer);
+        closeSockets();
     }
 }
 
@@ -1031,9 +1026,12 @@ void ICHIPWIFI::loadParametersDashboard()
         MotorControllerConfiguration *config = (MotorControllerConfiguration *) motorController->getConfiguration();
 
         if (config) {
-            setParam(Constants::torqueRange, "" + (-1 * config->torqueMax) + "," + config->torqueMax);
-            setParam(Constants::rpmRange, "0," + config->speedMax);
-            setParam(Constants::powerRange, "" + (config->maxMechanicalPowerRegen * -1) + "," + config->maxMechanicalPowerMotor);
+            sprintf(buffer, "%d,%d", -1 * config->torqueMax, config->torqueMax);
+            setParam(Constants::torqueRange, buffer);
+            sprintf(buffer, "0,%d", config->speedMax);
+            setParam(Constants::rpmRange, buffer);
+            sprintf(buffer, "%d,%d", -1 * config->maxMechanicalPowerRegen, config->maxMechanicalPowerMotor);
+            setParam(Constants::powerRange, buffer);
         } else {
             setParam(Constants::torqueRange, "-300,300");
             setParam(Constants::rpmRange, "0,8000");
@@ -1041,11 +1039,11 @@ void ICHIPWIFI::loadParametersDashboard()
         }
 
         //TODO make params configurable
-        setParam(Constants::currentRange, "-275,275");
-        setParam(Constants::motorTempRange, "0,140,170");
-        setParam(Constants::controllerTempRange, "0,80,90");
+        setParam(Constants::currentRange, "-400,400");
         setParam(Constants::batteryRangeLow, "297,357,368");
         setParam(Constants::batteryRangeHigh, "402,416,428");
+        setParam(Constants::motorTempRange, "0,140,170");
+        setParam(Constants::controllerTempRange, "0,80,90");
         setParam(Constants::energyRange, "0,30,38");
         setParam(Constants::extTemperatureRange, "-30,100");
     }

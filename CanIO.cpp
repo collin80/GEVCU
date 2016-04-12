@@ -160,7 +160,9 @@ void CanIO::processExternalTemperature(byte bytes[])
     for (int i = 0; i < CFG_NUMBER_TEMPERATURE_SENSORS; i++) {
         if (bytes[i] != 0) {
             status.externalTemperature[i] = bytes[i] - CFG_CAN_TEMPERATURE_OFFSET;
-Logger::info(CANIO, "external temperature %d: %d", i, status.externalTemperature[i]);
+            if (Logger::isDebug()) {
+            	Logger::debug(CANIO, "external temperature %d: %d", i, status.externalTemperature[i]);
+            }
         }
     }
 }

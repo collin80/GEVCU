@@ -169,9 +169,14 @@ int TickHandler::findObserver(int timer, TickObserver *observer)
 void TickHandler::process()
 {
     while (bufferHead != bufferTail) {
-        tickBuffer[bufferTail]->handleTick();
+        if (tickBuffer[bufferTail] == NULL) {
+            Logger::error("tickBuffer pointer mismatch");
+        } else {
+//            Logger::debug("tickHandler->process, bufferHead=%d bufferTail=%d", bufferHead, bufferTail);
+            tickBuffer[bufferTail]->handleTick();
+            tickBuffer[bufferTail] = NULL;
+        }
         bufferTail = (bufferTail + 1) % CFG_TIMER_BUFFER_SIZE;
-        //Logger::debug("process, bufferHead=%d bufferTail=%d", bufferHead, bufferTail);
     }
 }
 
@@ -190,7 +195,7 @@ void TickHandler::handleInterrupt(int timerNumber)
         if (timerEntry[timerNumber].observer[i] != NULL) {
             tickBuffer[bufferHead] = timerEntry[timerNumber].observer[i];
             bufferHead = (bufferHead + 1) % CFG_TIMER_BUFFER_SIZE;
-//Logger::debug("bufferHead=%d, bufferTail=%d, observer=%d", bufferHead, bufferTail, timerEntry[timerNumber].observer[i]);
+//            Logger::debug("tickHandler->handle bufferHead=%d, bufferTail=%d, observer=%d", bufferHead, bufferTail, timerEntry[timerNumber].observer[i]);
         }
     }
 }

@@ -139,7 +139,6 @@ void WebSocket::processData(String &response, char *input)
 
     byte key[] = { input[offset], input[offset + 1], input[offset + 2], input[offset + 3] };
     offset += 4;
-    Logger::debug("key: %X %X %X %X", key[0],key[1],key[2],key[3]);
 
     if (mask) {
         for (int i = 0; i < payloadLength; i++) {

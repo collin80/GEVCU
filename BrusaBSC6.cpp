@@ -231,7 +231,7 @@ void BrusaBSC6::processValues2(uint8_t data[])
         Logger::error(BRUSA_BSC6, "%X (%B)", bitfield, bitfield);
     }
     if (Logger::isDebug()) {
-        Logger::debug(BRUSA_BSC6, "LV current avail: %dA, maximum Temperature: %dC", lvCurrentAvailable, (float) temperature / 10.0F);
+        Logger::debug(BRUSA_BSC6, "LV current avail: %dA, maximum Temperature: %fC", lvCurrentAvailable, (float) temperature / 10.0F);
     }
 }
 

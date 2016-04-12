@@ -34,8 +34,8 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 #include <due_can.h>
 
-#define CFG_BUILD_NUM	1053        //increment this every time a git commit is done.
-#define CFG_VERSION "GEVCU 2016-03-23"
+#define CFG_BUILD_NUM	1054        //increment this every time a git commit is done.
+#define CFG_VERSION "GEVCU 2016-04-10"
 
 //define this to add in latency and efficiency calculations. Comment it out for builds you're going to 
 //use in an actual car. No need to waste cycles for 99% of everyone using the code.
@@ -77,7 +77,7 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #define CFG_CAN1_SPEED CAN_BPS_500K // specify the speed of the CAN1 bus (Car)
 #define CFG_CAN0_NUM_TX_MAILBOXES 2 // how many of 8 mailboxes are used for TX for CAN0, rest is used for RX
 #define CFG_CAN1_NUM_TX_MAILBOXES 3 // how many of 8 mailboxes are used for TX for CAN1, rest is used for RX
-#define CFG_CANTHROTTLE_MAX_NUM_LOST_MSG 3 // maximum number of lost messages allowed (max 255)
+#define CFG_CANTHROTTLE_MAX_NUM_LOST_MSG 5 // maximum number of lost messages allowed (max 255)
 #define CFG_MOTORCTRL_MAX_NUM_LOST_MSG 20 // maximum number of ticks the controller may not send messages (max 255)
 
 /*
