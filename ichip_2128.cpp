@@ -336,7 +336,7 @@ void ICHIPWIFI::loop()
     int incoming;
     while (serialInterface->available()) {
         incoming = serialInterface->read();
-SerialUSB.print((char)incoming);
+//SerialUSB.print((char)incoming);
         if (incoming == -1) { //and there is no reason it should be -1
             return;
         }
