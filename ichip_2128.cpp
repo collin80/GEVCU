@@ -159,57 +159,49 @@ void ICHIPWIFI::sendToSocket(int socket, String data)
  */
 void ICHIPWIFI::handleTick()
 {
-    static int pollListening = 0;
-    static int pollSocket = 0;
     uint32_t ms = millis();
-    tickCounter++; //TODO merge pollListening and tickCounter into one
-
-    if (ms < 3000) {
-        return;    //wait a bit for things to settle before doing a thing
-    }
 
     if (!didParamLoad) {
+        if (ms < 3000) {
+            return;    //wait a bit for things to settle before doing a thing
+        }
         loadParameters();
         didParamLoad = true;
     }
 
-    //At 12 seconds start up a listening socket for OBDII and WebSocket
+    // start up a listening socket for OBDII and WebSocket
     if (!didTCPListener && ms > 12000) {
         sendCmd("LTCP:2000,4", START_TCP_LISTENER);
         didTCPListener = true;
     }
 
+    // send updates to a connected WebSocket client
     if (webSocket->isConnected()) {
         sendToSocket(0, webSocket->getUpdate());
     }
 
+    // check for open socket connections
     if (listeningSocket > 9) {
-        pollListening++;
-        if (pollListening > 8) {
-            pollListening = 0;
-            char buff[5];
-            sprintf(buff, "%u", listeningSocket);
-            String temp = "LSST:" + String(buff);
-            sendCmd(temp, GET_ACTIVE_SOCKETS);
+        if (tickCounter++ == 10) {
+            sprintf(buffer, "LSST:%u", listeningSocket);
+            sendCmd(buffer, GET_ACTIVE_SOCKETS);
         }
     }
 
-    //read any information waiting on active sockets if we're not already in midst of it
-    if (state != GET_SOCKET) {
+    // read any information waiting on active sockets if we're not already in midst of it
+    if (state != GET_SOCKET && tickCounter == 20) {
         for (int c = 0; c < 4; c++) {
             if (activeSockets[c] != -1) {
-                char buff[6];
-                sprintf(buff, "%03i", activeSockets[c]);
-                String temp = "SRCV:" + String(buff) + ",1024";
-                sendCmd(temp, GET_SOCKET);
+                sprintf(buffer, "SRCV:%03i,1024", activeSockets[c]);
+                sendCmd(buffer, GET_SOCKET);
             }
         }
     }
 
     // check if params have changed, but only if idle so we don't mess-up other incoming data
-    if (tickCounter > 3 && state == IDLE) {
-        tickCounter = 0;
+    if (tickCounter >  29 && state == IDLE) {
         getNextParam();
+    	tickCounter = 0;
     }
 }
 

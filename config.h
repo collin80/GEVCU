@@ -66,7 +66,7 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #define CFG_TICK_INTERVAL_BMS_THINK                 500000
 #define CFG_TICK_INTERVAL_DCDC_BSC6                 100000
 #define CFG_TICK_INTERVAL_CHARGE_NLG5               100000
-#define CFG_TICK_INTERVAL_WIFI                      200000
+#define CFG_TICK_INTERVAL_WIFI                      100000
 #define CFG_TICK_INTERVAL_SYSTEM_IO                 200000
 #define CFG_TICK_INTERVAL_CAN_IO                    200000
 
