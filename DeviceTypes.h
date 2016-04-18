@@ -90,4 +90,6 @@ const DeviceId deviceIds[] = {
         ELM327EMU
 };
 
+const uint8_t deviceIdsSize = (sizeof(deviceIds) / sizeof(DeviceId));
+
 #endif /* DEVICE_TYPES_H_ */

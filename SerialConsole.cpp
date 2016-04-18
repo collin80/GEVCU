@@ -28,13 +28,15 @@
 
 SerialConsole serialConsole;
 
-SerialConsole::SerialConsole() {
+SerialConsole::SerialConsole()
+{
     handlingEvent = false;
     ptrBuffer = 0;
     state = STATE_ROOT_MENU;
 }
 
-void SerialConsole::loop() {
+void SerialConsole::loop()
+{
     if (handlingEvent == false) {
         if (SerialUSB.available()) {
             serialEvent();
@@ -42,7 +44,8 @@ void SerialConsole::loop() {
     }
 }
 
-void SerialConsole::printMenu() {
+void SerialConsole::printMenu()
+{
     //Show build # here as well in case people are using the native port and don't get to see the start up messages
     Logger::console("\nBuild number: %i", CFG_BUILD_NUM);
     Logger::console("System State: %s", status.systemStateToStr(status.getSystemState()));
@@ -68,7 +71,7 @@ void SerialConsole::printMenu() {
     Logger::console("s = Scan WiFi for nearby access points");
 
     Logger::console("\nConfig Commands (enter command=newvalue)\n");
-    Logger::console("LOGLEVEL=%i - set log level (0=debug, 1=info, 2=warn, 3=error, 4=off)", Logger::getLogLevel());
+    Logger::console("LOGLEVEL=[deviceId,]%i - set log level (0=debug, 1=info, 2=warn, 3=error, 4=off)", Logger::getLogLevel());
     Logger::console("SYSTYPE=%i - Set board revision (Dued=2, GEVCU3=3, GEVCU4=4)\n", systemIO.getSystemType());
     Logger::console("WLAN - send a AT+i command to the wlan device");
     Logger::console("NUKE=1 - Resets all device settings in EEPROM. You have been warned.");
@@ -83,7 +86,8 @@ void SerialConsole::printMenu() {
     printMenuDcDcConverter();
 }
 
-void SerialConsole::printMenuMotorController() {
+void SerialConsole::printMenuMotorController()
+{
     MotorController* motorController = (MotorController*) deviceManager.getMotorController();
 
     if (motorController && motorController->getConfiguration()) {
@@ -104,12 +108,14 @@ void SerialConsole::printMenuMotorController() {
             Logger::console("MOMCMX=%i - current limit for motoring (in 0.1A)", dmc5Config->dcCurrentLimitMotor);
             Logger::console("MORVMX=%i - maximum DC voltage limit for regen (in 0.1V)", dmc5Config->dcVoltLimitRegen);
             Logger::console("MORCMX=%i - current limit for regen (in 0.1A)", dmc5Config->dcCurrentLimitRegen);
-            Logger::console("MOOSC=%i - enable the DMC5 oscillation limiter (1=enable, 0=disable, also set DMC parameter!)", dmc5Config->enableOscillationLimiter);
+            Logger::console("MOOSC=%i - enable the DMC5 oscillation limiter (1=enable, 0=disable, also set DMC parameter!)",
+                    dmc5Config->enableOscillationLimiter);
         }
     }
 }
 
-void SerialConsole::printMenuThrottle() {
+void SerialConsole::printMenuThrottle()
+{
     Throttle *accelerator = deviceManager.getAccelerator();
 
     if (accelerator && accelerator->getConfiguration()) {
@@ -142,7 +148,8 @@ void SerialConsole::printMenuThrottle() {
     }
 }
 
-void SerialConsole::printMenuBrake() {
+void SerialConsole::printMenuBrake()
+{
     Throttle *brake = deviceManager.getBrake();
 
     if (brake && brake->getConfiguration()) {
@@ -159,7 +166,8 @@ void SerialConsole::printMenuBrake() {
     }
 }
 
-void SerialConsole::printMenuSystemIO() {
+void SerialConsole::printMenuSystemIO()
+{
     SystemIOConfiguration *config = systemIO.getConfiguration();
 
     if (config) {
@@ -199,7 +207,8 @@ void SerialConsole::printMenuSystemIO() {
     }
 }
 
-void SerialConsole::printMenuCharger() {
+void SerialConsole::printMenuCharger()
+{
     Charger *charger = deviceManager.getCharger();
 
     if (charger && charger->getConfiguration()) {
@@ -222,7 +231,8 @@ void SerialConsole::printMenuCharger() {
     }
 }
 
-void SerialConsole::printMenuDcDcConverter() {
+void SerialConsole::printMenuDcDcConverter()
+{
     DcDcConverter *dcDcConverter = deviceManager.getDcDcConverter();
 
     if (dcDcConverter && dcDcConverter->getConfiguration()) {
@@ -246,7 +256,8 @@ void SerialConsole::printMenuDcDcConverter() {
  Now the system can handle up to 80 input characters. Commands are submitted
  by sending line ending (LF, CR, or both)
  */
-void SerialConsole::serialEvent() {
+void SerialConsole::serialEvent()
+{
     int incoming;
     incoming = SerialUSB.read();
 
@@ -266,7 +277,8 @@ void SerialConsole::serialEvent() {
     }
 }
 
-void SerialConsole::handleConsoleCmd() {
+void SerialConsole::handleConsoleCmd()
+{
     handlingEvent = true;
 
     if (state == STATE_ROOT_MENU) {
@@ -283,7 +295,8 @@ void SerialConsole::handleConsoleCmd() {
 /*For simplicity the configuration setting code uses four characters for each configuration choice. This makes things easier for
  comparison purposes.
  */
-void SerialConsole::handleConfigCmd() {
+void SerialConsole::handleConfigCmd()
+{
     int i;
     int value;
     bool updateWifi = true;
@@ -318,7 +331,7 @@ void SerialConsole::handleConfigCmd() {
 
     if (!handleConfigCmdMotorController(command, value) && !handleConfigCmdThrottle(command, value) && !handleConfigCmdBrake(command, value)
             && !handleConfigCmdSystemIO(command, value) && !handleConfigCmdCharger(command, value) && !handleConfigCmdDcDcConverter(command, value)
-            && !handleConfigCmdSystem(command, value)) {
+            && !handleConfigCmdSystem(command, value, (cmdBuffer + i))) {
         if (handleConfigCmdWifi(command, (cmdBuffer + i))) {
             updateWifi = false;
         } else {
@@ -332,7 +345,8 @@ void SerialConsole::handleConfigCmd() {
     }
 }
 
-bool SerialConsole::handleConfigCmdMotorController(String command, long value) {
+bool SerialConsole::handleConfigCmdMotorController(String command, long value)
+{
     MotorController *motorController = deviceManager.getMotorController();
     MotorControllerConfiguration *config = NULL;
 
@@ -393,7 +407,8 @@ bool SerialConsole::handleConfigCmdMotorController(String command, long value) {
     return true;
 }
 
-bool SerialConsole::handleConfigCmdThrottle(String command, long value) {
+bool SerialConsole::handleConfigCmdThrottle(String command, long value)
+{
     Throttle *throttle = deviceManager.getAccelerator();
     ThrottleConfiguration *config = NULL;
 
@@ -466,7 +481,8 @@ bool SerialConsole::handleConfigCmdThrottle(String command, long value) {
     return true;
 }
 
-bool SerialConsole::handleConfigCmdBrake(String command, long value) {
+bool SerialConsole::handleConfigCmdBrake(String command, long value)
+{
     Throttle *brake = deviceManager.getBrake();
     ThrottleConfiguration *config = NULL;
 
@@ -499,7 +515,8 @@ bool SerialConsole::handleConfigCmdBrake(String command, long value) {
     return true;
 }
 
-bool SerialConsole::handleConfigCmdSystemIO(String command, long value) {
+bool SerialConsole::handleConfigCmdSystemIO(String command, long value)
+{
     SystemIOConfiguration *config = systemIO.getConfiguration();
 
     if (command == String("ENABLEI")) {
@@ -608,8 +625,8 @@ bool SerialConsole::handleConfigCmdSystemIO(String command, long value) {
         Logger::console("DOUT%d,  STATE: %t", value, systemIO.getDigitalOut(value));
         systemIO.setDigitalOut(value, !systemIO.getDigitalOut(value));
         Logger::console("DOUT0:%d, DOUT1:%d, DOUT2:%d, DOUT3:%d, DOUT4:%d, DOUT5:%d, DOUT6:%d, DOUT7:%d", systemIO.getDigitalOut(0),
-                systemIO.getDigitalOut(1), systemIO.getDigitalOut(2), systemIO.getDigitalOut(3), systemIO.getDigitalOut(4),
-                systemIO.getDigitalOut(5), systemIO.getDigitalOut(6), systemIO.getDigitalOut(7));
+                systemIO.getDigitalOut(1), systemIO.getDigitalOut(2), systemIO.getDigitalOut(3), systemIO.getDigitalOut(4), systemIO.getDigitalOut(5),
+                systemIO.getDigitalOut(6), systemIO.getDigitalOut(7));
     } else {
         return false;
     }
@@ -617,7 +634,8 @@ bool SerialConsole::handleConfigCmdSystemIO(String command, long value) {
     return true;
 }
 
-bool SerialConsole::handleConfigCmdCharger(String command, long value) {
+bool SerialConsole::handleConfigCmdCharger(String command, long value)
+{
     Charger *charger = deviceManager.getCharger();
     ChargerConfiguration *config = NULL;
 
@@ -689,7 +707,8 @@ bool SerialConsole::handleConfigCmdCharger(String command, long value) {
     return true;
 }
 
-bool SerialConsole::handleConfigCmdDcDcConverter(String command, long value) {
+bool SerialConsole::handleConfigCmdDcDcConverter(String command, long value)
+{
     DcDcConverter *dcdcConverter = deviceManager.getDcDcConverter();
     DcDcConverterConfiguration *config = NULL;
 
@@ -740,64 +759,46 @@ bool SerialConsole::handleConfigCmdDcDcConverter(String command, long value) {
     return true;
 }
 
-bool SerialConsole::handleConfigCmdSystem(String command, long value) {
+bool SerialConsole::handleConfigCmdSystem(String command, long value, char *parameter)
+{
 
     if (command == String("ENABLE")) {
-        if(!deviceManager.sendMessage(DEVICE_ANY, (DeviceId) value, MSG_ENABLE, NULL)) {
+        if (!deviceManager.sendMessage(DEVICE_ANY, (DeviceId) value, MSG_ENABLE, NULL)) {
             Logger::console("Invalid device ID (%X, %d)", value, value);
         }
     } else if (command == String("DISABLE")) {
-        if(!deviceManager.sendMessage(DEVICE_ANY, (DeviceId) value, MSG_DISABLE, NULL)) {
+        if (!deviceManager.sendMessage(DEVICE_ANY, (DeviceId) value, MSG_DISABLE, NULL)) {
             Logger::console("Invalid device ID (%X, %d)", value, value);
         }
     } else if (command == String("SYSTYPE")) {
         systemIO.setSystemType((SystemType) constrain(value, GEVCU1, GEVCU4));
         Logger::console("System type updated. Power cycle to apply.");
     } else if (command == String("LOGLEVEL")) {
-        switch (value) {
-            case 0:
-            Logger::setLoglevel(Logger::Debug);
-            Logger::console("setting loglevel to 'debug'");
-            break;
-
-            case 1:
-            Logger::setLoglevel(Logger::Info);
-            Logger::console("setting loglevel to 'info'");
-            break;
-
-            case 2:
-            Logger::console("setting loglevel to 'warning'");
-            Logger::setLoglevel(Logger::Warn);
-            break;
-
-            case 3:
-            Logger::console("setting loglevel to 'error'");
-            Logger::setLoglevel(Logger::Error);
-            break;
-
-            case 4:
-            Logger::console("setting loglevel to 'off'");
-            Logger::setLoglevel(Logger::Off);
-            break;
+        if (strchr(parameter, ',') == NULL) {
+            Logger::setLoglevel((Logger::LogLevel) value);
+            Logger::console("setting loglevel to %d", value);
+            systemIO.setLogLevel(Logger::getLogLevel());
+        } else {
+            DeviceId deviceId = (DeviceId) strtol(strtok(parameter, ","), NULL, 0);
+            value = atol(strtok(NULL, ","));
+            Logger::setLoglevel(deviceId, (Logger::LogLevel) value);
         }
-        systemIO.setLogLevel(Logger::getLogLevel());
-    } else if (command == String("NUKE")) {
-        if (value == 1) {
-            // write zero to the checksum location of every device in the table.
-            uint8_t zeroVal = 0;
-            for (int j = 0; j < 64; j++) {
-                memCache.Write(EE_DEVICES_BASE + (EE_DEVICE_SIZE * j), zeroVal);
-                memCache.FlushAllPages();
-            }
-            Logger::console("Device settings have been nuked. Reboot to reload default settings");
+    } else if (command == String("NUKE") && value == 1) {
+        // write zero to the checksum location of every device in the table.
+        uint8_t zeroVal = 0;
+        for (int j = 0; j < 64; j++) {
+            memCache.Write(EE_DEVICES_BASE + (EE_DEVICE_SIZE * j), zeroVal);
+            memCache.FlushAllPages();
         }
+        Logger::console("Device settings have been nuked. Reboot to reload default settings");
     } else {
         return false;
     }
     return true;
 }
 
-bool SerialConsole::handleConfigCmdWifi(String command, String parameter) {
+bool SerialConsole::handleConfigCmdWifi(String command, String parameter)
+{
     if (command == String("WLAN")) {
         deviceManager.sendMessage(DEVICE_WIFI, ICHIP2128, MSG_COMMAND, (void *) parameter.c_str());
         Logger::info("sent \"%s%s\" to wifi device", Constants::ichipCommandPrefix, parameter.c_str());
@@ -819,7 +820,8 @@ bool SerialConsole::handleConfigCmdWifi(String command, String parameter) {
     return true;
 }
 
-void SerialConsole::sendWifiCommand(String command, String parameter) {
+void SerialConsole::sendWifiCommand(String command, String parameter)
+{
     command.concat("=");
     command.concat(parameter);
     Logger::info("sent \"%s%s\" to wifi device", Constants::ichipCommandPrefix, command.c_str());
@@ -835,13 +837,13 @@ void SerialConsole::handleShortCmd()
     Heartbeat *heartbeat = (Heartbeat *) deviceManager.getDeviceByID(HEARTBEAT);
 
     switch (cmdBuffer[0]) {
-        case 'h':
-        case '?':
-        case 'H':
+    case 'h':
+    case '?':
+    case 'H':
         printMenu();
         break;
 
-        case 'L':
+    case 'L':
         if (heartbeat != NULL) {
             heartbeat->setThrottleDebug(!heartbeat->getThrottleDebug());
 
@@ -853,7 +855,7 @@ void SerialConsole::handleShortCmd()
         }
         break;
 
-        case 'U':
+    case 'U':
         Logger::console("Adding a sequence of values from 0 to 255 into eeprom");
 
         for (int i = 0; i < 256; i++) {
@@ -862,11 +864,11 @@ void SerialConsole::handleShortCmd()
 
         Logger::info("Flushing cache");
         memCache.FlushAllPages(); //write everything to eeprom
-        memCache.InvalidateAll();//remove all data from cache
+        memCache.InvalidateAll(); //remove all data from cache
         Logger::console("Operation complete.");
         break;
 
-        case 'I':
+    case 'I':
         Logger::console("Retrieving data previously saved");
 
         for (int i = 0; i < 256; i++) {
@@ -875,7 +877,7 @@ void SerialConsole::handleShortCmd()
         }
         break;
 
-        case 'K': //set all outputs high
+    case 'K': //set all outputs high
         for (int tout = 0; tout < CFG_NUMBER_DIGITAL_OUTPUTS; tout++) {
             systemIO.setDigitalOut(tout, true);
         }
@@ -883,7 +885,7 @@ void SerialConsole::handleShortCmd()
         Logger::console("all outputs: ON");
         break;
 
-        case 'J': //set the four outputs low
+    case 'J': //set the four outputs low
         for (int tout = 0; tout < CFG_NUMBER_DIGITAL_OUTPUTS; tout++) {
             systemIO.setDigitalOut(tout, false);
         }
@@ -891,33 +893,33 @@ void SerialConsole::handleShortCmd()
         Logger::console("all outputs: OFF");
         break;
 
-        case 'z': // detect throttle min/max & other details
+    case 'z': // detect throttle min/max & other details
         if (accelerator) {
             ThrottleDetector *detector = new ThrottleDetector(accelerator);
             detector->detect();
         }
         break;
 
-        case 'Z': // save throttle settings
+    case 'Z': // save throttle settings
         if (accelerator) {
             accelerator->saveConfiguration();
         }
         break;
 
-        case 'b':
+    case 'b':
         if (brake) {
             ThrottleDetector *detector = new ThrottleDetector(brake);
             detector->detect();
         }
         break;
 
-        case 'B':
+    case 'B':
         if (brake != NULL) {
             brake->saveConfiguration();
         }
         break;
 
-        case 'p':
+    case 'p':
         Logger::console("PASSTHROUGH MODE - All traffic Serial3 <-> SerialUSB");
         //this never stops so basically everything dies. you will have to reboot.
         int inSerialUSB, inSerial3;
@@ -936,30 +938,30 @@ void SerialConsole::handleShortCmd()
         }
         break;
 
-        case 'S':
+    case 'S':
         deviceManager.printDeviceList();
         break;
 
-        case 's':
+    case 's':
         Logger::console("Finding and listing all nearby WiFi access points");
         deviceManager.sendMessage(DEVICE_WIFI, ICHIP2128, MSG_COMMAND, (void *) "RP20");
         break;
 
-        case 'W':
+    case 'W':
         Logger::console("Setting Wifi Adapter to WPS mode (make sure you press the WPS button on your router)");
         // restore factory defaults and give it some time
         deviceManager.sendMessage(DEVICE_WIFI, ICHIP2128, MSG_COMMAND, (void *) "AWPS");
         break;
 
-        case 'w':
+    case 'w':
         Logger::console("Resetting wifi to factory defaults and setting up to auto connect to open APs, this takes about 50sec, please stand-by");
         deviceManager.sendMessage(DEVICE_WIFI, ICHIP2128, MSG_RESET, NULL);
-        deviceManager.sendMessage(DEVICE_WIFI, ICHIP2128, MSG_CONFIG_CHANGE, NULL);// reload configuration params as they were lost
+        deviceManager.sendMessage(DEVICE_WIFI, ICHIP2128, MSG_CONFIG_CHANGE, NULL); // reload configuration params as they were lost
         Logger::console("Wifi 4.2 initialized");
         break;
 
-        case 'X':
-        setup();//this is probably a bad idea. Do not do this while connected to anything you care about - only for debugging in safety!
+    case 'X':
+        setup(); //this is probably a bad idea. Do not do this while connected to anything you care about - only for debugging in safety!
         break;
     }
 }

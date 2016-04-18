@@ -53,12 +53,16 @@ public:
     static void error(DeviceId, char *, ...);
     static void console(char *, ...);
     static void setLoglevel(LogLevel);
+    static void setLoglevel(DeviceId, LogLevel);
     static LogLevel getLogLevel();
+    static LogLevel getLogLevel(DeviceId);
     static uint32_t getLastLogTime();
     static boolean isDebug();
 private:
     static LogLevel logLevel;
     static uint32_t lastLogTime;
+    static bool debugging;
+    static LogLevel *deviceLoglevel;
 
     static void log(DeviceId, LogLevel, char *format, va_list);
     static void logMessage(char *format, va_list args);

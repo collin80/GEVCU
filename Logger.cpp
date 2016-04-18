@@ -28,6 +28,8 @@
 
 Logger::LogLevel Logger::logLevel = Logger::Info;
 uint32_t Logger::lastLogTime = 0;
+bool Logger::debugging = false;
+Logger::LogLevel *Logger::deviceLoglevel = new Logger::LogLevel[deviceIdsSize];
 
 /*
  * Output a debug message with a variable amount of parameters.
@@ -52,7 +54,7 @@ void Logger::debug(char *message, ...)
  */
 void Logger::debug(DeviceId deviceId, char *message, ...)
 {
-    if (logLevel > Debug) {
+    if (getLogLevel(deviceId) > Debug) {
         return;
     }
 
@@ -84,7 +86,7 @@ void Logger::info(char *message, ...)
  */
 void Logger::info(DeviceId deviceId, char *message, ...)
 {
-    if (logLevel > Info) {
+    if (getLogLevel(deviceId) > Info) {
         return;
     }
 
@@ -116,7 +118,7 @@ void Logger::warn(char *message, ...)
  */
 void Logger::warn(DeviceId deviceId, char *message, ...)
 {
-    if (logLevel > Warn) {
+    if (getLogLevel(deviceId) > Warn) {
         return;
     }
 
@@ -148,7 +150,7 @@ void Logger::error(char *message, ...)
  */
 void Logger::error(DeviceId deviceId, char *message, ...)
 {
-    if (logLevel > Error) {
+    if (getLogLevel(deviceId) > Error) {
         return;
     }
 
@@ -172,17 +174,52 @@ void Logger::console(char *message, ...)
 
 /*
  * Set the log level. Any output below the specified log level will be omitted.
+ * Also set the debugging flag for faster evaluation in isDebug().
  */
 void Logger::setLoglevel(LogLevel level)
 {
     logLevel = level;
+    for (int deviceEntry = 0; deviceEntry < deviceIdsSize; deviceEntry ++) {
+		deviceLoglevel[deviceEntry] = level;
+    }
+    debugging = (level == Debug);
 }
 
+/*
+ * Set the log level for a specific device. If one device has Debugging loglevel set, also set the
+ * debugging flag (for faster evaluation in isDebug()).
+ */
+void Logger::setLoglevel(DeviceId deviceId, LogLevel level)
+{
+Logger::console("setting loglevel for device %d to %d", deviceId, level);
+	debugging = false;
+    for (int deviceEntry = 0; deviceEntry < deviceIdsSize; deviceEntry ++) {
+    	if (deviceIds[deviceEntry] == deviceId) {
+    		deviceLoglevel[deviceEntry] = level;
+    	}
+    	if (deviceLoglevel[deviceEntry] == Debug) {
+    		debugging = true;
+    	}
+    }
+}
 /*
  * Retrieve the current log level.
  */
 Logger::LogLevel Logger::getLogLevel()
 {
+    return logLevel;
+}
+
+/*
+ * Retrieve the specific log level of a device
+ */
+Logger::LogLevel Logger::getLogLevel(DeviceId deviceId)
+{
+    for (int deviceEntry = 0; deviceEntry < deviceIdsSize; deviceEntry ++) {
+    	if (deviceIds[deviceEntry] == deviceId) {
+    		return deviceLoglevel[deviceEntry];
+    	}
+    }
     return logLevel;
 }
 
@@ -206,7 +243,7 @@ uint32_t Logger::getLastLogTime()
  */
 boolean Logger::isDebug()
 {
-    return logLevel == Debug;
+    return debugging;
 }
 
 /*
