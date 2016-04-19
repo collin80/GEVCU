@@ -144,11 +144,13 @@ void ICHIPWIFI::sendBufferedCommand()
 
 void ICHIPWIFI::sendToSocket(int socket, String data)
 {
-    char buff[6];
-    sprintf(buff, "%03i", socket);
-    String temp = "SSND%:" + String(buff);
-    sprintf(buff, ",%i:", data.length());
-    temp.concat(buff);
+    if (data.length() < 1) {
+        return;
+    }
+    sprintf(buffer, "%03i", socket);
+    String temp = "SSND%:" + String(buffer);
+    sprintf(buffer, ",%i:", data.length());
+    temp.concat(buffer);
     temp.concat(data);
     sendCmd(temp, SEND_SOCKET);
 }
@@ -459,9 +461,7 @@ void ICHIPWIFI::processSocketGetResponse()
         ret = String();
         bool previouslyConnected = webSocket->isConnected();
         webSocket->processInput(ret, incomingBuffer);
-        if (ret.length() > 0) {
-            sendToSocket(0, ret); //TODO: need to actually track which socket requested this data
-        }
+        sendToSocket(0, ret); //TODO: need to actually track which socket requested this data
         if (previouslyConnected && !webSocket->isConnected()) { // e.g. by receiving a close request
             closeSockets(); //TODO close only related socket
         }
