@@ -1018,11 +1018,11 @@ void ICHIPWIFI::loadParametersDashboard()
         MotorControllerConfiguration *config = (MotorControllerConfiguration *) motorController->getConfiguration();
 
         if (config) {
-            sprintf(buffer, "%d,%d", -1 * config->torqueMax, config->torqueMax);
+            sprintf(buffer, "%d,%d", config->torqueMax / -10, config->torqueMax / 10);
             setParam(Constants::torqueRange, buffer);
             sprintf(buffer, "0,%d", config->speedMax);
             setParam(Constants::rpmRange, buffer);
-            sprintf(buffer, "%d,%d", -1 * config->maxMechanicalPowerRegen, config->maxMechanicalPowerMotor);
+            sprintf(buffer, "%d,%d", config->maxMechanicalPowerRegen / -10, config->maxMechanicalPowerMotor / 10);
             setParam(Constants::powerRange, buffer);
         } else {
             setParam(Constants::torqueRange, "-300,300");
