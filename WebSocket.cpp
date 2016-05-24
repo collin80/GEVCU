@@ -179,8 +179,6 @@ void WebSocket::processData(String &response, char *input)
 String WebSocket::getUpdate()
 {
     MotorController* motorController = deviceManager.getMotorController();
-    Throttle *accelerator = deviceManager.getAccelerator();
-    Throttle *brake = deviceManager.getBrake();
     uint32_t ms = millis();
     String data = String();
 
@@ -227,17 +225,9 @@ String WebSocket::getUpdate()
             paramCache.gear = motorController->getGear();
             addParam(data, Constants::gear, (uint16_t) paramCache.gear);
         }
-    }
-    if (accelerator) {
-        if (paramCache.throttle != accelerator->getLevel()) {
-            paramCache.throttle = accelerator->getLevel();
+        if (paramCache.throttle != motorController->getThrottleLevel()) {
+            paramCache.throttle = motorController->getThrottleLevel();
             addParam(data, Constants::throttle, paramCache.throttle / 10.0f, 1);
-        }
-    }
-    if (brake) {
-        if (paramCache.brake != brake->getLevel()) {
-            paramCache.brake = brake->getLevel();
-            addParam(data, Constants::brake, paramCache.brake / -10.0f, 1); // divide by negative to get positive values for breaking
         }
     }
 
