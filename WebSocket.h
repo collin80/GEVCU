@@ -28,7 +28,7 @@ struct ParamCache {
     int16_t dcCurrent;
     int16_t acCurrent;
     int16_t nominalVolt;
-    int16_t kiloWattHours;
+    int16_t energyConsumption;
     uint32_t bitfield1;
     uint32_t bitfield2;
     uint32_t bitfield3;

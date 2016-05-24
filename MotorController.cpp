@@ -48,9 +48,9 @@ MotorController::MotorController() :
     dcVoltage = 0;
     dcCurrent = 0;
     acCurrent = 0;
-    kiloWattHours = 0;
+    powerConsumption = 0;
     milliStamp = 0;
-    skipcounter = 0;
+    savePowerConsumption = false;
     ticksNoMessage = 0;
 }
 
@@ -68,20 +68,23 @@ void MotorController::updatePowerConsumption()
     uint32_t currentMillis = millis();
 
     if (running) {
-        mechanicalPower = dcVoltage * dcCurrent / 10000; //In kilowatts. DC voltage is x10
+        mechanicalPower = dcVoltage * dcCurrent / 10000; // in 0.1 kilowatts.
         if (dcVoltage > config->nominalVolt && torqueActual > 0) {
-            kiloWattHours = 1; //If our voltage is higher than fully charged with no regen, zero our kwh meter
+            powerConsumption = 0; //If our voltage is higher than fully charged with no regen, zero our meter
+            savePowerConsumption = true;
         }
-        if (milliStamp > currentMillis) {
-            milliStamp = 0; //In case millis rolls over to zero while running
-        }
-        kiloWattHours += (currentMillis - milliStamp) * mechanicalPower; //We assume here that power is at current level since last tick and accrue in kilowattmilliseconds.
-        milliStamp = currentMillis; //reset our kwms timer for next check
+        // we're actually calculating kilowatt-milliseconds which is the same as watt seconds
+        powerConsumption += (currentMillis - milliStamp) * mechanicalPower / 10;
+        milliStamp = currentMillis; //reset our timer for next check
 
-        if (skipcounter++ > 30) {
-            prefsHandler->write(EEMC_KILOWATTHRS, kiloWattHours);
-            prefsHandler->saveChecksum();
-            skipcounter = 0;
+        if (speedActual == 0) { // save at stand-still
+            if (savePowerConsumption) {
+                prefsHandler->write(EEMC_ENEGRY_CONSUMPTION, powerConsumption);
+                prefsHandler->saveChecksum();
+            }
+            savePowerConsumption = false;
+        } else {
+            savePowerConsumption = true;
         }
     }
 }
@@ -233,7 +236,8 @@ void MotorController::setup()
     Device::setup();
 
     MotorControllerConfiguration *config = (MotorControllerConfiguration *) getConfiguration();
-    prefsHandler->read(EEMC_KILOWATTHRS, &kiloWattHours);  //retrieve kilowatt hours from EEPROM
+    prefsHandler->read(EEMC_ENEGRY_CONSUMPTION, &powerConsumption);  //retrieve power consumption hours from EEPROM
+    savePowerConsumption = false;
 
     slewTimestamp = millis();
 }
@@ -299,9 +303,9 @@ uint16_t MotorController::getAcCurrent()
     return acCurrent;
 }
 
-uint32_t MotorController::getKiloWattHours()
+uint32_t MotorController::getEnergyConsumption()
 {
-    return kiloWattHours;
+    return powerConsumption / 360000;
 }
 
 int16_t MotorController::getMechanicalPower()

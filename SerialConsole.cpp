@@ -101,7 +101,7 @@ void SerialConsole::printMenuMotorController()
         Logger::console("MOMWMX=%i - maximal mechanical power of motor (in 100W steps)", config->maxMechanicalPowerMotor);
         Logger::console("MORWMX=%i - maximal mechanical power of regen (in 100W steps)", config->maxMechanicalPowerRegen);
         Logger::console("NOMV=%i - Fully charged pack voltage that automatically resets the kWh counter (in 0.1V)", config->nominalVolt);
-        Logger::console("kWh=%d - kiloWatt Hours of energy used", motorController->getKiloWattHours() / 3600000);
+        Logger::console("kWh=%f - kiloWatt Hours of energy used", motorController->getEnergyConsumption() / 10.0f);
         if (motorController->getId() == BRUSA_DMC5) {
             BrusaDMC5Configuration *dmc5Config = (BrusaDMC5Configuration *) config;
             Logger::console("MOMVMN=%i - minimum DC voltage limit for motoring (in 0.1V)", dmc5Config->dcVoltLimitMotor);

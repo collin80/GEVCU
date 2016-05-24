@@ -74,7 +74,7 @@ void WebSocket::initParamCache()
     paramCache.dcCurrent = -1;
     paramCache.acCurrent = -1;
     paramCache.nominalVolt = -1;
-    paramCache.kiloWattHours = -1;
+    paramCache.energyConsumption = -1;
     paramCache.bitfield1 = 0;
     paramCache.bitfield2 = 0;
     paramCache.bitfield3 = 0;
@@ -207,9 +207,9 @@ String WebSocket::getUpdate()
             paramCache.dcVoltage = motorController->getDcVoltage();
             addParam(data, Constants::dcVoltage, paramCache.dcVoltage / 10.0f, 1);
         }
-        if (paramCache.kiloWattHours != motorController->getKiloWattHours() / 3600000) {
-            paramCache.kiloWattHours = motorController->getKiloWattHours() / 3600000;
-            addParam(data, Constants::kiloWattHours, paramCache.kiloWattHours / 10.0f, 1);
+        if (paramCache.energyConsumption != motorController->getEnergyConsumption()) {
+            paramCache.energyConsumption = motorController->getEnergyConsumption();
+            addParam(data, Constants::energyConsumption, paramCache.energyConsumption / 10.0f, 1);
         }
         if (paramCache.mechanicalPower != motorController->getMechanicalPower()) {
             paramCache.mechanicalPower = motorController->getMechanicalPower();

@@ -105,7 +105,7 @@ void SystemIO::handleTick() {
     //TODO move to method and configure max kWh and if inverted or not
     MotorController *motor = deviceManager.getMotorController();
     if (motor != NULL) {
-        setStateOfCharge(map(motor->getKiloWattHours(), 0, 100, 0, 255));
+        setStateOfCharge(map(motor->getEnergyConsumption(), 0, 100, 0, 255));
     }
 
 

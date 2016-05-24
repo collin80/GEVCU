@@ -107,7 +107,7 @@ the end of the stardard data. The below numbers are offsets from the device's ee
 // Motor controller data
 #define EEMC_MAX_RPM                        20 //2 bytes, unsigned int for maximum allowable RPM
 #define EEMC_MAX_TORQUE                     22 //2 bytes, unsigned int - maximum torque in tenths of a Nm
-#define EEMC_KILOWATTHRS                    40 //4 bytes - capacitance of controller capacitor bank in micro farads (uf) - set to zero to disable RC precharge
+#define EEMC_ENEGRY_CONSUMPTION             40 //4 bytes - accumulated power consumption in 0.1 kwh
 #define EEMC_NOMINAL_V                      46 //2 bytes - nominal system voltage to expect (in tenths of a volt)
 #define EEMC_REVERSE_LIMIT                  48 //2 bytes - a percentage to knock the requested torque down by while in reverse.
 #define EEMC_UNUSED1                        50 //1 byte - unused
