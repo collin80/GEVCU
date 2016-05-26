@@ -46,6 +46,31 @@ DeviceType DcDcConverter::getType() {
     return (DEVICE_DCDC);
 }
 
+int16_t DcDcConverter::getHvCurrent()
+{
+    return hvCurrent;
+}
+
+uint16_t DcDcConverter::getHvVoltage()
+{
+    return hvVoltage;
+}
+
+int16_t DcDcConverter::getLvCurrent()
+{
+    return lvCurrent;
+}
+
+uint16_t DcDcConverter::getLvVoltage()
+{
+    return lvVoltage;
+}
+
+int16_t DcDcConverter::getTemperature()
+{
+    return temperature;
+}
+
 /**
  * act on messages the super-class does not react upon, like state change
  * to ready or running which should enable/disable the power-stage of the converter

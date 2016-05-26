@@ -171,7 +171,6 @@ private:
     uint8_t auxBatteryVoltage; // 0 - 25V in 0.1V
     int16_t extChargeBalance; // -327.68 - 327.67Ah in 0.01Ah
     uint16_t boosterOutputCurrent; // 0 - 50A in 0.01A
-    int16_t temperaturePowerStage; // -40 - 300 deg C in 0.1 deg C
     int16_t temperatureExtSensor1; // -40 - 300 deg C in 0.1 deg C
     int16_t temperatureExtSensor2; // -40 - 300 deg C in 0.1 deg C
     int16_t temperatureExtSensor3; // -40 - 300 deg C in 0.1 deg C

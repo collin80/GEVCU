@@ -156,6 +156,16 @@ static const char* gear = "gear";
 static const char* temperatureMotor = "temperatureMotor";
 static const char* temperatureController = "temperatureController";
 static const char* mechanicalPower = "mechanicalPower";
+static const char* dcDcHvVoltage = "dcDcHvVoltage";
+static const char* dcDcLvVoltage = "dcDcLvVoltage";
+static const char* dcDcHvCurrent = "dcDcHvCurrent";
+static const char* dcDcLvCurrent = "dcDcLvCurrent";
+static const char* dcDcTemperature = "dcDcTemperature";
+static const char* chargerInputVoltage = "chargerInputVoltage";
+static const char* chargerInputCurrent = "chargerInputCurrent";
+static const char* chargerBatteryVoltage = "chargerBatteryVoltage";
+static const char* chargerBatteryCurrent = "chargerBatteryCurrent";
+static const char* chargerTemperature = "chargerTemperature";
 
 static const char* torqueRange = "torqueRange";
 static const char* rpmRange = "rpmRange";

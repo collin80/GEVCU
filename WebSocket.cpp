@@ -83,6 +83,16 @@ void WebSocket::initParamCache()
     paramCache.temperatureMotor = -1;
     paramCache.temperatureController = -1;
     paramCache.mechanicalPower = -1;
+    paramCache.dcDcHvVoltage = 0;
+    paramCache.dcDcLvVoltage = 0;
+    paramCache.dcDcHvCurrent = 0;
+    paramCache.dcDcLvCurrent = 0;
+    paramCache.dcDcTemperature = 0;
+    paramCache.chargerInputVoltage = 0;
+    paramCache.chargerInputCurrent = 0;
+    paramCache.chargerBatteryVoltage = 0;
+    paramCache.chargerBatteryCurrent = 0;
+    paramCache.chargerTemperature = 0;
 }
 
 void WebSocket::processHeader(String &response, char *input)
@@ -250,6 +260,54 @@ String WebSocket::getUpdate()
     if (ms > paramCache.timeRunning + 900) { // just update this every second or so
         paramCache.timeRunning = ms;
         addParam(data, Constants::timeRunning, getTimeRunning(), false);
+
+        DcDcConverter* dcDcInverter = deviceManager.getDcDcConverter();
+        if (dcDcInverter) {
+            if (paramCache.dcDcHvVoltage != dcDcInverter->getHvVoltage()) {
+                paramCache.dcDcHvVoltage = dcDcInverter->getHvVoltage();
+                addParam(data, Constants::dcDcHvVoltage, (uint16_t) paramCache.dcDcHvVoltage);
+            }
+            if (paramCache.dcDcHvCurrent != dcDcInverter->getHvCurrent()) {
+                paramCache.dcDcHvCurrent = dcDcInverter->getHvCurrent();
+                addParam(data, Constants::dcDcHvCurrent, (uint16_t) paramCache.dcDcHvCurrent);
+            }
+            if (paramCache.dcDcLvVoltage != dcDcInverter->getLvVoltage()) {
+                paramCache.dcDcLvVoltage = dcDcInverter->getLvVoltage();
+                addParam(data, Constants::dcDcLvVoltage, (uint16_t) paramCache.dcDcLvVoltage);
+            }
+            if (paramCache.dcDcLvCurrent != dcDcInverter->getLvCurrent()) {
+                paramCache.dcDcLvCurrent = dcDcInverter->getLvCurrent();
+                addParam(data, Constants::dcDcLvCurrent, (uint16_t) paramCache.dcDcLvCurrent);
+            }
+            if (paramCache.dcDcTemperature != dcDcInverter->getTemperature()) {
+                paramCache.dcDcTemperature = dcDcInverter->getTemperature();
+                addParam(data, Constants::dcDcTemperature, (uint16_t) paramCache.dcDcTemperature);
+            }
+        }
+
+        Charger* charger = deviceManager.getCharger();
+        if (charger) {
+            if (paramCache.chargerInputVoltage != charger->getInputVoltage()) {
+                paramCache.chargerInputVoltage = charger->getInputVoltage();
+                addParam(data, Constants::chargerInputVoltage, (uint16_t) paramCache.chargerInputVoltage);
+            }
+            if (paramCache.chargerInputCurrent != charger->getInputCurrent()) {
+                paramCache.chargerInputCurrent = charger->getInputCurrent();
+                addParam(data, Constants::chargerInputCurrent, (uint16_t) paramCache.chargerInputCurrent);
+            }
+            if (paramCache.chargerBatteryVoltage != charger->getBatteryVoltage()) {
+                paramCache.chargerBatteryVoltage = charger->getBatteryVoltage();
+                addParam(data, Constants::chargerBatteryVoltage, (uint16_t) paramCache.chargerBatteryVoltage);
+            }
+            if (paramCache.chargerBatteryCurrent != charger->getBatteryCurrent()) {
+                paramCache.chargerBatteryCurrent = charger->getBatteryCurrent();
+                addParam(data, Constants::chargerBatteryCurrent, (uint16_t) paramCache.chargerBatteryCurrent);
+            }
+            if (paramCache.chargerTemperature != charger->getTemperature()) {
+                paramCache.chargerTemperature = charger->getTemperature();
+                addParam(data, Constants::dcDcTemperature, (uint16_t) paramCache.chargerTemperature);
+            }
+        }
     }
 
     // return empty string -> nothing will be sent, lower resource usage

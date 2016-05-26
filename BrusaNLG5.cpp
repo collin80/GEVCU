@@ -42,7 +42,6 @@ BrusaNLG5::BrusaNLG5() : Charger()
     auxBatteryVoltage = 0;
     extChargeBalance = 0;
     boosterOutputCurrent = 0;
-    temperaturePowerStage = 0;
     temperatureExtSensor1 = 0;
     temperatureExtSensor2 = 0;
     temperatureExtSensor3 = 0;
@@ -99,11 +98,11 @@ void BrusaNLG5::sendControl()
     outputFrame.data.bytes[1] = (constrain(config->maximumInputCurrent, 0, 500) & 0xFF00) >> 8;
     outputFrame.data.bytes[2] = (constrain(config->maximumInputCurrent, 0, 500) & 0x00FF);
 
-    uint16_t voltage = getOutputVoltage();
+    uint16_t voltage = calculateOutputVoltage();
     outputFrame.data.bytes[3] = (constrain(voltage, 0, 10000) & 0xFF00) >> 8;
     outputFrame.data.bytes[4] = (constrain(voltage, 0, 10000) & 0x00FF);
 
-    uint16_t current = getOutputCurrent();
+    uint16_t current = calculateOutputCurrent();
     outputFrame.data.bytes[5] = (constrain(current, 0, 1500) & 0xFF00) >> 8;
     outputFrame.data.bytes[6] = (constrain(current, 0, 1500) & 0x00FF);
     outputFrame.length = 7;
@@ -254,13 +253,13 @@ void BrusaNLG5::processValues2(uint8_t data[])
  */
 void BrusaNLG5::processTemperature(uint8_t data[])
 {
-    temperaturePowerStage = (uint16_t)(data[1] | (data[0] << 8));
+    temperature = (uint16_t)(data[1] | (data[0] << 8));
     temperatureExtSensor1 = (uint16_t)(data[3] | (data[2] << 8));
     temperatureExtSensor2 = (uint16_t)(data[5] | (data[4] << 8));
     temperatureExtSensor3 = (uint16_t)(data[7] | (data[6] << 8));
 
     if (Logger::isDebug()) {
-        Logger::debug(BRUSA_NLG5, "Temp power stage: %fC, Temp ext sensor 1: %C", (float) temperaturePowerStage / 10.0F, (float) temperatureExtSensor1 / 10.0F);
+        Logger::debug(BRUSA_NLG5, "Temp power stage: %fC, Temp ext sensor 1: %C", (float) temperature / 10.0F, (float) temperatureExtSensor1 / 10.0F);
         Logger::debug(BRUSA_NLG5, "Temp ext sensor 2: %fC, Temp ext sensor 3: %fC", (float) temperatureExtSensor2 / 10.0F, (float) temperatureExtSensor3 / 10.0F);
     }
 }

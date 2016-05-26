@@ -37,6 +37,16 @@ struct ParamCache {
     int16_t temperatureMotor;
     int16_t temperatureController;
     int16_t mechanicalPower;
+    uint16_t dcDcHvVoltage;
+    uint16_t dcDcLvVoltage;
+    int16_t dcDcHvCurrent;
+    int16_t dcDcLvCurrent;
+    int16_t dcDcTemperature;
+    uint16_t chargerInputVoltage;
+    uint16_t chargerInputCurrent;
+    uint16_t chargerBatteryVoltage;
+    uint16_t chargerBatteryCurrent;
+    int16_t chargerTemperature;
 };
 
 class WebSocket {

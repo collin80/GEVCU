@@ -34,7 +34,7 @@ Charger::Charger() : Device()
     inputVoltage = 0;
     batteryVoltage = 0;
     batteryCurrent = 0;
-    batteryTemperature = CFG_NO_TEMPERATURE_DATA;
+    temperature = 0;
     ampereMilliSeconds = 0;
     wattMilliSeconds = 0;
     chargeStartTime = 0;
@@ -97,7 +97,7 @@ void Charger::handleStateChange(Status::SystemState oldState, Status::SystemStat
 /**
  * Calculate desired output voltage to battery in 0.1V
  */
-uint16_t Charger::getOutputVoltage()
+uint16_t Charger::calculateOutputVoltage()
 {
     if (powerOn && running) {
         ChargerConfiguration *config = (ChargerConfiguration *) getConfiguration();
@@ -109,7 +109,7 @@ uint16_t Charger::getOutputVoltage()
 /**
  * Calculate desired output current to battery in 0.1A
  */
-uint16_t Charger::getOutputCurrent()
+uint16_t Charger::calculateOutputCurrent()
 {
     if (powerOn && running) {
         ChargerConfiguration *config = (ChargerConfiguration *) getConfiguration();
@@ -151,13 +151,13 @@ uint16_t Charger::getOutputCurrent()
             Logger::error(getId(), "Maximum ampere hours exceeded (%f)", (float) ampereMilliSeconds / 360000000.0f);
             status.setSystemState(Status::error);
         }
-        temperature = getHighestBatteryTemperature();
+        temperature = status.getHighestExternalTemperature();
         if (temperature != CFG_NO_TEMPERATURE_DATA && temperature > config->maximumTemperature) {
             requestedOutputCurrent = 0;
             Logger::error(getId(), "Battery temperature too high (%f deg C)", (float) temperature / 10.0f);
             status.setSystemState(Status::error);
         }
-        temperature = getLowestBatteryTemperature();
+        temperature = status.getLowestExternalTemperature();
         if (temperature != CFG_NO_TEMPERATURE_DATA && temperature < config->minimumTemperature) {
             requestedOutputCurrent = 0;
             Logger::error(getId(), "Battery temperature too low (%f deg C)", (float) temperature / 10.0f);
@@ -166,33 +166,6 @@ uint16_t Charger::getOutputCurrent()
         return requestedOutputCurrent;
     }
     return 0;
-}
-
-/**
- * Find highest temperature reported by charger or external temperature sensors (in 0.1 deg C)
- */
-int16_t Charger::getHighestBatteryTemperature()
-{
-    int16_t temperature = batteryTemperature;
-    if (status.getHighestExternalTemperature() != CFG_NO_TEMPERATURE_DATA &&
-            status.getHighestExternalTemperature() * 10 > temperature) {
-        temperature = status.getHighestExternalTemperature() * 10;
-    }
-    return temperature;
-}
-
-/**
- * Find lowest temperature reported by charger or external temperature sensors (in 0.1 deg C)
- */
-int16_t Charger::getLowestBatteryTemperature()
-{
-    int16_t temperature = batteryTemperature;
-
-    if (status.getLowestExternalTemperature() != CFG_NO_TEMPERATURE_DATA &&
-            status.getLowestExternalTemperature() * 10 < temperature) {
-        temperature = status.getLowestExternalTemperature() * 10;
-    }
-    return temperature;
 }
 
 /*
@@ -208,16 +181,6 @@ uint16_t Charger::getBatteryCurrent()
     return batteryCurrent;
 }
 
-int16_t Charger::getBatteryTemperature()
-{
-    return batteryTemperature;
-}
-
-void Charger::setBatteryTemperature(int16_t batteryTemperature)
-{
-    this->batteryTemperature = batteryTemperature;
-}
-
 uint16_t Charger::getBatteryVoltage()
 {
     return batteryVoltage;
@@ -231,6 +194,11 @@ uint16_t Charger::getInputCurrent()
 uint16_t Charger::getInputVoltage()
 {
     return inputVoltage;
+}
+
+int16_t Charger::getTemperature()
+{
+    return temperature;
 }
 
 /*

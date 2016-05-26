@@ -55,6 +55,11 @@ public:
     ~DcDcConverter();
     void handleStateChange(Status::SystemState, Status::SystemState);
     DeviceType getType();
+    int16_t getHvCurrent();
+    uint16_t getHvVoltage();
+    int16_t getLvCurrent();
+    uint16_t getLvVoltage();
+    int16_t getTemperature();
 
     void loadConfiguration();
     void saveConfiguration();
