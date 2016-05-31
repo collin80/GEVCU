@@ -168,6 +168,6 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #define CFG_NUMBER_ANALOG_INPUTS  4
 #define CFG_NUMBER_DIGITAL_INPUTS 4
 #define CFG_NUMBER_DIGITAL_OUTPUTS  8
-#define CFG_NUMBER_TEMPERATURE_SENSORS 8 // the maximum supported external temperature sensors
+#define CFG_NUMBER_BATTERY_TEMPERATURE_SENSORS 6 // the maximum supported external temperature sensors for battery
 
 #endif /* CONFIG_H_ */

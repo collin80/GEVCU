@@ -8,5 +8,13 @@
 	"batteryRangeHigh": [ ~batteryRangeHigh~ ],
 	"energyRange": [ ~energyRange~ ],
 	"powerRange": [ ~powerRange~ ],
-	"extTemperatureRange": [ ~extTemperatureRange~ ]
+	"chargerInputCurrentRange": [ ~chgInCurrentRange~ ],
+	"chargerInputVoltageRange": [ ~chgInVoltageRange~ ],
+	"chargerBatteryCurrentRange": [ ~chgBatCurrentRange~ ],
+	"chargerTempRange": [ ~chargerTempRange~ ],
+	"dcDcHvCurrentRange": [ ~dcDcHvCurrentRange~ ],
+	"dcDcLvVoltageRange": [ ~dcDcLvVoltageRange~ ],
+	"dcDcLvCurrentRange": [ ~dcDcLvCurrentRange~ ],
+	"dcDcTempRange": [ ~dcDcTempRange~ ]
+
 }

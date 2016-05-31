@@ -167,6 +167,14 @@ static const char* chargerBatteryVoltage = "chargerBatteryVoltage";
 static const char* chargerBatteryCurrent = "chargerBatteryCurrent";
 static const char* chargerTemperature = "chargerTemperature";
 
+static const char* flowCoolant = "flowCoolant";
+static const char* flowHeater = "flowHeater";
+static const char* temperatureBattery[] = { "temperatureBattery1", "temperatureBattery2", "temperatureBattery3", "temperatureBattery4",
+        "temperatureBattery5", "temperatureBattery6" };
+static const char* temperatureCoolant = "temperatureCoolant";
+static const char* temperatureHeater = "temperatureHeater";
+static const char* temperatureExterior = "temperatureExterior";
+
 static const char* torqueRange = "torqueRange";
 static const char* rpmRange = "rpmRange";
 static const char* currentRange = "currentRange";
@@ -176,7 +184,15 @@ static const char* batteryRangeLow = "batteryRangeLow";
 static const char* batteryRangeHigh = "batteryRangeHigh";
 static const char* energyRange = "energyRange";
 static const char* powerRange = "powerRange";
-static const char* extTemperatureRange = "extTemperatureRange";
+static const char* chargerInputCurrentRange = "chgInCurrentRange";
+static const char* chargerInputVoltageRange = "chgInVoltageRange";
+static const char* chargerBatteryCurrentRange = "chgBatCurrentRange";
+static const char* chargerTempRange = "chargerTempRange";
+static const char* dcDcHvCurrentRange = "dcDcHvCurrentRange";
+static const char* dcDcLvVoltageRange = "dcDcLvVoltageRange";
+static const char* dcDcLvCurrentRange = "dcDcLvCurrentRange";
+static const char* dcDcTempRange = "dcDcTempRange";
+
 }
 
 #endif /* CONSTANTS_H_ */

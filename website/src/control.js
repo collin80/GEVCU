@@ -61,7 +61,12 @@ function openWebSocket() {
 	// process messages from the server
 	socketConnection.onmessage = function(message) {
 		var data = JSON.parse(message.data);
-		processData(data);
+		for (name in data) {
+			setNodeValue(name, data[name]);
+			if (name == 'systemState') {
+				updateSystemState(data[name]);
+			}
+		}
 	};
 }
 
@@ -70,6 +75,24 @@ function closeWebSocket() {
 		socketConnection.close();
 		socketConnection = null;
 	}
+}
+
+function updateSystemState(state) {
+	var div = document.getElementsByTagName('div')
+	for (i = 0; i < div.length; i++) {
+		var idStr = div[i].getAttribute('id');
+		if (idStr && idStr.indexOf('state_') != -1) {
+			if (idStr.indexOf('_' + state + '_') != -1) {
+				div[i].className = 'visible';
+			} else {
+				div[i].className = 'hidden';
+			}
+		}
+	}
+}
+
+function stopCharge() {
+	socketConnection.send('stopCharge');
 }
 
 // lazy load of page, replaces content of div with id==<pageId> with
@@ -321,7 +344,7 @@ function addRangeControl(id, min, max) {
 				+ min + "' max='" + max + "' maxlength='4' size='4' onchange=\"updateRangeValue('" + id + "Level', this);\"/>";
 }
 
-// hides rows with device depandent visibility
+// hides rows with device dependent visibility
 // (as a pre-requisite to re-enable it)
 function hideDeviceTr() {
 	tr = document.getElementsByTagName('tr')

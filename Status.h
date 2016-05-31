@@ -127,11 +127,16 @@ public:
     bool reverseInput; // is the reverse signal present ?
 
     uint8_t stateOfCharge; // 0 to 255 to indicate the state of charge (divide by 2.55 to get percent)
+    uint32_t flowCoolant; // ml per second coolant flow
+    uint32_t flowHeater; // ml per second heater flow
 
     bool digitalInput[CFG_NUMBER_DIGITAL_INPUTS]; // the the digital input x activated ?
     bool digitalOutput[CFG_NUMBER_DIGITAL_OUTPUTS]; // the the digital output x activated ?
 
-    int16_t externalTemperature[CFG_NUMBER_TEMPERATURE_SENSORS]; // temperature reported via CAN from external device
+    int16_t temperatureBattery[CFG_NUMBER_BATTERY_TEMPERATURE_SENSORS]; // temperature reported via CAN from external device
+    int16_t temperatureCoolant; // temperature of the coolant water, reported via CAN from GEVCU extension
+    int16_t temperatureHeater; // temperature of the heater water, calculated from analog input
+    int16_t temperatureExterior; // exterior temperature (ambient) reported via CAN from GEVCU extension
 
     Status();
     SystemState getSystemState();
@@ -140,8 +145,8 @@ public:
     uint32_t getBitField1();
     uint32_t getBitField2();
     uint32_t getBitField3();
-    int16_t getLowestExternalTemperature();
-    int16_t getHighestExternalTemperature();
+    int16_t getLowestBatteryTemperature();
+    int16_t getHighestBatteryTemperature();
 
 private:
     SystemState systemState; // the current state of the system, to be modified by the state machine of this class only

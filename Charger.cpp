@@ -151,13 +151,13 @@ uint16_t Charger::calculateOutputCurrent()
             Logger::error(getId(), "Maximum ampere hours exceeded (%f)", (float) ampereMilliSeconds / 360000000.0f);
             status.setSystemState(Status::error);
         }
-        temperature = status.getHighestExternalTemperature();
+        temperature = status.getHighestBatteryTemperature();
         if (temperature != CFG_NO_TEMPERATURE_DATA && temperature > config->maximumTemperature) {
             requestedOutputCurrent = 0;
             Logger::error(getId(), "Battery temperature too high (%f deg C)", (float) temperature / 10.0f);
             status.setSystemState(Status::error);
         }
-        temperature = status.getLowestExternalTemperature();
+        temperature = status.getLowestBatteryTemperature();
         if (temperature != CFG_NO_TEMPERATURE_DATA && temperature < config->minimumTemperature) {
             requestedOutputCurrent = 0;
             Logger::error(getId(), "Battery temperature too low (%f deg C)", (float) temperature / 10.0f);

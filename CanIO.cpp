@@ -68,7 +68,13 @@ void CanIO::handleCanFrame(CAN_FRAME *frame)
 {
     switch (frame->id) {
     case CAN_ID_GEVCU_EXT_TEMPERATURE:
-        processExternalTemperature(frame->data.byte);
+        processTemperature(frame->data.byte);
+        break;
+    case CAN_ID_GEVCU_EXT_FLOW_COOL:
+        status.flowCoolant = frame->data.high;
+        break;
+    case CAN_ID_GEVCU_EXT_FLOW_HEAT:
+        status.flowHeater = frame->data.high;
         break;
     }
 }
@@ -155,15 +161,24 @@ void CanIO::sendAnalogData()
     canHandlerEv.sendFrame(outputFrame);
 }
 
-void CanIO::processExternalTemperature(byte bytes[])
+void CanIO::processTemperature(byte bytes[])
 {
-    for (int i = 0; i < CFG_NUMBER_TEMPERATURE_SENSORS; i++) {
+    for (int i = 0; i < CFG_NUMBER_BATTERY_TEMPERATURE_SENSORS; i++) {
         if (bytes[i] != 0) {
-            status.externalTemperature[i] = bytes[i] - CFG_CAN_TEMPERATURE_OFFSET;
+            status.temperatureBattery[i] = bytes[i] - CFG_CAN_TEMPERATURE_OFFSET;
             if (Logger::isDebug()) {
-            	Logger::debug(CANIO, "external temperature %d: %d", i, status.externalTemperature[i]);
+            	Logger::debug(CANIO, "battery temperature %d: %d", i, status.temperatureBattery[i]);
             }
         }
+    }
+    if (bytes[6] != 0) {
+        status.temperatureCoolant = bytes[6] - CFG_CAN_TEMPERATURE_OFFSET;
+    }
+    if (bytes[7] != 0) {
+        status.temperatureExterior = bytes[7] - CFG_CAN_TEMPERATURE_OFFSET;
+    }
+    if (Logger::isDebug()) {
+        Logger::debug(CANIO, "coolant temperature: %d, exterior temperature %d", status.temperatureCoolant, status.temperatureExterior);
     }
 }
 

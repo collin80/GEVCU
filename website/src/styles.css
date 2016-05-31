@@ -151,3 +151,26 @@ input[type="range"]{
     box-shadow: inset 0px 0px 1px 1px rgba(0, 0, 0, 0.9), 0px 1px 1px 0px rgba(255, 255, 255, 0.13);
 }
 
+.visible,
+.hidden {
+  overflow: hidden;
+  /* This container should not have padding, borders, etc. */
+}
+.visible {
+  opacity: 1;
+  transition: opacity 2s; // fade in duration + delay
+}
+.hidden {
+  opacity: 0;
+  transition: opacity 2s; // fade out duration + delay
+}
+
+.visible > div {
+  margin-top: 1px;
+  transition: margin-top 0.5s 0s; // roll in duration + delay
+
+}
+.hidden > div {
+  margin-top: -2000px;
+  transition: margin-top 2s ease-in 0s; // roll out duration + delay
+}

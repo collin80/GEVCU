@@ -93,6 +93,14 @@ void WebSocket::initParamCache()
     paramCache.chargerBatteryVoltage = 0;
     paramCache.chargerBatteryCurrent = 0;
     paramCache.chargerTemperature = 0;
+    paramCache.flowCoolant = 0;
+    paramCache.flowHeater = 0;
+    for (int i = 0; i < CFG_NUMBER_BATTERY_TEMPERATURE_SENSORS; i++) {
+        paramCache.temperatureBattery[i] = CFG_NO_TEMPERATURE_DATA;
+    }
+    paramCache.temperatureCoolant = CFG_NO_TEMPERATURE_DATA;
+    paramCache.temperatureHeater = CFG_NO_TEMPERATURE_DATA;
+    paramCache.temperatureExterior = CFG_NO_TEMPERATURE_DATA;
 }
 
 void WebSocket::processHeader(String &response, char *input)
@@ -162,6 +170,11 @@ void WebSocket::processData(String &response, char *input)
         break;
     case OPCODE_TEXT:
         Logger::info("text frame: '%s'", &input[offset]);
+
+        //TODO move somewhere else
+        if (!strcmp("stopCharge", &input[offset])) {
+            status.setSystemState(Status::charged);
+        }
         break;
     case OPCODE_BINARY:
         Logger::error("websocket: binary frames not supported");
@@ -243,7 +256,7 @@ String WebSocket::getUpdate()
 
     if (paramCache.systemState != status.getSystemState()) {
         paramCache.systemState = status.getSystemState();
-        addParam(data, Constants::systemState, status.systemStateToStr(status.getSystemState()), false);
+        addParam(data, Constants::systemState, status.getSystemState());
     }
     if (paramCache.bitfield1 != status.getBitField1()) {
         paramCache.bitfield1 = status.getBitField1();
@@ -261,27 +274,27 @@ String WebSocket::getUpdate()
         paramCache.timeRunning = ms;
         addParam(data, Constants::timeRunning, getTimeRunning(), false);
 
-        DcDcConverter* dcDcInverter = deviceManager.getDcDcConverter();
-        if (dcDcInverter) {
-            if (paramCache.dcDcHvVoltage != dcDcInverter->getHvVoltage()) {
-                paramCache.dcDcHvVoltage = dcDcInverter->getHvVoltage();
-                addParam(data, Constants::dcDcHvVoltage, (uint16_t) paramCache.dcDcHvVoltage);
+        DcDcConverter* dcDcConverter = deviceManager.getDcDcConverter();
+        if (dcDcConverter) {
+            if (paramCache.dcDcHvVoltage != dcDcConverter->getHvVoltage()) {
+                paramCache.dcDcHvVoltage = dcDcConverter->getHvVoltage();
+                addParam(data, Constants::dcDcHvVoltage, (uint16_t) paramCache.dcDcHvVoltage / 10.0f);
             }
-            if (paramCache.dcDcHvCurrent != dcDcInverter->getHvCurrent()) {
-                paramCache.dcDcHvCurrent = dcDcInverter->getHvCurrent();
-                addParam(data, Constants::dcDcHvCurrent, (uint16_t) paramCache.dcDcHvCurrent);
+            if (paramCache.dcDcHvCurrent != dcDcConverter->getHvCurrent()) {
+                paramCache.dcDcHvCurrent = dcDcConverter->getHvCurrent();
+                addParam(data, Constants::dcDcHvCurrent, (uint16_t) paramCache.dcDcHvCurrent / 10.0f);
             }
-            if (paramCache.dcDcLvVoltage != dcDcInverter->getLvVoltage()) {
-                paramCache.dcDcLvVoltage = dcDcInverter->getLvVoltage();
-                addParam(data, Constants::dcDcLvVoltage, (uint16_t) paramCache.dcDcLvVoltage);
+            if (paramCache.dcDcLvVoltage != dcDcConverter->getLvVoltage()) {
+                paramCache.dcDcLvVoltage = dcDcConverter->getLvVoltage();
+                addParam(data, Constants::dcDcLvVoltage, (uint16_t) paramCache.dcDcLvVoltage / 10.0f);
             }
-            if (paramCache.dcDcLvCurrent != dcDcInverter->getLvCurrent()) {
-                paramCache.dcDcLvCurrent = dcDcInverter->getLvCurrent();
-                addParam(data, Constants::dcDcLvCurrent, (uint16_t) paramCache.dcDcLvCurrent);
+            if (paramCache.dcDcLvCurrent != dcDcConverter->getLvCurrent()) {
+                paramCache.dcDcLvCurrent = dcDcConverter->getLvCurrent();
+                addParam(data, Constants::dcDcLvCurrent, (uint16_t) paramCache.dcDcLvCurrent / 10.0f);
             }
-            if (paramCache.dcDcTemperature != dcDcInverter->getTemperature()) {
-                paramCache.dcDcTemperature = dcDcInverter->getTemperature();
-                addParam(data, Constants::dcDcTemperature, (uint16_t) paramCache.dcDcTemperature);
+            if (paramCache.dcDcTemperature != dcDcConverter->getTemperature()) {
+                paramCache.dcDcTemperature = dcDcConverter->getTemperature();
+                addParam(data, Constants::dcDcTemperature, (uint16_t) paramCache.dcDcTemperature / 10.0f);
             }
         }
 
@@ -289,25 +302,52 @@ String WebSocket::getUpdate()
         if (charger) {
             if (paramCache.chargerInputVoltage != charger->getInputVoltage()) {
                 paramCache.chargerInputVoltage = charger->getInputVoltage();
-                addParam(data, Constants::chargerInputVoltage, (uint16_t) paramCache.chargerInputVoltage);
+                addParam(data, Constants::chargerInputVoltage, (uint16_t) paramCache.chargerInputVoltage / 10.0f);
             }
             if (paramCache.chargerInputCurrent != charger->getInputCurrent()) {
                 paramCache.chargerInputCurrent = charger->getInputCurrent();
-                addParam(data, Constants::chargerInputCurrent, (uint16_t) paramCache.chargerInputCurrent);
+                addParam(data, Constants::chargerInputCurrent, (uint16_t) paramCache.chargerInputCurrent / 100.0f);
             }
             if (paramCache.chargerBatteryVoltage != charger->getBatteryVoltage()) {
                 paramCache.chargerBatteryVoltage = charger->getBatteryVoltage();
-                addParam(data, Constants::chargerBatteryVoltage, (uint16_t) paramCache.chargerBatteryVoltage);
+                addParam(data, Constants::chargerBatteryVoltage, (uint16_t) paramCache.chargerBatteryVoltage / 10.0f);
             }
             if (paramCache.chargerBatteryCurrent != charger->getBatteryCurrent()) {
                 paramCache.chargerBatteryCurrent = charger->getBatteryCurrent();
-                addParam(data, Constants::chargerBatteryCurrent, (uint16_t) paramCache.chargerBatteryCurrent);
+                addParam(data, Constants::chargerBatteryCurrent, (uint16_t) paramCache.chargerBatteryCurrent / 100.0f);
             }
             if (paramCache.chargerTemperature != charger->getTemperature()) {
                 paramCache.chargerTemperature = charger->getTemperature();
-                addParam(data, Constants::dcDcTemperature, (uint16_t) paramCache.chargerTemperature);
+                addParam(data, Constants::chargerTemperature, (uint16_t) paramCache.chargerTemperature / 10.0f);
             }
         }
+        if (paramCache.flowCoolant != status.flowCoolant) {
+            paramCache.flowCoolant = status.flowCoolant;
+            addParam(data, Constants::flowCoolant, (uint16_t) paramCache.flowCoolant * 6 / 100.0f);
+        }
+        if (paramCache.flowHeater != status.flowHeater) {
+            paramCache.flowHeater = status.flowHeater;
+            addParam(data, Constants::flowHeater, (uint16_t) paramCache.flowHeater * 6 / 100.0f);
+        }
+        for (int i = 0; i < CFG_NUMBER_BATTERY_TEMPERATURE_SENSORS; i++) {
+            if (paramCache.temperatureBattery[i] != status.temperatureBattery[i]) {
+                paramCache.temperatureBattery[i] = status.temperatureBattery[i];
+                addParam(data, Constants::temperatureBattery[i], (uint16_t) paramCache.temperatureBattery[i]);
+            }
+        }
+        if (paramCache.temperatureCoolant != status.temperatureCoolant) {
+            paramCache.temperatureCoolant = status.temperatureCoolant;
+            addParam(data, Constants::temperatureCoolant, (uint16_t) paramCache.temperatureCoolant);
+        }
+        if (paramCache.temperatureHeater != status.temperatureHeater) {
+            paramCache.temperatureHeater = status.temperatureHeater;
+            addParam(data, Constants::temperatureHeater, (uint16_t) paramCache.temperatureHeater);
+        }
+        if (paramCache.temperatureExterior != status.temperatureExterior) {
+            paramCache.temperatureExterior = status.temperatureExterior;
+            addParam(data, Constants::temperatureExterior, (uint16_t) paramCache.temperatureExterior);
+        }
+
     }
 
     // return empty string -> nothing will be sent, lower resource usage

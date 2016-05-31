@@ -238,7 +238,7 @@ void SystemIO::handleCharging() {
             setPowerSteering(false); //TODO movre somewhere else !
         }
         if (state == Status::ready || state == Status::batteryHeating) {
-            int16_t batteryTemp = status.getLowestExternalTemperature();
+            int16_t batteryTemp = status.getLowestBatteryTemperature();
             if (batteryTemp == CFG_NO_TEMPERATURE_DATA || batteryTemp >= CFG_MIN_BATTERY_CHARGE_TEMPERATURE) {
                 state = status.setSystemState(Status::charging);
             } else {

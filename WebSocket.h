@@ -47,6 +47,12 @@ struct ParamCache {
     uint16_t chargerBatteryVoltage;
     uint16_t chargerBatteryCurrent;
     int16_t chargerTemperature;
+    uint32_t flowCoolant;
+    uint32_t flowHeater;
+    int16_t temperatureBattery[CFG_NUMBER_BATTERY_TEMPERATURE_SENSORS];
+    int16_t temperatureCoolant;
+    int16_t temperatureHeater;
+    int16_t temperatureExterior;
 };
 
 class WebSocket {

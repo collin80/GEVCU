@@ -111,15 +111,20 @@ Status::Status() {
     interlockPresent    = false;
     reverseInput        = false;
 
+    flowCoolant = 0;
+    flowHeater = 0;
+
     for (int i = 0; i < CFG_NUMBER_DIGITAL_OUTPUTS; i++) {
         digitalOutput[i] = false;
     }
     for (int i = 0; i < CFG_NUMBER_DIGITAL_INPUTS; i++) {
         digitalInput[i] = false;
     }
-    for (int i = 0; i < CFG_NUMBER_TEMPERATURE_SENSORS; i++) {
-        externalTemperature[i] = CFG_NO_TEMPERATURE_DATA;
+    for (int i = 0; i < CFG_NUMBER_BATTERY_TEMPERATURE_SENSORS; i++) {
+        temperatureBattery[i] = CFG_NO_TEMPERATURE_DATA;
     }
+    temperatureCoolant = CFG_NO_TEMPERATURE_DATA;
+    temperatureExterior = CFG_NO_TEMPERATURE_DATA;
 
     stateOfCharge = 0;
 }
@@ -213,23 +218,23 @@ Status::SystemState Status::setSystemState(SystemState newSystemState) {
     return systemState;
 }
 
-int16_t Status::getLowestExternalTemperature() {
+int16_t Status::getLowestBatteryTemperature() {
     int16_t temp = CFG_NO_TEMPERATURE_DATA;
 
-    for (int i = 0; i < CFG_NUMBER_TEMPERATURE_SENSORS; i++) {
-        if (externalTemperature[i] != CFG_NO_TEMPERATURE_DATA) {
-            temp = min(temp, externalTemperature[i]);
+    for (int i = 0; i < CFG_NUMBER_BATTERY_TEMPERATURE_SENSORS; i++) {
+        if (temperatureBattery[i] != CFG_NO_TEMPERATURE_DATA) {
+            temp = min(temp, temperatureBattery[i]);
         }
     }
     return temp;
 }
 
-int16_t Status::getHighestExternalTemperature() {
+int16_t Status::getHighestBatteryTemperature() {
     int16_t temp = -9999;
 
-    for (int i = 0; i < CFG_NUMBER_TEMPERATURE_SENSORS; i++) {
-        if (externalTemperature[i] != CFG_NO_TEMPERATURE_DATA) {
-            temp = max(temp, externalTemperature[i]);
+    for (int i = 0; i < CFG_NUMBER_BATTERY_TEMPERATURE_SENSORS; i++) {
+        if (temperatureBattery[i] != CFG_NO_TEMPERATURE_DATA) {
+            temp = max(temp, temperatureBattery[i]);
         }
     }
     return (temp == -9999 ? CFG_NO_TEMPERATURE_DATA : temp);
