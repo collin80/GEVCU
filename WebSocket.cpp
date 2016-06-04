@@ -162,6 +162,7 @@ void WebSocket::processData(String &response, char *input)
         for (int i = 0; i < payloadLength; i++) {
             input[offset + i] = (input[offset + i] ^ key[i % 4]);
         }
+        input[payloadLength] = 0;
     }
 
     switch (opcode) {
@@ -332,20 +333,20 @@ String WebSocket::getUpdate()
         for (int i = 0; i < CFG_NUMBER_BATTERY_TEMPERATURE_SENSORS; i++) {
             if (paramCache.temperatureBattery[i] != status.temperatureBattery[i]) {
                 paramCache.temperatureBattery[i] = status.temperatureBattery[i];
-                addParam(data, Constants::temperatureBattery[i], (uint16_t) paramCache.temperatureBattery[i]);
+                addParam(data, Constants::temperatureBattery[i], (uint16_t) paramCache.temperatureBattery[i] / 10.0f);
             }
         }
         if (paramCache.temperatureCoolant != status.temperatureCoolant) {
             paramCache.temperatureCoolant = status.temperatureCoolant;
-            addParam(data, Constants::temperatureCoolant, (uint16_t) paramCache.temperatureCoolant);
+            addParam(data, Constants::temperatureCoolant, (uint16_t) paramCache.temperatureCoolant / 10.0f);
         }
         if (paramCache.temperatureHeater != status.temperatureHeater) {
             paramCache.temperatureHeater = status.temperatureHeater;
-            addParam(data, Constants::temperatureHeater, (uint16_t) paramCache.temperatureHeater);
+            addParam(data, Constants::temperatureHeater, (uint16_t) paramCache.temperatureHeater / 10.0f);
         }
         if (paramCache.temperatureExterior != status.temperatureExterior) {
             paramCache.temperatureExterior = status.temperatureExterior;
-            addParam(data, Constants::temperatureExterior, (uint16_t) paramCache.temperatureExterior);
+            addParam(data, Constants::temperatureExterior, (uint16_t) paramCache.temperatureExterior / 10.0f);
         }
 
     }

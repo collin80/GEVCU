@@ -222,9 +222,7 @@ int16_t Status::getLowestBatteryTemperature() {
     int16_t temp = CFG_NO_TEMPERATURE_DATA;
 
     for (int i = 0; i < CFG_NUMBER_BATTERY_TEMPERATURE_SENSORS; i++) {
-        if (temperatureBattery[i] != CFG_NO_TEMPERATURE_DATA) {
-            temp = min(temp, temperatureBattery[i]);
-        }
+        temp = min(temp, temperatureBattery[i]);
     }
     return temp;
 }

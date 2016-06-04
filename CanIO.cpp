@@ -165,20 +165,20 @@ void CanIO::processTemperature(byte bytes[])
 {
     for (int i = 0; i < CFG_NUMBER_BATTERY_TEMPERATURE_SENSORS; i++) {
         if (bytes[i] != 0) {
-            status.temperatureBattery[i] = bytes[i] - CFG_CAN_TEMPERATURE_OFFSET;
+            status.temperatureBattery[i] = (bytes[i] - CFG_CAN_TEMPERATURE_OFFSET) * 10;
             if (Logger::isDebug()) {
-            	Logger::debug(CANIO, "battery temperature %d: %d", i, status.temperatureBattery[i]);
+            	Logger::debug(CANIO, "battery temperature %d: %d", i, status.temperatureBattery[i] / 10.0f);
             }
         }
     }
     if (bytes[6] != 0) {
-        status.temperatureCoolant = bytes[6] - CFG_CAN_TEMPERATURE_OFFSET;
+        status.temperatureCoolant = (bytes[6] - CFG_CAN_TEMPERATURE_OFFSET) * 10;
     }
     if (bytes[7] != 0) {
-        status.temperatureExterior = bytes[7] - CFG_CAN_TEMPERATURE_OFFSET;
+        status.temperatureExterior = (bytes[7] - CFG_CAN_TEMPERATURE_OFFSET) * 10;
     }
     if (Logger::isDebug()) {
-        Logger::debug(CANIO, "coolant temperature: %d, exterior temperature %d", status.temperatureCoolant, status.temperatureExterior);
+        Logger::debug(CANIO, "coolant temperature: %d, exterior temperature %d", status.temperatureCoolant / 10.0f, status.temperatureExterior / 10.0f);
     }
 }
 
