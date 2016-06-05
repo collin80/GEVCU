@@ -124,7 +124,9 @@ void BrusaNLG5::handleStateChange(Status::SystemState oldState, Status::SystemSt
         canHandlerEv.attach(this, CAN_MASKED_ID, CAN_MASK, false);
         canTickCounter = 0;
     } else {
-        tearDown();
+        if (oldState == Status::charging) {
+            tearDown();
+        }
     }
 }
 

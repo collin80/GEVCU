@@ -184,7 +184,7 @@ Status::SystemState Status::setSystemState(SystemState newSystemState) {
             }
             break;
         case charged:
-            if (newSystemState == ready) {
+            if (newSystemState == ready || newSystemState == shutdown) {
                 systemState = newSystemState;
             }
             break;
@@ -195,11 +195,6 @@ Status::SystemState Status::setSystemState(SystemState newSystemState) {
             break;
         case running:
             if (newSystemState == ready) {
-                systemState = newSystemState;
-            }
-            break;
-        case error:
-            if (newSystemState == init) {
                 systemState = newSystemState;
             }
             break;

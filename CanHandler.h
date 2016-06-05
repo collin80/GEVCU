@@ -51,6 +51,7 @@ public:
     CanHandler(CanBusNode busNumber);
     void setup();
     void attach(CanObserver *observer, uint32_t id, uint32_t mask, bool extended);
+    bool isAttached(CanObserver* observer, uint32_t id, uint32_t mask);
     void detach(CanObserver *observer, uint32_t id, uint32_t mask);
     void process();
     void prepareOutputFrame(CAN_FRAME *frame, uint32_t id);
@@ -72,7 +73,6 @@ private:
     CanObserverData observerData[CFG_CAN_NUM_OBSERVERS];    // Can observers
 
     int8_t findFreeObserverData();
-    int8_t findFreeMailbox();
 };
 
 extern CanHandler canHandlerEv;

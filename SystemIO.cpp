@@ -200,14 +200,14 @@ void SystemIO::handleCooling() {
     MotorController *motorController = deviceManager.getMotorController();
     Status::SystemState state = status.getSystemState();
 
-    if ((state == Status::ready || state == Status::running || state == Status::charging || state == Status::charged
-            || state == Status::batteryHeating) && !status.coolingPump) {
-        setCoolingPump(true);
-    }
-//TODO: what if it stays in mode "charged" for hours ?? will drain the battery , probably power off after 1h ?
-    if ((state != Status::ready && state != Status::running && state != Status::charging && state != Status::charged
-            && state != Status::batteryHeating) && status.coolingPump) {
-        setCoolingPump(false);
+    if (state == Status::ready || state == Status::running || state == Status::charging || state == Status::batteryHeating) {
+        if (!status.coolingPump) {
+            setCoolingPump(true);
+        }
+    } else {
+        if (!status.coolingPump) {
+            setCoolingPump(false);
+        }
     }
 
     if (motorController) {
@@ -235,7 +235,7 @@ void SystemIO::handleCharging() {
     if (isChargePowerAvailable()) { // we're connected to "shore" power
         if (state == Status::running) {
             state = status.setSystemState(Status::ready);
-            setPowerSteering(false); //TODO movre somewhere else !
+            setPowerSteering(false); //TODO move somewhere else !
         }
         if (state == Status::ready || state == Status::batteryHeating) {
             int16_t batteryTemp = status.getLowestBatteryTemperature();
@@ -244,6 +244,10 @@ void SystemIO::handleCharging() {
             } else {
                 state = status.setSystemState(Status::batteryHeating);
             }
+        }
+        if (state == Status::charged) {
+            state = status.setSystemState(Status::shutdown);
+            powerDownSystem();
         }
     } else {
         // terminate all charge related activities and return to ready if GEVCU is still powered on

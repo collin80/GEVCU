@@ -63,6 +63,8 @@ void Device::setup()
     powerOn = false;
 
     loadConfiguration();
+
+    Logger::info(getId(), "device is set-up..");
 }
 
 /**
@@ -75,6 +77,8 @@ void Device::tearDown()
     ready = false;
     running = false;
     powerOn = false;
+
+    Logger::info(getId(), "stopped device..");
 }
 
 /**
@@ -184,6 +188,9 @@ void Device::handleStateChange(Status::SystemState oldState, Status::SystemState
         this->setup();
         break;
     case Status::error: // stop all devices in case of an error
+        this->tearDown();
+        break;
+    case Status::shutdown: // stop all devices
         this->tearDown();
         break;
     }

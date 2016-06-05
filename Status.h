@@ -44,6 +44,7 @@ public:
         charged     = 6, // the charging is finished
         ready       = 7, // the system is ready to accept commands but the motor controller is not enabled yet (next states: running, error)
         running     = 8, // the system is running and the motor controller is to be enabled (next states: ready, error)
+        shutdown    = 9, // the system is shutdown and must be restarted to get operational again
         error       = 99 // the system is in an error state and not operational (no power on motor, turn of power stage)
     };
 

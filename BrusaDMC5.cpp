@@ -81,7 +81,7 @@ void BrusaDMC5::handleStateChange(Status::SystemState oldState, Status::SystemSt
         canHandlerEv.attach(this, CAN_MASKED_ID_2, CAN_MASK_2, false);
         tickHandler.attach(this, CFG_TICK_INTERVAL_MOTOR_CONTROLLER_BRUSA);
     } else {
-        if (oldState == Status::ready || oldState == Status::running) {
+        if (oldState == Status::running) {
             tearDown();
         }
     }
