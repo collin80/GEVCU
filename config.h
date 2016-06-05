@@ -90,7 +90,7 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #define CFG_THREE_CONTACTOR_PRECHARGE // do we use three contactors instead of two for pre-charge cycle ?
 #define CFG_NO_TEMPERATURE_DATA 9999 // temperature used to indicate that no external temp sensor is connected
 #define CFG_MIN_BATTERY_CHARGE_TEMPERATURE 5 // GEVCU won't start the battery charging process if the battery temp is below 5 deg C
-#define CFG_TORQUE_BRAKE_LIGHT_ON -100 // torque in 0.1Nm where brake light should be turned on - to prevent being kissed from behind
+#define CFG_TORQUE_BRAKE_LIGHT_ON -500 // torque in 0.1Nm where brake light should be turned on - to prevent being kissed from behind
 #define CFG_WIFI_WPA2 // enable WPA2 encryption for ad-hoc wifi network at wifi reset (via command 'w'), comment line to disable
 #define CFG_CAN_TEMPERATURE_OFFSET 50 // offset of temperatures reported via CAN bus - make sure GEVCU extension uses the same value!
 
