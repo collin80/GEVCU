@@ -75,6 +75,11 @@ void MotorController::updatePowerConsumption()
         }
         // we're actually calculating kilowatt-milliseconds which is the same as watt seconds
         powerConsumption += (currentMillis - milliStamp) * mechanicalPower / 10;
+
+if (Logger::isDebug()) {
+    Logger::debug(getId(), "Vdc: %fV, Idc: %fA, mechPower: %fkW, consumption: %fkW*ms", dcVoltage / 10.0f, dcCurrent / 10.0f, mechanicalPower / 10.0f, powerConsumption);
+}
+
         milliStamp = currentMillis; //reset our timer for next check
 
         if (speedActual == 0) { // save at stand-still
@@ -134,6 +139,7 @@ void MotorController::processThrottleLevel()
     boolean disableSlew = false;
 
     throttleLevel = 0; //force to zero in case not in operational condition
+    speedRequested = 0;
     if (powerOn && ready) {
         if (accelerator) {
             throttleLevel = accelerator->getLevel();
@@ -144,45 +150,34 @@ void MotorController::processThrottleLevel()
             disableSlew = true;
         }
         if (config->powerMode == modeSpeed) {
-            int16_t speedTarget = throttleLevel * config->speedMax / 1000;
+            int32_t speedTarget = throttleLevel * config->speedMax / 1000;
             torqueRequested = config->torqueMax;
-        } else {
-            // torque mode
+        } else {  // torque mode
             speedRequested = config->speedMax;
-            int16_t torqueTarget = throttleLevel * config->torqueMax / 1000;
+            int32_t torqueTarget = throttleLevel * config->torqueMax / 1000;
 
             if (config->slewRate == 0 || disableSlew) {
                 torqueRequested = torqueTarget;
             } else {
                 uint32_t currentTimestamp = millis();
+                uint16_t slewPart = 0;
 
-                // no torque or requested and target have different sign -> request 0 power
-                if (torqueTarget == 0 || (torqueTarget < 0 && torqueRequested > 0) || (torqueTarget > 0 && torqueRequested < 0)) {
-                    torqueRequested = 0;
-                } else if (abs(torqueTarget) <= abs(torqueRequested)) { // target closer to 0 then last time -> no slew, reduce power immediately
-                    torqueRequested = torqueTarget;
-                } else { // increase power -> apply slew
-                    uint16_t slewPart = 0;
-                    slewPart = config->torqueMax * config->slewRate / 1000 * (currentTimestamp - slewTimestamp) / 1000;
-                    if (torqueTarget < 0) {
-                        torqueRequested -= slewPart;
-                        if (torqueRequested < torqueTarget) {
-                            torqueRequested = torqueTarget;
-                        }
-                    } else {
-                        torqueRequested += slewPart;
-                        if (torqueRequested > torqueTarget) {
-                            torqueRequested = torqueTarget;
-                        }
+                slewPart = config->torqueMax * config->slewRate / 1000 * (currentTimestamp - slewTimestamp) / 1000;
+                if (torqueTarget < torqueRequested) {
+                    torqueRequested -= slewPart;
+                    if (torqueRequested < torqueTarget) {
+                        torqueRequested = torqueTarget;
+                    }
+                } else {
+                    torqueRequested += slewPart;
+                    if (torqueRequested > torqueTarget) {
+                        torqueRequested = torqueTarget;
                     }
                 }
 //Logger::info("torque target: %l, requested: %l", torqueTarget, torqueRequested);
                 slewTimestamp = currentTimestamp;
             }
         }
-    } else {
-        torqueRequested = 0;
-        speedRequested = 0;
     }
 }
 
