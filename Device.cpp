@@ -64,7 +64,7 @@ void Device::setup()
 
     loadConfiguration();
 
-    Logger::info(getId(), "device is set-up..");
+    Logger::info(getId(), "device started");
 }
 
 /**
@@ -78,7 +78,7 @@ void Device::tearDown()
     running = false;
     powerOn = false;
 
-    Logger::info(getId(), "stopped device..");
+    Logger::info(getId(), "device stopped");
 }
 
 /**

@@ -40,6 +40,7 @@
 BrusaDMC5::BrusaDMC5() : MotorController()
 {
     prefsHandler = new PrefHandler(BRUSA_DMC5);
+    mechanicalPower = 0;
     torqueAvailable = 0;
     maxPositiveTorque = 0;
     minNegativeTorque = 0;
@@ -408,6 +409,12 @@ void BrusaDMC5::processTemperature(uint8_t data[])
         temperatureController = temperaturePowerStage;
     }
 }
+
+int16_t BrusaDMC5::getMechanicalPower()
+{
+    return mechanicalPower;
+}
+
 
 /*
  * Return the device id of this device

@@ -95,7 +95,7 @@ public:
     uint16_t getDcVoltage();
     int16_t getDcCurrent();
     uint16_t getAcCurrent();
-    uint32_t getEnergyConsumption();
+    uint16_t getEnergyConsumption();
     int16_t getMechanicalPower();
     int16_t getTemperatureMotor();
     int16_t getTemperatureController();
@@ -109,8 +109,7 @@ protected:
     uint16_t dcVoltage; // DC voltage in 0.1 Volts
     int16_t dcCurrent; // DC current in 0.1 Amps
     uint16_t acCurrent; // AC current in 0.1 Amps
-    uint32_t powerConsumption; // accumulated consumption in wattSeconds (or kilowattmilliseconds)
-    int16_t mechanicalPower; // mechanical power of the motor 0.1 kW
+    uint32_t energyConsumption; // accumulated consumption in wattSeconds (or kilowattmilliseconds)
     int16_t temperatureMotor; // temperature of motor in 0.1 degree C
     int16_t temperatureController; // temperature of controller in 0.1 degree C
 
