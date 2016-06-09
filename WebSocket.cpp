@@ -162,7 +162,7 @@ void WebSocket::processData(String &response, char *input)
         for (int i = 0; i < payloadLength; i++) {
             input[offset + i] = (input[offset + i] ^ key[i % 4]);
         }
-        input[payloadLength] = 0;
+        input[offset + payloadLength] = 0;
     }
 
     switch (opcode) {
