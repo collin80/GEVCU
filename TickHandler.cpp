@@ -58,6 +58,11 @@ TickHandler::TickHandler()
  */
 void TickHandler::attach(TickObserver* observer, uint32_t interval)
 {
+    if (isAttached(observer, interval)) {
+        Logger::warn("Tickbserver %X is already attached with interval %d", observer, interval);
+        return;
+    }
+
     int timer = findTimer(interval);
 
     if (timer == -1) {
@@ -118,6 +123,25 @@ void TickHandler::attach(TickObserver* observer, uint32_t interval)
             Timer8.setPeriod(interval).attachInterrupt(timer8Interrupt).start();
             break;
     }
+}
+
+/*
+ * Check if a observer is attached to this handler.
+ *
+ * \param observer - observer object to search
+ * \param interval - interval of the observer to search
+ */
+bool TickHandler::isAttached(TickObserver* observer, uint32_t interval)
+{
+    for (int timer = 0; timer < NUM_TIMERS; timer++) {
+        for (int observerIndex = 0; observerIndex < CFG_TIMER_NUM_OBSERVERS; observerIndex++) {
+            if (timerEntry[timer].observer[observerIndex] == observer &&
+                    timerEntry[timer].interval == interval) {
+                return true;
+            }
+        }
+    }
+    return false;
 }
 
 /**

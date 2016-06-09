@@ -65,16 +65,18 @@ void BrusaBSC6::tearDown()
 
 void BrusaBSC6::handleStateChange(Status::SystemState oldState, Status::SystemState newState)
 {
+    bool powerOnBefore = powerOn;
+
     DcDcConverter::handleStateChange(oldState, newState);
 
-    if (powerOn) {
-        if (!ready && !running && !canHandlerEv.isAttached(this, CAN_MASKED_ID, CAN_MASK)) {
+    if (powerOnBefore != powerOn) {
+        if (powerOn) {
             // register ourselves as observer of 0x26a-0x26f can frames
             canHandlerEv.attach(this, CAN_MASKED_ID, CAN_MASK, false);
             tickHandler.attach(this, CFG_TICK_INTERVAL_DCDC_BSC6);
+        } else {
+            tearDown();
         }
-    } else {
-        tearDown();
     }
 }
 

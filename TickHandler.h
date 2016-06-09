@@ -48,6 +48,7 @@ class TickHandler
 public:
     TickHandler();
     void attach(TickObserver *observer, uint32_t interval);
+    bool isAttached(TickObserver* observer, uint32_t interval);
     void detach(TickObserver *observer);
     void handleInterrupt(int timerNumber);  // must be public when from the non-class functions
     void cleanBuffer();
