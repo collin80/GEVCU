@@ -116,6 +116,7 @@ protected:
     bool savePowerConsumption; // flag wether to save power consumption to eeprom
     uint32_t milliStamp;
     void reportActivity();
+    void storeEnergyConsumption();
 
 private:
     int16_t throttleLevel; // -1000 to 1000 (per mille of throttle level)
@@ -125,7 +126,7 @@ private:
     uint32_t slewTimestamp; // time stamp of last slew rate calculation
     Gears gear;
 
-    void updatePowerConsumption();
+    void updateEnergyConsumption();
     void checkActivity();
     void processThrottleLevel();
     void updateGear();

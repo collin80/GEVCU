@@ -60,34 +60,41 @@ DeviceType MotorController::getType()
 }
 
 /*
- * Calculate mechanical power and add power consumption to kWh counter.
+ * Calculate mechanical power and add energy consumption to kWh counter.
  */
-void MotorController::updatePowerConsumption()
+void MotorController::updateEnergyConsumption()
 {
     MotorControllerConfiguration *config = (MotorControllerConfiguration *) getConfiguration();
     uint32_t currentMillis = millis();
 
     if (running) {
+        //If our voltage is higher than fully charged with no regen, zero our meter
         if (dcVoltage > config->nominalVolt && torqueActual > 0) {
-            energyConsumption = 0; //If our voltage is higher than fully charged with no regen, zero our meter
-            savePowerConsumption = true;
+            energyConsumption = 0;
+            storeEnergyConsumption();
         }
         // we're actually calculating kilowatt-milliseconds which is the same as watt seconds
-        energyConsumption += (currentMillis - milliStamp) * getMechanicalPower() / 10;
+        energyConsumption += (int32_t)(currentMillis - milliStamp) * (int32_t)getMechanicalPower() / 10;
         milliStamp = currentMillis; //reset our timer for next check
-
-Logger::info(getId(), "Vdc: %fV, Idc: %fA, mechPower: %fkW (%fkW), consumption: %fkWh", dcVoltage / 10.0f, dcCurrent / 10.0f, getMechanicalPower() / 10.0f, MotorController::getMechanicalPower() / 10.0f, getEnergyConsumption() / 10.0f);
 
         if (speedActual == 0) { // save at stand-still
             if (savePowerConsumption) {
-                prefsHandler->write(EEMC_ENEGRY_CONSUMPTION, energyConsumption);
-                prefsHandler->saveChecksum();
-                savePowerConsumption = false;
+                storeEnergyConsumption();
             }
         } else {
             savePowerConsumption = true;
         }
     }
+}
+
+/*
+ * Store the current level of energy consumption to eeprom
+ */
+void MotorController::storeEnergyConsumption()
+{
+    prefsHandler->write(EEMC_ENEGRY_CONSUMPTION, energyConsumption);
+    prefsHandler->saveChecksum();
+    savePowerConsumption = false;
 }
 
 /*
@@ -193,7 +200,7 @@ void MotorController::handleTick()
     processThrottleLevel();
     updateGear();
 
-    updatePowerConsumption();
+    updateEnergyConsumption();
 
     if (Logger::isDebug()) {
         Logger::debug(getId(), "throttle: %f%%, requested Speed: %l rpm, requested Torque: %f Nm, gear: %d", throttleLevel / 10.0f, speedRequested,
@@ -219,6 +226,13 @@ void MotorController::handleStateChange(Status::SystemState oldState, Status::Sy
         throttleLevel = 0;
         gear = NEUTRAL;
     }
+
+    if (newState == Status::charged) {
+        Logger::info(getId(), "resetting kWh counter");
+        energyConsumption = 0;
+        storeEnergyConsumption();
+    }
+
     systemIO.setEnableMotor(newState == Status::ready || newState == Status::running);
 }
 
