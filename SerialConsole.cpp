@@ -66,8 +66,8 @@ void SerialConsole::printMenu()
     Logger::console("B = save brake values");
     Logger::console("p = enable wifi passthrough (reboot required to resume normal operation)");
     Logger::console("S = show list of devices");
-    Logger::console("w = GEVCU 4.2 reset wifi to factory defaults, setup GEVCU ad-hoc network");
-    Logger::console("W = GEVCU 5.2 reset wifi to factory defaults, setup GEVCU as 10.0.0.1 Access Point");
+    Logger::console("w = reset wifi to factory defaults, setup GEVCU ad-hoc network");
+    Logger::console("W = activate wifi WPS mode for pairing");
     Logger::console("s = Scan WiFi for nearby access points");
 
     Logger::console("\nConfig Commands (enter command=newvalue)\n");
@@ -954,10 +954,10 @@ void SerialConsole::handleShortCmd()
         break;
 
     case 'w':
-        Logger::console("Resetting wifi to factory defaults and setting up to auto connect to open APs, this takes about 50sec, please stand-by");
+        Logger::console("Resetting wifi to factory defaults and setting up AP, this takes about 50sec, please stand-by");
         deviceManager.sendMessage(DEVICE_WIFI, ICHIP2128, MSG_RESET, NULL);
         deviceManager.sendMessage(DEVICE_WIFI, ICHIP2128, MSG_CONFIG_CHANGE, NULL); // reload configuration params as they were lost
-        Logger::console("Wifi 4.2 initialized");
+        Logger::console("Wifi initialized");
         break;
 
     case 'X':
