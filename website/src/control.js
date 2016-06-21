@@ -43,7 +43,9 @@ function showTab(pageId) {
 	// on the dashboard page, open a WebSocket to receive updates,
 	// otherwise close the connection
 	closeWebSocket();
+	
 	if (pageId == 'dashboard') {
+		alertify.set('notifier','position', 'top-right');
 		openWebSocket();
 	} else {
 		loadData(pageId);
@@ -65,6 +67,17 @@ function openWebSocket() {
 			setNodeValue(name, data[name]);
 			if (name == 'systemState') {
 				updateSystemState(data[name]);
+			}
+			if (name == 'logMessage') {
+				var message = data[name].message;
+				var level = data[name].level;
+				if (level == 'ERROR') {
+					alertify.error(message, 0);
+				} else if (level == 'WARNING') {
+					alertify.warning(message, 20);
+				} else {
+					alertify.success(message, 10);
+				}
 			}
 		}
 	};

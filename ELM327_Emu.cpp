@@ -126,7 +126,7 @@ void ELM327Emu::loop()
                 ibWritePtr = 0; //reset the write pointer
 
                 if (Logger::isDebug()) {
-                    Logger::debug(ELM327EMU, incomingBuffer);
+                    Logger::debug(this, incomingBuffer);
                 }
 
                 processCmd();
@@ -155,7 +155,7 @@ void ELM327Emu::processCmd()
     if (Logger::isDebug()) {
         char buff[30];
         retString.toCharArray(buff, 30);
-        Logger::debug(ELM327EMU, buff);
+        Logger::debug(this, buff);
     }
 
 }

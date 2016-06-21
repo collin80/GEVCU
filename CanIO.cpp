@@ -167,7 +167,7 @@ void CanIO::processTemperature(byte bytes[])
         if (bytes[i] != 0) {
             status.temperatureBattery[i] = (bytes[i] - CFG_CAN_TEMPERATURE_OFFSET) * 10;
             if (Logger::isDebug()) {
-            	Logger::debug(CANIO, "battery temperature %d: %d", i, status.temperatureBattery[i] / 10.0f);
+            	Logger::debug(this, "battery temperature %d: %.1f", i, status.temperatureBattery[i] / 10.0f);
             }
         }
     }
@@ -178,7 +178,7 @@ void CanIO::processTemperature(byte bytes[])
         status.temperatureExterior = (bytes[7] - CFG_CAN_TEMPERATURE_OFFSET) * 10;
     }
     if (Logger::isDebug()) {
-        Logger::debug(CANIO, "coolant temperature: %d, exterior temperature %d", status.temperatureCoolant / 10.0f, status.temperatureExterior / 10.0f);
+        Logger::debug(this, "coolant temperature: %.1f, exterior temperature %.1f", status.temperatureCoolant / 10.0f, status.temperatureExterior / 10.0f);
     }
 }
 
@@ -202,7 +202,7 @@ void CanIO::loadConfiguration()
     }
 
     Device::loadConfiguration(); // call parent
-    Logger::info(getId(), "CAN I/O configuration:");
+    Logger::info(this, "CAN I/O configuration:");
 
 #ifdef USE_HARD_CODED
     if (false) {

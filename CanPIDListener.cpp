@@ -356,7 +356,7 @@ void CanPIDListener::loadConfiguration()
     }
 
     Device::loadConfiguration(); // call parent
-    Logger::info(PIDLISTENER, "CAN PID listener configuration:");
+    Logger::info(this, "CAN PID listener configuration:");
 
 #ifdef USE_HARD_CODED
 
@@ -373,7 +373,7 @@ void CanPIDListener::loadConfiguration()
         saveConfiguration();
     }
 
-    Logger::info(PIDLISTENER, "pid: %d pid mask: %d", config->pidId, config->pidMask);
+    Logger::info(this, "pid: %d pid mask: %d", config->pidId, config->pidMask);
 }
 
 /*

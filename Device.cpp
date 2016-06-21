@@ -64,7 +64,7 @@ void Device::setup()
 
     loadConfiguration();
 
-    Logger::info(getId(), "device started");
+    Logger::info(this, "device started");
 }
 
 /**
@@ -78,7 +78,7 @@ void Device::tearDown()
     running = false;
     powerOn = false;
 
-    Logger::info(getId(), "device stopped");
+    Logger::info(this, "device stopped");
 }
 
 /**
@@ -106,7 +106,7 @@ void Device::enable()
     }
     if (prefsHandler->setEnabled(true)) {
         prefsHandler->forceCacheWrite(); //just in case someone power cycles quickly
-        Logger::info(getId(), "Successfully enabled device %s.(%X)", commonName, getId());
+        Logger::info(this, "Successfully enabled device %s.(%#x)", commonName, getId());
     }
     setup();
 }
@@ -121,7 +121,7 @@ void Device::disable()
     }
     if(prefsHandler->setEnabled(false)) {
         prefsHandler->forceCacheWrite(); //just in case someone power cycles quickly
-        Logger::info(getId(), "Successfully disabled device %s.(%X)", commonName, getId());
+        Logger::info(this, "Successfully disabled device %s.(%#x)", commonName, getId());
     }
     tearDown();
 }

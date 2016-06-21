@@ -39,7 +39,7 @@ void PrefHandler::initDeviceTable()
         return;
     }
 
-    Logger::debug(deviceId, "Initializing EEPROM device table");
+    Logger::debug("Initializing EEPROM device table");
 
     //initialize table with zeros
     id = 0;
@@ -109,7 +109,7 @@ PrefHandler::PrefHandler(DeviceId id_in)
         }
         base_address = EE_DEVICES_BASE + (EE_DEVICE_SIZE * position);
         lkg_address = EE_MAIN_OFFSET;
-        Logger::debug(deviceId, "Device ID %X was found in device table at entry %i", (int) deviceId, position);
+        Logger::debug("Device ID %#x was found in device table at entry %i", (int) deviceId, position);
         return;
     }
 
@@ -120,14 +120,14 @@ PrefHandler::PrefHandler(DeviceId id_in)
         base_address = EE_DEVICES_BASE + (EE_DEVICE_SIZE * position);
         lkg_address = EE_MAIN_OFFSET;
         memCache.Write(EE_DEVICE_TABLE + (2 * position), (uint16_t)deviceId);
-        Logger::debug(deviceId, "Device ID: %X was placed into device table at entry: %i", (int) deviceId, position);
+        Logger::debug("Device ID: %#x was placed into device table at entry: %i", (int) deviceId, position);
         return;
     }
 
     //we found no matches and could not allocate a space. This is bad. Error out here
     base_address = 0xF0F0;
     lkg_address = EE_MAIN_OFFSET;
-    Logger::error(deviceId, "PrefManager - Device Table Full!!!");
+    Logger::error("PrefManager - Device Table Full (Device ID: %#x) !!!", deviceId);
 }
 
 PrefHandler::~PrefHandler()
@@ -221,10 +221,10 @@ bool PrefHandler::checksumValid()
     memCache.Read(EE_CHECKSUM + base_address + lkg_address, &stored_chk);
     calc_chk = calcChecksum();
     if (stored_chk == calc_chk) {
-        Logger::debug(deviceId, "valid checksum, using stored config values");
+        Logger::debug("%#x valid checksum, using stored config values", deviceId);
         return true;
     } else {
-        Logger::warn(deviceId, "invalid checksum, using hard coded config values (stored: %X, calc: %X", stored_chk, calc_chk);
+        Logger::warn("#x invalid checksum, using hard coded config values (stored: %#x, calc: %#x", deviceId, stored_chk, calc_chk);
         return false;
     }
 }

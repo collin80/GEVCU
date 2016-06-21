@@ -177,7 +177,7 @@ void BrusaNLG5::processStatus(uint8_t data[])
     running = bitfield & hardwareEnabled;
 
     if (bitfield & error) {
-        Logger::error(BRUSA_NLG5, "Charger reported an error, terminating charge.");
+        Logger::error(this, "Charger reported an error, terminating charge.");
         //TODO check if this needs to be re-enabled !
 //        status->setSystemState(Status::error);
     }
@@ -208,7 +208,7 @@ void BrusaNLG5::processStatus(uint8_t data[])
 //    limitMaximumMainsCurrent
 
     if (Logger::isDebug()) {
-        Logger::debug(BRUSA_NLG5, "status bitfield: %X", bitfield);
+        Logger::debug(this, "status bitfield: %#08x", bitfield);
     }
 }
 
@@ -225,7 +225,7 @@ void BrusaNLG5::processValues1(uint8_t data[])
     batteryCurrent = (uint16_t)(data[7] | (data[6] << 8));
 
     if (Logger::isDebug()) {
-        Logger::debug(BRUSA_NLG5, "mains: %fV, %fA, battery: %fV, %fA", (float) inputVoltage / 10.0F, (float) inputCurrent / 100.0F, (float) batteryVoltage / 10.0F, (float) batteryCurrent / 100.0F);
+        Logger::debug(this, "mains: %.1fV, %.1fA, battery: %.1fV, %.1fA", (float) inputVoltage / 10.0F, (float) inputCurrent / 100.0F, (float) batteryVoltage / 10.0F, (float) batteryCurrent / 100.0F);
     }
 }
 
@@ -243,8 +243,8 @@ void BrusaNLG5::processValues2(uint8_t data[])
     boosterOutputCurrent = (uint16_t)(data[7] | (data[6] << 8));
 
     if (Logger::isDebug()) {
-        Logger::debug(BRUSA_NLG5, "current limit by control pilot: %fA, by power indicator: %fA", (float) currentLimitControlPilot / 10.0F, (float) currentLimitPowerIndicator / 10.0F);
-        Logger::debug(BRUSA_NLG5, "aux battery: %fV, external charge balance: %fAh, booster output; %fA", (float) auxBatteryVoltage / 10.0F, (float) extChargeBalance / 100.0F, (float) boosterOutputCurrent / 100.0F);
+        Logger::debug(this, "current limit by control pilot: %.1fA, by power indicator: %.1fA", (float) currentLimitControlPilot / 10.0F, (float) currentLimitPowerIndicator / 10.0F);
+        Logger::debug(this, "aux battery: %fV, external charge balance: %.1fAh, booster output; %.1fA", (float) auxBatteryVoltage / 10.0F, (float) extChargeBalance / 100.0F, (float) boosterOutputCurrent / 100.0F);
     }
 }
 
@@ -261,8 +261,8 @@ void BrusaNLG5::processTemperature(uint8_t data[])
     temperatureExtSensor3 = (uint16_t)(data[7] | (data[6] << 8));
 
     if (Logger::isDebug()) {
-        Logger::debug(BRUSA_NLG5, "Temp power stage: %fC, Temp ext sensor 1: %C", (float) temperature / 10.0F, (float) temperatureExtSensor1 / 10.0F);
-        Logger::debug(BRUSA_NLG5, "Temp ext sensor 2: %fC, Temp ext sensor 3: %fC", (float) temperatureExtSensor2 / 10.0F, (float) temperatureExtSensor3 / 10.0F);
+        Logger::debug(this, "Temp power stage: %.1fC, Temp ext sensor 1: %.1fC", (float) temperature / 10.0F, (float) temperatureExtSensor1 / 10.0F);
+        Logger::debug(this, "Temp ext sensor 2: %.1fC, Temp ext sensor 3: %.1fC", (float) temperatureExtSensor2 / 10.0F, (float) temperatureExtSensor3 / 10.0F);
     }
 }
 
@@ -308,7 +308,7 @@ void BrusaNLG5::processError(uint8_t data[])
 //    crcFlashMemory
 
     if (bitfield != 0) {
-        Logger::error(BRUSA_NLG5, "%X (%B)", bitfield, bitfield);
+        Logger::error(this, "error bitfield: %#08x", bitfield);
     }
 
     bitfield = (uint32_t)data[4];
@@ -323,7 +323,7 @@ void BrusaNLG5::processError(uint8_t data[])
 //    limitLowMainsVoltage
 
     if (bitfield != 0) {
-        Logger::warn(BRUSA_NLG5, "%X (%B)", bitfield, bitfield);
+        Logger::warn(this, "limit bitfield: %#08x", bitfield);
     }
 }
 

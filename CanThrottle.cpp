@@ -72,7 +72,7 @@ void CanThrottle::setup()
         break;
 
     default:
-        Logger::error(CANACCELPEDAL, "no valid car type defined.");
+        Logger::error(this, "no valid car type defined.");
     }
 }
 
@@ -160,7 +160,7 @@ bool CanThrottle::validateSignal(RawSignalData* rawSignal)
 
     if (ticksNoResponse >= CFG_CANTHROTTLE_MAX_NUM_LOST_MSG) {
         if (throttleStatus == OK) {
-            Logger::error(CANACCELPEDAL, "no response on position request received: %d ", ticksNoResponse);
+            Logger::error(this, "no response on position request received: %d ", ticksNoResponse);
         }
 
         throttleStatus = ERR_MISC;
@@ -169,7 +169,7 @@ bool CanThrottle::validateSignal(RawSignalData* rawSignal)
 
     if (rawSignal->input1 > (config->maximumLevel + CFG_THROTTLE_TOLERANCE)) {
         if (throttleStatus == OK) {
-            Logger::error(CANACCELPEDAL, (char *) Constants::valueOutOfRange, rawSignal->input1);
+            Logger::error(this, (char *) Constants::valueOutOfRange, rawSignal->input1);
         }
 
         throttleStatus = ERR_HIGH_T1;
@@ -178,7 +178,7 @@ bool CanThrottle::validateSignal(RawSignalData* rawSignal)
 
     if (rawSignal->input1 < (config->minimumLevel - CFG_THROTTLE_TOLERANCE)) {
         if (throttleStatus == OK) {
-            Logger::error(CANACCELPEDAL, (char *) Constants::valueOutOfRange, rawSignal->input1);
+            Logger::error(this, (char *) Constants::valueOutOfRange, rawSignal->input1);
         }
 
         throttleStatus = ERR_LOW_T1;
@@ -187,7 +187,7 @@ bool CanThrottle::validateSignal(RawSignalData* rawSignal)
 
     // all checks passed -> throttle seems to be ok
     if (throttleStatus != OK) {
-        Logger::info(CANACCELPEDAL, (char *) Constants::normalOperation);
+        Logger::info(this, (char *) Constants::normalOperation);
     }
 
     throttleStatus = OK;
@@ -230,7 +230,7 @@ void CanThrottle::loadConfiguration()
         saveConfiguration();
     }
 
-    Logger::info(CANACCELPEDAL, "MIN: %l MAX: %l Type: %d", config->minimumLevel, config->maximumLevel, config->carType);
+    Logger::info(this, "MIN: %ld MAX: %ld Type: %d", config->minimumLevel, config->maximumLevel, config->carType);
 }
 
 /*

@@ -40,7 +40,7 @@ static const char* ichipCommandPrefix = "AT+i";
 static const char* ichipErrorString = "I/ERROR";
 
 // messages
-static const char* valueOutOfRange = "value out of range: %l";
+static const char* valueOutOfRange = "value out of range: %ld";
 static const char* normalOperation = "normal operation restored";
 
 /*

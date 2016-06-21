@@ -75,7 +75,7 @@ void CanHandler::setup()
 void CanHandler::attach(CanObserver* observer, uint32_t id, uint32_t mask, bool extended)
 {
     if (isAttached(observer, id, mask)) {
-        Logger::warn("CanObserver %X is already attached with id %X and mask %X on bus %d", observer, id, mask, canBusNode);
+        Logger::warn("CanObserver %#x is already attached with id %#x and mask %#x on bus %d", observer, id, mask, canBusNode);
         return;
     }
 
@@ -101,7 +101,7 @@ void CanHandler::attach(CanObserver* observer, uint32_t id, uint32_t mask, bool 
 
     bus->setRXFilter((uint8_t) mailbox, id, mask, extended);
 
-    Logger::debug("attached CanObserver (%X) for id=%X, mask=%X, mailbox=%d", observer, id, mask, mailbox);
+    Logger::debug("attached CanObserver (%#x) for id=%#x, mask=%#x, mailbox=%d", observer, id, mask, mailbox);
 }
 
 /*
@@ -151,7 +151,7 @@ void CanHandler::detach(CanObserver* observer, uint32_t id, uint32_t mask)
 void CanHandler::logFrame(CAN_FRAME& frame)
 {
     if (Logger::isDebug()) {
-        Logger::debug("CAN: dlc=%X fid=%X id=%X ide=%X rtr=%X data=%X,%X,%X,%X,%X,%X,%X,%X",
+        Logger::debug("CAN: dlc=%#x fid=%#x id=%#x ide=%#x rtr=%#x data=%#x,%#x,%#x,%#x,%#x,%#x,%#x,%#x",
                       frame.length, frame.fid, frame.id, frame.extended, frame.rtr,
                       frame.data.bytes[0], frame.data.bytes[1], frame.data.bytes[2], frame.data.bytes[3],
                       frame.data.bytes[4], frame.data.bytes[5], frame.data.bytes[6], frame.data.bytes[7]);

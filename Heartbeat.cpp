@@ -88,7 +88,7 @@ void Heartbeat::handleTick()
         systemIO.printIOStatus();
 
         if (accelerator) {
-            Logger::console("Throttle Status: isFaulted: %T level: %i", accelerator->isFaulted(), accelerator->getLevel());
+            Logger::console("Throttle Status: isFaulted: %d level: %i", accelerator->isFaulted(), accelerator->getLevel());
             RawSignalData *rawSignal = accelerator->acquireRawSignal();
             Logger::console("Throttle rawSignal1: %d, rawSignal2: %d", rawSignal->input1, rawSignal->input2);
         }

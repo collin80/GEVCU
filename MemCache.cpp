@@ -40,7 +40,7 @@ void MemCache::setup()
 {
     tickHandler.detach(this);
 
-    Logger::info("add MemCache (id: %X, %X)", MEMCACHE, &memCache);
+    Logger::info("add MemCache (id: %#x, %#x)", MEMCACHE, &memCache);
 
     Wire.begin();
     for (U8 c = 0; c < NUM_CACHED_PAGES; c++) {

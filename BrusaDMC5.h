@@ -160,7 +160,7 @@ public:
     void handleStateChange(Status::SystemState, Status::SystemState);
     void tearDown();
     DeviceId getId();
-    int16_t getMechanicalPower();
+    int32_t getMechanicalPower();
 
     void loadConfiguration();
     void saveConfiguration();

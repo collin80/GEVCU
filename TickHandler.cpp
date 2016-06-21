@@ -59,7 +59,7 @@ TickHandler::TickHandler()
 void TickHandler::attach(TickObserver* observer, uint32_t interval)
 {
     if (isAttached(observer, interval)) {
-        Logger::warn("Tickbserver %X is already attached with interval %d", observer, interval);
+        Logger::warn("TickObserver %#x is already attached with interval %d", observer, interval);
         return;
     }
 
@@ -84,7 +84,7 @@ void TickHandler::attach(TickObserver* observer, uint32_t interval)
     }
 
     timerEntry[timer].observer[observerIndex] = observer;
-    Logger::debug("attached TickObserver (%X) as number %d to timer %d, %dus interval", observer, observerIndex, timer, interval);
+    Logger::debug("attached TickObserver (%#x) as number %d to timer %d, %dus interval", observer, observerIndex, timer, interval);
 
     switch (timer) { // restarting a timer which would already be running is no problem (see DueTimer.cpp)
         case 0:
@@ -152,7 +152,7 @@ void TickHandler::detach(TickObserver* observer)
     for (int timer = 0; timer < NUM_TIMERS; timer++) {
         for (int observerIndex = 0; observerIndex < CFG_TIMER_NUM_OBSERVERS; observerIndex++) {
             if (timerEntry[timer].observer[observerIndex] == observer) {
-                Logger::debug("removing TickObserver (%X) as number %d from timer %d", observer, observerIndex, timer);
+                Logger::debug("removing TickObserver (%#x) as number %d from timer %d", observer, observerIndex, timer);
                 timerEntry[timer].observer[observerIndex] = NULL;
             }
         }
