@@ -73,8 +73,10 @@ function openWebSocket() {
 				var level = data[name].level;
 				if (level == 'ERROR') {
 					alertify.error(message, 0);
+					errorSound.play();
 				} else if (level == 'WARNING') {
 					alertify.warning(message, 20);
+					warnSound.play();
 				} else {
 					alertify.success(message, 10);
 				}
