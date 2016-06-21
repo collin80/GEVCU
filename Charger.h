@@ -85,7 +85,7 @@ private:
     uint32_t chargeStartTime; // timestamp when charging starts in millis
     uint32_t lastTick; // last time in ms when the handleTick method was called
     uint64_t ampereMilliSeconds; // ampere hours put into the battery in 1 ampere-milliseconds (divide by 3600000 to get Ah)
-    uint64_t wattMilliSeconds; // watt hours put into the battery in 1 watt-millisecond (divide by 3600000000 to get kWh)
+    uint32_t wattSeconds; // watt hours put into the battery in 1 watt-second (divide by 3600000 to get kWh)
     uint16_t requestedOutputCurrent; // calculated current to be delivered by the charger, use getOutputCurrent() to retrieve this value - never use it directly !!
 };
 

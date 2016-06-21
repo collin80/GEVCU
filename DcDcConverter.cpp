@@ -34,9 +34,23 @@ DcDcConverter::DcDcConverter() : Device() {
     hvCurrent = 0;
     lvCurrent = 0;
     temperature = 0;
+    lastTick = 0;
 }
 
 DcDcConverter::~DcDcConverter() {
+}
+
+/*
+ * Process event from the tick handler.
+ */
+void DcDcConverter::handleTick()
+{
+    Device::handleTick(); // call parent
+
+    uint32_t timeStamp = millis();
+    // add our contribution to the energy consumption - even if it's small compared to the motor
+    status.energyConsumption += (int32_t)(timeStamp - lastTick) * hvCurrent * hvVoltage / 100000;
+    lastTick = timeStamp;
 }
 
 /*
@@ -101,7 +115,7 @@ void DcDcConverter::loadConfiguration()
     }
 
     Device::loadConfiguration(); // call parent
-    Logger::info(getId(), "DC-DC converter configuration:");
+    Logger::info(this, "DC-DC converter configuration:");
 
 #ifdef USE_HARD_CODED
 
@@ -132,9 +146,9 @@ void DcDcConverter::loadConfiguration()
         saveConfiguration();
     }
 
-    Logger::info(getId(), "operation mode: %s", (config->mode ? "boost" : "buck"));
-    Logger::info(getId(), "buck : LV command %fV (max %dA), HV min %dV (max %fA)", (float) config->lowVoltageCommand / 10.0F, config->lvBuckModeCurrentLimit, config->hvUndervoltageLimit, (float) config->hvBuckModeCurrentLimit / 10.0F);
-    Logger::info(getId(), "boost: HV command %dV (max %fA), LV min %fV (max %dA)", config->highVoltageCommand, (float) config->hvBoostModeCurrentLimit / 10.0, (float) config->lvUndervoltageLimit / 10.0F, config->lvBoostModeCurrentLinit);
+    Logger::info(this, "operation mode: %s", (config->mode ? "boost" : "buck"));
+    Logger::info(this, "buck : LV command %.1fV (max %dA), HV min %dV (max %.1fA)", (float) config->lowVoltageCommand / 10.0F, config->lvBuckModeCurrentLimit, config->hvUndervoltageLimit, (float) config->hvBuckModeCurrentLimit / 10.0F);
+    Logger::info(this, "boost: HV command %dV (max %.1fA), LV min %.1fV (max %dA)", config->highVoltageCommand, (float) config->hvBoostModeCurrentLimit / 10.0, (float) config->lvUndervoltageLimit / 10.0F, config->lvBoostModeCurrentLinit);
 }
 
 /*

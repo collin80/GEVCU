@@ -111,6 +111,7 @@ Status::Status() {
     interlockPresent    = false;
     reverseInput        = false;
 
+    energyConsumption = 0;
     flowCoolant = 0;
     flowHeater = 0;
 
@@ -124,6 +125,7 @@ Status::Status() {
         temperatureBattery[i] = CFG_NO_TEMPERATURE_DATA;
     }
     temperatureCoolant = CFG_NO_TEMPERATURE_DATA;
+    temperatureHeater = CFG_NO_TEMPERATURE_DATA;
     temperatureExterior = CFG_NO_TEMPERATURE_DATA;
 
     stateOfCharge = 0;
@@ -401,4 +403,12 @@ uint32_t Status::getBitField3() {
     bitfield |= (digitalInput[3]                    ? 1 << 31 : 0); // 0x80000000
 
     return bitfield;
+}
+
+/*
+ * Get energy consumption in 0.1kWh
+ */
+uint16_t Status::getEnergyConsumption()
+{
+    return energyConsumption / 360000;
 }

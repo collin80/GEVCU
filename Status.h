@@ -127,6 +127,7 @@ public:
     bool interlockPresent; // is the interlock circuit closed and the signal available ?
     bool reverseInput; // is the reverse signal present ?
 
+    uint32_t energyConsumption; // accumulated consumption in wattSeconds (or kilowattmilliseconds)
     uint8_t stateOfCharge; // 0 to 255 to indicate the state of charge (divide by 2.55 to get percent)
     uint32_t flowCoolant; // ml per second coolant flow
     uint32_t flowHeater; // ml per second heater flow
@@ -148,6 +149,7 @@ public:
     uint32_t getBitField3();
     int16_t getLowestBatteryTemperature();
     int16_t getHighestBatteryTemperature();
+    uint16_t getEnergyConsumption();
 
 private:
     SystemState systemState; // the current state of the system, to be modified by the state machine of this class only

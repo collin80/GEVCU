@@ -47,10 +47,9 @@ MotorController::MotorController() :
     dcVoltage = 0;
     dcCurrent = 0;
     acCurrent = 0;
-    energyConsumption = 0;
-    milliStamp = 0;
+    lastTick = 0;
     slewTimestamp = millis();
-    savePowerConsumption = false;
+    saveEnergyConsumption = false;
     ticksNoMessage = 0;
 }
 
@@ -65,36 +64,28 @@ DeviceType MotorController::getType()
 void MotorController::updateEnergyConsumption()
 {
     MotorControllerConfiguration *config = (MotorControllerConfiguration *) getConfiguration();
-    uint32_t currentMillis = millis();
+    uint32_t timeStamp = millis();
 
     if (running) {
         //If our voltage is higher than fully charged with no regen, zero our meter
         if (dcVoltage > config->nominalVolt && torqueActual > 0) {
-            energyConsumption = 0;
-            storeEnergyConsumption();
+            status.energyConsumption = 0;
         }
         // we're actually calculating kilowatt-milliseconds which is the same as watt seconds
-        energyConsumption += (int32_t)(currentMillis - milliStamp) * (int32_t)getMechanicalPower() / 10;
-        milliStamp = currentMillis; //reset our timer for next check
+        status.energyConsumption += (int32_t)(timeStamp - lastTick) * getMechanicalPower() / 1000;
 
         if (speedActual == 0) { // save at stand-still
-            if (savePowerConsumption) {
-                storeEnergyConsumption();
+            if (saveEnergyConsumption) {
+                systemIO.saveEnergyConsumption();
+                saveEnergyConsumption = false;
             }
         } else {
-            savePowerConsumption = true;
+            if (speedActual > 1000) { // prevent activation when crawling in a queue
+                saveEnergyConsumption = true;
+            }
         }
     }
-}
-
-/*
- * Store the current level of energy consumption to eeprom
- */
-void MotorController::storeEnergyConsumption()
-{
-    prefsHandler->write(EEMC_ENEGRY_CONSUMPTION, energyConsumption);
-    prefsHandler->saveChecksum();
-    savePowerConsumption = false;
+    lastTick = timeStamp; //reset our timer for next check
 }
 
 /*
@@ -177,7 +168,7 @@ void MotorController::processThrottleLevel()
                         torqueRequested = torqueTarget;
                     }
                 }
-//Logger::info("torque target: %l, requested: %l", torqueTarget, torqueRequested);
+//Logger::info("torque target: %ld, requested: %ld", torqueTarget, torqueRequested);
                 slewTimestamp = currentTimestamp;
             }
         }
@@ -203,7 +194,7 @@ void MotorController::handleTick()
     updateEnergyConsumption();
 
     if (Logger::isDebug()) {
-        Logger::debug(getId(), "throttle: %f%%, requested Speed: %l rpm, requested Torque: %f Nm, gear: %d", throttleLevel / 10.0f, speedRequested,
+        Logger::debug(this, "throttle: %f%%, requested Speed: %ld rpm, requested Torque: %f Nm, gear: %d", throttleLevel / 10.0f, speedRequested,
                 torqueRequested / 10.0F, gear);
     }
 }
@@ -227,12 +218,6 @@ void MotorController::handleStateChange(Status::SystemState oldState, Status::Sy
         gear = NEUTRAL;
     }
 
-    if (newState == Status::charged) {
-        Logger::info(getId(), "resetting kWh counter");
-        energyConsumption = 0;
-        storeEnergyConsumption();
-    }
-
     systemIO.setEnableMotor(newState == Status::ready || newState == Status::running);
 }
 
@@ -240,10 +225,7 @@ void MotorController::setup()
 {
     Device::setup();
 
-    MotorControllerConfiguration *config = (MotorControllerConfiguration *) getConfiguration();
-    prefsHandler->read(EEMC_ENEGRY_CONSUMPTION, &energyConsumption);  //retrieve energy consumption from EEPROM
-    savePowerConsumption = false;
-
+    saveEnergyConsumption = false;
     slewTimestamp = millis();
 }
 
@@ -308,14 +290,12 @@ uint16_t MotorController::getAcCurrent()
     return acCurrent;
 }
 
-uint16_t MotorController::getEnergyConsumption()
+/**
+ * Return mechanical power in Watts
+ */
+int32_t MotorController::getMechanicalPower()
 {
-    return energyConsumption / 360000;
-}
-
-int16_t MotorController::getMechanicalPower()
-{
-    return dcVoltage * dcCurrent / 10000; // in 0.1 kilowatts
+    return dcVoltage * dcCurrent / 100;
 }
 
 int16_t MotorController::getTemperatureMotor()
@@ -333,7 +313,7 @@ void MotorController::loadConfiguration()
     MotorControllerConfiguration *config = (MotorControllerConfiguration *) getConfiguration();
 
     Device::loadConfiguration(); // call parent
-    Logger::info(getId(), "Motor controller configuration:");
+    Logger::info(this, "Motor controller configuration:");
 
 #ifdef USE_HARD_CODED
 
@@ -365,9 +345,9 @@ void MotorController::loadConfiguration()
         config->powerMode = modeTorque;
     }
 
-    Logger::info(getId(), "Power mode: %s, Max torque: %i", (config->powerMode == modeTorque ? "torque" : "speed"), config->torqueMax);
-    Logger::info(getId(), "Max RPM: %i, Slew rate: %i", config->speedMax, config->slewRate);
-    Logger::info(getId(), "Max mech power motor: %fkW, Max mech power regen: %fkW", config->maxMechanicalPowerMotor / 10.0f,
+    Logger::info(this, "Power mode: %s, Max torque: %i", (config->powerMode == modeTorque ? "torque" : "speed"), config->torqueMax);
+    Logger::info(this, "Max RPM: %i, Slew rate: %i", config->speedMax, config->slewRate);
+    Logger::info(this, "Max mech power motor: %fkW, Max mech power regen: %fkW", config->maxMechanicalPowerMotor / 10.0f,
             config->maxMechanicalPowerRegen / 10.0f);
 }
 

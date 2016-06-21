@@ -33,121 +33,130 @@
 		<span class="systemState">ERROR !!</span>
 	</div>
 </div>
-<div id="state_7_8_" class="hidden">
-	<div class="gauges">
-		Motor Controller<br/>
-		<canvas id="throttleGauge">Your browser does not support the HTML5 canvas tag.</canvas>
-		<canvas id="torqueActualGauge"></canvas>
-		<canvas id="speedActualGauge"></canvas>
-		<canvas id="dcCurrentGauge"></canvas>
-		<br clear="all" />
-		<canvas id="temperatureMotorGauge"></canvas>
-		<canvas id="temperatureControllerGauge"></canvas>
-		<canvas id="dcVoltageGauge"></canvas>
-		<canvas id="energyConsumptionGauge"></canvas>
-		<canvas id="mechanicalPowerGauge"></canvas>
-	</div>
-</div>
-<div id="state_5_" class="hidden" style="align-items: center;">
-<div style="align-content: center;">
-	<div style="width: 75%; height: 100px; background: grey; text-align:center; vertical-align:middle;" onclick="stopCharge()">
-		Terminate Charge
-	</div>
-</div></div>
-<div id="state_5_6_" class="hidden">
-	<div class="gauges">
-		Charger<br/>
-		<canvas id="chargerInputVoltageGauge"></canvas>
-		<canvas id="chargerInputCurrentGauge"></canvas>
-		<canvas id="chargerBatteryVoltageGauge"></canvas>
-		<canvas id="chargerBatteryCurrentGauge"></canvas>
-		<canvas id="chargerTemperatureGauge"></canvas>
-	</div>
-	<!-- div>
-		<table style="padding: 0px 20px; width: 100%;">
-			<tr>
-				<td width="12.5%">Charger:</td>
-				<td width="12.5%">In:</td>
-				<td width="12.5%" style="font-family: 'Led';"><span
-					id="chargerInputVoltage">-</span> V, <span id="chargerInputCurrent">-</span>
-					A</td>
-				<td width="12.5%">Out:</td>
-				<td width="12.5%" style="font-family: 'Led';"><span
-					id="chargerBatteryVoltage">-</span> V, <span
-					id="chargerBatteryCurrent">-</span> A</td>
-				<td width="12.5%">Temperature:</td>
-				<td width="12.5%" style="font-family: 'Led';"><span
-					id="chargerTemperature">-</span> &#176;C</td>
-				<td width="12.5%"></td>
-			</tr>
-		</table>
-	</div-->
-</div>
-<div id="state_4_5_6_7_8_99_" class="hidden">
-	<div class="gauges">
-		DC-DC Converter<br/>
-		<canvas id="dcDcHvVoltageGauge"></canvas>
-		<canvas id="dcDcHvCurrentGauge"></canvas>
-		<canvas id="dcDcLvVoltageGauge"></canvas>
-		<canvas id="dcDcLvCurrentGauge"></canvas>
-		<canvas id="dcDcTemperatureGauge"></canvas>
-	</div>
-	<div>
-		<table style="padding: 0px 20px; width: 100%;">
-			<!-- tr>
-				<td width="12.5%">DCDC:</td>
-				<td width="12.5%">HV:</td>
-				<td width="12.5%" style="font-family: 'Led';"><span
-					id="dcDcHvVoltage">-</span> V, <span id="dcDcHvCurrent">-</span> A</td>
-				<td width="12.5%">LV:</td>
-				<td width="12.5%" style="font-family: 'Led';"><span
-					id="dcDcLvVoltage">-</span> V, <span id="dcDcLvCurrent">-</span> A</td>
-				<td width="12.5%">Temperature:</td>
-				<td width="12.5%" style="font-family: 'Led';"><span
-					id="dcDcTemperature">-</span> &#176;C</td>
-				<td width="12.5%"></td>
-			</tr-->
-			<tr>
-				<td width="12.5%">Battery:</td>
-				<td width="12.5%" style="font-family: 'Led';"><span
-					id="temperatureBattery1">-</span> &#176;C</td>
-				<td width="12.5%" style="font-family: 'Led';"><span
-					id="temperatureBattery2">-</span> &#176;C</td>
-				<td width="12.5%" style="font-family: 'Led';"><span
-					id="temperatureBattery3">-</span> &#176;C</td>
-				<td width="12.5%" style="font-family: 'Led';"><span
-					id="temperatureBattery4">-</span> &#176;C</td>
-				<td width="12.5%" style="font-family: 'Led';"><span
-					id="temperatureBattery5">-</span> &#176;C</td>
-				<td width="12.5%" style="font-family: 'Led';"><span
-					id="temperatureBattery6">-</span> &#176;C</td>
-				<td width="12.5%"></td>
-			</tr>
-			<tr>
-				<td width="12.5%">Coolant:</td>
-				<td width="12.5%" style="font-family: 'Led';"><span
-					id="temperatureCoolant">-</span> &#176;C</td>
-				<td width="12.5%" style="font-family: 'Led';"><span
-					id="flowCoolant">-</span> l/min</td>
-				<td width="12.5%">Heater:</td>
-				<td width="12.5%" style="font-family: 'Led';"><span
-					id="temperatureHeater">-</span> &#176;C</td>
-				<td width="12.5%" style="font-family: 'Led';"><span
-					id="flowHeater">-</span> l/min</td>
-				<td width="12.5%">Exterior:</td>
-				<td width="12.5%" style="font-family: 'Led';"><span
-					id="temperatureExterior">-</span> &#176;C</td>
-			</tr>
-		</table>
-	</div>
-</div>
-
-<table style="padding: 0px 20px; width: 100%;">
+<table style="width: 100%;">
 	<tr>
-		<td align="left" width="50%">Gear: <span id="gear"
-			style="font-family: 'Led';">--</span></td>
-		<td align="right" width="50%">Time running: <span
-			id="timeRunning" style="font-family: 'Led';">--:--:--</span></td>
+		<td style="vertical-align: top; width: 80px;">
+			<div>
+				Up-Time:<br/>
+				<span id="timeRunning" style="font-family: 'Led';">--:--:--</span>
+			</div>
+			<div id="state_4_5_6_7_8_99_" class="hidden">
+				<br/>
+				Battery:<br />
+				<div style="font-family: 'Led';">
+					<span id="temperatureBattery1">-</span> &#176;C
+				</div>
+				<div style="font-family: 'Led';">
+					<span id="temperatureBattery2">-</span> &#176;C
+				</div>
+				<div style="font-family: 'Led';">
+					<span id="temperatureBattery3">-</span> &#176;C
+				</div>
+				<div style="font-family: 'Led';">
+					<span id="temperatureBattery4">-</span> &#176;C
+				</div>
+				<div style="font-family: 'Led';">
+					<span id="temperatureBattery5">-</span> &#176;C
+				</div>
+				<div style="font-family: 'Led';">
+					<span id="temperatureBattery6">-</span> &#176;C
+				</div>
+			</div>
+			<div id="state_7_8_" class="hidden">
+				<div>
+				<br/>
+				Gear:<br/>
+				<span id="gear" style="font-family: 'Led';">--</span>
+			</div></div>
+		</td>
+		<td>
+			<div id="state_7_8_" class="hidden">
+				<div class="gauges">
+					<canvas id="throttleGauge">Your browser does not support the HTML5 canvas tag.</canvas>
+					<canvas id="torqueActualGauge"></canvas>
+					<canvas id="speedActualGauge"></canvas>
+					<canvas id="dcCurrentGauge"></canvas>
+					<br clear="all" />
+					<canvas id="temperatureMotorGauge"></canvas>
+					<canvas id="temperatureControllerGauge"></canvas>
+					<canvas id="dcVoltageGauge"></canvas>
+					<canvas id="energyConsumptionGauge"></canvas>
+					<canvas id="mechanicalPowerGauge"></canvas>
+				</div>
+			</div>
+			<div id="state_5_" class="hidden">
+				<div style="width: 100%; text-align: center;">
+					<button class="button" style="width: 80%;" onclick="stopCharge()">Terminate Charge</button>
+				</div>
+			</div>
+			<div id="state_5_6_" class="hidden">
+				<div class="gauges">
+					<canvas id="chargerInputVoltageGauge"></canvas>
+					<canvas id="chargerInputCurrentGauge"></canvas>
+					<canvas id="chargerBatteryVoltageGauge"></canvas>
+					<canvas id="chargerBatteryCurrentGauge"></canvas>
+					<canvas id="chargerTemperatureGauge"></canvas>
+				</div>
+			</div>
+			<div id="state_4_5_6_7_8_99_" class="hidden">
+				<div class="gauges">
+					<canvas id="dcDcHvVoltageGauge"></canvas>
+					<canvas id="dcDcHvCurrentGauge"></canvas>
+					<canvas id="dcDcLvVoltageGauge"></canvas>
+					<canvas id="dcDcLvCurrentGauge"></canvas>
+					<canvas id="dcDcTemperatureGauge"></canvas>
+				</div>
+				<div>
+					<!-- table style="padding: 0px 20px; width: 100%;">
+						<tr>
+							<td width="12.5%">Battery:</td>
+							<td width="12.5%" style="font-family: 'Led';"><span id="temperatureBattery1">-</span> &#176;C</td>
+							<td width="12.5%" style="font-family: 'Led';"><span id="temperatureBattery2">-</span> &#176;C</td>
+							<td width="12.5%" style="font-family: 'Led';"><span id="temperatureBattery3">-</span> &#176;C</td>
+							<td width="12.5%" style="font-family: 'Led';"><span id="temperatureBattery4">-</span> &#176;C</td>
+							<td width="12.5%" style="font-family: 'Led';"><span id="temperatureBattery5">-</span> &#176;C</td>
+							<td width="12.5%" style="font-family: 'Led';"><span id="temperatureBattery6">-</span> &#176;C</td>
+							<td width="12.5%"></td>
+						</tr>
+						<tr>
+							<td width="12.5%">Coolant:</td>
+							<td width="12.5%" style="font-family: 'Led';"><span id="temperatureCoolant">-</span> &#176;C</td>
+							<td width="12.5%" style="font-family: 'Led';"><span id="flowCoolant">-</span> l/min</td>
+							<td width="12.5%">Heater:</td>
+							<td width="12.5%" style="font-family: 'Led';"><span id="temperatureHeater">-</span> &#176;C</td>
+							<td width="12.5%" style="font-family: 'Led';"><span id="flowHeater">-</span> l/min</td>
+							<td width="12.5%">Exterior:</td>
+							<td width="12.5%" style="font-family: 'Led';"><span id="temperatureExterior">-</span> &#176;C</td>
+						</tr>
+					</table-->
+				</div>
+			</div>
+		</td>
+		<td style="vertical-align: top; width: 80px;">
+			<div id="state_4_5_6_7_8_99_" class="hidden">
+				<div>Coolant:</div>
+				<div style="font-family: 'Led';">
+					<span id="temperatureCoolant">-</span> &#176;C
+				</div>
+				<div style="font-family: 'Led';">
+					<span id="flowCoolant">-</span> l/min
+				</div>
+				<br />
+				<div>Heater:</div>
+				<div style="font-family: 'Led';">
+					<span id="temperatureHeater">-</span> &#176;C
+				</div>
+				<div style="font-family: 'Led';">
+					<span id="flowHeater">-</span> l/min
+				</div>
+				<br />
+				<div>Exterior:</div>
+				<div style="font-family: 'Led';">
+					<span id="temperatureExterior">-</span> &#176;C
+				</div>
+			</div>
+
+		</td>
 	</tr>
 </table>
 <div id="annunciator"></div>

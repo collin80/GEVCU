@@ -31,8 +31,8 @@ function generateGauges(config) {
 	var range = calcRange(-100,100);	
 	var throttleGauge = new Gauge({
 		renderTo    : 'throttleGauge',
-		width       : 250,
-		height      : 250,
+		width       : 230,
+		height      : 230,
 		glow        : true,
 		units       : '%',
 		title       : "Throttle",
@@ -44,8 +44,8 @@ function generateGauges(config) {
 		strokeTicks : false,
 		valueFormat : { "int" : 3, "dec" : 1 },
 		highlights  : [
-		   			{ from : -100,   to : 0, color : 'rgba(0, 180, 255, .75)' },
-					{ from : 0,   to : 100, color : 'rgba(0, 255, 0, .75)' }
+		   			{ from : -100,   to : 0, color : 'rgba(0, 255, 0, .75)' },
+					{ from : 0,   to : 100, color : 'rgba(0, 180, 255, .75)' }
 		]
 	});
 	throttleGauge.draw();
@@ -54,8 +54,8 @@ function generateGauges(config) {
 	range = calcRange(config.torqueRange[0], config.torqueRange[1]);
 	var torqueActualGauge = new Gauge({
 		renderTo    : 'torqueActualGauge',
-		width       : 300,
-		height      : 300,
+		width       : 280,
+		height      : 280,
 		glow        : true,
 		units       : 'Nm',
 		title       : "Torque",
@@ -67,8 +67,8 @@ function generateGauges(config) {
 		strokeTicks : false,
 		valueFormat : { "int" : 3, "dec" : 1 },
 		highlights  : [
-			{ from : range.min, to : 0, color : 'rgba(0, 180, 255, .75)' },
-			{ from : 0, to : range.max, color : 'rgba(0, 255,  0, .75)' }
+			{ from : range.min, to : 0, color : 'rgba(0, 255, 0, .75)' },
+			{ from : 0, to : range.max, color : 'rgba(0, 180,  255, .75)' }
 		]
 	});
 	torqueActualGauge.draw();
@@ -77,8 +77,8 @@ function generateGauges(config) {
 	range = calcRange(config.rpmRange[0], config.rpmRange[1] + 1000);
 	var speedActualGauge = new Gauge({
 		renderTo    : 'speedActualGauge',
-		width       : 300,
-		height      : 300,
+		width       : 280,
+		height      : 280,
 		glow        : true,
 		units       : 'x1000',
 		title       : "RPM",
@@ -227,8 +227,8 @@ function generateGauges(config) {
 	var range = calcRange(config.currentRange[0], config.currentRange[1]);
 	var dcCurrentGauge = new Gauge({
 		renderTo    : 'dcCurrentGauge',
-		width       : 250,
-		height      : 250,
+		width       : 230,
+		height      : 230,
 		glow        : true,
 		units       : 'Amps',
 		title       : "DC Current",
@@ -240,10 +240,10 @@ function generateGauges(config) {
 		strokeTicks : false,
 		valueFormat : { "int" : 3, "dec" : 1 },
 		highlights  : [
-   			{ from : range.min, to : config.currentRange[0] * .9, color : 'rgba(180, 180, 255, .75)' },
-			{ from : config.currentRange[0] *.9, to : 0, color : 'rgba(0, 180, 255, .75)' },
-			{ from : 0, to : config.currentRange[1] * .9, color : 'rgba(0, 255,  0, .75)' },
-			{ from : config.currentRange[1] * .9, to : range.max, color : 'rgba(255, 255, 0, .75)' }
+   			{ from : range.min, to : config.currentRange[0] * .9, color : 'rgba(255, 255, 0, .75)' },
+			{ from : config.currentRange[0] *.9, to : 0, color : 'rgba(0, 255, 0, .75)' },
+			{ from : 0, to : config.currentRange[1] * .9, color : 'rgba(0, 180,  255, .75)' },
+			{ from : config.currentRange[1] * .9, to : range.max, color : 'rgba(180, 180, 255, .75)' }
 		]
 	});
 	dcCurrentGauge.draw();
@@ -298,16 +298,16 @@ function generateGauges(config) {
 		strokeTicks : false,
 		valueFormat : { "int" : 3, "dec" : 1 },
 		highlights  : [
-  			{ from : range.min, to : config.powerRange[0] * .9, color : 'rgba(180, 180, 255, .75)' },
-			{ from : config.powerRange[0] *.9, to : 0, color : 'rgba(0, 180, 255, .75)' },
-			{ from : 0, to : config.powerRange[1] * .9, color : 'rgba(0, 255,  0, .75)' },
-			{ from : config.powerRange[1] * .9, to : range.max, color : 'rgba(255, 255, 0, .75)' }
+  			{ from : range.min, to : config.powerRange[0] * .9, color : 'rgba(255, 255, 0, .75)' },
+			{ from : config.powerRange[0] *.9, to : 0, color : 'rgba(0, 255, 0, .75)' },
+			{ from : 0, to : config.powerRange[1] * .9, color : 'rgba(0, 180, 255, .75)' },
+			{ from : config.powerRange[1] * .9, to : range.max, color : 'rgba(180, 180, 255, .75)' }
 		]
 	});
 	mechanicalPowerGauge.draw();
 	nodecache["mechanicalPowerGauge"] = mechanicalPowerGauge;
 	
-	var range = calcRange(config.chargerInputVoltageRange[0], config.chargerInputVoltageRange[1]);
+	var range = calcRange(config.chargerInputVoltageRange[0], config.chargerInputVoltageRange[2]);
 	var chargerInputVoltageGauge = new Gauge({
 		renderTo    : 'chargerInputVoltageGauge',
 		width       : 200,
@@ -323,8 +323,9 @@ function generateGauges(config) {
 		strokeTicks : false,
 		valueFormat : { "int" : 2, "dec" : 1 },
 		highlights  : [
-			{ from : range.min, to : config.chargerInputVoltageRange[1] * .9, color : 'rgba(0, 255,  0, .75)' },
-			{ from : config.chargerInputVoltageRange[1] * .9, to : range.max, color : 'rgba(255, 255, 0, .75)' }
+		   	{ from : range.min, to : config.chargerInputVoltageRange[1] - 10, color : 'rgba(255, 255,  0, .75)' },
+			{ from : config.chargerInputVoltageRange[1] - 10, to : config.chargerInputVoltageRange[1] + 10, color : 'rgba(0, 255,  0, .75)' },
+			{ from : config.chargerInputVoltageRange[1] + 10, to : range.max, color : 'rgba(255, 255, 0, .75)' }
 		]
 	});
 	chargerInputVoltageGauge.draw();
@@ -463,7 +464,7 @@ function generateGauges(config) {
 		majorTicks  : range.ticks,
 		minorTicks  : 5,
 		strokeTicks : false,
-		valueFormat : { "int" : 2, "dec" : 1 },
+		valueFormat : { "int" : 3, "dec" : 0 },
 		highlights  : [
 			{ from : 0, to : config.dcDcLvCurrentRange[1] * .9, color : 'rgba(0, 255,  0, .75)' },
 			{ from : config.dcDcLvCurrentRange[1] * .9, to : range.max, color : 'rgba(255, 255, 0, .75)' }

@@ -95,8 +95,7 @@ public:
     uint16_t getDcVoltage();
     int16_t getDcCurrent();
     uint16_t getAcCurrent();
-    uint16_t getEnergyConsumption();
-    int16_t getMechanicalPower();
+    int32_t getMechanicalPower();
     int16_t getTemperatureMotor();
     int16_t getTemperatureController();
     int16_t getNominalVolt();
@@ -109,14 +108,12 @@ protected:
     uint16_t dcVoltage; // DC voltage in 0.1 Volts
     int16_t dcCurrent; // DC current in 0.1 Amps
     uint16_t acCurrent; // AC current in 0.1 Amps
-    uint32_t energyConsumption; // accumulated consumption in wattSeconds (or kilowattmilliseconds)
     int16_t temperatureMotor; // temperature of motor in 0.1 degree C
     int16_t temperatureController; // temperature of controller in 0.1 degree C
 
-    bool savePowerConsumption; // flag wether to save power consumption to eeprom
-    uint32_t milliStamp;
+    bool saveEnergyConsumption; // flag wether to save power consumption to eeprom
+    uint32_t lastTick;
     void reportActivity();
-    void storeEnergyConsumption();
 
 private:
     int16_t throttleLevel; // -1000 to 1000 (per mille of throttle level)

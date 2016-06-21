@@ -142,7 +142,7 @@ void WebSocket::processData(String &response, char *input)
     long payloadLength = input[1] & 0x7f;
     String data = String();
 
-    Logger::debug("websocket: fin: %B, opcode: %X, mask: %B, length: %d", fin, opcode, mask, payloadLength);
+    Logger::debug("websocket: fin: %#x, opcode: %#x, mask: %#x, length: %d", fin, opcode, mask, payloadLength);
 
     uint8_t offset = 2;
     if (payloadLength == 0x7e) { // 126 -> use next two bytes as unsigned 16bit length of payload
@@ -172,6 +172,8 @@ void WebSocket::processData(String &response, char *input)
     case OPCODE_TEXT:
         Logger::info("text frame: '%s'", &input[offset]);
 
+Logger::info("websocket: fin: %#x, opcode: %#x, mask: %#x, length: %d", fin, opcode, mask, payloadLength);
+Logger::info("websocket: input %#02x %#02x %#02x %#02x %#02x %#02x %#02x %#02x %#02x %#02x %#02x %#02x %#02x %#02x %#02x %#02x", input[offset], input[offset+1], input[offset+2], input[offset+3], input[offset+4], input[offset+5], input[offset+6], input[offset+7], input[offset+8], input[offset+9], input[offset+10], input[offset+11], input[offset+12], input[offset+13], input[offset+14], input[offset+15]);
         //TODO move somewhere else
         if (!strcmp("stopCharge", &input[offset])) {
             status.setSystemState(Status::charged);
@@ -229,13 +231,9 @@ String WebSocket::getUpdate()
             paramCache.dcVoltage = motorController->getDcVoltage();
             addParam(data, Constants::dcVoltage, paramCache.dcVoltage / 10.0f, 1);
         }
-        if (paramCache.energyConsumption != motorController->getEnergyConsumption()) {
-            paramCache.energyConsumption = motorController->getEnergyConsumption();
-            addParam(data, Constants::energyConsumption, paramCache.energyConsumption / 10.0f, 1);
-        }
         if (paramCache.mechanicalPower != motorController->getMechanicalPower()) {
             paramCache.mechanicalPower = motorController->getMechanicalPower();
-            addParam(data, Constants::mechanicalPower, paramCache.mechanicalPower / 10.0f, 1);
+            addParam(data, Constants::mechanicalPower, paramCache.mechanicalPower / 1000.0f, 1);
         }
         if (paramCache.temperatureMotor != motorController->getTemperatureMotor()) {
             paramCache.temperatureMotor = motorController->getTemperatureMotor();
@@ -259,6 +257,10 @@ String WebSocket::getUpdate()
         paramCache.systemState = status.getSystemState();
         addParam(data, Constants::systemState, status.getSystemState());
     }
+    if (paramCache.energyConsumption != status.getEnergyConsumption()) {
+        paramCache.energyConsumption = status.getEnergyConsumption();
+        addParam(data, Constants::energyConsumption, paramCache.energyConsumption / 10.0f, 1);
+    }
     if (paramCache.bitfield1 != status.getBitField1()) {
         paramCache.bitfield1 = status.getBitField1();
         addParam(data, Constants::bitfield1, paramCache.bitfield1);
@@ -279,23 +281,23 @@ String WebSocket::getUpdate()
         if (dcDcConverter) {
             if (paramCache.dcDcHvVoltage != dcDcConverter->getHvVoltage()) {
                 paramCache.dcDcHvVoltage = dcDcConverter->getHvVoltage();
-                addParam(data, Constants::dcDcHvVoltage, (uint16_t) paramCache.dcDcHvVoltage / 10.0f);
+                addParam(data, Constants::dcDcHvVoltage, paramCache.dcDcHvVoltage / 10.0f, 1);
             }
             if (paramCache.dcDcHvCurrent != dcDcConverter->getHvCurrent()) {
                 paramCache.dcDcHvCurrent = dcDcConverter->getHvCurrent();
-                addParam(data, Constants::dcDcHvCurrent, (uint16_t) paramCache.dcDcHvCurrent / 10.0f);
+                addParam(data, Constants::dcDcHvCurrent, paramCache.dcDcHvCurrent / 10.0f, 1);
             }
             if (paramCache.dcDcLvVoltage != dcDcConverter->getLvVoltage()) {
                 paramCache.dcDcLvVoltage = dcDcConverter->getLvVoltage();
-                addParam(data, Constants::dcDcLvVoltage, (uint16_t) paramCache.dcDcLvVoltage / 10.0f);
+                addParam(data, Constants::dcDcLvVoltage, paramCache.dcDcLvVoltage / 10.0f, 1);
             }
             if (paramCache.dcDcLvCurrent != dcDcConverter->getLvCurrent()) {
                 paramCache.dcDcLvCurrent = dcDcConverter->getLvCurrent();
-                addParam(data, Constants::dcDcLvCurrent, (uint16_t) paramCache.dcDcLvCurrent / 10.0f);
+                addParam(data, Constants::dcDcLvCurrent, paramCache.dcDcLvCurrent, 1);
             }
             if (paramCache.dcDcTemperature != dcDcConverter->getTemperature()) {
                 paramCache.dcDcTemperature = dcDcConverter->getTemperature();
-                addParam(data, Constants::dcDcTemperature, (uint16_t) paramCache.dcDcTemperature / 10.0f);
+                addParam(data, Constants::dcDcTemperature, paramCache.dcDcTemperature / 10.0f, 1);
             }
         }
 
@@ -303,50 +305,50 @@ String WebSocket::getUpdate()
         if (charger) {
             if (paramCache.chargerInputVoltage != charger->getInputVoltage()) {
                 paramCache.chargerInputVoltage = charger->getInputVoltage();
-                addParam(data, Constants::chargerInputVoltage, (uint16_t) paramCache.chargerInputVoltage / 10.0f);
+                addParam(data, Constants::chargerInputVoltage, paramCache.chargerInputVoltage / 10.0f, 1);
             }
             if (paramCache.chargerInputCurrent != charger->getInputCurrent()) {
                 paramCache.chargerInputCurrent = charger->getInputCurrent();
-                addParam(data, Constants::chargerInputCurrent, (uint16_t) paramCache.chargerInputCurrent / 100.0f);
+                addParam(data, Constants::chargerInputCurrent, paramCache.chargerInputCurrent / 100.0f, 1);
             }
             if (paramCache.chargerBatteryVoltage != charger->getBatteryVoltage()) {
                 paramCache.chargerBatteryVoltage = charger->getBatteryVoltage();
-                addParam(data, Constants::chargerBatteryVoltage, (uint16_t) paramCache.chargerBatteryVoltage / 10.0f);
+                addParam(data, Constants::chargerBatteryVoltage, paramCache.chargerBatteryVoltage / 10.0f, 1);
             }
             if (paramCache.chargerBatteryCurrent != charger->getBatteryCurrent()) {
                 paramCache.chargerBatteryCurrent = charger->getBatteryCurrent();
-                addParam(data, Constants::chargerBatteryCurrent, (uint16_t) paramCache.chargerBatteryCurrent / 100.0f);
+                addParam(data, Constants::chargerBatteryCurrent, paramCache.chargerBatteryCurrent / 100.0f, 1);
             }
             if (paramCache.chargerTemperature != charger->getTemperature()) {
                 paramCache.chargerTemperature = charger->getTemperature();
-                addParam(data, Constants::chargerTemperature, (uint16_t) paramCache.chargerTemperature / 10.0f);
+                addParam(data, Constants::chargerTemperature, paramCache.chargerTemperature / 10.0f, 1);
             }
         }
         if (paramCache.flowCoolant != status.flowCoolant) {
             paramCache.flowCoolant = status.flowCoolant;
-            addParam(data, Constants::flowCoolant, (uint16_t) paramCache.flowCoolant * 6 / 100.0f);
+            addParam(data, Constants::flowCoolant, paramCache.flowCoolant * 6 / 100.0f, 2);
         }
         if (paramCache.flowHeater != status.flowHeater) {
             paramCache.flowHeater = status.flowHeater;
-            addParam(data, Constants::flowHeater, (uint16_t) paramCache.flowHeater * 6 / 100.0f);
+            addParam(data, Constants::flowHeater, paramCache.flowHeater * 6 / 100.0f, 2);
         }
         for (int i = 0; i < CFG_NUMBER_BATTERY_TEMPERATURE_SENSORS; i++) {
             if (paramCache.temperatureBattery[i] != status.temperatureBattery[i]) {
                 paramCache.temperatureBattery[i] = status.temperatureBattery[i];
-                addParam(data, Constants::temperatureBattery[i], (uint16_t) paramCache.temperatureBattery[i] / 10.0f);
+                addParam(data, Constants::temperatureBattery[i], paramCache.temperatureBattery[i] / 10.0f, 1);
             }
         }
         if (paramCache.temperatureCoolant != status.temperatureCoolant) {
             paramCache.temperatureCoolant = status.temperatureCoolant;
-            addParam(data, Constants::temperatureCoolant, (uint16_t) paramCache.temperatureCoolant / 10.0f);
+            addParam(data, Constants::temperatureCoolant, paramCache.temperatureCoolant / 10.0f, 1);
         }
         if (paramCache.temperatureHeater != status.temperatureHeater) {
             paramCache.temperatureHeater = status.temperatureHeater;
-            addParam(data, Constants::temperatureHeater, (uint16_t) paramCache.temperatureHeater / 10.0f);
+            addParam(data, Constants::temperatureHeater, paramCache.temperatureHeater / 10.0f, 1);
         }
         if (paramCache.temperatureExterior != status.temperatureExterior) {
             paramCache.temperatureExterior = status.temperatureExterior;
-            addParam(data, Constants::temperatureExterior, (uint16_t) paramCache.temperatureExterior / 10.0f);
+            addParam(data, Constants::temperatureExterior, paramCache.temperatureExterior / 10.0f, 1);
         }
 
     }
@@ -357,6 +359,26 @@ String WebSocket::getUpdate()
     }
 
     data.concat("\r}\r"); // close JSON object
+    return prepareWebSocketFrame(OPCODE_TEXT, data);
+}
+
+/**
+ * Prepare JSON messga for leg message
+ *
+ */
+String WebSocket::getLogEntry(char *logLevel, char *deviceName, char *message) {
+    String data = String();
+
+    data.concat("{\r\"logMessage\": {\r\"level\": \"");
+    data.concat(logLevel);
+    data.concat("\",\r\"message\": \"");
+    if (deviceName != NULL) {
+        data.concat(deviceName);
+        data.concat(": ");
+    }
+    data.concat(message);
+    data.concat("\"\r}\r}");
+
     return prepareWebSocketFrame(OPCODE_TEXT, data);
 }
 

@@ -103,12 +103,7 @@ void SystemIO::handleTick() {
     }
 
     //TODO move to method and configure max kWh and if inverted or not
-    MotorController *motor = deviceManager.getMotorController();
-    if (motor != NULL) {
-        setStateOfCharge(map(motor->getEnergyConsumption(), 0, 100, 0, 255));
-    }
-
-
+    setStateOfCharge(map(status.getEnergyConsumption(), 0, 500, 0, 255));
 
     handleCooling();
     handleCharging();
@@ -297,7 +292,9 @@ void SystemIO::handleReverseLight() {
 bool SystemIO::isEnableSignalPresent() {
     bool flag = getDigitalIn(configuration->enableInput);
     status.enableIn = flag;
-    return flag;
+Logger::console("enable in (%d): %d", configuration->enableInput, flag);
+//    return flag;
+return true;
 }
 
 /*
@@ -938,8 +935,8 @@ void SystemIO::setupFastADC() {
 void SystemIO::printIOStatus() {
     if (Logger::isDebug()) {
         Logger::debug("AIN0: %d, AIN1: %d, AIN2: %d, AIN3: %d", getAnalogIn(0), getAnalogIn(1), getAnalogIn(2), getAnalogIn(3));
-        Logger::debug("DIN0: %t, DIN1: %t, DIN2: %t, DIN3: %t", getDigitalIn(0), getDigitalIn(1), getDigitalIn(2), getDigitalIn(3));
-        Logger::debug("DOUT0: %t, DOUT1: %t, DOUT2: %t, DOUT3: %t,DOUT4: %t, DOUT5: %t, DOUT6: %t, DOUT7: %t", getDigitalOut(0), getDigitalOut(1),
+        Logger::debug("DIN0: %d, DIN1: %d, DIN2: %d, DIN3: %d", getDigitalIn(0), getDigitalIn(1), getDigitalIn(2), getDigitalIn(3));
+        Logger::debug("DOUT0: %d, DOUT1: %d, DOUT2: %d, DOUT3: %d,DOUT4: %d, DOUT5: %d, DOUT6: %d, DOUT7: %d", getDigitalOut(0), getDigitalOut(1),
                 getDigitalOut(2), getDigitalOut(3), getDigitalOut(4), getDigitalOut(5), getDigitalOut(6), getDigitalOut(7));
     }
 }
@@ -1013,6 +1010,18 @@ Logger::LogLevel SystemIO::getLogLevel() {
 //    sum = sum / numberADCSamples;
 //    return ((uint16_t) sum);
 //}
+
+/*
+ * Store the current level of energy consumption to eeprom
+ */
+void SystemIO::saveEnergyConsumption()
+{
+    Logger::info("storing energy consumption: %.2fkWh", (float)status.energyConsumption / 3600000.0f);
+    prefsHandler->write(EESYS_ENEGRY_CONSUMPTION, status.energyConsumption);
+    prefsHandler->saveChecksum();
+    prefsHandler->forceCacheWrite();
+}
+
 SystemIOConfiguration *SystemIO::getConfiguration() {
     return configuration;
 }
@@ -1060,6 +1069,7 @@ void SystemIO::loadConfiguration() {
         prefsHandler->read(EESYS_SYSTEM_TYPE, (uint8_t *) &configuration->systemType);
         prefsHandler->read(EESYS_LOG_LEVEL, (uint8_t *) &configuration->logLevel);
         Logger::setLoglevel((Logger::LogLevel) configuration->logLevel);
+        prefsHandler->read(EESYS_ENEGRY_CONSUMPTION, &status.energyConsumption);
 
     } else { //checksum invalid. Reinitialize values and store to EEPROM
         configuration->enableInput = EnableInput;

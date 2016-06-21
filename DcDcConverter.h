@@ -53,6 +53,7 @@ class DcDcConverter : public Device
 public:
 	DcDcConverter();
     ~DcDcConverter();
+    void handleTick();
     void handleStateChange(Status::SystemState, Status::SystemState);
     DeviceType getType();
     int16_t getHvCurrent();
@@ -68,8 +69,9 @@ protected:
     uint16_t hvVoltage; // in 0.1V
     uint16_t lvVoltage; // in 0.1V
     int16_t hvCurrent; // in 0.1A
-    int16_t lvCurrent; // in 0.1A
+    int16_t lvCurrent; // in 1A
     int16_t temperature; // in 0.1C
+    uint32_t lastTick; // last time in ms when the handleTick method was called
 
 private:
 };

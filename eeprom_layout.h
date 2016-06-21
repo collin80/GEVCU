@@ -107,7 +107,6 @@ the end of the stardard data. The below numbers are offsets from the device's ee
 // Motor controller data
 #define EEMC_MAX_RPM                        20 //2 bytes, unsigned int for maximum allowable RPM
 #define EEMC_MAX_TORQUE                     22 //2 bytes, unsigned int - maximum torque in tenths of a Nm
-#define EEMC_ENEGRY_CONSUMPTION             40 //4 bytes - accumulated power consumption in 0.1 kwh
 #define EEMC_NOMINAL_V                      46 //2 bytes - nominal system voltage to expect (in tenths of a volt)
 #define EEMC_REVERSE_LIMIT                  48 //2 bytes - a percentage to knock the requested torque down by while in reverse.
 #define EEMC_UNUSED1                        50 //1 byte - unused
@@ -176,6 +175,7 @@ the end of the stardard data. The below numbers are offsets from the device's ee
 // System I/O
 #define EESYS_SYSTEM_TYPE                   10 //1 byte - 1 = Old school protoboards 2 = GEVCU2/DUED 3 = GEVCU3 - Defaults to 2 if invalid or not set up
 #define EESYS_LOG_LEVEL                     11 //1 byte - the log level
+#define EESYS_ENEGRY_CONSUMPTION            12 //4 bytes - accumulated power consumption
 #define EESIO_RAWADC                        20 //1 byte - if not zero then use raw ADC mode (no preconditioning or buffering or differential).
 #define EESIO_ADC0_GAIN                     30 //2 bytes - ADC gain centered at 1024 being 1 to 1 gain, thus 512 is 0.5 gain, 2048 is double, etc
 #define EESIO_ADC0_OFFSET                   32 //2 bytes - ADC offset from zero - ADC reads 12 bit so the offset will be [0,4095] - Offset is subtracted from read ADC value

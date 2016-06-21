@@ -112,6 +112,7 @@ public:
     void tearDown();
     void handleTick(); //periodic processes
     void handleMessage(uint32_t messageType, void* message);
+    void handleStateChange(Status::SystemState, Status::SystemState);
     DeviceType getType();
     DeviceId getId();
     void loop();

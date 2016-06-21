@@ -36,7 +36,7 @@ struct ParamCache {
     MotorController::Gears gear;
     int16_t temperatureMotor;
     int16_t temperatureController;
-    int16_t mechanicalPower;
+    int32_t mechanicalPower;
     uint16_t dcDcHvVoltage;
     uint16_t dcDcLvVoltage;
     int16_t dcDcHvCurrent;
@@ -60,6 +60,7 @@ public:
     WebSocket();
     void processInput(String &response, char *input);
     String getUpdate();
+    String getLogEntry(char *logLevel, char *deviceName, char *message);
     bool isConnected();
     void disconnected();
 

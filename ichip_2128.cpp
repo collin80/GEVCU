@@ -31,7 +31,7 @@
 /*
  * Constructor. Assign serial interface to use for ichip communication
  */
-ICHIPWIFI::ICHIPWIFI()
+ICHIPWIFI::ICHIPWIFI() : Device()
 {
     prefsHandler = new PrefHandler(ICHIP2128);
     elmProc = new ELM327Processor();
@@ -115,7 +115,7 @@ void ICHIPWIFI::sendCmd(String cmd, ICHIP_COMM_STATE cmdstate)
             psWritePtr = 0;
         }
         if (Logger::isDebug()) {
-            Logger::debug(ICHIP2128, "Buffer cmd: %s, ", cmd.c_str());
+            Logger::debug(this, "Buffer cmd: %s, ", cmd.c_str());
         }
     } else { //otherwise, go ahead and blast away
         serialInterface->write(Constants::ichipCommandPrefix);
@@ -125,7 +125,7 @@ void ICHIPWIFI::sendCmd(String cmd, ICHIP_COMM_STATE cmdstate)
         lastSendTime = millis();
         lastSentState = cmdstate;
         if (Logger::isDebug()) {
-            Logger::debug(ICHIP2128, "Send cmd: %s", cmd.c_str());
+            Logger::debug(this, "Send cmd: %s", cmd.c_str());
         }
     }
 }
@@ -235,8 +235,29 @@ void ICHIPWIFI::handleMessage(uint32_t messageType, void* message)
     case MSG_RESET:
         factoryDefaults();
         break;
+
+    case MSG_LOG:
+        if (webSocket->isConnected()) {
+            char **params = (char **) message;
+            sendToSocket(0, webSocket->getLogEntry(params[0], params[1], params[2]));
+        }
+        break;
     }
 }
+
+/**
+ * act on state changes and send a (last) update to a websocket client
+ */
+void ICHIPWIFI::handleStateChange(Status::SystemState oldState, Status::SystemState newState)
+{
+    Device::handleStateChange(oldState, newState);
+
+    if (webSocket->isConnected()) {
+        sendToSocket(0, webSocket->getUpdate());
+    }
+
+}
+
 
 /*
  * Determine if a parameter has changed
@@ -350,7 +371,7 @@ void ICHIPWIFI::loop()
             ibWritePtr = 0; //reset the write pointer
 
             if (Logger::isDebug()) {
-                Logger::debug(ICHIP2128, "incoming: '%s', state: %d", incomingBuffer, state);
+                Logger::debug(this, "incoming: '%s', state: %d", incomingBuffer, state);
             }
 
             //The ichip echoes our commands back at us. The safer option might be to verify that the command
@@ -378,7 +399,7 @@ void ICHIPWIFI::loop()
                     break;
                 case IDLE:
                 default:
-                    //Logger::info(ICHIP2128, incomingBuffer);
+                    //Logger::info(this, incomingBuffer);
                     break;
                 }
             } else {
@@ -412,7 +433,7 @@ void ICHIPWIFI::processStartTcpListenerRepsonse()
             listeningSocket = 0;
         }
         if (Logger::isDebug()) {
-            Logger::debug(ICHIP2128, "socket handle: %i", listeningSocket);
+            Logger::debug(this, "socket handle: %i", listeningSocket);
         }
     }
 }
@@ -426,7 +447,7 @@ void ICHIPWIFI::processGetActiveSocketsResponse()
             activeSockets[2] = atoi(strtok(NULL, ","));
             activeSockets[3] = atoi(strtok(NULL, ","));
             if (Logger::isDebug()) {
-                Logger::debug(ICHIP2128, "sockets: %i, %i, %i, %i", activeSockets[0], activeSockets[1], activeSockets[2], activeSockets[3]);
+                Logger::debug(this, "sockets: %i, %i, %i, %i", activeSockets[0], activeSockets[1], activeSockets[2], activeSockets[3]);
             }
         }
     } else {
@@ -489,7 +510,7 @@ void ICHIPWIFI::processSocketSendResponse()
     // we get an error with SSND, when the socket was closed (e.g. "AT+iSSND%:000,24:I/ERROR (203)")
     if (strstr(incomingBuffer, Constants::ichipErrorString) != NULL) {
         webSocket->disconnected();
-        Logger::info(ICHIP2128, "connection closed by remote client (%s), closing socket", incomingBuffer);
+        Logger::info(this, "connection closed by remote client (%s), closing socket", incomingBuffer);
         closeSockets();
     }
 }
@@ -534,7 +555,7 @@ void ICHIPWIFI::processParameterChange(char *key)
             !processParameterChangeSystemIO(key, value)) {
 
     } else {
-        Logger::info(ICHIP2128, "parameter change: %s = %s", key, value);
+        Logger::info(this, "parameter change: %s = %s", key, value);
         getNextParam(); // try to get another one immediately
     }
 }
@@ -1038,7 +1059,7 @@ void ICHIPWIFI::loadParametersDashboard()
         setParam(Constants::controllerTempRange, "0,80,90");
         setParam(Constants::energyRange, "0,30,38");
         setParam(Constants::chargerInputCurrentRange, "0,32");
-        setParam(Constants::chargerInputVoltageRange, "210,250");
+        setParam(Constants::chargerInputVoltageRange, "210,230,250");
         setParam(Constants::chargerBatteryCurrentRange, "0,20");
         setParam(Constants::chargerTempRange, "0,90,100");
         setParam(Constants::dcDcHvCurrentRange, "0,10");
@@ -1118,7 +1139,7 @@ void ICHIPWIFI::loadConfiguration()
     }
 
     Device::loadConfiguration();
-    Logger::info(getId(), "WiFi configuration:");
+    Logger::info(this, "WiFi configuration:");
 
     if (prefsHandler->checksumValid()) { //checksum is good, read in the values stored in EEPROM
         //TODO: implement processing of config params for WIFI
@@ -1126,7 +1147,7 @@ void ICHIPWIFI::loadConfiguration()
     } else {
         saveConfiguration();
     }
-//    Logger::info(ICHIP2128, "ssid: %s", config->);
+//    Logger::info(this, "ssid: %s", config->);
 }
 
 void ICHIPWIFI::saveConfiguration()
