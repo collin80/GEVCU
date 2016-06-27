@@ -1111,7 +1111,7 @@ void ICHIPWIFI::factoryDefaults() {
     delay(1000);
     sendCmd("WPWD=secret", IDLE);// set the password to update config params
     delay(1000);
-    sendCmd("AWS=1", IDLE);//turn on web server for three clients
+    sendCmd("AWS=3", IDLE);//turn on web server for six concurrent connections
     delay(1000);
     sendCmd("DOWN", IDLE);//cause a reset to allow it to come up with the settings
     delay(5000);// a 5 second delay is required for the chip to come back up ! Otherwise commands will be lost

@@ -64,7 +64,7 @@ void WebSocket::processInput(String &response, char *input)
 
 void WebSocket::initParamCache()
 {
-    paramCache.timeRunning = 0;
+    paramCache.timeRunning = millis(); // this way less important data is sent one second later
     paramCache.torqueRequested = -1;
     paramCache.torqueActual = -1;
     paramCache.throttle = -1;
@@ -253,10 +253,6 @@ String WebSocket::getUpdate()
         }
     }
 
-    if (paramCache.systemState != status.getSystemState()) {
-        paramCache.systemState = status.getSystemState();
-        addParam(data, Constants::systemState, status.getSystemState());
-    }
     if (paramCache.energyConsumption != status.getEnergyConsumption()) {
         paramCache.energyConsumption = status.getEnergyConsumption();
         addParam(data, Constants::energyConsumption, paramCache.energyConsumption / 10.0f, 1);
@@ -272,6 +268,10 @@ String WebSocket::getUpdate()
     if (paramCache.bitfield3 != status.getBitField3()) {
         paramCache.bitfield3 = status.getBitField3();
         addParam(data, Constants::bitfield3, paramCache.bitfield3);
+    }
+    if (paramCache.systemState != status.getSystemState()) {
+        paramCache.systemState = status.getSystemState();
+        addParam(data, Constants::systemState, status.getSystemState());
     }
     if (ms > paramCache.timeRunning + 900) { // just update this every second or so
         paramCache.timeRunning = ms;
