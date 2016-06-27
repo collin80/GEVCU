@@ -181,7 +181,7 @@ void BrusaBSC6::processValues1(uint8_t data[])
     running = (bitfield & bsc6Running) ? true : false;
     ready = (bitfield & bsc6Ready) ? true : false;
     if (bitfield & automatic) {
-        //TODO
+        //TODO implement handling of automatic flag
     }
 
     hvVoltage = (uint16_t)(data[1] | (data[0] << 8));

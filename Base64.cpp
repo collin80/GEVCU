@@ -6,8 +6,8 @@ const char b64_alphabet[] = "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
 
 /* 'Private' declarations */
 inline void a3_to_a4(unsigned char * a4, unsigned char * a3);
-inline void a4_to_a3(unsigned char * a3, unsigned char * a4);
-inline unsigned char b64_lookup(char c);
+//inline void a4_to_a3(unsigned char * a3, unsigned char * a4);
+//inline unsigned char b64_lookup(char c);
 
 int base64_encode(char *output, char *input, int inputLen) {
 	int i = 0, j = 0;

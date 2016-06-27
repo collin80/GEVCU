@@ -292,9 +292,7 @@ void SystemIO::handleReverseLight() {
 bool SystemIO::isEnableSignalPresent() {
     bool flag = getDigitalIn(configuration->enableInput);
     status.enableIn = flag;
-Logger::console("enable in (%d): %d", configuration->enableInput, flag);
-//    return flag;
-return true;
+    return flag;
 }
 
 /*
