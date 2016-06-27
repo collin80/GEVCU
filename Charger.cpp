@@ -58,15 +58,15 @@ void Charger::handleTick()
     // we're actually calculating kilowatt-milliseconds which is the same as watt seconds
     wattSeconds += (timeStamp - lastTick) * batteryCurrent * batteryVoltage / 1000000;
 
-    // adjust global energy consumption every 1kW that was charged and store to eeprom - to reflect partial charges
-    if (wattSeconds > 1000) {
+    // adjust global energy consumption every 1kWsec that was charged
+    if (wattSeconds > 1000 && status.energyConsumption > 0) {
         if (wattSeconds < status.energyConsumption) { // energyConsumption is unsigned, don't overflow!
             status.energyConsumption -= wattSeconds;
         } else {
             status.energyConsumption = 0;
+            systemIO.saveEnergyConsumption();
         }
         wattSeconds = 0;
-        systemIO.saveEnergyConsumption();
     }
     lastTick = timeStamp;
 }
@@ -96,15 +96,12 @@ void Charger::handleStateChange(Status::SystemState oldState, Status::SystemStat
     } else {
         if (powerOn) {
             Logger::info(this, "Charging finished after %d min, %.2f Ah", (millis() - chargeStartTime) / 60000, (float) ampereMilliSeconds / 360000000.0f);
+            systemIO.saveEnergyConsumption();
         }
         requestedOutputCurrent = 0;
         powerOn = false;
     }
     systemIO.setEnableCharger(powerOn);
-
-    if (newState == Status::charged) {
-        systemIO.saveEnergyConsumption();
-    }
 }
 
 /**

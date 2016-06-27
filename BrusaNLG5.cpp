@@ -176,10 +176,9 @@ void BrusaNLG5::processStatus(uint8_t data[])
     ready = true;
     running = bitfield & hardwareEnabled;
 
-    if (bitfield & error) {
+    if ((bitfield & error) && powerOn) {
         Logger::error(this, "Charger reported an error, terminating charge.");
-        //TODO check if this needs to be re-enabled !
-//        status->setSystemState(Status::error);
+        status.setSystemState(Status::error);
     }
 
 //    bypassDetection1
@@ -307,7 +306,7 @@ void BrusaNLG5::processError(uint8_t data[])
 //    crcNVSRAM
 //    crcFlashMemory
 
-    if (bitfield != 0) {
+    if (bitfield != 0 && powerOn) {
         Logger::error(this, "error bitfield: %#08x", bitfield);
     }
 
