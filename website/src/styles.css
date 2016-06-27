@@ -180,7 +180,7 @@ input[type="range"]{
 }
 .visible {
   opacity: 1;
-  transition: opacity 1s; // fade in duration + delay
+  transition: opacity 1s; // fade in duration + delay 
 }
 .hidden {
   opacity: 0;
@@ -190,7 +190,6 @@ input[type="range"]{
 .visible > div {
   margin-top: 1px;
   transition: margin-top 0.5s 0s; // roll in duration + delay
-
 }
 .hidden > div {
   margin-top: -2200px;

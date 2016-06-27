@@ -107,28 +107,6 @@
 					<canvas id="dcDcTemperatureGauge"></canvas>
 				</div>
 				<div>
-					<!-- table style="padding: 0px 20px; width: 100%;">
-						<tr>
-							<td width="12.5%">Battery:</td>
-							<td width="12.5%" style="font-family: 'Led';"><span id="temperatureBattery1">-</span> &#176;C</td>
-							<td width="12.5%" style="font-family: 'Led';"><span id="temperatureBattery2">-</span> &#176;C</td>
-							<td width="12.5%" style="font-family: 'Led';"><span id="temperatureBattery3">-</span> &#176;C</td>
-							<td width="12.5%" style="font-family: 'Led';"><span id="temperatureBattery4">-</span> &#176;C</td>
-							<td width="12.5%" style="font-family: 'Led';"><span id="temperatureBattery5">-</span> &#176;C</td>
-							<td width="12.5%" style="font-family: 'Led';"><span id="temperatureBattery6">-</span> &#176;C</td>
-							<td width="12.5%"></td>
-						</tr>
-						<tr>
-							<td width="12.5%">Coolant:</td>
-							<td width="12.5%" style="font-family: 'Led';"><span id="temperatureCoolant">-</span> &#176;C</td>
-							<td width="12.5%" style="font-family: 'Led';"><span id="flowCoolant">-</span> l/min</td>
-							<td width="12.5%">Heater:</td>
-							<td width="12.5%" style="font-family: 'Led';"><span id="temperatureHeater">-</span> &#176;C</td>
-							<td width="12.5%" style="font-family: 'Led';"><span id="flowHeater">-</span> l/min</td>
-							<td width="12.5%">Exterior:</td>
-							<td width="12.5%" style="font-family: 'Led';"><span id="temperatureExterior">-</span> &#176;C</td>
-						</tr>
-					</table-->
 				</div>
 			</div>
 		</td>
@@ -160,9 +138,12 @@
 	</tr>
 </table>
 <div id="annunciator"></div>
-<audio id="errorSound">
-	<source src="error.mp3">
+<audio id="soundError">
+	<source src="soundError.mp3" type="audio/mpeg">
 </audio>
-<audio id="warnSound">
-	<source src="warn.mp3">
+<audio id="soundWarn">
+	<source src="soundWarn.mp3" type="audio/mpeg">
+</audio>
+<audio id="soundInfo">
+	<source src="soundInfo.mp3" type="audio/mpeg">
 </audio>
