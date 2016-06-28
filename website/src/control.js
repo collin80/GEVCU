@@ -52,7 +52,23 @@ function showTab(pageId) {
 	}
 }
 
+// on most mobile browsers sounds can only be loaded during a user interaction (stupid !)
+function removeBehaviorsRestrictions() {
+	soundError.load();
+	soundWarn.load();
+	soundInfo.load();
+	window.removeEventListener('keydown', removeBehaviorsRestrictions);
+	window.removeEventListener('mousedown', removeBehaviorsRestrictions);
+	window.removeEventListener('touchstart', removeBehaviorsRestrictions);
+}
+
 function openWebSocket() {
+
+	// add an event listener so sounds can get loaded on mobile devices after user interaction
+	window.addEventListener('keydown', removeBehaviorsRestrictions);
+	window.addEventListener('mousedown', removeBehaviorsRestrictions);
+	window.addEventListener('touchstart', removeBehaviorsRestrictions);
+
 	socketConnection = new WebSocket("ws://" + location.hostname + ":2000");
 
 	// send some data to the server Log errors
