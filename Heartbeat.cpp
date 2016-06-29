@@ -38,6 +38,8 @@ Heartbeat::Heartbeat() : Device()
 
 void Heartbeat::setup()
 {
+    Device::setup();
+
     pinMode(CFG_BLINK_LED, OUTPUT);
     digitalWrite(CFG_BLINK_LED, LOW);
     ready = true;

@@ -104,7 +104,7 @@ void Device::enable()
     if (isEnabled()) {
         return;
     }
-    if (prefsHandler->setEnabled(true)) {
+    if (prefsHandler != NULL && prefsHandler->setEnabled(true)) {
         prefsHandler->forceCacheWrite(); //just in case someone power cycles quickly
         Logger::info(this, "Successfully enabled device %s.(%#x)", commonName, getId());
     }
@@ -119,7 +119,7 @@ void Device::disable()
     if (!isEnabled()) {
         return;
     }
-    if(prefsHandler->setEnabled(false)) {
+    if (prefsHandler != NULL && prefsHandler->setEnabled(false)) {
         prefsHandler->forceCacheWrite(); //just in case someone power cycles quickly
         Logger::info(this, "Successfully disabled device %s.(%#x)", commonName, getId());
     }
@@ -131,6 +131,9 @@ void Device::disable()
  */
 bool Device::isEnabled()
 {
+    if (prefsHandler == NULL) {
+        return true;
+    }
     return prefsHandler->isEnabled();
 }
 

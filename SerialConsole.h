@@ -49,7 +49,8 @@ public:
     void printMenu();
 
 protected:
-    enum CONSOLE_STATE {
+    enum CONSOLE_STATE
+    {
         STATE_ROOT_MENU
     };
 

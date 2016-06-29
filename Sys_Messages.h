@@ -26,8 +26,8 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #ifndef SYSMSG_H_
 #define SYSMSG_H_
 
-
-enum SystemMessage {
+enum SystemMessage
+{
     MSG_SOFT_FAULT = 0x3100,
     MSG_HARD_FAULT = 0x3150,
     MSG_DISABLE = 0x3200,

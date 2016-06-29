@@ -32,7 +32,8 @@ Status status;
 /*
  * Constructor
  */
-Status::Status() {
+Status::Status()
+{
     systemState = startup;
 
     limitationTorque                = false;
@@ -134,7 +135,8 @@ Status::Status() {
 /*
  * Retrieve the current system state.
  */
-Status::SystemState Status::getSystemState() {
+Status::SystemState Status::getSystemState()
+{
     return systemState;
 }
 
@@ -142,9 +144,10 @@ Status::SystemState Status::getSystemState() {
  * Set a new system state. The new system state is validated if the
  * transition is allowed from the old state. If an invalid transition is
  * attempted, the new state will be 'error'.
+ * The old and new state are broadcast to all devices.
  */
-Status::SystemState Status::setSystemState(SystemState newSystemState) {
-
+Status::SystemState Status::setSystemState(SystemState newSystemState)
+{
     if (systemState == newSystemState) {
         return systemState;
     }
@@ -238,7 +241,8 @@ int16_t Status::getHighestBatteryTemperature() {
 /*
  * Convert the current state into a string.
  */
-char *Status::systemStateToStr(SystemState state) {
+char *Status::systemStateToStr(SystemState state)
+{
     switch (state) {
     case startup:
         return "unknown";

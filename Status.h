@@ -32,9 +32,11 @@
 #include "Logger.h"
 #include "Sys_Messages.h"
 
-class Status {
+class Status
+{
 public:
-    enum SystemState {
+    enum SystemState
+    {
         startup     = 0, // the system is starting-up (next states: init, error)
         init        = 1, // the system is being initialized and is not ready for operation yet (next states: preCharge, ready, error)
         preCharge   = 2, // the system is initialized and executing the pre-charge cycle (next states: ready, error)

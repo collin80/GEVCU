@@ -28,7 +28,7 @@
 #include "Device.h"
 #include "DeviceManager.h"
 
-Logger::LogLevel Logger::logLevel = Logger::Info;
+Logger::LogLevel Logger::logLevel = CFG_DEFAULT_LOGLEVEL;
 uint32_t Logger::lastLogTime = 0;
 bool Logger::debugging = false;
 Logger::LogLevel *Logger::deviceLoglevel = new Logger::LogLevel[deviceIdsSize];
