@@ -266,9 +266,10 @@ bool PrefHandler::checksumValid()
 }
 
 /*
- * Write all dirty pages of the cache to the eeprom
+ * Write first dirty page of the cache to the eeprom
  */
-void PrefHandler::forceCacheWrite()
+void PrefHandler::suggestCacheWrite()
 {
-    memCache.FlushAllPages();
+    // we don't call FlushAllPages because this would kill the timing (delay(10))
+    memCache.FlushSinglePage();
 }

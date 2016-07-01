@@ -61,7 +61,7 @@ public:
     uint8_t calcChecksum();
     void saveChecksum();
     bool checksumValid();
-    void forceCacheWrite();
+    void suggestCacheWrite();
     bool isEnabled();
     bool setEnabled(bool en);
 

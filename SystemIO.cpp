@@ -200,7 +200,7 @@ void SystemIO::handleCooling() {
             setCoolingPump(true);
         }
     } else {
-        if (!status.coolingPump) {
+        if (status.coolingPump) {
             setCoolingPump(false);
         }
     }
@@ -1017,7 +1017,7 @@ void SystemIO::saveEnergyConsumption()
     Logger::info("storing energy consumption: %.2fkWh", (float)status.energyConsumption / 3600000.0f);
     prefsHandler->write(EESYS_ENEGRY_CONSUMPTION, status.energyConsumption);
     prefsHandler->saveChecksum();
-    prefsHandler->forceCacheWrite();
+    prefsHandler->suggestCacheWrite();
 }
 
 SystemIOConfiguration *SystemIO::getConfiguration() {
