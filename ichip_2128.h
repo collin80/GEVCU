@@ -85,6 +85,7 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include "DeviceTypes.h"
 #include "ELM327Processor.h"
 #include "BrusaDMC5.h"
+#include "WebSocket.h"
 
 enum ICHIP_COMM_STATE {IDLE, GET_PARAM, SET_PARAM, START_TCP_LISTENER, GET_ACTIVE_SOCKETS, POLL_SOCKET, SEND_SOCKET, GET_SOCKET};
 
@@ -94,31 +95,6 @@ enum ICHIP_COMM_STATE {IDLE, GET_PARAM, SET_PARAM, START_TCP_LISTENER, GET_ACTIV
 class WifiConfiguration : public DeviceConfiguration
 {
 public:
-};
-
-/**
- * Cache of param values to avoid sending an update unless changed
- */
-struct ParamCache {
-    uint32_t timeRunning;
-    int16_t torqueRequested;
-    int16_t torqueActual;
-    int16_t throttle;
-    int16_t brake;
-    int16_t speedActual;
-    int16_t dcVoltage;
-    int16_t dcCurrent;
-	int16_t acCurrent;
-	int16_t nominalVolt;
-    int16_t kiloWattHours;
-    uint32_t bitfield1;
-    uint32_t bitfield2;
-    uint32_t bitfield3;
-    uint8_t systemState;
-    MotorController::Gears gear;
-    int16_t temperatureMotor;
-    int16_t temperatureController;
-    int16_t mechanicalPower;
 };
 
 struct SendBuff {
@@ -136,34 +112,33 @@ public:
     void tearDown();
     void handleTick(); //periodic processes
     void handleMessage(uint32_t messageType, void* message);
+    void handleStateChange(Status::SystemState, Status::SystemState);
     DeviceType getType();
     DeviceId getId();
     void loop();
-    char *getTimeRunning();
-
 
     void loadConfiguration();
     void saveConfiguration();
 
 private:
     ELM327Processor *elmProc;
+    WebSocket *webSocket;
     USARTClass* serialInterface; //Allows for retargetting which serial port we use
-    char incomingBuffer[128]; //storage for one incoming line
+    char incomingBuffer[CFG_WIFI_BUFFER_SIZE]; //storage for one incoming line
     int ibWritePtr; //write position into above buffer
     SendBuff sendBuffer[CFG_SERIAL_SEND_BUFFER_SIZE];
     int psWritePtr;
     int psReadPtr;
     int tickCounter;
     char buffer[30]; // a buffer for various string conversions
-    ParamCache paramCache;
     ICHIP_COMM_STATE state;
     bool didParamLoad;
     bool didTCPListener;
     int listeningSocket;
     int activeSockets[4]; //support for four sockets. Lowest byte is socket #, next byte is size of data waiting in that socket
     uint32_t lastSendTime;
-	String lastSentCmd;
 	ICHIP_COMM_STATE lastSentState;
+    int remainingSocketRead;
 
     void getNextParam(); //get next changed parameter
     void getParamById(String paramName);  //try to retrieve the value of the given parameter
@@ -176,7 +151,13 @@ private:
     void setParam(String paramName, float value, int precision);
     void sendCmd(String cmd);
     void sendCmd(String cmd, ICHIP_COMM_STATE cmdstate);
+    void sendBufferedCommand();
     void sendToSocket(int socket, String data);
+    void processStartTcpListenerRepsonse();
+    void processGetActiveSocketsResponse();
+    void processSocketGetResponse();
+    void processSocketSendResponse();
+    void closeSockets();
     void processParameterChange(char *response);
     bool processParameterChangeThrottle(char *key, char *value);
     bool processParameterChangeBrake(char *key, char *value);
@@ -193,7 +174,9 @@ private:
     void loadParametersDcDc();
     void loadParametersSystemIO();
     void loadParametersDevices();
+    void loadParametersDashboard();
     void factoryDefaults();
+    void processSocketResponseSize();
 };
 
 #endif

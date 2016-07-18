@@ -59,7 +59,7 @@ void FaultHandler::handleTick()
     memCache.Write(EE_FAULT_LOG + EEFAULT_RUNTIME, globalTime);
 }
 
-uint16_t FaultHandler::raiseFault(uint16_t device, uint16_t code, bool ongoing = false)
+void FaultHandler::raiseFault(uint16_t device, uint16_t code, bool ongoing = false)
 {
     bool incPtr = false;
     globalTime = baseTime + (millis() / 100);
@@ -96,7 +96,7 @@ uint16_t FaultHandler::raiseFault(uint16_t device, uint16_t code, bool ongoing =
         //Cause the page to be immediately fully aged so that it is written very soon.
         memCache.AgeFullyAddress(EE_FAULT_LOG + EEFAULT_WRITEPTR);
         //Also announce fault on the console
-        Logger::error(FAULTSYS, "Fault %x raised by device %x at uptime %i", code, device, globalTime);
+        Logger::error("Fault %#x raised by device %#x at uptime %i", code, device, globalTime);
     }
 }
 

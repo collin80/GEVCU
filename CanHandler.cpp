@@ -74,6 +74,11 @@ void CanHandler::setup()
  */
 void CanHandler::attach(CanObserver* observer, uint32_t id, uint32_t mask, bool extended)
 {
+    if (isAttached(observer, id, mask)) {
+        Logger::warn("CanObserver %#x is already attached with id %#x and mask %#x on bus %d", observer, id, mask, canBusNode);
+        return;
+    }
+
     int8_t pos = findFreeObserverData();
 
     if (pos == -1) {
@@ -96,7 +101,26 @@ void CanHandler::attach(CanObserver* observer, uint32_t id, uint32_t mask, bool 
 
     bus->setRXFilter((uint8_t) mailbox, id, mask, extended);
 
-    Logger::debug("attached CanObserver (%X) for id=%X, mask=%X, mailbox=%d", observer, id, mask, mailbox);
+    Logger::debug("attached CanObserver (%#x) for id=%#x, mask=%#x, mailbox=%d", observer, id, mask, mailbox);
+}
+
+/*
+ * Check if a observer is attached to this handler.
+ *
+ * \param observer - observer object to search
+ * \param id - CAN id of the observer to search
+ * \param mask - CAN mask of the observer to search
+ */
+bool CanHandler::isAttached(CanObserver* observer, uint32_t id, uint32_t mask)
+{
+    for (int i = 0; i < CFG_CAN_NUM_OBSERVERS; i++) {
+        if (observerData[i].observer == observer &&
+                observerData[i].id == id &&
+                observerData[i].mask == mask) {
+            return true;
+        }
+    }
+    return false;
 }
 
 /*
@@ -127,7 +151,7 @@ void CanHandler::detach(CanObserver* observer, uint32_t id, uint32_t mask)
 void CanHandler::logFrame(CAN_FRAME& frame)
 {
     if (Logger::isDebug()) {
-        Logger::debug("CAN: dlc=%X fid=%X id=%X ide=%X rtr=%X data=%X,%X,%X,%X,%X,%X,%X,%X",
+        Logger::debug("CAN: dlc=%#x fid=%#x id=%#x ide=%#x rtr=%#x data=%#x,%#x,%#x,%#x,%#x,%#x,%#x,%#x",
                       frame.length, frame.fid, frame.id, frame.extended, frame.rtr,
                       frame.data.bytes[0], frame.data.bytes[1], frame.data.bytes[2], frame.data.bytes[3],
                       frame.data.bytes[4], frame.data.bytes[5], frame.data.bytes[6], frame.data.bytes[7]);
@@ -143,32 +167,6 @@ int8_t CanHandler::findFreeObserverData()
 {
     for (int i = 0; i < CFG_CAN_NUM_OBSERVERS; i++) {
         if (observerData[i].observer == NULL) {
-            return i;
-        }
-    }
-
-    return -1;
-}
-
-/*
- * Find a unused can mailbox according to entries in observerData[].
- *
- * \retval the mailbox index of the next unused mailbox
- */
-int8_t CanHandler::findFreeMailbox()
-{
-    uint8_t numRxMailboxes = 8 - (canBusNode == CAN_BUS_EV ? CFG_CAN0_NUM_TX_MAILBOXES : CFG_CAN1_NUM_TX_MAILBOXES);
-
-    for (uint8_t i = 0; i < numRxMailboxes; i++) {
-        bool used = false;
-
-        for (uint8_t j = 0; j < CFG_CAN_NUM_OBSERVERS; j++) {
-            if (observerData[j].observer != NULL && observerData[j].mailbox == i) {
-                used = true;
-            }
-        }
-
-        if (!used) {
             return i;
         }
     }

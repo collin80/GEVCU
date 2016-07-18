@@ -32,7 +32,8 @@ Status status;
 /*
  * Constructor
  */
-Status::Status() {
+Status::Status()
+{
     systemState = startup;
 
     limitationTorque                = false;
@@ -111,15 +112,22 @@ Status::Status() {
     interlockPresent    = false;
     reverseInput        = false;
 
+    energyConsumption = 0;
+    flowCoolant = 0;
+    flowHeater = 0;
+
     for (int i = 0; i < CFG_NUMBER_DIGITAL_OUTPUTS; i++) {
         digitalOutput[i] = false;
     }
     for (int i = 0; i < CFG_NUMBER_DIGITAL_INPUTS; i++) {
         digitalInput[i] = false;
     }
-    for (int i = 0; i < CFG_NUMBER_TEMPERATURE_SENSORS; i++) {
-        externalTemperature[i] = CFG_NO_TEMPERATURE_DATA;
+    for (int i = 0; i < CFG_NUMBER_BATTERY_TEMPERATURE_SENSORS; i++) {
+        temperatureBattery[i] = CFG_NO_TEMPERATURE_DATA;
     }
+    temperatureCoolant = CFG_NO_TEMPERATURE_DATA;
+    temperatureHeater = CFG_NO_TEMPERATURE_DATA;
+    temperatureExterior = CFG_NO_TEMPERATURE_DATA;
 
     stateOfCharge = 0;
 }
@@ -127,7 +135,8 @@ Status::Status() {
 /*
  * Retrieve the current system state.
  */
-Status::SystemState Status::getSystemState() {
+Status::SystemState Status::getSystemState()
+{
     return systemState;
 }
 
@@ -135,9 +144,10 @@ Status::SystemState Status::getSystemState() {
  * Set a new system state. The new system state is validated if the
  * transition is allowed from the old state. If an invalid transition is
  * attempted, the new state will be 'error'.
+ * The old and new state are broadcast to all devices.
  */
-Status::SystemState Status::setSystemState(SystemState newSystemState) {
-
+Status::SystemState Status::setSystemState(SystemState newSystemState)
+{
     if (systemState == newSystemState) {
         return systemState;
     }
@@ -179,7 +189,7 @@ Status::SystemState Status::setSystemState(SystemState newSystemState) {
             }
             break;
         case charged:
-            if (newSystemState == ready) {
+            if (newSystemState == ready || newSystemState == shutdown) {
                 systemState = newSystemState;
             }
             break;
@@ -190,11 +200,6 @@ Status::SystemState Status::setSystemState(SystemState newSystemState) {
             break;
         case running:
             if (newSystemState == ready) {
-                systemState = newSystemState;
-            }
-            break;
-        case error:
-            if (newSystemState == init) {
                 systemState = newSystemState;
             }
             break;
@@ -213,23 +218,21 @@ Status::SystemState Status::setSystemState(SystemState newSystemState) {
     return systemState;
 }
 
-int16_t Status::getLowestExternalTemperature() {
+int16_t Status::getLowestBatteryTemperature() {
     int16_t temp = CFG_NO_TEMPERATURE_DATA;
 
-    for (int i = 0; i < CFG_NUMBER_TEMPERATURE_SENSORS; i++) {
-        if (externalTemperature[i] != CFG_NO_TEMPERATURE_DATA) {
-            temp = min(temp, externalTemperature[i]);
-        }
+    for (int i = 0; i < CFG_NUMBER_BATTERY_TEMPERATURE_SENSORS; i++) {
+        temp = min(temp, temperatureBattery[i]);
     }
     return temp;
 }
 
-int16_t Status::getHighestExternalTemperature() {
+int16_t Status::getHighestBatteryTemperature() {
     int16_t temp = -9999;
 
-    for (int i = 0; i < CFG_NUMBER_TEMPERATURE_SENSORS; i++) {
-        if (externalTemperature[i] != CFG_NO_TEMPERATURE_DATA) {
-            temp = max(temp, externalTemperature[i]);
+    for (int i = 0; i < CFG_NUMBER_BATTERY_TEMPERATURE_SENSORS; i++) {
+        if (temperatureBattery[i] != CFG_NO_TEMPERATURE_DATA) {
+            temp = max(temp, temperatureBattery[i]);
         }
     }
     return (temp == -9999 ? CFG_NO_TEMPERATURE_DATA : temp);
@@ -238,7 +241,8 @@ int16_t Status::getHighestExternalTemperature() {
 /*
  * Convert the current state into a string.
  */
-char *Status::systemStateToStr(SystemState state) {
+char *Status::systemStateToStr(SystemState state)
+{
     switch (state) {
     case startup:
         return "unknown";
@@ -260,6 +264,8 @@ char *Status::systemStateToStr(SystemState state) {
         return "charging";
     case charged:
         return "charged";
+    case shutdown:
+        return "shut-down";
     }
     Logger::error("the system state is invalid, contact your support!");
     return "invalid";
@@ -401,4 +407,12 @@ uint32_t Status::getBitField3() {
     bitfield |= (digitalInput[3]                    ? 1 << 31 : 0); // 0x80000000
 
     return bitfield;
+}
+
+/*
+ * Get energy consumption in 0.1kWh
+ */
+uint16_t Status::getEnergyConsumption()
+{
+    return energyConsumption / 360000;
 }

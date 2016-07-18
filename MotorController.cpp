@@ -43,14 +43,13 @@ MotorController::MotorController() :
     torqueRequested = 0;
     torqueActual = 0;
     torqueAvailable = 0;
-    mechanicalPower = 0;
 
     dcVoltage = 0;
     dcCurrent = 0;
     acCurrent = 0;
-    kiloWattHours = 0;
-    milliStamp = 0;
-    skipcounter = 0;
+    lastTick = 0;
+    slewTimestamp = millis();
+    saveEnergyConsumption = false;
     ticksNoMessage = 0;
 }
 
@@ -60,30 +59,33 @@ DeviceType MotorController::getType()
 }
 
 /*
- * Calculate mechanical power and add power consumption to kWh counter.
+ * Calculate mechanical power and add energy consumption to kWh counter.
  */
-void MotorController::updatePowerConsumption()
+void MotorController::updateEnergyConsumption()
 {
     MotorControllerConfiguration *config = (MotorControllerConfiguration *) getConfiguration();
-    uint32_t currentMillis = millis();
+    uint32_t timeStamp = millis();
 
     if (running) {
-        mechanicalPower = dcVoltage * dcCurrent / 10000; //In kilowatts. DC voltage is x10
+        //If our voltage is higher than fully charged with no regen, zero our meter
         if (dcVoltage > config->nominalVolt && torqueActual > 0) {
-            kiloWattHours = 1; //If our voltage is higher than fully charged with no regen, zero our kwh meter
+            status.energyConsumption = 0;
         }
-        if (milliStamp > currentMillis) {
-            milliStamp = 0; //In case millis rolls over to zero while running
-        }
-        kiloWattHours += (currentMillis - milliStamp) * mechanicalPower; //We assume here that power is at current level since last tick and accrue in kilowattmilliseconds.
-        milliStamp = currentMillis; //reset our kwms timer for next check
+        // we're actually calculating kilowatt-milliseconds which is the same as watt seconds
+        status.energyConsumption += (int32_t)(timeStamp - lastTick) * getMechanicalPower() / 1000;
 
-        if (skipcounter++ > 30) {
-            prefsHandler->write(EEMC_KILOWATTHRS, kiloWattHours);
-            prefsHandler->saveChecksum();
-            skipcounter = 0;
+        if (speedActual == 0) { // save at stand-still
+            if (saveEnergyConsumption) {
+                systemIO.saveEnergyConsumption();
+                saveEnergyConsumption = false;
+            }
+        } else {
+            if (speedActual > 1000) { // prevent activation when crawling in a queue
+                saveEnergyConsumption = true;
+            }
         }
     }
+    lastTick = timeStamp; //reset our timer for next check
 }
 
 /*
@@ -131,7 +133,7 @@ void MotorController::processThrottleLevel()
     boolean disableSlew = false;
 
     throttleLevel = 0; //force to zero in case not in operational condition
-powerOn = true; ready= true;
+    speedRequested = 0;
     if (powerOn && ready) {
         if (accelerator) {
             throttleLevel = accelerator->getLevel();
@@ -142,49 +144,34 @@ powerOn = true; ready= true;
             disableSlew = true;
         }
         if (config->powerMode == modeSpeed) {
-            int16_t speedTarget = throttleLevel * config->speedMax / 1000;
+            int32_t speedTarget = throttleLevel * config->speedMax / 1000;
             torqueRequested = config->torqueMax;
-        } else {
-            // torque mode
+        } else {  // torque mode
             speedRequested = config->speedMax;
-            int16_t torqueTarget = throttleLevel * config->torqueMax / 1000;
+            int32_t torqueTarget = throttleLevel * config->torqueMax / 1000;
 
-            if (config->slewType == 0 || disableSlew) {
+            if (config->slewRate == 0 || disableSlew) {
                 torqueRequested = torqueTarget;
             } else {
                 uint32_t currentTimestamp = millis();
+                uint16_t slewPart = 0;
 
-                // no torque or requested and target have different sign -> request 0 power
-                if (torqueTarget == 0 || (torqueTarget < 0 && torqueRequested > 0) || (torqueTarget > 0 && torqueRequested < 0)) {
-                    torqueRequested = 0;
-                } else if (abs(torqueTarget) <= abs(torqueRequested)) { // target closer to 0 then last time -> no slew, reduce power immediately
-                    torqueRequested = torqueTarget;
-                } else { // increase power -> apply slew
-                    uint16_t slewPart = 0;
-                    if (config->slewType == 2) { // exponential
-                        slewPart = 0; //TODO
-                    } else { // linear
-                        slewPart = config->torqueMax * config->slewRate / 1000 * (currentTimestamp - slewTimestamp) / 1000;
+                slewPart = config->torqueMax * config->slewRate / 1000 * (currentTimestamp - slewTimestamp) / 1000;
+                if (torqueTarget < torqueRequested) {
+                    torqueRequested -= slewPart;
+                    if (torqueRequested < torqueTarget) {
+                        torqueRequested = torqueTarget;
                     }
-                    if (torqueTarget < 0) {
-                        torqueRequested -= slewPart;
-                        if (torqueRequested < torqueTarget) {
-                            torqueRequested = torqueTarget;
-                        }
-                    } else {
-                        torqueRequested += slewPart;
-                        if (torqueRequested > torqueTarget) {
-                            torqueRequested = torqueTarget;
-                        }
+                } else {
+                    torqueRequested += slewPart;
+                    if (torqueRequested > torqueTarget) {
+                        torqueRequested = torqueTarget;
                     }
                 }
-//Logger::info("torque target: %l, requested: %l", torqueTarget, torqueRequested);
+//Logger::info("torque target: %ld, requested: %ld", torqueTarget, torqueRequested);
                 slewTimestamp = currentTimestamp;
             }
         }
-    } else {
-        torqueRequested = 0;
-        speedRequested = 0;
     }
 }
 
@@ -204,10 +191,10 @@ void MotorController::handleTick()
     processThrottleLevel();
     updateGear();
 
-    updatePowerConsumption();
+    updateEnergyConsumption();
 
     if (Logger::isDebug()) {
-        Logger::debug(getId(), "throttle: %f%%, requested Speed: %l rpm, requested Torque: %f Nm, gear: %d", throttleLevel / 10.0f, speedRequested,
+        Logger::debug(this, "throttle: %f%%, requested Speed: %ld rpm, requested Torque: %f Nm, gear: %d", throttleLevel / 10.0f, speedRequested,
                 torqueRequested / 10.0F, gear);
     }
 }
@@ -230,6 +217,7 @@ void MotorController::handleStateChange(Status::SystemState oldState, Status::Sy
         throttleLevel = 0;
         gear = NEUTRAL;
     }
+
     systemIO.setEnableMotor(newState == Status::ready || newState == Status::running);
 }
 
@@ -237,9 +225,7 @@ void MotorController::setup()
 {
     Device::setup();
 
-    MotorControllerConfiguration *config = (MotorControllerConfiguration *) getConfiguration();
-    prefsHandler->read(EEMC_KILOWATTHRS, &kiloWattHours);  //retrieve kilowatt hours from EEPROM
-
+    saveEnergyConsumption = false;
     slewTimestamp = millis();
 }
 
@@ -304,14 +290,12 @@ uint16_t MotorController::getAcCurrent()
     return acCurrent;
 }
 
-uint32_t MotorController::getKiloWattHours()
+/**
+ * Return mechanical power in Watts
+ */
+int32_t MotorController::getMechanicalPower()
 {
-    return kiloWattHours;
-}
-
-int16_t MotorController::getMechanicalPower()
-{
-    return mechanicalPower;
+    return dcVoltage * dcCurrent / 100;
 }
 
 int16_t MotorController::getTemperatureMotor()
@@ -329,7 +313,7 @@ void MotorController::loadConfiguration()
     MotorControllerConfiguration *config = (MotorControllerConfiguration *) getConfiguration();
 
     Device::loadConfiguration(); // call parent
-    Logger::info(getId(), "Motor controller configuration:");
+    Logger::info(this, "Motor controller configuration:");
 
 #ifdef USE_HARD_CODED
 
@@ -343,7 +327,6 @@ void MotorController::loadConfiguration()
         config->invertDirection = temp;
         prefsHandler->read(EEMC_MAX_RPM, &config->speedMax);
         prefsHandler->read(EEMC_MAX_TORQUE, &config->torqueMax);
-        prefsHandler->read(EEMC_SLEW_TYPE, &config->slewType);
         prefsHandler->read(EEMC_SLEW_RATE, &config->slewRate);
         prefsHandler->read(EEMC_MAX_MECH_POWER_MOTOR, &config->maxMechanicalPowerMotor);
         prefsHandler->read(EEMC_MAX_MECH_POWER_REGEN, &config->maxMechanicalPowerRegen);
@@ -354,7 +337,6 @@ void MotorController::loadConfiguration()
         config->invertDirection = false;
         config->speedMax = MaxRPMValue;
         config->torqueMax = MaxTorqueValue;
-        config->slewType = SlewType;
         config->slewRate = SlewRateValue;
         config->maxMechanicalPowerMotor = 2000;
         config->maxMechanicalPowerRegen = 400;
@@ -363,10 +345,9 @@ void MotorController::loadConfiguration()
         config->powerMode = modeTorque;
     }
 
-    Logger::info(getId(), "Power mode: %s, Max torque: %i, Max RPM: %i", (config->powerMode == modeTorque ? "torque" : "speed"), config->torqueMax,
-            config->speedMax);
-    Logger::info(getId(), "Slew rate: %i, Slew rate: %i", config->slewRate, config->slewType);
-    Logger::info(getId(), "Max mech power motor: %fkW, Max mech power regen: %fkW", config->maxMechanicalPowerMotor / 10.0f,
+    Logger::info(this, "Power mode: %s, Max torque: %i", (config->powerMode == modeTorque ? "torque" : "speed"), config->torqueMax);
+    Logger::info(this, "Max RPM: %i, Slew rate: %i", config->speedMax, config->slewRate);
+    Logger::info(this, "Max mech power motor: %fkW, Max mech power regen: %fkW", config->maxMechanicalPowerMotor / 10.0f,
             config->maxMechanicalPowerRegen / 10.0f);
 }
 
@@ -379,7 +360,6 @@ void MotorController::saveConfiguration()
     prefsHandler->write(EEMC_INVERT_DIRECTION, (uint8_t) (config->invertDirection ? 1 : 0));
     prefsHandler->write(EEMC_MAX_RPM, config->speedMax);
     prefsHandler->write(EEMC_MAX_TORQUE, config->torqueMax);
-    prefsHandler->write(EEMC_SLEW_TYPE, config->slewType);
     prefsHandler->write(EEMC_SLEW_RATE, config->slewRate);
     prefsHandler->write(EEMC_REVERSE_LIMIT, config->reversePercent);
     prefsHandler->write(EEMC_NOMINAL_V, config->nominalVolt);

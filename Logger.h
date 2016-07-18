@@ -32,6 +32,8 @@
 #include "DeviceTypes.h"
 #include "constants.h"
 
+class Device;
+
 class Logger
 {
 public:
@@ -44,25 +46,28 @@ public:
         Off = 4
     };
     static void debug(char *, ...);
-    static void debug(DeviceId, char *, ...);
+    static void debug(Device *, char *, ...);
     static void info(char *, ...);
-    static void info(DeviceId, char *, ...);
+    static void info(Device *, char *, ...);
     static void warn(char *, ...);
-    static void warn(DeviceId, char *, ...);
+    static void warn(Device *, char *, ...);
     static void error(char *, ...);
-    static void error(DeviceId, char *, ...);
+    static void error(Device *, char *, ...);
     static void console(char *, ...);
     static void setLoglevel(LogLevel);
+    static void setLoglevel(Device *, LogLevel);
     static LogLevel getLogLevel();
+    static LogLevel getLogLevel(Device *);
     static uint32_t getLastLogTime();
     static boolean isDebug();
 private:
     static LogLevel logLevel;
     static uint32_t lastLogTime;
+    static bool debugging;
+    static LogLevel *deviceLoglevel;
+    static char *msgBuffer;
 
-    static void log(DeviceId, LogLevel, char *format, va_list);
-    static void logMessage(char *format, va_list args);
-    static void printDeviceName(DeviceId);
+    static void log(char *, LogLevel, char *format, va_list);
 };
 
 #endif /* LOGGER_H_ */

@@ -25,9 +25,14 @@
  */
 
 #include "Logger.h"
+#include "Device.h"
+#include "DeviceManager.h"
 
-Logger::LogLevel Logger::logLevel = Logger::Info;
+Logger::LogLevel Logger::logLevel = CFG_DEFAULT_LOGLEVEL;
 uint32_t Logger::lastLogTime = 0;
+bool Logger::debugging = false;
+Logger::LogLevel *Logger::deviceLoglevel = new Logger::LogLevel[deviceIdsSize];
+char *Logger::msgBuffer = new char[CFG_LOG_BUFFER_SIZE];
 
 /*
  * Output a debug message with a variable amount of parameters.
@@ -42,7 +47,7 @@ void Logger::debug(char *message, ...)
 
     va_list args;
     va_start(args, message);
-    Logger::log((DeviceId) NULL, Debug, message, args);
+    Logger::log(NULL, Debug, message, args);
     va_end(args);
 }
 
@@ -50,15 +55,15 @@ void Logger::debug(char *message, ...)
  * Output a debug message with the name of a device appended before the message
  * printf() style, see Logger::log()
  */
-void Logger::debug(DeviceId deviceId, char *message, ...)
+void Logger::debug(Device *device, char *message, ...)
 {
-    if (logLevel > Debug) {
+    if (getLogLevel(device) > Debug) {
         return;
     }
 
     va_list args;
     va_start(args, message);
-    Logger::log(deviceId, Debug, message, args);
+    Logger::log(device->getCommonName(), Debug, message, args);
     va_end(args);
 }
 
@@ -74,7 +79,7 @@ void Logger::info(char *message, ...)
 
     va_list args;
     va_start(args, message);
-    Logger::log((DeviceId) NULL, Info, message, args);
+    Logger::log(NULL, Info, message, args);
     va_end(args);
 }
 
@@ -82,15 +87,15 @@ void Logger::info(char *message, ...)
  * Output a info message with the name of a device appended before the message
  * printf() style, see Logger::log()
  */
-void Logger::info(DeviceId deviceId, char *message, ...)
+void Logger::info(Device *device, char *message, ...)
 {
-    if (logLevel > Info) {
+    if (getLogLevel(device) > Info) {
         return;
     }
 
     va_list args;
     va_start(args, message);
-    Logger::log(deviceId, Info, message, args);
+    Logger::log(device->getCommonName(), Info, message, args);
     va_end(args);
 }
 
@@ -106,7 +111,7 @@ void Logger::warn(char *message, ...)
 
     va_list args;
     va_start(args, message);
-    Logger::log((DeviceId) NULL, Warn, message, args);
+    Logger::log(NULL, Warn, message, args);
     va_end(args);
 }
 
@@ -114,15 +119,15 @@ void Logger::warn(char *message, ...)
  * Output a warning message with the name of a device appended before the message
  * printf() style, see Logger::log()
  */
-void Logger::warn(DeviceId deviceId, char *message, ...)
+void Logger::warn(Device *device, char *message, ...)
 {
-    if (logLevel > Warn) {
+    if (getLogLevel(device) > Warn) {
         return;
     }
 
     va_list args;
     va_start(args, message);
-    Logger::log(deviceId, Warn, message, args);
+    Logger::log(device->getCommonName(), Warn, message, args);
     va_end(args);
 }
 
@@ -138,7 +143,7 @@ void Logger::error(char *message, ...)
 
     va_list args;
     va_start(args, message);
-    Logger::log((DeviceId) NULL, Error, message, args);
+    Logger::log(NULL, Error, message, args);
     va_end(args);
 }
 
@@ -146,15 +151,15 @@ void Logger::error(char *message, ...)
  * Output a error message with the name of a device appended before the message
  * printf() style, see Logger::log()
  */
-void Logger::error(DeviceId deviceId, char *message, ...)
+void Logger::error(Device *device, char *message, ...)
 {
-    if (logLevel > Error) {
+    if (getLogLevel(device) > Error) {
         return;
     }
 
     va_list args;
     va_start(args, message);
-    Logger::log(deviceId, Error, message, args);
+    Logger::log(device->getCommonName(), Error, message, args);
     va_end(args);
 }
 
@@ -166,23 +171,59 @@ void Logger::console(char *message, ...)
 {
     va_list args;
     va_start(args, message);
-    Logger::logMessage(message, args);
+    vsnprintf(msgBuffer, CFG_LOG_BUFFER_SIZE, message, args);
+    SerialUSB.println(msgBuffer);
     va_end(args);
 }
 
 /*
  * Set the log level. Any output below the specified log level will be omitted.
+ * Also set the debugging flag for faster evaluation in isDebug().
  */
 void Logger::setLoglevel(LogLevel level)
 {
     logLevel = level;
+    for (int deviceEntry = 0; deviceEntry < deviceIdsSize; deviceEntry ++) {
+		deviceLoglevel[deviceEntry] = level;
+    }
+    debugging = (level == Debug);
 }
 
+/*
+ * Set the log level for a specific device. If one device has Debugging loglevel set, also set the
+ * debugging flag (for faster evaluation in isDebug()).
+ */
+void Logger::setLoglevel(Device *device, LogLevel level)
+{
+Logger::console("setting loglevel for device '%s' to %d", device->getCommonName(), level);
+	debugging = false;
+    for (int deviceEntry = 0; deviceEntry < deviceIdsSize; deviceEntry ++) {
+    	if (deviceIds[deviceEntry] == device->getId()) {
+    		deviceLoglevel[deviceEntry] = level;
+    	}
+    	if (deviceLoglevel[deviceEntry] == Debug) {
+    		debugging = true;
+    	}
+    }
+}
 /*
  * Retrieve the current log level.
  */
 Logger::LogLevel Logger::getLogLevel()
 {
+    return logLevel;
+}
+
+/*
+ * Retrieve the specific log level of a device
+ */
+Logger::LogLevel Logger::getLogLevel(Device *device)
+{
+    for (int deviceEntry = 0; deviceEntry < deviceIdsSize; deviceEntry ++) {
+    	if (deviceIds[deviceEntry] == device->getId()) {
+    		return deviceLoglevel[deviceEntry];
+    	}
+    }
     return logLevel;
 }
 
@@ -206,243 +247,46 @@ uint32_t Logger::getLastLogTime()
  */
 boolean Logger::isDebug()
 {
-    return logLevel == Debug;
+    return debugging;
 }
 
 /*
  * Output a log message (called by debug(), info(), warn(), error(), console())
  *
- * Supports printf() like syntax:
- *
- * %% - outputs a '%' character
- * %s - prints the next parameter as string
- * %d - prints the next parameter as decimal
- * %f - prints the next parameter as double float
- * %x - prints the next parameter as hex value
- * %X - prints the next parameter as hex value with '0x' added before
- * %b - prints the next parameter as binary value
- * %B - prints the next parameter as binary value with '0b' added before
- * %l - prints the next parameter as long
- * %c - prints the next parameter as a character
- * %t - prints the next parameter as boolean ('T' or 'F')
- * %T - prints the next parameter as boolean ('true' or 'false')
+ * Supports printf() syntax
  */
-void Logger::log(DeviceId deviceId, LogLevel level, char *format, va_list args)
+void Logger::log(char *deviceName, LogLevel level, char *format, va_list args)
 {
+    char *logLevel = "DEBUG";
     lastLogTime = millis();
-    SerialUSB.print(lastLogTime);
-    SerialUSB.print(" - ");
 
     switch (level) {
-        case Debug:
-            SerialUSB.print("DEBUG");
-            break;
-
         case Info:
-            SerialUSB.print("INFO");
+            logLevel = "INFO";
             break;
-
         case Warn:
-            SerialUSB.print("WARNING");
+            logLevel = "WARNING";
             break;
-
         case Error:
-            SerialUSB.print("ERROR");
+            logLevel = "ERROR";
             break;
     }
+    vsnprintf(msgBuffer, CFG_LOG_BUFFER_SIZE, format, args);
 
-    SerialUSB.print(": ");
-
-    if (deviceId) {
-        printDeviceName(deviceId);
-    }
-
-    logMessage(format, args);
-}
-
-/*
- * Output a log message (called by log(), console())
- *
- * Supports printf() like syntax:
- *
- * %% - outputs a '%' character
- * %s - prints the next parameter as string
- * %d - prints the next parameter as decimal
- * %f - prints the next parameter as double float
- * %x - prints the next parameter as hex value
- * %X - prints the next parameter as hex value with '0x' added before
- * %b - prints the next parameter as binary value
- * %B - prints the next parameter as binary value with '0b' added before
- * %l - prints the next parameter as long
- * %c - prints the next parameter as a character
- * %t - prints the next parameter as boolean ('T' or 'F')
- * %T - prints the next parameter as boolean ('true' or 'false')
- */
-void Logger::logMessage(char *format, va_list args)
-{
-    for (; *format != 0; ++format) {
-        if (*format == '%') {
-            ++format;
-
-            if (*format == '\0') {
-                break;
-            }
-
-            if (*format == '%') {
-                SerialUSB.print(*format);
-                continue;
-            }
-
-            if (*format == 's') {
-                register char *s = (char *) va_arg(args, int);
-                SerialUSB.print(s);
-                continue;
-            }
-
-            if (*format == 'd' || *format == 'i') {
-                SerialUSB.print(va_arg(args, int), DEC);
-                continue;
-            }
-
-            if (*format == 'f') {
-                SerialUSB.print(va_arg(args, double), 2);
-                continue;
-            }
-
-            if (*format == 'x') {
-                SerialUSB.print(va_arg(args, int), HEX);
-                continue;
-            }
-
-            if (*format == 'X') {
-                SerialUSB.print("0x");
-                SerialUSB.print(va_arg(args, int), HEX);
-                continue;
-            }
-
-            if (*format == 'b') {
-                SerialUSB.print(va_arg(args, int), BIN);
-                continue;
-            }
-
-            if (*format == 'B') {
-                SerialUSB.print("0b");
-                SerialUSB.print(va_arg(args, int), BIN);
-                continue;
-            }
-
-            if (*format == 'l') {
-                SerialUSB.print(va_arg(args, long), DEC);
-                continue;
-            }
-
-            if (*format == 'c') {
-                SerialUSB.print(va_arg(args, int));
-                continue;
-            }
-
-            if (*format == 't') {
-                if (va_arg(args, int)) {
-                    SerialUSB.print("T");
-                } else {
-                    SerialUSB.print("F");
-                }
-
-                continue;
-            }
-
-            if (*format == 'T') {
-                if (va_arg(args, int)) {
-                    SerialUSB.print(Constants::trueStr);
-                } else {
-                    SerialUSB.print(Constants::falseStr);
-                }
-
-                continue;
-            }
-
-        }
-
-        SerialUSB.print(*format);
-    }
-
-    SerialUSB.println();
-}
-
-/*
- * When the deviceId is specified when calling the logger, print the name
- * of the device after the log-level. This makes it easier to identify the
- * source of the logged message.
- * NOTE: Should be kept in synch with the defined devices.
- */
-void Logger::printDeviceName(DeviceId deviceId)
-{
-    switch (deviceId) {
-        case DMOC645:
-            SerialUSB.print("DMOC645");
-            break;
-
-        case CODAUQM:
-            SerialUSB.print("CODAUQM");
-            break;
-
-        case BRUSA_DMC5:
-            SerialUSB.print("DMC5");
-            break;
-
-        case BRUSA_NLG5:
-            SerialUSB.print("NLG5");
-            break;
-
-        case BRUSA_BSC6:
-            SerialUSB.print("BSC6");
-            break;
-
-        case TCCHCHARGE:
-            SerialUSB.print("TCCH");
-            break;
-
-        case POTACCELPEDAL:
-            SerialUSB.print("POTACCEL");
-            break;
-
-        case POTBRAKEPEDAL:
-            SerialUSB.print("POTBRAKE");
-            break;
-
-        case CANACCELPEDAL:
-            SerialUSB.print("CANACCEL");
-            break;
-
-        case CANBRAKEPEDAL:
-            SerialUSB.print("CANBRAKE");
-            break;
-
-        case ICHIP2128:
-            SerialUSB.print("ICHIP");
-            break;
-
-        case THINKBMS:
-            SerialUSB.print("THINKBMS");
-            break;
-
-        case SYSTEM:
-            SerialUSB.print("SYSTEM");
-            break;
-
-        case HEARTBEAT:
-            SerialUSB.print("HEARTBEAT");
-            break;
-
-        case MEMCACHE:
-            SerialUSB.print("MEMCACHE");
-            break;
-
-        case CANIO:
-            SerialUSB.print("CANIO");
-            break;
-    }
-
+    // print to serial USB
+    SerialUSB.print(lastLogTime);
     SerialUSB.print(" - ");
+    SerialUSB.print(logLevel);
+    SerialUSB.print(": ");
+    if (deviceName) {
+        SerialUSB.print(deviceName);
+        SerialUSB.print(" - ");
+    }
+    SerialUSB.println(msgBuffer);
 
+    // send to wifi
+    if (level != Debug) {
+        char *params[] = { logLevel, deviceName, msgBuffer };
+        deviceManager.sendMessage(DEVICE_WIFI, INVALID, MSG_LOG, params);
+    }
 }

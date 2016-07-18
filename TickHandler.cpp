@@ -58,6 +58,11 @@ TickHandler::TickHandler()
  */
 void TickHandler::attach(TickObserver* observer, uint32_t interval)
 {
+    if (isAttached(observer, interval)) {
+        Logger::warn("TickObserver %#x is already attached with interval %d", observer, interval);
+        return;
+    }
+
     int timer = findTimer(interval);
 
     if (timer == -1) {
@@ -79,7 +84,7 @@ void TickHandler::attach(TickObserver* observer, uint32_t interval)
     }
 
     timerEntry[timer].observer[observerIndex] = observer;
-    Logger::debug("attached TickObserver (%X) as number %d to timer %d, %dus interval", observer, observerIndex, timer, interval);
+    Logger::debug("attached TickObserver (%#x) as number %d to timer %d, %dus interval", observer, observerIndex, timer, interval);
 
     switch (timer) { // restarting a timer which would already be running is no problem (see DueTimer.cpp)
         case 0:
@@ -120,6 +125,25 @@ void TickHandler::attach(TickObserver* observer, uint32_t interval)
     }
 }
 
+/*
+ * Check if a observer is attached to this handler.
+ *
+ * \param observer - observer object to search
+ * \param interval - interval of the observer to search
+ */
+bool TickHandler::isAttached(TickObserver* observer, uint32_t interval)
+{
+    for (int timer = 0; timer < NUM_TIMERS; timer++) {
+        for (int observerIndex = 0; observerIndex < CFG_TIMER_NUM_OBSERVERS; observerIndex++) {
+            if (timerEntry[timer].observer[observerIndex] == observer &&
+                    timerEntry[timer].interval == interval) {
+                return true;
+            }
+        }
+    }
+    return false;
+}
+
 /**
  * Remove an observer from all timers where it was registered.
  */
@@ -128,7 +152,7 @@ void TickHandler::detach(TickObserver* observer)
     for (int timer = 0; timer < NUM_TIMERS; timer++) {
         for (int observerIndex = 0; observerIndex < CFG_TIMER_NUM_OBSERVERS; observerIndex++) {
             if (timerEntry[timer].observer[observerIndex] == observer) {
-                Logger::debug("removing TickObserver (%X) as number %d from timer %d", observer, observerIndex, timer);
+                Logger::debug("removing TickObserver (%#x) as number %d from timer %d", observer, observerIndex, timer);
                 timerEntry[timer].observer[observerIndex] = NULL;
             }
         }
@@ -169,9 +193,14 @@ int TickHandler::findObserver(int timer, TickObserver *observer)
 void TickHandler::process()
 {
     while (bufferHead != bufferTail) {
-        tickBuffer[bufferTail]->handleTick();
+        if (tickBuffer[bufferTail] == NULL) {
+            Logger::error("tickBuffer pointer mismatch");
+        } else {
+//            Logger::debug("tickHandler->process, bufferHead=%d bufferTail=%d", bufferHead, bufferTail);
+            tickBuffer[bufferTail]->handleTick();
+            tickBuffer[bufferTail] = NULL;
+        }
         bufferTail = (bufferTail + 1) % CFG_TIMER_BUFFER_SIZE;
-        //Logger::debug("process, bufferHead=%d bufferTail=%d", bufferHead, bufferTail);
     }
 }
 
@@ -190,7 +219,7 @@ void TickHandler::handleInterrupt(int timerNumber)
         if (timerEntry[timerNumber].observer[i] != NULL) {
             tickBuffer[bufferHead] = timerEntry[timerNumber].observer[i];
             bufferHead = (bufferHead + 1) % CFG_TIMER_BUFFER_SIZE;
-//Logger::debug("bufferHead=%d, bufferTail=%d, observer=%d", bufferHead, bufferTail, timerEntry[timerNumber].observer[i]);
+//            Logger::debug("tickHandler->handle bufferHead=%d, bufferTail=%d, observer=%d", bufferHead, bufferTail, timerEntry[timerNumber].observer[i]);
         }
     }
 }

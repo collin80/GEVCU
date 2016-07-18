@@ -55,7 +55,6 @@ public:
     bool invertDirection; // should an AC motor run in reverse mode? (e.g. negative speed for forward motion)
     uint16_t speedMax; // in rpm
     uint16_t torqueMax; // maximum torque in 0.1 Nm
-    uint8_t slewType; //  curve type of slew rate, 0=off, 1=linear, 2=exponential
     uint16_t slewRate; // slew rate of torque/speed value in 0.1 percent/sec
     uint16_t maxMechanicalPowerMotor; // maximal mechanical power of motor in 100W steps
     uint16_t maxMechanicalPowerRegen; // maximal mechanical power of regen in 100W steps
@@ -96,8 +95,7 @@ public:
     uint16_t getDcVoltage();
     int16_t getDcCurrent();
     uint16_t getAcCurrent();
-    uint32_t getKiloWattHours();
-    int16_t getMechanicalPower();
+    int32_t getMechanicalPower();
     int16_t getTemperatureMotor();
     int16_t getTemperatureController();
     int16_t getNominalVolt();
@@ -110,13 +108,11 @@ protected:
     uint16_t dcVoltage; // DC voltage in 0.1 Volts
     int16_t dcCurrent; // DC current in 0.1 Amps
     uint16_t acCurrent; // AC current in 0.1 Amps
-    uint32_t kiloWattHours;
-    int16_t mechanicalPower; // mechanical power of the motor 0.1 kW
     int16_t temperatureMotor; // temperature of motor in 0.1 degree C
     int16_t temperatureController; // temperature of controller in 0.1 degree C
 
-    uint32_t skipcounter;
-    uint32_t milliStamp;
+    bool saveEnergyConsumption; // flag wether to save power consumption to eeprom
+    uint32_t lastTick;
     void reportActivity();
 
 private:
@@ -127,7 +123,7 @@ private:
     uint32_t slewTimestamp; // time stamp of last slew rate calculation
     Gears gear;
 
-    void updatePowerConsumption();
+    void updateEnergyConsumption();
     void checkActivity();
     void processThrottleLevel();
     void updateGear();

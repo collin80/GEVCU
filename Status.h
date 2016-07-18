@@ -32,9 +32,11 @@
 #include "Logger.h"
 #include "Sys_Messages.h"
 
-class Status {
+class Status
+{
 public:
-    enum SystemState {
+    enum SystemState
+    {
         startup     = 0, // the system is starting-up (next states: init, error)
         init        = 1, // the system is being initialized and is not ready for operation yet (next states: preCharge, ready, error)
         preCharge   = 2, // the system is initialized and executing the pre-charge cycle (next states: ready, error)
@@ -44,6 +46,7 @@ public:
         charged     = 6, // the charging is finished
         ready       = 7, // the system is ready to accept commands but the motor controller is not enabled yet (next states: running, error)
         running     = 8, // the system is running and the motor controller is to be enabled (next states: ready, error)
+        shutdown    = 9, // the system is shutdown and must be restarted to get operational again
         error       = 99 // the system is in an error state and not operational (no power on motor, turn of power stage)
     };
 
@@ -126,12 +129,18 @@ public:
     bool interlockPresent; // is the interlock circuit closed and the signal available ?
     bool reverseInput; // is the reverse signal present ?
 
+    uint32_t energyConsumption; // accumulated consumption in wattSeconds (or kilowattmilliseconds)
     uint8_t stateOfCharge; // 0 to 255 to indicate the state of charge (divide by 2.55 to get percent)
+    uint32_t flowCoolant; // ml per second coolant flow
+    uint32_t flowHeater; // ml per second heater flow
 
     bool digitalInput[CFG_NUMBER_DIGITAL_INPUTS]; // the the digital input x activated ?
     bool digitalOutput[CFG_NUMBER_DIGITAL_OUTPUTS]; // the the digital output x activated ?
 
-    int16_t externalTemperature[CFG_NUMBER_TEMPERATURE_SENSORS]; // temperature reported via CAN from external device
+    int16_t temperatureBattery[CFG_NUMBER_BATTERY_TEMPERATURE_SENSORS]; // temperature reported via CAN from external device
+    int16_t temperatureCoolant; // temperature of the coolant water, reported via CAN from GEVCU extension
+    int16_t temperatureHeater; // temperature of the heater water, calculated from analog input
+    int16_t temperatureExterior; // exterior temperature (ambient) reported via CAN from GEVCU extension
 
     Status();
     SystemState getSystemState();
@@ -140,8 +149,9 @@ public:
     uint32_t getBitField1();
     uint32_t getBitField2();
     uint32_t getBitField3();
-    int16_t getLowestExternalTemperature();
-    int16_t getHighestExternalTemperature();
+    int16_t getLowestBatteryTemperature();
+    int16_t getHighestBatteryTemperature();
+    uint16_t getEnergyConsumption();
 
 private:
     SystemState systemState; // the current state of the system, to be modified by the state machine of this class only

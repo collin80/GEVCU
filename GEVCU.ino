@@ -91,16 +91,9 @@ void setup()
     SerialUSB.begin(CFG_SERIAL_SPEED);
     SerialUSB.println(CFG_VERSION);
 
-    SerialUSB.print("Build number: ");
-    SerialUSB.println(CFG_BUILD_NUM);
-
     memCache.setup();
-
-    //fault handler is always enabled too - its also statically allocated so no using -> here
-    //This is initialized before the other devices so that they can go ahead and use it if they fault upon start up
     faultHandler.setup();
     systemIO.setup();
-
     canHandlerEv.setup();
     canHandlerCar.setup();
 
@@ -139,8 +132,6 @@ void loop()
 #endif
 
     tickHandler.process();
-
-    // check if incoming frames are available in the can buffer and process them
     canHandlerEv.process();
     canHandlerCar.process();
 

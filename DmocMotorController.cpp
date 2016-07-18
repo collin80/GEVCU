@@ -133,17 +133,17 @@ void DmocMotorController::handleCanFrame(CAN_FRAME *frame)
 
         switch (actualState) {
         case 5: //Fault
-            Logger::error(DMOC645, "Inverter reports fault");
+            Logger::error(this, "Inverter reports fault");
             status.setSystemState(Status::error);
             break;
 
         case 6: //Critical Fault
-            Logger::error(DMOC645, "Inverter reports critical fault");
+            Logger::error(this, "Inverter reports critical fault");
             status.setSystemState(Status::error);
             break;
 
         case 7: //LOS
-            Logger::error(DMOC645, "Inverter reports LOS");
+            Logger::error(this, "Inverter reports LOS");
             status.setSystemState(Status::error);
             break;
         }

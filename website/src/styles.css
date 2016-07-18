@@ -58,6 +58,28 @@ div.gauges {
 	text-align: center;
 }
 
+.button {
+  display: inline-block;
+  padding: 15px 25px;
+  margin-bottom: 5px;
+  font-size: 24px;
+  cursor: pointer;
+  text-align: center;
+  text-decoration: none;
+  outline: none;
+  color: #fff;
+  background-color: #AF4C50;
+  border: none;
+  border-radius: 15px;
+}
+
+.button:hover {background-color: #ce6c6f}
+
+.button:active {
+  background-color: #f06e61;
+  transform: translateY(4px);
+}
+
 div.annunciators {
 	padding: 0px;
 	margin: 10px 20px;
@@ -73,11 +95,11 @@ div.annunciators span {
 	padding: 2px;
 	margin: 0px;
 	background: #080808;
-	color: #303030;
+	color: #353535;
 }
 
 div.annunciators span.annunciatorOff {
-	color: #303030;
+	color: #353535;
 }
 
 div.annunciators span.annunciatorWarn {
@@ -151,3 +173,25 @@ input[type="range"]{
     box-shadow: inset 0px 0px 1px 1px rgba(0, 0, 0, 0.9), 0px 1px 1px 0px rgba(255, 255, 255, 0.13);
 }
 
+.visible,
+.hidden {
+  overflow: hidden;
+  /* This container should not have padding, borders, etc. */
+}
+.visible {
+  opacity: 1;
+  transition: opacity 1s; // fade in duration + delay 
+}
+.hidden {
+  opacity: 0;
+  transition: opacity 1s; // fade out duration + delay
+}
+
+.visible > div {
+  margin-top: 1px;
+  transition: margin-top 0.5s 0s; // roll in duration + delay
+}
+.hidden > div {
+  margin-top: -2200px;
+  transition: margin-top 1s ease-in 0s; // roll out duration + delay
+}

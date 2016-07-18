@@ -49,7 +49,8 @@ public:
     void printMenu();
 
 protected:
-    enum CONSOLE_STATE {
+    enum CONSOLE_STATE
+    {
         STATE_ROOT_MENU
     };
 
@@ -70,7 +71,7 @@ private:
     bool handleConfigCmdSystemIO(String command, long value);
     bool handleConfigCmdCharger(String command, long value);
     bool handleConfigCmdDcDcConverter(String command, long value);
-    bool handleConfigCmdSystem(String command, long value);
+    bool handleConfigCmdSystem(String command, long value, char *parameter);
     bool handleConfigCmdWifi(String command, String parameter);
     void printMenuMotorController();
     void printMenuThrottle();

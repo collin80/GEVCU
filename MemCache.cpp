@@ -36,11 +36,14 @@ MemCache::~MemCache()
 {
 }
 
+/*
+ * Initialize the memory cache (note, this is only a TickListener, not a device !)
+ */
 void MemCache::setup()
 {
     tickHandler.detach(this);
 
-    Logger::info("add MemCache (id: %X, %X)", MEMCACHE, &memCache);
+    Logger::info("add MemCache (id: %#x, %#x)", MEMCACHE, &memCache);
 
     Wire.begin();
     for (U8 c = 0; c < NUM_CACHED_PAGES; c++) {
@@ -54,10 +57,13 @@ void MemCache::setup()
     //digital pin 18 is connected to the write protect function of the EEPROM. It is active high so set it low to enable writes
     pinMode(CFG_EEPROM_WRITE_PROTECT, OUTPUT);
     digitalWrite(CFG_EEPROM_WRITE_PROTECT, LOW);
+
     tickHandler.attach(this, CFG_TICK_INTERVAL_MEM_CACHE);
 }
 
-//Handle aging of dirty pages and flushing of aged out dirty pages
+/*
+ * Handle aging of dirty pages and flushing of aged out dirty pages
+ */
 void MemCache::handleTick()
 {
     U8 c;
@@ -71,8 +77,9 @@ void MemCache::handleTick()
     }
 }
 
-//this function flushes the first dirty page it finds. It should try to wait until enough time as elapsed since
-//a previous page has been written. Remember that page writes take about 7ms.
+/*
+ * Flush the first dirty page to the EEPROM.
+ */
 void MemCache::FlushSinglePage()
 {
     U8 c;
@@ -87,8 +94,12 @@ void MemCache::FlushSinglePage()
     }
 }
 
-//Flush every dirty page. It will block for 7ms per page so maybe things will be blocked for a long, long time
-//DO NOT USE THIS FUNCTION UNLESS YOU CAN ACCEPT THAT!
+/*
+ * Flush every dirty page.
+ * It will block for 10ms per page so maybe things will be blocked for a long, long time
+ *
+ * NOTE: DO NOT USE THIS FUNCTION UNLESS YOU CAN ACCEPT THAT!
+ */
 void MemCache::FlushAllPages()
 {
     U8 c;
@@ -102,7 +113,10 @@ void MemCache::FlushAllPages()
     }
 }
 
-//Flush a given page by the page ID. This is NOT by address so act accordingly. Likely no external code should ever use this
+/*
+ * Flush a given page by the page ID.
+ * This is NOT by address so act accordingly.
+ */
 void MemCache::FlushPage(uint8_t page)
 {
     if (pages[page].dirty) {
@@ -112,7 +126,10 @@ void MemCache::FlushPage(uint8_t page)
     }
 }
 
-//Like FlushPage but also marks the page invalid (unused) so if another read request comes it it'll have to be re-read from EEPROM
+/*
+ * Like FlushPage but also marks the page invalid (unused).
+ * So if another read request comes it it'll have to be re-read from EEPROM
+ */
 void MemCache::InvalidatePage(uint8_t page)
 {
     if (page > NUM_CACHED_PAGES - 1) {
@@ -128,7 +145,10 @@ void MemCache::InvalidatePage(uint8_t page)
     pages[page].age = 0;
 }
 
-//Mark a given page unused given an address within that page. Will write the page out if it was dirty.
+/*
+ * Mark a given page unused given an address within that page.
+ * Will write the page out if it was dirty.
+ */
 void MemCache::InvalidateAddress(uint32_t address)
 {
     uint32_t addr;
@@ -141,7 +161,11 @@ void MemCache::InvalidateAddress(uint32_t address)
         InvalidatePage(c);
     }
 }
-//Mark all page cache entries unused (go back to clean slate). It will try to write any dirty pages so be prepared to wait.
+
+/*
+ * Mark all page cache entries unused (go back to clean slate).
+ * It will try to write any dirty pages so be prepared to wait.
+ */
 void MemCache::InvalidateAll()
 {
     uint8_t c;
@@ -151,7 +175,9 @@ void MemCache::InvalidateAll()
     }
 }
 
-//Cause a given page to be fully aged which will cause it to be written at the next opportunity
+/*
+ * Cause a given page to be fully aged which will cause it to be written at the next opportunity
+ */
 void MemCache::AgeFullyPage(uint8_t page)
 {
     if (page < NUM_CACHED_PAGES) { //if we did indeed have that page in cache
@@ -159,7 +185,9 @@ void MemCache::AgeFullyPage(uint8_t page)
     }
 }
 
-//Cause the page containing the given address to be fully aged and thus written as soon as possible.
+/*
+ * Cause the page containing the given address to be fully aged and thus written as soon as possible.
+ */
 void MemCache::AgeFullyAddress(uint32_t address)
 {
     uint8_t thisCache;
@@ -173,8 +201,9 @@ void MemCache::AgeFullyAddress(uint32_t address)
     }
 }
 
-//Write data into the memory cache. Takes the place of direct EEPROM writes
-//There are lots of versions of this
+/*
+ * Write data into the memory cache instead of direct EEPROM writes
+ */
 boolean MemCache::Write(uint32_t address, uint8_t valu)
 {
     uint32_t addr;
@@ -201,6 +230,9 @@ boolean MemCache::Write(uint32_t address, uint8_t valu)
     return false;
 }
 
+/*
+ * Write data into the memory cache instead of direct EEPROM writes
+ */
 boolean MemCache::Write(uint32_t address, uint16_t valu)
 {
     boolean result;
@@ -208,6 +240,9 @@ boolean MemCache::Write(uint32_t address, uint16_t valu)
     return result;
 }
 
+/*
+ * Write data into the memory cache instead of direct EEPROM writes
+ */
 boolean MemCache::Write(uint32_t address, uint32_t valu)
 {
     boolean result;
@@ -215,6 +250,9 @@ boolean MemCache::Write(uint32_t address, uint32_t valu)
     return result;
 }
 
+/*
+ * Write data into the memory cache instead of direct EEPROM writes
+ */
 boolean MemCache::Write(uint32_t address, void* data, uint16_t len)
 {
     uint32_t addr;
@@ -249,6 +287,10 @@ boolean MemCache::Write(uint32_t address, void* data, uint16_t len)
     return false;
 }
 
+/*
+ * Read a value from the cache.
+ * If not available in the cache, the EEPROM will be read.
+ */
 boolean MemCache::Read(uint32_t address, uint8_t* valu)
 {
     uint32_t addr;
@@ -274,6 +316,10 @@ boolean MemCache::Read(uint32_t address, uint8_t* valu)
     }
 }
 
+/*
+ * Read a value from the cache.
+ * If not available in the cache, the EEPROM will be read.
+ */
 boolean MemCache::Read(uint32_t address, uint16_t* valu)
 {
     boolean result;
@@ -281,6 +327,10 @@ boolean MemCache::Read(uint32_t address, uint16_t* valu)
     return result;
 }
 
+/*
+ * Read a value from the cache.
+ * If not available in the cache, the EEPROM will be read.
+ */
 boolean MemCache::Read(uint32_t address, uint32_t* valu)
 {
     boolean result;
@@ -288,6 +338,10 @@ boolean MemCache::Read(uint32_t address, uint32_t* valu)
     return result;
 }
 
+/*
+ * Read a value from the cache.
+ * If not available in the cache, the EEPROM will be read.
+ */
 boolean MemCache::Read(uint32_t address, void* data, uint16_t len)
 {
     uint32_t addr;
@@ -320,13 +374,9 @@ boolean MemCache::Read(uint32_t address, void* data, uint16_t len)
     return false;
 }
 
-boolean MemCache::isWriting()
-{
-    //if (WriteTimer) return true;
-    return false;
-
-}
-
+/*
+ * Find page number of an address (if present, return 0xFF otherwise)
+ */
 uint8_t MemCache::cache_hit(uint32_t address)
 {
     uint8_t c;
@@ -340,6 +390,9 @@ uint8_t MemCache::cache_hit(uint32_t address)
     return 0xFF;
 }
 
+/*
+ * Increase the age of all cached pages
+ */
 void MemCache::cache_age()
 {
     uint8_t c;
@@ -351,7 +404,9 @@ void MemCache::cache_age()
     }
 }
 
-//try to find an empty page or one that can be removed from cache
+/*
+ * Try to find an empty page or one that can be removed from cache
+ */
 uint8_t MemCache::cache_findpage()
 {
     uint8_t c;
@@ -401,6 +456,9 @@ uint8_t MemCache::cache_findpage()
     return old_c;
 }
 
+/*
+ * Find the page of the cache and read data directly from the EEPROM into it.
+ */
 uint8_t MemCache::cache_readpage(uint32_t addr)
 {
     uint16_t c, d, e;
@@ -435,6 +493,9 @@ uint8_t MemCache::cache_readpage(uint32_t addr)
     return c;
 }
 
+/*
+ * Write a page from the memory cache directly to the EEPROM
+ */
 boolean MemCache::cache_writepage(uint8_t page)
 {
     uint16_t d;

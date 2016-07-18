@@ -65,16 +65,18 @@ void BrusaBSC6::tearDown()
 
 void BrusaBSC6::handleStateChange(Status::SystemState oldState, Status::SystemState newState)
 {
+    bool powerOnBefore = powerOn;
+
     DcDcConverter::handleStateChange(oldState, newState);
 
-    if (powerOn) {
-        if (!ready && !running) {
+    if (powerOnBefore != powerOn) {
+        if (powerOn) {
             // register ourselves as observer of 0x26a-0x26f can frames
             canHandlerEv.attach(this, CAN_MASKED_ID, CAN_MASK, false);
             tickHandler.attach(this, CFG_TICK_INTERVAL_DCDC_BSC6);
+        } else {
+            tearDown();
         }
-    } else {
-        tearDown();
     }
 }
 
@@ -179,7 +181,7 @@ void BrusaBSC6::processValues1(uint8_t data[])
     running = (bitfield & bsc6Running) ? true : false;
     ready = (bitfield & bsc6Ready) ? true : false;
     if (bitfield & automatic) {
-        //TODO
+        //TODO implement handling of automatic flag
     }
 
     hvVoltage = (uint16_t)(data[1] | (data[0] << 8));
@@ -189,7 +191,7 @@ void BrusaBSC6::processValues1(uint8_t data[])
     mode = (data[7] & 0xF0) >> 4;
 
     if (Logger::isDebug()) {
-        Logger::debug(BRUSA_BSC6, "status bitfield: %X, ready: %T, running: %T, HV: %fV %fA, LV: %fV %dA, mode %d", bitfield, ready, running, (float) hvVoltage / 10.0F, (float) hvCurrent / 10.0F, (float) lvVoltage / 10.0F, lvCurrent, mode);
+        Logger::debug(this, "status bitfield: %#08x, ready: %d, running: %d, HV: %fV %fA, LV: %fV %dA, mode %d", bitfield, ready, running, (float) hvVoltage / 10.0F, (float) hvCurrent / 10.0F, (float) lvVoltage / 10.0F, lvCurrent, mode);
     }
 }
 
@@ -228,10 +230,10 @@ void BrusaBSC6::processValues2(uint8_t data[])
 //    brokenTemperatureSensor
 
     if (bitfield != 0) {
-        Logger::error(BRUSA_BSC6, "%X (%B)", bitfield, bitfield);
+        Logger::error(this, "%#08x", bitfield);
     }
     if (Logger::isDebug()) {
-        Logger::debug(BRUSA_BSC6, "LV current avail: %dA, maximum Temperature: %dC", lvCurrentAvailable, (float) temperature / 10.0F);
+        Logger::debug(this, "LV current avail: %dA, maximum Temperature: %.1fC", lvCurrentAvailable, (float) temperature / 10.0F);
     }
 }
 
@@ -252,10 +254,10 @@ void BrusaBSC6::processDebug1(uint8_t data[])
     temperatureTransformerCoil2 = (uint8_t)data[7];
 
     if (Logger::isDebug()) {
-        Logger::debug(BRUSA_BSC6, "Temp buck/boost switch 1: %d�C, switch 2: %d�C", temperatureBuckBoostSwitch1, temperatureBuckBoostSwitch2);
-        Logger::debug(BRUSA_BSC6, "Temp HV trafostage switch 1: %d�C, switch 2: %d�C", temperatureHvTrafostageSwitch1, temperatureHvTrafostageSwitch2);
-        Logger::debug(BRUSA_BSC6, "Temp LV trafostage switch 1: %d�C, switch 2: %d�C", temperatureLvTrafostageSwitch1, temperatureLvTrafostageSwitch2);
-        Logger::debug(BRUSA_BSC6, "Temp transformer coil 1: %d�C, coil 2: %d�C", temperatureTransformerCoil1, temperatureTransformerCoil2);
+        Logger::debug(this, "Temp buck/boost switch 1: %d�C, switch 2: %d�C", temperatureBuckBoostSwitch1, temperatureBuckBoostSwitch2);
+        Logger::debug(this, "Temp HV trafostage switch 1: %d�C, switch 2: %d�C", temperatureHvTrafostageSwitch1, temperatureHvTrafostageSwitch2);
+        Logger::debug(this, "Temp LV trafostage switch 1: %d�C, switch 2: %d�C", temperatureLvTrafostageSwitch1, temperatureLvTrafostageSwitch2);
+        Logger::debug(this, "Temp transformer coil 1: %d�C, coil 2: %d�C", temperatureTransformerCoil1, temperatureTransformerCoil2);
     }
 }
 
@@ -273,9 +275,9 @@ void BrusaBSC6::processDebug2(uint8_t data[])
     internalOperationState = (uint8_t)data[4];
 
     if (Logger::isDebug()) {
-        Logger::debug(BRUSA_BSC6, "internal 12V supply: %fV, LS actual voltage: %fV", (float) internal12VSupplyVoltage / 10.0F, (float) lsActualVoltage / 10.0F);
-        Logger::debug(BRUSA_BSC6, "LS actual current: %fA, LS commanded current: %fA", (float) internal12VSupplyVoltage / 200.0F, (float) lsActualVoltage / 200.0F);
-        Logger::debug(BRUSA_BSC6, "internal power state: %d", internalOperationState);
+        Logger::debug(this, "internal 12V supply: %.1fV, LS actual voltage: %.1fV", (float) internal12VSupplyVoltage / 10.0F, (float) lsActualVoltage / 10.0F);
+        Logger::debug(this, "LS actual current: %.2fA, LS commanded current: %.2fA", (float) internal12VSupplyVoltage / 200.0F, (float) lsActualVoltage / 200.0F);
+        Logger::debug(this, "internal power state: %d", internalOperationState);
     }
 }
 
@@ -316,7 +318,7 @@ void BrusaBSC6::loadConfiguration()
         config->debugMode = false; // no debug messages
         saveConfiguration();
     }
-    Logger::info(BRUSA_BSC6, "debug: %t", config->debugMode);
+    Logger::info(this, "debug: %d", config->debugMode);
 }
 
 /*

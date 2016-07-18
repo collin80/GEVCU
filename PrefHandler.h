@@ -44,7 +44,8 @@
 #define SYSTEM_DUED     2
 #define SYSTEM_GEVCU3   3
 
-class PrefHandler {
+class PrefHandler
+{
 public:
 
     PrefHandler();
@@ -60,7 +61,7 @@ public:
     uint8_t calcChecksum();
     void saveChecksum();
     bool checksumValid();
-    void forceCacheWrite();
+    void suggestCacheWrite();
     bool isEnabled();
     bool setEnabled(bool en);
 

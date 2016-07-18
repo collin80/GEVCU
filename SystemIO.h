@@ -98,6 +98,7 @@ public:
     void loadConfiguration();
     void saveConfiguration();
     SystemIOConfiguration *getConfiguration();
+    void saveEnergyConsumption();
 
     bool isEnableSignalPresent();
     bool isChargePowerAvailable();

@@ -160,12 +160,13 @@ public:
     void handleStateChange(Status::SystemState, Status::SystemState);
     void tearDown();
     DeviceId getId();
+    int32_t getMechanicalPower();
 
     void loadConfiguration();
     void saveConfiguration();
 
 private:
-    // DMC_TRQS2
+    int16_t mechanicalPower; // mechanical power of the motor 0.1 kW
     int16_t maxPositiveTorque; // max positive available torque in 0.01Nm -> divide by 100 to get Nm
     int16_t minNegativeTorque; // minimum negative available torque in 0.01Nm
     uint8_t limiterStateNumber; // state number of active limiter

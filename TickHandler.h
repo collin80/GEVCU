@@ -42,12 +42,12 @@ public:
     virtual void handleTick();
 };
 
-
 class TickHandler
 {
 public:
     TickHandler();
     void attach(TickObserver *observer, uint32_t interval);
+    bool isAttached(TickObserver* observer, uint32_t interval);
     void detach(TickObserver *observer);
     void handleInterrupt(int timerNumber);  // must be public when from the non-class functions
     void cleanBuffer();
@@ -56,7 +56,8 @@ public:
 protected:
 
 private:
-    struct TimerEntry {
+    struct TimerEntry
+    {
         long interval; // interval of timer
         TickObserver *observer[CFG_TIMER_NUM_OBSERVERS]; // array of pointers to observers with this interval
     };

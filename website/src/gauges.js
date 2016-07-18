@@ -3,206 +3,170 @@
  *
  */
 
-function updateThrottleGaugeHighlights(positionRegenMinimum, positionForwardStart) {
+var gaugeColors = {
+	plate      : '#222',
+	majorTicks : '#f5f5f5',
+	minorTicks : '#ddd',
+	title      : '#fff',
+	units      : '#ccc',
+	numbers    : '#eee',
+	needle     : { start : 'rgba(240, 128, 128, 1)', end : 'rgba(255, 160, 122, .9)' }
+};
 
-	Gauge.Collection.get('throttleGauge').updateConfig({
-		highlights  : [
-			{ from : 0,   to : positionRegenMinimum, color : 'rgba(255, 0, 0, .75)' },
-			{ from : positionRegenMinimum, to : positionForwardStart, color : 'rgba(255, 255, 0, .75)' },
-			{ from : positionForwardStart, to : 100, color : 'rgba(0, 255,  0, .75)' }
-		]
-	});
-}
-function updateTemperatureControllerGaugeHighlights(coolingTempOff, coolingTempOn) {
-
-	Gauge.Collection.get('temperatureControllerGauge').updateConfig({
-		highlights  : [
-			{ from : 0,   to : coolingTempOff, color : 'rgba(255, 0, 0, .75)' },
-			{ from : coolingTempOff, to : coolingTempOn, color : 'rgba(255, 255, 0, .75)' },
-			{ from : coolingTempOn, to : 120, color : 'rgba(0, 255,  0, .75)' }
-		]
-	});
-}
-function refreshGaugeValue(setting, value) {
-	var id = setting + 'Gauge';
-	var gauge = document.getElementById(id);
-	if ( gauge ) {
-		if ( !value ) {
-			var div = document.getElementById(setting);
-			if ( div ) {
-				value = div.innerHTML;
-			}
-		}
-		if ( value ) {
-			Gauge.Collection.get(id).setValue(value);
-		}
+// calculate the min/max and ticks for a gauge
+function calcRange(low, high) {
+	var j = 0;
+	var ticks = new Array();
+	var step = Math.ceil((high - low) / 50) * 5;
+	var min = ((low == 0) ? 0 : (low - (low + 1) % step - step + 1));
+	var max = high - (high - 1) % step + step - 1;
+	for (i = min; i <= max; i += step) {
+		ticks[j++] = i;
 	}
+	var range = {"min": min, "max": max, "ticks": ticks};
+	return range;
 }
 
-function generateGauges() {
+function generateGauges(config) {
+	var range = calcRange(-100,100);	
 	var throttleGauge = new Gauge({
 		renderTo    : 'throttleGauge',
-		width       : 250,
-		height      : 250,
+		width       : 230,
+		height      : 230,
 		glow        : true,
 		units       : '%',
 		title       : "Throttle",
-		minValue    : -100,
-		maxValue    : 100,
-		majorTicks  : ['-100','-80','-60','-40','-20','0','20','40','60','80','100'],
+		colors      : gaugeColors,
+		minValue    : range.min,
+		maxValue    : range.max,
+		majorTicks  : range.ticks,
 		minorTicks  : 2,
 		strokeTicks : false,
-		valueFormat      : { "int" : 3, "dec" : 1 },
-
-	
+		valueFormat : { "int" : 3, "dec" : 1 },
 		highlights  : [
-		   			{ from : -100,   to : 0, color : 'rgba(0, 180, 255, .75)' },
-					{ from : 0,   to : 100, color : 'rgba(0, 255, 0, .75)' }
-		],
-	
-		colors      : {
-			plate      : '#222',
-			majorTicks : '#f5f5f5',
-			minorTicks : '#ddd',
-			title      : '#fff',
-			units      : '#ccc',
-			numbers    : '#eee',
-			needle     : { start : 'rgba(240, 128, 128, 1)', end : 'rgba(255, 160, 122, .9)' }
-		}
+		   			{ from : -100,   to : 0, color : 'rgba(0, 255, 0, .75)' },
+					{ from : 0,   to : 100, color : 'rgba(0, 180, 255, .75)' }
+		]
 	});
 	throttleGauge.draw();
+	nodecache["throttleGauge"] = throttleGauge;
 
-	var torqueGauge = new Gauge({
+	range = calcRange(config.torqueRange[0], config.torqueRange[1]);
+	var torqueActualGauge = new Gauge({
 		renderTo    : 'torqueActualGauge',
-		width       : 300,
-		height      : 300,
+		width       : 280,
+		height      : 280,
 		glow        : true,
 		units       : 'Nm',
 		title       : "Torque",
-		minValue    : -200,
-		maxValue    : 300,
-		majorTicks  : ['-200','-150','-100','-50','0','50','100','150','200','250','300'],
+		colors      : gaugeColors,
+		minValue    : range.min,
+		maxValue    : range.max,
+		majorTicks  : range.ticks,
 		minorTicks  : 5,
 		strokeTicks : false,
-		valueFormat      : { "int" : 3, "dec" : 1 },
-
-	
+		valueFormat : { "int" : 3, "dec" : 1 },
 		highlights  : [
-			{ from : -200,   to : 0, color : 'rgba(0, 180, 255, .75)' },
-			{ from : 0, to : 300, color : 'rgba(0, 255,  0, .75)' }
-		],
-	
-		colors      : {
-			plate      : '#222',
-			majorTicks : '#f5f5f5',
-			minorTicks : '#ddd',
-			title      : '#fff',
-			units      : '#ccc',
-			numbers    : '#eee',
-			needle     : { start : 'rgba(240, 128, 128, 1)', end : 'rgba(255, 160, 122, .9)' }
-		}
+			{ from : range.min, to : 0, color : 'rgba(0, 255, 0, .75)' },
+			{ from : 0, to : range.max, color : 'rgba(0, 180,  255, .75)' }
+		]
 	});
-	torqueGauge.draw();
+	torqueActualGauge.draw();
+	nodecache["torqueActualGauge"] = torqueActualGauge;
 
-	var rpmGauge = new Gauge({
+	range = calcRange(config.rpmRange[0], config.rpmRange[1] + 1000);
+	var speedActualGauge = new Gauge({
 		renderTo    : 'speedActualGauge',
-		width       : 250,
-		height      : 250,
+		width       : 280,
+		height      : 280,
 		glow        : true,
 		units       : 'x1000',
 		title       : "RPM",
-		minValue    : 0,
-		maxValue    : 10000,
-		majorTicks  : ['0','1','2','3','4','5','6','7','8','9','10'],
-		minorTicks  : 2,
+		colors      : gaugeColors,
+		minValue    : range.min,
+		maxValue    : range.max,
+		majorTicks  : range.ticks,
+		minorTicks  : 5,
 		strokeTicks : false,
-		valueFormat      : { "int" : 5, "dec" : 0 },
+		valueFormat : { "int" : 4, "dec" : 0 },
 		highlights  : [
-			{ from : 0, to : 6000, color : 'rgba(0, 255,  0, .75)' },
-			{ from : 6000, to : 7000, color : 'rgba(180, 255, 0, .75)' },
-			{ from : 7000, to : 8000, color : 'rgba(255, 255, 0, .75)' },
-			{ from : 8000, to : 9000, color : 'rgba(255, 127, 0, .75)' },
-			{ from : 9000, to : 10000, color : 'rgba(255, 0, 0, .75)' }
-		],
-	
-		colors      : {
-			plate      : '#222',
-			majorTicks : '#f5f5f5',
-			minorTicks : '#ddd',
-			title      : '#fff',
-			units      : '#ccc',
-			numbers    : '#eee',
-			needle     : { start : 'rgba(240, 128, 128, 1)', end : 'rgba(255, 160, 122, .9)' }
-		}
+			{ from : range.min, to : config.rpmRange[1] - 2000, color : 'rgba(0, 255,  0, .75)' },
+			{ from : config.rpmRange[1] - 2000, to : config.rpmRange[1] - 1000, color : 'rgba(255, 255, 0, .75)' },
+			{ from : config.rpmRange[1] - 1000, to : config.rpmRange[1], color : 'rgba(255, 127, 0, .75)' },
+			{ from : config.rpmRange[1], to : range.max, color : 'rgba(255, 0, 0, .75)' }
+		]
 	});
-	rpmGauge.draw();
+	speedActualGauge.draw();
+	nodecache["speedActualGauge"] = speedActualGauge;
 
+	var interval = (config.motorTempRange[2] - config.motorTempRange[1]) / 2;
+	range = calcRange(config.motorTempRange[0], config.motorTempRange[2] + interval);
 	var temperatureMotorGauge = new Gauge({
 		renderTo    : 'temperatureMotorGauge',
 		width       : 200,
 		height      : 200,
 		glow        : true,
-		units       : 'C',
+		units       : '\u2103',
 		title       : "Motor",
-		minValue    : 0,
-		maxValue    : 160,
-		majorTicks  : ['0','20','40','60','80','100','120','140','160'],
-		minorTicks  : 2,
+		colors      : gaugeColors,
+		minValue    : range.min,
+		maxValue    : range.max,
+		majorTicks  : range.ticks,
+		minorTicks  : 5,
 		strokeTicks : false,
-		valueFormat      : { "int" : 3, "dec" : 1 },
+		valueFormat : { "int" : 3, "dec" : 1 },
 		highlights  : [
-			{ from : 0,   to : 80, color : 'rgba(0, 255,  0, .75)' },
-			{ from : 80,  to : 100, color : 'rgba(180, 255, 0, .75)' },
-			{ from : 100, to : 120, color : 'rgba(255, 255, 0, .75)' },
-			{ from : 120, to : 140, color : 'rgba(255, 127, 0, .75)' },
-			{ from : 140, to : 160, color : 'rgba(255, 0, 0, .75)' }
-		],
-
-		colors      : {
-			plate      : '#222',
-			majorTicks : '#f5f5f5',
-			minorTicks : '#ddd',
-			title      : '#fff',
-			units      : '#ccc',
-			numbers    : '#eee',
-			needle     : { start : 'rgba(240, 128, 128, 1)', end : 'rgba(255, 160, 122, .9)' }
-		}
+			{ from : range.min, to : config.motorTempRange[1] - interval, color : 'rgba(0, 255,  0, .75)' },
+			{ from : config.motorTempRange[1] - interval, to : config.motorTempRange[1], color : 'rgba(180, 255, 0, .75)' },
+			{ from : config.motorTempRange[1], to : config.motorTempRange[2] - interval, color : 'rgba(255, 220, 0, .75)' },
+			{ from : config.motorTempRange[2] - interval, to : config.motorTempRange[2], color : 'rgba(255, 127, 0, .75)' },
+			{ from : config.motorTempRange[2], to : range.max, color : 'rgba(255, 0, 0, .75)' }
+		]
 	});
 	temperatureMotorGauge.draw();
+	nodecache["temperatureMotorGauge"] = temperatureMotorGauge;
 	
+	interval = (config.controllerTempRange[2] - config.controllerTempRange[1]) / 2;
+	range = calcRange(config.controllerTempRange[0], config.controllerTempRange[2] + interval);
 	var temperatureControllerGauge = new Gauge({
 		renderTo    : 'temperatureControllerGauge',
 		width       : 200,
 		height      : 200,
 		glow        : true,
-		units       : 'C',
+		units       : '\u2103',
 		title       : "Controller",
-		minValue    : 0,
-		maxValue    : 100,
-		majorTicks  : ['0','10','20','30','40','50','60','70','80','90','100'],
-		minorTicks  : 2,
+		colors      : gaugeColors,
+		minValue    : range.min,
+		maxValue    : range.max,
+		majorTicks  : range.ticks,
+		minorTicks  : 5,
 		strokeTicks : false,
-		valueFormat      : { "int" : 3, "dec" : 1 },
+		valueFormat : { "int" : 3, "dec" : 1 },
 		highlights  : [
-			{ from : 0,   to : 60, color : 'rgba(0, 255,  0, .75)' },
-			{ from : 60, to : 70, color : 'rgba(180, 255, 0, .75)' },
-			{ from : 70, to : 80, color : 'rgba(255, 255, 0, .75)' },
-			{ from : 80, to : 90, color : 'rgba(255, 127, 0, .75)' },
-			{ from : 90, to : 100, color : 'rgba(255, 0, 0, .75)' }
-		],
-
-		colors      : {
-			plate      : '#222',
-			majorTicks : '#f5f5f5',
-			minorTicks : '#ddd',
-			title      : '#fff',
-			units      : '#ccc',
-			numbers    : '#eee',
-			needle     : { start : 'rgba(240, 128, 128, 1)', end : 'rgba(255, 160, 122, .9)' }
-		}
+   			{ from : range.min, to : config.controllerTempRange[1] - interval, color : 'rgba(0, 255,  0, .75)' },
+			{ from : config.controllerTempRange[1] - interval, to : config.controllerTempRange[1], color : 'rgba(180, 255, 0, .75)' },
+			{ from : config.controllerTempRange[1], to : config.controllerTempRange[2] - interval, color : 'rgba(255, 220, 0, .75)' },
+			{ from : config.controllerTempRange[2] - interval, to : config.controllerTempRange[2], color : 'rgba(255, 127, 0, .75)' },
+			{ from : config.controllerTempRange[2], to : range.max, color : 'rgba(255, 0, 0, .75)' }
+		]
 	});
 	temperatureControllerGauge.draw();
-	
+	nodecache["temperatureControllerGauge"] = temperatureControllerGauge;
+
+	var intervalLow = Math.round((config.batteryRangeLow[2] - config.batteryRangeLow[1]) / 2);
+	var intervalHigh = Math.round((config.batteryRangeHigh[2] - config.batteryRangeHigh[1]) / 2);
+	range = calcRange(config.batteryRangeLow[0] - intervalLow, config.batteryRangeHigh[2] + intervalHigh);
+	var batteryHighlights = [
+	             			{ from : range.min, to : config.batteryRangeLow[0], color : 'rgba(255, 0, 0, .75)' },
+	            			{ from : config.batteryRangeLow[0], to : config.batteryRangeLow[1], color : 'rgba(255, 127, 0, .75)' },
+	            			{ from : config.batteryRangeLow[1], to : config.batteryRangeLow[2], color : 'rgba(255, 220, 0, .75)' },
+	            			{ from : config.batteryRangeLow[2], to : config.batteryRangeLow[2] + intervalLow, color : 'rgba(180, 255, 0, .75)' },
+	            			{ from : config.batteryRangeLow[2] + intervalLow, to : config.batteryRangeHigh[0], color : 'rgba(0, 255,  0, .75)' },
+	            			{ from : config.batteryRangeHigh[0], to : config.batteryRangeHigh[0] + intervalHigh, color : 'rgba(180, 255, 0, .75)' },
+	            			{ from : config.batteryRangeHigh[0] + intervalHigh, to : config.batteryRangeHigh[1], color : 'rgba(255, 220, 0, .75)' },
+	            			{ from : config.batteryRangeHigh[1], to : config.batteryRangeHigh[2], color : 'rgba(255, 127, 0, .75)' },
+	            			{ from : config.batteryRangeHigh[2], to : range.max, color :  'rgba(255, 0, 0, .75)'}
+	            		];
 	var dcVoltageGauge = new Gauge({
 		renderTo    : 'dcVoltageGauge',
 		width       : 200,
@@ -210,99 +174,115 @@ function generateGauges() {
 		glow        : true,
 		units       : 'Vdc',
 		title       : "Battery",
-		minValue    : 275,
-		maxValue    : 450,
-		majorTicks  : ['275','300','325','350','375','400','425','450'],
+		colors      : gaugeColors,
+		minValue    : range.min,
+		maxValue    : range.max,
+		majorTicks  : range.ticks,
 		minorTicks  : 5,
 		strokeTicks : false,
-		valueFormat      : { "int" : 3, "dec" : 1 },
-		highlights  : [
-			{ from : 275,   to : 300, color : 'rgba(255, 0, 0, .75)' },
-			{ from : 300,   to : 320, color : 'rgba(255, 127, 0, .75)' },
-			{ from : 320, to : 350, color : 'rgba(255, 255, 0, .75)' },
-			{ from : 350, to : 370, color : 'rgba(180, 255, 0, .75)' },
-			{ from : 370, to : 410, color : 'rgba(0, 255,  0, .75)' },
-			{ from : 410, to : 415, color : 'rgba(180, 255, 0, .75)' },
-			{ from : 415, to : 420, color : 'rgba(255, 255, 0, .75)' },
-			{ from : 420, to : 430, color : 'rgba(255, 127, 0, .75)' },
-			{ from : 430, to : 450, color :  'rgba(255, 0, 0, .75)'}
-		
-		],
-
-		colors      : {
-			plate      : '#222',
-			majorTicks : '#f5f5f5',
-			minorTicks : '#ddd',
-			title      : '#fff',
-			units      : '#ccc',
-			numbers    : '#eee',
-			needle     : { start : 'rgba(240, 128, 128, 1)', end : 'rgba(255, 160, 122, .9)' }
-		}
+		valueFormat : { "int" : 3, "dec" : 1 },
+		highlights  : batteryHighlights
 	});
 	dcVoltageGauge.draw();
-	
+	nodecache["dcVoltageGauge"] = dcVoltageGauge;
+
+	var chargerBatteryVoltageGauge = new Gauge({
+		renderTo    : 'chargerBatteryVoltageGauge',
+		width       : 200,
+		height      : 200,
+		glow        : true,
+		units       : 'Vdc',
+		title       : "Battery",
+		colors      : gaugeColors,
+		minValue    : range.min,
+		maxValue    : range.max,
+		majorTicks  : range.ticks,
+		minorTicks  : 5,
+		strokeTicks : false,
+		valueFormat : { "int" : 3, "dec" : 1 },
+		highlights  : batteryHighlights
+	});
+	chargerBatteryVoltageGauge.draw();
+	nodecache["chargerBatteryVoltageGauge"] = chargerBatteryVoltageGauge;
+
+	var dcDcHvVoltageGauge = new Gauge({
+		renderTo    : 'dcDcHvVoltageGauge',
+		width       : 150,
+		height      : 150,
+		glow        : true,
+		units       : 'Vdc',
+		title       : "Battery",
+		colors      : gaugeColors,
+		minValue    : range.min,
+		maxValue    : range.max,
+		majorTicks  : range.ticks,
+		minorTicks  : 5,
+		strokeTicks : false,
+		valueFormat : { "int" : 3, "dec" : 1 },
+		highlights  : batteryHighlights
+	});
+	dcDcHvVoltageGauge.draw();
+	nodecache["dcDcHvVoltageGauge"] = dcDcHvVoltageGauge;
+
+	var range = calcRange(config.currentRange[0], config.currentRange[1]);
 	var dcCurrentGauge = new Gauge({
 		renderTo    : 'dcCurrentGauge',
-		width       : 300,
-		height      : 300,
+		width       : 230,
+		height      : 230,
 		glow        : true,
 		units       : 'Amps',
 		title       : "DC Current",
-		minValue    : -200,
-		maxValue    : 400,
-		majorTicks  : ['-200','-150','-100','-50','0','50','100','150','200','250','300','350','400'],
+		colors      : gaugeColors,
+		minValue    : range.min,
+		maxValue    : range.max,
+		majorTicks  : range.ticks,
 		minorTicks  : 5,
 		strokeTicks : false,
-		valueFormat      : { "int" : 3, "dec" : 1 },
+		valueFormat : { "int" : 3, "dec" : 1 },
 		highlights  : [
-		{ from : -200, to : 0, color : 'rgba(0, 180, 255, .75)' },
-			{ from : 0,   to :350, color : 'rgba(0, 255,  0, .75)' },
-			{ from : 350, to : 400, color : 'rgba(255, 255, 0, .75)' }
-			
-		],
-
-		colors      : {
-			plate      : '#222',
-			majorTicks : '#f5f5f5',
-			minorTicks : '#ddd',
-			title      : '#fff',
-			units      : '#ccc',
-			numbers    : '#eee',
-			needle     : { start : 'rgba(240, 128, 128, 1)', end : 'rgba(255, 160, 122, .9)' }
-		}
+   			{ from : range.min, to : config.currentRange[0] * .9, color : 'rgba(255, 255, 0, .75)' },
+			{ from : config.currentRange[0] *.9, to : 0, color : 'rgba(0, 255, 0, .75)' },
+			{ from : 0, to : config.currentRange[1] * .9, color : 'rgba(0, 180,  255, .75)' },
+			{ from : config.currentRange[1] * .9, to : range.max, color : 'rgba(180, 180, 255, .75)' }
+		]
 	});
 	dcCurrentGauge.draw();
+	nodecache["dcCurrentGauge"] = dcCurrentGauge;
+
+	j = 0;
+	ticks = new Array();
+	interval = Math.round((config.energyRange[2] - config.energyRange[1]) / 2);
+	for (i = config.energyRange[0] ; i <= (config.energyRange[2] + 5); i += 5) {
+		ticks[j++] = i;
+	} 
 	
-	var kiloWattHoursGauge = new Gauge({
-		renderTo    : 'kiloWattHoursGauge',
+	var range = calcRange(config.energyRange[0], config.energyRange[2]);
+	var energyConsumptionGauge = new Gauge({
+		renderTo    : 'energyConsumptionGauge',
 		width       : 200,
 		height      : 200,
 		glow        : true,
 		units       : 'kWh',
 		title       : "Energy",
-		minValue    : 0,
-		maxValue    : 40,
-		majorTicks  : ['0','5','10','15','20','25','30','35','40'],
+		colors      : gaugeColors,
+		minValue    : range.min,
+		maxValue    : range.max,
+		majorTicks  : range.ticks,
 		minorTicks  : 5,
 		strokeTicks : false,
-		valueFormat      : { "int" : 2, "dec" : 1 },
+		valueFormat : { "int" : 2, "dec" : 1 },
 		highlights  : [
-			{ from : 0,   to : 40, color : 'rgba(0, 255,  0, .75)' }
-			
-		],
-
-		colors      : {
-			plate      : '#222',
-			majorTicks : '#f5f5f5',
-			minorTicks : '#ddd',
-			title      : '#fff',
-			units      : '#ccc',
-			numbers    : '#eee',
-			needle     : { start : 'rgba(240, 128, 128, 1)', end : 'rgba(255, 160, 122, .9)' }
-		}
+			{ from : range.min, to : config.energyRange[1] - interval, color : 'rgba(0, 255,  0, .75)' },
+			{ from : config.energyRange[1] - interval, to : config.energyRange[1], color : 'rgba(180, 255,  0, .75)' },
+			{ from : config.energyRange[1], to : config.energyRange[2] - interval, color : 'rgba(255, 220,  0, .75)' },
+			{ from : config.energyRange[2] - interval, to : config.energyRange[2], color : 'rgba(255, 127,  0, .75)' },
+			{ from : config.energyRange[2], to : range.max, color : 'rgba(255, 0,  0, .75)' }
+		]
 	});
-	kiloWattHoursGauge.draw();
-	
+	energyConsumptionGauge.draw();
+	nodecache["energyConsumptionGauge"] = energyConsumptionGauge;
+
+	var range = calcRange(config.powerRange[0], config.powerRange[1]);
 	var mechanicalPowerGauge = new Gauge({
 		renderTo    : 'mechanicalPowerGauge',
 		width       : 200,
@@ -310,26 +290,213 @@ function generateGauges() {
 		glow        : true,
 		units       : 'kW',
 		title       : "Power",
-		minValue    : -25,
-		maxValue    : 150,
-		majorTicks  : ['-25','0','25','50','75','100','125','150'],
+		colors      : gaugeColors,
+		minValue    : range.min,
+		maxValue    : range.max,
+		majorTicks  : range.ticks,
 		minorTicks  : 5,
 		strokeTicks : false,
-		valueFormat      : { "int" : 3, "dec" : 1 },
+		valueFormat : { "int" : 3, "dec" : 1 },
 		highlights  : [
-			{ from : -25, to : 0, color : 'rgba(0, 180, 255, .75)' },
-			{ from : 0, to : 150, color : 'rgba(0, 255,  0, .75)' }
-		],
-
-		colors      : {
-			plate      : '#222',
-			majorTicks : '#f5f5f5',
-			minorTicks : '#ddd',
-			title      : '#fff',
-			units      : '#ccc',
-			numbers    : '#eee',
-			needle     : { start : 'rgba(240, 128, 128, 1)', end : 'rgba(255, 160, 122, .9)' }
-		}
+  			{ from : range.min, to : config.powerRange[0] * .9, color : 'rgba(255, 255, 0, .75)' },
+			{ from : config.powerRange[0] *.9, to : 0, color : 'rgba(0, 255, 0, .75)' },
+			{ from : 0, to : config.powerRange[1] * .9, color : 'rgba(0, 180, 255, .75)' },
+			{ from : config.powerRange[1] * .9, to : range.max, color : 'rgba(180, 180, 255, .75)' }
+		]
 	});
 	mechanicalPowerGauge.draw();
+	nodecache["mechanicalPowerGauge"] = mechanicalPowerGauge;
+	
+	var range = calcRange(config.chargerInputVoltageRange[0], config.chargerInputVoltageRange[2]);
+	var chargerInputVoltageGauge = new Gauge({
+		renderTo    : 'chargerInputVoltageGauge',
+		width       : 200,
+		height      : 200,
+		glow        : true,
+		units       : 'Vac',
+		title       : "Mains",
+		colors      : gaugeColors,
+		minValue    : range.min,
+		maxValue    : range.max,
+		majorTicks  : range.ticks,
+		minorTicks  : 5,
+		strokeTicks : false,
+		valueFormat : { "int" : 2, "dec" : 1 },
+		highlights  : [
+		   	{ from : range.min, to : config.chargerInputVoltageRange[1] - 10, color : 'rgba(255, 255,  0, .75)' },
+			{ from : config.chargerInputVoltageRange[1] - 10, to : config.chargerInputVoltageRange[1] + 10, color : 'rgba(0, 255,  0, .75)' },
+			{ from : config.chargerInputVoltageRange[1] + 10, to : range.max, color : 'rgba(255, 255, 0, .75)' }
+		]
+	});
+	chargerInputVoltageGauge.draw();
+	nodecache["chargerInputVoltageGauge"] = chargerInputVoltageGauge;
+
+	var range = calcRange(config.chargerInputCurrentRange[0], config.chargerInputCurrentRange[1]);
+	var chargerInputCurrentGauge = new Gauge({
+		renderTo    : 'chargerInputCurrentGauge',
+		width       : 200,
+		height      : 200,
+		glow        : true,
+		units       : 'Amps',
+		title       : "Input",
+		colors      : gaugeColors,
+		minValue    : range.min,
+		maxValue    : range.max,
+		majorTicks  : range.ticks,
+		minorTicks  : 5,
+		strokeTicks : false,
+		valueFormat : { "int" : 2, "dec" : 1 },
+		highlights  : [
+			{ from : 0, to : config.chargerInputCurrentRange[1] * .9, color : 'rgba(0, 255,  0, .75)' },
+			{ from : config.chargerInputCurrentRange[1] * .9, to : range.max, color : 'rgba(255, 255, 0, .75)' }
+		]
+	});
+	chargerInputCurrentGauge.draw();
+	nodecache["chargerInputCurrentGauge"] = chargerInputCurrentGauge;
+
+	var range = calcRange(config.chargerBatteryCurrentRange[0], config.chargerBatteryCurrentRange[1]);
+	var chargerBatteryCurrentGauge = new Gauge({
+		renderTo    : 'chargerBatteryCurrentGauge',
+		width       : 200,
+		height      : 200,
+		glow        : true,
+		units       : 'Amps',
+		title       : "Battery",
+		colors      : gaugeColors,
+		minValue    : range.min,
+		maxValue    : range.max,
+		majorTicks  : range.ticks,
+		minorTicks  : 5,
+		strokeTicks : false,
+		valueFormat : { "int" : 2, "dec" : 1 },
+		highlights  : [
+			{ from : 0, to : config.chargerBatteryCurrentRange[1] * .9, color : 'rgba(0, 255,  0, .75)' },
+			{ from : config.chargerBatteryCurrentRange[1] * .9, to : range.max, color : 'rgba(255, 255, 0, .75)' }
+		]
+	});
+	chargerBatteryCurrentGauge.draw();
+	nodecache["chargerBatteryCurrentGauge"] = chargerBatteryCurrentGauge;
+
+	interval = (config.chargerTempRange[2] - config.chargerTempRange[1]) / 2;
+	range = calcRange(config.chargerTempRange[0], config.chargerTempRange[2] + interval);
+	var chargerTemperatureGauge = new Gauge({
+		renderTo    : 'chargerTemperatureGauge',
+		width       : 200,
+		height      : 200,
+		glow        : true,
+		units       : '\u2103',
+		title       : "Temperature",
+		colors      : gaugeColors,
+		minValue    : range.min,
+		maxValue    : range.max,
+		majorTicks  : range.ticks,
+		minorTicks  : 5,
+		strokeTicks : false,
+		valueFormat : { "int" : 3, "dec" : 1 },
+		highlights  : [
+   			{ from : range.min, to : config.chargerTempRange[1] - interval, color : 'rgba(0, 255,  0, .75)' },
+			{ from : config.chargerTempRange[1] - interval, to : config.chargerTempRange[1], color : 'rgba(180, 255, 0, .75)' },
+			{ from : config.chargerTempRange[1], to : config.chargerTempRange[2] - interval, color : 'rgba(255, 220, 0, .75)' },
+			{ from : config.chargerTempRange[2] - interval, to : config.chargerTempRange[2], color : 'rgba(255, 127, 0, .75)' },
+			{ from : config.chargerTempRange[2], to : range.max, color : 'rgba(255, 0, 0, .75)' }
+		]
+	});
+	chargerTemperatureGauge.draw();
+	nodecache["chargerTemperatureGauge"] = chargerTemperatureGauge;
+
+	var range = calcRange(config.dcDcLvVoltageRange[0], config.dcDcLvVoltageRange[1]);
+	var dcDcLvVoltageGauge = new Gauge({
+		renderTo    : 'dcDcLvVoltageGauge',
+		width       : 150,
+		height      : 150,
+		glow        : true,
+		units       : 'Vdc',
+		title       : "Output",
+		colors      : gaugeColors,
+		minValue    : range.min,
+		maxValue    : range.max,
+		majorTicks  : range.ticks,
+		minorTicks  : 5,
+		strokeTicks : false,
+		valueFormat : { "int" : 2, "dec" : 1 },
+		highlights  : [
+			{ from : range.min, to : config.dcDcLvVoltageRange[1] * .9, color : 'rgba(0, 255,  0, .75)' },
+			{ from : config.dcDcLvVoltageRange[1] * .9, to : range.max, color : 'rgba(255, 255, 0, .75)' }
+		]
+	});
+	dcDcLvVoltageGauge.draw();
+	nodecache["dcDcLvVoltageGauge"] = dcDcLvVoltageGauge;
+
+	var range = calcRange(config.dcDcHvCurrentRange[0], config.dcDcHvCurrentRange[1]);
+	var dcDcHvCurrentGauge = new Gauge({
+		renderTo    : 'dcDcHvCurrentGauge',
+		width       : 150,
+		height      : 150,
+		glow        : true,
+		units       : 'Amps',
+		title       : "Input",
+		colors      : gaugeColors,
+		minValue    : range.min,
+		maxValue    : range.max,
+		majorTicks  : range.ticks,
+		minorTicks  : 5,
+		strokeTicks : false,
+		valueFormat : { "int" : 2, "dec" : 1 },
+		highlights  : [
+			{ from : 0, to : config.dcDcHvCurrentRange[1] * .9, color : 'rgba(0, 255,  0, .75)' },
+			{ from : config.dcDcHvCurrentRange[1] * .9, to : range.max, color : 'rgba(255, 255, 0, .75)' }
+		]
+	});
+	dcDcHvCurrentGauge.draw();
+	nodecache["dcDcHvCurrentGauge"] = dcDcHvCurrentGauge;
+
+	var range = calcRange(config.dcDcLvCurrentRange[0], config.dcDcLvCurrentRange[1]);
+	var dcDcLvCurrentGauge = new Gauge({
+		renderTo    : 'dcDcLvCurrentGauge',
+		width       : 150,
+		height      : 150,
+		glow        : true,
+		units       : 'Amps',
+		title       : "Output",
+		colors      : gaugeColors,
+		minValue    : range.min,
+		maxValue    : range.max,
+		majorTicks  : range.ticks,
+		minorTicks  : 5,
+		strokeTicks : false,
+		valueFormat : { "int" : 3, "dec" : 0 },
+		highlights  : [
+			{ from : 0, to : config.dcDcLvCurrentRange[1] * .9, color : 'rgba(0, 255,  0, .75)' },
+			{ from : config.dcDcLvCurrentRange[1] * .9, to : range.max, color : 'rgba(255, 255, 0, .75)' }
+		]
+	});
+	dcDcLvCurrentGauge.draw();
+	nodecache["dcDcLvCurrentGauge"] = dcDcLvCurrentGauge;
+
+	interval = (config.dcDcTempRange[2] - config.dcDcTempRange[1]) / 2;
+	range = calcRange(config.dcDcTempRange[0], config.dcDcTempRange[2] + interval);
+	var dcDcTemperatureGauge = new Gauge({
+		renderTo    : 'dcDcTemperatureGauge',
+		width       : 150,
+		height      : 150,
+		glow        : true,
+		units       : '\u2103',
+		title       : "Temperature",
+		colors      : gaugeColors,
+		minValue    : range.min,
+		maxValue    : range.max,
+		majorTicks  : range.ticks,
+		minorTicks  : 5,
+		strokeTicks : false,
+		valueFormat : { "int" : 3, "dec" : 1 },
+		highlights  : [
+   			{ from : range.min, to : config.dcDcTempRange[1] - interval, color : 'rgba(0, 255,  0, .75)' },
+			{ from : config.dcDcTempRange[1] - interval, to : config.dcDcTempRange[1], color : 'rgba(180, 255, 0, .75)' },
+			{ from : config.dcDcTempRange[1], to : config.dcDcTempRange[2] - interval, color : 'rgba(255, 220, 0, .75)' },
+			{ from : config.dcDcTempRange[2] - interval, to : config.dcDcTempRange[2], color : 'rgba(255, 127, 0, .75)' },
+			{ from : config.dcDcTempRange[2], to : range.max, color : 'rgba(255, 0, 0, .75)' }
+		]
+	});
+	dcDcTemperatureGauge.draw();
+	nodecache["dcDcTemperatureGauge"] = dcDcTemperatureGauge;
 }

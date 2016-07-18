@@ -1,15 +1,17 @@
-var intervalId=null;
+var socketConnection = null;
 
 var canvas; // global throttle canvas object
-		
+var nodecache = new Array(); // a cache with references to nodes - for faster location than DOM traversal
+
 // resize the canvas to fill browser window dynamically
 window.addEventListener('resize', resizeThrottleCanvas, false);
 
 function resizeThrottleCanvas() {
 	// adjust the width to the page width
-	var canvasElement=document.getElementById("throttleCanvas");
-	if ( canvasElement ) {
-		canvasElement.width = window.innerWidth - 60; // needs to be slightly narrower than the page width
+	var canvasElement = document.getElementById("throttleCanvas");
+	if (canvasElement) {
+		// needs to be slightly narrower than the page width
+		canvasElement.width = window.innerWidth - 60;
 	}
 	refreshThrottleVisualization();
 }
@@ -34,19 +36,95 @@ function showTab(pageId) {
 		}
 	}
 
-	// on the dashboard page, set a 200ms repeating interval to load the data, otherwise clear it
-	if ( intervalId ) {
-		clearInterval(intervalId);
-		intervalId = null;
+	if (pageId == 'config') {
+		resizeThrottleCanvas();
 	}
+
+	// on the dashboard page, open a WebSocket to receive updates,
+	// otherwise close the connection
+	closeWebSocket();
+	
 	if (pageId == 'dashboard') {
-		intervalId = setInterval(function(){loadData(pageId)}, 200);
+		alertify.set('notifier','position', 'top-right');
+		openWebSocket();
 	} else {
-		if ( pageId == 'config' ) {
-			resizeThrottleCanvas();
+		loadData(pageId);
+	}
+}
+
+// on most mobile browsers sounds can only be loaded during a user interaction (stupid !)
+function removeBehaviorsRestrictions() {
+	soundError.load();
+	soundWarn.load();
+	soundInfo.load();
+	window.removeEventListener('keydown', removeBehaviorsRestrictions);
+	window.removeEventListener('mousedown', removeBehaviorsRestrictions);
+	window.removeEventListener('touchstart', removeBehaviorsRestrictions);
+}
+
+function openWebSocket() {
+
+	// add an event listener so sounds can get loaded on mobile devices after user interaction
+	window.addEventListener('keydown', removeBehaviorsRestrictions);
+	window.addEventListener('mousedown', removeBehaviorsRestrictions);
+	window.addEventListener('touchstart', removeBehaviorsRestrictions);
+
+	socketConnection = new WebSocket("ws://" + location.hostname + ":2000");
+
+	// send some data to the server Log errors
+	socketConnection.onerror = function(error) {
+		console.log('WebSocket Error ' + error);
+		closeWebSocket();
+	};
+	// process messages from the server
+	socketConnection.onmessage = function(message) {
+		var data = JSON.parse(message.data);
+		for (name in data) {
+			setNodeValue(name, data[name]);
+			if (name == 'systemState') {
+				updateSystemState(data[name]);
+			}
+			if (name == 'logMessage') {
+				var message = data[name].message;
+				var level = data[name].level;
+				if (level == 'ERROR') {
+					alertify.error(message, 0);
+					soundError.play();
+				} else if (level == 'WARNING') {
+					alertify.warning(message, 60);
+					soundWarn.play();
+				} else {
+					alertify.success(message, 30);
+					soundInfo.play();
+				}
+			}
+		}
+	};
+}
+
+function closeWebSocket() {
+	if (socketConnection) {
+		socketConnection.close();
+		socketConnection = null;
+	}
+}
+
+function updateSystemState(state) {
+	var div = document.getElementsByTagName('div')
+	for (i = 0; i < div.length; i++) {
+		var idStr = div[i].getAttribute('id');
+		if (idStr && idStr.indexOf('state_') != -1) {
+			if (idStr.indexOf('_' + state + '_') != -1) {
+				div[i].className = 'visible';
+			} else {
+				div[i].className = 'hidden';
+			}
 		}
 	}
-	loadData(pageId);
+}
+
+function stopCharge() {
+	socketConnection.send('stopCharge');
 }
 
 // lazy load of page, replaces content of div with id==<pageId> with
@@ -60,7 +138,17 @@ function loadPage(pageId) {
 				generateRangeControls();
 			if (pageId == 'dashboard') {
 				loadPage("annunciator");
-				generateGauges();
+
+				// load config for dashboard gauges, then generate them
+				var dashConfig = new XMLHttpRequest();
+				dashConfig.onreadystatechange = function() {
+					if (dashConfig.readyState == 4 && dashConfig.status == 200) {
+						var data = JSON.parse(dashConfig.responseText);
+						generateGauges(data);
+					}
+				};
+				dashConfig.open("GET", "dashboard.js", true);
+				dashConfig.send();
 			}
 		}
 	};
@@ -79,79 +167,94 @@ function findAttribute(node, attributeName) {
 }
 
 function setNodeValue(name, value) {
-	if (name.indexOf('bitfield') == -1) { // a normal div/span/input to update
-		var target = document.getElementById(name);
-		
-		if (!target) { // id not found, try to find by name
-			var namedElements = document.getElementsByName(name);
-			if (namedElements && namedElements.length)
-				target = namedElements[0];
-		}
+	// a bitfield value for annunciator fields
+	if (name.indexOf('bitfield') != -1) {
+		updateAnnunciatorFields(name, value);
+		// updateAnnunciatorFields(name, Math.round(Math.random() * 0x100000000));
+		return;
+	}
 
-		if (target) { // found an element, update according to its type
-			if (target.nodeName.toUpperCase() == 'DIV' || target.nodeName.toUpperCase() == 'SPAN')
-				target.innerHTML = value;
-			if (target.nodeName.toUpperCase() == 'INPUT') {
-				var type = findAttribute(target, "type");
-				if (type && (type.value.toUpperCase() == 'CHECKBOX' || type.value.toUpperCase() == 'RADIO')) {
-					target.checked = (value.toUpperCase() == 'TRUE' || value == '1');
-				} else {
-					target.value = value;
-					var slider = document.getElementById(name + "Level"); // find corresponding slider element
-					if (slider) {
-						slider.value = value;
-					}
+	var target = nodecache[name + "Gauge"];
+	if (target) {
+		Gauge.Collection.get(name + "Gauge").setRawValue(value);
+		return;
+	}
+
+	// a normal div/span/input to update
+	target = nodecache[name];
+	if (!target) {
+		target = document.getElementById(name);
+		nodecache[name]=target;
+	}
+	if (!target) { // id not found, try to find by name
+		var namedElements = document.getElementsByName(name);
+		if (namedElements && namedElements.length) {
+			target = namedElements[0];
+			nodecache[name] = target;
+		}
+	}
+
+	if (target) { // found an element, update according to its type
+		if (target.nodeName.toUpperCase() == 'DIV' || target.nodeName.toUpperCase() == 'SPAN')
+			target.innerHTML = value;
+		if (target.nodeName.toUpperCase() == 'INPUT') {
+			var type = findAttribute(target, "type");
+			if (type && (type.value.toUpperCase() == 'CHECKBOX' || type.value.toUpperCase() == 'RADIO')) {
+				target.checked = (value.toUpperCase() == 'TRUE' || value == '1');
+			} else {
+				target.value = value;
+				// find corresponding slider element
+				var slider = document.getElementById(name + "Level");
+				if (slider) {
+					slider.value = value;
 				}
 			}
-			if (target.nodeName.toUpperCase() == 'SELECT') {
-				selectItemByValue(target, value);
-			}
-		} else {
-			refreshGaugeValue(name, value);
 		}
-	} else { // an annunciator field of a bitfield value
-		updateAnnunciatorFields(name, value);
-//		updateAnnunciatorFields(name, Math.round(Math.random() * 0x100000000));
+		if (target.nodeName.toUpperCase() == 'SELECT') {
+			selectItemByValue(target, value);
+		}
 	}
 }
 
-// load data from dynamic xml and replace values in input fields, div's, gauges
+// load data from dynamic json and replace values in input fields, div's, gauges
 function loadData(pageId) {
 	try {
 		var xmlhttp = new XMLHttpRequest();
 		xmlhttp.onreadystatechange = function() {
 			if (xmlhttp.readyState == 4 && xmlhttp.status == 200) {
-				hideDeviceTr(); // hide device dependent TR's so they can be shown if configured
-				var root = xmlhttp.responseXML.firstChild;
-				for (var i = 0; i < root.childNodes.length; i++) {
-					var node = root.childNodes[i]; // scan through the nodes
-					if (node.nodeType == 1 && node.childNodes[0]) {
-						var name = node.nodeName;
-						var value = node.childNodes[0].nodeValue;
-						
-						if (name.indexOf('device_x') == 0 && value == '1') {
-							setTrVisibility(name, true); // it's a device config, update device specific visibility
-						} else {
-							setNodeValue(name, value);
-						}
-					}
-				}
+				var data = JSON.parse(xmlhttp.responseText);
+				processData(data);
 				if (pageId == 'config') {
 					refreshThrottleVisualization();
 				}
 			}
 		};
-		xmlhttp.open("GET", pageId + ".xml", true);
+		xmlhttp.open("GET", pageId + ".js", true);
 		xmlhttp.send();
 	} catch (err) {
 		alert("unable to retrieve data for page " + pageId);
 	}
 }
 
-// scan through the options of a select input field and activate the one with the given value
+function processData(data) {
+	// hide device dependent TR's so they can be shown if configured
+	hideDeviceTr();
+	for (name in data) {
+		var value = data[name];
+		if (name.indexOf('device_x') == 0 && value == '1') {
+			// it's a device config, update device specific visibility
+			setTrVisibility(name, true);
+		} else {
+			setNodeValue(name, value);
+		}
+	}
+}
+
+// scan through the options of a select input field and activate the one with
+// the given value
 function selectItemByValue(node, value) {
 	for (var i = 0; i < node.options.length; i++) {
-		if (node.options[i].value === value) {
+		if (node.options[i].value == value) {
 			node.selectedIndex = i;
 			break;
 		}
@@ -227,7 +330,7 @@ function updateRangeValue(id, source) {
 		if (val < min)
 			val = min;
 	}
-		
+
 	document.getElementById(id).value = val;
 	source.value = val;
 	refreshThrottleVisualization();
@@ -238,12 +341,6 @@ function refreshThrottleVisualization() {
 		canvas = new ThrottleSettingsCanvas();
 	}
 	canvas.draw();
-
-//	var positionRegenMinimum = document.getElementById('positionRegenMinimum');
-//	var positionForwardStart = document.getElementById('positionForwardStart');
-//	if ( positionRegenMinimum && positionForwardStart ) {
-//		updateThrottleGaugeHighlights(positionRegenMinimum.value, positionForwardStart.value);
-//	}
 }
 
 function getIntValue(id) {
@@ -274,10 +371,13 @@ function generateRangeControls() {
 function addRangeControl(id, min, max) {
 	var node = document.getElementById(id + "Span");
 	if (node)
-		node.innerHTML = "<input id='"+id+"Level' type='range' min='"+min+"' max='"+max+"' onchange=\"updateRangeValue('"+id+"', this);\" onmousemove=\"updateRangeValue('"+id+"', this);\" /><input type='number' id='"+id+"' name='"+id+"' min='"+min+"' max='"+max+"' maxlength='4' size='4' onchange=\"updateRangeValue('"+id+"Level', this);\"/>";
+		node.innerHTML = "<input id='" + id + "Level' type='range' min='" + min + "' max='" + max + "' onchange=\"updateRangeValue('" + id
+				+ "', this);\" onmousemove=\"updateRangeValue('" + id + "', this);\" /><input type='number' id='" + id + "' name='" + id + "' min='"
+				+ min + "' max='" + max + "' maxlength='4' size='4' onchange=\"updateRangeValue('" + id + "Level', this);\"/>";
 }
 
-//hides rows with device depandent visibility (as a pre-requisite to re-enable it)
+// hides rows with device dependent visibility
+// (as a pre-requisite to re-enable it)
 function hideDeviceTr() {
 	tr = document.getElementsByTagName('tr')
 	for (i = 0; i < tr.length; i++) {
@@ -288,7 +388,8 @@ function hideDeviceTr() {
 	}
 }
 
-// shows/hides rows of a table with a certain id value (used for device specific parameters)
+// shows/hides rows of a table with a certain id value
+// (used for device specific parameters)
 function setTrVisibility(id, visible) {
 	tr = document.getElementsByTagName('tr')
 	for (i = 0; i < tr.length; i++) {

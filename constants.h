@@ -30,7 +30,8 @@
 #ifndef CONSTANTS_H_
 #define CONSTANTS_H_
 
-namespace Constants {
+namespace Constants
+{
 // misc
 static const char* trueStr = "true";
 static const char* falseStr = "false";
@@ -39,7 +40,7 @@ static const char* ichipCommandPrefix = "AT+i";
 static const char* ichipErrorString = "I/ERROR";
 
 // messages
-static const char* valueOutOfRange = "value out of range: %l";
+static const char* valueOutOfRange = "value out of range: %ld";
 static const char* normalOperation = "normal operation restored";
 
 /*
@@ -72,7 +73,6 @@ static const char* nominalVolt = "nominalVolt";
 static const char* motorMode = "motorMode";
 static const char* invertDirection = "invertDirection";
 static const char* slewRate = "slewRate";
-static const char* slewType = "slewType";
 
 static const char* maxMechanicalPowerMotor = "maxMechPowerMotor";
 static const char* maxMechanicalPowerRegen = "maxMechPowerRegen";
@@ -147,15 +147,52 @@ static const char* brake = "brake";
 static const char* speedActual = "speedActual";
 static const char* dcVoltage = "dcVoltage";
 static const char* dcCurrent = "dcCurrent";
-static const char* kiloWattHours = "kiloWattHours";
+static const char* energyConsumption = "energyConsumption";
 static const char* bitfield1 = "bitfield1";
 static const char* bitfield2 = "bitfield2";
 static const char* bitfield3 = "bitfield3";
 static const char* systemState = "systemState";
 static const char* gear = "gear";
 static const char* temperatureMotor = "temperatureMotor";
-static const char* temperatureController = "tempController";
+static const char* temperatureController = "temperatureController";
 static const char* mechanicalPower = "mechanicalPower";
+static const char* dcDcHvVoltage = "dcDcHvVoltage";
+static const char* dcDcLvVoltage = "dcDcLvVoltage";
+static const char* dcDcHvCurrent = "dcDcHvCurrent";
+static const char* dcDcLvCurrent = "dcDcLvCurrent";
+static const char* dcDcTemperature = "dcDcTemperature";
+static const char* chargerInputVoltage = "chargerInputVoltage";
+static const char* chargerInputCurrent = "chargerInputCurrent";
+static const char* chargerBatteryVoltage = "chargerBatteryVoltage";
+static const char* chargerBatteryCurrent = "chargerBatteryCurrent";
+static const char* chargerTemperature = "chargerTemperature";
+
+static const char* flowCoolant = "flowCoolant";
+static const char* flowHeater = "flowHeater";
+static const char* temperatureBattery[] = { "temperatureBattery1", "temperatureBattery2", "temperatureBattery3", "temperatureBattery4",
+        "temperatureBattery5", "temperatureBattery6" };
+static const char* temperatureCoolant = "temperatureCoolant";
+static const char* temperatureHeater = "temperatureHeater";
+static const char* temperatureExterior = "temperatureExterior";
+
+static const char* torqueRange = "torqueRange";
+static const char* rpmRange = "rpmRange";
+static const char* currentRange = "currentRange";
+static const char* motorTempRange = "motorTempRange";
+static const char* controllerTempRange = "controllerTempRange";
+static const char* batteryRangeLow = "batteryRangeLow";
+static const char* batteryRangeHigh = "batteryRangeHigh";
+static const char* energyRange = "energyRange";
+static const char* powerRange = "powerRange";
+static const char* chargerInputCurrentRange = "chgInCurrentRange";
+static const char* chargerInputVoltageRange = "chgInVoltageRange";
+static const char* chargerBatteryCurrentRange = "chgBatCurrentRange";
+static const char* chargerTempRange = "chargerTempRange";
+static const char* dcDcHvCurrentRange = "dcDcHvCurrentRange";
+static const char* dcDcLvVoltageRange = "dcDcLvVoltageRange";
+static const char* dcDcLvCurrentRange = "dcDcLvCurrentRange";
+static const char* dcDcTempRange = "dcDcTempRange";
+
 }
 
 #endif /* CONSTANTS_H_ */

@@ -75,7 +75,7 @@ String ELM327Processor::processELMCmd(char *cmd)
             uint32_t valu = strtol((char *) cmd, NULL, 16);   //the pid format is always in hex
             uint8_t pidnum = (uint8_t)(valu & 0xFF);
             uint8_t mode = (uint8_t)((valu >> 8) & 0xFF);
-            Logger::debug(ELM327EMU, "Mode: %i, PID: %i", mode, pidnum);
+            Logger::debug("ElM327EMU - Mode: %i, PID: %i", mode, pidnum);
             char out[7];
             char buff[10];
 

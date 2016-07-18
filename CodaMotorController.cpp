@@ -67,7 +67,7 @@ void CodaMotorController::handleCanFrame(CAN_FRAME *frame) {
     running = true;
 
     if (Logger::isDebug()) {
-        Logger::debug(CODAUQM, "msg: %X   %X   %X   %X   %X   %X   %X   %X  %X", frame->id, frame->data.bytes[0], frame->data.bytes[1],
+        Logger::debug(this, "msg: %#02x   %#02x   %#02x   %#02x   %#02x   %#02x   %#02x   %#02x  %#02x", frame->id, frame->data.bytes[0], frame->data.bytes[1],
             frame->data.bytes[2], frame->data.bytes[3], frame->data.bytes[4], frame->data.bytes[5], frame->data.bytes[6], frame->data.bytes[7]);
     }
 
@@ -79,28 +79,28 @@ void CodaMotorController::handleCanFrame(CAN_FRAME *frame) {
         dcCurrent = (((frame->data.bytes[5] * 256) + frame->data.bytes[4]) - 32128);
         speedActual = abs((((frame->data.bytes[7] * 256) + frame->data.bytes[6]) - 32128) / 2);
         if (Logger::isDebug()) {
-            Logger::debug(CODAUQM, "Actual Torque: %d DC Voltage: %d Amps: %d RPM: %d", torqueActual / 10, dcVoltage / 10, dcCurrent / 10, speedActual);
+            Logger::debug(this, "Actual Torque: %d DC Voltage: %d Amps: %d RPM: %d", torqueActual / 10, dcVoltage / 10, dcCurrent / 10, speedActual);
         }
         reportActivity();
         break;
 
     case 0x20A:    //System Status Message
-        Logger::debug(CODAUQM, "20A System Status Message Received");
+        Logger::debug(this, "20A System Status Message Received");
         reportActivity();
         break;
 
     case 0x20B:    //Emergency Fuel Cutback Message
-        Logger::debug(CODAUQM, "20B Emergency Fuel Cutback Message Received");
+        Logger::debug(this, "20B Emergency Fuel Cutback Message Received");
         reportActivity();
         break;
 
     case 0x20C:    //Reserved Message
-        Logger::debug(CODAUQM, "20C Reserved Message Received");
+        Logger::debug(this, "20C Reserved Message Received");
         reportActivity();
         break;
 
     case 0x20D:    //Limited Torque Percentage Message
-        Logger::debug(CODAUQM, "20D Limited Torque Percentage Message Received");
+        Logger::debug(this, "20D Limited Torque Percentage Message Received");
         reportActivity();
         break;
 
@@ -111,13 +111,13 @@ void CodaMotorController::handleCanFrame(CAN_FRAME *frame) {
         temperatureController = (invTemp - 40) * 10;
         temperatureMotor = (max(rotorTemp, statorTemp) - 40) * 10;
         if (Logger::isDebug()) {
-            Logger::debug(CODAUQM, "Inverter temp: %d Motor temp: %d", temperatureController, temperatureMotor);
+            Logger::debug(this, "Inverter temp: %d Motor temp: %d", temperatureController, temperatureMotor);
         }
         reportActivity();
         break;
 
     case 0x20F:    //CAN Watchdog Status Message
-        Logger::debug(CODAUQM, "20F CAN Watchdog status error");
+        Logger::debug(this, "20F CAN Watchdog status error");
         status.warning = true;
         running = false;
         sendCmd2(); //If we get a Watchdog status, we need to respond with Watchdog reset
@@ -197,7 +197,7 @@ void CodaMotorController::sendCmd1() {
     canHandlerEv.sendFrame(output);  //Mail it.
 
     if (Logger::isDebug()) {
-        Logger::debug(CODAUQM, "Torque command: %X   %X  ControlByte: %X  LSB %X  MSB: %X  CRC: %X", output.id, output.data.bytes[0],
+        Logger::debug(this, "Torque command: %#x   %#x  ControlByte: %#x  LSB %#x  MSB: %#x  CRC: %#x", output.id, output.data.bytes[0],
             output.data.bytes[1], output.data.bytes[2], output.data.bytes[3], output.data.bytes[4]);
     }
 
@@ -221,7 +221,7 @@ void CodaMotorController::sendCmd2() {
 
     canHandlerEv.sendFrame(output);
     if (Logger::isDebug()) {
-        Logger::debug(CODAUQM, "Watchdog reset: %X  %X  %X", output.data.bytes[0], output.data.bytes[1], output.data.bytes[2]);
+        Logger::debug(this, "Watchdog reset: %#x  %#x  %#x", output.data.bytes[0], output.data.bytes[1], output.data.bytes[2]);
     }
 
     status.warning = false;

@@ -40,6 +40,7 @@
 BrusaDMC5::BrusaDMC5() : MotorController()
 {
     prefsHandler = new PrefHandler(BRUSA_DMC5);
+    mechanicalPower = 0;
     torqueAvailable = 0;
     maxPositiveTorque = 0;
     minNegativeTorque = 0;
@@ -81,7 +82,7 @@ void BrusaDMC5::handleStateChange(Status::SystemState oldState, Status::SystemSt
         canHandlerEv.attach(this, CAN_MASKED_ID_2, CAN_MASK_2, false);
         tickHandler.attach(this, CFG_TICK_INTERVAL_MOTOR_CONTROLLER_BRUSA);
     } else {
-        if (oldState == Status::ready || oldState == Status::running) {
+        if (oldState == Status::running) {
             tearDown();
         }
     }
@@ -123,7 +124,7 @@ void BrusaDMC5::sendControl()
     canHandlerEv.prepareOutputFrame(&outputFrame, CAN_ID_CONTROL);
     if ((status.canControlMessageLost || status.canControl2MessageLost || status.canLimitMessageLost)) {
         outputFrame.data.bytes[0] |= clearErrorLatch;
-        Logger::error(BRUSA_DMC5, "clearing error latch - ctrl lost: %t, ctrl2 lost: %t, limit lost: %t", status.canControlMessageLost,
+        Logger::error(this, "clearing error latch - ctrl lost: %d, ctrl2 lost: %d, limit lost: %d", status.canControlMessageLost,
                 status.canControl2MessageLost, status.canLimitMessageLost);
     } else {
         // to safe energy only enable the power-stage when positive acceleration is requested or the motor is still spinning (to control regen)
@@ -270,7 +271,7 @@ void BrusaDMC5::processStatus(uint8_t data[])
     ready = (bitfield & dmc5Ready) ? true : false;
     running = (bitfield & dmc5Running) ? true : false;
     if ((bitfield & errorFlag) && status.getSystemState() != Status::error) {
-        Logger::error(BRUSA_DMC5, "Error reported from motor controller!");
+        Logger::error(this, "Error reported from motor controller!");
         status.setSystemState(Status::error);
     }
     status.warning = (bitfield & warningFlag) ? true : false;
@@ -287,7 +288,7 @@ void BrusaDMC5::processStatus(uint8_t data[])
     status.limitationMotorTemperature = (bitfield & motorTemperatureLimitation) ? true : false;
 
     if (Logger::isDebug()) {
-        Logger::debug(BRUSA_DMC5, "status: %X (%B), ready: %t, running: %t, torque avail: %fNm, actual : %fNm, speed actual: %drpm", bitfield, bitfield,
+        Logger::debug(this, "status: %#08x, ready: %d, running: %d, torque avail: %.2fNm, actual : %.2fNm, speed actual: %drpm", bitfield,
                 ready, running, torqueAvailable / 100.0F, torqueActual / 100.0F, speedActual);
     }
 }
@@ -306,7 +307,7 @@ void BrusaDMC5::processActualValues(uint8_t data[])
     mechanicalPower = (int16_t) (data[7] | (data[6] << 8)) / 6.25;
 
     if (Logger::isDebug()) {
-        Logger::debug(BRUSA_DMC5, "DC Volts: %fV, DC current: %fA, AC current: %fA, mechPower: %fkW", dcVoltage / 10.0F,
+        Logger::debug(this, "DC Volts: %.1fV, DC current: %.1fA, AC current: %.1fA, mechPower: %.1fkW", dcVoltage / 10.0F,
                 dcCurrent / 10.0F, acCurrent / 10.0F, mechanicalPower / 10.0F);
     }
 }
@@ -351,7 +352,7 @@ void BrusaDMC5::processErrors(uint8_t data[])
     status.osTrap = (bitfield & osTrap) ? true : false;
 
     if (bitfield) {
-        Logger::error(BRUSA_DMC5, "%X (%B)", bitfield, bitfield);
+        Logger::error(this, "%#08x", bitfield);
     }
 
     bitfield = (uint32_t) (data[7] | (data[6] << 8));
@@ -368,7 +369,7 @@ void BrusaDMC5::processErrors(uint8_t data[])
     status.temperatureSensor = (bitfield & temperatureSensor) ? true : false;
 
     if (bitfield) {
-        Logger::warn(BRUSA_DMC5, "%X (%B)", bitfield, bitfield);
+        Logger::warn(this, "%#08x", bitfield);
     }
 }
 
@@ -384,7 +385,7 @@ void BrusaDMC5::processTorqueLimit(uint8_t data[])
     limiterStateNumber = (uint8_t) data[4];
 
     if (Logger::isDebug()) {
-        Logger::debug(BRUSA_DMC5, "torque limit: max positive: %fNm, min negative: %fNm", maxPositiveTorque / 10.0F, minNegativeTorque / 10.0F,
+        Logger::debug(this, "torque limit: max positive: %.1fNm, min negative: %.1fNm", maxPositiveTorque / 10.0F, minNegativeTorque / 10.0F,
                 limiterStateNumber);
     }
 }
@@ -401,13 +402,19 @@ void BrusaDMC5::processTemperature(uint8_t data[])
     temperatureMotor = (int16_t) (data[3] | (data[2] << 8)) * 5;
     temperatureController = (int16_t) (data[4] - 50) * 10;
     if (Logger::isDebug()) {
-        Logger::debug(BRUSA_DMC5, "temperature: powerStage: %fC, motor: %fC, system: %fC", temperaturePowerStage / 10.0F, temperatureMotor / 10.0F,
+        Logger::debug(this, "temperature: powerStage: %.1fC, motor: %.1fC, system: %.1fC", temperaturePowerStage / 10.0F, temperatureMotor / 10.0F,
                 temperatureController / 10.0F);
     }
     if (temperaturePowerStage > temperatureController) {
         temperatureController = temperaturePowerStage;
     }
 }
+
+int32_t BrusaDMC5::getMechanicalPower()
+{
+    return mechanicalPower * 100;
+}
+
 
 /*
  * Return the device id of this device
@@ -454,8 +461,8 @@ void BrusaDMC5::loadConfiguration()
         config->enableOscillationLimiter = false;
         saveConfiguration();
     }
-    Logger::info(BRUSA_DMC5, "DC limit motor: %f Volt, DC limit regen: %f Volt", config->dcVoltLimitMotor / 10.0f, config->dcVoltLimitRegen / 10.0f);
-    Logger::info(BRUSA_DMC5, "DC limit motor: %f Amps, DC limit regen: %f Amps", config->dcCurrentLimitMotor / 10.0f,
+    Logger::info(this, "DC limit motor: %.1f Volt, DC limit regen: %.1f Volt", config->dcVoltLimitMotor / 10.0f, config->dcVoltLimitRegen / 10.0f);
+    Logger::info(this, "DC limit motor: %.1f Amps, DC limit regen: %.1f Amps", config->dcCurrentLimitMotor / 10.0f,
             config->dcCurrentLimitRegen / 10.0f);
 }
 

@@ -54,7 +54,7 @@ class FaultHandler : public TickObserver {
   FaultHandler(); //constructor
   virtual ~FaultHandler();
 
-  uint16_t raiseFault(uint16_t device, uint16_t code, bool ongoing); //raise a new fault. Returns the fault # where this was stored
+  void raiseFault(uint16_t device, uint16_t code, bool ongoing); //raise a new fault. Returns the fault # where this was stored
   void cancelOngoingFault(uint16_t device, uint16_t code); //if this fault was registered as ongoing then cancel it (set not ongoing) otherwise do nothing
   bool getNextFault(FAULT*); //get the next un-ack'd fault. Will also get first fault if the first call and you forgot to call getFirstFault
   bool getFault(uint16_t fault, FAULT*);

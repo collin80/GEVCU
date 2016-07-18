@@ -66,7 +66,7 @@ void Throttle::handleTick()
         running = false;
     }
     if(Logger::isDebug()) {
-        Logger::debug(getId(), "raw: %d, level: %d, running: %t", rawSignals->input1, level, running);
+        Logger::debug(this, "raw: %d, level: %d, running: %d", rawSignals->input1, level, running);
     }
 }
 
@@ -221,7 +221,7 @@ void Throttle::loadConfiguration()
     ThrottleConfiguration *config = (ThrottleConfiguration *) getConfiguration();
 
     Device::loadConfiguration(); // call parent
-    Logger::info(getId(), "Throttle configuration:");
+    Logger::info(this, "Throttle configuration:");
 
 #ifdef USE_HARD_CODED
 
@@ -251,10 +251,10 @@ void Throttle::loadConfiguration()
         config->maximumRegen = ThrottleMaxRegenValue; //percentage of full power to use for regen at throttle
     }
 
-    Logger::info(getId(), "RegenMax: %l RegenMin: %l Fwd: %l Map: %l", config->positionRegenMaximum, config->positionRegenMinimum,
+    Logger::info(this, "RegenMax: %ld RegenMin: %ld Fwd: %ld Map: %ld", config->positionRegenMaximum, config->positionRegenMinimum,
                   config->positionForwardMotionStart, config->positionHalfPower);
-    Logger::info(getId(), "MinRegen: %d MaxRegen: %d", config->minimumRegen, config->maximumRegen);
-    Logger::info(getId(), "T1 MIN: %l, T1 MAX: %l", config->minimumLevel, config->maximumLevel);
+    Logger::info(this, "MinRegen: %d MaxRegen: %d", config->minimumRegen, config->maximumRegen);
+    Logger::info(this, "T1 MIN: %ld, T1 MAX: %ld", config->minimumLevel, config->maximumLevel);
 }
 
 /*

@@ -839,8 +839,7 @@ Gauge.initialized = false;
 	var
 		d = document,
 		h = d.getElementsByTagName('head')[0],
-		ie = navigator.userAgent.toLocaleLowerCase().indexOf( 'msie') != -1,
-		url = 'fonts/digital-7-mono.' + (ie ? 'eot' : 'ttf'),
+		url = 'fonts/digital-7-mono.ttf',
 		text = "@font-face {" +
 					"font-family: 'Led';" +
 					"src: url('" + url + "');" +
@@ -851,23 +850,17 @@ Gauge.initialized = false;
 
 	r.type = 'text/css';
 
-	if (ie) {
-		h.appendChild( r);
-		ss = r.styleSheet;
-		ss.cssText = text;
-    } else {
-    	try {
-    		r.appendChild( d.createTextNode( text));
-    	} catch (e) {
-    		r.cssText = text;
-    	}
-
-    	h.appendChild( r);
-
-    	ss = r.styleSheet ? r.styleSheet :
-    		(r.sheet || d.styleSheets[d.styleSheets.length - 1])
-    	;
+	try {
+		r.appendChild( d.createTextNode( text));
+	} catch (e) {
+		r.cssText = text;
 	}
+
+	h.appendChild( r);
+
+	ss = r.styleSheet ? r.styleSheet :
+		(r.sheet || d.styleSheets[d.styleSheets.length - 1])
+	;
 
 	var iv = setInterval(function() {
 		if (!d.body) {

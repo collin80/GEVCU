@@ -34,8 +34,9 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 #include <due_can.h>
 
-#define CFG_BUILD_NUM	1053        //increment this every time a git commit is done.
-#define CFG_VERSION "GEVCU 2016-03-23"
+#define CFG_BUILD_NUM	1055        //increment this every time a git commit is done.
+#define CFG_VERSION "GEVCU 2016-06-29"
+#define CFG_DEFAULT_LOGLEVEL Logger::Info
 
 //define this to add in latency and efficiency calculations. Comment it out for builds you're going to 
 //use in an actual car. No need to waste cycles for 99% of everyone using the code.
@@ -66,7 +67,7 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #define CFG_TICK_INTERVAL_BMS_THINK                 500000
 #define CFG_TICK_INTERVAL_DCDC_BSC6                 100000
 #define CFG_TICK_INTERVAL_CHARGE_NLG5               100000
-#define CFG_TICK_INTERVAL_WIFI                      200000
+#define CFG_TICK_INTERVAL_WIFI                      100000
 #define CFG_TICK_INTERVAL_SYSTEM_IO                 200000
 #define CFG_TICK_INTERVAL_CAN_IO                    200000
 
@@ -75,9 +76,9 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 #define CFG_CAN0_SPEED CAN_BPS_500K // specify the speed of the CAN0 bus (EV)
 #define CFG_CAN1_SPEED CAN_BPS_500K // specify the speed of the CAN1 bus (Car)
-#define CFG_CAN0_NUM_TX_MAILBOXES 1 // how many of 8 mailboxes are used for TX for CAN0, rest is used for RX
+#define CFG_CAN0_NUM_TX_MAILBOXES 2 // how many of 8 mailboxes are used for TX for CAN0, rest is used for RX
 #define CFG_CAN1_NUM_TX_MAILBOXES 3 // how many of 8 mailboxes are used for TX for CAN1, rest is used for RX
-#define CFG_CANTHROTTLE_MAX_NUM_LOST_MSG 3 // maximum number of lost messages allowed (max 255)
+#define CFG_CANTHROTTLE_MAX_NUM_LOST_MSG 5 // maximum number of lost messages allowed (max 255)
 #define CFG_MOTORCTRL_MAX_NUM_LOST_MSG 20 // maximum number of ticks the controller may not send messages (max 255)
 
 /*
@@ -90,7 +91,7 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #define CFG_THREE_CONTACTOR_PRECHARGE // do we use three contactors instead of two for pre-charge cycle ?
 #define CFG_NO_TEMPERATURE_DATA 9999 // temperature used to indicate that no external temp sensor is connected
 #define CFG_MIN_BATTERY_CHARGE_TEMPERATURE 5 // GEVCU won't start the battery charging process if the battery temp is below 5 deg C
-#define CFG_TORQUE_BRAKE_LIGHT_ON -100 // torque in 0.1Nm where brake light should be turned on - to prevent being kissed from behind
+#define CFG_TORQUE_BRAKE_LIGHT_ON -500 // torque in 0.1Nm where brake light should be turned on - to prevent being kissed from behind
 #define CFG_WIFI_WPA2 // enable WPA2 encryption for ad-hoc wifi network at wifi reset (via command 'w'), comment line to disable
 #define CFG_CAN_TEMPERATURE_OFFSET 50 // offset of temperatures reported via CAN bus - make sure GEVCU extension uses the same value!
 
@@ -126,9 +127,7 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 #define MaxTorqueValue		3000 //in tenths of a Nm
 #define MaxRPMValue         6000 //DMOC will ignore this but we can use it ourselves for limiting
-#define SlewType            0 // 0=linear slew slope, 1=exponential
 #define SlewRateValue       0 // 0.1 percent/sec the requested torque/speed output should change
-#define KilowattHrs         11000 //not currently used
 #define EnableInput         255 // digital input port for enable signal
 #define PrechargeMillis     3000 // milliseconds for pre-charge cycle
 #define NominalVolt         3300 //a reasonable figure for a lithium cell pack driving the DMOC (in tenths of a volt)
@@ -155,8 +154,11 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #define CFG_CAN_NUM_OBSERVERS 10 // maximum number of device subscriptions per CAN bus
 #define CFG_TIMER_NUM_OBSERVERS 9 // the maximum number of supported observers per timer
 #define CFG_TIMER_BUFFER_SIZE 100 // the size of the queuing buffer for TickHandler
-#define CFG_SERIAL_SEND_BUFFER_SIZE 100
+#define CFG_SERIAL_SEND_BUFFER_SIZE 120
 #define CFG_FAULT_HISTORY_SIZE	50 //number of faults to store in eeprom. A circular buffer so the last 50 faults are always stored.
+#define CFG_WEBSOCKET_BUFFER_SIZE 50 // number of characters an incoming socket frame may contain
+#define CFG_WIFI_BUFFER_SIZE 128 // size of buffer for incoming data from wifi
+#define CFG_LOG_BUFFER_SIZE 120 // size of log output messages
 
 /*
  * PIN ASSIGNMENT
@@ -168,6 +170,6 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #define CFG_NUMBER_ANALOG_INPUTS  4
 #define CFG_NUMBER_DIGITAL_INPUTS 4
 #define CFG_NUMBER_DIGITAL_OUTPUTS  8
-#define CFG_NUMBER_TEMPERATURE_SENSORS 8 // the maximum supported external temperature sensors
+#define CFG_NUMBER_BATTERY_TEMPERATURE_SENSORS 6 // the maximum supported external temperature sensors for battery
 
 #endif /* CONFIG_H_ */

@@ -79,7 +79,7 @@ bool PotBrake::validateSignal(RawSignalData *rawSignal)
 
     if (rawSignal->input1 > (config->maximumLevel + CFG_THROTTLE_TOLERANCE)) {
         if (throttleStatus == OK) {
-            Logger::error(POTBRAKEPEDAL, (char *) Constants::valueOutOfRange, rawSignal->input1);
+            Logger::error(this, (char *) Constants::valueOutOfRange, rawSignal->input1);
         }
 
         throttleStatus = ERR_HIGH_T1;
@@ -88,7 +88,7 @@ bool PotBrake::validateSignal(RawSignalData *rawSignal)
 
     if (rawSignal->input1 < (config->minimumLevel - CFG_THROTTLE_TOLERANCE)) {
         if (throttleStatus == OK) {
-            Logger::error(POTBRAKEPEDAL, (char *) Constants::valueOutOfRange, rawSignal->input1);
+            Logger::error(this, (char *) Constants::valueOutOfRange, rawSignal->input1);
         }
 
         throttleStatus = ERR_LOW_T1;
@@ -97,7 +97,7 @@ bool PotBrake::validateSignal(RawSignalData *rawSignal)
 
     // all checks passed -> brake is OK
     if (throttleStatus != OK) {
-        Logger::info(POTBRAKEPEDAL, (char *) Constants::normalOperation);
+        Logger::info(this, (char *) Constants::normalOperation);
     }
 
     throttleStatus = OK;
@@ -143,7 +143,7 @@ int16_t PotBrake::mapPedalPosition(int16_t pedalPosition)
     range = config->maximumRegen - config->minimumRegen;
     brakeLevel = -10 * range * pedalPosition / 1000;
     brakeLevel -= 10 * config->minimumRegen;
-    //Logger::debug(POTBRAKEPEDAL, "level: %d", level);
+    //Logger::debug(this, "level: %d", level);
 
     return brakeLevel;
 }
@@ -200,8 +200,8 @@ void PotBrake::loadConfiguration()
         saveConfiguration();
     }
 
-    Logger::info(POTBRAKEPEDAL, "MIN: %l, MAX: %l", config->minimumLevel, config->maximumLevel);
-    Logger::info(POTBRAKEPEDAL, "Min regen: %l Max Regen: %l", config->minimumRegen, config->maximumRegen);
+    Logger::info(this, "MIN: %ld, MAX: %ld", config->minimumLevel, config->maximumLevel);
+    Logger::info(this, "Min regen: %ld Max Regen: %ld", config->minimumRegen, config->maximumRegen);
 }
 
 /*
