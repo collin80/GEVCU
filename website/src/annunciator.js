@@ -95,7 +95,7 @@ function updateAnnunciatorFields(name, bitfield) {
 		updateField("driverShutdownPathActive", FieldClass.warn, bitfield & Warning.driverShutdownPathActive);
 		updateField("externalShutdownPath1Off", FieldClass.warn, bitfield & Warning.externalShutdownPath1Off);
 		updateField("externalShutdownPath2Off", FieldClass.warn, bitfield & Warning.externalShutdownPath2Off);
-		updateField("oscillationLimitControllerActive", FieldClass.warn, bitfield & Warning.oscillationLimitControllerActive);
+		updateField("oscillationLimitControllerActive", FieldClass.ok, bitfield & Warning.oscillationLimitControllerActive);
 		updateField("speedSensorSignal", FieldClass.warn, bitfield & Warning.speedSensorSignal);
 		updateField("maximumModulationLimiter", FieldClass.warn, bitfield & Warning.maximumModulationLimiter);
 		updateField("temperatureSensor", FieldClass.warn, bitfield & Warning.temperatureSensor);

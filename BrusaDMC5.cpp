@@ -368,7 +368,7 @@ void BrusaDMC5::processErrors(uint8_t data[])
     status.maximumModulationLimiter = (bitfield & maximumModulationLimiter) ? true : false;
     status.temperatureSensor = (bitfield & temperatureSensor) ? true : false;
 
-    if (bitfield) {
+    if (bitfield && bitfield != oscillationLimitControllerActive) {
         Logger::warn(this, "%#08x", bitfield);
     }
 }
