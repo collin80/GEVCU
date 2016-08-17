@@ -73,7 +73,7 @@ void SerialConsole::printMenu()
     Logger::console("\nConfig Commands (enter command=newvalue)\n");
     Logger::console("LOGLEVEL=[deviceId,]%d - set log level (0=debug, 1=info, 2=warn, 3=error, 4=off)", Logger::getLogLevel());
     Logger::console("SYSTYPE=%d - Set board revision (Dued=2, GEVCU3=3, GEVCU4=4)", systemIO.getSystemType());
-    Logger::console("kWh=%.2f - kiloWatt Hours of energy used", status.getEnergyConsumption() / 10.0f);
+    Logger::console("ECONS=%.2f - kiloWatt Hours of energy used", status.getEnergyConsumption() / 10.0f);
     Logger::console("WLAN - send a AT+i command to the wlan device");
     Logger::console("NUKE=1 - Resets all device settings in EEPROM. You have been warned.\n");
 
@@ -627,6 +627,10 @@ bool SerialConsole::handleConfigCmdSystemIO(String command, long value)
         Logger::console("DOUT0:%d, DOUT1:%d, DOUT2:%d, DOUT3:%d, DOUT4:%d, DOUT5:%d, DOUT6:%d, DOUT7:%d", systemIO.getDigitalOut(0),
                 systemIO.getDigitalOut(1), systemIO.getDigitalOut(2), systemIO.getDigitalOut(3), systemIO.getDigitalOut(4), systemIO.getDigitalOut(5),
                 systemIO.getDigitalOut(6), systemIO.getDigitalOut(7));
+    } else if (command == String("ECONS")) {
+        value = constrain(value, 0, 500);
+        Logger::console("energy consumption set to %fkwh.", value / 10.0f);
+        status.energyConsumption = value * 360000;
     } else {
         return false;
     }
