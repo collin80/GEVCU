@@ -130,9 +130,8 @@ void MotorController::processThrottleLevel()
     MotorControllerConfiguration *config = (MotorControllerConfiguration *) getConfiguration();
     Throttle *accelerator = deviceManager.getAccelerator();
     Throttle *brake = deviceManager.getBrake();
-    boolean disableSlew = false;
 
-    throttleLevel = 0; //force to zero in case not in operational condition
+    throttleLevel = 0; //force to zero in case not in operational condition or no throttle is enabled
     speedRequested = 0;
     if (powerOn && ready) {
         if (accelerator) {
@@ -141,7 +140,6 @@ void MotorController::processThrottleLevel()
         // if the brake has been pressed it may override the accelerator
         if (brake && brake->getLevel() < 0 && brake->getLevel() < accelerator->getLevel()) {
             throttleLevel = brake->getLevel();
-            disableSlew = true;
         }
         if (config->powerMode == modeSpeed) {
             int32_t speedTarget = throttleLevel * config->speedMax / 1000;
@@ -150,28 +148,27 @@ void MotorController::processThrottleLevel()
             speedRequested = config->speedMax;
             int32_t torqueTarget = throttleLevel * config->torqueMax / 1000;
 
-            if (config->slewRate == 0 || disableSlew) {
+            if (config->slewRate == 0) {
                 torqueRequested = torqueTarget;
-            } else {
+            } else { // calc slew part and add/subtract from torqueRequested
                 uint32_t currentTimestamp = millis();
-                uint16_t slewPart = 0;
-
-                slewPart = config->torqueMax * config->slewRate / 1000 * (currentTimestamp - slewTimestamp) / 1000;
+                uint16_t slewPart = config->torqueMax * config->slewRate / 1000 * (currentTimestamp - slewTimestamp) / 1000;
                 if (torqueTarget < torqueRequested) {
-                    torqueRequested -= slewPart;
-                    if (torqueRequested < torqueTarget) {
-                        torqueRequested = torqueTarget;
-                    }
+                    torqueRequested = max(torqueRequested - slewPart, torqueTarget);
                 } else {
-                    torqueRequested += slewPart;
-                    if (torqueRequested > torqueTarget) {
-                        torqueRequested = torqueTarget;
-                    }
+                    torqueRequested = min(torqueRequested + slewPart, torqueTarget);
                 }
-//Logger::info("torque target: %ld, requested: %ld", torqueTarget, torqueRequested);
                 slewTimestamp = currentTimestamp;
             }
         }
+    } else {
+        torqueRequested = 0;
+    }
+
+    // in case ABS is active, apply no power to wheels to prevent loss of control through regen forces
+    if (systemIO.isABSActive()) {
+        torqueRequested = 0;
+        speedRequested = 0;
     }
 }
 
