@@ -211,6 +211,7 @@ the end of the stardard data. The below numbers are offsets from the device's ee
 #define EESIO_POWER_STEERING_OUTPUT         69 // 1 byte - digital output for power steering
 #define EESIO_UNUSED_OUTPUT                 70 // 1 byte - digital output for ...
 #define EESIO_STATE_OF_CHARGE_OUTPUT        71 // 1 byte - digital output for indication of SoC (255 = no output)
+#define EESIO_ABS_INPUT                     72 // 1 byte - digital input for ABS signal (255 = no output)
 
 // Fault Handler
 #define EEFAULT_VALID                       0 //1 byte - Set to value of 0xB2 if fault data has been initialized

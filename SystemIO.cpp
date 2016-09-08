@@ -103,7 +103,8 @@ void SystemIO::handleTick() {
     }
 
     //TODO move to method and configure max kWh and if inverted or not
-    setStateOfCharge(map(status.getEnergyConsumption(), 0, 500, 0, 255));
+    setStateOfCharge(map(status.getEnergyConsumption(), 350, 0, 30, 237));
+ //   Logger::console("soc: %d", status.stateOfCharge);
 
     handleCooling();
     handleCharging();
@@ -324,6 +325,12 @@ bool SystemIO::isInterlockPresent() {
 bool SystemIO::isReverseSignalPresent() {
     bool flag = getDigitalIn(configuration->reverseInput);
     status.reverseInput = flag;
+    return flag;
+}
+
+bool SystemIO::isABSActive() {
+    bool flag = getDigitalIn(configuration->absInput);
+    status.absActive = flag;
     return flag;
 }
 
@@ -1036,6 +1043,7 @@ void SystemIO::loadConfiguration() {
         prefsHandler->read(EESIO_CHARGE_POWER_AVAILABLE_INPUT, &configuration->chargePowerAvailableInput);
         prefsHandler->read(EESIO_INTERLOCK_INPUT, &configuration->interlockInput);
         prefsHandler->read(EESIO_REVERSE_INPUT, &configuration->reverseInput);
+        prefsHandler->read(EESIO_ABS_INPUT, &configuration->absInput);
 
         prefsHandler->read(EESIO_PRECHARGE_MILLIS, &configuration->prechargeMillis);
         prefsHandler->read(EESIO_PRECHARGE_RELAY_OUTPUT, &configuration->prechargeRelayOutput);
@@ -1074,6 +1082,7 @@ void SystemIO::loadConfiguration() {
         configuration->chargePowerAvailableInput = CFG_OUTPUT_NONE;
         configuration->interlockInput = InterlockInput;
         configuration->reverseInput = CFG_OUTPUT_NONE;
+        configuration->absInput = CFG_OUTPUT_NONE;
 
         configuration->prechargeMillis = PrechargeMillis;
         configuration->prechargeRelayOutput = PrechargeRelayOutput;
@@ -1107,7 +1116,7 @@ void SystemIO::loadConfiguration() {
 
         saveConfiguration();
     }
-    Logger::info("enable input: %d, charge power avail input: %d, interlock input: %d, reverse input: %d", configuration->enableInput, configuration->chargePowerAvailableInput, configuration->interlockInput, configuration->reverseInput);
+    Logger::info("enable input: %d, charge power avail input: %d, interlock input: %d, reverse input: %d, abs input: %d", configuration->enableInput, configuration->chargePowerAvailableInput, configuration->interlockInput, configuration->reverseInput, configuration->absInput);
     Logger::info("pre-charge milliseconds: %d, pre-charge relay: %d, main contactor: %d", configuration->prechargeMillis, configuration->prechargeRelayOutput, configuration->mainContactorOutput);
     Logger::info("secondary contactor: %d, fast charge contactor: %d", configuration->secondaryContactorOutput, configuration->fastChargeContactorOutput);
     Logger::info("enable motor: %d, enable charger: %d, enable DCDC: %d, enable heater: %d", configuration->enableMotorOutput, configuration->enableChargerOutput, configuration->enableDcDcOutput, configuration->enableHeaterOutput);
@@ -1123,6 +1132,7 @@ void SystemIO::saveConfiguration() {
     prefsHandler->write(EESIO_CHARGE_POWER_AVAILABLE_INPUT, configuration->chargePowerAvailableInput);
     prefsHandler->write(EESIO_INTERLOCK_INPUT, configuration->interlockInput);
     prefsHandler->write(EESIO_REVERSE_INPUT, configuration->reverseInput);
+    prefsHandler->write(EESIO_ABS_INPUT, configuration->absInput);
 
     prefsHandler->write(EESIO_PRECHARGE_MILLIS, configuration->prechargeMillis);
     prefsHandler->write(EESIO_PRECHARGE_RELAY_OUTPUT, configuration->prechargeRelayOutput);

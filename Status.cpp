@@ -111,6 +111,7 @@ Status::Status()
     chargePowerAvailable= false;
     interlockPresent    = false;
     reverseInput        = false;
+    absActive           = false;
 
     energyConsumption = 0;
     flowCoolant = 0;
@@ -383,7 +384,7 @@ uint32_t Status::getBitField3() {
     bitfield |= (brakeLight                         ? 1 << 7 : 0);  // 0x00000080
     bitfield |= (reverseLight                       ? 1 << 8 : 0);  // 0x00000100
     bitfield |= (enableIn                           ? 1 << 9 : 0);  // 0x00000200
-//    bitfield |= (reserve                          ? 1 << 1 : 0);  // 0x00000400
+    bitfield |= (absActive                          ? 1 << 10 : 0); // 0x00000400
 //    bitfield |= (reserve                          ? 1 << 11 : 0); // 0x00000800
 //    bitfield |= (reserve                          ? 1 << 12 : 0); // 0x00001000
 //    bitfield |= (reserve                          ? 1 << 13 : 0); // 0x00002000

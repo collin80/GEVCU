@@ -72,6 +72,7 @@ var Status = { /* Status::Bitfield3 */
     brakeLight                         : 1 << 7,  // 0x00000080
     reverseLight                       : 1 << 8,  // 0x00000100
     enableIn                           : 1 << 9,  // 0x00000200
+    absActive                          : 1 << 10, // 0x00000400
     
     digitalOutput0                     : 1 << 20, // 0x00100000
     digitalOutput1                     : 1 << 21, // 0x00200000
@@ -153,6 +154,7 @@ function updateAnnunciatorFields(name, bitfield) {
 		updateField("coolingRelay", FieldClass.ok, bitfield & Status.coolingRelay);
 		updateField("brakeLight", FieldClass.ok, bitfield & Status.brakeLight);
 		updateField("reverseLight", FieldClass.ok, bitfield & Status.reverseLight);
+		updateField("absActive", FieldClass.warn, bitfield & Status.absActive);
 		updateField("digitalOutput0", FieldClass.ok, bitfield & Status.digitalOutput0);
 		updateField("digitalOutput1", FieldClass.ok, bitfield & Status.digitalOutput1);
 		updateField("digitalOutput2", FieldClass.ok, bitfield & Status.digitalOutput2);

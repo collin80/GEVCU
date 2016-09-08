@@ -75,7 +75,8 @@ void SerialConsole::printMenu()
     Logger::console("SYSTYPE=%d - Set board revision (Dued=2, GEVCU3=3, GEVCU4=4)", systemIO.getSystemType());
     Logger::console("ECONS=%.2f - kiloWatt Hours of energy used", status.getEnergyConsumption() / 10.0f);
     Logger::console("WLAN - send a AT+i command to the wlan device");
-    Logger::console("NUKE=1 - Resets all device settings in EEPROM. You have been warned.\n");
+    Logger::console("NUKE=1 - Resets all device settings in EEPROM. You have been warned.");
+    Logger::console("KILL=... - kill a device temporarily (until reboot)\n");
 
     deviceManager.printDeviceList();
 
@@ -176,6 +177,7 @@ void SerialConsole::printMenuSystemIO()
         Logger::console("CHARGEI=%d - Digital input to use for charger signal (255 to disable)", config->chargePowerAvailableInput);
         Logger::console("INTERLI=%d - Digital input to use for interlock signal (255 to disable)", config->interlockInput);
         Logger::console("REVIN=%d - Digital input to reverse motor rotation (255 to disable)\n", config->reverseInput);
+        Logger::console("ABSIN=%d - Digital input to indicate active ABS system (255 to disable)\n", config->absInput);
 
         Logger::console("PREDELAY=%d - Precharge delay time (in milliseconds)", config->prechargeMillis);
         Logger::console("PRELAY=%d - Digital output to use for precharge contactor (255 to disable)", config->prechargeRelayOutput);
@@ -537,6 +539,9 @@ bool SerialConsole::handleConfigCmdSystemIO(String command, long value)
     } else if (command == String("REVIN")) {
         config->reverseInput = value;
         Logger::console("Motor reverse signal set to input %d.", value);
+    } else if (command == String("ABSIN")) {
+        config->absInput = value;
+        Logger::console("ABS signal set to input %d.", value);
     } else if (command == String("PREDELAY")) {
         value = constrain(value, 0, 100000);
         Logger::console("Setting precharge time to %dms", value);
@@ -772,6 +777,10 @@ bool SerialConsole::handleConfigCmdSystem(String command, long value, char *para
         }
     } else if (command == String("DISABLE")) {
         if (!deviceManager.sendMessage(DEVICE_ANY, (DeviceId) value, MSG_DISABLE, NULL)) {
+            Logger::console("Invalid device ID (%#x, %d)", value, value);
+        }
+    } else if (command == String("KILL")) {
+        if (!deviceManager.sendMessage(DEVICE_ANY, (DeviceId) value, MSG_KILL, NULL)) {
             Logger::console("Invalid device ID (%#x, %d)", value, value);
         }
     } else if (command == String("SYSTYPE")) {

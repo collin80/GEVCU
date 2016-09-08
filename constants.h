@@ -83,6 +83,7 @@ static const char* dcCurrentLimitRegen = "dcCurrentLimitRegen";
 static const char* enableOscillationLimiter = "enableOscLimiter";
 
 // input
+static const char* absInput = "absInput";
 static const char* reverseInput = "reverseInput";
 static const char* enableInput = "enableInput";
 static const char* chargePowerAvailableInput = "chargePwrAvailInput";

@@ -128,6 +128,7 @@ public:
     bool chargePowerAvailable; // is shore power available (connected to charging station)
     bool interlockPresent; // is the interlock circuit closed and the signal available ?
     bool reverseInput; // is the reverse signal present ?
+    bool absActive; // is ABS or another source active to disable any power output to the motor
 
     uint32_t energyConsumption; // accumulated consumption in wattSeconds (or kilowattmilliseconds)
     uint8_t stateOfCharge; // 0 to 255 to indicate the state of charge (divide by 2.55 to get percent)
