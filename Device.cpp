@@ -173,6 +173,9 @@ void Device::handleMessage(uint32_t msgType, void* message)
     case MSG_ENABLE:
         enable();
         break;
+    case MSG_KILL:
+        tearDown();
+        break;
     case MSG_STATE_CHANGE:
         Status::SystemState *state = (Status::SystemState *) message;
         handleStateChange(state[0], state[1]);
