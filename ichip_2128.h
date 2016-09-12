@@ -86,6 +86,7 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include "ELM327Processor.h"
 #include "BrusaDMC5.h"
 #include "WebSocket.h"
+#include "SocketProcessor.h"
 
 enum ICHIP_COMM_STATE {IDLE, GET_PARAM, SET_PARAM, START_TCP_LISTENER, GET_ACTIVE_SOCKETS, POLL_SOCKET, SEND_SOCKET, GET_SOCKET};
 
@@ -97,9 +98,15 @@ class WifiConfiguration : public DeviceConfiguration
 public:
 };
 
+struct Socket {
+    int8_t handle;
+    SocketProcessor *processor;
+};
+
 struct SendBuff {
     String cmd;
     ICHIP_COMM_STATE state;
+    Socket *socket;
 };
 
 class ICHIPWIFI : public Device
@@ -121,8 +128,6 @@ public:
     void saveConfiguration();
 
 private:
-    ELM327Processor *elmProc;
-    WebSocket *webSocket;
     USARTClass* serialInterface; //Allows for retargetting which serial port we use
     char incomingBuffer[CFG_WIFI_BUFFER_SIZE]; //storage for one incoming line
     int ibWritePtr; //write position into above buffer
@@ -134,14 +139,14 @@ private:
     ICHIP_COMM_STATE state;
     bool didParamLoad;
     bool didTCPListener;
-    int listeningSocket;
-    int activeSockets[4]; //support for four sockets. Lowest byte is socket #, next byte is size of data waiting in that socket
+    int socketListenerHandle;
     uint32_t lastSendTime;
-	ICHIP_COMM_STATE lastSentState;
+    Socket *lastSendSocket;
     int remainingSocketRead;
+    Socket socket[CFG_WIFI_NUM_SOCKETS];
 
-    void getNextParam(); //get next changed parameter
-    void getParamById(String paramName);  //try to retrieve the value of the given parameter
+    void requestNextParam(); //get next changed parameter
+    void requestParamValue(String paramName);  //try to retrieve the value of the given parameter
     void setParam(String paramName, String value);  //set the given parameter with the given string
     void setParam(String paramName, int32_t value);
     void setParam(String paramName, int16_t value);
@@ -151,13 +156,17 @@ private:
     void setParam(String paramName, float value, int precision);
     void sendCmd(String cmd);
     void sendCmd(String cmd, ICHIP_COMM_STATE cmdstate);
+    void sendCmd(String cmd, ICHIP_COMM_STATE cmdstate, Socket *socket);
     void sendBufferedCommand();
-    void sendToSocket(int socket, String data);
-    void processStartTcpListenerRepsonse();
-    void processGetActiveSocketsResponse();
-    void processSocketGetResponse();
+    void sendToSocket(Socket *socket, String data);
+    void sendSocketUpdate();
+    void processStartSocketListenerRepsonse();
+    void processActiveSocketListResponse();
+    void processIncomingSocketData();
     void processSocketSendResponse();
-    void closeSockets();
+    void closeAllSockets();
+    void closeSocket(Socket *socket);
+
     void processParameterChange(char *response);
     bool processParameterChangeThrottle(char *key, char *value);
     bool processParameterChangeBrake(char *key, char *value);
@@ -177,6 +186,9 @@ private:
     void loadParametersDashboard();
     void factoryDefaults();
     void processSocketResponseSize();
+    void requestIncomingSocketData();
+    void requestActiveSocketList();
+    void startSocketListener();
 };
 
 #endif

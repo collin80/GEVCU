@@ -157,6 +157,7 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #define CFG_SERIAL_SEND_BUFFER_SIZE 120
 #define CFG_FAULT_HISTORY_SIZE	50 //number of faults to store in eeprom. A circular buffer so the last 50 faults are always stored.
 #define CFG_WEBSOCKET_BUFFER_SIZE 50 // number of characters an incoming socket frame may contain
+#define CFG_WIFI_NUM_SOCKETS 4 // max number of websocket connections
 #define CFG_WIFI_BUFFER_SIZE 128 // size of buffer for incoming data from wifi
 #define CFG_LOG_BUFFER_SIZE 120 // size of log output messages
 

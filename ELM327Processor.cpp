@@ -3,12 +3,28 @@
 ELM327Processor::ELM327Processor()
 {
     obd2Handler = OBD2Handler::getInstance();
+    bHeader = false;
+    bLineFeed = false;
 }
 
-String ELM327Processor::processELMCmd(char *cmd)
+String ELM327Processor::generateUpdate()
+{
+    return "";
+}
+
+String ELM327Processor::generateLogEntry(char *logLevel, char *deviceName, char *message)
+{
+    return "";
+}
+
+String ELM327Processor::processInput(char *cmd)
 {
     String retString = String();
     String lineEnding;
+
+    for (char *p = cmd; *p; p++) {
+        *p = tolower(*p);
+    }
 
     if (bLineFeed) {
         lineEnding = String("\r\n");
@@ -73,8 +89,8 @@ String ELM327Processor::processELMCmd(char *cmd)
         //a 16 bit number and mask off to get the bytes
         if (strlen(cmd) == 4) {
             uint32_t valu = strtol((char *) cmd, NULL, 16);   //the pid format is always in hex
-            uint8_t pidnum = (uint8_t)(valu & 0xFF);
-            uint8_t mode = (uint8_t)((valu >> 8) & 0xFF);
+            uint8_t pidnum = (uint8_t) (valu & 0xFF);
+            uint8_t mode = (uint8_t) ((valu >> 8) & 0xFF);
             Logger::debug("ElM327EMU - Mode: %i, PID: %i", mode, pidnum);
             char out[7];
             char buff[10];

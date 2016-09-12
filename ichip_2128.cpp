@@ -28,16 +28,15 @@
 
 #include "ichip_2128.h"
 
-/*
- * Constructor. Assign serial interface to use for ichip communication
+/**
+ * \brief Constructor
+ *
+ * Assign serial interface to use for ichip communication
+ *
  */
 ICHIPWIFI::ICHIPWIFI() : Device()
 {
     prefsHandler = new PrefHandler(ICHIP2128);
-    elmProc = new ELM327Processor();
-    webSocket = new WebSocket(); //TODO each socket handler should get its own WebSocket class
-
-    uint8_t sys_type;
 
     if (systemIO.getSystemType() == GEVCU3 || systemIO.getSystemType() == GEVCU4) {
         serialInterface = &Serial2;
@@ -55,15 +54,16 @@ ICHIPWIFI::ICHIPWIFI() : Device()
     ibWritePtr = 0;
     psWritePtr = 0;
     psReadPtr = 0;
-    listeningSocket = 0;
+    socketListenerHandle = 0;
     lastSendTime = 0;
-    lastSentState = IDLE;
+    lastSendSocket = NULL;
     state = IDLE;
     remainingSocketRead = -1;
 }
 
-/*
- * Initialization of hardware and parameters
+/**
+ * \brief Initialization of hardware and parameters
+ *
  */
 void ICHIPWIFI::setup()
 {
@@ -71,15 +71,13 @@ void ICHIPWIFI::setup()
     pinMode(42, OUTPUT);
     digitalWrite(42, HIGH);
 
+    for (int i = 0; i < CFG_WIFI_NUM_SOCKETS; i++) {
+        socket[i].handle = -1;
+        socket[i].processor = NULL;
+    }
+
     lastSendTime = millis();
-    lastSentState = IDLE;
     state = IDLE;
-
-    activeSockets[0] = -1;
-    activeSockets[1] = -1;
-    activeSockets[2] = -1;
-    activeSockets[3] = -1;
-
     ready = true;
     running = true;
 
@@ -87,7 +85,8 @@ void ICHIPWIFI::setup()
 }
 
 /**
- * Tear down the device in a safe way.
+ * \brief Tear down the device in a safe way.
+ *
  */
 void ICHIPWIFI::tearDown()
 {
@@ -95,22 +94,47 @@ void ICHIPWIFI::tearDown()
     digitalWrite(42, LOW);
 }
 
-//A version of sendCmd that defaults to IDLE which is what most of the code used to assume.
+/**
+ * \brief Send a command to ichip
+ *
+ * A version which defaults to IDLE which is what most of the code used to assume.
+ *
+ * \param cmd the command string to be sent
+ */
 void ICHIPWIFI::sendCmd(String cmd)
 {
     sendCmd(cmd, IDLE);
 }
 
-/*
- * Send a command to ichip. The "AT+i" part will be added.
- * If the comm channel is busy it buffers the command
+/**
+ * \brief Send a command to ichip.
+ *
+ * A version used if no socket information is required
+ *
+ * \param cmd the command to send (without the preceeding AT+i)
+ * \param cmdstate the command state the ichip is after sending this command
  */
 void ICHIPWIFI::sendCmd(String cmd, ICHIP_COMM_STATE cmdstate)
+{
+    sendCmd(cmd, cmdstate, NULL);
+}
+
+/**
+ * \brief Send a command to ichip.
+ *
+ * The "AT+i" part will be added. If the comm channel is busy it buffers the command
+ *
+ * \param cmd the command to send (without the preceeding AT+i)
+ * \param cmdstate the command state the ichip is after sending this command
+ * \param socket the socket to which the command is related
+ */
+void ICHIPWIFI::sendCmd(String cmd, ICHIP_COMM_STATE cmdstate, Socket *socket)
 {
     //if the comm is tied up, then buffer this parameter for sending later
     if (state != IDLE) {
         sendBuffer[psWritePtr].cmd = cmd;
-        sendBuffer[psWritePtr++].state = cmdstate;
+        sendBuffer[psWritePtr].state = cmdstate;
+        sendBuffer[psWritePtr++].socket = socket;
         if (psWritePtr >= CFG_SERIAL_SEND_BUFFER_SIZE) {
             psWritePtr = 0;
         }
@@ -122,95 +146,142 @@ void ICHIPWIFI::sendCmd(String cmd, ICHIP_COMM_STATE cmdstate)
         serialInterface->print(cmd);
         serialInterface->write(13);
         state = cmdstate;
+        lastSendSocket = socket;
         lastSendTime = millis();
-        lastSentState = cmdstate;
         if (Logger::isDebug()) {
             Logger::debug(this, "Send cmd: %s", cmd.c_str());
         }
     }
 }
 
+/**
+ * \brief Try to send a buffered command to ichip
+ */
 void ICHIPWIFI::sendBufferedCommand()
 {
     state = IDLE;
     if (psReadPtr != psWritePtr) {
         //if there is a parameter in the buffer to send then do it
-        sendCmd(sendBuffer[psReadPtr].cmd, sendBuffer[psReadPtr++].state);
+        sendCmd(sendBuffer[psReadPtr].cmd, sendBuffer[psReadPtr].state, sendBuffer[psReadPtr++].socket);
         if (psReadPtr >= CFG_SERIAL_SEND_BUFFER_SIZE) {
             psReadPtr = 0;
         }
     }
 }
 
-void ICHIPWIFI::sendToSocket(int socket, String data)
+/**
+ * \brief Send data to a specific socket
+ *
+ * \param socket to send data to
+ * \param data to send to client via socket
+ */
+void ICHIPWIFI::sendToSocket(Socket *socket, String data)
 {
-    if (data.length() < 1) {
+    if (data == NULL || data.length() < 1 || socket->handle == -1) {
         return;
     }
-    sprintf(buffer, "%03i", socket);
-    String temp = "SSND%:" + String(buffer);
-    sprintf(buffer, ",%i:", data.length());
-    temp.concat(buffer);
+    sprintf(buffer, "SSND%%:%03i,%i:", socket->handle, data.length());
+    String temp = String(buffer);
     temp.concat(data);
-    sendCmd(temp, SEND_SOCKET);
+    sendCmd(temp, SEND_SOCKET, socket);
 }
 
-/*
- * Query for changed parameters of the config page, socket status
- * and query for incoming data on sockets
+/**
+ * \brief Request the delivery of waiting data from active sockets
+ *
+ * Only request if we're not already in midst of it
+ *
  */
-void ICHIPWIFI::handleTick()
+void ICHIPWIFI::requestIncomingSocketData()
 {
-    uint32_t ms = millis();
-
-    if (!didParamLoad) {
-        if (ms < 3000) {
-            return;    //wait a bit for things to settle before doing a thing
-        }
-        loadParameters();
-        didParamLoad = true;
-    }
-
-    // start up a listening socket for OBDII and WebSocket
-    if (!didTCPListener && ms > 12000) {
-        sendCmd("LTCP:2000,4", START_TCP_LISTENER);
-        didTCPListener = true;
-    }
-
-    // send updates to a connected WebSocket client
-    if (webSocket->isConnected()) {
-        sendToSocket(0, webSocket->getUpdate());
-    }
-
-    // check for open socket connections
-    if (listeningSocket > 9) {
-        if (tickCounter++ == 10) {
-            sprintf(buffer, "LSST:%u", listeningSocket);
-            sendCmd(buffer, GET_ACTIVE_SOCKETS);
-        }
-    }
-
-    // read any information waiting on active sockets if we're not already in midst of it
-    if (state != GET_SOCKET && tickCounter == 20) {
-        for (int c = 0; c < 4; c++) {
-            if (activeSockets[c] != -1) {
-                sprintf(buffer, "SRCV:%03i,1024", activeSockets[c]);
-                sendCmd(buffer, GET_SOCKET);
+    if (state != GET_SOCKET) {
+        for (int i = 0; i < CFG_WIFI_NUM_SOCKETS; i++) {
+            if (socket[i].handle != -1) {
+                sprintf(buffer, "SRCV:%03i,1024", socket[i].handle);
+                sendCmd(buffer, GET_SOCKET, &socket[i]);
             }
         }
     }
+}
 
-    // check if params have changed, but only if idle so we don't mess-up other incoming data
-    if (tickCounter >  29 && state == IDLE) {
-        getNextParam();
-    	tickCounter = 0;
+/**
+ * \brief Request list of open handles for socket
+ *
+ */
+void ICHIPWIFI::requestActiveSocketList()
+{
+    sprintf(buffer, "LSST:%u", socketListenerHandle);
+    sendCmd(buffer, GET_ACTIVE_SOCKETS);
+}
+
+/**
+ * \brief Start up a listening socket (for WebSockets or OBDII devices)
+ *
+ */
+void ICHIPWIFI::startSocketListener()
+{
+    sprintf(buffer, "LTCP:2000,%u", CFG_WIFI_NUM_SOCKETS);
+    sendCmd(buffer, START_TCP_LISTENER);
+}
+
+/**
+ * \brief Send update to all active sockets
+ *
+ * The message to be sent is created by the assigned SocketProcessor
+ *
+ */
+void ICHIPWIFI::sendSocketUpdate()
+{
+    for (int i = 0; i < CFG_WIFI_NUM_SOCKETS; i++) {
+        if (socket[i].handle != -1 && socket[i].processor != NULL) {
+            String data = socket[i].processor->generateUpdate();
+            sendToSocket(socket, data);
+        }
     }
 }
 
-/*
- * Handle a message sent by the DeviceManager.
- * Currently MSG_SET_PARAM is supported. A array of two char * has to be included
- * in the message.
+/**
+ * \brief Perform regular tasks triggered by a timer
+ *
+ * Query for changed parameters of the config page, socket status
+ * and query for incoming data on sockets
+ *
+ */
+void ICHIPWIFI::handleTick()
+{
+    if (socketListenerHandle != 0) {
+        sendSocketUpdate();
+
+        if (tickCounter++ == 10) {
+            requestActiveSocketList();
+        }
+
+        if (tickCounter == 20) {
+            requestIncomingSocketData();
+        }
+
+        // check if params have changed, but only if idle so we don't mess-up other incoming data
+        if (tickCounter >  29 && state == IDLE) {
+            requestNextParam();
+            tickCounter = 0;
+        }
+    } else { // wait a bit for things to settle before doing a thing
+        if (!didParamLoad && millis() > 3000) {
+            loadParameters();
+            didParamLoad = true;
+        }
+        if (!didTCPListener && millis() > 12000) {
+            startSocketListener();
+            didTCPListener = true;
+        }
+    }
+}
+
+/**
+ * \brief Handle a message sent by the DeviceManager
+ *
+ * \param messageType the type of the message
+ * \param message the message to be processed
  */
 void ICHIPWIFI::handleMessage(uint32_t messageType, void* message)
 {
@@ -237,114 +308,33 @@ void ICHIPWIFI::handleMessage(uint32_t messageType, void* message)
         break;
 
     case MSG_LOG:
-        if (webSocket->isConnected()) {
-            char **params = (char **) message;
-            sendToSocket(0, webSocket->getLogEntry(params[0], params[1], params[2]));
+        char **params = (char **) message;
+        for (int i = 0; i < CFG_WIFI_NUM_SOCKETS; i++) {
+            if (socket[i].handle != -1 && socket[i].processor != NULL) {
+                String data = socket[i].processor->generateLogEntry(params[0], params[1], params[2]);
+                sendToSocket(socket, data);
+            }
         }
         break;
     }
 }
 
 /**
- * act on state changes and send a (last) update to a websocket client
+ * \brief Act on system state changes and send an update to the socket client
+ *
+ * \param oldState the previous system state
+ * \param newState the new system state
  */
 void ICHIPWIFI::handleStateChange(Status::SystemState oldState, Status::SystemState newState)
 {
     Device::handleStateChange(oldState, newState);
-
-    if (webSocket->isConnected()) {
-        sendToSocket(0, webSocket->getUpdate());
-    }
-
+    sendSocketUpdate();
 }
 
-
-/*
- * Determine if a parameter has changed
- * The result will be processed in loop() -> processParameterChange()
- */
-void ICHIPWIFI::getNextParam()
-{
-    sendCmd("WNXT", GET_PARAM);  //send command to get next changed parameter
-}
-
-/*
- * Try to retrieve the value of the given parameter.
- */
-void ICHIPWIFI::getParamById(String paramName)
-{
-    sendCmd(paramName + "?", GET_PARAM);
-}
-
-/*
- * Set a parameter to the given string value
- */
-void ICHIPWIFI::setParam(String paramName, String value)
-{
-    sendCmd(paramName + "=\"" + value + "\"", SET_PARAM);
-}
-
-/*
- * Set a parameter to the given int32 value
- */
-void ICHIPWIFI::setParam(String paramName, int32_t value)
-{
-    sprintf(buffer, "%l", value);
-    setParam(paramName, buffer);
-}
-
-/*
- * Set a parameter to the given uint32 value
- */
-void ICHIPWIFI::setParam(String paramName, uint32_t value)
-{
-    sprintf(buffer, "%lu", value);
-    setParam(paramName, buffer);
-}
-
-/*
- * Set a parameter to the given sint16 value
- */
-void ICHIPWIFI::setParam(String paramName, int16_t value)
-{
-    sprintf(buffer, "%d", value);
-    setParam(paramName, buffer);
-}
-
-/*
- * Set a parameter to the given uint16 value
- */
-void ICHIPWIFI::setParam(String paramName, uint16_t value)
-{
-    sprintf(buffer, "%d", value);
-    setParam(paramName, buffer);
-}
-
-/*
- * Set a parameter to the given uint8 value
- */
-void ICHIPWIFI::setParam(String paramName, uint8_t value)
-{
-    sprintf(buffer, "%d", value);
-    setParam(paramName, buffer);
-}
-
-/*
- * Set a parameter to the given float value
- */
-void ICHIPWIFI::setParam(String paramName, float value, int precision)
-{
-    char format[10];
-    sprintf(format, "%%.%df", precision);
-    sprintf(buffer, format, value);
-    setParam(paramName, buffer);
-}
-
-/*
- * Called in the main loop (hopefully) in order to process serial input waiting for us
- * from the wifi module. It should always terminate its answers with 13 so buffer
- * until we get 13 (CR) and then process it.
+/**
+ * \brief Process serial input waiting from the wifi module.
  *
+ * The method is called by the main loop
  */
 void ICHIPWIFI::loop()
 {
@@ -385,17 +375,17 @@ void ICHIPWIFI::loop()
                 case SET_PARAM: //reply from sending parameters to the ichip
                     break;
                 case START_TCP_LISTENER: //reply from turning on a listening socket
-                    processStartTcpListenerRepsonse();
+                    processStartSocketListenerRepsonse();
                     break;
                 case GET_ACTIVE_SOCKETS: //reply from asking for active connections
-                    processGetActiveSocketsResponse();
+                    processActiveSocketListResponse();
                     break;
                 case POLL_SOCKET: //reply from asking about state of socket and how much data it has
                     break;
                 case SEND_SOCKET: //reply from sending data over a socket
                     break;
                 case GET_SOCKET: //reply requesting the data pending on a socket
-                    processSocketGetResponse();
+                    processIncomingSocketData();
                     break;
                 case IDLE:
                 default:
@@ -424,40 +414,55 @@ void ICHIPWIFI::loop()
     }
 }
 
-void ICHIPWIFI::processStartTcpListenerRepsonse()
+/**
+ * \brief Handle the response of a request to start the socket listener
+ *
+ */
+void ICHIPWIFI::processStartSocketListenerRepsonse()
 {
-    //reply hopefully has the listening socket #.
+    //reply hopefully has the listening socket handle
     if (strcmp(incomingBuffer, Constants::ichipErrorString)) {
-        listeningSocket = atoi(&incomingBuffer[2]);
-        if (listeningSocket < 10 || listeningSocket > 11) {
-            listeningSocket = 0;
+        socketListenerHandle = atoi(&incomingBuffer[2]);
+        if (socketListenerHandle < 10 || socketListenerHandle > 11) {
+            socketListenerHandle = 0;
         }
         if (Logger::isDebug()) {
-            Logger::debug(this, "socket handle: %i", listeningSocket);
+            Logger::debug(this, "socket listener handle: %i", socketListenerHandle);
         }
     }
 }
 
-void ICHIPWIFI::processGetActiveSocketsResponse()
+/**
+ * \brief Handle the response of a request to get the list of active sockets
+ *
+ */
+void ICHIPWIFI::processActiveSocketListResponse()
 {
     if (strcmp(incomingBuffer, Constants::ichipErrorString)) {
         if (strncmp(incomingBuffer, "I/(", 3) == 0) {
-            activeSockets[0] = atoi(strtok(&incomingBuffer[3], ","));
-            activeSockets[1] = atoi(strtok(NULL, ","));
-            activeSockets[2] = atoi(strtok(NULL, ","));
-            activeSockets[3] = atoi(strtok(NULL, ","));
-            if (Logger::isDebug()) {
-                Logger::debug(this, "sockets: %i, %i, %i, %i", activeSockets[0], activeSockets[1], activeSockets[2], activeSockets[3]);
+            socket[0].handle = atoi(strtok(&incomingBuffer[3], ","));
+            for (int i = 1; i < CFG_WIFI_NUM_SOCKETS; i++) {
+                socket[i].handle = atoi(strtok(NULL, ","));
+            }
+            for (int i = 0; i < CFG_WIFI_NUM_SOCKETS; i++) {
+                if (Logger::isDebug()) {
+                    Logger::debug(this, "socket %i handle : %i", i, socket[i].handle);
+                }
             }
         }
     } else {
-        closeSockets();
+        Logger::error(this, "could not retrieve list of active sockets, closing all open sockets");
+        closeAllSockets();
     }
     // as the reply only contains "I/(000,-1,-1,-1)" it won't be recognized in loop() as "I/OK" or "I/ERROR",
     // to proceed with processing the buffer, we need to call it here.
     sendBufferedCommand();
 }
 
+/**
+ * \brief Extract the size of the socket response data
+ *
+ */
 void ICHIPWIFI::processSocketResponseSize()
 {
     incomingBuffer[ibWritePtr] = 0; //null terminate the string
@@ -465,10 +470,18 @@ void ICHIPWIFI::processSocketResponseSize()
     remainingSocketRead = atoi(&incomingBuffer[2]) - 1;
 }
 
-void ICHIPWIFI::processSocketGetResponse()
+/**
+ * \brief Process incoming data from a socket
+ *
+ * The data is forwarded to the socket's assigned SocketProcessor. The processor prepares a
+ * response which is sent back to the client via the socket.
+ *
+ */
+void ICHIPWIFI::processIncomingSocketData()
 {
     if (strstr(incomingBuffer, Constants::ichipErrorString) != NULL) {
-        closeSockets();
+        Logger::error(this, "could not retrieve data from socket %d, closing socket", lastSendSocket->handle);
+        closeSocket(lastSendSocket);
     }
     if (strcmp(incomingBuffer, "I/0") == 0) { // nothing to read, move on to next command
         remainingSocketRead = -1;
@@ -476,27 +489,25 @@ void ICHIPWIFI::processSocketGetResponse()
         return;
     }
 
-    String ret;
-    if (true) {
-        // TODO do real differentiation between OBDII and WebSocket messages
-        ret = String();
-        bool previouslyConnected = webSocket->isConnected();
-        webSocket->processInput(ret, incomingBuffer);
-        sendToSocket(0, ret); //TODO: need to actually track which socket requested this data
-        if (previouslyConnected && !webSocket->isConnected()) { // e.g. by receiving a close request
-            closeSockets(); //TODO close only related socket
+    if (lastSendSocket != NULL && strlen(incomingBuffer) > 0) {
+        if (lastSendSocket->processor == NULL) {
+            if (strstr("HTTP", incomingBuffer) != NULL) {
+                Logger::info("connecting to web-socket client");
+                lastSendSocket->processor = new WebSocket();
+            } else {
+                Logger::info("connecting to ELM327 device");
+                lastSendSocket->processor = new ELM327Processor();
+            }
         }
-        if (!previouslyConnected && webSocket->isConnected()) { // established connection but the line was empty
-            remainingSocketRead = -1;
-            sendBufferedCommand();
-            return;
+
+        String data = lastSendSocket->processor->processInput(incomingBuffer);
+        if (data.equals(Constants::disconnect)) { // do we have to disconnect ?
+            closeSocket(socket);
+        } else {
+            sendToSocket(socket, data);
         }
-    } else {
-        String data = incomingBuffer;
-        data.toLowerCase();
-        ret = elmProc->processELMCmd((char*) (data.c_str()));
-        sendToSocket(0, ret); //TODO: need to actually track which socket requested this data
     }
+
     // empty line marks end of transmission -> switch back to IDLE to be able to send (buffered) messages
     // beware that WebSocket relies on empty lines to indicate the end of transmission
     if (remainingSocketRead < 1 && strlen(incomingBuffer) != 0) {
@@ -505,31 +516,162 @@ void ICHIPWIFI::processSocketGetResponse()
     }
 }
 
+/**
+ * \brief Handle the response of a socket send command
+ *
+ * An eventual error is not sent in a separate line but in the same as the echo
+ * of the SSND. It can happen e.g. when the socket was closed by the client
+ * (e.g. "AT+iSSND%:000,24:I/ERROR (203)")
+ *
+ */
 void ICHIPWIFI::processSocketSendResponse()
 {
-    // we get an error with SSND, when the socket was closed (e.g. "AT+iSSND%:000,24:I/ERROR (203)")
     if (strstr(incomingBuffer, Constants::ichipErrorString) != NULL) {
-        webSocket->disconnected();
         Logger::info(this, "connection closed by remote client (%s), closing socket", incomingBuffer);
-        closeSockets();
+        closeSocket(lastSendSocket);
     }
 }
 
-void ICHIPWIFI::closeSockets() {
-    for (int c = 0; c < 4; c++) {
-        if (activeSockets[c] != -1) {
-            char buff[6];
-            sprintf(buff, "%03i", activeSockets[c]);
-            String temp = "!SCLS:" + String(buff);
-            sendCmd(temp, GET_SOCKET);
-            activeSockets[c] = -1;
-        }
+/**
+ * \brief Close all open socket
+ *
+ */
+void ICHIPWIFI::closeAllSockets()
+{
+    for (int c = 0; c < CFG_WIFI_NUM_SOCKETS; c++) {
+        closeSocket(&socket[c]);
     }
 }
-/*
- * Process the parameter update from ichip we received as a response to AT+iWNXT.
+
+/**
+ * \brief Close a specific socket
+ *
+ * \param socket to close
+ */
+void ICHIPWIFI::closeSocket(Socket *socket)
+{
+    if (socket->handle != -1) {
+        sprintf(buffer, "!SCLS:%03i", socket->handle);
+        sendCmd(buffer, SEND_SOCKET, socket);
+        socket->handle = -1;
+        socket->processor = NULL;
+    }
+}
+
+/**
+ * \brief Determine if a parameter has been changed
+ *
+ * The result will be processed in loop() -> processParameterChange()
+ *
+ */
+void ICHIPWIFI::requestNextParam()
+{
+    sendCmd("WNXT", GET_PARAM);  //send command to get next changed parameter
+}
+
+/**
+ * \brief Retrieve the value of a parameter
+ *
+ * \param paramName the name of the parameter
+ */
+void ICHIPWIFI::requestParamValue(String paramName)
+{
+    sendCmd(paramName + "?", GET_PARAM);
+}
+
+/**
+ * \brief Set a parameter to the given string value
+ *
+ * \param paramName the name of the parameter
+ * \param value the value to set
+ */
+void ICHIPWIFI::setParam(String paramName, String value)
+{
+    sendCmd(paramName + "=\"" + value + "\"", SET_PARAM);
+}
+
+/**
+ * \brief Set a parameter to the given int32 value
+ *
+ * \param paramName the name of the parameter
+ * \param value the value to set
+ */
+void ICHIPWIFI::setParam(String paramName, int32_t value)
+{
+    sprintf(buffer, "%l", value);
+    setParam(paramName, buffer);
+}
+
+/**
+ * \brief Set a parameter to the given uint32 value
+ *
+ * \param paramName the name of the parameter
+ * \param value the value to set
+ */
+void ICHIPWIFI::setParam(String paramName, uint32_t value)
+{
+    sprintf(buffer, "%lu", value);
+    setParam(paramName, buffer);
+}
+
+/**
+ * \brief Set a parameter to the given int16 value
+ *
+ * \param paramName the name of the parameter
+ * \param value the value to set
+ */
+void ICHIPWIFI::setParam(String paramName, int16_t value)
+{
+    sprintf(buffer, "%d", value);
+    setParam(paramName, buffer);
+}
+
+/**
+ * \brief Set a parameter to the given uint16 value
+ *
+ * \param paramName the name of the parameter
+ * \param value the value to set
+ */
+void ICHIPWIFI::setParam(String paramName, uint16_t value)
+{
+    sprintf(buffer, "%d", value);
+    setParam(paramName, buffer);
+}
+
+/**
+ * \brief Set a parameter to the given int8 value
+ *
+ * \param paramName the name of the parameter
+ * \param value the value to set
+ */
+void ICHIPWIFI::setParam(String paramName, uint8_t value)
+{
+    sprintf(buffer, "%d", value);
+    setParam(paramName, buffer);
+}
+
+/**
+ * \brief Set a parameter to the given float value
+ *
+ * \param paramName the name of the parameter
+ * \param value the value to set
+ * \param precision the number of digits after the decimal sign
+ */
+void ICHIPWIFI::setParam(String paramName, float value, int precision)
+{
+    char format[10];
+    sprintf(format, "%%.%df", precision);
+    sprintf(buffer, format, value);
+    setParam(paramName, buffer);
+}
+
+/**
+ * \brief Process the parameter update from ichip we received as a response to AT+iWNXT.
+ *
  * The response usually looks like this : key="value", so the key can be isolated
  * by looking for the '=' sign and the leading/trailing '"' have to be ignored.
+ *
+ * \param key and value pair of changed parameter
  */
 void ICHIPWIFI::processParameterChange(char *key)
 {
@@ -556,10 +698,17 @@ void ICHIPWIFI::processParameterChange(char *key)
 
     } else {
         Logger::info(this, "parameter change: %s = %s", key, value);
-        getNextParam(); // try to get another one immediately
+        requestNextParam(); // try to get another one immediately
     }
 }
 
+/**
+ * \brief Process a throttle parameter change
+ *
+ * \param key the name of the parameter
+ * \param value the value of the parameter
+ * \return true if the parameter was processed
+ */
 bool ICHIPWIFI::processParameterChangeThrottle(char *key, char *value)
 {
     Throttle *throttle = deviceManager.getAccelerator();
@@ -604,6 +753,13 @@ bool ICHIPWIFI::processParameterChangeThrottle(char *key, char *value)
     return false;
 }
 
+/**
+ * \brief Process a brake parameter change
+ *
+ * \param key the name of the parameter
+ * \param value the value of the parameter
+ * \return true if the parameter was processed
+ */
 bool ICHIPWIFI::processParameterChangeBrake(char *key, char *value)
 {
     Throttle *brake = deviceManager.getBrake();
@@ -630,6 +786,13 @@ bool ICHIPWIFI::processParameterChangeBrake(char *key, char *value)
     return false;
 }
 
+/**
+ * \brief Process a motor parameter change
+ *
+ * \param key the name of the parameter
+ * \param value the value of the parameter
+ * \return true if the parameter was processed
+ */
 bool ICHIPWIFI::processParameterChangeMotor(char *key, char *value)
 {
     MotorController *motorController = deviceManager.getMotorController();
@@ -680,6 +843,13 @@ bool ICHIPWIFI::processParameterChangeMotor(char *key, char *value)
     return false;
 }
 
+/**
+ * \brief Process a charger parameter change
+ *
+ * \param key the name of the parameter
+ * \param value the value of the parameter
+ * \return true if the parameter was processed
+ */
 bool ICHIPWIFI::processParameterChangeCharger(char *key, char *value)
 {
     Charger *charger = deviceManager.getCharger();
@@ -726,6 +896,13 @@ bool ICHIPWIFI::processParameterChangeCharger(char *key, char *value)
     return false;
 }
 
+/**
+ * \brief Process a DCDC converter parameter change
+ *
+ * \param key the name of the parameter
+ * \param value the value of the parameter
+ * \return true if the parameter was processed
+ */
 bool ICHIPWIFI::processParameterChangeDcDc(char *key, char *value)
 {
     DcDcConverter *dcDcConverter = deviceManager.getDcDcConverter();
@@ -762,6 +939,13 @@ bool ICHIPWIFI::processParameterChangeDcDc(char *key, char *value)
     return false;
 }
 
+/**
+ * \brief Process a system I/O parameter change
+ *
+ * \param key the name of the parameter
+ * \param value the value of the parameter
+ * \return true if the parameter was processed
+ */
 bool ICHIPWIFI::processParameterChangeSystemIO(char *key, char *value)
 {
     SystemIOConfiguration *config = (SystemIOConfiguration *) systemIO.getConfiguration();
@@ -774,6 +958,8 @@ bool ICHIPWIFI::processParameterChangeSystemIO(char *key, char *value)
         config->interlockInput = atol(value);
     } else if (!strcmp(key, Constants::reverseInput)) {
         config->reverseInput = atol(value);
+    } else if (!strcmp(key, Constants::absInput)) {
+        config->absInput = atol(value);
     } else if (!strcmp(key, Constants::prechargeMillis)) {
         config->prechargeMillis = atol(value);
     } else if (!strcmp(key, Constants::prechargeRelayOutput)) {
@@ -820,6 +1006,13 @@ bool ICHIPWIFI::processParameterChangeSystemIO(char *key, char *value)
     return true;
 }
 
+/**
+ * \brief Process a device specific parameter change
+ *
+ * \param key the name of the parameter
+ * \param value the value of the parameter
+ * \return true if the parameter was processed
+ */
 bool ICHIPWIFI::processParameterChangeDevices(char *key, char *value)
 {
     if (!strcmp(key, Constants::logLevel)) {
@@ -835,12 +1028,14 @@ bool ICHIPWIFI::processParameterChangeDevices(char *key, char *value)
 }
 
 /*
- * Get parameters from devices and forward them to ichip.
+ * \brief Get parameters from devices and forward them to ichip.
+ *
  * This is required to initially set-up the ichip
+ *
  */
 void ICHIPWIFI::loadParameters()
 {
-    Logger::info("loading config params to wifi...");
+    Logger::info(this, "loading config params to wifi...");
 
     loadParametersThrottle();
     loadParametersBrake();
@@ -851,9 +1046,13 @@ void ICHIPWIFI::loadParameters()
     loadParametersDevices();
     loadParametersDashboard();
 
-    Logger::info("wifi parameters loaded");
+    Logger::info(this, "wifi parameters loaded");
 }
 
+/**
+ * \brief Load throttle parameters to the ichip
+ *
+ */
 void ICHIPWIFI::loadParametersThrottle()
 {
     Throttle *throttle = deviceManager.getAccelerator();
@@ -887,6 +1086,10 @@ void ICHIPWIFI::loadParametersThrottle()
     }
 }
 
+/**
+ * \brief Load brake parameters to the ichip
+ *
+ */
 void ICHIPWIFI::loadParametersBrake()
 {
     Throttle *brake = deviceManager.getBrake();
@@ -903,6 +1106,10 @@ void ICHIPWIFI::loadParametersBrake()
     }
 }
 
+/**
+ * \brief Load motor parameters to the ichip
+ *
+ */
 void ICHIPWIFI::loadParametersMotor()
 {
     MotorController *motorController = deviceManager.getMotorController();
@@ -931,6 +1138,10 @@ void ICHIPWIFI::loadParametersMotor()
     }
 }
 
+/**
+ * \brief Load charger parameters to the ichip
+ *
+ */
 void ICHIPWIFI::loadParametersCharger()
 {
     Charger *charger = deviceManager.getCharger();
@@ -957,6 +1168,10 @@ void ICHIPWIFI::loadParametersCharger()
     }
 }
 
+/**
+ * \brief Load DCDC converter parameters to the ichip
+ *
+ */
 void ICHIPWIFI::loadParametersDcDc()
 {
     DcDcConverter *dcDcConverter = deviceManager.getDcDcConverter();
@@ -978,6 +1193,10 @@ void ICHIPWIFI::loadParametersDcDc()
     }
 }
 
+/**
+ * \brief Load system I/O parameters to the ichip
+ *
+ */
 void ICHIPWIFI::loadParametersSystemIO()
 {
     SystemIOConfiguration *config = (SystemIOConfiguration *) systemIO.getConfiguration();
@@ -987,6 +1206,7 @@ void ICHIPWIFI::loadParametersSystemIO()
         setParam(Constants::chargePowerAvailableInput, config->chargePowerAvailableInput);
         setParam(Constants::interlockInput, config->interlockInput);
         setParam(Constants::reverseInput, config->reverseInput);
+        setParam(Constants::absInput, config->absInput);
 
         setParam(Constants::prechargeMillis, config->prechargeMillis);
         setParam(Constants::prechargeRelayOutput, config->prechargeRelayOutput);
@@ -1013,6 +1233,10 @@ void ICHIPWIFI::loadParametersSystemIO()
     }
 }
 
+/**
+ * \brief Load device specific parameters to the ichip
+ *
+ */
 void ICHIPWIFI::loadParametersDevices()
 {
     Device *device = NULL;
@@ -1031,6 +1255,10 @@ void ICHIPWIFI::loadParametersDevices()
     }
 }
 
+/**
+ * \brief Load dashboard related parameters to the ichip
+ *
+ */
 void ICHIPWIFI::loadParametersDashboard()
 {
     MotorController *motorController = deviceManager.getMotorController();
@@ -1069,10 +1297,12 @@ void ICHIPWIFI::loadParametersDashboard()
     }
 }
 
-/*
- * Reset to ichip to factory defaults and set-up GEVCU network
+/**
+ * \brief Reset to ichip to factory defaults and set-up GEVCU network
+ *
  */
 void ICHIPWIFI::factoryDefaults() {
+    Logger::info(this, "resetting to factory defaults");
     tickHandler.detach(this); // stop other activity
     psReadPtr = psWritePtr = 0; // purge send buffer
 
@@ -1119,16 +1349,30 @@ void ICHIPWIFI::factoryDefaults() {
     tickHandler.attach(this, CFG_TICK_INTERVAL_WIFI);
 }
 
+/**
+ * \brief Get the device type
+ *
+ * \return the type of the device
+ */
 DeviceType ICHIPWIFI::getType()
 {
     return DEVICE_WIFI;
 }
 
+/**
+ * \brief Get the device ID
+ *
+ * \return the ID of the device
+ */
 DeviceId ICHIPWIFI::getId()
 {
     return (ICHIP2128);
 }
 
+/**
+ * \brief Load the device configuration from EEPROM
+ *
+ */
 void ICHIPWIFI::loadConfiguration()
 {
     WifiConfiguration *config = (WifiConfiguration *) getConfiguration();
@@ -1150,6 +1394,10 @@ void ICHIPWIFI::loadConfiguration()
 //    Logger::info(this, "ssid: %s", config->);
 }
 
+/**
+ * \brief Save the device configuration to the EEPROM
+ *
+ */
 void ICHIPWIFI::saveConfiguration()
 {
     WifiConfiguration *config = (WifiConfiguration *) getConfiguration();

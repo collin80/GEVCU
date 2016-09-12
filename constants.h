@@ -33,11 +33,9 @@
 namespace Constants
 {
 // misc
-static const char* trueStr = "true";
-static const char* falseStr = "false";
-static const char* notAvailable = "n/a";
 static const char* ichipCommandPrefix = "AT+i";
 static const char* ichipErrorString = "I/ERROR";
+static const char* disconnect = "_DISCONNECT_";
 
 // messages
 static const char* valueOutOfRange = "value out of range: %ld";

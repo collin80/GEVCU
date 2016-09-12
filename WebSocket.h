@@ -8,6 +8,7 @@
 #ifndef WEBSOCKET_H_
 #define WEBSOCKET_H_
 
+#include "SocketProcessor.h"
 #include "config.h"
 #include "MotorController.h"
 #include "Throttle.h"
@@ -32,7 +33,7 @@ struct ParamCache {
     uint32_t bitfield1;
     uint32_t bitfield2;
     uint32_t bitfield3;
-    uint8_t systemState;
+    uint16_t systemState;
     MotorController::Gears gear;
     int16_t temperatureMotor;
     int16_t temperatureController;
@@ -55,30 +56,35 @@ struct ParamCache {
     int16_t temperatureExterior;
 };
 
-class WebSocket {
+class WebSocket : public SocketProcessor {
 public:
     WebSocket();
-    void processInput(String &response, char *input);
-    String getUpdate();
-    String getLogEntry(char *logLevel, char *deviceName, char *message);
-    bool isConnected();
-    void disconnected();
+    String generateUpdate();
+    String generateLogEntry(char *logLevel, char *deviceName, char *message);
+    String processInput(char *input);
 
 private:
     enum { OPCODE_CONTINUATION = 0x0, OPCODE_TEXT = 0x1, OPCODE_BINARY = 0x2, OPCODE_CLOSE = 0x8, OPCODE_PING = 0x9, OPCODE_PONG = 0xa };
     ParamCache paramCache;
-    bool connected;
     bool isFirst;
     char buffer[30];
     String *webSocketKey;
+    String data;
+    bool connected;
 
-    void processHeader(String &response, char *input);
-    void processData(String &response, char *input);
+    String processConnectionRequest(char *input);
+    String processData(char *input);
     String prepareWebSocketFrame(uint8_t opcode, String data);
     String getResponseKey(String key);
-    void addParam(String &data, const char* key, char *value, bool isNumeric);
-    void addParam(String &data, const char *key, float value, int precision);
-    void addParam(String &data, const char *key, uint32_t value);
+    void processParameter(int16_t *cacheParam, int16_t value, const char *key);
+    void processParameter(uint16_t *cacheParam, uint16_t value, const char *key);
+    void processParameter(int32_t *cacheParam, int32_t value, const char *key);
+    void processParameter(uint32_t *cacheParam, uint32_t value, const char *key);
+    void processParameter(int16_t *cacheParam, int16_t value, const char *key, float divisor);
+    void processParameter(uint16_t *cacheParam, uint16_t value, const char *key, float divisor);
+    void processParameter(int32_t *cacheParam, int32_t value, const char *key, float divisor);
+    void processParameter(uint32_t *cacheParam, uint32_t value, const char *key, float divisor);
+    void addParam(const char *key, char *value, bool isNumeric);
     char *getTimeRunning();
     void initParamCache();
 };
