@@ -59,6 +59,11 @@ ICHIPWIFI::ICHIPWIFI() : Device()
     lastSendSocket = NULL;
     state = IDLE;
     remainingSocketRead = -1;
+
+    for (int i = 0; i < CFG_WIFI_NUM_SOCKETS; i++) {
+        socket[i].handle = -1;
+        socket[i].processor = NULL;
+    }
 }
 
 /**
@@ -180,7 +185,7 @@ void ICHIPWIFI::sendToSocket(Socket *socket, String data)
     if (data == NULL || data.length() < 1 || socket->handle == -1) {
         return;
     }
-    sprintf(buffer, "SSND%%:%03i,%i:", socket->handle, data.length());
+    sprintf(buffer, "SSND%%:%03i,%i:", socket->number, data.length());
     String temp = String(buffer);
     temp.concat(data);
     sendCmd(temp, SEND_SOCKET, socket);
@@ -312,7 +317,7 @@ void ICHIPWIFI::handleMessage(uint32_t messageType, void* message)
         for (int i = 0; i < CFG_WIFI_NUM_SOCKETS; i++) {
             if (socket[i].handle != -1 && socket[i].processor != NULL) {
                 String data = socket[i].processor->generateLogEntry(params[0], params[1], params[2]);
-                sendToSocket(socket, data);
+                sendToSocket(&socket[i], data);
             }
         }
         break;
@@ -341,7 +346,7 @@ void ICHIPWIFI::loop()
     int incoming;
     while (serialInterface->available()) {
         incoming = serialInterface->read();
-//SerialUSB.print((char)incoming);
+SerialUSB.print((char)incoming);
         if (incoming == -1) { //and there is no reason it should be -1
             return;
         }
@@ -441,8 +446,10 @@ void ICHIPWIFI::processActiveSocketListResponse()
     if (strcmp(incomingBuffer, Constants::ichipErrorString)) {
         if (strncmp(incomingBuffer, "I/(", 3) == 0) {
             socket[0].handle = atoi(strtok(&incomingBuffer[3], ","));
+            socket[0].number = 0;
             for (int i = 1; i < CFG_WIFI_NUM_SOCKETS; i++) {
                 socket[i].handle = atoi(strtok(NULL, ","));
+                socket[i].number = i;
             }
             for (int i = 0; i < CFG_WIFI_NUM_SOCKETS; i++) {
                 if (Logger::isDebug()) {
@@ -468,6 +475,7 @@ void ICHIPWIFI::processSocketResponseSize()
     incomingBuffer[ibWritePtr] = 0; //null terminate the string
     ibWritePtr = 0; //reset the write pointer
     remainingSocketRead = atoi(&incomingBuffer[2]) - 1;
+    Logger::debug(this, "processing remaining socket read: %d", remainingSocketRead);
 }
 
 /**
@@ -490,8 +498,9 @@ void ICHIPWIFI::processIncomingSocketData()
     }
 
     if (lastSendSocket != NULL && strlen(incomingBuffer) > 0) {
+Logger::console("incoming from socket: %s", incomingBuffer);
         if (lastSendSocket->processor == NULL) {
-            if (strstr("HTTP", incomingBuffer) != NULL) {
+            if (strstr(incomingBuffer, "HTTP") != NULL) {
                 Logger::info("connecting to web-socket client");
                 lastSendSocket->processor = new WebSocket();
             } else {
