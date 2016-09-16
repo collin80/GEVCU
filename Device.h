@@ -82,10 +82,11 @@ public:
 protected:
     PrefHandler *prefsHandler; // pointer to device specific instance of PrefHandler
     char *commonName; // the device's common name
-
     bool ready; // set if the device itself reports that it's ready for operation
     bool running; // set if the device itself reports that it's running / active
     bool powerOn; // set if the device has to be powered on - e.g. the power stage of a motor controller or DC-DC converter, may be ignored by various devices
+
+    void appendMessage(String &error, uint32_t bitfield, uint32_t flag, char *message);
 
 private:
     DeviceConfiguration *deviceConfiguration; // reference to the currently active configuration

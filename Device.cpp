@@ -202,6 +202,18 @@ void Device::handleStateChange(Status::SystemState oldState, Status::SystemState
     }
 }
 
+/**
+ * If a flag is set in a bitfield, add a message part to a message
+ */
+void Device::appendMessage(String &message, uint32_t bitfield, uint32_t flag, char *part) {
+    if (bitfield & flag) {
+        if (message.length() > 0) {
+            message.concat(", ");
+        }
+        message.concat(part);
+    }
+}
+
 DeviceType Device::getType()
 {
     return DEVICE_NONE;
