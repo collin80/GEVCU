@@ -101,7 +101,6 @@ public:
 struct Socket {
     int8_t handle;
     SocketProcessor *processor;
-    int8_t number;
 };
 
 struct SendBuff {

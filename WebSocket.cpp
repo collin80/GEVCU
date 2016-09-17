@@ -325,6 +325,10 @@ String WebSocket::generateLogEntry(char *logLevel, char *deviceName, char *messa
 {
     data = String();
 
+    if (!connected) {
+    	return data;
+    }
+
     data.concat("{\r\"logMessage\": {\r\"level\": \"");
     data.concat(logLevel);
     data.concat("\",\r\"message\": \"");
@@ -410,7 +414,7 @@ void WebSocket::processParameter(int16_t *cacheParam, int16_t value, const char 
 {
     if (*cacheParam != value) {
         *cacheParam = value;
-        sprintf(buffer, "%l", value);
+        sprintf(buffer, "%d", value);
         addParam(name, buffer, true);
     }
 }
@@ -426,7 +430,7 @@ void WebSocket::processParameter(uint16_t *cacheParam, uint16_t value, const cha
 {
     if (*cacheParam != value) {
         *cacheParam = value;
-        sprintf(buffer, "%lu", value);
+        sprintf(buffer, "%u", value);
         addParam(name, buffer, true);
     }
 }
@@ -442,7 +446,7 @@ void WebSocket::processParameter(int32_t *cacheParam, int32_t value, const char 
 {
     if (*cacheParam != value) {
         *cacheParam = value;
-        sprintf(buffer, "%l", value);
+        sprintf(buffer, "%ld", value);
         addParam(name, buffer, true);
     }
 }

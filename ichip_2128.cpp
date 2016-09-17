@@ -144,7 +144,7 @@ void ICHIPWIFI::sendCmd(String cmd, ICHIP_COMM_STATE cmdstate, Socket *socket)
             psWritePtr = 0;
         }
         if (Logger::isDebug()) {
-            Logger::debug(this, "Buffer cmd: %s, ", cmd.c_str());
+            Logger::debug(this, "Buffer cmd: %s", cmd.c_str());
         }
     } else { //otherwise, go ahead and blast away
         serialInterface->write(Constants::ichipCommandPrefix);
@@ -166,6 +166,7 @@ void ICHIPWIFI::sendBufferedCommand()
 {
     state = IDLE;
     if (psReadPtr != psWritePtr) {
+  		Logger::debug(this, "sending buffered command");
         //if there is a parameter in the buffer to send then do it
         sendCmd(sendBuffer[psReadPtr].cmd, sendBuffer[psReadPtr].state, sendBuffer[psReadPtr++].socket);
         if (psReadPtr >= CFG_SERIAL_SEND_BUFFER_SIZE) {
@@ -185,7 +186,7 @@ void ICHIPWIFI::sendToSocket(Socket *socket, String data)
     if (data == NULL || data.length() < 1 || socket->handle == -1) {
         return;
     }
-    sprintf(buffer, "SSND%%:%03i,%i:", socket->number, data.length());
+    sprintf(buffer, "SSND%%:%03i,%i:", socket->handle, data.length());
     String temp = String(buffer);
     temp.concat(data);
     sendCmd(temp, SEND_SOCKET, socket);
@@ -240,7 +241,7 @@ void ICHIPWIFI::sendSocketUpdate()
     for (int i = 0; i < CFG_WIFI_NUM_SOCKETS; i++) {
         if (socket[i].handle != -1 && socket[i].processor != NULL) {
             String data = socket[i].processor->generateUpdate();
-            sendToSocket(socket, data);
+            sendToSocket(&socket[i], data);
         }
     }
 }
@@ -275,7 +276,7 @@ void ICHIPWIFI::handleTick()
             loadParameters();
             didParamLoad = true;
         }
-        if (!didTCPListener && millis() > 12000) {
+        if (!didTCPListener && millis() > 5000) {
             startSocketListener();
             didTCPListener = true;
         }
@@ -346,7 +347,7 @@ void ICHIPWIFI::loop()
     int incoming;
     while (serialInterface->available()) {
         incoming = serialInterface->read();
-SerialUSB.print((char)incoming);
+//SerialUSB.print((char)incoming);
         if (incoming == -1) { //and there is no reason it should be -1
             return;
         }
@@ -435,6 +436,7 @@ void ICHIPWIFI::processStartSocketListenerRepsonse()
             Logger::debug(this, "socket listener handle: %i", socketListenerHandle);
         }
     }
+    sendBufferedCommand();
 }
 
 /**
@@ -446,10 +448,8 @@ void ICHIPWIFI::processActiveSocketListResponse()
     if (strcmp(incomingBuffer, Constants::ichipErrorString)) {
         if (strncmp(incomingBuffer, "I/(", 3) == 0) {
             socket[0].handle = atoi(strtok(&incomingBuffer[3], ","));
-            socket[0].number = 0;
             for (int i = 1; i < CFG_WIFI_NUM_SOCKETS; i++) {
                 socket[i].handle = atoi(strtok(NULL, ","));
-                socket[i].number = i;
             }
             for (int i = 0; i < CFG_WIFI_NUM_SOCKETS; i++) {
                 if (Logger::isDebug()) {
@@ -497,8 +497,7 @@ void ICHIPWIFI::processIncomingSocketData()
         return;
     }
 
-    if (lastSendSocket != NULL && strlen(incomingBuffer) > 0) {
-Logger::console("incoming from socket: %s", incomingBuffer);
+    if (lastSendSocket != NULL) {
         if (lastSendSocket->processor == NULL) {
             if (strstr(incomingBuffer, "HTTP") != NULL) {
                 Logger::info("connecting to web-socket client");
@@ -511,15 +510,15 @@ Logger::console("incoming from socket: %s", incomingBuffer);
 
         String data = lastSendSocket->processor->processInput(incomingBuffer);
         if (data.equals(Constants::disconnect)) { // do we have to disconnect ?
-            closeSocket(socket);
+            closeSocket(lastSendSocket);
         } else {
-            sendToSocket(socket, data);
+            sendToSocket(lastSendSocket, data);
         }
     }
 
     // empty line marks end of transmission -> switch back to IDLE to be able to send (buffered) messages
     // beware that WebSocket relies on empty lines to indicate the end of transmission
-    if (remainingSocketRead < 1 && strlen(incomingBuffer) != 0) {
+    if (remainingSocketRead == 0) {
         remainingSocketRead = -1;
         sendBufferedCommand();
     }
@@ -560,11 +559,12 @@ void ICHIPWIFI::closeAllSockets()
 void ICHIPWIFI::closeSocket(Socket *socket)
 {
     if (socket->handle != -1) {
+    	Logger::debug(this, "closing socket %03i", socket->handle);
         sprintf(buffer, "!SCLS:%03i", socket->handle);
         sendCmd(buffer, SEND_SOCKET, socket);
-        socket->handle = -1;
-        socket->processor = NULL;
     }
+    socket->handle = -1;
+    socket->processor = NULL;
 }
 
 /**
@@ -607,7 +607,7 @@ void ICHIPWIFI::setParam(String paramName, String value)
  */
 void ICHIPWIFI::setParam(String paramName, int32_t value)
 {
-    sprintf(buffer, "%l", value);
+    sprintf(buffer, "%ld", value);
     setParam(paramName, buffer);
 }
 
