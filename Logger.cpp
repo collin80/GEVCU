@@ -197,7 +197,6 @@ void Logger::setLoglevel(LogLevel level)
  */
 void Logger::setLoglevel(Device *device, LogLevel level)
 {
-Logger::console("setting loglevel for device '%s' to %d", device->getCommonName(), level);
 	debugging = false;
     for (int deviceEntry = 0; deviceEntry < deviceIdsSize; deviceEntry ++) {
     	if (deviceIds[deviceEntry] == device->getId()) {

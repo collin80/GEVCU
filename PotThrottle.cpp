@@ -148,7 +148,7 @@ bool PotThrottle::validateSignal(RawSignalData *rawSignal)
             // inverted throttle 2 means the sum of the two throttles should be 1000
             if (abs(1000 - calcThrottle1 - calcThrottle2) > ThrottleMaxErrValue) {
                 if (throttleStatus == OK)
-                    Logger::error(this, "Sum of throttle 1 (%ld) and throttle 2 (%ld) exceeds max variance from 1000 (%l)",
+                    Logger::error(this, "Sum of throttle 1 (%ld) and throttle 2 (%ld) exceeds max variance from 1000 (%ld)",
                                   calcThrottle1, calcThrottle2, ThrottleMaxErrValue);
 
                 throttleStatus = ERR_MISMATCH;
