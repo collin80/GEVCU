@@ -160,6 +160,7 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #define CFG_WIFI_NUM_SOCKETS 4 // max number of websocket connections
 #define CFG_WIFI_BUFFER_SIZE 128 // size of buffer for incoming data from wifi
 #define CFG_LOG_BUFFER_SIZE 120 // size of log output messages
+#define CFG_LOG_REPEAT_MSG_COUNT 100 // number of times a repeated message is suppressed to be sent to the wifi
 
 /*
  * PIN ASSIGNMENT

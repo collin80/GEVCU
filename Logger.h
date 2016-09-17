@@ -66,6 +66,8 @@ private:
     static bool debugging;
     static LogLevel *deviceLoglevel;
     static char *msgBuffer;
+    static char *lastMsgBuffer;
+    static uint16_t lastMsgRepeated;
 
     static void log(char *, LogLevel, char *format, va_list);
 };
