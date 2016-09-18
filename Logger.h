@@ -68,6 +68,7 @@ private:
     static char *msgBuffer;
     static char *lastMsgBuffer;
     static uint16_t lastMsgRepeated;
+    static uint32_t repeatStart;
 
     static void log(char *, LogLevel, char *format, va_list);
 };
