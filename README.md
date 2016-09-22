@@ -1,6 +1,11 @@
 GEVCU
 =====
 
+Note - If you have pulled this code between July and Sept of 2016 then you received commits that have been
+removed from this repo. It has been decided to move development of GEVCU6 code over to the GEVCU6 repo.
+If you have the commits from that multi-month window then point your origin to the GEVCU6 repo instead
+and everything will still be there and be correct. Sorry for any inconvenience this causes.
+
 Generalized Electric Vehicle Control Unit
 
 Our website can be found at : http://www.gevcu.org
