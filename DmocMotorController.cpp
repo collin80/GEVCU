@@ -284,20 +284,39 @@ void DmocMotorController::sendCmd2() {
 
 	torqueCommand = 30000; //set offset  for zero torque commanded
 	
-        torqueRequested=0;
-		if (actualState == ENABLE) { //don't even try sending torque commands until the DMOC reports it is ready
-			if (selectedGear == DRIVE)
-                            torqueRequested = (((long) throttleRequested * (long) config->torqueMax) / 1000L);
-			if (selectedGear == REVERSE)
-			    torqueRequested = (((long) throttleRequested * -1 *(long) config->torqueMax) / 1000L);//If reversed, regen becomes positive torque and positive pedal becomes regen.  Let's reverse this by reversing the sign.  In this way, we'll have gradually diminishing positive torque (in reverse, regen) followed by gradually increasing regen (positive torque in reverse.)
-		}
-                  
-                if(speedActual < config->speedMax){torqueCommand+=torqueRequested;} //If actual rpm is less than max rpm, add torque to offset
-                   else {torqueCommand += torqueRequested /1.3;}                       // else torque is halved
-		output.data.bytes[0] = (torqueCommand & 0xFF00) >> 8;
-		output.data.bytes[1] = (torqueCommand & 0x00FF);
-		output.data.bytes[2] = output.data.bytes[0];
-		output.data.bytes[3] = output.data.bytes[1];
+    torqueRequested=0;
+    if (actualState == ENABLE) { //don't even try sending torque commands until the DMOC reports it is ready
+        if (selectedGear == DRIVE) {
+            torqueRequested = (((long) throttleRequested * (long) config->torqueMax) / 1000L);
+            if (speedActual < 200 && torqueRequested < 0) torqueRequested = 0;
+        }
+        if (selectedGear == REVERSE) {
+            torqueRequested = (((long) throttleRequested * -1 *(long) config->torqueMax) / 1000L);//If reversed, regen becomes positive torque and positive pedal becomes regen.  Let's reverse this by reversing the sign.  In this way, we'll have gradually diminishing positive torque (in reverse, regen) followed by gradually increasing regen (positive torque in reverse.)
+            if (speedActual < 200 && torqueRequested > 0) torqueRequested = 0;
+        }
+    }
+
+    if (powerMode == modeTorque)
+    {
+        if(speedActual < config->speedMax) {
+            torqueCommand+=torqueRequested;   //If actual rpm is less than max rpm, add torque to offset
+        }
+        else {
+            torqueCommand += torqueRequested /1.3;   // else torque is reduced
+        }
+        output.data.bytes[0] = (torqueCommand & 0xFF00) >> 8;
+        output.data.bytes[1] = (torqueCommand & 0x00FF);
+        output.data.bytes[2] = output.data.bytes[0];
+        output.data.bytes[3] = output.data.bytes[1];
+    }
+    else //modeSpeed
+    {
+        torqueCommand += config->torqueMax;
+        output.data.bytes[0] = (torqueCommand & 0xFF00) >> 8;
+        output.data.bytes[1] = (torqueCommand & 0x00FF);
+        output.data.bytes[2] = 0x75; //zero torque
+        output.data.bytes[3] = 0x30;
+    }
 	
 	//what the hell is standby torque? Does it keep the transmission spinning for automatics? I don't know.
 	output.data.bytes[4] = 0x75; //msb standby torque. -3000 offset, 0.1 scale. These bytes give a standby of 0Nm

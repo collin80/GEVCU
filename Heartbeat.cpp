@@ -69,7 +69,7 @@ void Heartbeat::handleTick() {
 
 		Logger::console("");
 		if (motorController) {
-			Logger::console("Motor Controller Status: isRunning: %T isFaulted: %T", motorController->isRunning(), motorController->isFaulted());
+			Logger::console("Motor Controller Status->    isRunning: %T            isFaulted: %T", motorController->isRunning(), motorController->isFaulted());
 		}
 
 		Logger::console("AIN0: %d, AIN1: %d, AIN2: %d, AIN3: %d", getAnalog(0), getAnalog(1), getAnalog(2), getAnalog(3));
@@ -77,12 +77,12 @@ void Heartbeat::handleTick() {
         Logger::console("DOUT0: %d, DOUT1: %d, DOUT2: %d, DOUT3: %d,DOUT4: %d, DOUT5: %d, DOUT6: %d, DOUT7: %d", getOutput(0), getOutput(1), getOutput(2), getOutput(3),getOutput(4), getOutput(5), getOutput(6), getOutput(7));
 
 		if (accelerator) {
-			Logger::console("Throttle Status: isFaulted: %T level: %i", accelerator->isFaulted(), accelerator->getLevel());
+			Logger::console("Is throttle currently faulted: %T                 Throttle level: %i", accelerator->isFaulted(), accelerator->getLevel());
 			RawSignalData *rawSignal = accelerator->acquireRawSignal();
 			Logger::console("Throttle rawSignal1: %d, rawSignal2: %d", rawSignal->input1, rawSignal->input2);
 		}
 		if (brake) {
-			Logger::console("Brake Output: %i", brake->getLevel());
+			Logger::console("Brake Output Level: %i", brake->getLevel());
 			RawSignalData *rawSignal = brake->acquireRawSignal();
 			Logger::console("Brake rawSignal1: %d", rawSignal->input1);
 		}
