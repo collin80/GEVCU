@@ -186,7 +186,7 @@ void ICHIPWIFI::sendToSocket(Socket *socket, String data)
     if (data == NULL || data.length() < 1 || socket->handle == -1) {
         return;
     }
-    sprintf(buffer, "SSND%%:%03i,%i:", socket->handle, data.length());
+    sprintf(buffer, "SSND%%:%i,%i:", socket->handle, data.length());
     String temp = String(buffer);
     temp.concat(data);
     sendCmd(temp, SEND_SOCKET, socket);
@@ -203,7 +203,7 @@ void ICHIPWIFI::requestIncomingSocketData()
     if (state != GET_SOCKET) {
         for (int i = 0; i < CFG_WIFI_NUM_SOCKETS; i++) {
             if (socket[i].handle != -1) {
-                sprintf(buffer, "SRCV:%03i,1024", socket[i].handle);
+                sprintf(buffer, "SRCV:%i,1024", socket[i].handle);
                 sendCmd(buffer, GET_SOCKET, &socket[i]);
             }
         }
@@ -451,11 +451,6 @@ void ICHIPWIFI::processActiveSocketListResponse()
             for (int i = 1; i < CFG_WIFI_NUM_SOCKETS; i++) {
                 socket[i].handle = atoi(strtok(NULL, ","));
             }
-            for (int i = 0; i < CFG_WIFI_NUM_SOCKETS; i++) {
-                if (Logger::isDebug()) {
-                    Logger::debug(this, "socket %i handle : %i", i, socket[i].handle);
-                }
-            }
         }
     } else {
         Logger::error(this, "could not retrieve list of active sockets, closing all open sockets");
@@ -559,8 +554,8 @@ void ICHIPWIFI::closeAllSockets()
 void ICHIPWIFI::closeSocket(Socket *socket)
 {
     if (socket->handle != -1) {
-    	Logger::debug(this, "closing socket %03i", socket->handle);
-        sprintf(buffer, "!SCLS:%03i", socket->handle);
+    	Logger::debug(this, "closing socket %i", socket->handle);
+        sprintf(buffer, "!SCLS:%i", socket->handle);
         sendCmd(buffer, SEND_SOCKET, socket);
     }
     socket->handle = -1;
@@ -1112,6 +1107,11 @@ void ICHIPWIFI::loadParametersBrake()
             setParam(Constants::brakeMinimumRegen, brakeConfig->minimumRegen);
             setParam(Constants::brakeMaximumRegen, brakeConfig->maximumRegen);
         }
+    } else {
+        setParam(Constants::brakeMinimumLevel, (uint8_t)0);
+        setParam(Constants::brakeMaximumLevel, (uint8_t)100);
+        setParam(Constants::brakeMinimumRegen, (uint8_t)0);
+        setParam(Constants::brakeMaximumRegen, (uint8_t)0);
     }
 }
 
