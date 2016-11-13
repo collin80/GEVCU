@@ -296,7 +296,7 @@ void Logger::log(char *deviceName, LogLevel level, char *format, va_list args)
     	} else {
     		if (lastMsgRepeated > 1) {
     			sprintf(lastMsgBuffer, "Last message repeated %d times", lastMsgRepeated);
-        		char *params[] = { logLevel, deviceName, lastMsgBuffer };
+        		char *params[] = { "INFO", NULL, lastMsgBuffer };
         		deviceManager.sendMessage(DEVICE_WIFI, INVALID, MSG_LOG, params);
         		lastMsgRepeated = 0;
         		repeatStart = 0;
