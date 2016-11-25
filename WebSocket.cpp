@@ -209,20 +209,18 @@ String WebSocket::processData(char *input)
         input[offset + payloadLength] = 0;
     }
 
-    Logger::info("websocket: fin: %#x, opcode: %#x, mask: %#x, length: %d", fin, opcode, mask, payloadLength);
-    Logger::info("websocket: input %#02x %#02x %#02x %#02x %#02x %#02x %#02x %#02x %#02x %#02x %#02x %#02x %#02x %#02x %#02x %#02x", input[offset],
-            input[offset + 1], input[offset + 2], input[offset + 3], input[offset + 4], input[offset + 5], input[offset + 6], input[offset + 7],
-            input[offset + 8], input[offset + 9], input[offset + 10], input[offset + 11], input[offset + 12], input[offset + 13], input[offset + 14],
-            input[offset + 15]);
     switch (opcode) {
     case OPCODE_CONTINUATION:
         Logger::error("websocket: continuation frames not supported");
         break;
     case OPCODE_TEXT:
-        Logger::info("websocket: text frame: '%s'", &input[offset]);
         //TODO move somewhere else
-        if (!strcmp("stopCharge", &input[offset])) {
+        if (strstr(&input[offset], "stopCharge")) {
             status.setSystemState(Status::charged);
+        } else if (strstr(&input[offset], "stopEHPS")) {
+        	systemIO.setPowerSteering(false);
+        } else if (strstr(&input[offset], "startEHPS")) {
+        	systemIO.setPowerSteering(true);
         }
         break;
     case OPCODE_BINARY:

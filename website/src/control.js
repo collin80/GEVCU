@@ -74,7 +74,7 @@ function openWebSocket() {
 	// send some data to the server Log errors
 	socketConnection.onerror = function(error) {
 		console.log('WebSocket Error ' + error);
-		closeWebSocket();
+//		closeWebSocket();
 	};
 	// process messages from the server
 	socketConnection.onmessage = function(message) {
@@ -123,8 +123,8 @@ function updateSystemState(state) {
 	}
 }
 
-function stopCharge() {
-	socketConnection.send('stopCharge');
+function sendMsg(message) {
+	socketConnection.send(message + "     ");
 }
 
 // lazy load of page, replaces content of div with id==<pageId> with

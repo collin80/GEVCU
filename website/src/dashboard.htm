@@ -86,7 +86,7 @@
 			</div>
 			<div id="state_5_" class="hidden">
 				<div style="width: 100%; text-align: center;">
-					<button class="button" style="width: 80%;" onclick="stopCharge()">Terminate Charge</button>
+					<button class="button" style="width: 80%;" onclick="sendMsg('stopCharge')">Terminate Charge</button>
 				</div>
 			</div>
 			<div id="state_5_6_" class="hidden">
@@ -133,10 +133,15 @@
 					<span id="temperatureExterior">-</span> &#176;C
 				</div>
 			</div>
-
 		</td>
 	</tr>
 </table>
+<div id="state_8_" class="hidden">
+	<div style="width: 100%; text-align: center;">
+		<button class="button" style="width: 30%;" onclick="sendMsg('stopEHPS')">Stop EHPS</button>
+		<button class="button" style="width: 30%;background-color: #4CAF50;" onclick="sendMsg('startEHPS')">Start EHPS</button>
+	</div>
+</div>
 <div id="annunciator"></div>
 <audio id="soundError">
 	<source src="soundError.mp3" type="audio/mpeg">
