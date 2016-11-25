@@ -176,7 +176,7 @@ void BrusaNLG5::processStatus(uint8_t data[])
     ready = true;
     running = bitfield & hardwareEnabled;
 
-    if ((bitfield & error) && powerOn && ((chargeStartTime - millis()) > 1000)) {
+    if ((bitfield & error) && powerOn && ((chargeStartTime - millis()) > 10000)) {
         Logger::error(this, "Charger reported an error, terminating charge.");
         status.setSystemState(Status::error);
     }

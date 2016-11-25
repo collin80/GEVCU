@@ -127,25 +127,25 @@ void DmocMotorController::handleCanFrame(CAN_FRAME *frame)
         // 0: Initializing, 1: disabled, 2: ready (standby), 3: enabled, 4: Power Down
         // 5: Fault, 6: Critical Fault, 7: LOS
         actualState = frame->data.bytes[6] >> 4;
-
-        ready = (actualState == 2 || actualState == 3 ? true : false);
-        running = (actualState == 3 ? true : false);
-
-        switch (actualState) {
-        case 5: //Fault
-            Logger::error(this, "Inverter reports fault");
-            status.setSystemState(Status::error);
-            break;
-
-        case 6: //Critical Fault
-            Logger::error(this, "Inverter reports critical fault");
-            status.setSystemState(Status::error);
-            break;
-
-        case 7: //LOS
-            Logger::error(this, "Inverter reports LOS");
-            status.setSystemState(Status::error);
-            break;
+        if (actualState == 2 || actualState == 3) {
+            ready = true;
+            running = (actualState == 3 ? true : false);
+        } else {
+            if (ready || running) {
+                switch (actualState) {
+                case 5:
+                    Logger::error(this, "Inverter reports fault");
+                    break;
+                case 6:
+                    Logger::error(this, "Inverter reports critical fault");
+                    break;
+                case 7:
+                    Logger::error(this, "Inverter reports LOS");
+                    break;
+                }
+            }
+            ready = false;
+            running = false;
         }
         reportActivity();
         break;

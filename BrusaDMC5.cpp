@@ -268,12 +268,17 @@ void BrusaDMC5::processStatus(uint8_t data[])
         torqueActual *= -1;
     }
 
-    ready = (bitfield & dmc5Ready) ? true : false;
-    running = (bitfield & dmc5Running) ? true : false;
-    if ((bitfield & errorFlag) && status.getSystemState() != Status::error) {
-        Logger::error(this, "Error reported from motor controller!");
-        status.setSystemState(Status::error);
+    if (bitfield & errorFlag) {
+    	if (running || ready) {
+            Logger::error(this, "Error reported from motor controller!");
+    	}
+    	running = false;
+    	ready = false;
+    } else {
+        ready = (bitfield & dmc5Ready) ? true : false;
+        running = (bitfield & dmc5Running) ? true : false;
     }
+
     status.warning = (bitfield & warningFlag) ? true : false;
     status.limitationTorque = (bitfield & torqueLimitation) ? true : false;
     status.limitationMotorModel = (bitfield & motorModelLimitation) ? true : false;
