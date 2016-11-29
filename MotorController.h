@@ -121,6 +121,7 @@ private:
     int16_t speedRequested; // in rpm, calculated in MotorController - must not be manipulated by subclasses
     uint8_t ticksNoMessage; // counter how many ticks the device went through without any message from the controller
     uint32_t slewTimestamp; // time stamp of last slew rate calculation
+    int16_t minimumBatteryTemperature; // battery temperature in 0.1 deg Celsius below which no regen will not occur
     Gears gear;
 
     void updateEnergyConsumption();

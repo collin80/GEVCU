@@ -51,6 +51,7 @@ MotorController::MotorController() :
     slewTimestamp = millis();
     saveEnergyConsumption = false;
     ticksNoMessage = 0;
+    minimumBatteryTemperature = CFG_NO_TEMPERATURE_DATA;
 }
 
 DeviceType MotorController::getType()
@@ -170,6 +171,14 @@ void MotorController::processThrottleLevel()
         torqueRequested = 0;
         speedRequested = 0;
     }
+
+    // do not apply regen if the batteries are too cold (otherwise they might get damaged)
+    int16_t lowestBatteryTemperature = status.getLowestBatteryTemperature();
+    if (lowestBatteryTemperature != CFG_NO_TEMPERATURE_DATA && (lowestBatteryTemperature * 10) < minimumBatteryTemperature) {
+        torqueRequested = 0;
+        speedRequested = 0;
+        Logger::warn(this, "No regenerative braking due to low battery temperature!");
+     }
 }
 
 void MotorController::updateGear()
@@ -221,6 +230,15 @@ void MotorController::handleStateChange(Status::SystemState oldState, Status::Sy
 void MotorController::setup()
 {
     Device::setup();
+
+    // get the minimum temperature from the charger
+    Charger *charger = deviceManager.getCharger();
+    if (charger) {
+        ChargerConfiguration *config = (ChargerConfiguration *) charger->getConfiguration();
+        if (config) {
+            minimumBatteryTemperature = config->minimumTemperature;
+        }
+    }
 
     saveEnergyConsumption = false;
     slewTimestamp = millis();
