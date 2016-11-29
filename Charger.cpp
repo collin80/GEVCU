@@ -143,7 +143,7 @@ uint16_t Charger::calculateOutputCurrent()
             status.energyConsumption = 0;
             status.setSystemState(Status::charged);
         }
-        if ((millis() - chargeStartTime) > config->maximumChargeTime * 60000) {
+        if ((millis() - chargeStartTime) > (uint32_t) config->maximumChargeTime * 60000) {
             requestedOutputCurrent = 0;
             Logger::error(this, "Maximum charge time exceeded (%dmin)", (millis() - chargeStartTime) / 60000);
             status.setSystemState(Status::error);
@@ -153,7 +153,7 @@ uint16_t Charger::calculateOutputCurrent()
             Logger::error(this, "Maximum battery voltage exceeded (%.1fV)", (float) batteryVoltage / 10.0f);
             status.setSystemState(Status::error);
         }
-        if (batteryVoltage < config->minimumBatteryVoltage) {
+        if ((batteryVoltage < config->minimumBatteryVoltage) && (millis() - chargeStartTime) > 5000) {
             requestedOutputCurrent = 0;
             Logger::error(this, "Battery voltage too low (%.1fV)", (float) batteryVoltage / 10.0f);
             status.setSystemState(Status::error);
