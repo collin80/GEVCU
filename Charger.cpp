@@ -63,8 +63,7 @@ void Charger::handleTick()
         if (wattSeconds < status.energyConsumption) { // energyConsumption is unsigned, don't overflow!
             status.energyConsumption -= wattSeconds;
         } else {
-            status.energyConsumption = 0;
-            systemIO.saveEnergyConsumption();
+            status.energyConsumption = 0; // don't store it here bece because DCDC increases conumption again --> continuous saving
         }
         wattSeconds = 0;
     }
