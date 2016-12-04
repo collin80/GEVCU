@@ -38,7 +38,7 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 class DeviceManager;
 
-/*
+/**
  * A abstract class to hold device configuration. It is to be accessed
  * by sub-classes via getConfiguration() and then cast into its
  * correct sub-class.
@@ -48,7 +48,7 @@ class DeviceConfiguration
 
 };
 
-/*
+/**
  * Base class for all Devices.
  */
 class Device: public TickObserver
@@ -80,16 +80,16 @@ public:
     void setConfiguration(DeviceConfiguration *);
 
 protected:
-    PrefHandler *prefsHandler; // pointer to device specific instance of PrefHandler
-    char *commonName; // the device's common name
-    bool ready; // set if the device itself reports that it's ready for operation
-    bool running; // set if the device itself reports that it's running / active
-    bool powerOn; // set if the device has to be powered on - e.g. the power stage of a motor controller or DC-DC converter, may be ignored by various devices
+    PrefHandler *prefsHandler; /*!> pointer to device specific instance of PrefHandler */
+    char *commonName; /*!> the device's common name */
+    bool ready; /*!> set if the device itself reports that it's ready for operation */
+    bool running; /*!> set if the device itself reports that it's running / active */
+    bool powerOn; /*!> set if the device has to be powered on - e.g. the power stage of a motor controller or DC-DC converter, may be ignored by various devices */
 
     void appendMessage(String &error, uint32_t bitfield, uint32_t flag, char *message);
 
 private:
-    DeviceConfiguration *deviceConfiguration; // reference to the currently active configuration
+    DeviceConfiguration *deviceConfiguration; /*!> reference to the currently active configuration */
 };
 
 #endif /* DEVICE_H_ */
