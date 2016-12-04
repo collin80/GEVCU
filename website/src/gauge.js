@@ -386,11 +386,11 @@ var Gauge = function( config) {
 		var
 			r0 = max / 100 * 93,
 			d0 = max -r0,
-			r1 = max / 100 * 91,
+			r1 = max / 100 * 92,
 			d1 = max - r1,
-			r2 = max / 100 * 88,
+			r2 = max / 100 * 91,
 			d2 = max - r2,
-			r3 = max / 100 * 85;
+			r3 = max / 100 * 90;
 
 		ctx.save();
 
@@ -462,7 +462,7 @@ var Gauge = function( config) {
 
 	// major ticks draw
 	function drawMajorTicks() {
-		var r = max / 100 * 81;
+		var r = max / 100 * 88;
 
 		ctx.lineWidth = 2;
 		ctx.strokeStyle = config.colors.majorTicks;
@@ -505,7 +505,7 @@ var Gauge = function( config) {
 
 	// minor ticks draw
 	function drawMinorTicks() {
-		var r = max / 100 * 81;
+		var r = max / 100 * 88;
 
 		ctx.lineWidth = 1;
 		ctx.strokeStyle = config.colors.minorTicks;
@@ -530,7 +530,7 @@ var Gauge = function( config) {
 
 	// tick numbers draw
 	function drawNumbers() {
-		var r = max / 100 * 55;
+		var r = max / 100 * 60;
 
 		for (var i = 0; i < config.majorTicks.length; ++i) {
 			var 
@@ -624,8 +624,8 @@ var Gauge = function( config) {
 	function drawHighlights() {
 		ctx.save();
 
-		var r1 = max / 100 * 81;
-		var r2 = r1 - max / 100 * 15;
+		var r1 = max / 100 * 88;
+		var r2 = r1 - max / 100 * 10;
 
 		for (var i = 0, s = config.highlights.length; i < s; i++) {
 			var
@@ -679,11 +679,11 @@ var Gauge = function( config) {
 	// drows the gauge needle
 	function drawNeedle() {
 		var
-			r1 = max / 100 * 12,
-			r2 = max / 100 * 8,
+			r1 = max / 100 * 10,
+			r2 = max / 100 * 5,
 
-			rIn  = max / 100 * 77,
-			rOut = max / 100 * 20,
+			rIn  = max / 100 * 87,
+			rOut = max / 100 * 25,
 			pad1 = max / 100 * 4,
 			pad2 = max / 100 * 2,
 
@@ -741,14 +741,14 @@ var Gauge = function( config) {
 
 		ctx.beginPath();
 		ctx.arc( 0, 0, r1, 0, Math.PI * 2, true);
-		ctx.fillStyle = lgrad( '#f0f0f0', '#ccc', r1);
+		ctx.fillStyle = lgrad( '#ddd', '#aaa', r1);
 		ctx.fill();
 
 		ctx.restore();
 
 		ctx.beginPath();
 		ctx.arc( 0, 0, r2, 0, Math.PI * 2, true);
-		ctx.fillStyle = lgrad( "#e8e8e8", "#f5f5f5", r2);
+		ctx.fillStyle = lgrad( "#ddd", "#eee", r2);
 		ctx.fill();
 	};
 

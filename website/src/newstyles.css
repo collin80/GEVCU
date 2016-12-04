@@ -1,0 +1,424 @@
+body {
+	color: #fff;
+	font-family: arial, verdana, sans-serif;
+	background: #333;
+	background: linear-gradient(to bottom, rgb(25, 25, 44), rgb(45, 64, 104));
+	background-attachment: fixed;
+	margin: 0 0.5em 0.5em 0.5em;
+}
+
+.infoBar {
+	margin: 0 0 0.5em 0;
+	padding: 0;
+	background: #333;
+	color: #ccc;
+	font-size: 1em;
+	width: 100%;
+	display: table;
+}
+
+.infoBarCell  {
+	display: table-cell;
+	text-align: center;
+}
+
+.infoBarCell#battery {
+	text-align: left;
+	width: 25%;
+}
+
+.infoBarCell#timeRunning {
+	text-align: right;
+	width: 10%;
+}
+
+.button  {
+	display: inline-block;
+	padding: 0.5em 1em;
+	margin-bottom: 0.3em;
+	font-size: 1em;
+	cursor: pointer;
+	text-align: center;
+	text-decoration: none;
+	outline: none;
+	color: #fff;
+	background: #555;
+	background: linear-gradient(to bottom right, #888, #444);
+	border-radius: 0.7em;
+	box-shadow: 0.2em 0.2em 0.5em #000;
+}
+
+.button:hover {
+	background: #567;
+	background: linear-gradient(to bottom right, #89a, #456);
+}
+
+.button:active {
+	background: #678;
+	background: linear-gradient(to bottom right, #9ab, #567);
+	transform: translateY(2px);
+}
+
+button#stopCharge {
+	float: right;
+	vertical-align: middle;
+}
+
+button#stopEHPS {
+	margin-right: 1em;
+	float: right;
+	vertical-align: middle;
+}
+
+button#startEHPS {
+	float: right;
+	vertical-align: middle;
+}
+
+.systemState {
+	font-size: 2.5em;
+	font-weight: bold;
+	color: white;
+	text-shadow: 0em 0em 0.4em #ddd;
+}
+
+.error.systemState {
+	text-shadow: 0em 0em 0.4em #000;
+}
+
+.error {
+	color: #f22;
+}
+
+.warning {
+	color: #fb2;
+}
+
+meter#chargeLevelMeter {
+	margin: 5em 10% 5em 10%;
+	height: 5em;
+	width: 80%;
+	box-shadow: 1em 2em 0.5em #000;
+}
+
+.chargeLevel  {
+	margin-bottom: 0.5em;
+	text-align: center;
+	color: #555;
+	font-weight: bold;
+	font-size: 6em;
+	text-shadow: 0 0 0.2em #aff, 0 0 0.5em #fff;
+} 
+
+.subInfo   {
+	margin: 0.5em 15% 0.5em 15%;
+	padding: 1em 1em 1em 1em;
+	display: table;
+	table-layout: fixed;
+	width: 70%;
+	background: #444;
+	background: linear-gradient(to bottom right, #778, #445);
+	border-radius: 0.7em;
+	box-shadow: .5em 0.5em 0.5em #000;
+}
+
+.subInfoCell  {
+	display: table-cell;
+	text-align: center;
+}
+
+div#inputCurrentSelector {
+	font-size: 2em;
+	color: #fff;
+	text-shadow: 0 0 0.2em #bbb;
+	text-align: center;
+}
+
+input#inputCurrent {
+	font-size: 2em;
+	background: #234;
+	color: #fff;
+	width: 1.5em;
+	text-shadow: 0 0 0.2em #bbb;
+	box-shadow: .2em 0.2em 0.5em #000;
+}
+
+input#inputCurrentLevel {
+	font-size: 1em;
+}
+
+.switch {
+  position: relative;
+  display: inline-block;
+  vertical-align: bottom;
+  width: 5.6em;
+  height: 2.0em;
+  padding: 0.3em;
+  background-color: white;
+  border-radius: 1.8em;
+  box-shadow: inset 0 -0.1em rgb(45, 64, 104), inset 0 0.1em 0.1em rgba(0, 0, 0, 0.05);
+  cursor: pointer;
+  background-image: linear-gradient(to bottom, rgb(25, 25, 44), rgb(45, 64, 104) 2.5em);
+}
+
+.switch-input {
+  position: absolute;
+  top: 0;
+  left: 0;
+  opacity: 0;
+}
+
+.switch-label {
+  position: relative;
+  display: block;
+  height: inherit;
+  font-size: 1em;
+  background: #eceeef;
+  border-radius: inherit;
+  box-shadow: inset 0 0.1em 0.2em rgba(0, 0, 0, 0.12), inset 0 0 2px rgba(0, 0, 0, 0.15);
+  transition: 0.15s ease-out;
+  transition-property: opacity background;
+}
+.switch-label:before, .switch-label:after {
+  position: absolute;
+  top: 50%;
+  margin-top: -.5em;
+  line-height: 1;
+  transition: inherit;
+}
+.switch-label:before {
+  content: attr(data-off);
+  right: 1.1em;
+  color: #aaa;
+  text-shadow: 0 0.1em rgba(255, 255, 255, 0.5);
+}
+.switch-label:after {
+  content: attr(data-on);
+  left: 1.1em;
+  color: white;
+  text-shadow: 0 0.1em rgba(0, 0, 0, 0.2);
+  opacity: 0;
+}
+.switch-input:checked ~ .switch-label {
+  background: #47a8d8;
+  box-shadow: inset 0 0.1em 0.2em rgba(0, 0, 0, 0.15), inset 0 0 0.3em rgba(0, 0, 0, 0.2);
+}
+.switch-input:checked ~ .switch-label:before {
+  opacity: 0;
+}
+.switch-input:checked ~ .switch-label:after {
+  opacity: 1;
+}
+
+.switch-handle {
+  position: absolute;
+  top: 0.4em;
+  left: 0.4em;
+  width: 1.8em;
+  height: 1.8em;
+  background: white;
+  border-radius: 1.0em;
+  box-shadow: 0.1em 0.1em 0.5em rgba(0, 0, 0, 0.2);
+  background-image: linear-gradient(to bottom, white 40%, #f0f0f0);
+  transition: left 0.15s ease-out;
+}
+.switch-handle:before {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  margin: -0.6em 0 0 -0.6em;
+  width: 1.2em;
+  height: 1.2em;
+  background: #f9f9f9;
+  border-radius: 0.6em;
+  box-shadow: inset 0 0.1em rgba(0, 0, 0, 0.02);
+  background-image: linear-gradient(to bottom, #eeeeee, white);
+}
+.switch-input:checked ~ .switch-handle {
+  left: 4.0em;
+  box-shadow: -0.1em 0.1em 0.5em rgba(0, 0, 0, 0.2);
+}
+
+.switch-green > .switch-input:checked ~ .switch-label {
+  background: #4fb845;
+}
+
+.buttonBar {
+	width: 80%;
+	display: inline-table;
+}
+
+.buttonBarCell  {
+	display: table-cell;
+	text-align: center;
+}
+
+
+
+
+
+
+
+div.tabHeader {
+	height: 32px;
+	overflow: hidden;
+}
+
+div.tabHeader a {
+	float: left;
+	display: block;
+	width: 120px;
+	text-align: center;
+	height: 28px;
+	padding-top: 3px;
+	vertical-align: middle;
+	border: 1px solid #555599;
+	border-bottom-width: 0;
+	text-decoration: none;
+	font-weight: 500;
+	color: #8888ff;
+}
+
+div.tabHeader a:hover,div.tabHeader a.Active {
+	background-color: #ffff55;
+	background: linear-gradient(bottom, rgb(2, 44, 84) 1%, rgb(15, 15, 16) 70%);
+	background: -o-linear-gradient(bottom, rgb(2, 44, 84) 1%, rgb(15, 15, 16) 70%);
+	background: -moz-linear-gradient(bottom, rgb(2, 44, 84), rgb(15, 15, 16) 70%);
+	background: -webkit-linear-gradient(bottom, rgb(2, 44, 84) 1%, rgb(15, 15, 16) 70%);
+	background: -ms-linear-gradient(bottom, rgb(2, 44, 84) 1%, rgb(15, 15, 16) 70%);
+}
+
+div.tabHeader a.on {
+	color: #ffffff;
+	background: linear-gradient(top, rgb(2, 44, 84) 1%, rgb(15, 15, 16) 70%);
+	background: -o-linear-gradient(top, rgb(2, 44, 84) 1%, rgb(15, 15, 16) 70%);
+	background: -moz-linear-gradient(top, rgb(2, 44, 84), rgb(15, 15, 16) 70%);
+	background: -webkit-linear-gradient(top, rgb(2, 44, 84) 1%, rgb(15, 15, 16) 70%);
+	background: -ms-linear-gradient(top, rgb(2, 44, 84) 1%, rgb(15, 15, 16) 70%);
+}
+
+div.tabs {
+	clear: both;
+	border: 1px solid #555599;
+	overflow: hidden;
+}
+
+div.gauges {
+	text-align: center;
+}
+
+div.annunciators {
+	padding: 0px;
+	margin: 10px 20px;
+}
+
+div.annunciators span {
+	float: left;
+	height: 30px;
+	width: 110px;
+	border: 2px solid #000000;
+	text-align: center;
+	font-size: 12px;
+	padding: 2px;
+	margin: 0px;
+	background: #080808;
+	color: #353535;
+}
+
+div.annunciators span.annunciatorOff {
+	color: #353535;
+}
+
+div.annunciators span.annunciatorWarn {
+	color: #ffbb00;
+}
+
+div.annunciators span.annunciatorError {
+	color: #ff2200;
+}
+
+div.annunciators span.annunciatorOk {
+	color: #22ee22;
+}
+
+input[type=range] {
+	padding: 0 5px;
+	width: 200px;
+}
+
+a {
+	color: #5555ff;
+}
+
+h1 {
+	color: #9999dd;
+	font-size: 2.5em;
+	margin-top: 10px;
+	margin-bottom: 5px;
+}
+
+h2 {
+	color: #bbbbff;
+	margin-top: 15px;
+	margin-bottom: 5px;
+	padding: 0px 0px 0px 0px;
+}
+
+h3 {
+	color: #bbbbff;
+	margin-top: 14px;
+	margin-bottom: 4px;
+	padding: 0px 0px 0px 0px;
+}
+
+#configTable td {
+    padding: 3px 7px 2px 7px;
+}
+
+#configTable th {
+	font-size: 1.5em;
+	color: #bbbbff;
+	padding: 10px 7px 10px 7px;
+	text-align: left;
+}
+
+input {
+	width: 70px;
+}
+
+/* for safari  */
+input[type="range"]{
+   -webkit-appearance:none !important;
+   background: rgb(FF, FF, FF);
+    width: 200px;
+    height: 6px;
+    border-radius: 8px;
+    -moz-border-radius: 8px;
+    -wekkit-border-radius: 8px;
+    -webkit-box-shadow: inset 0px 0px 1px 1px rgba(0, 0, 0, 0.9), 0px 1px 1px 0px rgba(255, 255, 255, 0.13);
+    -moz-box-shadow: inset 0px 0px 1px 1px rgba(0, 0, 0, 0.9), 0px 1px 1px 0px rgba(255, 255, 255, 0.13);
+    box-shadow: inset 0px 0px 1px 1px rgba(0, 0, 0, 0.9), 0px 1px 1px 0px rgba(255, 255, 255, 0.13);
+}
+
+.visible,
+.hidden {
+  overflow: hidden;
+  /* This container should not have padding, borders, etc. */
+}
+.visible {
+  opacity: 1;
+/*  transition: opacity 1s; /* fade in duration + delay */
+}
+.hidden {
+  opacity: 0;
+/*  transition: opacity 1s; /* fade out duration + delay */
+}
+.visible > div {
+  margin-top: 1px;
+/*  transition: margin-top 0.5s 0s; /* roll in duration + delay */
+}
+.hidden > div {
+  margin-top: -2200px;
+/*  transition: margin-top 1s ease-in 0s; /* roll out duration + delay */
+}
