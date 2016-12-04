@@ -166,38 +166,46 @@ function findAttribute(node, attributeName) {
 	return null;
 }
 
+function getCache(name) {
+	var target = nodecache[name];
+	if (!target) {
+		target = document.getElementById(name);
+		if (!target) { // id not found, try to find by name
+			var namedElements = document.getElementsByName(name);
+			if (namedElements && namedElements.length) {
+				target = namedElements[0];
+			}
+		}
+		nodecache[name]=target;
+	}
+	return target;
+}
+
 function setNodeValue(name, value) {
 	// a bitfield value for annunciator fields
 	if (name.indexOf('bitfield') != -1) {
 		updateAnnunciatorFields(name, value);
-		// updateAnnunciatorFields(name, Math.round(Math.random() * 0x100000000));
 		return;
 	}
 
-	var target = nodecache[name + "Gauge"];
+	var target = getCache(name + "Gauge");
 	if (target) {
-		Gauge.Collection.get(name + "Gauge").setRawValue(value);
+		Gauge.Collection.get(name + "Gauge").setValue(value);
 		return;
 	}
 
+	// set the meter value (additionally to a text node)
+	target = getCache(name + "Meter");
+	if (target) {
+		target.value = value;
+	}
+	
 	// a normal div/span/input to update
-	target = nodecache[name];
-	if (!target) {
-		target = document.getElementById(name);
-		nodecache[name]=target;
-	}
-	if (!target) { // id not found, try to find by name
-		var namedElements = document.getElementsByName(name);
-		if (namedElements && namedElements.length) {
-			target = namedElements[0];
-			nodecache[name] = target;
-		}
-	}
-
+	target = getCache(name);
 	if (target) { // found an element, update according to its type
-		if (target.nodeName.toUpperCase() == 'DIV' || target.nodeName.toUpperCase() == 'SPAN')
+		if (target.nodeName.toUpperCase() == 'DIV' || target.nodeName.toUpperCase() == 'SPAN') {
 			target.innerHTML = value;
-		if (target.nodeName.toUpperCase() == 'INPUT') {
+		} else if (target.nodeName.toUpperCase() == 'INPUT') {
 			var type = findAttribute(target, "type");
 			if (type && (type.value.toUpperCase() == 'CHECKBOX' || type.value.toUpperCase() == 'RADIO')) {
 				target.checked = (value.toUpperCase() == 'TRUE' || value == '1');
@@ -209,8 +217,7 @@ function setNodeValue(name, value) {
 					slider.value = value;
 				}
 			}
-		}
-		if (target.nodeName.toUpperCase() == 'SELECT') {
+		} else if (target.nodeName.toUpperCase() == 'SELECT') {
 			selectItemByValue(target, value);
 		}
 	}
@@ -366,6 +373,7 @@ function generateRangeControls() {
 	addRangeControl("brakeMinimumRegen", 0, 100);
 	addRangeControl("brakeMaximumLevel", 0, 4095);
 	addRangeControl("brakeMaximumRegen", 0, 100);
+	addRangeControl("inputCurrent", 1, 50);
 }
 
 function addRangeControl(id, min, max) {
