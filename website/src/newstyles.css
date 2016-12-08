@@ -7,6 +7,8 @@ body {
 	margin: 0 0.5em 0.5em 0.5em;
 }
 
+/************* Top Info Bar *************/
+
 .infoBar {
 	margin: 0 0 0.5em 0;
 	padding: 0;
@@ -31,6 +33,8 @@ body {
 	text-align: right;
 	width: 10%;
 }
+
+/************* Buttons *************/
 
 .button  {
 	display: inline-block;
@@ -64,16 +68,7 @@ button#stopCharge {
 	vertical-align: middle;
 }
 
-button#stopEHPS {
-	margin-right: 1em;
-	float: right;
-	vertical-align: middle;
-}
-
-button#startEHPS {
-	float: right;
-	vertical-align: middle;
-}
+/************* System state and global colors *************/
 
 .systemState {
 	font-size: 2.5em;
@@ -94,6 +89,8 @@ button#startEHPS {
 	color: #fb2;
 }
 
+/************* Charge Level *************/
+
 meter#chargeLevelMeter {
 	margin: 5em 10% 5em 10%;
 	height: 5em;
@@ -109,23 +106,6 @@ meter#chargeLevelMeter {
 	font-size: 6em;
 	text-shadow: 0 0 0.2em #aff, 0 0 0.5em #fff;
 } 
-
-.subInfo   {
-	margin: 0.5em 15% 0.5em 15%;
-	padding: 1em 1em 1em 1em;
-	display: table;
-	table-layout: fixed;
-	width: 70%;
-	background: #444;
-	background: linear-gradient(to bottom right, #778, #445);
-	border-radius: 0.7em;
-	box-shadow: .5em 0.5em 0.5em #000;
-}
-
-.subInfoCell  {
-	display: table-cell;
-	text-align: center;
-}
 
 div#inputCurrentSelector {
 	font-size: 2em;
@@ -146,6 +126,27 @@ input#inputCurrent {
 input#inputCurrentLevel {
 	font-size: 1em;
 }
+
+/************* Sub Info *************/
+
+.subInfo   {
+	margin: 0.5em 15% 0.5em 15%;
+	padding: 1em 1em 1em 1em;
+	display: table;
+	table-layout: fixed;
+	width: 70%;
+	background: #444;
+	background: linear-gradient(to bottom right, #778, #445);
+	border-radius: 0.7em;
+	box-shadow: .5em 0.5em 0.5em #000;
+}
+
+.subInfoCell  {
+	display: table-cell;
+	text-align: center;
+}
+
+/************* Toggle Switches *************/
 
 .switch {
   position: relative;

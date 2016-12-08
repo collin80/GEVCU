@@ -125,19 +125,19 @@
 			<span class="buttonBar">
 				<span class="buttonBarCell">Regenerative Braking:
 			    <label class="switch">
-			      <input type="checkbox" class="switch-input">
+			      <input type="checkbox" class="switch-input" onchange="sendMsg('cmdRegen:' + checked);">
 			      <span class="switch-label" data-on="ON" data-off="OFF"></span>
 			      <span class="switch-handle"></span>
 			    </label></span>
 				<span class="buttonBarCell">Creep:
 			    <label class="switch">
-			      <input type="checkbox" class="switch-input" checked>
+			      <input type="checkbox" class="switch-input" checked onchange="sendMsg('cmdCreep:' + checked)">
 			      <span class="switch-label" data-on="ON" data-off="OFF"></span>
 			      <span class="switch-handle"></span>
 			    </label></span>
 				<span class="buttonBarCell">EHPS:
 			    <label class="switch switch-green">
-			      <input type="checkbox" class="switch-input" checked>
+			      <input type="checkbox" class="switch-input" checked onchange="sendMsg('cmdEhps:' + checked)">
 			      <span class="switch-label" data-on="ON" data-off="OFF"></span>
 			      <span class="switch-handle"></span>
 			    </label></span>
