@@ -173,12 +173,14 @@ void MotorController::processThrottleLevel()
     }
 
     // do not apply regen if the batteries are too cold (otherwise they might get damaged)
-    int16_t lowestBatteryTemperature = status.getLowestBatteryTemperature();
-    if (lowestBatteryTemperature != CFG_NO_TEMPERATURE_DATA && (lowestBatteryTemperature * 10) < minimumBatteryTemperature) {
-        torqueRequested = 0;
-        speedRequested = 0;
-        Logger::warn(this, "No regenerative braking due to low battery temperature!");
-     }
+    if (throttleLevel < 0) {
+        int16_t lowestBatteryTemperature = status.getLowestBatteryTemperature();
+        if (lowestBatteryTemperature != CFG_NO_TEMPERATURE_DATA && (lowestBatteryTemperature * 10) < minimumBatteryTemperature) {
+            torqueRequested = 0;
+            speedRequested = 0;
+            Logger::warn(this, "No regenerative braking due to low battery temperature! (%d)", lowestBatteryTemperature);
+         }
+    }
 }
 
 void MotorController::updateGear()
