@@ -190,7 +190,7 @@ function setNodeValue(name, value) {
 
 	var target = getCache(name + "Gauge");
 	if (target) {
-		Gauge.Collection.get(name + "Gauge").setValue(value);
+		Gauge.Collection.get(name + "Gauge").setValue(0, value);
 		return;
 	}
 

@@ -1,10 +1,9 @@
 /**!
  * @license
- * HTML5 Canvas Gauge implementation
+ * Multi-Dial Gauge
  * 
- * This code is subject to MIT license.
- *
- * Copyright (c) 2012 Mykhailo Stadnyk <mikhus@gmail.com>
+ * This code is subject to MIT license and is based on
+ * HTML5 Canvas Gauge Copyright (c) 2012 Mykhailo Stadnyk <mikhus@gmail.com>
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy of
  * this software and associated documentation files (the "Software"), to deal in
@@ -27,23 +26,25 @@
  *           Chris Poile <poile@edwards.usask.ca>
  *           Luca Invernizzi <http://www.lucainvernizzi.net>
  *           Robert Blackburn <http://www.rwblackburn.com>
+ *           Michael Neuweiler <http://github.com/neuweiler>
  */
 
 /**
- * @param {Object} config
+ * @param {Object}
+ *            config
  * @constructor
  */
-var Gauge = function( config) {
-	Gauge.Collection.push( this);
+var Gauge = function(config) {
+	Gauge.Collection.push(this);
 
 	/**
-	 *  Default gauge configuration
-     *  @struct
+	 * Default gauge configuration
 	 */
 	this.config = {
 		renderTo         : null,
 		width            : 200,
 		height           : 200,
+		dials            : 2,
 		title            : false,
 		maxValue         : 100,
 		minValue         : 0,
@@ -55,8 +56,8 @@ var Gauge = function( config) {
         majorTicksFormat : { "int" : 1, "dec" : 0 },
 		glow             : true,
 		animation : {
-			delay    : 10,
-			duration : 250,
+			delay    : 0,
+			duration : 200,
 			fn       : 'cycle'
 		},
 		colors : {
@@ -84,144 +85,88 @@ var Gauge = function( config) {
 	};
 
 	var
-		value     = 0,
+		value     = [],
 		self      = this,
-		fromValue = 0,
-		toValue   = 0,
+		fromValue = [],
+		toValue   = [],
 		imready   = false
 	;
 
 	/**
+	 ************* Public methods - to be called from the application *************
+	 */
+	
+	/**
 	 * Sets a new value to gauge and updates the gauge view
 	 * 
-	 * @param {number} val  - the new value to set to the gauge
+	 * @param {number}
+	 *            id - the number of the dial
+	 * @param {number}
+	 *            val - the new value to set to the gauge
 	 * @return {Gauge} this - returns self
 	 */
-	this.setValue = function( val) {
+	this.setValue = function(id, val) {
+		value[id] = val;
+		val = constrain (val, config.minValue, config.maxValue);
+		fromValue[id] = config.animation ? toValue[id] : val;
+		toValue[id] = val;
 
-		if (val < config.minValue) {
-			val = config.minValue;
-		}
-		if (val > config.maxValue) {
-			val = config.maxValue;
-		}
-		
-		fromValue = config.animation ? value : val;
-
-		var dv = (config.maxValue - config.minValue) / 100;
-
-		toValue = val;
-		value = val;
-
-		config.animation ? animate() : this.draw();
+		config.animation ? animate(id) : this.draw(id);
+		drawValueBox();
 
 		return this;
 	};
 	
 	/**
-	 * Sets a new value to gauge and updates the gauge view without
-	 * any animation (even if configured)
+	 * Sets a new value to gauge and updates the gauge view without any
+	 * animation (even if configured)
 	 * 
-	 * @param {number} val  - the new value to set to the gauge
+	 * @param {number}
+	 *            id - the number of the dial
+	 * @param {number}
+	 *            val - the new value to set to the gauge
 	 * @return {Gauge} this - returns self
 	 */
-	this.setRawValue = function( val) {
-		fromValue = value = val;
-		this.draw();
+	this.setRawValue = function(id, val) {
+		value[id] = val;
+		fromValue[id] = constrain (val, config.minValue, config.maxValue);
+
+		this.draw(id);
+		drawValueBox();
+
 		return this;
 	};
 
 	/**
 	 * Clears the value of the gauge
+	 * 
+	 * @param {number}
+	 *            id - the number of the dial
 	 * @return {Gauge}
 	 */
-	this.clear = function() {
-		value = fromValue = toValue = this.config.minValue;
-		this.draw();
+	this.clear = function(id) {
+		value[id] = fromValue[id] = toValue[id] = this.config.minValue;
+		this.draw(id);
+		drawValueBox();
 		return this;
 	};
 
 	/**
 	 * Returns the current value been set to the gauge
 	 * 
+	 * @param {number}
+	 *            id - the number of the dial
 	 * @return {number} value - current gauge's value
 	 */
-	this.getValue = function() {
-		return value;
+	this.getValue = function(id) {
+		return value[id];
 	};
-
-	/**
-	 * Ready event for the gauge. Use it whenever you
-	 * initialize the gauge to be assured it was fully drawn
-	 * before you start the update on it
-	 * 
-	 * @event {Function} onready
-	 */
-	this.onready = function() {};
-
-	function applyRecursive( dst, src) {
-		for (var i in src) {
-			// modification by Chris Poile, Oct 08, 2012. More correct check of an Array instance
-			if (typeof src[i] == "object" && !(Object.prototype.toString.call( src[i]) === '[object Array]') && i != 'renderTo') {
-				if (typeof dst[i] != "object") {
-					dst[i] = {};
-				}
-
-				applyRecursive( dst[i], src[i]);
-			} else {
-				dst[i] = src[i];
-			}
-		}
-	};
-
-	applyRecursive( this.config, config);
-	
-	this.config.minValue = parseFloat( this.config.minValue);
-        this.config.maxValue = parseFloat( this.config.maxValue);
-
-	config = this.config;
-	fromValue = value = config.minValue;
-
-	if (!config.renderTo) {
-		throw Error( "Canvas element was not specified when creating the Gauge object!");
-	}
-
-	var
-		canvas = config.renderTo.tagName ? config.renderTo : document.getElementById( config.renderTo),
-		ctx = canvas.getContext( '2d'),
-		cache, CW, CH, CX, CY, max, cctx
-	;
-
-	function baseInit() {
-		canvas.width  = config.width;
-		canvas.height = config.height;
-
-		cache = canvas.cloneNode( true);
-		cctx = cache.getContext( '2d');
-		CW  = canvas.width;
-		CH  = canvas.height;
-		CX  = CW / 2;
-		CY  = CH / 2;
-		max = CX < CY ? CX : CY;
-		
-		cache.i8d = false;
-
-		// translate cache to have 0, 0 in center
-		cctx.translate( CX, CY);
-		cctx.save();
-
-		// translate canvas to have 0,0 in center
-		ctx.translate( CX, CY);
-		ctx.save();
-	};
-
-	// do basic initialization
-	baseInit();
 
 	/**
 	 * Updates the gauge config
-	 *
-	 * @param  {Object} config
+	 * 
+	 * @param {Object}
+	 *            config
 	 * @return {Gauge}
 	 */
 	this.updateConfig = function( config) {
@@ -230,6 +175,99 @@ var Gauge = function( config) {
         this.draw();
         return this;
     };
+
+	/**
+	 * Ready event for the gauge. Use it whenever you initialize the gauge to be
+	 * assured it was fully drawn before you start the update on it
+	 * 
+	 * @event {Function} onready
+	 */
+	this.onready = function() {};
+
+	
+	/**
+	 ************* Private methods - to be used by the gauges internally ************* 
+	 */
+		
+	/**
+	 * 
+	 * @param dst
+	 * @param src
+	 * @returns
+	 */
+	function applyRecursive( dst, src) {
+		for (var i in src) {
+			if (typeof src[i] == "object" && !(Object.prototype.toString.call( src[i]) === '[object Array]') && i != 'renderTo') {
+				if (typeof dst[i] != "object") {
+					dst[i] = {};
+				}
+				applyRecursive( dst[i], src[i]);
+			} else {
+				dst[i] = src[i];
+			}
+		}
+	};
+
+	applyRecursive(this.config, config);
+	
+	this.config.minValue = parseFloat(this.config.minValue);
+    this.config.maxValue = parseFloat(this.config.maxValue);
+
+	config = this.config;
+
+	if (!config.renderTo) {
+		throw Error("Canvas element was not specified when creating the Gauge object!");
+	}
+
+	var container, canvas, ctx, canvasDial = [], ctxDial = [], CW, CH, CX, CY, max;
+
+	container = config.renderTo.tagName ? config.renderTo : document.getElementById(config.renderTo);
+	container.innerHTML = "<canvas id='" + config.renderTo + "Plate'></canvas>";
+	for (var i = 0; i < config.dials; i++) {
+		container.innerHTML += "<canvas id='" + config.renderTo + "Dial" + i + "'></canvas>";
+	}
+	
+	canvas = document.getElementById( config.renderTo + "Plate");
+	ctx = canvas.getContext( '2d');
+	for (var i = 0; i < config.dials; i++) {
+		canvasDial.push(document.getElementById( config.renderTo + "Dial" + i));
+		ctxDial[i] = canvasDial[i].getContext('2d');
+		canvasDial[i].width  = config.width;
+		canvasDial[i].height = config.height;
+		canvasDial[i].style.marginLeft -= config.width;
+		canvasDial[i].style.marginTop -= config.height;
+		fromValue[i] = value[i] = toValue[i] = config.minValue;
+	}
+
+	function baseInit() {
+		canvas.width  = config.width;
+		canvas.height = config.height;
+		
+		CW  = canvas.width;
+		CH  = canvas.height;
+		CX  = CW / 2;
+		CY  = CH / 2;
+		max = CX < CY ? CX : CY;
+		
+		ctx.translate(CX, CY);// translate canvas to have 0,0 in center
+		ctx.save();
+		for (var i = 0; i < ctxDial.length; i++) {
+			ctxDial[i].translate(CX, CY); // translate canvas to have 0,0 in center
+			ctxDial[i].save();
+		}
+
+		drawPlate();
+		drawHighlights();
+		drawMinorTicks();
+		drawMajorTicks();
+		drawNumbers();
+		drawTitle();
+		drawUnits();
+		drawValueBox();
+	};
+
+	// do basic initialization
+	baseInit();
 
 	var animateFx = {
 		linear : function( p) { return p; },
@@ -253,48 +291,43 @@ var Gauge = function( config) {
 		}
 	};
 
-	var animateInterval = null;
+	var animateInterval = [];
 
 	function _animate( opts) {
 		var start = new Date; 
 
-		animateInterval = setInterval( function() {
+		animateInterval[opts.id] = setInterval( function() {
 			var
 				timePassed = new Date - start,
-				progress = timePassed / opts.duration
-			;
+				progress = timePassed / opts.duration;
 
 			if (progress > 1) {
 				progress = 1;
 			}
 
-			var animateFn = typeof opts.delta == "function" ?
-				opts.delta :
-				animateFx[opts.delta]
-			;
-
+			var animateFn = typeof opts.delta == "function" ? opts.delta : animateFx[opts.delta];
 			var delta = animateFn( progress);
 			opts.step( delta);
 
 			if (progress == 1) {
-				clearInterval( animateInterval);
+				clearInterval(animateInterval[opts.id]);
 			}
 		}, opts.delay || 10);
 	};
 
-	function animate() {
-		animateInterval && clearInterval( animateInterval); // stop previous animation
+	function animate(id) {
+		animateInterval[id] && clearInterval(animateInterval[id]); // stop previous animation
 		var
-			path = (toValue - fromValue),
-			from = fromValue,
-			cfg  = config.animation
-		;
+			path = (toValue[id] - fromValue[id]),
+			from = fromValue[id],
+			cfg  = config.animation;
 
 		_animate({
 			delay    : cfg.delay,
 			duration : cfg.duration,
 			delta    : cfg.fn,
-			step     : function( delta) { fromValue = parseFloat(from) + path * delta; self.draw(); }
+			id       : id,
+			step     : function(delta) { fromValue[id] = parseFloat(from) + path * delta; self.draw(id); }
 		});
 	};
 
@@ -302,65 +335,49 @@ var Gauge = function( config) {
 	ctx.lineCap = "round";
 
 	/**
-	 * Drows the gauge. Normally this function should be used to
-	 * initally draw the gauge
+	 * Drows the gauge. Normally this function should be used to initally draw
+	 * the gauge
 	 * 
 	 * @return {Gauge} this - returns the self Gauge object
 	 */
-	this.draw = function() {
-		if (!cache.i8d) {
-			// clear the cache
-			cctx.clearRect( -CX, -CY, CW, CH);
-			cctx.save();
-
-			var tmp = {ctx:ctx};
-			ctx = cctx;
-
-			drawPlate();
-			drawHighlights();
-			drawMinorTicks();
-			drawMajorTicks();
-			drawNumbers();
-			drawTitle();
-			drawUnits();
-
-			cache.i8d = true;
-			ctx = tmp.ctx;
-			delete tmp.ctx;
+	this.draw = function(id) {
+		
+		// draw all values if no id is passed
+		if(typeof id == "undefined") {
+			for (var i = 0; i < config.dials; i++) {
+				this.draw(i);
+			}
+			return;
 		}
-
-		// clear the canvas
-		ctx.clearRect( -CX, -CY, CW, CH);
-		ctx.save();
-
-		ctx.drawImage( cache, -CX, -CY, CW, CH);
-
-		if (!Gauge.initialized) {
-			var iv = setInterval(function() {
-				if (!Gauge.initialized) {
-					return;
-				}
-
-				clearInterval( iv);
-
-				drawValueBox();
-				drawNeedle();
-
-				if (!imready) {
-					self.onready && self.onready();
-					imready = true;
-				}
-			}, 10);
-		} else {
-			drawValueBox();
-			drawNeedle();
+		
+//		if (!Gauge.initialized) {
+//			var iv = setInterval(function() {
+//				if (!Gauge.initialized) {
+//					return;
+//				}
+//
+//				clearInterval( iv);
+//
+//				drawValueBox();
+//				for (var i = 0; i < config.dials; i++) {
+//					drawNeedle(i);
+//				}
+//
+//				if (!imready) {
+//					self.onready && self.onready();
+//					imready = true;
+//				}
+//			}, 10);
+//		} else {
+//			for (var i = 0; i < config.dials; i++) {
+				drawNeedle(id);
+//			}
 
 			if (!imready) {
 				self.onready && self.onready();
 				imready = true;
 			}
-		}
-
+//		}
 		return this;
 	};
 
@@ -378,7 +395,6 @@ var Gauge = function( config) {
 		var grad = ctx.createLinearGradient( 0, 0, 0, len);  
 		grad.addColorStop( 0, clrFrom);  
 		grad.addColorStop( 1, clrTo);
-
 		return grad;
 	};
 
@@ -425,11 +441,13 @@ var Gauge = function( config) {
 	};
 
     /**
-     * Formats a number for display on the dial's plate using the majorTicksFormat config option.
-     *
-     * @param {number} num The number to format
-     * @returns {string} The formatted number
-     */
+	 * Formats a number for display on the dial's plate using the
+	 * majorTicksFormat config option.
+	 * 
+	 * @param {number}
+	 *            num The number to format
+	 * @returns {string} The formatted number
+	 */
     function formatMajorTickNumber(num) {
         var r, isDec = false;
 
@@ -580,9 +598,7 @@ var Gauge = function( config) {
 			cint = config.valueFormat['int']
 		;
 		val = parseFloat( val);
-
 		var n = (val < 0);
-
 		val = Math.abs( val);
 
 		if (cdec > 0) {
@@ -602,7 +618,6 @@ var Gauge = function( config) {
 
 			val = (n ? '-' : '') + val
 		}
-
 		return val;
 	};
 
@@ -676,9 +691,10 @@ var Gauge = function( config) {
 		}
 	};
 
-	// drows the gauge needle
-	function drawNeedle() {
+	// draw the gauge needle(s)
+	function drawNeedle(id) {
 		var
+			myCtx = ctxDial[id],
 			r1 = max / 100 * 10,
 			r2 = max / 100 * 5,
 
@@ -688,68 +704,77 @@ var Gauge = function( config) {
 			pad2 = max / 100 * 2,
 
 			shad = function() {
-				ctx.shadowOffsetX = 2;
-				ctx.shadowOffsetY = 2;
-				ctx.shadowBlur    = 10;
-				ctx.shadowColor   = 'rgba(188, 143, 143, 0.45)';
+				myCtx.shadowOffsetX = 2;
+				myCtx.shadowOffsetY = 2;
+				myCtx.shadowBlur    = 10;
+				myCtx.shadowColor   = 'rgba(188, 143, 143, 0.45)';
 			}
 		;
 		
+		if(typeof myCtx == "undefined") {
+			console.log("ERROR: trying to access nonexisting canvas context #" + id);
+			return;
+		}
+		
+		// clear the canvas
+		myCtx.clearRect( -CX, -CY, CW, CH);
+		myCtx.save();
+
 		shad();
 		
-		ctx.save();
+		myCtx.save();
 		
-		if (fromValue < 0) {
-			fromValue = Math.abs(config.minValue - fromValue);
+		if (fromValue[id] < 0) {
+			fromValue[id] = Math.abs(config.minValue - fromValue[id]);
 		} else if (config.minValue > 0) {
-			fromValue -= config.minValue
+			fromValue[id] -= config.minValue
 		} else {
-			fromValue = Math.abs(config.minValue) + fromValue;
+			fromValue[id] = Math.abs(config.minValue) + fromValue[id];
 		}
 
-		ctx.rotate( radians( 45 + fromValue / ((config.maxValue - config.minValue) / 270)));
+		myCtx.rotate( radians( 45 + fromValue[id] / ((config.maxValue - config.minValue) / 270)));
 
-		ctx.beginPath();
-		ctx.moveTo( -pad2, -rOut);
-		ctx.lineTo( -pad1, 0);
-		ctx.lineTo( -1, rIn);
-		ctx.lineTo( 1, rIn);
-		ctx.lineTo( pad1, 0);
-		ctx.lineTo( pad2, -rOut);
-		ctx.closePath();
+		myCtx.beginPath();
+		myCtx.moveTo( -pad2, -rOut);
+		myCtx.lineTo( -pad1, 0);
+		myCtx.lineTo( -1, rIn);
+		myCtx.lineTo( 1, rIn);
+		myCtx.lineTo( pad1, 0);
+		myCtx.lineTo( pad2, -rOut);
+		myCtx.closePath();
 
-		ctx.fillStyle = lgrad(
+		myCtx.fillStyle = lgrad(
 			config.colors.needle.start,
 			config.colors.needle.end,
 			rIn - rOut
 		);
-		ctx.fill();
+		myCtx.fill();
 
-		ctx.beginPath();
-		ctx.lineTo( -0.5, rIn);
-		ctx.lineTo( -1, rIn);
-		ctx.lineTo( -pad1, 0);
-		ctx.lineTo( -pad2, -rOut);
-		ctx.lineTo( pad2 / 2 - 2, -rOut);
-		ctx.closePath();
-		ctx.fillStyle = 'rgba(255, 255, 255, 0.2)';
-		ctx.fill();
+		myCtx.beginPath();
+		myCtx.lineTo( -0.5, rIn);
+		myCtx.lineTo( -1, rIn);
+		myCtx.lineTo( -pad1, 0);
+		myCtx.lineTo( -pad2, -rOut);
+		myCtx.lineTo( pad2 / 2 - 2, -rOut);
+		myCtx.closePath();
+		myCtx.fillStyle = 'rgba(255, 255, 255, 0.2)';
+		myCtx.fill();
 
-		ctx.restore();
+		myCtx.restore();
 
 		shad();
 
-		ctx.beginPath();
-		ctx.arc( 0, 0, r1, 0, Math.PI * 2, true);
-		ctx.fillStyle = lgrad( '#ddd', '#aaa', r1);
-		ctx.fill();
+		myCtx.beginPath();
+		myCtx.arc( 0, 0, r1, 0, Math.PI * 2, true);
+		myCtx.fillStyle = lgrad( '#ddd', '#aaa', r1);
+		myCtx.fill();
 
-		ctx.restore();
+		myCtx.restore();
 
-		ctx.beginPath();
-		ctx.arc( 0, 0, r2, 0, Math.PI * 2, true);
-		ctx.fillStyle = lgrad( "#ddd", "#eee", r2);
-		ctx.fill();
+		myCtx.beginPath();
+		myCtx.arc( 0, 0, r2, 0, Math.PI * 2, true);
+		myCtx.fillStyle = lgrad( "#ddd", "#eee", r2);
+		myCtx.fill();
 	};
 
 	function roundRect( x, y, w, h, r) {
@@ -779,7 +804,7 @@ var Gauge = function( config) {
 		ctx.font = 40 * (max / 200) + "px Led";
 
 		var
-			text = padValue( value),
+			text = padValue( value[0]),
 			tw   = ctx.measureText( '-' + padValue( 0)).width,
 			y = max - max / 100 * 33,
 			x = 0,
@@ -833,7 +858,11 @@ var Gauge = function( config) {
 	};
 };
 
-// initialize
+function constrain(val,low,high) {
+	return (val < low ? low : (val > high ? high : val));
+}
+
+// initialize (load font by adding style to the head and temporarely adding a div which refers to the font
 Gauge.initialized = false;
 (function(){
 	var
@@ -841,8 +870,8 @@ Gauge.initialized = false;
 		h = d.getElementsByTagName('head')[0],
 		url = 'fonts/digital-7-mono.ttf',
 		text = "@font-face {" +
-					"font-family: 'Led';" +
-					"src: url('" + url + "');" +
+				"font-family: 'Led';" +
+				"src: url('" + url + "');" +
 				"}",
 		ss,
 		r = d.createElement( 'style')
@@ -858,9 +887,7 @@ Gauge.initialized = false;
 
 	h.appendChild( r);
 
-	ss = r.styleSheet ? r.styleSheet :
-		(r.sheet || d.styleSheets[d.styleSheets.length - 1])
-	;
+	ss = r.styleSheet ? r.styleSheet : (r.sheet || d.styleSheets[d.styleSheets.length - 1]);
 
 	var iv = setInterval(function() {
 		if (!d.body) {
@@ -880,11 +907,8 @@ Gauge.initialized = false;
 
 		d.body.appendChild( dd);
 
-		setTimeout(function() { // no other way to handle font is rendered by a browser
-			                    // just give the browser around 250ms to do that :(
-			Gauge.initialized = true;
-			dd.parentNode.removeChild( dd);
-		}, 250);
+		// no other way to handle font is rendered by a browser just give the browser around 250ms to do that
+		setTimeout(function() { Gauge.initialized = true; dd.parentNode.removeChild(dd); }, 250);
 	}, 1);
 })();
 
@@ -906,179 +930,179 @@ Gauge.Collection.get = function( id) {
 	}
 };
 
-function domReady( handler) {
-	if (window.addEventListener) {
-		window.addEventListener( 'DOMContentLoaded', handler, false);
-	} else {
-		window.attachEvent('onload', handler);
-	}
-}
-
-domReady( function() {
-	function toCamelCase( arr) {
-		var str = arr[0];
-		for (var i = 1, s = arr.length; i < s; i++) {
-			str += arr[i].substr(0, 1).toUpperCase() + arr[i].substr( 1, arr[i].length - 1);
-		}
-		return str;
-	};
-
-	function trim( str) {
-		return str.replace( /^\s+|\s+$/g, '');
-	};
-
-	var c = document.getElementsByTagName( 'canvas');
-
-	for (var i = 0, s = c.length; i < s; i++) {
-
-		if (c[i].getAttribute( 'data-type') == 'canv-gauge') {
-			var
-				gauge = c[i],
-				config = {},
-				prop,
-				w = parseInt( gauge.getAttribute('width'), 10),
-				h = parseInt( gauge.getAttribute('height'), 10)
-			;
-
-			config.renderTo = gauge;
-
-			if (w) {
-				config.width = w;
-			}
-
-			if (h) {
-				config.height = h;
-			}
-
-			for (var ii = 0, ss = gauge.attributes.length; ii < ss; ii++) {
-				prop = gauge.attributes.item( ii).nodeName;
-
-				if (prop != 'data-type' && prop.substr(0, 5) == 'data-') {
-					var
-						cfgProp = prop.substr( 5, prop.length - 5).toLowerCase().split( '-'),
-						attrValue = gauge.getAttribute( prop)
-					;
-
-					if (!attrValue) {
-						continue;
-					}
-
-					switch (cfgProp[0]) {
-						case 'colors' : {
-							if (cfgProp[1]) {
-								if (!config.colors) {
-									config.colors = {};
-								}
-
-								if (cfgProp[1] == 'needle') {
-									var parts = attrValue.split( /\s+/);
-
-									if (parts[0] && parts[1]) {
-										config.colors.needle = { start : parts[0], end : parts[1] };
-									}
-									else {
-										config.colors.needle = attrValue;
-									}
-								}
-								else {
-									cfgProp.shift();
-									config.colors[toCamelCase( cfgProp)] = attrValue;
-								}
-							}
-							break;
-						}
-						case 'highlights' : {
-							if (!config.highlights) {
-								config.highlights = [];
-							}
-
-							var hls = attrValue.split( ',');
-
-							for (var j = 0, l = hls.length; j < l; j++) {
-								var
-									cfg = trim( hls[j]).split( /\s+/),
-									hlCfg = {}
-								;
-
-								if (cfg[0] && cfg[0] != '') {
-									hlCfg.from = cfg[0];
-								}
-
-								if (cfg[1] && cfg[1] != '') {
-									hlCfg.to = cfg[1];
-								}
-
-								if (cfg[2] && cfg[2] != '') {
-									hlCfg.color = cfg[2];
-								}
-
-								config.highlights.push( hlCfg);
-							}
-							break;
-						}
-						case 'animation' : {
-							if (cfgProp[1]) {
-								if (!config.animation) {
-									config.animation = {};
-								}
-
-								if (cfgProp[1] == 'fn' && /^\s*function\s*\(/.test( attrValue)) {
-									attrValue = eval('(' + attrValue + ')');
-								}
-
-								config.animation[cfgProp[1]] = attrValue;
-							}
-							break;
-						}
-						default : {
-							var cfgName = toCamelCase( cfgProp);
-
-							if (cfgName == 'onready') {
-								continue;
-							}
-
-							if (cfgName == 'majorTicks') {
-								attrValue = attrValue.split( /\s+/);
-							}
-							else if (cfgName == 'strokeTicks' || cfgName == 'glow') {
-								attrValue = attrValue == 'true' ? true : false;
-							}
-							else if (cfgName == 'valueFormat') {
-								var val = attrValue.split( '.');
-
-								if (val.length == 2) {
-									attrValue = {
-										'int' : parseInt( val[0], 10),
-										'dec' : parseInt( val[1], 10)
-									}
-								}
-								else {
-									continue;
-								}
-							}
-
-							config[cfgName] = attrValue;
-							break;
-						}
-					}
-				}
-			}
-
-			var g = new Gauge( config);
-
-			if (gauge.getAttribute('data-value')) {
-				g.setRawValue( parseFloat( gauge.getAttribute('data-value')));
-			}
-
-			if (gauge.getAttribute( 'data-onready')) {
-				g.onready = function() {
-					eval( this.config.renderTo.getAttribute( 'data-onready'));
-				};
-			}
-
-			g.draw();
-		}
-	}
-});
+//function domReady( handler) {
+//	if (window.addEventListener) {
+//		window.addEventListener( 'DOMContentLoaded', handler, false);
+//	} else {
+//		window.attachEvent('onload', handler);
+//	}
+//}
+//
+//domReady( function() {
+//	function toCamelCase( arr) {
+//		var str = arr[0];
+//		for (var i = 1, s = arr.length; i < s; i++) {
+//			str += arr[i].substr(0, 1).toUpperCase() + arr[i].substr( 1, arr[i].length - 1);
+//		}
+//		return str;
+//	};
+//
+//	function trim( str) {
+//		return str.replace( /^\s+|\s+$/g, '');
+//	};
+//
+//	var c = document.getElementsByTagName( 'canvas');
+//
+//	for (var i = 0, s = c.length; i < s; i++) {
+//
+//		if (c[i].getAttribute( 'data-type') == 'canv-gauge') {
+//			var
+//				gauge = c[i],
+//				config = {},
+//				prop,
+//				w = parseInt( gauge.getAttribute('width'), 10),
+//				h = parseInt( gauge.getAttribute('height'), 10)
+//			;
+//
+//			config.renderTo = gauge;
+//
+//			if (w) {
+//				config.width = w;
+//			}
+//
+//			if (h) {
+//				config.height = h;
+//			}
+//
+//			for (var ii = 0, ss = gauge.attributes.length; ii < ss; ii++) {
+//				prop = gauge.attributes.item( ii).nodeName;
+//
+//				if (prop != 'data-type' && prop.substr(0, 5) == 'data-') {
+//					var
+//						cfgProp = prop.substr( 5, prop.length - 5).toLowerCase().split( '-'),
+//						attrValue = gauge.getAttribute( prop)
+//					;
+//
+//					if (!attrValue) {
+//						continue;
+//					}
+//
+//					switch (cfgProp[0]) {
+//						case 'colors' : {
+//							if (cfgProp[1]) {
+//								if (!config.colors) {
+//									config.colors = {};
+//								}
+//
+//								if (cfgProp[1] == 'needle') {
+//									var parts = attrValue.split( /\s+/);
+//
+//									if (parts[0] && parts[1]) {
+//										config.colors.needle = { start : parts[0], end : parts[1] };
+//									}
+//									else {
+//										config.colors.needle = attrValue;
+//									}
+//								}
+//								else {
+//									cfgProp.shift();
+//									config.colors[toCamelCase( cfgProp)] = attrValue;
+//								}
+//							}
+//							break;
+//						}
+//						case 'highlights' : {
+//							if (!config.highlights) {
+//								config.highlights = [];
+//							}
+//
+//							var hls = attrValue.split( ',');
+//
+//							for (var j = 0, l = hls.length; j < l; j++) {
+//								var
+//									cfg = trim( hls[j]).split( /\s+/),
+//									hlCfg = {}
+//								;
+//
+//								if (cfg[0] && cfg[0] != '') {
+//									hlCfg.from = cfg[0];
+//								}
+//
+//								if (cfg[1] && cfg[1] != '') {
+//									hlCfg.to = cfg[1];
+//								}
+//
+//								if (cfg[2] && cfg[2] != '') {
+//									hlCfg.color = cfg[2];
+//								}
+//
+//								config.highlights.push( hlCfg);
+//							}
+//							break;
+//						}
+//						case 'animation' : {
+//							if (cfgProp[1]) {
+//								if (!config.animation) {
+//									config.animation = {};
+//								}
+//
+//								if (cfgProp[1] == 'fn' && /^\s*function\s*\(/.test( attrValue)) {
+//									attrValue = eval('(' + attrValue + ')');
+//								}
+//
+//								config.animation[cfgProp[1]] = attrValue;
+//							}
+//							break;
+//						}
+//						default : {
+//							var cfgName = toCamelCase( cfgProp);
+//
+//							if (cfgName == 'onready') {
+//								continue;
+//							}
+//
+//							if (cfgName == 'majorTicks') {
+//								attrValue = attrValue.split( /\s+/);
+//							}
+//							else if (cfgName == 'strokeTicks' || cfgName == 'glow') {
+//								attrValue = attrValue == 'true' ? true : false;
+//							}
+//							else if (cfgName == 'valueFormat') {
+//								var val = attrValue.split( '.');
+//
+//								if (val.length == 2) {
+//									attrValue = {
+//										'int' : parseInt( val[0], 10),
+//										'dec' : parseInt( val[1], 10)
+//									}
+//								}
+//								else {
+//									continue;
+//								}
+//							}
+//
+//							config[cfgName] = attrValue;
+//							break;
+//						}
+//					}
+//				}
+//			}
+//
+//			var g = new Gauge( config);
+//
+//			if (gauge.getAttribute('data-value')) {
+//				g.setRawValue( parseFloat( gauge.getAttribute('data-value')));
+//			}
+//
+//			if (gauge.getAttribute( 'data-onready')) {
+//				g.onready = function() {
+//					eval( this.config.renderTo.getAttribute( 'data-onready'));
+//				};
+//			}
+//
+//			g.draw();
+//		}
+//	}
+//});
 
 window['Gauge'] = Gauge;
