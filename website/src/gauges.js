@@ -4,7 +4,7 @@
  */
 
 var gaugeColors = {
-	plate      : '#222',
+	plate      : { start : '#001', end : '#253043' },
 	majorTicks : '#f5f5f5',
 	minorTicks : '#ddd',
 	title      : '#fff',
@@ -79,8 +79,9 @@ function generateGauges(config) {
 		renderTo    : 'speedActualGauge',
 		width       : 280,
 		height      : 280,
+		dials       : 1,
 		glow        : true,
-		units       : 'x1000',
+		units       : '',
 		title       : "RPM",
 		colors      : gaugeColors,
 		minValue    : range.min,
@@ -106,6 +107,7 @@ function generateGauges(config) {
 		width       : 200,
 		height      : 200,
 		glow        : true,
+		dials       : 2,
 		units       : '\u2103',
 		title       : "Motor",
 		colors      : gaugeColors,
@@ -113,7 +115,7 @@ function generateGauges(config) {
 		maxValue    : range.max,
 		majorTicks  : range.ticks,
 		minorTicks  : 5,
-		strokeTicks : false,
+		strokeTicks : true,
 		valueFormat : { "int" : 3, "dec" : 1 },
 		highlights  : [
 			{ from : range.min, to : config.motorTempRange[1] - interval, color : 'rgba(0, 255,  0, .65)' },

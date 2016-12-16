@@ -71,10 +71,11 @@ function openWebSocket() {
 
 	socketConnection = new WebSocket("ws://" + location.hostname + ":2000");
 
-	// send some data to the server Log errors
+	// Log errors and try to reconnect
 	socketConnection.onerror = function(error) {
 		console.log('WebSocket Error ' + error);
-//		closeWebSocket();
+		closeWebSocket();
+		openWebSocket();
 	};
 	// process messages from the server
 	socketConnection.onmessage = function(message) {
@@ -191,6 +192,7 @@ function setNodeValue(name, value) {
 	var target = getCache(name + "Gauge");
 	if (target) {
 		Gauge.Collection.get(name + "Gauge").setValue(0, value);
+//		Gauge.Collection.get(name + "Gauge").setValue(1, value + 20);
 		return;
 	}
 

@@ -44,7 +44,7 @@ var Gauge = function(config) {
 		renderTo         : null,
 		width            : 200,
 		height           : 200,
-		dials            : 2,
+		dials            : 1,
 		title            : false,
 		maxValue         : 100,
 		minValue         : 0,
@@ -60,6 +60,9 @@ var Gauge = function(config) {
 			duration : 200,
 			fn       : 'cycle'
 		},
+
+		
+		
 		colors : {
 			plate      : '#fff',
 			majorTicks : '#444',
@@ -93,7 +96,8 @@ var Gauge = function(config) {
 	;
 
 	/**
-	 ************* Public methods - to be called from the application *************
+	 * ************ Public methods - to be called from the application
+	 * *************
 	 */
 	
 	/**
@@ -186,7 +190,8 @@ var Gauge = function(config) {
 
 	
 	/**
-	 ************* Private methods - to be used by the gauges internally ************* 
+	 * ************ Private methods - to be used by the gauges internally
+	 * *************
 	 */
 		
 	/**
@@ -219,55 +224,75 @@ var Gauge = function(config) {
 		throw Error("Canvas element was not specified when creating the Gauge object!");
 	}
 
-	var container, canvas, ctx, canvasDial = [], ctxDial = [], CW, CH, CX, CY, max;
-
-	container = config.renderTo.tagName ? config.renderTo : document.getElementById(config.renderTo);
-	container.innerHTML = "<canvas id='" + config.renderTo + "Plate'></canvas>";
-	for (var i = 0; i < config.dials; i++) {
-		container.innerHTML += "<canvas id='" + config.renderTo + "Dial" + i + "'></canvas>";
-	}
+	var ctx, ctxDial = [], ctxInfo,
+		CW  = config.width,
+		CH  = config.height,
+		CX  = CW / 2,
+		CY  = CH / 2,
+		max = CX < CY ? CX : CY
+	;
 	
-	canvas = document.getElementById( config.renderTo + "Plate");
-	ctx = canvas.getContext( '2d');
-	for (var i = 0; i < config.dials; i++) {
-		canvasDial.push(document.getElementById( config.renderTo + "Dial" + i));
-		ctxDial[i] = canvasDial[i].getContext('2d');
-		canvasDial[i].width  = config.width;
-		canvasDial[i].height = config.height;
-		canvasDial[i].style.marginLeft -= config.width;
-		canvasDial[i].style.marginTop -= config.height;
-		fromValue[i] = value[i] = toValue[i] = config.minValue;
-	}
-
 	function baseInit() {
-		canvas.width  = config.width;
-		canvas.height = config.height;
-		
-		CW  = canvas.width;
-		CH  = canvas.height;
-		CX  = CW / 2;
-		CY  = CH / 2;
-		max = CX < CY ? CX : CY;
-		
-		ctx.translate(CX, CY);// translate canvas to have 0,0 in center
-		ctx.save();
-		for (var i = 0; i < ctxDial.length; i++) {
-			ctxDial[i].translate(CX, CY); // translate canvas to have 0,0 in center
-			ctxDial[i].save();
+		// important. first add all canvas before accessin one !!
+		addCanvas("Plate");
+		for (var i = 0; i < config.dials; i++) {
+			addCanvas("Dial" + i);
 		}
+		addCanvas("Info");
+
+		// now it's safe to look them up		
+		ctx = prepareCanvas("Plate", false);
+		for (var i = 0; i < config.dials; i++) {
+			ctxDial[i] = prepareCanvas("Dial" + i, true);
+			fromValue[i] = value[i] = toValue[i] = config.minValue;
+		}
+		ctxInfo = prepareCanvas("Info", true);
 
 		drawPlate();
-		drawHighlights();
+//		drawHighlights();
 		drawMinorTicks();
 		drawMajorTicks();
 		drawNumbers();
+		drawValueBox();
+		drawInfoArea();
 		drawTitle();
 		drawUnits();
-		drawValueBox();
 	};
 
 	// do basic initialization
 	baseInit();
+	
+	/**
+	 * Add a canvas to the container with the configured renderTo id plus a suffix.
+	 * 
+	 * @param suffix suffix for the canvas id
+	 */
+	function addCanvas(suffix) {
+		var container = config.renderTo.tagName ? config.renderTo : document.getElementById(config.renderTo);
+		container.innerHTML += "<canvas id='" + config.renderTo + suffix + "'></canvas>";
+	}
+
+	/**
+	 * Resize, shift and translate a canvas / context.
+	 * 
+	 * @param suffix for the canvas id
+	 * @param relocate if the canvas should by shifted to the left and upwards by its size
+	 * @returns the context of the canvas
+	 */
+	function prepareCanvas(suffix, relocate) {
+		var canvas = document.getElementById(config.renderTo + suffix);
+		canvas.width  = config.width;
+		canvas.height = config.height;
+		
+		if (relocate) {
+			canvas.style.marginLeft -= config.width;
+			canvas.style.marginTop -= config.height;
+		}
+		var context = canvas.getContext('2d');
+		context.translate(CX, CY);// translate canvas to have 0,0 in center
+		context.save();
+		return context;
+	}
 
 	var animateFx = {
 		linear : function( p) { return p; },
@@ -320,7 +345,8 @@ var Gauge = function(config) {
 		var
 			path = (toValue[id] - fromValue[id]),
 			from = fromValue[id],
-			cfg  = config.animation;
+			cfg  = config.animation
+		;
 
 		_animate({
 			delay    : cfg.delay,
@@ -350,34 +376,13 @@ var Gauge = function(config) {
 			return;
 		}
 		
-//		if (!Gauge.initialized) {
-//			var iv = setInterval(function() {
-//				if (!Gauge.initialized) {
-//					return;
-//				}
-//
-//				clearInterval( iv);
-//
-//				drawValueBox();
-//				for (var i = 0; i < config.dials; i++) {
-//					drawNeedle(i);
-//				}
-//
-//				if (!imready) {
-//					self.onready && self.onready();
-//					imready = true;
-//				}
-//			}, 10);
-//		} else {
-//			for (var i = 0; i < config.dials; i++) {
-				drawNeedle(id);
-//			}
+		drawNeedle(id);
+		drawHighlight(id);
 
-			if (!imready) {
-				self.onready && self.onready();
-				imready = true;
-			}
-//		}
+		if (!imready) {
+			self.onready && self.onready();
+			imready = true;
+		}
 		return this;
 	};
 
@@ -400,13 +405,13 @@ var Gauge = function(config) {
 
 	function drawPlate() {
 		var
-			r0 = max / 100 * 93,
+			r0 = max / 100 * 97,
 			d0 = max -r0,
-			r1 = max / 100 * 92,
+			r1 = max / 100 * 96,
 			d1 = max - r1,
-			r2 = max / 100 * 91,
+			r2 = max / 100 * 95,
 			d2 = max - r2,
-			r3 = max / 100 * 90;
+			r3 = max / 100 * 94;
 
 		ctx.save();
 
@@ -434,7 +439,11 @@ var Gauge = function(config) {
 	
 		ctx.beginPath();
 		ctx.arc( 0, 0, r3, 0, Math.PI * 2, true);
-		ctx.fillStyle = config.colors.plate;
+
+		var grd = ctx.createRadialGradient(0, 0, 50, 0, 0, r3);
+		grd.addColorStop(0, config.colors.plate.start);
+		grd.addColorStop(1, config.colors.plate.end);
+		ctx.fillStyle = grd;
 		ctx.fill();
 
 		ctx.save();
@@ -497,7 +506,7 @@ var Gauge = function(config) {
         }
 
 		for (var i = 0; i < config.majorTicks.length; ++i) {
-			var a = 45 + i * (270 / (config.majorTicks.length - 1));
+			var a = 40 + i * (280 / (config.majorTicks.length - 1) / config.dials);
 			ctx.rotate( radians( a));
 
 			ctx.beginPath();
@@ -513,7 +522,7 @@ var Gauge = function(config) {
 			ctx.rotate( radians( 90));
 
 			ctx.beginPath();
-			ctx.arc( 0, 0, r, radians( 45), radians( 315), false);
+			ctx.arc( 0, 0, r, radians( 40), radians( 320), false);
 			ctx.stroke();
 			ctx.restore();
 	
@@ -533,7 +542,7 @@ var Gauge = function(config) {
 		var len = config.minorTicks * (config.majorTicks.length - 1);
 
 		for (var i = 0; i < len; ++i) {
-			var a = 45 + i * (270 / len);
+			var a = 40 + i * (280 / len / config.dials);
 			ctx.rotate( radians( a));
 
 			ctx.beginPath();
@@ -552,7 +561,7 @@ var Gauge = function(config) {
 
 		for (var i = 0; i < config.majorTicks.length; ++i) {
 			var 
-				a = 45 + i * (270 / (config.majorTicks.length - 1)),
+				a = 40 + i * (280 / (config.majorTicks.length - 1) / config.dials),
 				p = rpoint( r, radians( a))
 			;
 
@@ -570,12 +579,12 @@ var Gauge = function(config) {
 			return;
 		}
 
-		ctx.save();
-		ctx.font = 24 * (max / 200) + "px Arial";
-		ctx.fillStyle = config.colors.title;
-		ctx.textAlign = "center";
-		ctx.fillText( config.title, 0, -max / 4.25);
-		ctx.restore();
+		ctxInfo.save();
+		ctxInfo.font = 24 * (max / 200) + "px Arial";
+		ctxInfo.fillStyle = config.colors.title;
+		ctxInfo.textAlign = "center";
+		ctxInfo.fillText( config.title, 0, -max / 4.25);
+		ctxInfo.restore();
 	};
 
 	// units draw
@@ -584,12 +593,12 @@ var Gauge = function(config) {
 			return;
 		}
 
-		ctx.save();
-		ctx.font = 22 * (max / 200) + "px Arial";
-		ctx.fillStyle = config.colors.units;
-		ctx.textAlign = "center";
-		ctx.fillText( config.units, 0, max / 3.25);
-		ctx.restore();
+		ctxInfo.save();
+		ctxInfo.font = 22 * (max / 200) + "px Arial";
+		ctxInfo.fillStyle = config.colors.units;
+		ctxInfo.textAlign = "center";
+		ctxInfo.fillText( config.units, 0, max / 3.25);
+		ctxInfo.restore();
 	};
 
 	function padValue( val) {
@@ -645,9 +654,9 @@ var Gauge = function(config) {
 		for (var i = 0, s = config.highlights.length; i < s; i++) {
 			var
 				hlt = config.highlights[i],
-				vd = (config.maxValue - config.minValue) / 270,
-				sa = radians( 45 + (hlt.from - config.minValue) / vd),
-				ea = radians( 45 + (hlt.to - config.minValue) / vd)
+				vd = (config.maxValue - config.minValue) / 280,
+				sa = radians( 35 + (hlt.from - config.minValue) / vd),
+				ea = radians( 35 + (hlt.to - config.minValue) / vd)
 			;
 			
 			ctx.beginPath();
@@ -695,17 +704,14 @@ var Gauge = function(config) {
 	function drawNeedle(id) {
 		var
 			myCtx = ctxDial[id],
-			r1 = max / 100 * 10,
-			r2 = max / 100 * 5,
-
-			rIn  = max / 100 * 87,
+			rIn  = max / 100 * 94,
 			rOut = max / 100 * 25,
-			pad1 = max / 100 * 4,
-			pad2 = max / 100 * 2,
+			pad1 = max / 100 * 1,
+			pad2 = max / 100 * 1,
 
 			shad = function() {
-				myCtx.shadowOffsetX = 2;
-				myCtx.shadowOffsetY = 2;
+				myCtx.shadowOffsetX = 4;
+				myCtx.shadowOffsetY = 4;
 				myCtx.shadowBlur    = 10;
 				myCtx.shadowColor   = 'rgba(188, 143, 143, 0.45)';
 			}
@@ -727,12 +733,12 @@ var Gauge = function(config) {
 		if (fromValue[id] < 0) {
 			fromValue[id] = Math.abs(config.minValue - fromValue[id]);
 		} else if (config.minValue > 0) {
-			fromValue[id] -= config.minValue
+			fromValue[id] -= config.minValue;
 		} else {
 			fromValue[id] = Math.abs(config.minValue) + fromValue[id];
 		}
 
-		myCtx.rotate( radians( 45 + fromValue[id] / ((config.maxValue - config.minValue) / 270)));
+		myCtx.rotate(radians(40 + fromValue[id] / ((config.maxValue - config.minValue) / 280) / config.dials));
 
 		myCtx.beginPath();
 		myCtx.moveTo( -pad2, -rOut);
@@ -761,22 +767,51 @@ var Gauge = function(config) {
 		myCtx.fill();
 
 		myCtx.restore();
-
-		shad();
-
-		myCtx.beginPath();
-		myCtx.arc( 0, 0, r1, 0, Math.PI * 2, true);
-		myCtx.fillStyle = lgrad( '#ddd', '#aaa', r1);
-		myCtx.fill();
-
-		myCtx.restore();
-
-		myCtx.beginPath();
-		myCtx.arc( 0, 0, r2, 0, Math.PI * 2, true);
-		myCtx.fillStyle = lgrad( "#ddd", "#eee", r2);
-		myCtx.fill();
 	};
 
+	function drawInfoArea() {
+		var
+			r1 = max / 100 * 45,
+			r2 = max / 100 * 44;
+		;
+
+		ctxInfo.beginPath();
+		ctxInfo.arc( 0, 0, r1, 0, Math.PI * 2, true);
+		ctxInfo.fillStyle = lgrad( 'rgba(128, 128, 128, 1)', 'rgba(160, 160, 160, 1)', r1);
+		ctxInfo.fill();
+
+		ctxInfo.restore();
+
+		ctxInfo.beginPath();
+		ctxInfo.arc( 0, 0, r2, 0, Math.PI * 2, true);
+		ctxInfo.fillStyle = lgrad( 'rgba(32, 32, 32, 0.9)', 'rgba(48, 48, 48, 0.9)', r2);
+		ctxInfo.fill();
+	}
+	
+	function drawHighlight(id) {
+		var
+			myCtx = ctxDial[id],
+			rIn  = max / 100 * 90,
+			width = max / 100 * 8;
+		;
+
+		myCtx.shadowOffsetX = 2;
+		myCtx.shadowOffsetY = 2;
+		myCtx.shadowBlur    = 10;
+		myCtx.shadowColor   = 'rgba(143, 143, 188, 0.45)';
+
+		myCtx.beginPath();
+		myCtx.arc(0,0,rIn,radians(130),radians(130 + fromValue[id] / ((config.maxValue - config.minValue) / 280) / config.dials), false);
+		myCtx.lineWidth = width;
+
+		
+		var grad = ctx.createLinearGradient( 0, -200, 0, 30);  
+		grad.addColorStop( 0, 'rgba(243, 22, 22, 0.9)');  
+		grad.addColorStop( 1, 'rgba(143, 163, 188, 0.75)');
+		myCtx.strokeStyle = grad;
+		myCtx.stroke();
+	}
+	
 	function roundRect( x, y, w, h, r) {
 		ctx.beginPath();
 
@@ -806,7 +841,7 @@ var Gauge = function(config) {
 		var
 			text = padValue( value[0]),
 			tw   = ctx.measureText( '-' + padValue( 0)).width,
-			y = max - max / 100 * 33,
+			y = max - max / 100 * 20,
 			x = 0,
 			th = 0.12 * max
 		;
@@ -862,7 +897,8 @@ function constrain(val,low,high) {
 	return (val < low ? low : (val > high ? high : val));
 }
 
-// initialize (load font by adding style to the head and temporarely adding a div which refers to the font
+// initialize (load font by adding style to the head and temporarely adding a
+// div which refers to the font
 Gauge.initialized = false;
 (function(){
 	var
@@ -907,7 +943,8 @@ Gauge.initialized = false;
 
 		d.body.appendChild( dd);
 
-		// no other way to handle font is rendered by a browser just give the browser around 250ms to do that
+		// no other way to handle font is rendered by a browser just give the
+		// browser around 250ms to do that
 		setTimeout(function() { Gauge.initialized = true; dd.parentNode.removeChild(dd); }, 250);
 	}, 1);
 })();
@@ -929,180 +966,5 @@ Gauge.Collection.get = function( id) {
 		return null;
 	}
 };
-
-//function domReady( handler) {
-//	if (window.addEventListener) {
-//		window.addEventListener( 'DOMContentLoaded', handler, false);
-//	} else {
-//		window.attachEvent('onload', handler);
-//	}
-//}
-//
-//domReady( function() {
-//	function toCamelCase( arr) {
-//		var str = arr[0];
-//		for (var i = 1, s = arr.length; i < s; i++) {
-//			str += arr[i].substr(0, 1).toUpperCase() + arr[i].substr( 1, arr[i].length - 1);
-//		}
-//		return str;
-//	};
-//
-//	function trim( str) {
-//		return str.replace( /^\s+|\s+$/g, '');
-//	};
-//
-//	var c = document.getElementsByTagName( 'canvas');
-//
-//	for (var i = 0, s = c.length; i < s; i++) {
-//
-//		if (c[i].getAttribute( 'data-type') == 'canv-gauge') {
-//			var
-//				gauge = c[i],
-//				config = {},
-//				prop,
-//				w = parseInt( gauge.getAttribute('width'), 10),
-//				h = parseInt( gauge.getAttribute('height'), 10)
-//			;
-//
-//			config.renderTo = gauge;
-//
-//			if (w) {
-//				config.width = w;
-//			}
-//
-//			if (h) {
-//				config.height = h;
-//			}
-//
-//			for (var ii = 0, ss = gauge.attributes.length; ii < ss; ii++) {
-//				prop = gauge.attributes.item( ii).nodeName;
-//
-//				if (prop != 'data-type' && prop.substr(0, 5) == 'data-') {
-//					var
-//						cfgProp = prop.substr( 5, prop.length - 5).toLowerCase().split( '-'),
-//						attrValue = gauge.getAttribute( prop)
-//					;
-//
-//					if (!attrValue) {
-//						continue;
-//					}
-//
-//					switch (cfgProp[0]) {
-//						case 'colors' : {
-//							if (cfgProp[1]) {
-//								if (!config.colors) {
-//									config.colors = {};
-//								}
-//
-//								if (cfgProp[1] == 'needle') {
-//									var parts = attrValue.split( /\s+/);
-//
-//									if (parts[0] && parts[1]) {
-//										config.colors.needle = { start : parts[0], end : parts[1] };
-//									}
-//									else {
-//										config.colors.needle = attrValue;
-//									}
-//								}
-//								else {
-//									cfgProp.shift();
-//									config.colors[toCamelCase( cfgProp)] = attrValue;
-//								}
-//							}
-//							break;
-//						}
-//						case 'highlights' : {
-//							if (!config.highlights) {
-//								config.highlights = [];
-//							}
-//
-//							var hls = attrValue.split( ',');
-//
-//							for (var j = 0, l = hls.length; j < l; j++) {
-//								var
-//									cfg = trim( hls[j]).split( /\s+/),
-//									hlCfg = {}
-//								;
-//
-//								if (cfg[0] && cfg[0] != '') {
-//									hlCfg.from = cfg[0];
-//								}
-//
-//								if (cfg[1] && cfg[1] != '') {
-//									hlCfg.to = cfg[1];
-//								}
-//
-//								if (cfg[2] && cfg[2] != '') {
-//									hlCfg.color = cfg[2];
-//								}
-//
-//								config.highlights.push( hlCfg);
-//							}
-//							break;
-//						}
-//						case 'animation' : {
-//							if (cfgProp[1]) {
-//								if (!config.animation) {
-//									config.animation = {};
-//								}
-//
-//								if (cfgProp[1] == 'fn' && /^\s*function\s*\(/.test( attrValue)) {
-//									attrValue = eval('(' + attrValue + ')');
-//								}
-//
-//								config.animation[cfgProp[1]] = attrValue;
-//							}
-//							break;
-//						}
-//						default : {
-//							var cfgName = toCamelCase( cfgProp);
-//
-//							if (cfgName == 'onready') {
-//								continue;
-//							}
-//
-//							if (cfgName == 'majorTicks') {
-//								attrValue = attrValue.split( /\s+/);
-//							}
-//							else if (cfgName == 'strokeTicks' || cfgName == 'glow') {
-//								attrValue = attrValue == 'true' ? true : false;
-//							}
-//							else if (cfgName == 'valueFormat') {
-//								var val = attrValue.split( '.');
-//
-//								if (val.length == 2) {
-//									attrValue = {
-//										'int' : parseInt( val[0], 10),
-//										'dec' : parseInt( val[1], 10)
-//									}
-//								}
-//								else {
-//									continue;
-//								}
-//							}
-//
-//							config[cfgName] = attrValue;
-//							break;
-//						}
-//					}
-//				}
-//			}
-//
-//			var g = new Gauge( config);
-//
-//			if (gauge.getAttribute('data-value')) {
-//				g.setRawValue( parseFloat( gauge.getAttribute('data-value')));
-//			}
-//
-//			if (gauge.getAttribute( 'data-onready')) {
-//				g.onready = function() {
-//					eval( this.config.renderTo.getAttribute( 'data-onready'));
-//				};
-//			}
-//
-//			g.draw();
-//		}
-//	}
-//});
 
 window['Gauge'] = Gauge;
