@@ -84,13 +84,11 @@ void SystemIO::handleTick() {
         // if the system is ready and the enable input is high, then switch to state "running", this should enable the motor controller
         if (state == Status::ready) {
             status.setSystemState(Status::running);
-            setPowerSteering(true); // TODO move this somewhere else, own device ?
         }
     } else {
         // if enable input is low and the motor controller is running, then disable it by switching to state "ready"
         if (state == Status::running) {
             status.setSystemState(Status::ready);
-            setPowerSteering(false); // TODO move this somewhere else, own device ?
         }
     }
 
@@ -174,6 +172,7 @@ void SystemIO::handlePreCharge() {
 #ifdef CFG_THREE_CONTACTOR_PRECHARGE
             delay(CFG_PRE_CHARGE_RELAY_DELAY);
             setSecondaryContactor(true);
+            setFastChargeContactor(true); // TODO workaround to get the heater into the pre-charge cycle too
 #endif
         }
     } else {

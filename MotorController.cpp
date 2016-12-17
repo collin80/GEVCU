@@ -227,6 +227,10 @@ void MotorController::handleStateChange(Status::SystemState oldState, Status::Sy
     }
 
     systemIO.setEnableMotor(newState == Status::ready || newState == Status::running);
+
+    systemIO.setPowerSteering(powerOn); // TODO move this somewhere else, own device ?
+    systemIO.setEnableHeater(powerOn);
+    systemIO.setHeaterPump(powerOn);
 }
 
 void MotorController::setup()
