@@ -36,7 +36,7 @@ BrusaNLG5::BrusaNLG5() : Charger()
     commonName = "Brusa NLG5 Charger";
 
     errorPresent = false;
-    clearErrorLatch = false;
+    clearErrorLatch = true;
     currentLimitControlPilot = 0;
     currentLimitPowerIndicator = 0;
     auxBatteryVoltage = 0;
@@ -91,10 +91,10 @@ void BrusaNLG5::sendControl()
     if (powerOn && (ready || running)) {
         outputFrame.data.bytes[0] |= enable;
     }
-//    if (errorPresent && clearErrorLatch) {
-//        outputFrame.data.bytes[0] |= errorLatch;
-//        clearErrorLatch = false;
-//    }
+    if (errorPresent && clearErrorLatch) {
+        outputFrame.data.bytes[0] |= errorLatch;
+        clearErrorLatch = false;
+    }
     outputFrame.data.bytes[1] = (constrain(config->maximumInputCurrent, 0, 500) & 0xFF00) >> 8;
     outputFrame.data.bytes[2] = (constrain(config->maximumInputCurrent, 0, 500) & 0x00FF);
 
@@ -176,9 +176,12 @@ void BrusaNLG5::processStatus(uint8_t data[])
     ready = true;
     running = bitfield & hardwareEnabled;
 
-    if ((bitfield & error) && powerOn && ((chargeStartTime - millis()) > 10000)) {
-        Logger::error(this, "Charger reported an error, terminating charge.");
-        status.setSystemState(Status::error);
+    if ((bitfield & error) && powerOn) {
+        errorPresent = true;
+        if (millis() > 10000) {
+            Logger::error(this, "Charger reported an error, terminating charge.");
+            status.setSystemState(Status::error);
+        }
     }
 
 //    bypassDetection1
