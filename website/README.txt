@@ -20,3 +20,12 @@ Then to update the website after changes,
 6. Click "Save" and point it to website.img
 
 At this point you upload the image to the GEVCU using http://192.168.3.10/ichip and power cycle the GEVCU to have it activated.
+
+
+
+What about the "WEB-INF" folder? 
+
+If you are developing the website and want to test it locally with an Apache Tomcat server, just deploy the contents of website/src to
+your webapps directory and copy the WEB-INF folder also there. This way Tomcat recognizes the webapp and also uses a filter to replace
+the placeholders in certain .js files with meaningful data. The WEB-INF folder is deliberately not included in the website/src folder
+because the ichip packaging tool would pick-up all its files too and the website would become bigger than 256kB.
