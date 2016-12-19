@@ -51,7 +51,7 @@ MotorController::MotorController() :
     slewTimestamp = millis();
     saveEnergyConsumption = false;
     ticksNoMessage = 0;
-    minimumBatteryTemperature = CFG_NO_TEMPERATURE_DATA;
+    minimumBatteryTemperature = 50; // 5 deg C
 }
 
 DeviceType MotorController::getType()
@@ -178,7 +178,7 @@ void MotorController::processThrottleLevel()
         if (lowestBatteryTemperature != CFG_NO_TEMPERATURE_DATA && (lowestBatteryTemperature * 10) < minimumBatteryTemperature) {
             torqueRequested = 0;
             speedRequested = 0;
-            Logger::warn(this, "No regenerative braking due to low battery temperature! (%d)", lowestBatteryTemperature);
+            Logger::warn(this, "No regenerative braking due to low battery temperature! (%f < %f)", lowestBatteryTemperature / 10.0f, minimumBatteryTemperature / 10.0f);
          }
     }
 }
@@ -231,20 +231,22 @@ void MotorController::handleStateChange(Status::SystemState oldState, Status::Sy
     systemIO.setPowerSteering(powerOn); // TODO move this somewhere else, own device ?
     systemIO.setEnableHeater(powerOn);
     systemIO.setHeaterPump(powerOn);
+
+    if (newState == Status::ready) { // at this time also the charger config should be loaded
+        // get the minimum temperature from the charger
+        Charger *charger = deviceManager.getCharger();
+        if (charger) {
+            ChargerConfiguration *config = (ChargerConfiguration *) charger->getConfiguration();
+            if (config) {
+                minimumBatteryTemperature = config->minimumTemperature;
+            }
+        }
+    }
 }
 
 void MotorController::setup()
 {
     Device::setup();
-
-    // get the minimum temperature from the charger
-    Charger *charger = deviceManager.getCharger();
-    if (charger) {
-        ChargerConfiguration *config = (ChargerConfiguration *) charger->getConfiguration();
-        if (config) {
-            minimumBatteryTemperature = config->minimumTemperature;
-        }
-    }
 
     saveEnergyConsumption = false;
     slewTimestamp = millis();
