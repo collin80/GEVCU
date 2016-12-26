@@ -1,6 +1,6 @@
 /**!
  * @license
- * Multi-Dial Gauge
+ * Multi-Dial Gauge by Michael Neuweiler <michael_neuweiler@yahoo.com>
  * 
  * This code is subject to MIT license and is based on
  * HTML5 Canvas Gauge Copyright (c) 2012 Mykhailo Stadnyk <mikhus@gmail.com>
@@ -26,7 +26,7 @@
  *           Chris Poile <poile@edwards.usask.ca>
  *           Luca Invernizzi <http://www.lucainvernizzi.net>
  *           Robert Blackburn <http://www.rwblackburn.com>
- *           Michael Neuweiler <http://github.com/neuweiler>
+ *           Michael Neuweiler  <michael_neuweiler@yahoo.com>
  */
 
 /**
@@ -35,35 +35,18 @@
  * @constructor
  */
 var Gauge = function(config) {
-	Gauge.Collection.push(this);
-
 	/**
 	 * Default gauge configuration
 	 */
 	this.config = {
-		renderTo         : null,
-		width            : 200,
-		height           : 200,
-		dials            : 1,
-		title            : false,
-		maxValue         : 100,
-		minValue         : 0,
-		majorTicks       : [],
-		minorTicks       : 10,
-		strokeTicks      : true,
-		units            : false,
-		valueFormat      : { "int" : 3, "dec" : 2 },
-        majorTicksFormat : { "int" : 1, "dec" : 0 },
-		glow             : true,
-		animation : {
-			delay    : 0,
-			duration : 200,
-			fn       : 'cycle'
-		},
-
-		
-		
-		colors : {
+		renderTo    : null,
+		width       : 200,
+		height      : 200,
+		start       : 15,
+		angle       : 330,
+		gap         : 30,
+		glow        : true,
+		colors      : {
 			plate      : '#fff',
 			majorTicks : '#444',
 			minorTicks : '#666',
@@ -72,23 +55,35 @@ var Gauge = function(config) {
 			numbers    : '#444',
 			needle     : { start : 'rgba(240, 128, 128, 1)', end : 'rgba(255, 160, 122, .9)' }
 		},
-		highlights  : [{
-			from  : 20,
-			to    : 60,
-			color : '#eee'
-		}, {
-			from  : 60,
-			to    : 80,
-			color : '#ccc'
-		}, {
-			from  : 80,
-			to    : 100,
-			color : '#999'
-		}]
-	};
+		values      : [
+			{
+				id          : false,
+				title       : false,
+				units       : false,
+				minValue    : 0,
+				maxValue    : 100,
+				direction   : 'cw',
+				majorTicks       : [],
+				minorTicks       : 10,
+				strokeTicks      : true,
+				valueFormat      : { "int" : 3, "dec" : 2 },
+		        majorTicksFormat : { "int" : 1, "dec" : 0 },
+				highlights  : [
+					{ from : 20, to : 60, color : '#eee' },
+					{ from : 60, to : 80, color : '#ccc' },
+					{ from : 80, to : 100, color : '#999' }]
+			}
+		],
+		animation : {
+			delay    : 0,
+			duration : 200,
+			fn       : 'cycle'
+		}
+	}
 
 	var
 		value     = [],
+		values    = [],
 		self      = this,
 		fromValue = [],
 		toValue   = [],
@@ -96,8 +91,7 @@ var Gauge = function(config) {
 	;
 
 	/**
-	 * ************ Public methods - to be called from the application
-	 * *************
+	 * ********* Public methods - to be called from the application **********
 	 */
 	
 	/**
@@ -111,7 +105,7 @@ var Gauge = function(config) {
 	 */
 	this.setValue = function(id, val) {
 		value[id] = val;
-		val = constrain (val, config.minValue, config.maxValue);
+		val = constrain (val, values[id].minValue, values[id].maxValue);
 		fromValue[id] = config.animation ? toValue[id] : val;
 		toValue[id] = val;
 
@@ -119,7 +113,7 @@ var Gauge = function(config) {
 		drawValueBox();
 
 		return this;
-	};
+	}
 	
 	/**
 	 * Sets a new value to gauge and updates the gauge view without any
@@ -133,13 +127,13 @@ var Gauge = function(config) {
 	 */
 	this.setRawValue = function(id, val) {
 		value[id] = val;
-		fromValue[id] = constrain (val, config.minValue, config.maxValue);
+		fromValue[id] = constrain (val, values[id].minValue, values[id].maxValue);
 
 		this.draw(id);
 		drawValueBox();
 
 		return this;
-	};
+	}
 
 	/**
 	 * Clears the value of the gauge
@@ -149,11 +143,11 @@ var Gauge = function(config) {
 	 * @return {Gauge}
 	 */
 	this.clear = function(id) {
-		value[id] = fromValue[id] = toValue[id] = this.config.minValue;
+		value[id] = fromValue[id] = toValue[id] = values[id].minValue;
 		this.draw(id);
 		drawValueBox();
 		return this;
-	};
+	}
 
 	/**
 	 * Returns the current value been set to the gauge
@@ -164,7 +158,7 @@ var Gauge = function(config) {
 	 */
 	this.getValue = function(id) {
 		return value[id];
-	};
+	}
 
 	/**
 	 * Updates the gauge config
@@ -173,12 +167,12 @@ var Gauge = function(config) {
 	 *            config
 	 * @return {Gauge}
 	 */
-	this.updateConfig = function( config) {
-        applyRecursive( this.config, config);
+	this.updateConfig = function(config) {
+        applyRecursive(this.config, config);
         baseInit();
         this.draw();
         return this;
-    };
+    }
 
 	/**
 	 * Ready event for the gauge. Use it whenever you initialize the gauge to be
@@ -186,45 +180,40 @@ var Gauge = function(config) {
 	 * 
 	 * @event {Function} onready
 	 */
-	this.onready = function() {};
-
+	this.onready = function() {}
 	
 	/**
-	 * ************ Private methods - to be used by the gauges internally
-	 * *************
+	 * ******* Private methods - to be used by the gauges internally ********
 	 */
 		
 	/**
+	 * Recursively copy the values of one object to another.
 	 * 
-	 * @param dst
-	 * @param src
+	 * @param dst destination object
+	 * @param src source object
 	 * @returns
 	 */
-	function applyRecursive( dst, src) {
+	function applyRecursive(dst, src) {
 		for (var i in src) {
-			if (typeof src[i] == "object" && !(Object.prototype.toString.call( src[i]) === '[object Array]') && i != 'renderTo') {
+			if (typeof src[i] == "object" && !(Object.prototype.toString.call(src[i]) === '[object Array]') && i != 'renderTo') {
 				if (typeof dst[i] != "object") {
 					dst[i] = {};
 				}
-				applyRecursive( dst[i], src[i]);
+				applyRecursive(dst[i], src[i]);
 			} else {
 				dst[i] = src[i];
 			}
 		}
-	};
+	}
 
 	applyRecursive(this.config, config);
-	
-	this.config.minValue = parseFloat(this.config.minValue);
-    this.config.maxValue = parseFloat(this.config.maxValue);
-
 	config = this.config;
 
 	if (!config.renderTo) {
 		throw Error("Canvas element was not specified when creating the Gauge object!");
 	}
 
-	var ctx, ctxDial = [], ctxInfo,
+	var ctxDial = [], ctxInfo,
 		CW  = config.width,
 		CH  = config.height,
 		CX  = CW / 2,
@@ -233,54 +222,64 @@ var Gauge = function(config) {
 	;
 	
 	function baseInit() {
-		// important. first add all canvas before accessin one !!
-		addCanvas("Plate");
-		for (var i = 0; i < config.dials; i++) {
-			addCanvas("Dial" + i);
+		// important. first add all canvas before accessing one !!
+		addCanvas(config.renderTo + "Plate");
+		for (var i = 0; i < config.values.length; i++) {
+			addCanvas(config.values[i].id);
 		}
-		addCanvas("Info");
+		addCanvas(config.renderTo + "Info");
 
-		// now it's safe to look them up		
-		ctx = prepareCanvas("Plate", false);
-		for (var i = 0; i < config.dials; i++) {
-			ctxDial[i] = prepareCanvas("Dial" + i, true);
-			fromValue[i] = value[i] = toValue[i] = config.minValue;
+		// now it's safe to look them up
+		var ctxPlate = prepareCanvas(config.renderTo + "Plate", false);
+		for (var i = 0; i < config.values.length; i++) {
+			var id = config.values[i].id;
+			ctxDial[id] = prepareCanvas(id, true);
+			fromValue[id] = value[id] = toValue[id] = config.values[i].minValue;
+			config.values[i].offset = config.start + config.angle * i / config.values.length + (i != 0 ? config.gap / 2 : 0);
+			config.values[i].angle = config.angle / config.values.length - (config.values.length > 1 ? config.gap / 2 : 0);
+			values[config.values[i].id] = config.values[i];
 		}
-		ctxInfo = prepareCanvas("Info", true);
+		ctxInfo = prepareCanvas(config.renderTo + "Info", true);
 
-		drawPlate();
-//		drawHighlights();
-		drawMinorTicks();
-		drawMajorTicks();
-		drawNumbers();
-		drawValueBox();
-		drawInfoArea();
-		drawTitle();
-		drawUnits();
-	};
+		drawPlate(ctxPlate);
+		drawHighlights(ctxPlate);
+		drawMinorTicks(ctxPlate);
+		drawMajorTicks(ctxPlate);
+		drawNumbers(ctxPlate);
+		drawValueBox(ctxPlate);
+		
+		drawInfoArea(ctxInfo);
+		drawTitle(ctxInfo);
+		drawUnits(ctxInfo);
+	}
 
 	// do basic initialization
 	baseInit();
 	
 	/**
-	 * Add a canvas to the container with the configured renderTo id plus a suffix.
+	 * Add a canvas with a specified id to the 'renderTo' container.
 	 * 
-	 * @param suffix suffix for the canvas id
+	 * @param id
+	 *            id for the canvas
 	 */
-	function addCanvas(suffix) {
+	function addCanvas(id) {
 		var container = config.renderTo.tagName ? config.renderTo : document.getElementById(config.renderTo);
-		container.innerHTML += "<canvas id='" + config.renderTo + suffix + "'></canvas>";
+		container.innerHTML += "<canvas id='" + id + "'></canvas>";
+		Gauge.Collection[id] = self;
 	}
 
 	/**
 	 * Resize, shift and translate a canvas / context.
 	 * 
-	 * @param suffix for the canvas id
-	 * @param relocate if the canvas should by shifted to the left and upwards by its size
+	 * @param id
+	 *            for the canvas id
+	 * @param relocate
+	 *            if the canvas should by shifted to the left and upwards by its
+	 *            size
 	 * @returns the context of the canvas
 	 */
-	function prepareCanvas(suffix, relocate) {
-		var canvas = document.getElementById(config.renderTo + suffix);
+	function prepareCanvas(id, relocate) {
+		var canvas = document.getElementById(id);
 		canvas.width  = config.width;
 		canvas.height = config.height;
 		
@@ -295,33 +294,33 @@ var Gauge = function(config) {
 	}
 
 	var animateFx = {
-		linear : function( p) { return p; },
-		quad   : function( p) { return Math.pow( p, 2); },
-		quint  : function( p) { return Math.pow( p, 5); },
-		cycle  : function( p) { return 1 - Math.sin( Math.acos( p)); },
-		bounce : function( p) {
-			return 1 - (function( p) {
+		linear : function(p) { return p; },
+		quad   : function(p) { return Math.pow(p, 2); },
+		quint  : function(p) { return Math.pow(p, 5); },
+		cycle  : function(p) { return 1 - Math.sin(Math.acos(p)); },
+		bounce : function(p) {
+			return 1 - (function(p) {
 				for(var a = 0, b = 1; 1; a += b, b /= 2) {
 					if (p >= (7 - 4 * a) / 11) {
 						return -Math.pow((11 - 6 * a - 11 * p) / 4, 2) + Math.pow(b, 2);
 					}
 				}
-			})( 1 - p);
+			})(1 - p);
 		},
-		elastic : function( p) {
-			return 1 - (function( p) {
+		elastic : function(p) {
+			return 1 - (function(p) {
 				var x = 1.5;
-				return Math.pow( 2, 10 * (p - 1)) * Math.cos( 20 * Math.PI * x / 3 * p);
-			})( 1 - p);
+				return Math.pow(2, 10 * (p - 1)) * Math.cos(20 * Math.PI * x / 3 * p);
+			})(1 - p);
 		}
-	};
+	}
 
 	var animateInterval = [];
 
-	function _animate( opts) {
+	function _animate(opts) {
 		var start = new Date; 
 
-		animateInterval[opts.id] = setInterval( function() {
+		animateInterval[opts.id] = setInterval(function() {
 			var
 				timePassed = new Date - start,
 				progress = timePassed / opts.duration;
@@ -331,17 +330,18 @@ var Gauge = function(config) {
 			}
 
 			var animateFn = typeof opts.delta == "function" ? opts.delta : animateFx[opts.delta];
-			var delta = animateFn( progress);
-			opts.step( delta);
+			var delta = animateFn(progress);
+			opts.step(delta);
 
 			if (progress == 1) {
 				clearInterval(animateInterval[opts.id]);
 			}
 		}, opts.delay || 10);
-	};
+	}
 
 	function animate(id) {
-		animateInterval[id] && clearInterval(animateInterval[id]); // stop previous animation
+		// stop previous animation
+		animateInterval[id] && clearInterval(animateInterval[id]); 
 		var
 			path = (toValue[id] - fromValue[id]),
 			from = fromValue[id],
@@ -355,27 +355,22 @@ var Gauge = function(config) {
 			id       : id,
 			step     : function(delta) { fromValue[id] = parseFloat(from) + path * delta; self.draw(id); }
 		});
-	};
-
-	// defaults
-	ctx.lineCap = "round";
+	}
 
 	/**
-	 * Drows the gauge. Normally this function should be used to initally draw
-	 * the gauge
+	 * Draws the variable parts of the gauge.
 	 * 
 	 * @return {Gauge} this - returns the self Gauge object
 	 */
 	this.draw = function(id) {
-		
 		// draw all values if no id is passed
 		if(typeof id == "undefined") {
-			for (var i = 0; i < config.dials; i++) {
-				this.draw(i);
+			for (var i = 0; i < ctxDial.length; i++) {
+				this.draw(ctxDial[i].id);
 			}
 			return;
 		}
-		
+
 		drawNeedle(id);
 		drawHighlight(id);
 
@@ -384,26 +379,26 @@ var Gauge = function(config) {
 			imready = true;
 		}
 		return this;
-	};
+	}
 
 	/**
 	 * Transforms degrees to radians
 	 */
-	function radians( degrees) {
+	function radians(degrees) {
 		return degrees * Math.PI / 180;
-	};
+	}
 
 	/**
 	 * Linear gradient
 	 */
-	function lgrad( clrFrom, clrTo, len) {
-		var grad = ctx.createLinearGradient( 0, 0, 0, len);  
-		grad.addColorStop( 0, clrFrom);  
-		grad.addColorStop( 1, clrTo);
+	function lgrad(ctx, clrFrom, clrTo, len) {
+		var grad = ctx.createLinearGradient(0, 0, 0, len);  
+		grad.addColorStop(0, clrFrom);  
+		grad.addColorStop(1, clrTo);
 		return grad;
-	};
+	}
 
-	function drawPlate() {
+	function drawPlate(ctx) {
 		var
 			r0 = max / 100 * 97,
 			d0 = max -r0,
@@ -421,24 +416,24 @@ var Gauge = function(config) {
 		}
 
 		ctx.beginPath();
-		ctx.arc( 0, 0, r0, 0, Math.PI * 2, true);
-		ctx.fillStyle = lgrad( '#ddd', '#aaa', r0);
+		ctx.arc(0, 0, r0, 0, Math.PI * 2, true);
+		ctx.fillStyle = lgrad(ctx, '#ddd', '#aaa', r0);
 		ctx.fill();
 
 		ctx.restore();
 
 		ctx.beginPath();
-		ctx.arc( 0, 0, r1, 0, Math.PI * 2, true);
-		ctx.fillStyle = lgrad( '#fafafa', '#ccc', r1);
+		ctx.arc(0, 0, r1, 0, Math.PI * 2, true);
+		ctx.fillStyle = lgrad(ctx, '#fafafa', '#ccc', r1);
 		ctx.fill();
 
 		ctx.beginPath();
-		ctx.arc( 0, 0, r2, 0, Math.PI * 2, true);
-		ctx.fillStyle = lgrad( '#eee', '#f0f0f0', r2);
+		ctx.arc(0, 0, r2, 0, Math.PI * 2, true);
+		ctx.fillStyle = lgrad(ctx, '#eee', '#f0f0f0', r2);
 		ctx.fill();
 	
 		ctx.beginPath();
-		ctx.arc( 0, 0, r3, 0, Math.PI * 2, true);
+		ctx.arc(0, 0, r3, 0, Math.PI * 2, true);
 
 		var grd = ctx.createRadialGradient(0, 0, 50, 0, 0, r3);
 		grd.addColorStop(0, config.colors.plate.start);
@@ -447,7 +442,7 @@ var Gauge = function(config) {
 		ctx.fill();
 
 		ctx.save();
-	};
+	}
 
     /**
 	 * Formats a number for display on the dial's plate using the
@@ -488,50 +483,51 @@ var Gauge = function(config) {
     }
 
 	// major ticks draw
-	function drawMajorTicks() {
+	function drawMajorTicks(ctx) {
 		var r = max / 100 * 88;
 
 		ctx.lineWidth = 2;
 		ctx.strokeStyle = config.colors.majorTicks;
 		ctx.save();
 
-        if(config.majorTicks.length === 0) {
-            var numberOfDefaultTicks = 5;
-            var tickSize = (config.maxValue - config.minValue)/numberOfDefaultTicks;
-
-            for(var i = 0; i < numberOfDefaultTicks; i++) {
-                config.majorTicks.push(formatMajorTickNumber(config.minValue+(tickSize*i)));
-            }
-            config.majorTicks.push(formatMajorTickNumber(config.maxValue));
-        }
-
-		for (var i = 0; i < config.majorTicks.length; ++i) {
-			var a = 40 + i * (280 / (config.majorTicks.length - 1) / config.dials);
-			ctx.rotate( radians( a));
-
-			ctx.beginPath();
-			ctx.moveTo( 0, r);
-			ctx.lineTo( 0, r - max / 100 * 15);
-			ctx.stroke();
-
-			ctx.restore();
-			ctx.save();
-		}
-
-		if (config.strokeTicks) {
-			ctx.rotate( radians( 90));
-
-			ctx.beginPath();
-			ctx.arc( 0, 0, r, radians( 40), radians( 320), false);
-			ctx.stroke();
-			ctx.restore();
+		for (var v = 0; v < config.values.length; v++) {
+	        if(config.values[v].majorTicks.length == 0) {
+	            var numberOfDefaultTicks = 5;
+	            var tickSize = (config.values[v].maxValue - config.values[v].minValue)/numberOfDefaultTicks;
 	
-			ctx.save();
+	            for(var i = 0; i < numberOfDefaultTicks; i++) {
+	                config.values[v].majorTicks.push(formatMajorTickNumber(config.values[v].minValue+(tickSize*i)));
+	            }
+	            config.values[v].majorTicks.push(formatMajorTickNumber(config.values[v].maxValue));
+	        }
+	
+			var range = config.values[v].majorTicks.length - 1;
+			for (var i = 0; i < config.values[v].majorTicks.length; ++i) {
+				ctx.rotate(radians(config.values[v].offset + i * config.values[v].angle / range));
+
+				ctx.beginPath();
+				ctx.moveTo(0, r);
+				ctx.lineTo(0, r - max / 100 * 15);
+				ctx.stroke();
+
+				ctx.restore();
+				ctx.save();
+			}
+	
+			if (config.values[v].strokeTicks) {
+				ctx.rotate(radians(90));
+
+				ctx.beginPath();
+				ctx.arc(0, 0, r, radians(config.start), radians(config.start + config.angle), false);
+				ctx.stroke();
+				ctx.restore();
+				ctx.save();
+			}
 		}
-	};
+	}
 
 	// minor ticks draw
-	function drawMinorTicks() {
+	function drawMinorTicks(ctx) {
 		var r = max / 100 * 88;
 
 		ctx.lineWidth = 1;
@@ -539,79 +535,78 @@ var Gauge = function(config) {
 
 		ctx.save();
 
-		var len = config.minorTicks * (config.majorTicks.length - 1);
-
-		for (var i = 0; i < len; ++i) {
-			var a = 40 + i * (280 / len / config.dials);
-			ctx.rotate( radians( a));
-
-			ctx.beginPath();
-			ctx.moveTo( 0, r);
-			ctx.lineTo( 0, r - max / 100 * 7.5);
-			ctx.stroke();
-
-			ctx.restore();
-			ctx.save();
+		for (var v = 0; v < config.values.length; v++) {
+			var range = config.values[v].minorTicks * (config.values[v].majorTicks.length - 1);	
+			for (var i = 0; i < range; ++i) {
+				ctx.rotate(radians(config.values[v].offset + i * config.values[v].angle / range));
+	
+				ctx.beginPath();
+				ctx.moveTo(0, r);
+				ctx.lineTo(0, r - max / 100 * 7.5);
+				ctx.stroke();
+	
+				ctx.restore();
+				ctx.save();
+			}
 		}
-	};
+	}
 
 	// tick numbers draw
-	function drawNumbers() {
+	function drawNumbers(ctx) {
 		var r = max / 100 * 60;
 
-		for (var i = 0; i < config.majorTicks.length; ++i) {
-			var 
-				a = 40 + i * (280 / (config.majorTicks.length - 1) / config.dials),
-				p = rpoint( r, radians( a))
-			;
-
-			ctx.font      = 20 * (max / 200) + "px Arial";
-			ctx.fillStyle = config.colors.numbers;
-			ctx.lineWidth = 0;
-			ctx.textAlign = "center";
-			ctx.fillText( config.majorTicks[i], p.x, p.y + 3);
+		for (var v = 0; v < config.values.length; v++) {
+			var range = config.values[v].majorTicks.length - 1;
+			for (var i = 0; i < config.values[v].majorTicks.length; ++i) {
+				var 
+					p = rpoint(r, radians(config.values[v].offset + i * config.values[v].angle / range)),
+					idx = (config.values[v].direction == 'ccw' ? config.values[v].majorTicks.length - 1 - i : i)
+				;
+	
+				ctx.font      = 20 * (max / 200) + "px Arial";
+				ctx.fillStyle = config.colors.numbers;
+				ctx.lineWidth = 0;
+				ctx.textAlign = "center";
+				ctx.fillText(config.values[v].majorTicks[idx], p.x, p.y + 3);
+			}
 		}
-	};
+	}
 
 	// title draw
-	function drawTitle() {
+	function drawTitle(ctx) {
 		if (!config.title) {
 			return;
 		}
 
-		ctxInfo.save();
-		ctxInfo.font = 24 * (max / 200) + "px Arial";
-		ctxInfo.fillStyle = config.colors.title;
-		ctxInfo.textAlign = "center";
-		ctxInfo.fillText( config.title, 0, -max / 4.25);
-		ctxInfo.restore();
-	};
+		ctx.save();
+		ctx.font = 24 * (max / 200) + "px Arial";
+		ctx.fillStyle = config.colors.title;
+		ctx.textAlign = "center";
+		ctx.fillText(config.title, 0, -max / 4.25);
+		ctx.restore();
+	}
 
 	// units draw
-	function drawUnits() {
+	function drawUnits(ctx) {
 		if (!config.units) {
 			return;
 		}
 
-		ctxInfo.save();
-		ctxInfo.font = 22 * (max / 200) + "px Arial";
-		ctxInfo.fillStyle = config.colors.units;
-		ctxInfo.textAlign = "center";
-		ctxInfo.fillText( config.units, 0, max / 3.25);
-		ctxInfo.restore();
-	};
+		ctx.save();
+		ctx.font = 22 * (max / 200) + "px Arial";
+		ctx.fillStyle = config.colors.units;
+		ctx.textAlign = "center";
+		ctx.fillText(config.units, 0, max / 3.25);
+		ctx.restore();
+	}
 
-	function padValue( val) {
-		var
-			cdec = config.valueFormat['dec'],
-			cint = config.valueFormat['int']
-		;
-		val = parseFloat( val);
+	function padValue(val, cint, cdec) {
+		val = parseFloat(val);
 		var n = (val < 0);
-		val = Math.abs( val);
+		val = Math.abs(val);
 
 		if (cdec > 0) {
-			val = val.toFixed( cdec).toString().split( '.');
+			val = val.toFixed(cdec).toString().split('.');
 	
 			for (var i = 0, s = cint - val[0].length; i < s; ++i) {
 				val[0] = '0' + val[0];
@@ -619,7 +614,7 @@ var Gauge = function(config) {
 
 			val = (n ? '-' : '') + val[0] + '.' + val[1];
 		} else {
-			val = Math.round( val).toString();
+			val = Math.round(val).toString();
 
 			for (var i = 0, s = cint - val.length; i < s; ++i) {
 				val = '0' + val;
@@ -628,270 +623,241 @@ var Gauge = function(config) {
 			val = (n ? '-' : '') + val
 		}
 		return val;
-	};
+	}
 
-	function rpoint( r, a) {
+	function rpoint(r, a) {
 		var 
 			x = 0, y = r,
 
-			sin = Math.sin( a),
-			cos = Math.cos( a),
+			sin = Math.sin(a),
+			cos = Math.cos(a),
 
 			X = x * cos - y * sin,
 			Y = x * sin + y * cos
 		;
 
 		return { x : X, y : Y };
-	};
+	}
 
 	// draws the highlight colors
-	function drawHighlights() {
+	function drawHighlights(ctx) {
 		ctx.save();
 
-		var r1 = max / 100 * 88;
-		var r2 = r1 - max / 100 * 10;
+		var r1 = max / 100 * 84;
+		var width = max / 100 * 9;
 
-		for (var i = 0, s = config.highlights.length; i < s; i++) {
-			var
-				hlt = config.highlights[i],
-				vd = (config.maxValue - config.minValue) / 280,
-				sa = radians( 35 + (hlt.from - config.minValue) / vd),
-				ea = radians( 35 + (hlt.to - config.minValue) / vd)
-			;
-			
-			ctx.beginPath();
-	
-			ctx.rotate( radians( 90));
-			ctx.arc( 0, 0, r1, sa, ea, false);
-			ctx.restore();
-			ctx.save();
-	
-			var
-				ps = rpoint( r2, sa),
-				pe = rpoint( r1, sa)
-			;
-			ctx.moveTo( ps.x, ps.y);
-			ctx.lineTo( pe.x, pe.y);
-	
-			var
-				ps1 = rpoint( r1, ea),
-				pe1 = rpoint( r2, ea)
-			;
-	
-			ctx.lineTo( ps1.x, ps1.y);
-			ctx.lineTo( pe1.x, pe1.y);
-			ctx.lineTo( ps.x, ps.y);
-	
-			ctx.closePath();
-	
-			ctx.fillStyle = hlt.color;
-			ctx.fill();
-	
-			ctx.beginPath();
-			ctx.rotate( radians( 90));
-			ctx.arc( 0, 0, r2, sa - 0.2, ea + 0.2, false);
-			ctx.restore();
-	
-			ctx.closePath();
-	
-			ctx.fillStyle = config.colors.plate;
-			ctx.fill();
-			ctx.save();
+		for (var v = 0; v < config.values.length; v++) {
+			for (var i = 0, s = config.values[v].highlights.length; i < s; i++) {
+				var
+					hlt = config.values[v].highlights[i],
+					range = config.values[v].maxValue - config.values[v].minValue,
+					sa, ea
+				;
+				if (config.values[v].direction == 'ccw') {
+					sa = (config.values[v].maxValue - hlt.to) * config.values[v].angle / range;
+					ea = (config.values[v].maxValue - hlt.from) * config.values[v].angle / range;
+				} else {
+					sa = (hlt.from - config.values[v].minValue) * config.values[v].angle / range;
+					ea = (hlt.to - config.values[v].minValue) * config.values[v].angle / range;
+				}
+
+				ctx.beginPath();
+				ctx.arc(0, 0, r1, radians(90 + config.values[v].offset + sa), radians(90 + config.values[v].offset + ea), false);
+				ctx.lineWidth = width;
+				ctx.strokeStyle = hlt.color;
+				ctx.stroke();
+			}
 		}
-	};
+	}
 
 	// draw the gauge needle(s)
 	function drawNeedle(id) {
 		var
-			myCtx = ctxDial[id],
+			ctx = ctxDial[id],
 			rIn  = max / 100 * 94,
 			rOut = max / 100 * 25,
 			pad1 = max / 100 * 1,
 			pad2 = max / 100 * 1,
+			value = values[id],
 
 			shad = function() {
-				myCtx.shadowOffsetX = 4;
-				myCtx.shadowOffsetY = 4;
-				myCtx.shadowBlur    = 10;
-				myCtx.shadowColor   = 'rgba(188, 143, 143, 0.45)';
+				ctx.shadowOffsetX = 4;
+				ctx.shadowOffsetY = 4;
+				ctx.shadowBlur    = 10;
+				ctx.shadowColor   = 'rgba(188, 143, 143, 0.45)';
 			}
 		;
 		
-		if(typeof myCtx == "undefined") {
+		if(typeof ctx == "undefined") {
 			console.log("ERROR: trying to access nonexisting canvas context #" + id);
 			return;
 		}
-		
+
 		// clear the canvas
-		myCtx.clearRect( -CX, -CY, CW, CH);
-		myCtx.save();
+		ctx.clearRect(-CX, -CY, CW, CH);
+		ctx.save();
 
 		shad();
 		
-		myCtx.save();
+		ctx.save();
 		
 		if (fromValue[id] < 0) {
-			fromValue[id] = Math.abs(config.minValue - fromValue[id]);
-		} else if (config.minValue > 0) {
-			fromValue[id] -= config.minValue;
+			fromValue[id] = Math.abs(value.minValue - fromValue[id]);
+		} else if (value.minValue > 0) {
+			fromValue[id] -= value.minValue;
 		} else {
-			fromValue[id] = Math.abs(config.minValue) + fromValue[id];
+			fromValue[id] = Math.abs(value.minValue) + fromValue[id];
 		}
+		var range = value.maxValue - value.minValue;
+		ctx.rotate(radians(value.offset + (value.direction == 'ccw' ? range - fromValue[id] : fromValue[id]) * value.angle / range));
 
-		myCtx.rotate(radians(40 + fromValue[id] / ((config.maxValue - config.minValue) / 280) / config.dials));
+		ctx.beginPath();
+		ctx.moveTo(-pad2, -rOut);
+		ctx.lineTo(-pad1, 0);
+		ctx.lineTo(-1, rIn);
+		ctx.lineTo(1, rIn);
+		ctx.lineTo(pad1, 0);
+		ctx.lineTo(pad2, -rOut);
+		ctx.closePath();
 
-		myCtx.beginPath();
-		myCtx.moveTo( -pad2, -rOut);
-		myCtx.lineTo( -pad1, 0);
-		myCtx.lineTo( -1, rIn);
-		myCtx.lineTo( 1, rIn);
-		myCtx.lineTo( pad1, 0);
-		myCtx.lineTo( pad2, -rOut);
-		myCtx.closePath();
-
-		myCtx.fillStyle = lgrad(
+		ctx.fillStyle = lgrad(ctx,
 			config.colors.needle.start,
 			config.colors.needle.end,
 			rIn - rOut
 		);
-		myCtx.fill();
+		ctx.fill();
+		ctx.restore();
+	}
 
-		myCtx.beginPath();
-		myCtx.lineTo( -0.5, rIn);
-		myCtx.lineTo( -1, rIn);
-		myCtx.lineTo( -pad1, 0);
-		myCtx.lineTo( -pad2, -rOut);
-		myCtx.lineTo( pad2 / 2 - 2, -rOut);
-		myCtx.closePath();
-		myCtx.fillStyle = 'rgba(255, 255, 255, 0.2)';
-		myCtx.fill();
-
-		myCtx.restore();
-	};
-
-	function drawInfoArea() {
+	function drawInfoArea(ctx) {
 		var
 			r1 = max / 100 * 45,
 			r2 = max / 100 * 44;
 		;
 
-		ctxInfo.beginPath();
-		ctxInfo.arc( 0, 0, r1, 0, Math.PI * 2, true);
-		ctxInfo.fillStyle = lgrad( 'rgba(128, 128, 128, 1)', 'rgba(160, 160, 160, 1)', r1);
-		ctxInfo.fill();
+		ctx.beginPath();
+		ctx.arc(0, 0, r1, 0, Math.PI * 2, true);
+		ctx.fillStyle = lgrad(ctx, 'rgba(128, 128, 128, 1)', 'rgba(160, 160, 160, 1)', r1);
+		ctx.fill();
 
-		ctxInfo.restore();
+		ctx.restore();
 
-		ctxInfo.beginPath();
-		ctxInfo.arc( 0, 0, r2, 0, Math.PI * 2, true);
-		ctxInfo.fillStyle = lgrad( 'rgba(32, 32, 32, 0.9)', 'rgba(48, 48, 48, 0.9)', r2);
-		ctxInfo.fill();
+		ctx.beginPath();
+		ctx.arc(0, 0, r2, 0, Math.PI * 2, true);
+		ctx.fillStyle = lgrad(ctx, 'rgba(32, 32, 32, 0.9)', 'rgba(48, 48, 48, 0.9)', r2);
+		ctx.fill();
 	}
 	
 	function drawHighlight(id) {
 		var
-			myCtx = ctxDial[id],
+			ctx = ctxDial[id],
 			rIn  = max / 100 * 90,
-			width = max / 100 * 8;
+			width = max / 100 * 8,
+			value = values[id]
 		;
 
-		myCtx.shadowOffsetX = 2;
-		myCtx.shadowOffsetY = 2;
-		myCtx.shadowBlur    = 10;
-		myCtx.shadowColor   = 'rgba(143, 143, 188, 0.45)';
+		ctx.shadowOffsetX = 2;
+		ctx.shadowOffsetY = 2;
+		ctx.shadowBlur    = 10;
+		ctx.shadowColor   = 'rgba(143, 143, 188, 0.45)';
 
-		myCtx.beginPath();
-		myCtx.arc(0,0,rIn,radians(130),radians(130 + fromValue[id] / ((config.maxValue - config.minValue) / 280) / config.dials), false);
-		myCtx.lineWidth = width;
+		ctx.beginPath();
+		var range = value.maxValue - value.minValue;
+		ctx.arc(0, 0, rIn, radians(90 + value.offset), radians(90 + value.offset + (value.direction == 'ccw' ? range - fromValue[id] : fromValue[id]) * value.angle / range), false);
+		ctx.lineWidth = width;
 
 		
-		var grad = ctx.createLinearGradient( 0, -200, 0, 30);  
-		grad.addColorStop( 0, 'rgba(243, 22, 22, 0.9)');  
-		grad.addColorStop( 1, 'rgba(143, 163, 188, 0.75)');
-		myCtx.strokeStyle = grad;
-		myCtx.stroke();
+		var grad = ctx.createLinearGradient(0, -200, 0, 30);  
+		grad.addColorStop(0, 'rgba(243, 22, 22, 0.9)');  
+		grad.addColorStop(1, 'rgba(143, 163, 188, 0.75)');
+		ctx.strokeStyle = grad;
+		ctx.stroke();
 	}
 	
-	function roundRect( x, y, w, h, r) {
+	function roundRect(ctx, x, y, w, h, r) {
 		ctx.beginPath();
 
-		ctx.moveTo( x + r, y);
-		ctx.lineTo( x + w - r, y);
+		ctx.moveTo(x + r, y);
+		ctx.lineTo(x + w - r, y);
 
-		ctx.quadraticCurveTo( x + w, y, x + w, y + r);
-		ctx.lineTo( x + w, y + h - r);
+		ctx.quadraticCurveTo(x + w, y, x + w, y + r);
+		ctx.lineTo(x + w, y + h - r);
 
-		ctx.quadraticCurveTo( x + w, y + h, x + w - r, y + h);
-		ctx.lineTo( x + r, y + h);
+		ctx.quadraticCurveTo(x + w, y + h, x + w - r, y + h);
+		ctx.lineTo(x + r, y + h);
 
-		ctx.quadraticCurveTo( x, y + h, x, y + h - r);
-		ctx.lineTo( x, y + r);
+		ctx.quadraticCurveTo(x, y + h, x, y + h - r);
+		ctx.lineTo(x, y + r);
 
-		ctx.quadraticCurveTo( x, y, x + r, y);
+		ctx.quadraticCurveTo(x, y, x + r, y);
 
 		ctx.closePath();
-	};
+	}
 
 	// value box draw
-	function drawValueBox() {
-		ctx.save();
+	function drawValueBox(ctx) {
+/*		ctx.save();
 		
 		ctx.font = 40 * (max / 200) + "px Led";
 
-		var
-			text = padValue( value[0]),
-			tw   = ctx.measureText( '-' + padValue( 0)).width,
-			y = max - max / 100 * 20,
-			x = 0,
-			th = 0.12 * max
-		;
-
-		ctx.save();
-
-		roundRect(
-			-tw / 2 - 0.025 * max,
-			y - th - 0.04 * max,
-			tw + 0.05 * max,
-			th + 0.07 * max,
-			0.025 * max
-		);
-
-		var grd = ctx.createRadialGradient(
-			x,
-			y - 0.12 * max - 0.025 * max + (0.12 * max + 0.045 * max) / 2,
-			max / 10,
-			x,
-			y - 0.12 * max - 0.025 * max + (0.12 * max + 0.045 * max) / 2,
-			max / 5
-		);
-
-		grd.addColorStop( 0, "#888");
-	    grd.addColorStop( 1, "#666");
-
-		ctx.strokeStyle = grd;
-		ctx.lineWidth = 0.05 * max;
-		ctx.stroke();
-
-		ctx.shadowBlur  = 0.012 * max;
-		ctx.shadowColor = 'rgba(0, 0, 0, 1)';
-
-		ctx.fillStyle = "#babab2";
-		ctx.fill();
-		
-		ctx.restore();
-
-		ctx.shadowOffsetX = 0.004 * max;
-		ctx.shadowOffsetY = 0.004 * max;
-		ctx.shadowBlur    = 0.012 * max;
-		ctx.shadowColor   = 'rgba(0, 0, 0, 0.3)';
-
-		ctx.fillStyle = "#444";
-		ctx.textAlign = "center";
-		ctx.fillText( text, -x, y);
-
-		ctx.restore();
-	};
-};
+		for (var v = 0; v < config.values.length; v++) {
+			var
+				cdec = config.values[v].valueFormat['dec'],
+				cint = config.values[v].valueFormat['int']
+				text = padValue(value[0], cint, cdec),
+				tw   = ctx.measureText('-' + padValue(0, cint, cdec)).width,
+				y = max - max / 100 * 20,
+				x = 0,
+				th = 0.12 * max
+			;
+	
+			ctx.save();
+	
+			roundRect(ctx,
+				-tw / 2 - 0.025 * max,
+				y - th - 0.04 * max,
+				tw + 0.05 * max,
+				th + 0.07 * max,
+				0.025 * max
+			);
+	
+			var grd = ctx.createRadialGradient(
+				x,
+				y - 0.12 * max - 0.025 * max + (0.12 * max + 0.045 * max) / 2,
+				max / 10,
+				x,
+				y - 0.12 * max - 0.025 * max + (0.12 * max + 0.045 * max) / 2,
+				max / 5
+			);
+	
+			grd.addColorStop(0, "#888");
+		    grd.addColorStop(1, "#666");
+	
+			ctx.strokeStyle = grd;
+			ctx.lineWidth = 0.05 * max;
+			ctx.stroke();
+	
+			ctx.shadowBlur  = 0.012 * max;
+			ctx.shadowColor = 'rgba(0, 0, 0, 1)';
+	
+			ctx.fillStyle = "#babab2";
+			ctx.fill();
+			
+			ctx.restore();
+	
+			ctx.shadowOffsetX = 0.004 * max;
+			ctx.shadowOffsetY = 0.004 * max;
+			ctx.shadowBlur    = 0.012 * max;
+			ctx.shadowColor   = 'rgba(0, 0, 0, 0.3)';
+	
+			ctx.fillStyle = "#444";
+			ctx.textAlign = "center";
+			ctx.fillText(text, -x, y);
+	
+			ctx.restore();
+		}
+*/	}
+}
 
 function constrain(val,low,high) {
 	return (val < low ? low : (val > high ? high : val));
@@ -910,18 +876,18 @@ Gauge.initialized = false;
 				"src: url('" + url + "');" +
 				"}",
 		ss,
-		r = d.createElement( 'style')
+		r = d.createElement('style')
 	;
 
 	r.type = 'text/css';
 
 	try {
-		r.appendChild( d.createTextNode( text));
+		r.appendChild(d.createTextNode(text));
 	} catch (e) {
 		r.cssText = text;
 	}
 
-	h.appendChild( r);
+	h.appendChild(r);
 
 	ss = r.styleSheet ? r.styleSheet : (r.sheet || d.styleSheets[d.styleSheets.length - 1]);
 
@@ -930,9 +896,9 @@ Gauge.initialized = false;
 			return;
 		}
 
-		clearInterval( iv);
+		clearInterval(iv);
 
-		var dd = d.createElement( 'div');
+		var dd = d.createElement('div');
 
 		dd.style.fontFamily = 'Led';
 		dd.style.position   = 'absolute';
@@ -941,7 +907,7 @@ Gauge.initialized = false;
 
 		dd.innerHTML = '.';
 
-		d.body.appendChild( dd);
+		d.body.appendChild(dd);
 
 		// no other way to handle font is rendered by a browser just give the
 		// browser around 250ms to do that
@@ -950,21 +916,8 @@ Gauge.initialized = false;
 })();
 
 Gauge.Collection = [];
-Gauge.Collection.get = function( id) {
-	var self = this;
-
-	if (typeof(id) == 'string') {
-		for (var i = 0, s = self.length; i < s; i++) {
-			var canvas = self[i].config.renderTo.tagName ? self[i].config.renderTo : document.getElementById( self[i].config.renderTo);
-			if (canvas.getAttribute('id') == id) {
-				return self[i];
-			}
-		}
-	} else if (typeof(id) == 'number') {
-		return self[id];
-	} else {
-		return null;
-	}
-};
+Gauge.Collection.get = function(id) {
+	return this[id];
+}
 
 window['Gauge'] = Gauge;

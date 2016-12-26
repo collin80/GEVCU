@@ -16,5 +16,4 @@
 	"dcDcLvVoltageRange": [ ~dcDcLvVoltageRange~ ],
 	"dcDcLvCurrentRange": [ ~dcDcLvCurrentRange~ ],
 	"dcDcTempRange": [ ~dcDcTempRange~ ]
-
 }

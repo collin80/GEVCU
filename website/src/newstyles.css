@@ -245,6 +245,10 @@ input#inputCurrentLevel {
   background: #4fb845;
 }
 
+.switch-orange > .switch-input:checked ~ .switch-label {
+  background: #d89645;
+}
+
 .buttonBar {
 	width: 80%;
 	display: inline-table;

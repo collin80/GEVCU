@@ -183,16 +183,16 @@ function getCache(name) {
 }
 
 function setNodeValue(name, value) {
-	// a bitfield value for annunciator fields
-	if (name.indexOf('bitfield') != -1) {
-		updateAnnunciatorFields(name, value);
+	// a value of a gauge
+	var target = Gauge.Collection.get(name + 'GaugeValue');
+	if (target) {
+		target.setValue(name + 'GaugeValue', value);
 		return;
 	}
 
-	var target = getCache(name + "Gauge");
-	if (target) {
-		Gauge.Collection.get(name + "Gauge").setValue(0, value);
-//		Gauge.Collection.get(name + "Gauge").setValue(1, value + 20);
+	// a bitfield value for annunciator fields
+	if (name.indexOf('bitfield') != -1) {
+		updateAnnunciatorFields(name, value);
 		return;
 	}
 
