@@ -28,7 +28,17 @@ function calcRange(low, high, factor) {
 }
 
 function generateGauges(config) {
-	var rangeThrottle = calcRange(-100,100,1);
+	var rangeThrottle = calcRange(-100,100,3);
+	
+	var j = 0;
+	var ticksEnergy = new Array();
+	var intervalEnergy = Math.round((config.energyRange[2] - config.energyRange[1]) / 2);
+	for (i = config.energyRange[0] ; i <= (config.energyRange[2] + 5); i += 5) {
+		ticksEnergy[j++] = i;
+	} 
+	var rangeEnergy = calcRange(config.energyRange[0], config.energyRange[2], 3);
+	var rangeMechanicalPower = calcRange(config.powerRange[0], config.powerRange[1], 3);
+
 	var powerGauge = new Gauge({
 		renderTo    : 'powerGauge',
 		width       : 280,
@@ -49,6 +59,41 @@ function generateGauges(config) {
 				highlights  : [
 		   			{ from : -100,   to : 0, color : 'rgba(0, 255, 0, .65)' },
 					{ from : 0,   to : 100, color : 'rgba(0, 180, 255, .75)' }
+		   		]
+			},
+			{
+				id          : 'energyConsumptionGaugeValue',
+				title       : "Energy",
+				units       : 'kWh',
+				minValue    : rangeEnergy.min,
+				maxValue    : rangeEnergy.max,
+				valueFormat : { "int" : 2, "dec" : 1 },
+				majorTicks  : ticksEnergy,
+				minorTicks  : 5,
+				strokeTicks : false,
+				highlights  : [
+					{ from : rangeEnergy.min, to : config.energyRange[1] - intervalEnergy, color : 'rgba(0, 255,  0, .65)' },
+					{ from : config.energyRange[1] - intervalEnergy, to : config.energyRange[1], color : 'rgba(180, 255,  0, .75)' },
+					{ from : config.energyRange[1], to : config.energyRange[2] - intervalEnergy, color : 'rgba(255, 220,  0, .75)' },
+					{ from : config.energyRange[2] - intervalEnergy, to : config.energyRange[2], color : 'rgba(255, 127,  0, .75)' },
+					{ from : config.energyRange[2], to : rangeEnergy.max, color : 'rgba(255, 0,  0, .75)' }
+		   		]
+			},
+			{
+				id          : 'mechanicalPowerGaugeValue',
+				title       : "Power",
+				units       : 'kW',
+				minValue    : rangeMechanicalPower.min,
+				maxValue    : rangeMechanicalPower.max,
+				valueFormat : { "int" : 3, "dec" : 1 },
+				majorTicks  : rangeMechanicalPower.ticks,
+				minorTicks  : 5,
+				strokeTicks : false,
+				highlights  : [
+		  			{ from : rangeMechanicalPower.min, to : config.powerRange[0] * .9, color : 'rgba(255, 255, 0, .75)' },
+					{ from : config.powerRange[0] *.9, to : 0, color : 'rgba(0, 255, 0, .65)' },
+					{ from : 0, to : config.powerRange[1] * .9, color : 'rgba(0, 180, 255, .75)' },
+					{ from : config.powerRange[1] * .9, to : rangeMechanicalPower.max, color : 'rgba(180, 180, 255, .75)' }
 		   		]
 			}
 		],
@@ -213,64 +258,6 @@ function generateGauges(config) {
 	});
 	dcGauge.draw();
 
-/*
-	j = 0;
-	ticks = new Array();
-	interval = Math.round((config.energyRange[2] - config.energyRange[1]) / 2);
-	for (i = config.energyRange[0] ; i <= (config.energyRange[2] + 5); i += 5) {
-		ticks[j++] = i;
-	} 
-	
-	var range = calcRange(config.energyRange[0], config.energyRange[2]);
-	var energyConsumptionGauge = new Gauge({
-		renderTo    : 'energyConsumptionGauge',
-		width       : 200,
-		height      : 200,
-		glow        : true,
-		units       : 'kWh',
-		title       : "Energy",
-		colors      : gaugeColors,
-		minValue    : range.min,
-		maxValue    : range.max,
-		majorTicks  : range.ticks,
-		minorTicks  : 5,
-		strokeTicks : false,
-		valueFormat : { "int" : 2, "dec" : 1 },
-		highlights  : [
-			{ from : range.min, to : config.energyRange[1] - interval, color : 'rgba(0, 255,  0, .65)' },
-			{ from : config.energyRange[1] - interval, to : config.energyRange[1], color : 'rgba(180, 255,  0, .75)' },
-			{ from : config.energyRange[1], to : config.energyRange[2] - interval, color : 'rgba(255, 220,  0, .75)' },
-			{ from : config.energyRange[2] - interval, to : config.energyRange[2], color : 'rgba(255, 127,  0, .75)' },
-			{ from : config.energyRange[2], to : range.max, color : 'rgba(255, 0,  0, .75)' }
-		]
-	});
-	energyConsumptionGauge.draw();
-	nodecache["energyConsumptionGauge"] = energyConsumptionGauge;
-
-	var range = calcRange(config.powerRange[0], config.powerRange[1]);
-	var mechanicalPowerGauge = new Gauge({
-		renderTo    : 'mechanicalPowerGauge',
-		width       : 200,
-		height      : 200,
-		glow        : true,
-		units       : 'kW',
-		title       : "Power",
-		colors      : gaugeColors,
-		minValue    : range.min,
-		maxValue    : range.max,
-		majorTicks  : range.ticks,
-		minorTicks  : 5,
-		strokeTicks : false,
-		valueFormat : { "int" : 3, "dec" : 1 },
-		highlights  : [
-  			{ from : range.min, to : config.powerRange[0] * .9, color : 'rgba(255, 255, 0, .75)' },
-			{ from : config.powerRange[0] *.9, to : 0, color : 'rgba(0, 255, 0, .65)' },
-			{ from : 0, to : config.powerRange[1] * .9, color : 'rgba(0, 180, 255, .75)' },
-			{ from : config.powerRange[1] * .9, to : range.max, color : 'rgba(180, 180, 255, .75)' }
-		]
-	});
-	mechanicalPowerGauge.draw();
-	nodecache["mechanicalPowerGauge"] = mechanicalPowerGauge;
 /*	
 	var range = calcRange(config.chargerInputVoltageRange[0], config.chargerInputVoltageRange[2]);
 	var chargerInputVoltageGauge = new Gauge({
