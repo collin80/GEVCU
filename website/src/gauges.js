@@ -302,6 +302,8 @@ function generateGauges(config) {
 				units       : 'V',
 				minValue    : rangeBatteryVoltage.min,
 				maxValue    : rangeBatteryVoltage.max,
+				startValue  : (config.batteryRangeLow[2] + intervalBatteryVoltageLow + config.batteryRangeHigh[0]) / 2,
+				direction   : 'ccw',
 				valueFormat : { "int" : 3, "dec" : 1 },
 				majorTicks  : rangeBatteryVoltage.ticks,
 				minorTicks  : 5,

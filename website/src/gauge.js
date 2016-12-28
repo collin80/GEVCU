@@ -240,9 +240,10 @@ var Gauge = function(config) {
 			fromValue[id] = value[id] = toValue[id] = config.values[i].minValue;
 			config.values[i].offset = config.start + (config.angle + config.gap) * i / config.values.length;
 			config.values[i].angle = (config.angle - config.gap * (config.values.length - 1)) / config.values.length;
+			config.values[i].range = config.values[i].maxValue - config.values[i].minValue;
 			values[config.values[i].id] = config.values[i];
 			if(typeof config.values[i].startValue == "undefined") {
-				config.values[i].startValue = config.values[i].minValue;
+				config.values[i].startValue = 0;
 			}
 		}
 		ctxInfo = prepareCanvas(config.renderTo + "Info", true);
@@ -691,15 +692,20 @@ var Gauge = function(config) {
 			}
 		}
 	}
+	
+	var
+		dialRIn  = max / 100 * 94,
+		dialROut = max / 100 * 25,
+		dialPad1 = max / 100 * 1,
+		dialPad2 = max / 100 * 1,
+		dialShadowColor = '#000',
+		dialFillStyle = false
+	;
 
 	// draw the gauge needle(s)
 	function drawNeedle(id) {
 		var
 			ctx = ctxDial[id],
-			rIn  = max / 100 * 94,
-			rOut = max / 100 * 25,
-			pad1 = max / 100 * 1,
-			pad2 = max / 100 * 1,
 			value = values[id]
 		;
 		
@@ -719,28 +725,26 @@ var Gauge = function(config) {
 		} else {
 			fromValue[id] = Math.abs(value.minValue) + fromValue[id];
 		}
-		var range = value.maxValue - value.minValue;
-		ctx.rotate(radians(value.offset + (value.direction == 'ccw' ? range - fromValue[id] : fromValue[id]) * value.angle / range));
+		ctx.rotate(radians(value.offset + (value.direction == 'ccw' ? value.range - fromValue[id] : fromValue[id]) * value.angle / value.range));
 
 		ctx.shadowOffsetX = 2;
 		ctx.shadowOffsetY = 2;
 		ctx.shadowBlur    = 3;
-		ctx.shadowColor   = 'rgba(0, 0, 0, 0.9)';
+		ctx.shadowColor   = dialShadowColor;
 
 		ctx.beginPath();
-		ctx.moveTo(-pad2, -rOut);
-		ctx.lineTo(-pad1, 0);
-		ctx.lineTo(-1, rIn);
-		ctx.lineTo(1, rIn);
-		ctx.lineTo(pad1, 0);
-		ctx.lineTo(pad2, -rOut);
+		ctx.moveTo(-dialPad2, -dialROut);
+		ctx.lineTo(-dialPad1, 0);
+		ctx.lineTo(-1, dialRIn);
+		ctx.lineTo(1, dialRIn);
+		ctx.lineTo(dialPad1, 0);
+		ctx.lineTo(dialPad2, -dialROut);
 		ctx.closePath();
 
-		ctx.fillStyle = lgrad(ctx,
-			config.colors.needle.start,
-			config.colors.needle.end,
-			rIn - rOut
-		);
+		if (!dialFillStyle) {
+			dialFillStyle = lgrad(ctx, config.colors.needle.start, config.colors.needle.end, dialRIn - dialROut);
+		}
+		ctx.fillStyle = dialFillStyle;
 		ctx.fill();
 		ctx.restore();
 	}
@@ -764,6 +768,13 @@ var Gauge = function(config) {
 		ctx.fill();
 	}
 	
+	var
+		arcR  = max / 100 * 91,
+		arcWidth = max / 100 * 6,
+		arcShadowColor = 'rgba(143, 143, 188, 0.9)',
+		arcStrokeStyle = []
+	;
+
 	function drawArc(id) {
 		if (!config.drawArc) {
 			return;
@@ -771,22 +782,19 @@ var Gauge = function(config) {
 		
 		var
 			ctx = ctxDial[id],
-			rIn  = max / 100 * 91,
-			width = max / 100 * 6,
 			value = values[id],
-			range = value.maxValue - value.minValue,
 			as, ae
 		;
 		
 		if (value.direction == 'ccw') {
-			as = 90 + value.offset + (range - fromValue[id]) * value.angle / range;
-			ae = 90 + value.offset - (value.minValue < 0 ? value.minValue : -range) * value.angle / range;
+			as = 90 + value.offset + (value.range - fromValue[id]) * value.angle / value.range;
+			ae = 90 + value.offset + (value.minValue < value.startValue ? value.range - value.startValue + value.minValue : value.range) * value.angle / value.range;
 		} else {
-			as = 90 + value.offset - (value.minValue < 0 ? value.minValue * value.angle / range : 0);
-			ae = 90 + value.offset + fromValue[id] * value.angle / range;
+			as = 90 + value.offset + (value.minValue < value.startValue ? value.startValue - value.minValue : 0) * value.angle / value.range;
+			ae = 90 + value.offset + fromValue[id] * value.angle / value.range;
 		}
 		
-		if (value.minValue < 0 && fromValue[id] < -value.minValue) {
+		if (value.minValue < value.startValue && (fromValue[id] + value.minValue) < value.startValue) {
 			var temp = as;
 			as = ae;
 			ae = temp;
@@ -795,31 +803,29 @@ var Gauge = function(config) {
 		ctx.shadowOffsetX = 2;
 		ctx.shadowOffsetY = 2;
 		ctx.shadowBlur    = 10;
-		ctx.shadowColor   = 'rgba(143, 143, 188, 0.9)';
+		ctx.shadowColor   = arcShadowColor;
 
 		ctx.beginPath();
-		ctx.arc(0, 0, rIn, radians(as), radians(ae), false);
-		ctx.lineWidth = width;
+		ctx.arc(0, 0, arcR, radians(as), radians(ae), false);
+		ctx.lineWidth = arcWidth;
 
 		
-		var
-			range = value.majorTicks.length - 1,
-			p1 = rpoint(rIn, radians(value.offset)),
-			p2 = rpoint(rIn, radians(value.offset + value.angle))
-		;
-		
-		var grad = ctx.createLinearGradient(p1.x, p1.y, p2.x, p2.y);
-
-		
-		
-		for (var i = 0; i < value.highlights.length; i++) {
+		if (!arcStrokeStyle[id]) {
 			var
-				hlt = value.highlights[i],
-				range = (value.minValue < 0 ? value.maxValue : value.maxValue - value.minValue)
+				range = value.majorTicks.length - 1,
+				p1 = rpoint(arcR, radians(value.offset)),
+				p2 = rpoint(arcR, radians(value.offset + value.angle))
 			;
-			grad.addColorStop(constrain((value.direction == 'ccw' ? value.maxValue - hlt.to : hlt.to - value.minValue) / range, 0, 1), hlt.color);  
+			arcStrokeStyle[id] = ctx.createLinearGradient(p1.x, p1.y, p2.x, p2.y);
+			for (var i = 0; i < value.highlights.length; i++) {
+				var
+					hlt = value.highlights[i],
+					range = (value.minValue < 0 ? value.maxValue : value.maxValue - value.minValue)
+				;
+				arcStrokeStyle[id].addColorStop(constrain((value.direction == 'ccw' ? value.maxValue - hlt.to : hlt.to - value.minValue) / range, 0, 1), hlt.color);  
+			}
 		}
-		ctx.strokeStyle = grad;
+		ctx.strokeStyle = arcStrokeStyle[id];
 		ctx.stroke();
 	}
 	
