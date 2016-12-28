@@ -28,7 +28,7 @@ function calcRange(low, high, factor) {
 }
 
 function generateGauges(config) {
-	var rangeThrottle = calcRange(-100,100,3);
+	var rangeThrottle = calcRange(-100,100,2.5);
 	
 	var j = 0;
 	var ticksEnergy = new Array();
@@ -43,6 +43,7 @@ function generateGauges(config) {
 		renderTo    : 'powerGauge',
 		width       : 280,
 		height      : 280,
+		gap         : 15,
 		glow        : true,
 		colors      : gaugeColors,
 		values      : [
@@ -55,7 +56,6 @@ function generateGauges(config) {
 				valueFormat : { "int" : 3, "dec" : 1 },
 				majorTicks  : rangeThrottle.ticks,
 				minorTicks  : 2,
-				strokeTicks : false,
 				highlights  : [
 		   			{ from : -100,   to : 0, color : 'rgba(0, 255, 0, .65)' },
 					{ from : 0,   to : 100, color : 'rgba(0, 180, 255, .75)' }
@@ -67,10 +67,10 @@ function generateGauges(config) {
 				units       : 'kWh',
 				minValue    : rangeEnergy.min,
 				maxValue    : rangeEnergy.max,
+				direction   : 'ccw',
 				valueFormat : { "int" : 2, "dec" : 1 },
 				majorTicks  : ticksEnergy,
 				minorTicks  : 5,
-				strokeTicks : false,
 				highlights  : [
 					{ from : rangeEnergy.min, to : config.energyRange[1] - intervalEnergy, color : 'rgba(0, 255,  0, .65)' },
 					{ from : config.energyRange[1] - intervalEnergy, to : config.energyRange[1], color : 'rgba(180, 255,  0, .75)' },
@@ -85,10 +85,9 @@ function generateGauges(config) {
 				units       : 'kW',
 				minValue    : rangeMechanicalPower.min,
 				maxValue    : rangeMechanicalPower.max,
-				valueFormat : { "int" : 3, "dec" : 1 },
+				valueFormat : { "int" : 3, "dec" : 0 },
 				majorTicks  : rangeMechanicalPower.ticks,
 				minorTicks  : 5,
-				strokeTicks : false,
 				highlights  : [
 		  			{ from : rangeMechanicalPower.min, to : config.powerRange[0] * .9, color : 'rgba(255, 255, 0, .75)' },
 					{ from : config.powerRange[0] *.9, to : 0, color : 'rgba(0, 255, 0, .65)' },
@@ -119,12 +118,11 @@ function generateGauges(config) {
 				valueFormat : { "int" : 4, "dec" : 0 },
 				majorTicks  : rangeRpm.ticks,
 				minorTicks  : 5,
-				strokeTicks : false,
 				highlights  : [
-					{ from : rangeRpm.min, to : config.rpmRange[1] - 2000, color : 'rgba(0, 255,  0, .65)' },
-					{ from : config.rpmRange[1] - 2000, to : config.rpmRange[1] - 1000, color : 'rgba(255, 255, 0, .75)' },
-					{ from : config.rpmRange[1] - 1000, to : config.rpmRange[1], color : 'rgba(255, 127, 0, .75)' },
-					{ from : config.rpmRange[1], to : rangeRpm.max, color : 'rgba(255, 0, 0, .75)' }
+//					{ from : rangeRpm.min, to : config.rpmRange[1] - 2000, color : 'rgba(0, 255,  0, .65)' },
+//					{ from : config.rpmRange[1] - 2000, to : config.rpmRange[1] - 1000, color : 'rgba(255, 255, 0, .75)' },
+//					{ from : config.rpmRange[1] - 1000, to : config.rpmRange[1], color : 'rgba(255, 127, 0, .75)' },
+//					{ from : config.rpmRange[1], to : rangeRpm.max, color : 'rgba(255, 0, 0, .75)' }
 				]
 			},
 			{
@@ -134,18 +132,20 @@ function generateGauges(config) {
 				minValue    : rangeTorque.min,
 				maxValue    : rangeTorque.max,
 				direction   : 'ccw',
-				valueFormat : { "int" : 3, "dec" : 1 },
+				valueFormat : { "int" : 3, "dec" : 0 },
 				majorTicks  : rangeTorque.ticks,
 				minorTicks  : 5,
-				strokeTicks : false,
 				highlights  : [
-					{ from : rangeTorque.min, to : 0, color : 'rgba(0, 255, 0, .65)' },
-					{ from : 0, to : rangeTorque.max, color : 'rgba(0, 180,  255, .75)' }
+//					{ from : rangeTorque.min, to : 0, color : 'rgba(0, 255, 0, .65)' },
+//					{ from : 0, to : rangeTorque.max, color : 'rgba(0, 180,  255, .75)' }
 				]
 			}
 		],
 	});
 	motorGauge.draw();
+	
+	
+	
 
 	var intervalMotor = (config.motorTempRange[2] - config.motorTempRange[1]) / 2;
 	var rangeMotor = calcRange(config.motorTempRange[0], config.motorTempRange[2] + intervalMotor,2);
@@ -168,7 +168,6 @@ function generateGauges(config) {
 				valueFormat : { "int" : 3, "dec" : 1 },
 				majorTicks  : rangeMotor.ticks,
 				minorTicks  : 5,
-				strokeTicks : false,
 				highlights  : [
 					{ from : rangeMotor.min, to : config.motorTempRange[1] - intervalMotor, color : 'rgba(0, 255,  0, .65)' },
 					{ from : config.motorTempRange[1] - intervalMotor, to : config.motorTempRange[1], color : 'rgba(180, 255, 0, .75)' },
@@ -187,7 +186,6 @@ function generateGauges(config) {
 				valueFormat : { "int" : 3, "dec" : 1 },
 				majorTicks  : rangeController.ticks,
 				minorTicks  : 5,
-				strokeTicks : false,
 				highlights  : [
 		   			{ from : rangeController.min, to : config.controllerTempRange[1] - intervalController, color : 'rgba(0, 255,  0, .65)' },
 					{ from : config.controllerTempRange[1] - intervalController, to : config.controllerTempRange[1], color : 'rgba(180, 255, 0, .75)' },
@@ -201,19 +199,19 @@ function generateGauges(config) {
 	});
 	temperatureGauge.draw();
 
-	var intervalLow = Math.round((config.batteryRangeLow[2] - config.batteryRangeLow[1]) / 2);
-	var intervalHigh = Math.round((config.batteryRangeHigh[2] - config.batteryRangeHigh[1]) / 2);
-	var rangeVoltage = calcRange(config.batteryRangeLow[0] - intervalLow, config.batteryRangeHigh[2] + intervalHigh, 2);
-	var voltageHighlights = [
-		{ from : rangeVoltage.min, to : config.batteryRangeLow[0], color : 'rgba(255, 0, 0, .75)' },
+	var intervalBatteryVoltageLow = Math.round((config.batteryRangeLow[2] - config.batteryRangeLow[1]) / 2);
+	var intervalBatteryVoltageHigh = Math.round((config.batteryRangeHigh[2] - config.batteryRangeHigh[1]) / 2);
+	var rangeBatteryVoltage = calcRange(config.batteryRangeLow[0] - intervalBatteryVoltageLow, config.batteryRangeHigh[2] + intervalBatteryVoltageHigh, 2);
+	var batteryVoltageHighlights = [
+		{ from : rangeBatteryVoltage.min, to : config.batteryRangeLow[0], color : 'rgba(255, 0, 0, .75)' },
 		{ from : config.batteryRangeLow[0], to : config.batteryRangeLow[1], color : 'rgba(255, 127, 0, .75)' },
 		{ from : config.batteryRangeLow[1], to : config.batteryRangeLow[2], color : 'rgba(255, 220, 0, .75)' },
-		{ from : config.batteryRangeLow[2], to : config.batteryRangeLow[2] + intervalLow, color : 'rgba(180, 255, 0, .75)' },
-		{ from : config.batteryRangeLow[2] + intervalLow, to : config.batteryRangeHigh[0], color : 'rgba(0, 255,  0, .65)' },
-		{ from : config.batteryRangeHigh[0], to : config.batteryRangeHigh[0] + intervalHigh, color : 'rgba(180, 255, 0, .75)' },
-		{ from : config.batteryRangeHigh[0] + intervalHigh, to : config.batteryRangeHigh[1], color : 'rgba(255, 220, 0, .75)' },
+		{ from : config.batteryRangeLow[2], to : config.batteryRangeLow[2] + intervalBatteryVoltageLow, color : 'rgba(180, 255, 0, .75)' },
+		{ from : config.batteryRangeLow[2] + intervalBatteryVoltageLow, to : config.batteryRangeHigh[0], color : 'rgba(0, 255,  0, .65)' },
+		{ from : config.batteryRangeHigh[0], to : config.batteryRangeHigh[0] + intervalBatteryVoltageHigh, color : 'rgba(180, 255, 0, .75)' },
+		{ from : config.batteryRangeHigh[0] + intervalBatteryVoltageHigh, to : config.batteryRangeHigh[1], color : 'rgba(255, 220, 0, .75)' },
 		{ from : config.batteryRangeHigh[1], to : config.batteryRangeHigh[2], color : 'rgba(255, 127, 0, .75)' },
-		{ from : config.batteryRangeHigh[2], to : rangeVoltage.max, color :  'rgba(255, 0, 0, .75)'}
+		{ from : config.batteryRangeHigh[2], to : rangeBatteryVoltage.max, color :  'rgba(255, 0, 0, .75)'}
 	];
 	var rangeCurrent = calcRange(config.currentRange[0], config.currentRange[1], 2);
 	var dcGauge = new Gauge({
@@ -227,14 +225,13 @@ function generateGauges(config) {
 				id          : 'dcVoltageGaugeValue',
 				title       : "DC Voltage",
 				units       : 'Vdc',
-				minValue    : rangeVoltage.min,
-				maxValue    : rangeVoltage.max,
+				minValue    : rangeBatteryVoltage.min,
+				maxValue    : rangeBatteryVoltage.max,
 				direction   : 'cw',
 				valueFormat : { "int" : 3, "dec" : 1 },
-				majorTicks  : rangeVoltage.ticks,
+				majorTicks  : rangeBatteryVoltage.ticks,
 				minorTicks  : 5,
-				strokeTicks : false,
-				highlights  : voltageHighlights
+				highlights  : batteryVoltageHighlights
 			},
 			{
 				id          : 'dcCurrentGaugeValue',
@@ -246,7 +243,6 @@ function generateGauges(config) {
 				valueFormat : { "int" : 3, "dec" : 1 },
 				majorTicks  : rangeCurrent.ticks,
 				minorTicks  : 5,
-				strokeTicks : false,
 				highlights  : [
 		   			{ from : rangeCurrent.min, to : config.currentRange[0] * .9, color : 'rgba(255, 255, 0, .75)' },
 					{ from : config.currentRange[0] *.9, to : 0, color : 'rgba(0, 255, 0, .65)' },
@@ -259,75 +255,77 @@ function generateGauges(config) {
 	dcGauge.draw();
 
 /*	
-	var range = calcRange(config.chargerInputVoltageRange[0], config.chargerInputVoltageRange[2]);
-	var chargerInputVoltageGauge = new Gauge({
-		renderTo    : 'chargerInputVoltageGauge',
-		width       : 200,
-		height      : 200,
-		glow        : true,
-		units       : 'Vac',
-		title       : "Mains",
-		colors      : gaugeColors,
-		minValue    : range.min,
-		maxValue    : range.max,
-		majorTicks  : range.ticks,
-		minorTicks  : 5,
-		strokeTicks : false,
-		valueFormat : { "int" : 2, "dec" : 1 },
-		highlights  : [
-		   	{ from : range.min, to : config.chargerInputVoltageRange[1] - 10, color : 'rgba(255, 255,  0, .75)' },
-			{ from : config.chargerInputVoltageRange[1] - 10, to : config.chargerInputVoltageRange[1] + 10, color : 'rgba(0, 255,  0, .65)' },
-			{ from : config.chargerInputVoltageRange[1] + 10, to : range.max, color : 'rgba(255, 255, 0, .75)' }
-		]
-	});
-	chargerInputVoltageGauge.draw();
-	nodecache["chargerInputVoltageGauge"] = chargerInputVoltageGauge;
 
-	var range = calcRange(config.chargerInputCurrentRange[0], config.chargerInputCurrentRange[1]);
-	var chargerInputCurrentGauge = new Gauge({
-		renderTo    : 'chargerInputCurrentGauge',
-		width       : 200,
-		height      : 200,
+	
+	var rangeChgACV = calcRange(config.chargerInputVoltageRange[0], config.chargerInputVoltageRange[2], 4);
+	var rangeChgACA = calcRange(config.chargerInputCurrentRange[0], config.chargerInputCurrentRange[1], 4);
+	var rangeChgDCA = calcRange(config.chargerBatteryCurrentRange[0], config.chargerBatteryCurrentRange[1], 4);
+	var testGauge2 = new Gauge({
+		renderTo    : 'testGauge2',
+		width       : 280,
+		height      : 280,
+		gap         : 10,
 		glow        : true,
-		units       : 'Amps',
-		title       : "Input",
 		colors      : gaugeColors,
-		minValue    : range.min,
-		maxValue    : range.max,
-		majorTicks  : range.ticks,
-		minorTicks  : 5,
-		strokeTicks : false,
-		valueFormat : { "int" : 2, "dec" : 1 },
-		highlights  : [
-			{ from : 0, to : config.chargerInputCurrentRange[1] * .9, color : 'rgba(0, 255,  0, .65)' },
-			{ from : config.chargerInputCurrentRange[1] * .9, to : range.max, color : 'rgba(255, 255, 0, .75)' }
-		]
+		values      : [
+			{
+				id          : 'chargerInputVoltageGaugeValue',
+				title       : "Voltage In",
+				units       : 'V',
+				minValue    : rangeChgACV.min,
+				maxValue    : rangeChgACV.max,
+				valueFormat : { "int" : 3, "dec" : 1 },
+				majorTicks  : rangeChgACV.ticks,
+				minorTicks  : 2,
+				highlights  : [
+				   	{ from : rangeChgACV.min, to : config.chargerInputVoltageRange[1] - 10, color : 'rgba(255, 255,  0, .75)' },
+					{ from : config.chargerInputVoltageRange[1] - 10, to : config.chargerInputVoltageRange[1] + 10, color : 'rgba(0, 255,  0, .65)' },
+					{ from : config.chargerInputVoltageRange[1] + 10, to : rangeChgACV.max, color : 'rgba(255, 255, 0, .75)' }
+		   		]
+			},
+			{
+				id          : 'chargerInputCurrentGaugeValue',
+				title       : "Current In",
+				units       : 'A',
+				minValue    : rangeChgACA.min,
+				maxValue    : rangeChgACA.max,
+				valueFormat : { "int" : 2, "dec" : 1 },
+				majorTicks  : rangeChgACA.ticks,
+				minorTicks  : 5,
+				highlights  : [
+					{ from : 0, to : config.chargerInputCurrentRange[1] * .9, color : 'rgba(0, 255,  0, .65)' },
+					{ from : config.chargerInputCurrentRange[1] * .9, to : rangeChgACA.max, color : 'rgba(255, 255, 0, .75)' }
+		   		]
+			},
+			{
+				id          : 'chargerBatteryVoltageGaugeValue',
+				title       : "Voltage Out",
+				units       : 'V',
+				minValue    : rangeBatteryVoltage.min,
+				maxValue    : rangeBatteryVoltage.max,
+				valueFormat : { "int" : 3, "dec" : 1 },
+				majorTicks  : rangeBatteryVoltage.ticks,
+				minorTicks  : 5,
+				highlights  : batteryVoltageHighlights
+			},
+			{
+				id          : 'chargerBatteryCurrentGaugeValue',
+				title       : "Current Out",
+				units       : 'A',
+				minValue    : rangeChgDCA.min,
+				maxValue    : rangeChgDCA.max,
+				valueFormat : { "int" : 2, "dec" : 1 },
+				majorTicks  : rangeChgDCA.ticks,
+				minorTicks  : 5,
+				highlights  : [
+					{ from : 0, to : config.chargerBatteryCurrentRange[1] * .9, color : 'rgba(0, 255,  0, .65)' },
+					{ from : config.chargerBatteryCurrentRange[1] * .9, to : rangeChgDCA.max, color : 'rgba(255, 255, 0, .75)' }
+		   		]
+			}
+		],
 	});
-	chargerInputCurrentGauge.draw();
-	nodecache["chargerInputCurrentGauge"] = chargerInputCurrentGauge;
+	testGauge2.draw();
 
-	var range = calcRange(config.chargerBatteryCurrentRange[0], config.chargerBatteryCurrentRange[1]);
-	var chargerBatteryCurrentGauge = new Gauge({
-		renderTo    : 'chargerBatteryCurrentGauge',
-		width       : 200,
-		height      : 200,
-		glow        : true,
-		units       : 'Amps',
-		title       : "Battery",
-		colors      : gaugeColors,
-		minValue    : range.min,
-		maxValue    : range.max,
-		majorTicks  : range.ticks,
-		minorTicks  : 5,
-		strokeTicks : false,
-		valueFormat : { "int" : 2, "dec" : 1 },
-		highlights  : [
-			{ from : 0, to : config.chargerBatteryCurrentRange[1] * .9, color : 'rgba(0, 255,  0, .65)' },
-			{ from : config.chargerBatteryCurrentRange[1] * .9, to : range.max, color : 'rgba(255, 255, 0, .75)' }
-		]
-	});
-	chargerBatteryCurrentGauge.draw();
-	nodecache["chargerBatteryCurrentGauge"] = chargerBatteryCurrentGauge;
 
 	interval = (config.chargerTempRange[2] - config.chargerTempRange[1]) / 2;
 	range = calcRange(config.chargerTempRange[0], config.chargerTempRange[2] + interval);
@@ -452,25 +450,6 @@ function generateGauges(config) {
 	dcDcTemperatureGauge.draw();
 	nodecache["dcDcTemperatureGauge"] = dcDcTemperatureGauge;
 	
-	var chargerBatteryVoltageGauge = new Gauge({
-		renderTo    : 'chargerBatteryVoltageGauge',
-		width       : 200,
-		height      : 200,
-		glow        : true,
-		units       : 'Vdc',
-		title       : "Battery",
-		colors      : gaugeColors,
-		minValue    : range.min,
-		maxValue    : range.max,
-		majorTicks  : range.ticks,
-		minorTicks  : 5,
-		strokeTicks : false,
-		valueFormat : { "int" : 3, "dec" : 1 },
-		highlights  : batteryHighlights
-	});
-	chargerBatteryVoltageGauge.draw();
-	nodecache["chargerBatteryVoltageGauge"] = chargerBatteryVoltageGauge;
-
 	var dcDcHvVoltageGauge = new Gauge({
 		renderTo    : 'dcDcHvVoltageGauge',
 		width       : 150,

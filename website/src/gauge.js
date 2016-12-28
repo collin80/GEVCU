@@ -109,8 +109,8 @@ var Gauge = function(config) {
 		fromValue[id] = config.animation ? toValue[id] : val;
 		toValue[id] = val;
 
+		drawValue(ctxInfoValues, id);
 		config.animation ? animate(id) : this.draw(id);
-		drawValueBox();
 
 		return this;
 	}
@@ -129,8 +129,8 @@ var Gauge = function(config) {
 		value[id] = val;
 		fromValue[id] = constrain (val, values[id].minValue, values[id].maxValue);
 
+		drawValue(ctxInfoValues, id);
 		this.draw(id);
-		drawValueBox();
 
 		return this;
 	}
@@ -144,8 +144,8 @@ var Gauge = function(config) {
 	 */
 	this.clear = function(id) {
 		value[id] = fromValue[id] = toValue[id] = values[id].minValue;
+		drawValue(ctxInfoValues, id);
 		this.draw(id);
-		drawValueBox();
 		return this;
 	}
 
@@ -213,7 +213,7 @@ var Gauge = function(config) {
 		throw Error("Canvas element was not specified when creating the Gauge object!");
 	}
 
-	var ctxDial = [], ctxInfo,
+	var ctxDial = [], ctxInfo, ctxInfoValues,
 		CW  = config.width,
 		CH  = config.height,
 		CX  = CW / 2,
@@ -228,6 +228,7 @@ var Gauge = function(config) {
 			addCanvas(config.values[i].id);
 		}
 		addCanvas(config.renderTo + "Info");
+		addCanvas(config.renderTo + "InfoValues");
 
 		// now it's safe to look them up
 		var ctxPlate = prepareCanvas(config.renderTo + "Plate", false);
@@ -235,22 +236,23 @@ var Gauge = function(config) {
 			var id = config.values[i].id;
 			ctxDial[id] = prepareCanvas(id, true);
 			fromValue[id] = value[id] = toValue[id] = config.values[i].minValue;
-			config.values[i].offset = config.start + config.angle * i / config.values.length + (i != 0 ? config.gap / 2 : 0);
-			config.values[i].angle = config.angle / config.values.length - (config.values.length > 1 ? config.gap / 2 : 0);
+			config.values[i].offset = config.start + (config.angle + config.gap) * i / config.values.length;
+			config.values[i].angle = (config.angle - config.gap * (config.values.length - 1)) / config.values.length;
 			values[config.values[i].id] = config.values[i];
 		}
 		ctxInfo = prepareCanvas(config.renderTo + "Info", true);
+		ctxInfoValues = prepareCanvas(config.renderTo + "InfoValues", true);
 
 		drawPlate(ctxPlate);
 		drawHighlights(ctxPlate);
 		drawMinorTicks(ctxPlate);
 		drawMajorTicks(ctxPlate);
 		drawNumbers(ctxPlate);
-		drawValueBox(ctxPlate);
 		
 		drawInfoArea(ctxInfo);
 		drawTitle(ctxInfo);
 		drawUnits(ctxInfo);
+	//	drawValueBox(ctxInfo);
 	}
 
 	// do basic initialization
@@ -372,7 +374,7 @@ var Gauge = function(config) {
 		}
 
 		drawNeedle(id);
-		drawHighlight(id);
+		drawArc(id);
 
 		if (!imready) {
 			self.onready && self.onready();
@@ -574,30 +576,41 @@ var Gauge = function(config) {
 
 	// title draw
 	function drawTitle(ctx) {
-		if (!config.title) {
-			return;
+		var 
+			r = max * 0.45,
+			l = config.values.length,
+			fh = 24 * (max / 200) - (1.6 * (l - 1)),
+			y;
+		;
+		for (var v = 0; v < l; v++) {
+			if (!config.values[v].title) {
+				continue;
+			}
+			y = r * (v - (l - 1) / 2) * (0.2 + 1 / l) - fh / 2;
+			
+			ctx.save();
+			ctx.font = fh + "px Arial";
+			ctx.fillStyle = config.colors.title;
+			ctx.textAlign = "center";
+			ctx.fillText(config.values[v].title, 0, y);
+			ctx.restore();
 		}
-
-		ctx.save();
-		ctx.font = 24 * (max / 200) + "px Arial";
-		ctx.fillStyle = config.colors.title;
-		ctx.textAlign = "center";
-		ctx.fillText(config.title, 0, -max / 4.25);
-		ctx.restore();
 	}
 
 	// units draw
 	function drawUnits(ctx) {
-		if (!config.units) {
-			return;
-		}
-
-		ctx.save();
-		ctx.font = 22 * (max / 200) + "px Arial";
-		ctx.fillStyle = config.colors.units;
-		ctx.textAlign = "center";
-		ctx.fillText(config.units, 0, max / 3.25);
-		ctx.restore();
+//		for (var v = 0; v < config.values.length; v++) {
+//			if (!config.values[v].units) {
+//				return;
+//			}
+//	
+//			ctx.save();
+//			ctx.font = 22 * (max / 200) + "px Arial";
+//			ctx.fillStyle = config.colors.units;
+//			ctx.textAlign = "center";
+//			ctx.fillText(config.values[v].units, 0, max / 3.25 * v);
+//			ctx.restore();
+//		}
 	}
 
 	function padValue(val, cint, cdec) {
@@ -748,22 +761,38 @@ var Gauge = function(config) {
 		ctx.fill();
 	}
 	
-	function drawHighlight(id) {
+	function drawArc(id) {
 		var
 			ctx = ctxDial[id],
-			rIn  = max / 100 * 90,
-			width = max / 100 * 8,
-			value = values[id]
+			rIn  = max / 100 * 91,
+			width = max / 100 * 6,
+			value = values[id],
+			range = value.maxValue - value.minValue,
+			as, ae
 		;
-
+		
+		if (value.direction == 'ccw') {
+			as = 90 + value.offset + (range - fromValue[id]) * value.angle / range;
+			ae = 90 + value.offset - (value.minValue < 0 ? value.minValue : -range) * value.angle / range;
+		} else {
+			as = 90 + value.offset - (value.minValue < 0 ? value.minValue * value.angle / range : 0);
+			ae = 90 + value.offset + fromValue[id] * value.angle / range;
+		}
+		
+		if (value.minValue < 0 && fromValue[id] < Math.abs(value.minValue)) {
+			var temp = as;
+			as = ae;
+			ae = temp;
+		}
+		
+		
 		ctx.shadowOffsetX = 2;
 		ctx.shadowOffsetY = 2;
 		ctx.shadowBlur    = 10;
 		ctx.shadowColor   = 'rgba(143, 143, 188, 0.45)';
 
 		ctx.beginPath();
-		var range = value.maxValue - value.minValue;
-		ctx.arc(0, 0, rIn, radians(90 + value.offset), radians(90 + value.offset + (value.direction == 'ccw' ? range - fromValue[id] : fromValue[id]) * value.angle / range), false);
+		ctx.arc(0, 0, rIn, radians(as), radians(ae), false);
 		ctx.lineWidth = width;
 
 		
@@ -796,17 +825,15 @@ var Gauge = function(config) {
 
 	// value box draw
 	function drawValueBox(ctx) {
-/*		ctx.save();
+		ctx.save();
 		
-		ctx.font = 40 * (max / 200) + "px Led";
-
 		for (var v = 0; v < config.values.length; v++) {
+			ctx.font = (max / 5) + "px Led";
 			var
 				cdec = config.values[v].valueFormat['dec'],
-				cint = config.values[v].valueFormat['int']
-				text = padValue(value[0], cint, cdec),
+				cint = config.values[v].valueFormat['int'],
 				tw   = ctx.measureText('-' + padValue(0, cint, cdec)).width,
-				y = max - max / 100 * 20,
+				y = max / 4 * v,
 				x = 0,
 				th = 0.12 * max
 			;
@@ -844,19 +871,48 @@ var Gauge = function(config) {
 			ctx.fill();
 			
 			ctx.restore();
+		}
+	}
+
+	function drawValue(ctx, id) {
+		ctx.save();
+		
+		var 
+			r = max * 0.45,
+			l = config.values.length,
+			fh = 42 * (max / 200) - (1.6 * (l - 1))
+		;
+
+		for (var v = 0; v < config.values.length; v++) {
+			if (config.values[v].id != id) 
+				continue;
+			
+			ctx.font = fh + "px Led";
+			var
+				cdec = config.values[v].valueFormat['dec'],
+				cint = config.values[v].valueFormat['int'],
+				text = padValue(value[id], cint, cdec),
+				y = r * (v - (l - 1) / 2) * (0.2 + 1 / l) + fh * 0.55;
+				x = 0
+			;
+			ctx.clearRect(ctx.canvas.width / -2, y - max / 5, ctx.canvas.width, max / 4.5);
+	
+			ctx.save();
 	
 			ctx.shadowOffsetX = 0.004 * max;
 			ctx.shadowOffsetY = 0.004 * max;
 			ctx.shadowBlur    = 0.012 * max;
 			ctx.shadowColor   = 'rgba(0, 0, 0, 0.3)';
 	
-			ctx.fillStyle = "#444";
+//			ctx.fillStyle = "#444";
+			ctx.fillStyle = "#eeb";
 			ctx.textAlign = "center";
 			ctx.fillText(text, -x, y);
 	
 			ctx.restore();
 		}
-*/	}
+	}
+
 }
 
 function constrain(val,low,high) {
