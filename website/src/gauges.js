@@ -119,10 +119,10 @@ function generateGauges(config) {
 				majorTicks  : rangeRpm.ticks,
 				minorTicks  : 5,
 				highlights  : [
-//					{ from : rangeRpm.min, to : config.rpmRange[1] - 2000, color : 'rgba(0, 255,  0, .65)' },
-//					{ from : config.rpmRange[1] - 2000, to : config.rpmRange[1] - 1000, color : 'rgba(255, 255, 0, .75)' },
-//					{ from : config.rpmRange[1] - 1000, to : config.rpmRange[1], color : 'rgba(255, 127, 0, .75)' },
-//					{ from : config.rpmRange[1], to : rangeRpm.max, color : 'rgba(255, 0, 0, .75)' }
+					{ from : rangeRpm.min, to : config.rpmRange[1] - 2000, color : 'rgba(0, 255,  0, .65)' },
+					{ from : config.rpmRange[1] - 2000, to : config.rpmRange[1] - 1000, color : 'rgba(255, 255, 0, .75)' },
+					{ from : config.rpmRange[1] - 1000, to : config.rpmRange[1], color : 'rgba(255, 127, 0, .75)' },
+					{ from : config.rpmRange[1], to : rangeRpm.max, color : 'rgba(255, 0, 0, .75)' }
 				]
 			},
 			{
@@ -136,16 +136,13 @@ function generateGauges(config) {
 				majorTicks  : rangeTorque.ticks,
 				minorTicks  : 5,
 				highlights  : [
-//					{ from : rangeTorque.min, to : 0, color : 'rgba(0, 255, 0, .65)' },
-//					{ from : 0, to : rangeTorque.max, color : 'rgba(0, 180,  255, .75)' }
+					{ from : rangeTorque.min, to : 0, color : 'rgba(0, 255, 0, .65)' },
+					{ from : 0, to : rangeTorque.max, color : 'rgba(0, 180,  255, .75)' }
 				]
 			}
 		],
 	});
 	motorGauge.draw();
-	
-	
-	
 
 	var intervalMotor = (config.motorTempRange[2] - config.motorTempRange[1]) / 2;
 	var rangeMotor = calcRange(config.motorTempRange[0], config.motorTempRange[2] + intervalMotor,2);
@@ -227,6 +224,7 @@ function generateGauges(config) {
 				units       : 'Vdc',
 				minValue    : rangeBatteryVoltage.min,
 				maxValue    : rangeBatteryVoltage.max,
+				startValue  : (config.batteryRangeLow[2] + intervalBatteryVoltageLow + config.batteryRangeHigh[0]) / 2,
 				direction   : 'cw',
 				valueFormat : { "int" : 3, "dec" : 1 },
 				majorTicks  : rangeBatteryVoltage.ticks,
@@ -254,18 +252,19 @@ function generateGauges(config) {
 	});
 	dcGauge.draw();
 
-/*	
+	
 
 	
 	var rangeChgACV = calcRange(config.chargerInputVoltageRange[0], config.chargerInputVoltageRange[2], 4);
 	var rangeChgACA = calcRange(config.chargerInputCurrentRange[0], config.chargerInputCurrentRange[1], 4);
 	var rangeChgDCA = calcRange(config.chargerBatteryCurrentRange[0], config.chargerBatteryCurrentRange[1], 4);
-	var testGauge2 = new Gauge({
-		renderTo    : 'testGauge2',
+	var testGauge = new Gauge({
+		renderTo    : 'testGauge',
 		width       : 280,
 		height      : 280,
 		gap         : 10,
 		glow        : true,
+		drawHighlights: true,
 		colors      : gaugeColors,
 		values      : [
 			{
@@ -324,8 +323,8 @@ function generateGauges(config) {
 			}
 		],
 	});
-	testGauge2.draw();
-
+	testGauge.draw();
+/*
 
 	interval = (config.chargerTempRange[2] - config.chargerTempRange[1]) / 2;
 	range = calcRange(config.chargerTempRange[0], config.chargerTempRange[2] + interval);

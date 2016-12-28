@@ -46,6 +46,8 @@ var Gauge = function(config) {
 		angle       : 330,
 		gap         : 30,
 		glow        : true,
+		drawArc     : true,
+		drawHighlights: false,
 		colors      : {
 			plate      : '#fff',
 			majorTicks : '#444',
@@ -239,6 +241,9 @@ var Gauge = function(config) {
 			config.values[i].offset = config.start + (config.angle + config.gap) * i / config.values.length;
 			config.values[i].angle = (config.angle - config.gap * (config.values.length - 1)) / config.values.length;
 			values[config.values[i].id] = config.values[i];
+			if(typeof config.values[i].startValue == "undefined") {
+				config.values[i].startValue = config.values[i].minValue;
+			}
 		}
 		ctxInfo = prepareCanvas(config.renderTo + "Info", true);
 		ctxInfoValues = prepareCanvas(config.renderTo + "InfoValues", true);
@@ -654,6 +659,10 @@ var Gauge = function(config) {
 
 	// draws the highlight colors
 	function drawHighlights(ctx) {
+		if (!config.drawHighlights) {
+			return;
+		}
+
 		ctx.save();
 
 		var r1 = max / 100 * 84;
@@ -691,14 +700,7 @@ var Gauge = function(config) {
 			rOut = max / 100 * 25,
 			pad1 = max / 100 * 1,
 			pad2 = max / 100 * 1,
-			value = values[id],
-
-			shad = function() {
-				ctx.shadowOffsetX = 4;
-				ctx.shadowOffsetY = 4;
-				ctx.shadowBlur    = 10;
-				ctx.shadowColor   = 'rgba(188, 143, 143, 0.45)';
-			}
+			value = values[id]
 		;
 		
 		if(typeof ctx == "undefined") {
@@ -708,10 +710,6 @@ var Gauge = function(config) {
 
 		// clear the canvas
 		ctx.clearRect(-CX, -CY, CW, CH);
-		ctx.save();
-
-		shad();
-		
 		ctx.save();
 		
 		if (fromValue[id] < 0) {
@@ -723,6 +721,11 @@ var Gauge = function(config) {
 		}
 		var range = value.maxValue - value.minValue;
 		ctx.rotate(radians(value.offset + (value.direction == 'ccw' ? range - fromValue[id] : fromValue[id]) * value.angle / range));
+
+		ctx.shadowOffsetX = 2;
+		ctx.shadowOffsetY = 2;
+		ctx.shadowBlur    = 3;
+		ctx.shadowColor   = 'rgba(0, 0, 0, 0.9)';
 
 		ctx.beginPath();
 		ctx.moveTo(-pad2, -rOut);
@@ -762,6 +765,10 @@ var Gauge = function(config) {
 	}
 	
 	function drawArc(id) {
+		if (!config.drawArc) {
+			return;
+		}
+		
 		var
 			ctx = ctxDial[id],
 			rIn  = max / 100 * 91,
@@ -779,26 +786,39 @@ var Gauge = function(config) {
 			ae = 90 + value.offset + fromValue[id] * value.angle / range;
 		}
 		
-		if (value.minValue < 0 && fromValue[id] < Math.abs(value.minValue)) {
+		if (value.minValue < 0 && fromValue[id] < -value.minValue) {
 			var temp = as;
 			as = ae;
 			ae = temp;
 		}
-		
-		
+
 		ctx.shadowOffsetX = 2;
 		ctx.shadowOffsetY = 2;
 		ctx.shadowBlur    = 10;
-		ctx.shadowColor   = 'rgba(143, 143, 188, 0.45)';
+		ctx.shadowColor   = 'rgba(143, 143, 188, 0.9)';
 
 		ctx.beginPath();
 		ctx.arc(0, 0, rIn, radians(as), radians(ae), false);
 		ctx.lineWidth = width;
 
 		
-		var grad = ctx.createLinearGradient(0, -200, 0, 30);  
-		grad.addColorStop(0, 'rgba(243, 22, 22, 0.9)');  
-		grad.addColorStop(1, 'rgba(143, 163, 188, 0.75)');
+		var
+			range = value.majorTicks.length - 1,
+			p1 = rpoint(rIn, radians(value.offset)),
+			p2 = rpoint(rIn, radians(value.offset + value.angle))
+		;
+		
+		var grad = ctx.createLinearGradient(p1.x, p1.y, p2.x, p2.y);
+
+		
+		
+		for (var i = 0; i < value.highlights.length; i++) {
+			var
+				hlt = value.highlights[i],
+				range = (value.minValue < 0 ? value.maxValue : value.maxValue - value.minValue)
+			;
+			grad.addColorStop(constrain((value.direction == 'ccw' ? value.maxValue - hlt.to : hlt.to - value.minValue) / range, 0, 1), hlt.color);  
+		}
 		ctx.strokeStyle = grad;
 		ctx.stroke();
 	}
