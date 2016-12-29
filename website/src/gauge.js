@@ -64,7 +64,7 @@ var Gauge = function(config) {
 				units       : false,
 				minValue    : 0,
 				maxValue    : 100,
-				direction   : 'cw',
+				ccw         : false,
 				majorTicks       : [],
 				minorTicks       : 10,
 				strokeTicks      : true,
@@ -85,7 +85,7 @@ var Gauge = function(config) {
 
 	var
 		value     = [],
-		values    = [],
+		configValues = [],
 		self      = this,
 		fromValue = [],
 		toValue   = [],
@@ -107,7 +107,7 @@ var Gauge = function(config) {
 	 */
 	this.setValue = function(id, val) {
 		value[id] = val;
-		val = constrain (val, values[id].minValue, values[id].maxValue);
+		val = constrain (val, configValues[id].minValue, configValues[id].maxValue);
 		fromValue[id] = config.animation ? toValue[id] : val;
 		toValue[id] = val;
 
@@ -129,7 +129,7 @@ var Gauge = function(config) {
 	 */
 	this.setRawValue = function(id, val) {
 		value[id] = val;
-		fromValue[id] = constrain (val, values[id].minValue, values[id].maxValue);
+		fromValue[id] = constrain (val, configValues[id].minValue, configValues[id].maxValue);
 
 		drawValue(ctxInfoValues, id);
 		this.draw(id);
@@ -145,7 +145,7 @@ var Gauge = function(config) {
 	 * @return {Gauge}
 	 */
 	this.clear = function(id) {
-		value[id] = fromValue[id] = toValue[id] = values[id].minValue;
+		value[id] = fromValue[id] = toValue[id] = configValues[id].minValue;
 		drawValue(ctxInfoValues, id);
 		this.draw(id);
 		return this;
@@ -241,7 +241,7 @@ var Gauge = function(config) {
 			config.values[i].offset = config.start + (config.angle + config.gap) * i / config.values.length;
 			config.values[i].angle = (config.angle - config.gap * (config.values.length - 1)) / config.values.length;
 			config.values[i].range = config.values[i].maxValue - config.values[i].minValue;
-			values[config.values[i].id] = config.values[i];
+			configValues[config.values[i].id] = config.values[i];
 			if(typeof config.values[i].startValue == "undefined") {
 				config.values[i].startValue = 0;
 			}
@@ -568,7 +568,7 @@ var Gauge = function(config) {
 			for (var i = 0; i < config.values[v].majorTicks.length; ++i) {
 				var 
 					p = rpoint(r, radians(config.values[v].offset + i * config.values[v].angle / range)),
-					idx = (config.values[v].direction == 'ccw' ? config.values[v].majorTicks.length - 1 - i : i)
+					idx = (config.values[v].ccw ? config.values[v].majorTicks.length - 1 - i : i)
 				;
 	
 				ctx.font      = 20 * (max / 200) + "px Arial";
@@ -676,7 +676,7 @@ var Gauge = function(config) {
 					range = config.values[v].maxValue - config.values[v].minValue,
 					sa, ea
 				;
-				if (config.values[v].direction == 'ccw') {
+				if (config.values[v].ccw) {
 					sa = (config.values[v].maxValue - hlt.to) * config.values[v].angle / range;
 					ea = (config.values[v].maxValue - hlt.from) * config.values[v].angle / range;
 				} else {
@@ -706,26 +706,23 @@ var Gauge = function(config) {
 	function drawNeedle(id) {
 		var
 			ctx = ctxDial[id],
-			value = values[id]
+			value = configValues[id],
+			from = fromValue[id]
 		;
-		
-		if(typeof ctx == "undefined") {
-			console.log("ERROR: trying to access nonexisting canvas context #" + id);
-			return;
-		}
 
 		// clear the canvas
 		ctx.clearRect(-CX, -CY, CW, CH);
 		ctx.save();
 		
-		if (fromValue[id] < 0) {
-			fromValue[id] = Math.abs(value.minValue - fromValue[id]);
+		if (from < 0) {
+			from = Math.abs(value.minValue - from);
 		} else if (value.minValue > 0) {
-			fromValue[id] -= value.minValue;
+			from -= value.minValue;
 		} else {
-			fromValue[id] = Math.abs(value.minValue) + fromValue[id];
+			from = Math.abs(value.minValue) + from;
 		}
-		ctx.rotate(radians(value.offset + (value.direction == 'ccw' ? value.range - fromValue[id] : fromValue[id]) * value.angle / value.range));
+		fromValue[id] = from;
+		ctx.rotate(radians(value.offset + (value.ccw ? value.range - from : from) * value.angle / value.range));
 
 		ctx.shadowOffsetX = 2;
 		ctx.shadowOffsetY = 2;
@@ -770,8 +767,8 @@ var Gauge = function(config) {
 	
 	var
 		arcR  = max / 100 * 91,
-		arcWidth = max / 100 * 6,
-		arcShadowColor = 'rgba(143, 143, 188, 0.9)',
+		arcWidth = max / 100 * 7,
+		arcShadowColor = 'rgba(200, 200, 235, 0.9)',
 		arcStrokeStyle = []
 	;
 
@@ -782,11 +779,11 @@ var Gauge = function(config) {
 		
 		var
 			ctx = ctxDial[id],
-			value = values[id],
+			value = configValues[id],
 			as, ae
 		;
 		
-		if (value.direction == 'ccw') {
+		if (value.ccw) {
 			as = 90 + value.offset + (value.range - fromValue[id]) * value.angle / value.range;
 			ae = 90 + value.offset + (value.minValue < value.startValue ? value.range - value.startValue + value.minValue : value.range) * value.angle / value.range;
 		} else {
@@ -822,7 +819,7 @@ var Gauge = function(config) {
 					hlt = value.highlights[i],
 					range = (value.minValue < 0 ? value.maxValue : value.maxValue - value.minValue)
 				;
-				arcStrokeStyle[id].addColorStop(constrain((value.direction == 'ccw' ? value.maxValue - hlt.to : hlt.to - value.minValue) / range, 0, 1), hlt.color);  
+				arcStrokeStyle[id].addColorStop(constrain((value.ccw ? value.maxValue - hlt.to : hlt.to - value.minValue) / range, 0, 1), hlt.color);  
 			}
 		}
 		ctx.strokeStyle = arcStrokeStyle[id];
