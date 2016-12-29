@@ -44,7 +44,6 @@ function generateGauges(config) {
 		width       : 280,
 		height      : 280,
 		gap         : 15,
-		glow        : true,
 		colors      : gaugeColors,
 		values      : [
 			{
@@ -97,7 +96,6 @@ function generateGauges(config) {
 			}
 		],
 	});
-	powerGauge.draw();
 
 	var rangeRpm = calcRange(config.rpmRange[0], config.rpmRange[1] + 1000,2);
 	var rangeTorque = calcRange(config.torqueRange[0], config.torqueRange[1],2);
@@ -105,7 +103,6 @@ function generateGauges(config) {
 		renderTo    : 'motorGauge',
 		width       : 350,
 		height      : 350,
-		glow        : true,
 		colors      : gaugeColors,
 		values      : [
 			{
@@ -141,7 +138,6 @@ function generateGauges(config) {
 			}
 		],
 	});
-	motorGauge.draw();
 
 	var intervalMotor = (config.motorTempRange[2] - config.motorTempRange[1]) / 2;
 	var rangeMotor = calcRange(config.motorTempRange[0], config.motorTempRange[2] + intervalMotor,2);
@@ -151,7 +147,6 @@ function generateGauges(config) {
 		renderTo    : 'temperatureGauge',
 		width       : 200,
 		height      : 200,
-		glow        : true,
 		colors      : gaugeColors,
 		values      : [
 			{
@@ -192,7 +187,6 @@ function generateGauges(config) {
 
 		],
 	});
-	temperatureGauge.draw();
 
 	var intervalBatteryVoltageLow = Math.round((config.batteryRangeLow[2] - config.batteryRangeLow[1]) / 2);
 	var intervalBatteryVoltageHigh = Math.round((config.batteryRangeHigh[2] - config.batteryRangeHigh[1]) / 2);
@@ -213,7 +207,6 @@ function generateGauges(config) {
 		renderTo    : 'dcGauge',
 		width       : 200,
 		height      : 200,
-		glow        : true,
 		colors      : gaugeColors,
 		values      : [
 			{
@@ -247,9 +240,7 @@ function generateGauges(config) {
 			}
 		],
 	});
-	dcGauge.draw();
 
-	
 
 	
 	var rangeChgACV = calcRange(config.chargerInputVoltageRange[0], config.chargerInputVoltageRange[2], 4);
@@ -260,7 +251,6 @@ function generateGauges(config) {
 		width       : 280,
 		height      : 280,
 		gap         : 10,
-		glow        : true,
 		drawHighlights: true,
 		colors      : gaugeColors,
 		values      : [
@@ -322,7 +312,6 @@ function generateGauges(config) {
 			}
 		],
 	});
-	testGauge.draw();
 /*
 
 	interval = (config.chargerTempRange[2] - config.chargerTempRange[1]) / 2;
@@ -331,7 +320,6 @@ function generateGauges(config) {
 		renderTo    : 'chargerTemperatureGauge',
 		width       : 200,
 		height      : 200,
-		glow        : true,
 		units       : '\u2103',
 		title       : "Temperature",
 		colors      : gaugeColors,
@@ -349,15 +337,12 @@ function generateGauges(config) {
 			{ from : config.chargerTempRange[2], to : range.max, color : 'rgba(255, 0, 0, .75)' }
 		]
 	});
-	chargerTemperatureGauge.draw();
-	nodecache["chargerTemperatureGauge"] = chargerTemperatureGauge;
 
 	var range = calcRange(config.dcDcLvVoltageRange[0], config.dcDcLvVoltageRange[1]);
 	var dcDcLvVoltageGauge = new Gauge({
 		renderTo    : 'dcDcLvVoltageGauge',
 		width       : 150,
 		height      : 150,
-		glow        : true,
 		units       : 'Vdc',
 		title       : "Output",
 		colors      : gaugeColors,
@@ -372,15 +357,12 @@ function generateGauges(config) {
 			{ from : config.dcDcLvVoltageRange[1] * .9, to : range.max, color : 'rgba(255, 255, 0, .75)' }
 		]
 	});
-	dcDcLvVoltageGauge.draw();
-	nodecache["dcDcLvVoltageGauge"] = dcDcLvVoltageGauge;
 
 	var range = calcRange(config.dcDcHvCurrentRange[0], config.dcDcHvCurrentRange[1]);
 	var dcDcHvCurrentGauge = new Gauge({
 		renderTo    : 'dcDcHvCurrentGauge',
 		width       : 150,
 		height      : 150,
-		glow        : true,
 		units       : 'Amps',
 		title       : "Input",
 		colors      : gaugeColors,
@@ -395,15 +377,12 @@ function generateGauges(config) {
 			{ from : config.dcDcHvCurrentRange[1] * .9, to : range.max, color : 'rgba(255, 255, 0, .75)' }
 		]
 	});
-	dcDcHvCurrentGauge.draw();
-	nodecache["dcDcHvCurrentGauge"] = dcDcHvCurrentGauge;
 
 	var range = calcRange(config.dcDcLvCurrentRange[0], config.dcDcLvCurrentRange[1]);
 	var dcDcLvCurrentGauge = new Gauge({
 		renderTo    : 'dcDcLvCurrentGauge',
 		width       : 150,
 		height      : 150,
-		glow        : true,
 		units       : 'Amps',
 		title       : "Output",
 		colors      : gaugeColors,
@@ -418,8 +397,6 @@ function generateGauges(config) {
 			{ from : config.dcDcLvCurrentRange[1] * .9, to : range.max, color : 'rgba(255, 255, 0, .75)' }
 		]
 	});
-	dcDcLvCurrentGauge.draw();
-	nodecache["dcDcLvCurrentGauge"] = dcDcLvCurrentGauge;
 
 	interval = (config.dcDcTempRange[2] - config.dcDcTempRange[1]) / 2;
 	range = calcRange(config.dcDcTempRange[0], config.dcDcTempRange[2] + interval);
@@ -427,7 +404,6 @@ function generateGauges(config) {
 		renderTo    : 'dcDcTemperatureGauge',
 		width       : 150,
 		height      : 150,
-		glow        : true,
 		units       : '\u2103',
 		title       : "Temperature",
 		colors      : gaugeColors,
@@ -445,14 +421,11 @@ function generateGauges(config) {
 			{ from : config.dcDcTempRange[2], to : range.max, color : 'rgba(255, 0, 0, .75)' }
 		]
 	});
-	dcDcTemperatureGauge.draw();
-	nodecache["dcDcTemperatureGauge"] = dcDcTemperatureGauge;
 	
 	var dcDcHvVoltageGauge = new Gauge({
 		renderTo    : 'dcDcHvVoltageGauge',
 		width       : 150,
 		height      : 150,
-		glow        : true,
 		units       : 'Vdc',
 		title       : "Battery",
 		colors      : gaugeColors,
@@ -464,7 +437,5 @@ function generateGauges(config) {
 		valueFormat : { "int" : 3, "dec" : 1 },
 		highlights  : batteryHighlights
 	});
-	dcDcHvVoltageGauge.draw();
-	nodecache["dcDcHvVoltageGauge"] = dcDcHvVoltageGauge;
 */
 }

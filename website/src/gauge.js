@@ -47,7 +47,7 @@ var Gauge = function(config) {
 		gap         : 30,
 		glow        : true,
 		drawArc     : true,
-		drawHighlights: false,
+		drawHighlights: true,
 		colors      : {
 			plate      : '#fff',
 			majorTicks : '#444',
@@ -77,18 +77,15 @@ var Gauge = function(config) {
 			}
 		],
 		animation : {
-			delay    : 0,
+			delay    : 35,
 			duration : 200,
-			fn       : 'cycle'
+			fn       : 'linear'
 		}
 	}
 
 	var
-		value     = [],
 		configValues = [],
 		self      = this,
-		fromValue = [],
-		toValue   = [],
 		imready   = false
 	;
 
@@ -97,83 +94,81 @@ var Gauge = function(config) {
 	 */
 	
 	/**
-	 * Sets a new value to gauge and updates the gauge view
+	 * Sets a new value to a dial and updates the view
 	 * 
 	 * @param {number}
-	 *            id - the number of the dial
+	 *            id - the id of the value to update
 	 * @param {number}
-	 *            val - the new value to set to the gauge
-	 * @return {Gauge} this - returns self
+	 *            val - the new value to set
 	 */
 	this.setValue = function(id, val) {
-		value[id] = val;
-		val = constrain (val, configValues[id].minValue, configValues[id].maxValue);
-		fromValue[id] = config.animation ? toValue[id] : val;
-		toValue[id] = val;
+		var value = configValues[id];
 
-		drawValue(ctxInfoValues, id);
-		config.animation ? animate(id) : this.draw(id);
+		value.value = val;
+		val = constrain(val, value.minValue, value.maxValue);
+		value.fromValue = config.animation ? value.toValue : val;
+		value.toValue = val;
 
-		return this;
+		drawValue(ctxInfoValues, value);
+		config.animation ? animate(value) : draw(value);
 	}
 	
 	/**
-	 * Sets a new value to gauge and updates the gauge view without any
+	 * Sets a new value to a dial and updates the view without any
 	 * animation (even if configured)
 	 * 
 	 * @param {number}
-	 *            id - the number of the dial
+	 *            id - the id of the value to update
 	 * @param {number}
-	 *            val - the new value to set to the gauge
-	 * @return {Gauge} this - returns self
+	 *            val - the new value to set
 	 */
 	this.setRawValue = function(id, val) {
-		value[id] = val;
-		fromValue[id] = constrain (val, configValues[id].minValue, configValues[id].maxValue);
+		var value = configValues[id];
 
-		drawValue(ctxInfoValues, id);
-		this.draw(id);
+		value.value = val;
+		value.fromValue = constrain(val, value.minValue, value.maxValue);
 
-		return this;
+		drawValue(ctxInfoValues, value);
+		draw(value);
 	}
 
 	/**
-	 * Clears the value of the gauge
+	 * Clears the value of a dial
 	 * 
 	 * @param {number}
-	 *            id - the number of the dial
-	 * @return {Gauge}
+	 *            id - the id of the value to update
 	 */
 	this.clear = function(id) {
-		value[id] = fromValue[id] = toValue[id] = configValues[id].minValue;
-		drawValue(ctxInfoValues, id);
-		this.draw(id);
-		return this;
+		var value = configValues[id];
+
+		value.value = value.fromValue = value.toValue = value.minValue;
+		drawValue(ctxInfoValues, value);
+		draw(value);
 	}
 
 	/**
-	 * Returns the current value been set to the gauge
+	 * Returns the current value been set to a dial
 	 * 
 	 * @param {number}
-	 *            id - the number of the dial
-	 * @return {number} value - current gauge's value
+	 *            id - the id of the value
+	 * @return {number} value - current value
 	 */
 	this.getValue = function(id) {
-		return value[id];
+		var value = configValues[id];
+		return value.value;
 	}
 
 	/**
 	 * Updates the gauge config
 	 * 
 	 * @param {Object}
-	 *            config
-	 * @return {Gauge}
+	 *            config to set
 	 */
 	this.updateConfig = function(config) {
         applyRecursive(this.config, config);
-        baseInit();
-        this.draw();
-        return this;
+        thisbaseInit();
+		drawValue();
+        draw();
     }
 
 	/**
@@ -215,15 +210,40 @@ var Gauge = function(config) {
 		throw Error("Canvas element was not specified when creating the Gauge object!");
 	}
 
-	var ctxDial = [], ctxInfo, ctxInfoValues,
+	var ctxInfo, ctxInfoValues,
 		CW  = config.width,
 		CH  = config.height,
 		CX  = CW / 2,
 		CY  = CH / 2,
-		max = CX < CY ? CX : CY
+		max = CX < CY ? CX : CY,
+		animateFx = {
+			linear : function(p) { return p; },
+			quad   : function(p) { return Math.pow(p, 2); },
+			quint  : function(p) { return Math.pow(p, 5); },
+			cycle  : function(p) { return 1 - Math.sin(Math.acos(p)); },
+			bounce : function(p) {
+				return 1 - (function(p) {
+					for(var a = 0, b = 1; 1; a += b, b /= 2) {
+						if (p >= (7 - 4 * a) / 11) {
+							return -Math.pow((11 - 6 * a - 11 * p) / 4, 2) + Math.pow(b, 2);
+						}
+					}
+				})(1 - p);
+			},
+			elastic : function(p) {
+				return 1 - (function(p) {
+					var x = 1.5;
+					return Math.pow(2, 10 * (p - 1)) * Math.cos(20 * Math.PI * x / 3 * p);
+				})(1 - p);
+			}
+		}
 	;
-	
+
 	function baseInit() {
+		if(typeof config.animation.fn != "function") {
+			config.animation.fn = animateFx[config.animation.fn];
+		}
+		
 		// important. first add all canvas before accessing one !!
 		addCanvas(config.renderTo + "Plate");
 		for (var i = 0; i < config.values.length; i++) {
@@ -235,16 +255,17 @@ var Gauge = function(config) {
 		// now it's safe to look them up
 		var ctxPlate = prepareCanvas(config.renderTo + "Plate", false);
 		for (var i = 0; i < config.values.length; i++) {
-			var id = config.values[i].id;
-			ctxDial[id] = prepareCanvas(id, true);
-			fromValue[id] = value[id] = toValue[id] = config.values[i].minValue;
-			config.values[i].offset = config.start + (config.angle + config.gap) * i / config.values.length;
-			config.values[i].angle = (config.angle - config.gap * (config.values.length - 1)) / config.values.length;
-			config.values[i].range = config.values[i].maxValue - config.values[i].minValue;
-			configValues[config.values[i].id] = config.values[i];
-			if(typeof config.values[i].startValue == "undefined") {
-				config.values[i].startValue = 0;
+			var value = config.values[i];
+			value.position = i;
+			value.ctx = prepareCanvas(value.id, true);
+			value.fromValue = value.value = value.toValue = value.minValue;
+			value.offset = config.start + (config.angle + config.gap) * i / config.values.length;
+			value.angle = (config.angle - config.gap * (config.values.length - 1)) / config.values.length;
+			value.range = value.maxValue - value.minValue;
+			if(typeof value.startValue == "undefined") {
+				value.startValue = 0;
 			}
+			configValues[value.id] = value;
 		}
 		ctxInfo = prepareCanvas(config.renderTo + "Info", true);
 		ctxInfoValues = prepareCanvas(config.renderTo + "InfoValues", true);
@@ -259,6 +280,8 @@ var Gauge = function(config) {
 		drawTitle(ctxInfo);
 		drawUnits(ctxInfo);
 	//	drawValueBox(ctxInfo);
+		
+		draw();
 	}
 
 	// do basic initialization
@@ -301,67 +324,33 @@ var Gauge = function(config) {
 		return context;
 	}
 
-	var animateFx = {
-		linear : function(p) { return p; },
-		quad   : function(p) { return Math.pow(p, 2); },
-		quint  : function(p) { return Math.pow(p, 5); },
-		cycle  : function(p) { return 1 - Math.sin(Math.acos(p)); },
-		bounce : function(p) {
-			return 1 - (function(p) {
-				for(var a = 0, b = 1; 1; a += b, b /= 2) {
-					if (p >= (7 - 4 * a) / 11) {
-						return -Math.pow((11 - 6 * a - 11 * p) / 4, 2) + Math.pow(b, 2);
-					}
-				}
-			})(1 - p);
-		},
-		elastic : function(p) {
-			return 1 - (function(p) {
-				var x = 1.5;
-				return Math.pow(2, 10 * (p - 1)) * Math.cos(20 * Math.PI * x / 3 * p);
-			})(1 - p);
+	function _animate(opts) {
+		var
+			progress = (Date.now() - opts.start) / opts.cfg.duration,
+			value = opts.value,
+			cfg = opts.cfg
+		;
+		
+		if (progress > 1) {
+			progress = 1;
+		}
+
+		value.fromValue = opts.from + (value.toValue - opts.from) * cfg.fn(progress);
+		draw(value);
+
+		if (progress == 1) {
+			clearInterval(value.animateInterval);
 		}
 	}
 
-	var animateInterval = [];
-
-	function _animate(opts) {
-		var start = new Date; 
-
-		animateInterval[opts.id] = setInterval(function() {
-			var
-				timePassed = new Date - start,
-				progress = timePassed / opts.duration;
-
-			if (progress > 1) {
-				progress = 1;
-			}
-
-			var animateFn = typeof opts.delta == "function" ? opts.delta : animateFx[opts.delta];
-			var delta = animateFn(progress);
-			opts.step(delta);
-
-			if (progress == 1) {
-				clearInterval(animateInterval[opts.id]);
-			}
-		}, opts.delay || 10);
-	}
-
-	function animate(id) {
+	function animate(value) {
 		// stop previous animation
-		animateInterval[id] && clearInterval(animateInterval[id]); 
-		var
-			path = (toValue[id] - fromValue[id]),
-			from = fromValue[id],
-			cfg  = config.animation
-		;
-
-		_animate({
-			delay    : cfg.delay,
-			duration : cfg.duration,
-			delta    : cfg.fn,
-			id       : id,
-			step     : function(delta) { fromValue[id] = parseFloat(from) + path * delta; self.draw(id); }
+		value.animateInterval && clearInterval(value.animateInterval); 
+		value.animateInterval = setInterval(_animate, config.animation.delay, {
+			value: value,
+			start: Date.now(),
+			from: value.fromValue,
+			cfg: config.animation
 		});
 	}
 
@@ -370,17 +359,17 @@ var Gauge = function(config) {
 	 * 
 	 * @return {Gauge} this - returns the self Gauge object
 	 */
-	this.draw = function(id) {
+	function draw(value) {
 		// draw all values if no id is passed
-		if(typeof id == "undefined") {
-			for (var i = 0; i < ctxDial.length; i++) {
-				this.draw(ctxDial[i].id);
+		if(typeof value == "undefined") {
+			for (var i = 0; i < configValues.length; i++) {
+				this.draw(configValues[i]);
 			}
 			return;
 		}
 
-		drawNeedle(id);
-		drawArc(id);
+		drawNeedle(value);
+		drawArc(value);
 
 		if (!imready) {
 			self.onready && self.onready();
@@ -703,11 +692,10 @@ var Gauge = function(config) {
 	;
 
 	// draw the gauge needle(s)
-	function drawNeedle(id) {
+	function drawNeedle(value) {
 		var
-			ctx = ctxDial[id],
-			value = configValues[id],
-			from = fromValue[id]
+			ctx = value.ctx,
+			from = value.fromValue
 		;
 
 		// clear the canvas
@@ -721,13 +709,15 @@ var Gauge = function(config) {
 		} else {
 			from = Math.abs(value.minValue) + from;
 		}
-		fromValue[id] = from;
+		value.fromValue = from;
 		ctx.rotate(radians(value.offset + (value.ccw ? value.range - from : from) * value.angle / value.range));
 
-		ctx.shadowOffsetX = 2;
-		ctx.shadowOffsetY = 2;
-		ctx.shadowBlur    = 3;
-		ctx.shadowColor   = dialShadowColor;
+		if (config.glow) {
+			ctx.shadowOffsetX = 2;
+			ctx.shadowOffsetY = 2;
+			ctx.shadowBlur    = 3;
+			ctx.shadowColor   = dialShadowColor;
+		}
 
 		ctx.beginPath();
 		ctx.moveTo(-dialPad2, -dialROut);
@@ -768,61 +758,61 @@ var Gauge = function(config) {
 	var
 		arcR  = max / 100 * 91,
 		arcWidth = max / 100 * 7,
-		arcShadowColor = 'rgba(200, 200, 235, 0.9)',
-		arcStrokeStyle = []
+		arcShadowColor = 'rgba(200, 200, 235, 0.9)'
 	;
 
-	function drawArc(id) {
+	function drawArc(value) {
 		if (!config.drawArc) {
 			return;
 		}
 		
 		var
-			ctx = ctxDial[id],
-			value = configValues[id],
+			ctx = value.ctx,
 			as, ae
 		;
 		
 		if (value.ccw) {
-			as = 90 + value.offset + (value.range - fromValue[id]) * value.angle / value.range;
+			as = 90 + value.offset + (value.range - value.fromValue) * value.angle / value.range;
 			ae = 90 + value.offset + (value.minValue < value.startValue ? value.range - value.startValue + value.minValue : value.range) * value.angle / value.range;
 		} else {
 			as = 90 + value.offset + (value.minValue < value.startValue ? value.startValue - value.minValue : 0) * value.angle / value.range;
-			ae = 90 + value.offset + fromValue[id] * value.angle / value.range;
+			ae = 90 + value.offset + value.fromValue * value.angle / value.range;
 		}
 		
-		if (value.minValue < value.startValue && (fromValue[id] + value.minValue) < value.startValue) {
+		if (value.minValue < value.startValue && (value.fromValue + value.minValue) < value.startValue) {
 			var temp = as;
 			as = ae;
 			ae = temp;
 		}
 
-		ctx.shadowOffsetX = 2;
-		ctx.shadowOffsetY = 2;
-		ctx.shadowBlur    = 10;
-		ctx.shadowColor   = arcShadowColor;
+		if (config.glow) {
+			ctx.shadowOffsetX = 2;
+			ctx.shadowOffsetY = 2;
+			ctx.shadowBlur    = 10;
+			ctx.shadowColor   = arcShadowColor;
+		}
 
 		ctx.beginPath();
 		ctx.arc(0, 0, arcR, radians(as), radians(ae), false);
 		ctx.lineWidth = arcWidth;
 
 		
-		if (!arcStrokeStyle[id]) {
+		if (!value.arcStrokeStyle) {
 			var
 				range = value.majorTicks.length - 1,
 				p1 = rpoint(arcR, radians(value.offset)),
 				p2 = rpoint(arcR, radians(value.offset + value.angle))
 			;
-			arcStrokeStyle[id] = ctx.createLinearGradient(p1.x, p1.y, p2.x, p2.y);
+			value.arcStrokeStyle = ctx.createLinearGradient(p1.x, p1.y, p2.x, p2.y);
 			for (var i = 0; i < value.highlights.length; i++) {
 				var
 					hlt = value.highlights[i],
 					range = (value.minValue < 0 ? value.maxValue : value.maxValue - value.minValue)
 				;
-				arcStrokeStyle[id].addColorStop(constrain((value.ccw ? value.maxValue - hlt.to : hlt.to - value.minValue) / range, 0, 1), hlt.color);  
+				value.arcStrokeStyle.addColorStop(constrain((value.ccw ? value.maxValue - hlt.to : hlt.to - value.minValue) / range, 0, 1), hlt.color);  
 			}
 		}
-		ctx.strokeStyle = arcStrokeStyle[id];
+		ctx.strokeStyle = value.arcStrokeStyle;
 		ctx.stroke();
 	}
 	
@@ -897,50 +887,44 @@ var Gauge = function(config) {
 		}
 	}
 
-	function drawValue(ctx, id) {
-		ctx.save();
-		
+	function drawValue(ctx, value) {
 		var 
 			r = max * 0.45,
 			l = config.values.length,
 			fh = 42 * (max / 200) - (1.6 * (l - 1))
 		;
 
-		for (var v = 0; v < config.values.length; v++) {
-			if (config.values[v].id != id) 
-				continue;
-			
-			ctx.font = fh + "px Led";
-			var
-				cdec = config.values[v].valueFormat['dec'],
-				cint = config.values[v].valueFormat['int'],
-				text = padValue(value[id], cint, cdec),
-				y = r * (v - (l - 1) / 2) * (0.2 + 1 / l) + fh * 0.55;
-				x = 0
-			;
-			ctx.clearRect(ctx.canvas.width / -2, y - max / 5, ctx.canvas.width, max / 4.5);
+		ctx.save();
+		ctx.font = fh + "px Led";
+		var
+			cdec = value.valueFormat['dec'],
+			cint = value.valueFormat['int'],
+			text = padValue(value.value, cint, cdec),
+			y = r * (value.position - (l - 1) / 2) * (0.2 + 1 / l) + fh * 0.55;
+			x = 0
+		;
+		ctx.clearRect(ctx.canvas.width / -2, y - max / 5, ctx.canvas.width, max / 4.5);
+
+		ctx.save();
+
+		ctx.shadowOffsetX = 0.004 * max;
+		ctx.shadowOffsetY = 0.004 * max;
+		ctx.shadowBlur    = 0.012 * max;
+		ctx.shadowColor   = 'rgba(0, 0, 0, 0.3)';
 	
-			ctx.save();
-	
-			ctx.shadowOffsetX = 0.004 * max;
-			ctx.shadowOffsetY = 0.004 * max;
-			ctx.shadowBlur    = 0.012 * max;
-			ctx.shadowColor   = 'rgba(0, 0, 0, 0.3)';
-	
-//			ctx.fillStyle = "#444";
-			ctx.fillStyle = "#eeb";
-			ctx.textAlign = "center";
-			ctx.fillText(text, -x, y);
-	
-			ctx.restore();
-		}
+//		ctx.fillStyle = "#444";
+		ctx.fillStyle = "#eeb";
+		ctx.textAlign = "center";
+		ctx.fillText(text, -x, y);
+
+		ctx.restore();
 	}
 
+	function constrain(val,low,high) {
+		return (val < low ? low : (val > high ? high : val));
+	}
 }
 
-function constrain(val,low,high) {
-	return (val < low ? low : (val > high ? high : val));
-}
 
 // initialize (load font by adding style to the head and temporarely adding a
 // div which refers to the font
