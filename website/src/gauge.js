@@ -47,7 +47,7 @@ var Gauge = function(config) {
 		gap         : 30,
 		glow        : true,
 		drawArc     : true,
-		drawHighlights: true,
+		drawHighlights: false,
 		colors      : {
 			plate      : '#fff',
 			majorTicks : '#444',
@@ -809,7 +809,7 @@ var Gauge = function(config) {
 					hlt = value.highlights[i],
 					range = (value.minValue < 0 ? value.maxValue : value.maxValue - value.minValue)
 				;
-				value.arcStrokeStyle.addColorStop(constrain((value.ccw ? value.maxValue - hlt.to : hlt.to - value.minValue) / range, 0, 1), hlt.color);  
+				value.arcStrokeStyle.addColorStop(constrain((value.ccw ? value.maxValue - (hlt.to + hlt.from)/2 : (hlt.to + hlt.from)/2 - value.minValue) / range, 0, 1), hlt.color);  
 			}
 		}
 		ctx.strokeStyle = value.arcStrokeStyle;

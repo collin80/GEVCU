@@ -56,8 +56,8 @@ function generateGauges(config) {
 				majorTicks  : rangeThrottle.ticks,
 				minorTicks  : 2,
 				highlights  : [
-		   			{ from : -100,   to : 0, color : 'rgba(0, 255, 0, .65)' },
-					{ from : 0,   to : 100, color : 'rgba(0, 180, 255, .75)' }
+		   			{ from : rangeThrottle.min,   to : 0, color : 'rgba(0, 255, 0, .65)' },
+					{ from : 0,   to : rangeThrottle.max, color : 'rgba(0, 180, 255, .75)' }
 		   		]
 			},
 			{
@@ -260,13 +260,16 @@ function generateGauges(config) {
 				units       : 'V',
 				minValue    : rangeChgACV.min,
 				maxValue    : rangeChgACV.max,
+				startValue  : config.chargerInputVoltageRange[1],
 				valueFormat : { "int" : 3, "dec" : 1 },
 				majorTicks  : rangeChgACV.ticks,
 				minorTicks  : 2,
 				highlights  : [
-				   	{ from : rangeChgACV.min, to : config.chargerInputVoltageRange[1] - 10, color : 'rgba(255, 255,  0, .75)' },
-					{ from : config.chargerInputVoltageRange[1] - 10, to : config.chargerInputVoltageRange[1] + 10, color : 'rgba(0, 255,  0, .65)' },
-					{ from : config.chargerInputVoltageRange[1] + 10, to : rangeChgACV.max, color : 'rgba(255, 255, 0, .75)' }
+				   	{ from : rangeChgACV.min, to : config.chargerInputVoltageRange[0], color : 'rgba(255, 0,  0, .75)' },
+				   	{ from : config.chargerInputVoltageRange[0], to : config.chargerInputVoltageRange[1] - 5, color : 'rgba(255, 255,  0, .75)' },
+					{ from : config.chargerInputVoltageRange[1] - 5, to : config.chargerInputVoltageRange[1] + 5, color : 'rgba(0, 255,  0, .65)' },
+					{ from : config.chargerInputVoltageRange[1] + 5, to : config.chargerInputVoltageRange[2], color : 'rgba(255, 255,  0, .75)' },
+					{ from : config.chargerInputVoltageRange[2], to : rangeChgACV.max, color : 'rgba(255, 0, 0, .75)' }
 		   		]
 			},
 			{
