@@ -28,37 +28,44 @@ function calcRange(low, high, factor) {
 }
 
 function generateGauges(config) {
-	var rangeThrottle = calcRange(-100,100,2.5);
-	
-	var j = 0;
-	var ticksEnergy = new Array();
-	var intervalEnergy = Math.round((config.energyRange[2] - config.energyRange[1]) / 2);
-	for (i = config.energyRange[0] ; i <= (config.energyRange[2] + 5); i += 5) {
-		ticksEnergy[j++] = i;
-	} 
-	var rangeEnergy = calcRange(config.energyRange[0], config.energyRange[2], 3);
-	var rangeMechanicalPower = calcRange(config.powerRange[0], config.powerRange[1], 3);
+	var intervalBatteryVoltageLow = Math.round((config.batteryRangeLow[2] - config.batteryRangeLow[1]) / 2);
+	var intervalBatteryVoltageHigh = Math.round((config.batteryRangeHigh[2] - config.batteryRangeHigh[1]) / 2);
+	var rangeBatteryVoltage = calcRange(config.batteryRangeLow[0] - intervalBatteryVoltageLow, config.batteryRangeHigh[2] + intervalBatteryVoltageHigh, 3);
+	var batteryVoltageHighlights = [
+		{ from : rangeBatteryVoltage.min, to : config.batteryRangeLow[0], color : 'rgba(255, 0, 0, .75)' },
+		{ from : config.batteryRangeLow[0], to : config.batteryRangeLow[1], color : 'rgba(255, 127, 0, .75)' },
+		{ from : config.batteryRangeLow[1], to : config.batteryRangeLow[2], color : 'rgba(255, 220, 0, .75)' },
+		{ from : config.batteryRangeLow[2], to : config.batteryRangeLow[2] + intervalBatteryVoltageLow, color : 'rgba(180, 255, 0, .75)' },
+		{ from : config.batteryRangeLow[2] + intervalBatteryVoltageLow, to : config.batteryRangeHigh[0], color : 'rgba(0, 255,  0, .65)' },
+		{ from : config.batteryRangeHigh[0], to : config.batteryRangeHigh[0] + intervalBatteryVoltageHigh, color : 'rgba(180, 255, 0, .75)' },
+		{ from : config.batteryRangeHigh[0] + intervalBatteryVoltageHigh, to : config.batteryRangeHigh[1], color : 'rgba(255, 220, 0, .75)' },
+		{ from : config.batteryRangeHigh[1], to : config.batteryRangeHigh[2], color : 'rgba(255, 127, 0, .75)' },
+		{ from : config.batteryRangeHigh[2], to : rangeBatteryVoltage.max, color :  'rgba(255, 0, 0, .75)'}
+	];
 
-	var powerGauge = new Gauge({
-		renderTo    : 'powerGauge',
+	var rangeCurrent = calcRange(config.currentRange[0], config.currentRange[1], 3);
+	
+	var intervalEnergy = Math.round((config.energyRange[2] - config.energyRange[1]) / 2);
+	var rangeEnergy = calcRange(config.energyRange[0], config.energyRange[2], 2);
+
+	var dcGauge = new Gauge({
+		renderTo    : 'dcGauge',
 		width       : 280,
 		height      : 280,
 		gap         : 15,
 		colors      : gaugeColors,
 		values      : [
 			{
-				id          : 'throttleGaugeValue',
-				title       : "Throttle",
-				units       : '%',
-				minValue    : rangeThrottle.min,
-				maxValue    : rangeThrottle.max,
+				id          : 'dcVoltageGaugeValue',
+				title       : "DC Voltage",
+				units       : 'Vdc',
+				minValue    : rangeBatteryVoltage.min,
+				maxValue    : rangeBatteryVoltage.max,
+				startValue  : (config.batteryRangeLow[2] + intervalBatteryVoltageLow + config.batteryRangeHigh[0]) / 2,
 				valueFormat : { "int" : 3, "dec" : 1 },
-				majorTicks  : rangeThrottle.ticks,
-				minorTicks  : 2,
-				highlights  : [
-		   			{ from : rangeThrottle.min,   to : 0, color : 'rgba(0, 255, 0, .65)' },
-					{ from : 0,   to : rangeThrottle.max, color : 'rgba(0, 180, 255, .75)' }
-		   		]
+				majorTicks  : rangeBatteryVoltage.ticks,
+				minorTicks  : 5,
+				highlights  : batteryVoltageHighlights
 			},
 			{
 				id          : 'energyConsumptionGaugeValue',
@@ -68,7 +75,7 @@ function generateGauges(config) {
 				maxValue    : rangeEnergy.max,
 				ccw         : true,
 				valueFormat : { "int" : 2, "dec" : 1 },
-				majorTicks  : ticksEnergy,
+				majorTicks  : rangeEnergy.ticks,
 				minorTicks  : 5,
 				highlights  : [
 					{ from : rangeEnergy.min, to : config.energyRange[1] - intervalEnergy, color : 'rgba(0, 255,  0, .65)' },
@@ -79,20 +86,21 @@ function generateGauges(config) {
 		   		]
 			},
 			{
-				id          : 'mechanicalPowerGaugeValue',
-				title       : "Power",
-				units       : 'kW',
-				minValue    : rangeMechanicalPower.min,
-				maxValue    : rangeMechanicalPower.max,
-				valueFormat : { "int" : 3, "dec" : 0 },
-				majorTicks  : rangeMechanicalPower.ticks,
+				id          : 'dcCurrentGaugeValue',
+				title       : "DC Current",
+				units       : 'Amps',
+				minValue    : rangeCurrent.min,
+				maxValue    : rangeCurrent.max,
+				ccw         : true,
+				valueFormat : { "int" : 3, "dec" : 1 },
+				majorTicks  : rangeCurrent.ticks,
 				minorTicks  : 5,
 				highlights  : [
-		  			{ from : rangeMechanicalPower.min, to : config.powerRange[0] * .9, color : 'rgba(255, 255, 0, .75)' },
-					{ from : config.powerRange[0] *.9, to : 0, color : 'rgba(0, 255, 0, .65)' },
-					{ from : 0, to : config.powerRange[1] * .9, color : 'rgba(0, 180, 255, .75)' },
-					{ from : config.powerRange[1] * .9, to : rangeMechanicalPower.max, color : 'rgba(180, 180, 255, .75)' }
-		   		]
+		   			{ from : rangeCurrent.min, to : config.currentRange[0] * .9, color : 'rgba(255, 255, 0, .75)' },
+					{ from : config.currentRange[0] *.9, to : 0, color : 'rgba(0, 255, 0, .65)' },
+					{ from : 0, to : config.currentRange[1] * .9, color : 'rgba(0, 180,  255, .75)' },
+					{ from : config.currentRange[1] * .9, to : rangeCurrent.max, color : 'rgba(180, 180, 255, .75)' }
+				]
 			}
 		],
 	});
@@ -101,8 +109,8 @@ function generateGauges(config) {
 	var rangeTorque = calcRange(config.torqueRange[0], config.torqueRange[1],2);
 	var motorGauge = new Gauge({
 		renderTo    : 'motorGauge',
-		width       : 350,
-		height      : 350,
+		width       : 400,
+		height      : 400,
 		colors      : gaugeColors,
 		values      : [
 			{
@@ -145,8 +153,8 @@ function generateGauges(config) {
 	var rangeController = calcRange(config.controllerTempRange[0], config.controllerTempRange[2] + intervalController, 2);
 	var temperatureGauge = new Gauge({
 		renderTo    : 'temperatureGauge',
-		width       : 200,
-		height      : 200,
+		width       : 280,
+		height      : 280,
 		colors      : gaugeColors,
 		values      : [
 			{
@@ -188,60 +196,49 @@ function generateGauges(config) {
 		],
 	});
 
-	var intervalBatteryVoltageLow = Math.round((config.batteryRangeLow[2] - config.batteryRangeLow[1]) / 2);
-	var intervalBatteryVoltageHigh = Math.round((config.batteryRangeHigh[2] - config.batteryRangeHigh[1]) / 2);
-	var rangeBatteryVoltage = calcRange(config.batteryRangeLow[0] - intervalBatteryVoltageLow, config.batteryRangeHigh[2] + intervalBatteryVoltageHigh, 2);
-	var batteryVoltageHighlights = [
-		{ from : rangeBatteryVoltage.min, to : config.batteryRangeLow[0], color : 'rgba(255, 0, 0, .75)' },
-		{ from : config.batteryRangeLow[0], to : config.batteryRangeLow[1], color : 'rgba(255, 127, 0, .75)' },
-		{ from : config.batteryRangeLow[1], to : config.batteryRangeLow[2], color : 'rgba(255, 220, 0, .75)' },
-		{ from : config.batteryRangeLow[2], to : config.batteryRangeLow[2] + intervalBatteryVoltageLow, color : 'rgba(180, 255, 0, .75)' },
-		{ from : config.batteryRangeLow[2] + intervalBatteryVoltageLow, to : config.batteryRangeHigh[0], color : 'rgba(0, 255,  0, .65)' },
-		{ from : config.batteryRangeHigh[0], to : config.batteryRangeHigh[0] + intervalBatteryVoltageHigh, color : 'rgba(180, 255, 0, .75)' },
-		{ from : config.batteryRangeHigh[0] + intervalBatteryVoltageHigh, to : config.batteryRangeHigh[1], color : 'rgba(255, 220, 0, .75)' },
-		{ from : config.batteryRangeHigh[1], to : config.batteryRangeHigh[2], color : 'rgba(255, 127, 0, .75)' },
-		{ from : config.batteryRangeHigh[2], to : rangeBatteryVoltage.max, color :  'rgba(255, 0, 0, .75)'}
-	];
-	var rangeCurrent = calcRange(config.currentRange[0], config.currentRange[1], 2);
-	var dcGauge = new Gauge({
-		renderTo    : 'dcGauge',
+/*
+	var rangeThrottle = calcRange(-100,100,2.5);
+	var rangeMechanicalPower = calcRange(config.powerRange[0], config.powerRange[1], 3);
+	var powerGauge = new Gauge({
+		renderTo    : 'powerGauge',
 		width       : 200,
 		height      : 200,
 		colors      : gaugeColors,
 		values      : [
 			{
-				id          : 'dcVoltageGaugeValue',
-				title       : "DC Voltage",
-				units       : 'Vdc',
-				minValue    : rangeBatteryVoltage.min,
-				maxValue    : rangeBatteryVoltage.max,
-				startValue  : (config.batteryRangeLow[2] + intervalBatteryVoltageLow + config.batteryRangeHigh[0]) / 2,
+				id          : 'throttleGaugeValue',
+				title       : "Throttle",
+				units       : '%',
+				minValue    : rangeThrottle.min,
+				maxValue    : rangeThrottle.max,
 				valueFormat : { "int" : 3, "dec" : 1 },
-				majorTicks  : rangeBatteryVoltage.ticks,
-				minorTicks  : 5,
-				highlights  : batteryVoltageHighlights
+				majorTicks  : rangeThrottle.ticks,
+				minorTicks  : 2,
+				highlights  : [
+		   			{ from : rangeThrottle.min,   to : 0, color : 'rgba(0, 255, 0, .65)' },
+					{ from : 0,   to : rangeThrottle.max, color : 'rgba(0, 180, 255, .75)' }
+		   		]
 			},
 			{
-				id          : 'dcCurrentGaugeValue',
-				title       : "DC Current",
-				units       : 'Amps',
-				minValue    : rangeCurrent.min,
-				maxValue    : rangeCurrent.max,
-				ccw         : true,
-				valueFormat : { "int" : 3, "dec" : 1 },
-				majorTicks  : rangeCurrent.ticks,
+				id          : 'mechanicalPowerGaugeValue',
+				title       : "Power",
+				units       : 'kW',
+				minValue    : rangeMechanicalPower.min,
+				maxValue    : rangeMechanicalPower.max,
+				valueFormat : { "int" : 3, "dec" : 0 },
+				majorTicks  : rangeMechanicalPower.ticks,
 				minorTicks  : 5,
 				highlights  : [
-		   			{ from : rangeCurrent.min, to : config.currentRange[0] * .9, color : 'rgba(255, 255, 0, .75)' },
-					{ from : config.currentRange[0] *.9, to : 0, color : 'rgba(0, 255, 0, .65)' },
-					{ from : 0, to : config.currentRange[1] * .9, color : 'rgba(0, 180,  255, .75)' },
-					{ from : config.currentRange[1] * .9, to : rangeCurrent.max, color : 'rgba(180, 180, 255, .75)' }
-				]
+		  			{ from : rangeMechanicalPower.min, to : config.powerRange[0] * .9, color : 'rgba(255, 255, 0, .75)' },
+					{ from : config.powerRange[0] *.9, to : 0, color : 'rgba(0, 255, 0, .65)' },
+					{ from : 0, to : config.powerRange[1] * .9, color : 'rgba(0, 180, 255, .75)' },
+					{ from : config.powerRange[1] * .9, to : rangeMechanicalPower.max, color : 'rgba(180, 180, 255, .75)' }
+		   		]
 			}
 		],
 	});
 
-
+/*
 	
 	var rangeChgACV = calcRange(config.chargerInputVoltageRange[0], config.chargerInputVoltageRange[2], 4);
 	var rangeChgACA = calcRange(config.chargerInputCurrentRange[0], config.chargerInputCurrentRange[1], 4);
