@@ -90,88 +90,6 @@ var Gauge = function(config) {
 	;
 
 	/**
-	 * ********* Public methods - to be called from the application **********
-	 */
-	
-	/**
-	 * Sets a new value to a dial and updates the view
-	 * 
-	 * @param {number}
-	 *            id - the id of the value to update
-	 * @param {number}
-	 *            val - the new value to set
-	 */
-	this.setValue = function(id, val) {
-		var value = configValues[id];
-
-		value.value = val;
-		val = constrain(val, value.minValue, value.maxValue);
-		value.fromValue = config.animation ? value.toValue : val;
-		value.toValue = val;
-
-		drawValue(ctxInfoValues, value);
-		config.animation ? animate(value) : draw(value);
-	}
-	
-	/**
-	 * Sets a new value to a dial and updates the view without any
-	 * animation (even if configured)
-	 * 
-	 * @param {number}
-	 *            id - the id of the value to update
-	 * @param {number}
-	 *            val - the new value to set
-	 */
-	this.setRawValue = function(id, val) {
-		var value = configValues[id];
-
-		value.value = val;
-		value.fromValue = constrain(val, value.minValue, value.maxValue);
-
-		drawValue(ctxInfoValues, value);
-		draw(value);
-	}
-
-	/**
-	 * Clears the value of a dial
-	 * 
-	 * @param {number}
-	 *            id - the id of the value to update
-	 */
-	this.clear = function(id) {
-		var value = configValues[id];
-
-		value.value = value.fromValue = value.toValue = value.minValue;
-		drawValue(ctxInfoValues, value);
-		draw(value);
-	}
-
-	/**
-	 * Returns the current value been set to a dial
-	 * 
-	 * @param {number}
-	 *            id - the id of the value
-	 * @return {number} value - current value
-	 */
-	this.getValue = function(id) {
-		var value = configValues[id];
-		return value.value;
-	}
-
-	/**
-	 * Updates the gauge config
-	 * 
-	 * @param {Object}
-	 *            config to set
-	 */
-	this.updateConfig = function(config) {
-        applyRecursive(this.config, config);
-        thisbaseInit();
-		drawValue();
-        draw();
-    }
-
-	/**
 	 * Ready event for the gauge. Use it whenever you initialize the gauge to be
 	 * assured it was fully drawn before you start the update on it
 	 * 
@@ -179,10 +97,6 @@ var Gauge = function(config) {
 	 */
 	this.onready = function() {}
 	
-	/**
-	 * ******* Private methods - to be used by the gauges internally ********
-	 */
-		
 	/**
 	 * Recursively copy the values of one object to another.
 	 * 
@@ -215,35 +129,10 @@ var Gauge = function(config) {
 		CH  = config.height,
 		CX  = CW / 2,
 		CY  = CH / 2,
-		max = CX < CY ? CX : CY,
-		animateFx = {
-			linear : function(p) { return p; },
-			quad   : function(p) { return Math.pow(p, 2); },
-			quint  : function(p) { return Math.pow(p, 5); },
-			cycle  : function(p) { return 1 - Math.sin(Math.acos(p)); },
-			bounce : function(p) {
-				return 1 - (function(p) {
-					for(var a = 0, b = 1; 1; a += b, b /= 2) {
-						if (p >= (7 - 4 * a) / 11) {
-							return -Math.pow((11 - 6 * a - 11 * p) / 4, 2) + Math.pow(b, 2);
-						}
-					}
-				})(1 - p);
-			},
-			elastic : function(p) {
-				return 1 - (function(p) {
-					var x = 1.5;
-					return Math.pow(2, 10 * (p - 1)) * Math.cos(20 * Math.PI * x / 3 * p);
-				})(1 - p);
-			}
-		}
+		max = CX < CY ? CX : CY
 	;
 
 	function baseInit() {
-		if(typeof config.animation.fn != "function") {
-			config.animation.fn = animateFx[config.animation.fn];
-		}
-		
 		// important. first add all canvas before accessing one !!
 		addCanvas(config.renderTo + "Plate");
 		for (var i = 0; i < config.values.length; i++) {
@@ -266,6 +155,7 @@ var Gauge = function(config) {
 				value.startValue = 0;
 			}
 			configValues[value.id] = value;
+			Gauge.Collection[value.id] = self;
 		}
 		ctxInfo = prepareCanvas(config.renderTo + "Info", true);
 		ctxInfoValues = prepareCanvas(config.renderTo + "InfoValues", true);
@@ -296,7 +186,6 @@ var Gauge = function(config) {
 	function addCanvas(id) {
 		var container = config.renderTo.tagName ? config.renderTo : document.getElementById(config.renderTo);
 		container.innerHTML += "<canvas id='" + id + "'></canvas>";
-		Gauge.Collection[id] = self;
 	}
 
 	/**
@@ -324,52 +213,22 @@ var Gauge = function(config) {
 		return context;
 	}
 
-	function _animate(opts) {
-		var
-			progress = (Date.now() - opts.start) / opts.cfg.duration,
-			value = opts.value,
-			cfg = opts.cfg
-		;
-		
-		if (progress > 1) {
-			progress = 1;
-		}
-
-		value.fromValue = opts.from + (value.toValue - opts.from) * cfg.fn(progress);
-		draw(value);
-
-		if (progress == 1) {
-			clearInterval(value.animateInterval);
-		}
-	}
-
-	function animate(value) {
-		// stop previous animation
-		value.animateInterval && clearInterval(value.animateInterval); 
-		value.animateInterval = setInterval(_animate, config.animation.delay, {
-			value: value,
-			start: Date.now(),
-			from: value.fromValue,
-			cfg: config.animation
-		});
-	}
-
 	/**
 	 * Draws the variable parts of the gauge.
 	 * 
 	 * @return {Gauge} this - returns the self Gauge object
 	 */
-	function draw(value) {
+	function draw(id, value) {
 		// draw all values if no id is passed
 		if(typeof value == "undefined") {
 			for (var i = 0; i < configValues.length; i++) {
-				this.draw(configValues[i]);
+				this.draw(configValues[i].id, configValues[i].minValue);
 			}
 			return;
 		}
 
-		drawNeedle(value);
-		drawArc(value);
+		drawNeedle(id, value);
+		drawArc(id, value);
 
 		if (!imready) {
 			self.onready && self.onready();
@@ -692,25 +551,14 @@ var Gauge = function(config) {
 	;
 
 	// draw the gauge needle(s)
-	function drawNeedle(value) {
+	this.drawNeedle = function(id, angle) {
 		var
-			ctx = value.ctx,
-			from = value.fromValue
+			ctx = configValues[id].ctx
 		;
-
 		// clear the canvas
 		ctx.clearRect(-CX, -CY, CW, CH);
 		ctx.save();
-		
-		if (from < 0) {
-			from = Math.abs(value.minValue - from);
-		} else if (value.minValue > 0) {
-			from -= value.minValue;
-		} else {
-			from = Math.abs(value.minValue) + from;
-		}
-		value.fromValue = from;
-		ctx.rotate(radians(value.offset + (value.ccw ? value.range - from : from) * value.angle / value.range));
+		ctx.rotate(angle);
 
 		if (config.glow) {
 			ctx.shadowOffsetX = 2;
@@ -761,30 +609,16 @@ var Gauge = function(config) {
 		arcShadowColor = 'rgba(200, 200, 235, 0.9)'
 	;
 
-	function drawArc(value) {
+	this.drawArc = function(id, angleStart, angleEnd) {
 		if (!config.drawArc) {
 			return;
 		}
 		
 		var
-			ctx = value.ctx,
-			as, ae
+			value = configValues[id],
+			ctx = value.ctx
 		;
 		
-		if (value.ccw) {
-			as = 90 + value.offset + (value.range - value.fromValue) * value.angle / value.range;
-			ae = 90 + value.offset + (value.minValue < value.startValue ? value.range - value.startValue + value.minValue : value.range) * value.angle / value.range;
-		} else {
-			as = 90 + value.offset + (value.minValue < value.startValue ? value.startValue - value.minValue : 0) * value.angle / value.range;
-			ae = 90 + value.offset + value.fromValue * value.angle / value.range;
-		}
-		
-		if (value.minValue < value.startValue && (value.fromValue + value.minValue) < value.startValue) {
-			var temp = as;
-			as = ae;
-			ae = temp;
-		}
-
 		if (config.glow) {
 			ctx.shadowOffsetX = 2;
 			ctx.shadowOffsetY = 2;
@@ -793,10 +627,9 @@ var Gauge = function(config) {
 		}
 
 		ctx.beginPath();
-		ctx.arc(0, 0, arcR, radians(as), radians(ae), false);
+		ctx.arc(0, 0, arcR, angleStart, angleEnd, false);
 		ctx.lineWidth = arcWidth;
 
-		
 		if (!value.arcStrokeStyle) {
 			var
 				range = value.majorTicks.length - 1,
@@ -887,8 +720,10 @@ var Gauge = function(config) {
 		}
 	}
 
-	function drawValue(ctx, value) {
-		var 
+	this.drawValue = function(id, val) {
+		var
+			value = configValues[id],
+			ctx = ctxInfoValues,
 			r = max * 0.45,
 			l = config.values.length,
 			fh = 42 * (max / 200) - (1.6 * (l - 1))
@@ -899,7 +734,7 @@ var Gauge = function(config) {
 		var
 			cdec = value.valueFormat['dec'],
 			cint = value.valueFormat['int'],
-			text = padValue(value.value, cint, cdec),
+			text = padValue(val, cint, cdec),
 			y = r * (value.position - (l - 1) / 2) * (0.2 + 1 / l) + fh * 0.55;
 			x = 0
 		;
@@ -913,7 +748,7 @@ var Gauge = function(config) {
 		ctx.shadowColor   = 'rgba(0, 0, 0, 0.3)';
 	
 //		ctx.fillStyle = "#444";
-		ctx.fillStyle = "#eeb";
+		ctx.fillStyle = "#adf";
 		ctx.textAlign = "center";
 		ctx.fillText(text, -x, y);
 

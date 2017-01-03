@@ -50,8 +50,8 @@ function generateGauges(config) {
 
 	var dcGauge = new Gauge({
 		renderTo    : 'dcGauge',
-		width       : 280,
-		height      : 280,
+		width       : 350,
+		height      : 350,
 		gap         : 15,
 		colors      : gaugeColors,
 		values      : [
@@ -109,8 +109,8 @@ function generateGauges(config) {
 	var rangeTorque = calcRange(config.torqueRange[0], config.torqueRange[1],2);
 	var motorGauge = new Gauge({
 		renderTo    : 'motorGauge',
-		width       : 400,
-		height      : 400,
+		width       : 450,
+		height      : 450,
 		colors      : gaugeColors,
 		values      : [
 			{
@@ -153,8 +153,8 @@ function generateGauges(config) {
 	var rangeController = calcRange(config.controllerTempRange[0], config.controllerTempRange[2] + intervalController, 2);
 	var temperatureGauge = new Gauge({
 		renderTo    : 'temperatureGauge',
-		width       : 280,
-		height      : 280,
+		width       : 350,
+		height      : 350,
 		colors      : gaugeColors,
 		values      : [
 			{

@@ -1,7 +1,7 @@
-var socketConnection = null;
-
 var canvas; // global throttle canvas object
 var nodecache = new Array(); // a cache with references to nodes - for faster location than DOM traversal
+var worker; // a background worker to receive and process data
+
 
 // resize the canvas to fill browser window dynamically
 window.addEventListener('resize', resizeThrottleCanvas, false);
@@ -40,14 +40,15 @@ function showTab(pageId) {
 		resizeThrottleCanvas();
 	}
 
-	// on the dashboard page, open a WebSocket to receive updates,
-	// otherwise close the connection
-	closeWebSocket();
-	
 	if (pageId == 'dashboard') {
 		alertify.set('notifier','position', 'top-right');
-		openWebSocket();
+		// add an event listener so sounds can get loaded on mobile devices after user interaction
+		window.addEventListener('keydown', removeBehaviorsRestrictions);
+		window.addEventListener('mousedown', removeBehaviorsRestrictions);
+		window.addEventListener('touchstart', removeBehaviorsRestrictions);
+		startWorker();
 	} else {
+		stopWorker();
 		loadData(pageId);
 	}
 }
@@ -62,51 +63,79 @@ function removeBehaviorsRestrictions() {
 	window.removeEventListener('touchstart', removeBehaviorsRestrictions);
 }
 
-function openWebSocket() {
-
-	// add an event listener so sounds can get loaded on mobile devices after user interaction
-	window.addEventListener('keydown', removeBehaviorsRestrictions);
-	window.addEventListener('mousedown', removeBehaviorsRestrictions);
-	window.addEventListener('touchstart', removeBehaviorsRestrictions);
-
-	socketConnection = new WebSocket("ws://" + location.hostname + ":2000");
-
-	// Log errors and try to reconnect
-	socketConnection.onerror = function(error) {
-		console.log('WebSocket Error ' + error);
-		closeWebSocket();
-		openWebSocket();
-	};
-	// process messages from the server
-	socketConnection.onmessage = function(message) {
-		var data = JSON.parse(message.data);
-		for (name in data) {
-			setNodeValue(name, data[name]);
-			if (name == 'systemState') {
-				updateSystemState(data[name]);
-			}
-			if (name == 'logMessage') {
-				var message = data[name].message;
-				var level = data[name].level;
-				if (level == 'ERROR') {
-					alertify.error(message, 0);
-					soundError.play();
-				} else if (level == 'WARNING') {
-					alertify.warning(message, 60);
-					soundWarn.play();
-				} else {
-					alertify.success(message, 30);
-					soundInfo.play();
-				}
+function initWorker() {
+	for (var name in Gauge.Collection) {
+		if (name != "get") {
+			var config = Gauge.Collection.get(name).config;
+			
+			for (var i = 0; i < config.values.length; i++) {
+				worker.postMessage({cmd: 'init', config: {
+					id: config.values[i].id,
+					minValue: config.values[i].minValue,
+					maxValue: config.values[i].maxValue,
+					startValue: config.values[i].startValue,
+					offset: config.values[i].offset,
+					angle: config.values[i].angle,
+					ccw: config.values[i].ccw,
+					range: config.values[i].range,
+					animation: config.animation,
+				}});
 			}
 		}
-	};
+	}
 }
 
-function closeWebSocket() {
-	if (socketConnection) {
-		socketConnection.close();
-		socketConnection = null;
+function startWorker() {
+	if(typeof(worker) == "undefined") {
+		worker = new PseudoWorker();
+//		worker = new Worker("worker/handler.js");
+		worker.onmessage = this.handleWorkerMessage;
+	}
+	worker.postMessage({cmd: 'start'});
+}
+
+function stopWorker() {
+	if(typeof(worker) != "undefined") {
+		worker.postMessage({cmd: 'stop'});
+	}
+}
+
+this.handleWorkerMessage = function(event) {
+	var data = event.data;
+	if (data.dial) {
+		var dial = data.dial;
+		var gauge = Gauge.Collection.get(dial.id);
+		if (gauge) {
+			if (dial.angle) {
+				gauge.drawNeedle(dial.id, dial.angle);
+				gauge.drawArc(dial.id, dial.arcStart, dial.arcEnd);
+			} else if (dial.text) {
+				gauge.drawValue(dial.id, dial.text);
+			}
+		}
+	} else if (data.node) {
+		var name = data.node.name;
+		var value = data.node.value;
+
+		setNodeValue(name, value);
+
+		if (name == 'systemState') {
+			updateSystemState(value);
+		}
+		if (name == 'logMessage') {
+			var message = value.message;
+			var level = value.level;
+			if (level == 'ERROR') {
+				alertify.error(message, 0);
+				soundError.play();
+			} else if (level == 'WARNING') {
+				alertify.warning(message, 60);
+				soundWarn.play();
+			} else {
+				alertify.success(message, 30);
+				soundInfo.play();
+			}
+		}
 	}
 }
 
@@ -124,8 +153,9 @@ function updateSystemState(state) {
 	}
 }
 
+// send message via handler to websocket
 function sendMsg(message) {
-	socketConnection.send(message + "     ");
+	worker.postMessage({cmd: 'message', message: message + '     '});
 }
 
 // lazy load of page, replaces content of div with id==<pageId> with
@@ -146,9 +176,10 @@ function loadPage(pageId) {
 					if (dashConfig.readyState == 4 && dashConfig.status == 200) {
 						var data = JSON.parse(dashConfig.responseText);
 						generateGauges(data);
+						initWorker();
 					}
 				};
-				dashConfig.open("GET", "dashboard.js", true);
+				dashConfig.open("GET", " config/dashboard.js", true);
 				dashConfig.send();
 			}
 		}
@@ -183,13 +214,6 @@ function getCache(name) {
 }
 
 function setNodeValue(name, value) {
-	// a value of a gauge
-	var target = Gauge.Collection.get(name + 'GaugeValue');
-	if (target) {
-		target.setValue(name + 'GaugeValue', value);
-		return;
-	}
-
 	// a bitfield value for annunciator fields
 	if (name.indexOf('bitfield') != -1) {
 		updateAnnunciatorFields(name, value);
@@ -238,7 +262,7 @@ function loadData(pageId) {
 				}
 			}
 		};
-		xmlhttp.open("GET", pageId + ".js", true);
+		xmlhttp.open("GET", "config/" + pageId + ".js", true);
 		xmlhttp.send();
 	} catch (err) {
 		alert("unable to retrieve data for page " + pageId);
