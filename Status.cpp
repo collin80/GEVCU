@@ -127,7 +127,7 @@ Status::Status()
         temperatureBattery[i] = CFG_NO_TEMPERATURE_DATA;
     }
     temperatureCoolant = CFG_NO_TEMPERATURE_DATA;
-    temperatureHeater = CFG_NO_TEMPERATURE_DATA;
+    heaterTemperature = CFG_NO_TEMPERATURE_DATA;
     temperatureExterior = CFG_NO_TEMPERATURE_DATA;
 
     stateOfCharge = 0;

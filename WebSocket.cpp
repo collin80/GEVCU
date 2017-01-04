@@ -213,16 +213,24 @@ String WebSocket::processData(char *input)
     case OPCODE_CONTINUATION:
         Logger::error("websocket: continuation frames not supported");
         break;
-    case OPCODE_TEXT:
-        //TODO move somewhere else
-        if (strstr(&input[offset], "stopCharge")) {
+    case OPCODE_TEXT: {
+        char *text = input + offset;
+        bool flag = (strstr(text, "true") ? true : false);
+
+        if (strstr(text, "stopCharge")) {
             status.setSystemState(Status::charged);
-        } else if (strstr(&input[offset], "stopEHPS")) {
-        	systemIO.setPowerSteering(false);
-        } else if (strstr(&input[offset], "startEHPS")) {
-        	systemIO.setPowerSteering(true);
+        } else if (strstr(text, "cmdRegen:") && deviceManager.getMotorController() != NULL) {
+            deviceManager.getMotorController()->setEnableRegen(flag);
+        } else if (strstr(text, "cmdCreep:") && deviceManager.getAccelerator() != NULL) {
+            deviceManager.getAccelerator()->setEnableCreep(flag);
+        } else if (strstr(text, "cmdEhps:")) {
+            systemIO.setPowerSteering(flag);
+        } else if (strstr(text, "cmdHeater:")) {
+            systemIO.setEnableHeater(flag);
+            systemIO.setHeaterPump(flag);
         }
         break;
+    }
     case OPCODE_BINARY:
         Logger::error("websocket: binary frames not supported");
         break;
@@ -299,7 +307,7 @@ String WebSocket::generateUpdate()
             processParameter(&paramCache.temperatureBattery[i], status.temperatureBattery[i], Constants::temperatureBattery[i], 10);
         }
         processParameter(&paramCache.temperatureCoolant, status.temperatureCoolant, Constants::temperatureCoolant, 10);
-        processParameter(&paramCache.temperatureHeater, status.temperatureHeater, Constants::temperatureHeater, 10);
+        processParameter(&paramCache.temperatureHeater, status.heaterTemperature, Constants::temperatureHeater, 10);
         processParameter(&paramCache.temperatureExterior, status.temperatureExterior, Constants::temperatureExterior, 10);
     }
 
@@ -324,7 +332,7 @@ String WebSocket::generateLogEntry(char *logLevel, char *deviceName, char *messa
     data = String();
 
     if (!connected) {
-    	return data;
+        return data;
     }
 
     data.concat("{\r\"logMessage\": {\r\"level\": \"");

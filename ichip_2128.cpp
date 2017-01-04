@@ -47,23 +47,22 @@ ICHIPWIFI::ICHIPWIFI() : Device()
 
     commonName = "WIFI (iChip2128)";
 
-    didParamLoad = false;
-    didTCPListener = false;
-
-    tickCounter = 0;
-    ibWritePtr = 0;
-    psWritePtr = 0;
-    psReadPtr = 0;
-    socketListenerHandle = 0;
-    lastSendTime = 0;
-    lastSendSocket = NULL;
-    state = IDLE;
-    remainingSocketRead = -1;
-
     for (int i = 0; i < CFG_WIFI_NUM_SOCKETS; i++) {
         socket[i].handle = -1;
         socket[i].processor = NULL;
     }
+
+    didParamLoad = didTCPListener = false;
+    tickCounter = watchdogCounter = 0;
+    ibWritePtr = psWritePtr = psReadPtr = 0;
+    socketListenerHandle = 0;
+    lastSendTime = timeStarted = 0;
+    lastSendSocket = NULL;
+    state = IDLE;
+    remainingSocketRead = -1;
+
+    pinMode(CFG_WIFI_RESET, OUTPUT);
+    pinMode(CFG_WIFI_ENABLE, OUTPUT);
 }
 
 /**
@@ -72,16 +71,21 @@ ICHIPWIFI::ICHIPWIFI() : Device()
  */
 void ICHIPWIFI::setup()
 {
-    //RESET pin
-    pinMode(42, OUTPUT);
-    digitalWrite(42, HIGH);
+    digitalWrite(CFG_WIFI_RESET, HIGH);
+    digitalWrite(CFG_WIFI_ENABLE, HIGH);
 
     for (int i = 0; i < CFG_WIFI_NUM_SOCKETS; i++) {
         socket[i].handle = -1;
         socket[i].processor = NULL;
     }
 
-    lastSendTime = millis();
+    didParamLoad = didTCPListener = false;
+    tickCounter = watchdogCounter = 0;
+    ibWritePtr = psWritePtr = psReadPtr = 0;
+    socketListenerHandle = 0;
+    lastSendSocket = NULL;
+    remainingSocketRead = -1;
+    lastSendTime = timeStarted = millis();
     state = IDLE;
     ready = true;
     running = true;
@@ -255,6 +259,11 @@ void ICHIPWIFI::sendSocketUpdate()
  */
 void ICHIPWIFI::handleTick()
 {
+    if (watchdogCounter++ > 50) { // after 50 * 200ms no reception, reset ichip
+        Logger::warn(this, "watchdog: no response from ichip");
+        reset();
+    }
+
     if (socketListenerHandle != 0) {
         sendSocketUpdate();
 
@@ -272,11 +281,11 @@ void ICHIPWIFI::handleTick()
             tickCounter = 0;
         }
     } else { // wait a bit for things to settle before doing a thing
-        if (!didParamLoad && millis() > 3000) {
+        if (!didParamLoad && millis() > 3000 + timeStarted) {
             loadParameters();
             didParamLoad = true;
         }
-        if (!didTCPListener && millis() > 5000) {
+        if (!didTCPListener && millis() > 5000 + timeStarted) {
             startSocketListener();
             didTCPListener = true;
         }
@@ -310,7 +319,8 @@ void ICHIPWIFI::handleMessage(uint32_t messageType, void* message)
         break;
 
     case MSG_RESET:
-        factoryDefaults();
+        reset();
+//        factoryDefaults();
         break;
 
     case MSG_LOG:
@@ -335,6 +345,7 @@ void ICHIPWIFI::handleStateChange(Status::SystemState oldState, Status::SystemSt
 {
     Device::handleStateChange(oldState, newState);
     sendSocketUpdate();
+
 }
 
 /**
@@ -406,6 +417,10 @@ void ICHIPWIFI::loop()
             }
             // if we got an I/OK or I/ERROR in the reply then the command is done sending data. So, see if there is a buffered cmd to send.
             if (strstr(incomingBuffer, "I/OK") != NULL || strstr(incomingBuffer, Constants::ichipErrorString) != NULL) {
+                watchdogCounter = 0; // the ichip responds --> it's alive
+                if(strstr(incomingBuffer, Constants::ichipErrorString) != NULL) {
+                    Logger::console("ichip responded with error: '%s', state %d", incomingBuffer, state);
+                }
                 sendBufferedCommand();
             }
             return; // before processing the next line, return to the loop() to allow other devices to process.
@@ -1307,6 +1322,24 @@ void ICHIPWIFI::loadParametersDashboard()
 }
 
 /**
+ * \brief Reset the ichip to overcome a crash
+ *
+ */
+void ICHIPWIFI::reset()
+{
+    tickHandler.detach(this); // stop other activity
+    Logger::info(this, "resetting the ichip");
+
+    // cycle reset pin
+    digitalWrite(CFG_WIFI_RESET, LOW);
+    delay(2); // according to specs 1ms should be sufficient
+    digitalWrite(CFG_WIFI_RESET, HIGH);
+
+    setup();
+}
+
+
+/**
  * \brief Reset to ichip to factory defaults and set-up GEVCU network
  *
  */
@@ -1314,11 +1347,6 @@ void ICHIPWIFI::factoryDefaults() {
     Logger::info(this, "resetting to factory defaults");
     tickHandler.detach(this); // stop other activity
     psReadPtr = psWritePtr = 0; // purge send buffer
-
-    // pinMode(43,OUTPUT);
-    //  digitalWrite(43, HIGH);
-    //  delay(3000);
-    //  digitalWrite(43, LOW);
 
     delay(1000);
     sendCmd("", IDLE); // just in case something was still on the line
@@ -1350,7 +1378,7 @@ void ICHIPWIFI::factoryDefaults() {
     delay(1000);
     sendCmd("WPWD=secret", IDLE);// set the password to update config params
     delay(1000);
-    sendCmd("AWS=3", IDLE);//turn on web server for six concurrent connections
+    sendCmd("AWS=3", IDLE);//turn on web server for 3 concurrent connections
     delay(1000);
     sendCmd("DOWN", IDLE);//cause a reset to allow it to come up with the settings
     delay(5000);// a 5 second delay is required for the chip to come back up ! Otherwise commands will be lost

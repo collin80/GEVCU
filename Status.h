@@ -140,8 +140,10 @@ public:
 
     int16_t temperatureBattery[CFG_NUMBER_BATTERY_TEMPERATURE_SENSORS]; // temperature reported via CAN from external device
     int16_t temperatureCoolant; // temperature of the coolant water, reported via CAN from GEVCU extension
-    int16_t temperatureHeater; // temperature of the heater water, calculated from analog input
+    int16_t heaterTemperature; // temperature of the heater water, calculated from analog input
     int16_t temperatureExterior; // exterior temperature (ambient) reported via CAN from GEVCU extension
+    uint16_t heaterPower; // the power of the heater in Watt
+    bool heaterOn; // flag if the heater is on
 
     Status();
     SystemState getSystemState();

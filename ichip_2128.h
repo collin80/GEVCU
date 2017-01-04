@@ -141,8 +141,10 @@ private:
     bool didTCPListener;
     int socketListenerHandle;
     uint32_t lastSendTime;
+    uint32_t timeStarted;
     Socket *lastSendSocket;
     int remainingSocketRead;
+    uint8_t watchdogCounter; // a counter to find out if ichip has crashed
     Socket socket[CFG_WIFI_NUM_SOCKETS];
 
     void requestNextParam(); //get next changed parameter
@@ -184,6 +186,7 @@ private:
     void loadParametersSystemIO();
     void loadParametersDevices();
     void loadParametersDashboard();
+    void reset();
     void factoryDefaults();
     void processSocketResponseSize();
     void requestIncomingSocketData();
