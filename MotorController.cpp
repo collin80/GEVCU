@@ -36,6 +36,7 @@ MotorController::MotorController() :
 
     powerOn = false;
     gear = NEUTRAL;
+    enableRegen = true;
 
     throttleLevel = 0;
     speedRequested = 0;
@@ -142,6 +143,19 @@ void MotorController::processThrottleLevel()
         if (brake && brake->getLevel() < 0 && brake->getLevel() < accelerator->getLevel()) {
             throttleLevel = brake->getLevel();
         }
+
+        if (throttleLevel < 0) {
+            if (!enableRegen) {
+                throttleLevel = 0;
+            }
+            // do not apply regen if the batteries are too cold (otherwise they might get damaged)
+            int16_t lowestBatteryTemperature = status.getLowestBatteryTemperature();
+            if (lowestBatteryTemperature != CFG_NO_TEMPERATURE_DATA && (lowestBatteryTemperature * 10) < minimumBatteryTemperature) {
+                throttleLevel = 0;
+                Logger::info(this, "No regenerative braking due to low battery temperature! (%f < %f)", lowestBatteryTemperature / 10.0f, minimumBatteryTemperature / 10.0f);
+             }
+        }
+
         if (config->powerMode == modeSpeed) {
             int32_t speedTarget = throttleLevel * config->speedMax / 1000;
             torqueRequested = config->torqueMax;
@@ -171,16 +185,10 @@ void MotorController::processThrottleLevel()
         torqueRequested = 0;
         speedRequested = 0;
     }
+}
 
-    // do not apply regen if the batteries are too cold (otherwise they might get damaged)
-    if (throttleLevel < 0) {
-        int16_t lowestBatteryTemperature = status.getLowestBatteryTemperature();
-        if (lowestBatteryTemperature != CFG_NO_TEMPERATURE_DATA && (lowestBatteryTemperature * 10) < minimumBatteryTemperature) {
-            torqueRequested = 0;
-            speedRequested = 0;
-            Logger::warn(this, "No regenerative braking due to low battery temperature! (%f < %f)", lowestBatteryTemperature / 10.0f, minimumBatteryTemperature / 10.0f);
-         }
-    }
+void MotorController::setEnableRegen(bool enable) {
+    enableRegen = enable;
 }
 
 void MotorController::updateGear()

@@ -84,6 +84,7 @@ public:
     void loadConfiguration();
     void saveConfiguration();
 
+    void setEnableRegen(bool);
     int16_t getThrottleLevel();
     Gears getGear();
     int16_t getSpeedRequested();
@@ -122,6 +123,7 @@ private:
     uint8_t ticksNoMessage; // counter how many ticks the device went through without any message from the controller
     uint32_t slewTimestamp; // time stamp of last slew rate calculation
     int16_t minimumBatteryTemperature; // battery temperature in 0.1 deg Celsius below which no regen will not occur
+    bool enableRegen; // flag if regen is enabled or disabled via dashboard
     Gears gear;
 
     void updateEnergyConsumption();
