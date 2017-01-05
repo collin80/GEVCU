@@ -1,8 +1,3 @@
-/**
- * Gauge initialization
- *
- */
-
 var gaugeColors = {
 	plate      : { start : '#001', end : '#253043' },
 	majorTicks : '#f5f5f5',
