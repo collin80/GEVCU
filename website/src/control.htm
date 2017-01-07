@@ -1,0 +1,73 @@
+<form method="POST" action="">
+	<table id="configTable">
+		<tr>
+			<td colspan="5">Profile
+			<select name="profile" title="Control profile">
+				<option value="1">1</option>
+				<option value="2">2</option>
+				<option value="2">3</option>
+			</select>
+			Name
+			<input name="profileName" type="text" maxlength="16" title="Profile Name to be displayed in dashboard" /></td>
+		</tr>
+		<tr>
+			<td colspan="5"><canvas id="throttleCanvas" height="300">Your browser does not support the HTML5 canvas tag.</canvas></td>
+		</tr>
+		<tr>
+			<td colspan="5"><h3>Throttle</h3></td>
+		</tr>
+		<tr>
+			<td>Regen Maximum</td>
+			<td nowrap="nowrap"><span id="positionRegenMaximumSpan" title="Percent throttle where maximum regenerative braking occurs/ends"></span> %</td>
+			<td></td>
+			<td>Regen Minimum</td>
+			<td><span id="positionRegenMinimumSpan" title="Percent throttle where minimum regenerative braking begins"></span> %</td>
+		</tr>
+		<tr>
+			<td>Forward Motion Start</td>
+			<td><span id="positionForwardStartSpan" title="Percent throttle where minimum forward torque begins"></span> %</td>
+			<td></td>
+			<td>50 % throttle</td>
+			<td><span id="positionHalfPowerSpan"
+				title="Percent throttle where 50 % forward torque occurs. Adjust to higher percentage to increase control in lower half of forward pedal"></span>
+				%</td>
+		</tr>
+		<tr>
+			<td>Minimum Throttle Regen</td>
+			<td><span id="minimumRegenSpan" title="Percent of maximum torque to apply for minimum throttle regen"></span> %</td>
+			<td></td>
+			<td>Maximum Throttle Regen</td>
+			<td><span id="maximumRegenSpan" title="Percent of maximum torque to apply for maximum throttle regen"></span> %</td>
+		</tr>
+		<tr>
+			<td>Creep Level</td>
+			<td><span id="creepSpan" title="Percent of maximum torque to apply for creep (0 % throttle, simulate automatic transmission creep)"></span> %</td>
+			<td></td>
+			<td>Creep Maximum Speed</td>
+			<td><span id="creepSpeedSpan" title="Maximum RPM for creep"></span> rpm</td>
+		</tr>
+		<tr>
+			<td>Slew Rate</td>
+			<td><input name="slewRate" type="text" maxlength="6" title="Slew rate for torque/speed changes" /> %/sec</td>
+			<td></td>
+			<td></td>
+			<td></td>
+		</tr>
+		<tr id="device_x1032,device_x1034">
+			<td colspan="5"><h3>Brake</h3></td>
+		</tr>
+		<tr id="device_x1032,device_x1034">
+			<td>Minimum Brake Regen</td>
+			<td><span id="brakeMinimumRegenSpan" title="Percent of maximum torque for regen with minimum brake value"></span> %</td>
+			<td></td>
+			<td>Maximum Brake Regen</td>
+			<td><span id="brakeMaximumRegenSpan" title="Percent of maximum torque for regen with full brake pedal pressure"></span> %</td>
+		</tr>
+		<tr>
+			<td colspan="5"><br></td>
+		</tr>
+		<tr>
+			<td colspan="5" align="center"><input type="submit" value="Save" /></td>
+		</tr>
+	</table>
+</form>

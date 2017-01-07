@@ -1304,20 +1304,12 @@ void ICHIPWIFI::loadParametersDashboard()
         }
 
         //TODO make params configurable
-        setParam(Constants::currentRange, "-400,400");
+        setParam(Constants::currentRange, "-200,200");
         setParam(Constants::batteryRangeLow, "297,357,368");
         setParam(Constants::batteryRangeHigh, "402,416,428");
-        setParam(Constants::motorTempRange, "0,140,170");
-        setParam(Constants::controllerTempRange, "0,80,90");
+        setParam(Constants::motorTempRange, "0,90,120");
+        setParam(Constants::controllerTempRange, "0,60,80");
         setParam(Constants::energyRange, "0,30,38");
-        setParam(Constants::chargerInputCurrentRange, "0,32");
-        setParam(Constants::chargerInputVoltageRange, "210,230,250");
-        setParam(Constants::chargerBatteryCurrentRange, "0,20");
-        setParam(Constants::chargerTempRange, "0,90,100");
-        setParam(Constants::dcDcHvCurrentRange, "0,10");
-        setParam(Constants::dcDcLvVoltageRange, "0,20");
-        setParam(Constants::dcDcLvCurrentRange, "0,200");
-        setParam(Constants::dcDcTempRange, "0, 50, 70");
     }
 }
 

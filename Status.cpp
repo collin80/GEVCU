@@ -96,6 +96,8 @@ Status::Status()
     enableCharger = false;
     enableDcDc = false;
     enableHeater = false;
+    enableRegen = true;
+    enableCreep = true;
 
     heaterValve = false;
     heaterPump = false;
@@ -116,6 +118,7 @@ Status::Status()
     energyConsumption = 0;
     flowCoolant = 0;
     flowHeater = 0;
+    heaterPower = 0;
 
     for (int i = 0; i < CFG_NUMBER_DIGITAL_OUTPUTS; i++) {
         digitalOutput[i] = false;

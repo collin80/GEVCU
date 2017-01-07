@@ -86,7 +86,6 @@ public:
     virtual DeviceType getType();
 
     virtual RawSignalData *acquireRawSignal();
-    void setEnableCreep(bool);
     void loadConfiguration();
     void saveConfiguration();
 
@@ -100,7 +99,6 @@ protected:
 
 private:
     int16_t level; // the final signed throttle level. [-1000, 1000] in permille of maximum
-    bool enableCreep; // flag if creep is currently active or not (controlled by dashboard)
 };
 
 #endif

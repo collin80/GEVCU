@@ -36,7 +36,6 @@ MotorController::MotorController() :
 
     powerOn = false;
     gear = NEUTRAL;
-    enableRegen = true;
 
     throttleLevel = 0;
     speedRequested = 0;
@@ -145,15 +144,17 @@ void MotorController::processThrottleLevel()
         }
 
         if (throttleLevel < 0) {
-            if (!enableRegen) {
+            if (status.enableRegen) {
+                // do not apply regen if the batteries are too cold (otherwise they might get damaged)
+                int16_t lowestBatteryTemperature = status.getLowestBatteryTemperature();
+                if (lowestBatteryTemperature != CFG_NO_TEMPERATURE_DATA && (lowestBatteryTemperature * 10) < minimumBatteryTemperature) {
+                    throttleLevel = 0;
+                    status.enableRegen = false;
+                    Logger::info(this, "No regenerative braking due to low battery temperature! (%f < %f)", lowestBatteryTemperature / 10.0f, minimumBatteryTemperature / 10.0f);
+                }
+            } else {
                 throttleLevel = 0;
             }
-            // do not apply regen if the batteries are too cold (otherwise they might get damaged)
-            int16_t lowestBatteryTemperature = status.getLowestBatteryTemperature();
-            if (lowestBatteryTemperature != CFG_NO_TEMPERATURE_DATA && (lowestBatteryTemperature * 10) < minimumBatteryTemperature) {
-                throttleLevel = 0;
-                Logger::info(this, "No regenerative braking due to low battery temperature! (%f < %f)", lowestBatteryTemperature / 10.0f, minimumBatteryTemperature / 10.0f);
-             }
         }
 
         if (config->powerMode == modeSpeed) {
@@ -185,10 +186,6 @@ void MotorController::processThrottleLevel()
         torqueRequested = 0;
         speedRequested = 0;
     }
-}
-
-void MotorController::setEnableRegen(bool enable) {
-    enableRegen = enable;
 }
 
 void MotorController::updateGear()

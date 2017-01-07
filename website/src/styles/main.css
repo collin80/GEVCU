@@ -10,7 +10,7 @@ body {
 /************* Top Info Bar *************/
 
 .infoBar {
-	margin: 0 0 0.5em 0;
+	margin: 0 0 0 0;
 	padding: 0;
 	background: #333;
 	color: #ccc;
@@ -21,17 +21,21 @@ body {
 
 .infoBarCell  {
 	display: table-cell;
-	text-align: center;
+	text-align: left;
+	width: 29%;
 }
 
-.infoBarCell#battery {
-	text-align: left;
-	width: 25%;
+.infoBarCell#exterior {
+	width: 10%;
+}
+
+.infoBarCell#coolant {
+	width: 22%;
 }
 
 .infoBarCell#timeRunning {
 	text-align: right;
-	width: 10%;
+	width: %10;
 }
 
 /************* Buttons *************/
@@ -251,15 +255,18 @@ input#inputCurrentLevel {
 
 .buttonBar {
 	width: 80%;
-	display: inline-table;
+	display: inline-flex;
+	justify-content: space-between;
+	align-items: center;
 }
 
 .buttonBarCell  {
-	display: table-cell;
-	text-align: center;
+	display: flex;
+	align-items: center;
+    margin: auto;
 }
 
-
+/*** ***/
 
 
 
@@ -288,19 +295,11 @@ div.tabHeader a {
 div.tabHeader a:hover,div.tabHeader a.Active {
 	background-color: #ffff55;
 	background: linear-gradient(bottom, rgb(2, 44, 84) 1%, rgb(15, 15, 16) 70%);
-	background: -o-linear-gradient(bottom, rgb(2, 44, 84) 1%, rgb(15, 15, 16) 70%);
-	background: -moz-linear-gradient(bottom, rgb(2, 44, 84), rgb(15, 15, 16) 70%);
-	background: -webkit-linear-gradient(bottom, rgb(2, 44, 84) 1%, rgb(15, 15, 16) 70%);
-	background: -ms-linear-gradient(bottom, rgb(2, 44, 84) 1%, rgb(15, 15, 16) 70%);
 }
 
 div.tabHeader a.on {
 	color: #ffffff;
 	background: linear-gradient(top, rgb(2, 44, 84) 1%, rgb(15, 15, 16) 70%);
-	background: -o-linear-gradient(top, rgb(2, 44, 84) 1%, rgb(15, 15, 16) 70%);
-	background: -moz-linear-gradient(top, rgb(2, 44, 84), rgb(15, 15, 16) 70%);
-	background: -webkit-linear-gradient(top, rgb(2, 44, 84) 1%, rgb(15, 15, 16) 70%);
-	background: -ms-linear-gradient(top, rgb(2, 44, 84) 1%, rgb(15, 15, 16) 70%);
 }
 
 div.tabs {
@@ -313,12 +312,12 @@ div.gauges {
 	text-align: center;
 }
 
-div.annunciators {
+div#annunciators {
 	padding: 0px;
 	margin: 10px 20px;
 }
 
-div.annunciators span {
+div#annunciators span {
 	float: left;
 	height: 30px;
 	width: 110px;
@@ -331,20 +330,35 @@ div.annunciators span {
 	color: #353535;
 }
 
-div.annunciators span.annunciatorOff {
+div#annunciators span.annunciatorOff {
 	color: #353535;
 }
 
-div.annunciators span.annunciatorWarn {
+div#annunciators span.annunciatorWarn {
 	color: #ffbb00;
 }
 
-div.annunciators span.annunciatorError {
+div#annunciators span.annunciatorError {
 	color: #ff2200;
 }
 
-div.annunciators span.annunciatorOk {
+div#annunciators span.annunciatorOk {
 	color: #22ee22;
+}
+
+div.foldAnnunciators {
+	font-size: 2em;
+	font-weight: bold;
+	color: #888;
+	position: absolute;
+	bottom: 0.5em;
+	left: 0.5em;
+}
+
+div.settings {
+	position: absolute;
+	bottom: 1em;
+	right: 1em;"
 }
 
 input[type=range] {
@@ -399,31 +413,5 @@ input[type="range"]{
     width: 200px;
     height: 6px;
     border-radius: 8px;
-    -moz-border-radius: 8px;
-    -wekkit-border-radius: 8px;
-    -webkit-box-shadow: inset 0px 0px 1px 1px rgba(0, 0, 0, 0.9), 0px 1px 1px 0px rgba(255, 255, 255, 0.13);
-    -moz-box-shadow: inset 0px 0px 1px 1px rgba(0, 0, 0, 0.9), 0px 1px 1px 0px rgba(255, 255, 255, 0.13);
     box-shadow: inset 0px 0px 1px 1px rgba(0, 0, 0, 0.9), 0px 1px 1px 0px rgba(255, 255, 255, 0.13);
-}
-
-.visible,
-.hidden {
-  overflow: hidden;
-  /* This container should not have padding, borders, etc. */
-}
-.visible {
-  opacity: 1;
-/*  transition: opacity 1s; /* fade in duration + delay */
-}
-.hidden {
-  opacity: 0;
-/*  transition: opacity 1s; /* fade out duration + delay */
-}
-.visible > div {
-  margin-top: 1px;
-/*  transition: margin-top 0.5s 0s; /* roll in duration + delay */
-}
-.hidden > div {
-  margin-top: -2200px;
-/*  transition: margin-top 1s ease-in 0s; /* roll out duration + delay */
 }

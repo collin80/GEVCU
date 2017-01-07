@@ -92,6 +92,9 @@ var Status = { /* Status::Bitfield3 */
 function updateAnnunciatorFields(name, bitfield) {
 	switch (name) {
 	case 'bitfield1':
+		if (bitfield != 0) {
+			foldAnnunciator(true);
+		}
 		updateField("warning", FieldClass.warn, bitfield & Warning.warning);
 		updateField("driverShutdownPathActive", FieldClass.warn, bitfield & Warning.driverShutdownPathActive);
 		updateField("externalShutdownPath1Off", FieldClass.warn, bitfield & Warning.externalShutdownPath1Off);
@@ -114,6 +117,9 @@ function updateAnnunciatorFields(name, bitfield) {
 		updateField("limitationDcCurrent", FieldClass.warn, bitfield & Warning.limitationDcCurrent);
 		break;
 	case 'bitfield2':
+		if (bitfield != 0) {
+			foldAnnunciator(true);
+		}
 		updateField("error", FieldClass.error, bitfield & Error.error);
 		updateField("speedSensor", FieldClass.error, bitfield & Error.speedSensor);
 		updateField("speedSensorSupply", FieldClass.error, bitfield & Error.speedSensorSupply);
@@ -179,4 +185,18 @@ function updateField(id, fieldClass, flag) {
 	}
 	if (target)
 		target.className = (flag == 0 ? FieldClass.off : fieldClass);
+}
+
+function foldAnnunciator(open) {
+	var annunciators = document.getElementById('annunciators');
+	if (annunciators) {
+		var display = '';
+		if(typeof open == "undefined") {
+			var oldDisplay = annunciators.style.display;
+			display = (oldDisplay == 'none' ? '' : 'none');
+		} else {
+			display = (open ? '' : 'none'); 
+		}
+		annunciators.style.display = display;
+	}
 }

@@ -21,6 +21,7 @@
 		<init-param><param-name>~minimumRegen~</param-name><param-value>5</param-value></init-param>
 		<init-param><param-name>~maximumRegen~</param-name><param-value>80</param-value></init-param>
 		<init-param><param-name>~creep~</param-name><param-value>0</param-value></init-param>
+		<init-param><param-name>~creepSpeed~</param-name><param-value>700</param-value></init-param>
 		<init-param><param-name>~brakeMinimumLevel~</param-name><param-value>11</param-value></init-param>
 		<init-param><param-name>~brakeMaximumLevel~</param-name><param-value>4001</param-value></init-param>
 		<init-param><param-name>~brakeMinimumRegen~</param-name><param-value>20</param-value></init-param>
@@ -44,21 +45,13 @@
         <!-- dashboard.js -->
 		<init-param><param-name>~torqueRange~</param-name><param-value>-220,220</param-value></init-param>
 		<init-param><param-name>~rpmRange~</param-name><param-value>0,8000</param-value></init-param>
-		<init-param><param-name>~currentRange~</param-name><param-value>-400,400</param-value></init-param>
-		<init-param><param-name>~motorTempRange~</param-name><param-value>0,140,170</param-value></init-param>
-		<init-param><param-name>~controllerTempRange~</param-name><param-value>0,80,90</param-value></init-param>
+		<init-param><param-name>~currentRange~</param-name><param-value>-200,200</param-value></init-param>
+		<init-param><param-name>~motorTempRange~</param-name><param-value>0,90,120</param-value></init-param>
+		<init-param><param-name>~controllerTempRange~</param-name><param-value>0,60,80</param-value></init-param>
 		<init-param><param-name>~batteryRangeLow~</param-name><param-value>297,337,348</param-value></init-param>
 		<init-param><param-name>~batteryRangeHigh~</param-name><param-value>402,416,428</param-value></init-param>
 		<init-param><param-name>~energyRange~</param-name><param-value>0,30,38</param-value></init-param>
-		<init-param><param-name>~powerRange~</param-name><param-value>-250,250</param-value></init-param>
-		<init-param><param-name>~chgInCurrentRange~</param-name><param-value>0,32</param-value></init-param>
-		<init-param><param-name>~chgInVoltageRange~</param-name><param-value>210,230,250</param-value></init-param>
-		<init-param><param-name>~chgBatCurrentRange~</param-name><param-value>0,20</param-value></init-param>
-		<init-param><param-name>~chargerTempRange~</param-name><param-value>0,90,100</param-value></init-param>
-		<init-param><param-name>~dcDcHvCurrentRange~</param-name><param-value>0,10</param-value></init-param>
-		<init-param><param-name>~dcDcLvVoltageRange~</param-name><param-value>0,20</param-value></init-param>
-		<init-param><param-name>~dcDcLvCurrentRange~</param-name><param-value>0,200</param-value></init-param>
-		<init-param><param-name>~dcDcTempRange~</param-name><param-value>0,50,70</param-value></init-param>
+		<init-param><param-name>~powerRange~</param-name><param-value>-150,150</param-value></init-param>
 
 		<!-- devices.js -->
 		<init-param><param-name>~x1000~</param-name><param-value>1</param-value></init-param>

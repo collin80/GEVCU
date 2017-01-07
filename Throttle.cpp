@@ -34,7 +34,6 @@ Throttle::Throttle() : Device()
 {
     level = 0;
     throttleStatus = OK;
-    enableCreep = true;
 }
 
 /**
@@ -106,7 +105,7 @@ int16_t Throttle::mapPedalPosition(int16_t pedalPosition)
     throttleLevel = 0;
 
     if (pedalPosition == 0 && config->creep > 0) {
-        if (enableCreep) {
+        if (status.enableCreep) {
             throttleLevel = 10 * config->creep;
         }
     } else if (pedalPosition <= config->positionRegenMinimum) {
@@ -175,10 +174,6 @@ int32_t Throttle::normalizeInput(int32_t input, int32_t min, int32_t max)
 int16_t Throttle::getLevel()
 {
     return level;
-}
-
-void Throttle::setEnableCreep(bool enable) {
-    enableCreep = enable;
 }
 
 /*

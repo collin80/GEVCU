@@ -49,15 +49,12 @@ WebSocket::WebSocket()
 void WebSocket::initParamCache()
 {
     paramCache.timeRunning = millis(); // this way less important data is sent one second later
-    paramCache.torqueRequested = -1;
     paramCache.torqueActual = -1;
-    paramCache.throttle = -1;
-    paramCache.brake = -1;
+//    paramCache.throttle = -1;
     paramCache.speedActual = -1;
     paramCache.dcVoltage = -1;
     paramCache.dcCurrent = -1;
     paramCache.acCurrent = -1;
-    paramCache.nominalVolt = -1;
     paramCache.energyConsumption = -1;
     paramCache.bitfield1 = 0;
     paramCache.bitfield2 = 0;
@@ -66,7 +63,7 @@ void WebSocket::initParamCache()
     paramCache.gear = MotorController::ERROR;
     paramCache.temperatureMotor = -1;
     paramCache.temperatureController = -1;
-    paramCache.mechanicalPower = -1;
+//    paramCache.mechanicalPower = -1;
     paramCache.dcDcHvVoltage = 0;
     paramCache.dcDcLvVoltage = 0;
     paramCache.dcDcHvCurrent = 0;
@@ -79,12 +76,17 @@ void WebSocket::initParamCache()
     paramCache.chargerTemperature = 0;
     paramCache.flowCoolant = 0;
     paramCache.flowHeater = 0;
+    paramCache.heaterPower = 0;
     for (int i = 0; i < CFG_NUMBER_BATTERY_TEMPERATURE_SENSORS; i++) {
         paramCache.temperatureBattery[i] = CFG_NO_TEMPERATURE_DATA;
     }
     paramCache.temperatureCoolant = CFG_NO_TEMPERATURE_DATA;
     paramCache.temperatureHeater = CFG_NO_TEMPERATURE_DATA;
     paramCache.temperatureExterior = CFG_NO_TEMPERATURE_DATA;
+    paramCache.enableRegen = !status.enableRegen;
+    paramCache.powerSteering = !status.powerSteering;
+    paramCache.enableHeater = !status.enableHeater;
+    paramCache.enableCreep = !status.enableCreep;
 }
 
 /**
@@ -216,13 +218,13 @@ String WebSocket::processData(char *input)
     case OPCODE_TEXT: {
         char *text = input + offset;
         bool flag = (strstr(text, "true") ? true : false);
-
+Logger::info("Websocket: text='%s', flag='%d'", text, flag);
         if (strstr(text, "stopCharge")) {
             status.setSystemState(Status::charged);
-        } else if (strstr(text, "cmdRegen:") && deviceManager.getMotorController() != NULL) {
-            deviceManager.getMotorController()->setEnableRegen(flag);
-        } else if (strstr(text, "cmdCreep:") && deviceManager.getAccelerator() != NULL) {
-            deviceManager.getAccelerator()->setEnableCreep(flag);
+        } else if (strstr(text, "cmdRegen:")) {
+            status.enableRegen = flag;
+        } else if (strstr(text, "cmdCreep:")) {
+            status.enableCreep = flag;
         } else if (strstr(text, "cmdEhps:")) {
             systemIO.setPowerSteering(flag);
         } else if (strstr(text, "cmdHeater:")) {
@@ -264,16 +266,14 @@ String WebSocket::generateUpdate()
         processParameter(&paramCache.speedActual, motorController->getSpeedActual(), Constants::speedActual);
         processParameter(&paramCache.torqueActual, motorController->getTorqueActual(), Constants::torqueActual, 10);
         processParameter(&paramCache.dcCurrent, motorController->getDcCurrent(), Constants::dcCurrent, 10);
-        processParameter(&paramCache.torqueRequested, motorController->getTorqueRequested(), Constants::torqueRequested, 10);
         processParameter(&paramCache.dcVoltage, motorController->getDcVoltage(), Constants::dcVoltage, 10);
-        processParameter(&paramCache.mechanicalPower, motorController->getMechanicalPower(), Constants::mechanicalPower, 1000);
+//        processParameter(&paramCache.mechanicalPower, motorController->getMechanicalPower(), Constants::mechanicalPower, 1000);
         processParameter(&paramCache.temperatureMotor, motorController->getTemperatureMotor(), Constants::temperatureMotor, 10);
         processParameter(&paramCache.temperatureController, motorController->getTemperatureController(), Constants::temperatureController, 10);
         processParameter((int16_t *) &paramCache.gear, (int16_t) motorController->getGear(), Constants::gear);
-        processParameter(&paramCache.throttle, motorController->getThrottleLevel(), Constants::throttle, 10);
+//        processParameter(&paramCache.throttle, motorController->getThrottleLevel(), Constants::throttle, 10);
     }
 
-    processParameter(&paramCache.energyConsumption, status.getEnergyConsumption(), Constants::energyConsumption, 10);
     processParameter(&paramCache.bitfield1, status.getBitField1(), Constants::bitfield1);
     processParameter(&paramCache.bitfield2, status.getBitField2(), Constants::bitfield2);
     processParameter(&paramCache.bitfield3, status.getBitField3(), Constants::bitfield3);
@@ -301,6 +301,8 @@ String WebSocket::generateUpdate()
             processParameter(&paramCache.chargerTemperature, charger->getTemperature(), Constants::chargerTemperature, 10);
         }
 
+        processParameter(&paramCache.energyConsumption, status.getEnergyConsumption(), Constants::energyConsumption, 10);
+        processParameter(&paramCache.heaterPower, status.heaterPower, Constants::heaterPower, 100);
         processParameter(&paramCache.flowCoolant, status.flowCoolant * 6, Constants::flowCoolant, 100);
         processParameter(&paramCache.flowHeater, status.flowHeater * 6, Constants::flowHeater, 100);
         for (int i = 0; i < CFG_NUMBER_BATTERY_TEMPERATURE_SENSORS; i++) {
@@ -309,6 +311,11 @@ String WebSocket::generateUpdate()
         processParameter(&paramCache.temperatureCoolant, status.temperatureCoolant, Constants::temperatureCoolant, 10);
         processParameter(&paramCache.temperatureHeater, status.heaterTemperature, Constants::temperatureHeater, 10);
         processParameter(&paramCache.temperatureExterior, status.temperatureExterior, Constants::temperatureExterior, 10);
+        processParameter(&paramCache.enableRegen, status.enableRegen, Constants::enableRegen);
+        processParameter(&paramCache.enableHeater, status.enableHeater, Constants::enableHeater);
+        processParameter(&paramCache.powerSteering, status.powerSteering, Constants::powerSteering);
+        processParameter(&paramCache.enableCreep, status.enableCreep, Constants::enableCreep);
+
     }
 
     if (isFirst) {    // return empty string -> nothing will be sent, lower resource usage
@@ -549,6 +556,23 @@ void WebSocket::processParameter(uint32_t *cacheParam, uint32_t value, const cha
         char format[10];
         sprintf(format, "%%.%df", log10(divisor));
         sprintf(buffer, format, value / divisor);
+        addParam(name, buffer, true);
+    }
+}
+
+/**
+ * \brief Add a parameter to the response data if it has changed against the cached parameter
+ *
+ * \param cacheParam a pointer to the cached value against which the value is compared
+ * \param value the current value to be analyzed / added
+ * \param name the name of the parameter
+ */
+void WebSocket::processParameter(bool *cacheParam, bool value, const char *name)
+{
+    if (*cacheParam != value) {
+        *cacheParam = value;
+
+        strcpy(buffer, (value ? "true" : "false"));
         addParam(name, buffer, true);
     }
 }

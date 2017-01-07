@@ -31,39 +31,6 @@
 			<td>Maximum Signal Level 2</td>
 			<td><span id="maximumLevel2Span" title="Raw ADC numeric output of second throttle sensor with full throttle (floored)"></span></td>
 		</tr>
-		<tr>
-			<td>Pedal Position Regen Maximum</td>
-			<td nowrap="nowrap"><span id="positionRegenMaximumSpan" title="Percent throttle where maximum regenerative braking occurs/ends"></span> %</td>
-			<td></td>
-			<td>Pedal Position Regen Minimum</td>
-			<td><span id="positionRegenMinimumSpan" title="Percent throttle where minimum regenerative braking begins"></span> %</td>
-		</tr>
-		<tr>
-			<td>Pedal Position Forward Motion Start</td>
-			<td><span id="positionForwardStartSpan" title="Percent throttle where minimum forward torque begins"></span> %</td>
-			<td></td>
-			<td>Pedal Position 50 % throttle</td>
-			<td><span id="positionHalfPowerSpan"
-				title="Percent throttle where 50 % forward torque occurs. Adjust to higher percentage to increase control in lower half of forward pedal"></span>
-				%</td>
-		</tr>
-		<tr>
-			<td>Minimum Throttle Regen</td>
-			<td><span id="minimumRegenSpan" title="Percent of maximum torque to apply for minimum throttle regen"></span> %</td>
-			<td></td>
-			<td>Maximum Throttle Regen</td>
-			<td><span id="maximumRegenSpan" title="Percent of maximum torque to apply for maximum throttle regen"></span> %</td>
-		</tr>
-		<tr>
-			<td>Creep Level</td>
-			<td><span id="creepSpan" title="Percent of maximum torque to apply for creep (0 % throttle, simulate automatic transmission creep)"></span> %</td>
-			<td></td>
-			<td></td>
-			<td></td>
-		</tr>
-		<tr>
-			<td colspan="5"><canvas id="throttleCanvas" height="400">Your browser does not support the HTML5 canvas tag.</canvas></td>
-		</tr>
 		<tr id="device_x1032,device_x1034">
 			<td colspan="5"><h3>Brake</h3></td>
 		</tr>
@@ -73,13 +40,6 @@
 			<td></td>
 			<td>Maximum Signal Level</td>
 			<td><span id="brakeMaximumLevelSpan" title="Raw ADC numeric output of brake transducer with full brake pedal pressure applied"></span></td>
-		</tr>
-		<tr id="device_x1032,device_x1034">
-			<td>Minimum Brake Regen</td>
-			<td><span id="brakeMinimumRegenSpan" title="Percent of maximum torque for regen with minimum brake value"></span> %</td>
-			<td></td>
-			<td>Maximum Brake Regen</td>
-			<td><span id="brakeMaximumRegenSpan" title="Percent of maximum torque for regen with full brake pedal pressure"></span> %</td>
 		</tr>
 		<tr>
 			<td colspan="5"><h3>Motor Control</h3></td>
@@ -104,13 +64,6 @@
 			<td>Maximum Speed</td>
 			<td><input name="speedMax" type="text" maxlength="6" title="Maximum speed or RPM controller will apply to motor" /> rpm</td>
 		</tr>
-		<tr id="device_x1001">
-			<td>Slew Rate</td>
-			<td><input name="slewRate" type="text" maxlength="6" title="Slew rate for torque/speed changes" /> %/sec</td>
-			<td></td>
-			<td></td>
-			<td></td>
-		</tr>
 		<tr>
 			<td>Maximum Mechanical Power Motoring</td>
 			<td><input name="maxMechPowerMotor" type="text" maxlength="7" title="The maximum power that can be applied for motoring" /> kW</td>
@@ -133,19 +86,19 @@
 			<td>Maximum DC Current Regen</td>
 			<td><input name="dcCurrentLimitRegen" type="text" maxlength="6" title="The maximum battery current for regen may limit regen power" /> A</td>
 		</tr>
+		<tr>
+			<td>Nominal Volt</td>
+			<td><input name="nominalVolt" type="text" maxlength="6" title="Nominal voltage of battery pack to reset kWh counter" /> V</td>
+			<td></td>
+			<td></td>
+			<td></td>
+		</tr>
 		<tr id="device_x1001">
 			<td>Oscillation Limiter</td>
 			<td><select name="enableOscLimiter" title="The oscillation limiter reduces unwanted power fluctuations">
 					<option value="0">off</option>
 					<option value="1">enabled</option>
 			</select></td>
-			<td></td>
-			<td></td>
-			<td></td>
-		</tr>
-		<tr>
-			<td>Nominal Volt</td>
-			<td><input name="nominalVolt" type="text" maxlength="6" title="Nominal voltage of battery pack to reset kWh counter" /> V</td>
 			<td></td>
 			<td></td>
 			<td></td>

@@ -20,15 +20,12 @@
  */
 struct ParamCache {
     uint32_t timeRunning;
-    int16_t torqueRequested;
     int16_t torqueActual;
-    int16_t throttle;
-    int16_t brake;
+//    int16_t throttle;
     int16_t speedActual;
     uint16_t dcVoltage;
     int16_t dcCurrent;
     int16_t acCurrent;
-    int16_t nominalVolt;
     uint16_t energyConsumption;
     uint32_t bitfield1;
     uint32_t bitfield2;
@@ -37,7 +34,7 @@ struct ParamCache {
     MotorController::Gears gear;
     int16_t temperatureMotor;
     int16_t temperatureController;
-    int32_t mechanicalPower;
+//    int32_t mechanicalPower;
     uint16_t dcDcHvVoltage;
     uint16_t dcDcLvVoltage;
     int16_t dcDcHvCurrent;
@@ -50,10 +47,15 @@ struct ParamCache {
     int16_t chargerTemperature;
     uint32_t flowCoolant;
     uint32_t flowHeater;
+    uint16_t heaterPower;
     int16_t temperatureBattery[CFG_NUMBER_BATTERY_TEMPERATURE_SENSORS];
     int16_t temperatureCoolant;
     int16_t temperatureHeater;
     int16_t temperatureExterior;
+    bool powerSteering;
+    bool enableRegen;
+    bool enableHeater;
+    bool enableCreep;
 };
 
 class WebSocket : public SocketProcessor {
@@ -84,6 +86,7 @@ private:
     void processParameter(uint16_t *cacheParam, uint16_t value, const char *key, float divisor);
     void processParameter(int32_t *cacheParam, int32_t value, const char *key, float divisor);
     void processParameter(uint32_t *cacheParam, uint32_t value, const char *key, float divisor);
+    void processParameter(bool *cacheParam, bool value, const char *name);
     void addParam(const char *key, char *value, bool isNumeric);
     char *getTimeRunning();
     void initParamCache();

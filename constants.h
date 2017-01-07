@@ -168,6 +168,7 @@ static const char* chargerTemperature = "chargerTemperature";
 
 static const char* flowCoolant = "flowCoolant";
 static const char* flowHeater = "flowHeater";
+static const char* heaterPower = "heaterPower";
 static const char* temperatureBattery[] = { "temperatureBattery1", "temperatureBattery2", "temperatureBattery3", "temperatureBattery4",
         "temperatureBattery5", "temperatureBattery6" };
 static const char* temperatureCoolant = "temperatureCoolant";
@@ -183,14 +184,10 @@ static const char* batteryRangeLow = "batteryRangeLow";
 static const char* batteryRangeHigh = "batteryRangeHigh";
 static const char* energyRange = "energyRange";
 static const char* powerRange = "powerRange";
-static const char* chargerInputCurrentRange = "chgInCurrentRange";
-static const char* chargerInputVoltageRange = "chgInVoltageRange";
-static const char* chargerBatteryCurrentRange = "chgBatCurrentRange";
-static const char* chargerTempRange = "chargerTempRange";
-static const char* dcDcHvCurrentRange = "dcDcHvCurrentRange";
-static const char* dcDcLvVoltageRange = "dcDcLvVoltageRange";
-static const char* dcDcLvCurrentRange = "dcDcLvCurrentRange";
-static const char* dcDcTempRange = "dcDcTempRange";
+static const char* enableRegen = "enableRegen";
+static const char* enableHeater = "enableHeater";
+static const char* powerSteering = "powerSteering";
+static const char* enableCreep = "enableCreep";
 
 }
 
