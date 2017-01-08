@@ -60,6 +60,7 @@ static const char* positionHalfPower = "positionHalfPower";
 static const char* minimumRegen = "minimumRegen";
 static const char* maximumRegen = "maximumRegen";
 static const char* creep = "creep";
+static const char* creepSpeed = "creepSpeed";
 static const char* brakeMinimumLevel = "brakeMinimumLevel";
 static const char* brakeMaximumLevel = "brakeMaximumLevel";
 static const char* brakeMinimumRegen = "brakeMinimumRegen";

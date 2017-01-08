@@ -61,6 +61,7 @@ public:
     uint8_t reversePercent;
     uint16_t nominalVolt; //nominal pack voltage in tenths of a volt
     PowerMode powerMode;
+    uint16_t creepSpeed; // max speed for creep
 };
 
 class MotorController: public Device, public CanObserver

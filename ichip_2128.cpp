@@ -836,6 +836,8 @@ bool ICHIPWIFI::processParameterChangeMotor(char *key, char *value)
                 config->maxMechanicalPowerMotor = atof(value) * 10;
             } else if (!strcmp(key, Constants::maxMechanicalPowerRegen)) {
                 config->maxMechanicalPowerRegen = atof(value) * 10;
+            } else if (!strcmp(key, Constants::creepSpeed)) {
+                config->creepSpeed = atol(value);
             } else if (motorController->getId() == BRUSA_DMC5) {
                 BrusaDMC5Configuration *dmc5Config = (BrusaDMC5Configuration *) config;
 
@@ -1150,6 +1152,7 @@ void ICHIPWIFI::loadParametersMotor()
             setParam(Constants::slewRate, config->slewRate / 10.0f, 1);
             setParam(Constants::maxMechanicalPowerMotor, config->maxMechanicalPowerMotor / 10.0f, 1);
             setParam(Constants::maxMechanicalPowerRegen, config->maxMechanicalPowerRegen / 10.0f, 1);
+            setParam(Constants::creepSpeed, config->creepSpeed);
             if (motorController->getId() == BRUSA_DMC5) {
                 BrusaDMC5Configuration *dmc5Config = (BrusaDMC5Configuration *) config;
                 setParam(Constants::dcVoltLimitMotor, dmc5Config->dcVoltLimitMotor / 10.0f, 1);

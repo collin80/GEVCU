@@ -218,7 +218,7 @@ String WebSocket::processData(char *input)
     case OPCODE_TEXT: {
         char *text = input + offset;
         bool flag = (strstr(text, "true") ? true : false);
-Logger::info("Websocket: text='%s', flag='%d'", text, flag);
+Logger::console("Websocket: text='%s', flag='%d'", text, flag);
         if (strstr(text, "stopCharge")) {
             status.setSystemState(Status::charged);
         } else if (strstr(text, "cmdRegen:")) {
