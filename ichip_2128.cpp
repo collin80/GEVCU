@@ -364,7 +364,7 @@ void ICHIPWIFI::loop()
         }
         if (remainingSocketRead > 0) {
             remainingSocketRead--;
-            if (state == GET_SOCKET) {
+            if (state == GET_SOCKET) { // just add the char and ignore nothing (not even CR/LF or 0)
                 incomingBuffer[ibWritePtr++] = (char) incoming;
                 return;
             }

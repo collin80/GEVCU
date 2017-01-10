@@ -193,7 +193,7 @@ String WebSocket::processData(char *input)
     uint8_t offset = 2;
     if (payloadLength == 0x7e) { // 126 -> use next two bytes as unsigned 16bit length of payload
         payloadLength = input[offset] << 8 + input[offset + 1];
-        Logger::debug("websocket: extended 16-bit lenght: %d", payloadLength);
+        Logger::debug("websocket: extended 16-bit length: %d", payloadLength);
         offset += 2;
     }
     if (payloadLength == 0x7f) {
