@@ -63,10 +63,10 @@ this.handleWorkerMessage = function(event) {
 		var dial = data.dial;
 		var gauge = Gauge.Collection.get(dial.id);
 		if (gauge) {
-			if (dial.angle) {
+			if (dial.angle != undefined) {
 				gauge.drawNeedle(dial.id, dial.angle);
 				gauge.drawArc(dial.id, dial.arcStart, dial.arcEnd);
-			} else if (dial.text) {
+			} else if (dial.text != undefined) {
 				gauge.drawValue(dial.id, dial.text);
 			}
 		}
