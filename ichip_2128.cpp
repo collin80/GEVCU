@@ -364,6 +364,10 @@ void ICHIPWIFI::loop()
         }
         if (remainingSocketRead > 0) {
             remainingSocketRead--;
+            if (state == GET_SOCKET) {
+                incomingBuffer[ibWritePtr++] = (char) incoming;
+                return;
+            }
         }
 
         // in GET_SOCKET mode, check if we need to parse the size info from a SRCV command yet
