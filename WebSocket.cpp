@@ -309,7 +309,7 @@ String WebSocket::generateUpdate()
             processParameter(&paramCache.temperatureBattery[i], status.temperatureBattery[i], Constants::temperatureBattery[i], 10);
         }
         processParameter(&paramCache.temperatureCoolant, status.temperatureCoolant, Constants::temperatureCoolant, 10);
-        processParameter(&paramCache.temperatureHeater, status.heaterTemperature, Constants::temperatureHeater, 10);
+        processParameter(&paramCache.temperatureHeater, status.heaterTemperature, Constants::temperatureHeater);
         processParameter(&paramCache.temperatureExterior, status.temperatureExterior, Constants::temperatureExterior, 10);
         processParameter(&paramCache.enableRegen, status.enableRegen, Constants::enableRegen);
         processParameter(&paramCache.enableHeater, status.enableHeater, Constants::enableHeater);

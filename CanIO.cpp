@@ -77,8 +77,8 @@ void CanIO::handleCanFrame(CAN_FRAME *frame)
         status.flowHeater = frame->data.high;
         break;
     case CAN_ID_GEVCU_EXT_HEATER:
-        status.heaterPower = frame->data.s1;
-        status.heaterTemperature = frame->data.s2;
+        status.heaterPower = frame->data.bytes[0] << 8 | frame->data.bytes[1];
+        status.heaterTemperature = frame->data.bytes[2];
         break;
     }
 }
