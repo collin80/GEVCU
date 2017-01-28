@@ -319,8 +319,7 @@ void ICHIPWIFI::handleMessage(uint32_t messageType, void* message)
         break;
 
     case MSG_RESET:
-        reset();
-//        factoryDefaults();
+        factoryDefaults();
         break;
 
     case MSG_LOG:
@@ -366,7 +365,9 @@ void ICHIPWIFI::loop()
             remainingSocketRead--;
             if (state == GET_SOCKET) { // just add the char and ignore nothing (not even CR/LF or 0)
                 incomingBuffer[ibWritePtr++] = (char) incoming;
-                return;
+                if (remainingSocketRead > 0) {
+                    continue;
+                }
             }
         }
 
@@ -764,8 +765,6 @@ bool ICHIPWIFI::processParameterChangeThrottle(char *key, char *value)
                 config->minimumRegen = atol(value);
             } else if (!strcmp(key, Constants::maximumRegen)) {
                 config->maximumRegen = atol(value);
-            } else if (!strcmp(key, Constants::creep)) {
-                config->creep = atol(value);
             } else {
                 return false;
             }
@@ -840,8 +839,14 @@ bool ICHIPWIFI::processParameterChangeMotor(char *key, char *value)
                 config->maxMechanicalPowerMotor = atof(value) * 10;
             } else if (!strcmp(key, Constants::maxMechanicalPowerRegen)) {
                 config->maxMechanicalPowerRegen = atof(value) * 10;
+            } else if (!strcmp(key, Constants::creepLevel)) {
+                config->creepLevel = atol(value);
             } else if (!strcmp(key, Constants::creepSpeed)) {
                 config->creepSpeed = atol(value);
+            } else if (!strcmp(key, Constants::brakeHold)) {
+                config->brakeHold = atol(value);
+            } else if (!strcmp(key, Constants::brakeHoldLevel)) {
+                config->brakeHold = atol(value);
             } else if (motorController->getId() == BRUSA_DMC5) {
                 BrusaDMC5Configuration *dmc5Config = (BrusaDMC5Configuration *) config;
 
@@ -1106,7 +1111,6 @@ void ICHIPWIFI::loadParametersThrottle()
             setParam(Constants::positionHalfPower, (uint16_t) (throttleConfig->positionHalfPower / 10));
             setParam(Constants::minimumRegen, throttleConfig->minimumRegen);
             setParam(Constants::maximumRegen, throttleConfig->maximumRegen);
-            setParam(Constants::creep, throttleConfig->creep);
         }
     }
 }
@@ -1156,7 +1160,9 @@ void ICHIPWIFI::loadParametersMotor()
             setParam(Constants::slewRate, config->slewRate / 10.0f, 1);
             setParam(Constants::maxMechanicalPowerMotor, config->maxMechanicalPowerMotor / 10.0f, 1);
             setParam(Constants::maxMechanicalPowerRegen, config->maxMechanicalPowerRegen / 10.0f, 1);
+            setParam(Constants::creepLevel, config->creepLevel);
             setParam(Constants::creepSpeed, config->creepSpeed);
+            setParam(Constants::brakeHold, config->brakeHold);
             if (motorController->getId() == BRUSA_DMC5) {
                 BrusaDMC5Configuration *dmc5Config = (BrusaDMC5Configuration *) config;
                 setParam(Constants::dcVoltLimitMotor, dmc5Config->dcVoltLimitMotor / 10.0f, 1);

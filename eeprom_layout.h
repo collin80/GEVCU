@@ -121,6 +121,9 @@ the end of the stardard data. The below numbers are offsets from the device's ee
 #define EEMC_OSCILLATION_LIMITER            66 // 1 byte - flag to enable oscillation limiter (1=true/0=false)
 #define EEMC_INVERT_DIRECTION               67 // 1 byte - flag to indicate if the motor's direction should be inverted
 #define EEMC_POWER_MODE                     68 // 1 byte - speed or torque mode
+#define EEMC_CREEP_LEVEL                    69 // 1 byte - percentage of throttle used to simulate creep
+#define EEMC_CREEP_SPEED                    70 // 2 bytes - max speed for creep
+#define EEMC_BRAKE_HOLD                     72 // 1 byte - percentage of max torque to achieve brake hold (0=off)
 
 // Throttle data
 #define EETH_LEVEL_MIN                      20 //2 bytes - ADC value of minimum value for first channel
@@ -139,7 +142,7 @@ the end of the stardard data. The below numbers are offsets from the device's ee
 #define EETH_MIN_BRAKE_REGEN                44 //2 bytes - the starting level for brake regen as a percentage of throttle
 #define EETH_MIN_ACCEL_REGEN                46 //2 bytes - the starting level for accelerator regen as a percentage of throttle
 #define EETH_REGEN_MAX                      48 //2 bytes - unsigned int - tenths of a percent (0-1000) of pedal position where regen is at maximum
-#define EETH_CREEP                          50 //2 bytes - percentage of throttle used to simulate creep
+#define EETH_UNUSED                         50 //2 bytes -
 #define EETH_CAR_TYPE                       52 //1 byte - type of car for querying the throttle position via CAN bus
 #define EETH_ADC_1                          53 //1 byte - which ADC port to use for first throttle input
 #define EETH_ADC_2                          54 //1 byte - which ADC port to use for second throttle input

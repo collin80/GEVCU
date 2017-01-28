@@ -112,8 +112,9 @@ function generateRangeControls() {
 	addRangeControl("positionHalfPower", 0, 100);
 	addRangeControl("minimumRegen", 0, 100);
 	addRangeControl("maximumRegen", 0, 100);
-	addRangeControl("creep", 0, 30);
-	addRangeControl("creepSpeed", 100, 2000);
+	addRangeControl("creepLevel", 0, 30);
+	addRangeControl("creepSpeed", 0, 2000);
+	addRangeControl("brakeHold", 0, 50);
 	addRangeControl("brakeMinimumLevel", 0, 4095);
 	addRangeControl("brakeMinimumRegen", 0, 100);
 	addRangeControl("brakeMaximumLevel", 0, 4095);

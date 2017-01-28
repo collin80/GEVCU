@@ -47,7 +47,7 @@ void SerialConsole::loop()
 void SerialConsole::printMenu()
 {
     //Show build # here as well in case people are using the native port and don't get to see the start up messages
-    Logger::console("\nBuild number: %d", CFG_BUILD_NUM);
+    Logger::console("\n%s (build: %d)", CFG_VERSION, CFG_BUILD_NUM);
     Logger::console("System State: %s", status.systemStateToStr(status.getSystemState()));
     Logger::console("System Menu:\n");
     Logger::console("Enable line endings of some sort (LF, CR, CRLF)\n");
@@ -97,11 +97,14 @@ void SerialConsole::printMenuMotorController()
         Logger::console("\nMOTOR CONTROLS\n");
         Logger::console("TORQ=%d - Set torque upper limit (in 0.1Nm)", config->torqueMax);
         Logger::console("RPMS=%d - Set maximum speed (in RPMs)", config->speedMax);
+        Logger::console("CRLVL=%d - Torque to use for creep (0=disable) (in 1%%)", config->creepLevel);
+        Logger::console("CRSPD=%d - maximal speed until creep is applied (in RPMs)", config->creepSpeed);
         Logger::console("REVLIM=%d - How much torque to allow in reverse (in 0.1%%)", config->reversePercent);
         Logger::console("MOINVD=%d - invert the direction of the motor (0=normal, 1=invert)", config->invertDirection);
         Logger::console("MOSLEW=%d - slew rate (in 0.1 percent/sec, 0=disabled)", config->slewRate);
         Logger::console("MOMWMX=%d - maximal mechanical power of motor (in 100W steps)", config->maxMechanicalPowerMotor);
         Logger::console("MORWMX=%d - maximal mechanical power of regen (in 100W steps)", config->maxMechanicalPowerRegen);
+        Logger::console("MOBRHD=%d - percentage of max torque to apply for brake hold (in %)", config->brakeHold);
         Logger::console("NOMV=%d - Fully charged pack voltage that automatically resets the kWh counter (in 0.1V)", config->nominalVolt);
         if (motorController->getId() == BRUSA_DMC5) {
             BrusaDMC5Configuration *dmc5Config = (BrusaDMC5Configuration *) config;
@@ -145,7 +148,6 @@ void SerialConsole::printMenuThrottle()
         Logger::console("TMAP=%d - Pedal position of 50%% torque (in 0.1%%)", config->positionHalfPower);
         Logger::console("TMINRN=%d - Torque to use for min throttle regen (in 1%%)", config->minimumRegen);
         Logger::console("TMAXRN=%d - Torque to use for max throttle regen (in 1%%)", config->maximumRegen);
-        Logger::console("TCREEP=%d - Torque to use for creep (0=disable) (in 1%%)", config->creep);
     }
 }
 
@@ -365,6 +367,13 @@ bool SerialConsole::handleConfigCmdMotorController(String command, long value)
         value = constrain(value, 0, 1000000);
         Logger::console("Setting speed limit to %drpm", value);
         config->speedMax = value;
+    } else if (command == String("CRLVL")) {
+        value = constrain(value, 0, 100);
+        Logger::console("Setting creep level to %d%%", value);
+    } else if (command == String("CRSPD")) {
+        value = constrain(value, 0, config->speedMax);
+        Logger::console("Setting creep speed to %drpm", value);
+        config->creepSpeed = value;
     } else if (command == String("REVLIM")) {
         value = constrain(value, 0, 1000);
         Logger::console("Setting reverse limit to %f%%", value / 10.0f);
@@ -386,6 +395,9 @@ bool SerialConsole::handleConfigCmdMotorController(String command, long value)
     } else if (command == String("MORWMX")) {
         Logger::console("Setting maximal mechanical power of regen to %fkW", value / 10.0f);
         config->maxMechanicalPowerRegen = value;
+    } else if (command == String("MOBRHD")) {
+        Logger::console("Setting maximal brake hold level to %d%%", value);
+        config->brakeHold = value;
     } else if (command == String("MOMVMN") && (motorController->getId() == BRUSA_DMC5)) {
         Logger::console("Setting minimum DC voltage limit for motoring to %fV", value / 10.0f);
         ((BrusaDMC5Configuration *) config)->dcVoltLimitMotor = value;
@@ -472,10 +484,6 @@ bool SerialConsole::handleConfigCmdThrottle(String command, long value)
         value = constrain(value, config->minimumRegen, 100);
         Logger::console("Setting throttle Regen maximum strength to %d%%", value);
         config->maximumRegen = value;
-    } else if (command == String("TCREEP")) {
-        value = constrain(value, 0, 100);
-        Logger::console("Setting throttle creep strength to %d%%", value);
-        config->creep = value;
     } else {
         return false;
     }

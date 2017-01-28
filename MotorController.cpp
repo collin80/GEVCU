@@ -51,6 +51,9 @@ MotorController::MotorController() :
     slewTimestamp = millis();
     saveEnergyConsumption = false;
     ticksNoMessage = 0;
+    brakeHoldActive = false;
+    brakeHoldStart = 0;
+    brakeHoldLevel = 0;
     minimumBatteryTemperature = 50; // 5 deg C
 }
 
@@ -139,8 +142,38 @@ void MotorController::processThrottleLevel()
             throttleLevel = accelerator->getLevel();
         }
         // if the brake has been pressed it may override the accelerator
-        if (brake && brake->getLevel() < 0 && brake->getLevel() < accelerator->getLevel()) {
-            throttleLevel = brake->getLevel();
+        if (brake && brake->getLevel() < 0) {
+            if (brake->getLevel() < accelerator->getLevel()) {
+                throttleLevel = brake->getLevel();
+            }
+            if (config->brakeHold > 0 && speedActual == 0) {
+                brakeHoldActive = true;
+                brakeHoldStart = 0;
+            }
+        }
+
+        if (brakeHoldActive) {
+            if (brakeHoldStart == 0) {
+                if (brake->getLevel() == 0) {
+                    brakeHoldStart = millis();
+                    brakeHoldLevel = 0;
+                }
+            } else {
+                if (brakeHoldStart + 5000 < millis() || throttleLevel > 0) {
+                    brakeHoldActive = false;
+                    brakeHoldLevel = 0;
+                    brakeHoldStart = 0;
+                } else {
+                    if (speedActual < 0 && brakeHoldLevel < config->brakeHold * 10) {
+                        brakeHoldLevel++;
+                    }
+                    if (speedActual > 0 && brakeHoldLevel > 0) {
+                        brakeHoldLevel--;
+                    }
+                    throttleLevel = brakeHoldLevel;
+                }
+            }
+Logger::console("brake hold level: %d%%, start: %dms, speedActual: %d", brakeHoldLevel, brakeHoldStart, speedActual);
         }
 
         if (throttleLevel < 0) {
@@ -361,6 +394,12 @@ void MotorController::loadConfiguration()
         prefsHandler->read(EEMC_REVERSE_LIMIT, &config->reversePercent);
         prefsHandler->read(EEMC_NOMINAL_V, &config->nominalVolt);
         prefsHandler->read(EEMC_POWER_MODE, (uint8_t *) &config->powerMode);
+        prefsHandler->read(EEMC_CREEP_LEVEL, &config->creepLevel);
+        prefsHandler->read(EEMC_CREEP_SPEED, &config->creepSpeed);
+        prefsHandler->read(EEMC_BRAKE_HOLD, &config->brakeHold);
+//TODO this is only to prevent launching off with bad config
+config->creepLevel = min(config->creepLevel, 20);
+config->creepSpeed = min(config->creepSpeed, 700);
     } else { //checksum invalid. Reinitialize values and store to EEPROM
         config->invertDirection = false;
         config->speedMax = MaxRPMValue;
@@ -371,12 +410,16 @@ void MotorController::loadConfiguration()
         config->reversePercent = ReversePercent;
         config->nominalVolt = NominalVolt;
         config->powerMode = modeTorque;
+        config->creepLevel = 0;
+        config->creepSpeed = 0;
+        config->brakeHold = 0;
     }
 
     Logger::info(this, "Power mode: %s, Max torque: %i", (config->powerMode == modeTorque ? "torque" : "speed"), config->torqueMax);
     Logger::info(this, "Max RPM: %i, Slew rate: %i", config->speedMax, config->slewRate);
     Logger::info(this, "Max mech power motor: %fkW, Max mech power regen: %fkW", config->maxMechanicalPowerMotor / 10.0f,
             config->maxMechanicalPowerRegen / 10.0f);
+    Logger::info(this, "Creep level: %i, Creep speed: %i, Brake Hold: %d", config->creepLevel, config->creepSpeed, config->brakeHold);
 }
 
 void MotorController::saveConfiguration()
@@ -389,8 +432,13 @@ void MotorController::saveConfiguration()
     prefsHandler->write(EEMC_MAX_RPM, config->speedMax);
     prefsHandler->write(EEMC_MAX_TORQUE, config->torqueMax);
     prefsHandler->write(EEMC_SLEW_RATE, config->slewRate);
+    prefsHandler->write(EEMC_MAX_MECH_POWER_MOTOR, config->maxMechanicalPowerMotor);
+    prefsHandler->write(EEMC_MAX_MECH_POWER_REGEN, config->maxMechanicalPowerRegen);
     prefsHandler->write(EEMC_REVERSE_LIMIT, config->reversePercent);
     prefsHandler->write(EEMC_NOMINAL_V, config->nominalVolt);
     prefsHandler->write(EEMC_POWER_MODE, (uint8_t) config->powerMode);
+    prefsHandler->write(EEMC_CREEP_LEVEL, config->creepLevel);
+    prefsHandler->write(EEMC_CREEP_SPEED, config->creepSpeed);
+    prefsHandler->write(EEMC_BRAKE_HOLD, config->brakeHold);
     prefsHandler->saveChecksum();
 }

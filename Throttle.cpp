@@ -104,11 +104,7 @@ int16_t Throttle::mapPedalPosition(int16_t pedalPosition)
 
     throttleLevel = 0;
 
-    if (pedalPosition == 0 && config->creep > 0) {
-        if (status.enableCreep) {
-            throttleLevel = 10 * config->creep;
-        }
-    } else if (pedalPosition <= config->positionRegenMinimum) {
+    if (pedalPosition <= config->positionRegenMinimum) {
         if (pedalPosition >= config->positionRegenMaximum) {
             range = config->positionRegenMinimum - config->positionRegenMaximum;
             value = pedalPosition - config->positionRegenMaximum;
@@ -238,7 +234,6 @@ void Throttle::loadConfiguration()
         prefsHandler->read(EETH_REGEN_MAX, &config->positionRegenMaximum);
         prefsHandler->read(EETH_FWD, &config->positionForwardMotionStart);
         prefsHandler->read(EETH_MAP, &config->positionHalfPower);
-        prefsHandler->read(EETH_CREEP, &config->creep);
         prefsHandler->read(EETH_MIN_ACCEL_REGEN, &config->minimumRegen);
         prefsHandler->read(EETH_MAX_ACCEL_REGEN, &config->maximumRegen);
     } else { //checksum invalid. Reinitialize values, leave storing them to the subclasses
@@ -248,7 +243,6 @@ void Throttle::loadConfiguration()
         config->positionRegenMaximum = ThrottleRegenMaxValue;
         config->positionForwardMotionStart = ThrottleFwdValue;
         config->positionHalfPower = ThrottleMapValue;
-        config->creep = ThrottleCreepValue;
         config->minimumRegen = ThrottleMinRegenValue; //percentage of minimal power to use when regen starts
         config->maximumRegen = ThrottleMaxRegenValue; //percentage of full power to use for regen at throttle
     }
@@ -274,7 +268,6 @@ void Throttle::saveConfiguration()
     prefsHandler->write(EETH_REGEN_MAX, config->positionRegenMaximum);
     prefsHandler->write(EETH_FWD, config->positionForwardMotionStart);
     prefsHandler->write(EETH_MAP, config->positionHalfPower);
-    prefsHandler->write(EETH_CREEP, config->creep);
     prefsHandler->write(EETH_MIN_ACCEL_REGEN, config->minimumRegen);
     prefsHandler->write(EETH_MAX_ACCEL_REGEN, config->maximumRegen);
     prefsHandler->saveChecksum();

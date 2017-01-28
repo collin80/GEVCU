@@ -7,7 +7,7 @@ function ThrottleSettingsCanvas() {
     this.throttleMapId = "positionHalfPower";
     this.throttleMinRegenId = "minimumRegen";
     this.throttleMaxRegenId = "maximumRegen";
-    this.throttleCreepId = "creep";
+    this.throttleCreepId = "creepLevel";
     
     // default to white lines/text
     this.lineColor = "#FFFFFF";

@@ -59,7 +59,7 @@ static const char* positionForwardMotionStart = "positionForwardStart";
 static const char* positionHalfPower = "positionHalfPower";
 static const char* minimumRegen = "minimumRegen";
 static const char* maximumRegen = "maximumRegen";
-static const char* creep = "creep";
+static const char* creepLevel = "creepLevel";
 static const char* creepSpeed = "creepSpeed";
 static const char* brakeMinimumLevel = "brakeMinimumLevel";
 static const char* brakeMaximumLevel = "brakeMaximumLevel";
@@ -72,6 +72,8 @@ static const char* nominalVolt = "nominalVolt";
 static const char* motorMode = "motorMode";
 static const char* invertDirection = "invertDirection";
 static const char* slewRate = "slewRate";
+static const char* brakeHold = "brakeHold";
+static const char* brakeHoldLevel = "brakeHoldLevel";
 
 static const char* maxMechanicalPowerMotor = "maxMechPowerMotor";
 static const char* maxMechanicalPowerRegen = "maxMechPowerRegen";

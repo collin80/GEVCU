@@ -5,11 +5,12 @@
 	"positionHalfPower": ~positionHalfPower~,
 	"minimumRegen": ~minimumRegen~,
 	"maximumRegen": ~maximumRegen~,
-	"creep": ~creep~,
+	"creepLevel": ~creepLevel~,
 	"creepSpeed": ~creepSpeed~,
 	"brakeMinimumRegen": ~brakeMinimumRegen~,
 	"brakeMaximumRegen": ~brakeMaximumRegen~,
 	"slewRate": ~slewRate~,
+	"brakeHold": ~brakeHold~,
 
 	"device_x1000": ~x1000~,
 	"device_x1001": ~x1001~,

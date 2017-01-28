@@ -42,7 +42,7 @@ function openWebSocket() {
 function closeWebSocket() {
 	console.log('webSocket: closing web socket connection');
 	if (socket) {
-		socket = null;
 		socket.close();
+		socket = null;
 	}
 }

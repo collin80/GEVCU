@@ -20,12 +20,13 @@
 		<init-param><param-name>~positionHalfPower~</param-name><param-value>80</param-value></init-param>
 		<init-param><param-name>~minimumRegen~</param-name><param-value>5</param-value></init-param>
 		<init-param><param-name>~maximumRegen~</param-name><param-value>80</param-value></init-param>
-		<init-param><param-name>~creep~</param-name><param-value>0</param-value></init-param>
+		<init-param><param-name>~creepLevel~</param-name><param-value>10</param-value></init-param>
 		<init-param><param-name>~creepSpeed~</param-name><param-value>700</param-value></init-param>
 		<init-param><param-name>~brakeMinimumLevel~</param-name><param-value>11</param-value></init-param>
 		<init-param><param-name>~brakeMaximumLevel~</param-name><param-value>4001</param-value></init-param>
 		<init-param><param-name>~brakeMinimumRegen~</param-name><param-value>20</param-value></init-param>
 		<init-param><param-name>~brakeMaximumRegen~</param-name><param-value>100</param-value></init-param>
+		<init-param><param-name>~brakeHold~</param-name><param-value>50</param-value></init-param>
 	
 		<init-param><param-name>~speedMax~</param-name><param-value>7000</param-value></init-param>
 		<init-param><param-name>~torqueMax~</param-name><param-value>220</param-value></init-param>
@@ -133,5 +134,4 @@
         <filter-name>TextReplaceFilter</filter-name>
 		<url-pattern>*.js</url-pattern>
     </filter-mapping>
-    
 </web-app>
