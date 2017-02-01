@@ -195,7 +195,7 @@ String WebSocket::prepareConnectionRequestResponse() {
 String WebSocket::processData(char *input)
 {
     if (input == NULL) {
-        return NULL;
+        return "";
     }
 
     bool fin = (input[0] & 0x80) != 0;
@@ -213,7 +213,7 @@ String WebSocket::processData(char *input)
     }
     if (payloadLength == 0x7f) {
         Logger::error("websocket: >64k frames not supported");
-        return NULL;
+        return "";
     }
 
     byte key[] = { input[offset], input[offset + 1], input[offset + 2], input[offset + 3] };
@@ -262,7 +262,7 @@ Logger::console("Websocket: text='%s', flag='%d'", text, flag);
     case OPCODE_PONG:
         break;
     }
-    return NULL;
+    return "";
 }
 
 /**
@@ -317,7 +317,7 @@ String WebSocket::generateUpdate()
         }
 
         processParameter(&paramCache.energyConsumption, status.getEnergyConsumption(), Constants::energyConsumption, 10);
-        processParameter(&paramCache.heaterPower, status.heaterPower, Constants::heaterPower, 100);
+        processParameter(&paramCache.heaterPower, status.heaterPower, Constants::heaterPower);
         processParameter(&paramCache.flowCoolant, status.flowCoolant * 6, Constants::flowCoolant, 100);
         processParameter(&paramCache.flowHeater, status.flowHeater * 6, Constants::flowHeater, 100);
         for (int i = 0; i < CFG_NUMBER_BATTERY_TEMPERATURE_SENSORS; i++) {
@@ -510,7 +510,7 @@ void WebSocket::processParameter(int16_t *cacheParam, int16_t value, const char 
 
         char format[10];
         sprintf(format, "%%.%df", log10(divisor));
-        sprintf(buffer, format, value / divisor);
+        sprintf(buffer, format, (float) value / divisor);
         addParam(name, buffer, true);
     }
 }
@@ -530,7 +530,7 @@ void WebSocket::processParameter(uint16_t *cacheParam, uint16_t value, const cha
 
         char format[10];
         sprintf(format, "%%.%df", log10(divisor));
-        sprintf(buffer, format, value / divisor);
+        sprintf(buffer, format, (float) value / divisor);
         addParam(name, buffer, true);
     }
 }
@@ -550,7 +550,7 @@ void WebSocket::processParameter(int32_t *cacheParam, int32_t value, const char 
 
         char format[10];
         sprintf(format, "%%.%df", log10(divisor));
-        sprintf(buffer, format, value / divisor);
+        sprintf(buffer, format, (float) value / divisor);
         addParam(name, buffer, true);
     }
 }
@@ -570,7 +570,7 @@ void WebSocket::processParameter(uint32_t *cacheParam, uint32_t value, const cha
 
         char format[10];
         sprintf(format, "%%.%df", log10(divisor));
-        sprintf(buffer, format, value / divisor);
+        sprintf(buffer, format, (float) value / divisor);
         addParam(name, buffer, true);
     }
 }

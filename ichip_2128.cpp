@@ -489,7 +489,7 @@ void ICHIPWIFI::processSocketResponseSize()
 {
     incomingBuffer[ibWritePtr] = 0; //null terminate the string
     ibWritePtr = 0; //reset the write pointer
-    remainingSocketRead = atoi(&incomingBuffer[2]) - 1;
+    remainingSocketRead = constrain(atoi(&incomingBuffer[2]) - 1, -1, 1024);
     Logger::debug(this, "processing remaining socket read: %d", remainingSocketRead);
 }
 
@@ -524,7 +524,7 @@ void ICHIPWIFI::processIncomingSocketData()
         }
 
         String data = lastSendSocket->processor->processInput(incomingBuffer);
-        if (data != NULL) {
+        if (data.length() > 0) {
             if (data.equals(Constants::disconnect)) { // do we have to disconnect ?
                 closeSocket(lastSendSocket);
             } else {
