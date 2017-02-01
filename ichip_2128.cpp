@@ -365,7 +365,7 @@ void ICHIPWIFI::loop()
             remainingSocketRead--;
             if (state == GET_SOCKET) { // just add the char and ignore nothing (not even CR/LF or 0)
                 incomingBuffer[ibWritePtr++] = (char) incoming;
-                if (remainingSocketRead > 0) {
+                if (remainingSocketRead > 0 && ibWritePtr < CFG_WIFI_BUFFER_SIZE) {
                     continue;
                 }
             }
@@ -524,10 +524,12 @@ void ICHIPWIFI::processIncomingSocketData()
         }
 
         String data = lastSendSocket->processor->processInput(incomingBuffer);
-        if (data.equals(Constants::disconnect)) { // do we have to disconnect ?
-            closeSocket(lastSendSocket);
-        } else {
-            sendToSocket(lastSendSocket, data);
+        if (data != NULL) {
+            if (data.equals(Constants::disconnect)) { // do we have to disconnect ?
+                closeSocket(lastSendSocket);
+            } else {
+                sendToSocket(lastSendSocket, data);
+            }
         }
     }
 

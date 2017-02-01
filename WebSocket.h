@@ -74,7 +74,8 @@ private:
     String data;
     bool connected;
 
-    String processConnectionRequest(char *input);
+    void processConnectionRequest(char *input);
+    String prepareConnectionRequestResponse();
     String processData(char *input);
     String prepareWebSocketFrame(uint8_t opcode, String data);
     String getResponseKey(String key);

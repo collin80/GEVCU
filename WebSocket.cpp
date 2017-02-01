@@ -101,36 +101,47 @@ void WebSocket::initParamCache()
 String WebSocket::processInput(char *input)
 {
     if (connected) {
-        if (input[0] != 0) { // don't process empty strings
-            return processData(input);
-        }
+        return processData(input);
     } else {
-        return processConnectionRequest(input);
+        // split the input into separate lines and process each line
+        char *line = strtok(input, "\r\n");
+        while (line != NULL) {
+            if (line[0] != 0) {
+                processConnectionRequest(line);
+            }
+            line = strtok(NULL, "\r\n");
+        }
+        return prepareConnectionRequestResponse();
     }
-    return "";
 }
 
-/*
+/**
  * \brief Process websocket connection request
  *
- * The method is called several times until the key is received and
- * an empty line marks the end of the connection request.
+ * The method is called several times until the key is received.
  *
  * \param input incoming data
- * \return if it was possible to process all data the connection response is sent back
  */
-String WebSocket::processConnectionRequest(char *input)
+void WebSocket::processConnectionRequest(char *input)
 {
-    String response;
-
     // grab the key
     char* key = strstr(input, webSocketKeyName);
     if (key != NULL) {
         webSocketKey = new String(key + strlen(webSocketKeyName) + 2);
         Logger::debug("websocket: found key: %s", webSocketKey->c_str());
     }
+}
+
+/**
+ * \brief Prepare response to a connection request
+ *
+ * \return the response which is to be sent back to the browser
+ */
+String WebSocket::prepareConnectionRequestResponse() {
+    String response;
+
     // they're done (empty line), send our response
-    if (webSocketKey != NULL && strlen(input) == 0) {
+    if (webSocketKey != NULL) {
         char acceptHash[128];
         Logger::debug("websocket: got a key and an empty line, let's go");
         webSocketKey->concat(websocketUid); // append the UID to the key
@@ -183,6 +194,10 @@ String WebSocket::processConnectionRequest(char *input)
  */
 String WebSocket::processData(char *input)
 {
+    if (input == NULL) {
+        return NULL;
+    }
+
     bool fin = (input[0] & 0x80) != 0;
     int opcode = (input[0] & 0x0f);
     bool mask = (input[1] & 0x80) != 0;
@@ -198,7 +213,7 @@ String WebSocket::processData(char *input)
     }
     if (payloadLength == 0x7f) {
         Logger::error("websocket: >64k frames not supported");
-        return "";
+        return NULL;
     }
 
     byte key[] = { input[offset], input[offset + 1], input[offset + 2], input[offset + 3] };
@@ -247,7 +262,7 @@ Logger::console("Websocket: text='%s', flag='%d'", text, flag);
     case OPCODE_PONG:
         break;
     }
-    return "";
+    return NULL;
 }
 
 /**
