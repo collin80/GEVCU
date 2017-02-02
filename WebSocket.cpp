@@ -212,7 +212,7 @@ String WebSocket::processData(char *input)
         offset += 2;
     }
     if (payloadLength == 0x7f) {
-        Logger::error("websocket: >64k frames not supported");
+        Logger::warn("websocket: >64k frames not supported");
         return "";
     }
 
@@ -228,7 +228,7 @@ String WebSocket::processData(char *input)
 
     switch (opcode) {
     case OPCODE_CONTINUATION:
-        Logger::error("websocket: continuation frames not supported");
+        Logger::warn("websocket: continuation frames not supported");
         break;
     case OPCODE_TEXT: {
         char *text = input + offset;
@@ -249,7 +249,7 @@ Logger::console("Websocket: text='%s', flag='%d'", text, flag);
         break;
     }
     case OPCODE_BINARY:
-        Logger::error("websocket: binary frames not supported");
+        Logger::warn("websocket: binary frames not supported");
         break;
     case OPCODE_CLOSE:
         Logger::info("websocket: close connection request");
@@ -257,7 +257,7 @@ Logger::console("Websocket: text='%s', flag='%d'", text, flag);
         return Constants::disconnect;
         break;
     case OPCODE_PING:
-        Logger::error("websocket: ping not supported");
+        Logger::warn("websocket: ping not supported");
         break;
     case OPCODE_PONG:
         break;
@@ -279,14 +279,14 @@ String WebSocket::generateUpdate()
 
     if (motorController) {
         processParameter(&paramCache.speedActual, motorController->getSpeedActual(), Constants::speedActual);
-        processParameter(&paramCache.torqueActual, motorController->getTorqueActual(), Constants::torqueActual, 10);
-        processParameter(&paramCache.dcCurrent, motorController->getDcCurrent(), Constants::dcCurrent, 10);
-        processParameter(&paramCache.dcVoltage, motorController->getDcVoltage(), Constants::dcVoltage, 10);
-//        processParameter(&paramCache.mechanicalPower, motorController->getMechanicalPower(), Constants::mechanicalPower, 1000);
-        processParameter(&paramCache.temperatureMotor, motorController->getTemperatureMotor(), Constants::temperatureMotor, 10);
-        processParameter(&paramCache.temperatureController, motorController->getTemperatureController(), Constants::temperatureController, 10);
+        processParameter(&paramCache.torqueActual, motorController->getTorqueActual(), Constants::torqueActual, 10.0f);
+        processParameter(&paramCache.dcCurrent, motorController->getDcCurrent(), Constants::dcCurrent, 10.0f);
+        processParameter(&paramCache.dcVoltage, motorController->getDcVoltage(), Constants::dcVoltage, 10.0f);
+//        processParameter(&paramCache.mechanicalPower, motorController->getMechanicalPower(), Constants::mechanicalPower, 1000.0f);
+        processParameter(&paramCache.temperatureMotor, motorController->getTemperatureMotor(), Constants::temperatureMotor, 10.0f);
+        processParameter(&paramCache.temperatureController, motorController->getTemperatureController(), Constants::temperatureController, 10.0f);
         processParameter((int16_t *) &paramCache.gear, (int16_t) motorController->getGear(), Constants::gear);
-//        processParameter(&paramCache.throttle, motorController->getThrottleLevel(), Constants::throttle, 10);
+//        processParameter(&paramCache.throttle, motorController->getThrottleLevel(), Constants::throttle, 10.0f);
     }
 
     processParameter(&paramCache.bitfield1, status.getBitField1(), Constants::bitfield1);
@@ -300,32 +300,32 @@ String WebSocket::generateUpdate()
 
         DcDcConverter* dcDcConverter = deviceManager.getDcDcConverter();
         if (dcDcConverter) {
-            processParameter(&paramCache.dcDcHvVoltage, dcDcConverter->getHvVoltage(), Constants::dcDcHvVoltage, 10);
-            processParameter(&paramCache.dcDcHvCurrent, dcDcConverter->getHvCurrent(), Constants::dcDcHvCurrent, 10);
-            processParameter(&paramCache.dcDcLvVoltage, dcDcConverter->getLvVoltage(), Constants::dcDcLvVoltage, 10);
+            processParameter(&paramCache.dcDcHvVoltage, dcDcConverter->getHvVoltage(), Constants::dcDcHvVoltage, 10.0f);
+            processParameter(&paramCache.dcDcHvCurrent, dcDcConverter->getHvCurrent(), Constants::dcDcHvCurrent, 10.0f);
+            processParameter(&paramCache.dcDcLvVoltage, dcDcConverter->getLvVoltage(), Constants::dcDcLvVoltage, 10.0f);
             processParameter(&paramCache.dcDcLvCurrent, dcDcConverter->getLvCurrent(), Constants::dcDcLvCurrent);
-            processParameter(&paramCache.dcDcTemperature, dcDcConverter->getTemperature(), Constants::dcDcTemperature, 10);
+            processParameter(&paramCache.dcDcTemperature, dcDcConverter->getTemperature(), Constants::dcDcTemperature, 10.0f);
         }
 
         Charger* charger = deviceManager.getCharger();
         if (charger) {
-            processParameter(&paramCache.chargerInputVoltage, charger->getInputVoltage(), Constants::chargerInputVoltage, 10);
-            processParameter(&paramCache.chargerInputCurrent, charger->getInputCurrent(), Constants::chargerInputCurrent, 100);
-            processParameter(&paramCache.chargerBatteryVoltage, charger->getBatteryVoltage(), Constants::chargerBatteryVoltage, 10);
-            processParameter(&paramCache.chargerBatteryCurrent, charger->getBatteryCurrent(), Constants::chargerBatteryCurrent, 100);
-            processParameter(&paramCache.chargerTemperature, charger->getTemperature(), Constants::chargerTemperature, 10);
+            processParameter(&paramCache.chargerInputVoltage, charger->getInputVoltage(), Constants::chargerInputVoltage, 10.0f);
+            processParameter(&paramCache.chargerInputCurrent, charger->getInputCurrent(), Constants::chargerInputCurrent, 100.0f);
+            processParameter(&paramCache.chargerBatteryVoltage, charger->getBatteryVoltage(), Constants::chargerBatteryVoltage, 10.0f);
+            processParameter(&paramCache.chargerBatteryCurrent, charger->getBatteryCurrent(), Constants::chargerBatteryCurrent, 100.0f);
+            processParameter(&paramCache.chargerTemperature, charger->getTemperature(), Constants::chargerTemperature, 10.0f);
         }
 
-        processParameter(&paramCache.energyConsumption, status.getEnergyConsumption(), Constants::energyConsumption, 10);
+        processParameter(&paramCache.energyConsumption, status.getEnergyConsumption(), Constants::energyConsumption, 10.0f);
         processParameter(&paramCache.heaterPower, status.heaterPower, Constants::heaterPower);
-        processParameter(&paramCache.flowCoolant, status.flowCoolant * 6, Constants::flowCoolant, 100);
-        processParameter(&paramCache.flowHeater, status.flowHeater * 6, Constants::flowHeater, 100);
+        processParameter(&paramCache.flowCoolant, status.flowCoolant * 6, Constants::flowCoolant, 100.0f);
+        processParameter(&paramCache.flowHeater, status.flowHeater * 6, Constants::flowHeater, 100.0f);
         for (int i = 0; i < CFG_NUMBER_BATTERY_TEMPERATURE_SENSORS; i++) {
-            processParameter(&paramCache.temperatureBattery[i], status.temperatureBattery[i], Constants::temperatureBattery[i], 10);
+            processParameter(&paramCache.temperatureBattery[i], status.temperatureBattery[i], Constants::temperatureBattery[i], 10.0f);
         }
-        processParameter(&paramCache.temperatureCoolant, status.temperatureCoolant, Constants::temperatureCoolant, 10);
+        processParameter(&paramCache.temperatureCoolant, status.temperatureCoolant, Constants::temperatureCoolant, 10.0f);
         processParameter(&paramCache.temperatureHeater, status.heaterTemperature, Constants::temperatureHeater);
-        processParameter(&paramCache.temperatureExterior, status.temperatureExterior, Constants::temperatureExterior, 10);
+        processParameter(&paramCache.temperatureExterior, status.temperatureExterior, Constants::temperatureExterior, 10.0f);
         processParameter(&paramCache.enableRegen, status.enableRegen, Constants::enableRegen);
         processParameter(&paramCache.enableHeater, status.enableHeater, Constants::enableHeater);
         processParameter(&paramCache.powerSteering, status.powerSteering, Constants::powerSteering);
@@ -510,7 +510,7 @@ void WebSocket::processParameter(int16_t *cacheParam, int16_t value, const char 
 
         char format[10];
         sprintf(format, "%%.%df", log10(divisor));
-        sprintf(buffer, format, (float) value / divisor);
+        sprintf(buffer, format, ((float) value) / divisor);
         addParam(name, buffer, true);
     }
 }
@@ -530,7 +530,7 @@ void WebSocket::processParameter(uint16_t *cacheParam, uint16_t value, const cha
 
         char format[10];
         sprintf(format, "%%.%df", log10(divisor));
-        sprintf(buffer, format, (float) value / divisor);
+        sprintf(buffer, format, ((float) value) / divisor);
         addParam(name, buffer, true);
     }
 }
@@ -550,7 +550,7 @@ void WebSocket::processParameter(int32_t *cacheParam, int32_t value, const char 
 
         char format[10];
         sprintf(format, "%%.%df", log10(divisor));
-        sprintf(buffer, format, (float) value / divisor);
+        sprintf(buffer, format, ((float) value) / divisor);
         addParam(name, buffer, true);
     }
 }
@@ -570,7 +570,7 @@ void WebSocket::processParameter(uint32_t *cacheParam, uint32_t value, const cha
 
         char format[10];
         sprintf(format, "%%.%df", log10(divisor));
-        sprintf(buffer, format, (float) value / divisor);
+        sprintf(buffer, format, ((float) value) / divisor);
         addParam(name, buffer, true);
     }
 }

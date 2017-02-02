@@ -473,7 +473,7 @@ void ICHIPWIFI::processActiveSocketListResponse()
             }
         }
     } else {
-        Logger::error(this, "could not retrieve list of active sockets, closing all open sockets");
+        Logger::warn(this, "could not retrieve list of active sockets, closing all open sockets");
         closeAllSockets();
     }
     // as the reply only contains "I/(000,-1,-1,-1)" it won't be recognized in loop() as "I/OK" or "I/ERROR",
@@ -503,10 +503,10 @@ void ICHIPWIFI::processSocketResponseSize()
 void ICHIPWIFI::processIncomingSocketData()
 {
     if (strstr(incomingBuffer, Constants::ichipErrorString) != NULL) {
-        Logger::error(this, "could not retrieve data from socket %d, closing socket", lastSendSocket->handle);
+        Logger::warn(this, "could not retrieve data from socket %d, closing socket", lastSendSocket->handle);
         closeSocket(lastSendSocket);
     }
-    if (strcmp(incomingBuffer, "I/0") == 0) { // nothing to read, move on to next command
+    if (incomingBuffer[0] == 0 || strcmp(incomingBuffer, "I/0") == 0) { // nothing to read, move on to next command
         remainingSocketRead = -1;
         sendBufferedCommand();
         return;
