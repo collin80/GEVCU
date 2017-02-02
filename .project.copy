@@ -6,7 +6,7 @@
 	</projects>
 	<buildSpec>
 		<buildCommand>
-			<name>it.baeyens.arduino.core.inoToCpp</name>
+			<name>io.sloeber.core.inoToCpp</name>
 			<arguments>
 			</arguments>
 		</buildCommand>
@@ -28,33 +28,33 @@
 		<nature>org.eclipse.cdt.core.ccnature</nature>
 		<nature>org.eclipse.cdt.managedbuilder.core.managedBuildNature</nature>
 		<nature>org.eclipse.cdt.managedbuilder.core.ScannerConfigNature</nature>
-		<nature>it.baeyens.arduinonature</nature>
+		<nature>io.sloeber.arduinonature</nature>
 	</natures>
 	<linkedResources>
 		<link>
 			<name>core/core</name>
 			<type>2</type>
-			<location>/Applications/Eclipse.app/Contents/Eclipse/arduinoPlugin/packages/arduino/hardware/sam/1.6.7/cores/arduino</location>
+			<locationURI>ECLIPSE_HOME/arduinoPlugin/packages/arduino/hardware/sam/1.6.11/cores/arduino</locationURI>
 		</link>
 		<link>
 			<name>core/variant</name>
 			<type>2</type>
-			<location>/Applications/Eclipse.app/Contents/Eclipse/arduinoPlugin/packages/arduino/hardware/sam/1.6.7/variants/arduino_due_x</location>
+			<locationURI>ECLIPSE_HOME/arduinoPlugin/packages/arduino/hardware/sam/1.6.11/variants/arduino_due_x</locationURI>
 		</link>
 		<link>
 			<name>libraries/DueTimer</name>
 			<type>2</type>
-			<location>/Volumes/Data/development/source/arduino/libraries/DueTimer</location>
+			<location>/Users/michaeln/Documents/Arduino/libraries/DueTimer</location>
 		</link>
 		<link>
 			<name>libraries/due_can</name>
 			<type>2</type>
-			<location>/Volumes/Data/development/source/arduino/libraries/due_can</location>
+			<location>/Users/michaeln/Documents/Arduino/libraries/due_can</location>
 		</link>
 		<link>
 			<name>libraries/due_wire</name>
 			<type>2</type>
-			<location>/Volumes/Data/development/source/arduino/libraries/due_wire</location>
+			<location>/Users/michaeln/Documents/Arduino/libraries/due_wire</location>
 		</link>
 	</linkedResources>
 </projectDescription>

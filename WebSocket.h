@@ -83,10 +83,10 @@ private:
     void processParameter(uint16_t *cacheParam, uint16_t value, const char *key);
     void processParameter(int32_t *cacheParam, int32_t value, const char *key);
     void processParameter(uint32_t *cacheParam, uint32_t value, const char *key);
-    void processParameter(int16_t *cacheParam, int16_t value, const char *key, float divisor);
-    void processParameter(uint16_t *cacheParam, uint16_t value, const char *key, float divisor);
-    void processParameter(int32_t *cacheParam, int32_t value, const char *key, float divisor);
-    void processParameter(uint32_t *cacheParam, uint32_t value, const char *key, float divisor);
+    void processParameter(int16_t *cacheParam, int16_t value, const char *key, int divisor);
+    void processParameter(uint16_t *cacheParam, uint16_t value, const char *key, int divisor);
+    void processParameter(int32_t *cacheParam, int32_t value, const char *key, int divisor);
+    void processParameter(uint32_t *cacheParam, uint32_t value, const char *key, int divisor);
     void processParameter(bool *cacheParam, bool value, const char *name);
     void addParam(const char *key, char *value, bool isNumeric);
     char *getTimeRunning();

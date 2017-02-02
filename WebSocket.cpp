@@ -279,14 +279,14 @@ String WebSocket::generateUpdate()
 
     if (motorController) {
         processParameter(&paramCache.speedActual, motorController->getSpeedActual(), Constants::speedActual);
-        processParameter(&paramCache.torqueActual, motorController->getTorqueActual(), Constants::torqueActual, 10.0f);
-        processParameter(&paramCache.dcCurrent, motorController->getDcCurrent(), Constants::dcCurrent, 10.0f);
-        processParameter(&paramCache.dcVoltage, motorController->getDcVoltage(), Constants::dcVoltage, 10.0f);
-//        processParameter(&paramCache.mechanicalPower, motorController->getMechanicalPower(), Constants::mechanicalPower, 1000.0f);
-        processParameter(&paramCache.temperatureMotor, motorController->getTemperatureMotor(), Constants::temperatureMotor, 10.0f);
-        processParameter(&paramCache.temperatureController, motorController->getTemperatureController(), Constants::temperatureController, 10.0f);
+        processParameter(&paramCache.torqueActual, motorController->getTorqueActual(), Constants::torqueActual, 10);
+        processParameter(&paramCache.dcCurrent, motorController->getDcCurrent(), Constants::dcCurrent, 10);
+        processParameter(&paramCache.dcVoltage, motorController->getDcVoltage(), Constants::dcVoltage, 10);
+//        processParameter(&paramCache.mechanicalPower, motorController->getMechanicalPower(), Constants::mechanicalPower, 1000);
+        processParameter(&paramCache.temperatureMotor, motorController->getTemperatureMotor(), Constants::temperatureMotor, 10);
+        processParameter(&paramCache.temperatureController, motorController->getTemperatureController(), Constants::temperatureController, 10);
         processParameter((int16_t *) &paramCache.gear, (int16_t) motorController->getGear(), Constants::gear);
-//        processParameter(&paramCache.throttle, motorController->getThrottleLevel(), Constants::throttle, 10.0f);
+//        processParameter(&paramCache.throttle, motorController->getThrottleLevel(), Constants::throttle, 10);
     }
 
     processParameter(&paramCache.bitfield1, status.getBitField1(), Constants::bitfield1);
@@ -300,37 +300,36 @@ String WebSocket::generateUpdate()
 
         DcDcConverter* dcDcConverter = deviceManager.getDcDcConverter();
         if (dcDcConverter) {
-            processParameter(&paramCache.dcDcHvVoltage, dcDcConverter->getHvVoltage(), Constants::dcDcHvVoltage, 10.0f);
-            processParameter(&paramCache.dcDcHvCurrent, dcDcConverter->getHvCurrent(), Constants::dcDcHvCurrent, 10.0f);
-            processParameter(&paramCache.dcDcLvVoltage, dcDcConverter->getLvVoltage(), Constants::dcDcLvVoltage, 10.0f);
+            processParameter(&paramCache.dcDcHvVoltage, dcDcConverter->getHvVoltage(), Constants::dcDcHvVoltage, 10);
+            processParameter(&paramCache.dcDcHvCurrent, dcDcConverter->getHvCurrent(), Constants::dcDcHvCurrent, 10);
+            processParameter(&paramCache.dcDcLvVoltage, dcDcConverter->getLvVoltage(), Constants::dcDcLvVoltage, 10);
             processParameter(&paramCache.dcDcLvCurrent, dcDcConverter->getLvCurrent(), Constants::dcDcLvCurrent);
-            processParameter(&paramCache.dcDcTemperature, dcDcConverter->getTemperature(), Constants::dcDcTemperature, 10.0f);
+            processParameter(&paramCache.dcDcTemperature, dcDcConverter->getTemperature(), Constants::dcDcTemperature, 10);
         }
 
         Charger* charger = deviceManager.getCharger();
         if (charger) {
-            processParameter(&paramCache.chargerInputVoltage, charger->getInputVoltage(), Constants::chargerInputVoltage, 10.0f);
-            processParameter(&paramCache.chargerInputCurrent, charger->getInputCurrent(), Constants::chargerInputCurrent, 100.0f);
-            processParameter(&paramCache.chargerBatteryVoltage, charger->getBatteryVoltage(), Constants::chargerBatteryVoltage, 10.0f);
-            processParameter(&paramCache.chargerBatteryCurrent, charger->getBatteryCurrent(), Constants::chargerBatteryCurrent, 100.0f);
-            processParameter(&paramCache.chargerTemperature, charger->getTemperature(), Constants::chargerTemperature, 10.0f);
+            processParameter(&paramCache.chargerInputVoltage, charger->getInputVoltage(), Constants::chargerInputVoltage, 10);
+            processParameter(&paramCache.chargerInputCurrent, charger->getInputCurrent(), Constants::chargerInputCurrent, 100);
+            processParameter(&paramCache.chargerBatteryVoltage, charger->getBatteryVoltage(), Constants::chargerBatteryVoltage, 10);
+            processParameter(&paramCache.chargerBatteryCurrent, charger->getBatteryCurrent(), Constants::chargerBatteryCurrent, 100);
+            processParameter(&paramCache.chargerTemperature, charger->getTemperature(), Constants::chargerTemperature, 10);
         }
 
-        processParameter(&paramCache.energyConsumption, status.getEnergyConsumption(), Constants::energyConsumption, 10.0f);
+        processParameter(&paramCache.energyConsumption, status.getEnergyConsumption(), Constants::energyConsumption, 10);
         processParameter(&paramCache.heaterPower, status.heaterPower, Constants::heaterPower);
-        processParameter(&paramCache.flowCoolant, status.flowCoolant * 6, Constants::flowCoolant, 100.0f);
-        processParameter(&paramCache.flowHeater, status.flowHeater * 6, Constants::flowHeater, 100.0f);
+        processParameter(&paramCache.flowCoolant, status.flowCoolant * 6, Constants::flowCoolant, 100);
+        processParameter(&paramCache.flowHeater, status.flowHeater * 6, Constants::flowHeater, 100);
         for (int i = 0; i < CFG_NUMBER_BATTERY_TEMPERATURE_SENSORS; i++) {
-            processParameter(&paramCache.temperatureBattery[i], status.temperatureBattery[i], Constants::temperatureBattery[i], 10.0f);
+            processParameter(&paramCache.temperatureBattery[i], status.temperatureBattery[i], Constants::temperatureBattery[i], 10);
         }
-        processParameter(&paramCache.temperatureCoolant, status.temperatureCoolant, Constants::temperatureCoolant, 10.0f);
+        processParameter(&paramCache.temperatureCoolant, status.temperatureCoolant, Constants::temperatureCoolant, 10);
         processParameter(&paramCache.temperatureHeater, status.heaterTemperature, Constants::temperatureHeater);
-        processParameter(&paramCache.temperatureExterior, status.temperatureExterior, Constants::temperatureExterior, 10.0f);
+        processParameter(&paramCache.temperatureExterior, status.temperatureExterior, Constants::temperatureExterior, 10);
         processParameter(&paramCache.enableRegen, status.enableRegen, Constants::enableRegen);
         processParameter(&paramCache.enableHeater, status.enableHeater, Constants::enableHeater);
         processParameter(&paramCache.powerSteering, status.powerSteering, Constants::powerSteering);
         processParameter(&paramCache.enableCreep, status.enableCreep, Constants::enableCreep);
-
     }
 
     if (isFirst) {    // return empty string -> nothing will be sent, lower resource usage
@@ -503,14 +502,14 @@ void WebSocket::processParameter(uint32_t *cacheParam, uint32_t value, const cha
  * \param name the name of the parameter
  * \param divisor by which the value should be divided to a float value
  */
-void WebSocket::processParameter(int16_t *cacheParam, int16_t value, const char *name, float divisor)
+void WebSocket::processParameter(int16_t *cacheParam, int16_t value, const char *name, int divisor)
 {
     if (*cacheParam != value) {
         *cacheParam = value;
 
         char format[10];
-        sprintf(format, "%%.%df", log10(divisor));
-        sprintf(buffer, format, ((float) value) / divisor);
+        sprintf(format, "%%.%df", round(log10(divisor)));
+        sprintf(buffer, format, static_cast<float>(value) / divisor);
         addParam(name, buffer, true);
     }
 }
@@ -523,14 +522,14 @@ void WebSocket::processParameter(int16_t *cacheParam, int16_t value, const char 
  * \param name the name of the parameter
  * \param divisor by which the value should be divided to a float value
  */
-void WebSocket::processParameter(uint16_t *cacheParam, uint16_t value, const char *name, float divisor)
+void WebSocket::processParameter(uint16_t *cacheParam, uint16_t value, const char *name, int divisor)
 {
     if (*cacheParam != value) {
         *cacheParam = value;
 
         char format[10];
-        sprintf(format, "%%.%df", log10(divisor));
-        sprintf(buffer, format, ((float) value) / divisor);
+        sprintf(format, "%%.%df", round(log10(divisor)));
+        sprintf(buffer, format, static_cast<float>(value) / divisor);
         addParam(name, buffer, true);
     }
 }
@@ -543,14 +542,14 @@ void WebSocket::processParameter(uint16_t *cacheParam, uint16_t value, const cha
  * \param name the name of the parameter
  * \param divisor by which the value should be divided to a float value
  */
-void WebSocket::processParameter(int32_t *cacheParam, int32_t value, const char *name, float divisor)
+void WebSocket::processParameter(int32_t *cacheParam, int32_t value, const char *name, int divisor)
 {
     if (*cacheParam != value) {
         *cacheParam = value;
 
         char format[10];
-        sprintf(format, "%%.%df", log10(divisor));
-        sprintf(buffer, format, ((float) value) / divisor);
+        sprintf(format, "%%.%df", round(log10(divisor)));
+        sprintf(buffer, format, static_cast<float>(value) / divisor);
         addParam(name, buffer, true);
     }
 }
@@ -563,14 +562,14 @@ void WebSocket::processParameter(int32_t *cacheParam, int32_t value, const char 
  * \param name the name of the parameter
  * \param divisor by which the value should be divided to a float value
  */
-void WebSocket::processParameter(uint32_t *cacheParam, uint32_t value, const char *name, float divisor)
+void WebSocket::processParameter(uint32_t *cacheParam, uint32_t value, const char *name, int divisor)
 {
     if (*cacheParam != value) {
         *cacheParam = value;
 
         char format[10];
-        sprintf(format, "%%.%df", log10(divisor));
-        sprintf(buffer, format, ((float) value) / divisor);
+        sprintf(format, "%%.%df", round(log10(divisor)));
+        sprintf(buffer, format, static_cast<float>(value) / divisor);
         addParam(name, buffer, true);
     }
 }
