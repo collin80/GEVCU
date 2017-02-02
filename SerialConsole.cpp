@@ -339,7 +339,7 @@ void SerialConsole::handleConfigCmd()
         if (handleConfigCmdWifi(command, (cmdBuffer + i))) {
             updateWifi = false;
         } else {
-            Logger::error("unknown command: %s", command.c_str());
+            Logger::warn("unknown command: %s", command.c_str());
         }
     }
 

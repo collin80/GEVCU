@@ -124,7 +124,7 @@ void BrusaDMC5::sendControl()
     canHandlerEv.prepareOutputFrame(&outputFrame, CAN_ID_CONTROL);
     if ((status.canControlMessageLost || status.canControl2MessageLost || status.canLimitMessageLost)) {
         outputFrame.data.bytes[0] |= clearErrorLatch;
-        Logger::error(this, "clearing error latch - ctrl lost: %d, ctrl2 lost: %d, limit lost: %d", status.canControlMessageLost,
+        Logger::warn(this, "clearing error latch - ctrl lost: %d, ctrl2 lost: %d, limit lost: %d", status.canControlMessageLost,
                 status.canControl2MessageLost, status.canLimitMessageLost);
     } else {
         // to safe energy only enable the power-stage when positive acceleration is requested or the motor is still spinning (to control regen)
