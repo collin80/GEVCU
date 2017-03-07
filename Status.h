@@ -145,6 +145,9 @@ public:
     int16_t heaterTemperature; // temperature of the heater water, calculated from analog input
     int16_t temperatureExterior; // exterior temperature (ambient) reported via CAN from GEVCU extension
     uint16_t heaterPower; // the power of the heater in Watt
+    uint8_t vehicleSpeed; // vehicle speed in kmh
+    uint8_t barometricPressure; // barometric pressure in kPa
+
 
     Status();
     SystemState getSystemState();

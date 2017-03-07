@@ -124,6 +124,7 @@ the end of the stardard data. The below numbers are offsets from the device's ee
 #define EEMC_CREEP_LEVEL                    69 // 1 byte - percentage of throttle used to simulate creep
 #define EEMC_CREEP_SPEED                    70 // 2 bytes - max speed for creep
 #define EEMC_BRAKE_HOLD                     72 // 1 byte - percentage of max torque to achieve brake hold (0=off)
+#define EEMC_GEAR_CHANGE_SUPPORT            73 // 1 byte - flag, true if gear chaning support is enabled
 
 // Throttle data
 #define EETH_LEVEL_MIN                      20 //2 bytes - ADC value of minimum value for first channel
@@ -215,6 +216,12 @@ the end of the stardard data. The below numbers are offsets from the device's ee
 #define EESIO_UNUSED_OUTPUT                 70 // 1 byte - digital output for ...
 #define EESIO_STATE_OF_CHARGE_OUTPUT        71 // 1 byte - digital output for indication of SoC (255 = no output)
 #define EESIO_ABS_INPUT                     72 // 1 byte - digital input for ABS signal (255 = no output)
+
+// CanOBD2
+#define EEOBD2_CAN_BUS_RESPOND              10 // 1 byte - which can bus should we respond to OBD2 requests (0=ev, 1=car, 255=ignore)
+#define EEOBD2_CAN_ID_OFFSET_RESPOND        11 // 1 byte - offset for can id on wich we listen to incoming requests (0-7)
+#define EEOBD2_CAN_BUS_POLL                 12 // 1 byte - which can bus should we poll OBD2 data from (0=ev, 1=car, 255=ignore)
+#define EEOBD2_CAN_ID_OFFSET_POLL           13 // 1 byte - offset for can id on which we will request OBD2 data from (0-7, 255=broadcast)
 
 // Fault Handler
 #define EEFAULT_VALID                       0 //1 byte - Set to value of 0xB2 if fault data has been initialized

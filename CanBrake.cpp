@@ -159,7 +159,6 @@ bool CanBrake::validateSignal(RawSignalData* rawSignal)
         }
 
         throttleStatus = ERR_MISC;
-        running = false;
         return false;
     }
 

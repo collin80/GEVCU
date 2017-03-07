@@ -64,7 +64,7 @@ enum DeviceId {
     HEARTBEAT = 0x5001,
     MEMCACHE = 0x5002,
     CANIO = 0x5003,
-    PIDLISTENER = 0x6000,
+    CANOBD2= 0x6000,
     ELM327EMU = 0x6500,
     INVALID = 0xFFFF
 };
@@ -86,7 +86,7 @@ const DeviceId deviceIds[] = {
         BRUSA_BSC6,
         HEARTBEAT,
         CANIO,
-        PIDLISTENER,
+        CANOBD2,
         ELM327EMU
 };
 

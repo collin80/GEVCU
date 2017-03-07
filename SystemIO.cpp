@@ -101,8 +101,10 @@ void SystemIO::handleTick() {
     }
 
     //TODO move to method and configure max kWh and if inverted or not
-    setStateOfCharge(map(status.getEnergyConsumption(), 350, 0, 30, 237));
- //   Logger::console("soc: %d", status.stateOfCharge);
+    uint16_t batteryCapacity = 350; // in 0.1kWh
+    uint16_t cons = map(constrain(status.getEnergyConsumption(), 0, batteryCapacity), 0, batteryCapacity, 0, 1000);
+    setStateOfCharge(map(sqrt(sqrt(cons)) * 1000, 0, 5623, 255, 0));
+    Logger::console("soc pwm: %d", status.stateOfCharge);
 
     handleCooling();
     handleCharging();

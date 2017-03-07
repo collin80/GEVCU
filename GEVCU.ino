@@ -78,6 +78,7 @@ void createDevices()
 //    deviceManager.addDevice(new ELM327Emu());
     deviceManager.addDevice(new ICHIPWIFI());
     deviceManager.addDevice(new CanIO());
+    deviceManager.addDevice(new CanOBD2());
 }
 
 void setup()

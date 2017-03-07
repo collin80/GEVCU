@@ -105,6 +105,7 @@ void SerialConsole::printMenuMotorController()
         Logger::console("MOMWMX=%d - maximal mechanical power of motor (in 100W steps)", config->maxMechanicalPowerMotor);
         Logger::console("MORWMX=%d - maximal mechanical power of regen (in 100W steps)", config->maxMechanicalPowerRegen);
         Logger::console("MOBRHD=%d - percentage of max torque to apply for brake hold (in %)", config->brakeHold);
+        Logger::console("MOGCHS=%d - enable gear change support (1=aproximate rpm at gear shift, 0=off)", config->gearChangeSupport);
         Logger::console("NOMV=%d - Fully charged pack voltage that automatically resets the kWh counter (in 0.1V)", config->nominalVolt);
         if (motorController->getId() == BRUSA_DMC5) {
             BrusaDMC5Configuration *dmc5Config = (BrusaDMC5Configuration *) config;
@@ -398,6 +399,10 @@ bool SerialConsole::handleConfigCmdMotorController(String command, long value)
     } else if (command == String("MOBRHD")) {
         Logger::console("Setting maximal brake hold level to %d%%", value);
         config->brakeHold = value;
+    } else if (command == String("MOGCHS")) {
+        value = constrain(value, 0, 1);
+        Logger::console("Setting gear change support to '%s'", (value == 1 ? "on" : "off"));
+        config->gearChangeSupport = value;
     } else if (command == String("MOMVMN") && (motorController->getId() == BRUSA_DMC5)) {
         Logger::console("Setting minimum DC voltage limit for motoring to %fV", value / 10.0f);
         ((BrusaDMC5Configuration *) config)->dcVoltLimitMotor = value;

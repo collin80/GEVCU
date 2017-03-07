@@ -64,6 +64,7 @@ public:
     uint8_t creepLevel; // percentage of torque used for creep function (imitate creep of automatic transmission, set 0 to disable)
     uint16_t creepSpeed; // max speed for creep
     uint8_t brakeHold; // percentage of max torque to achieve brake hold (0 = off)
+    bool gearChangeSupport; // flag indication if gear change support (adjusting rpm) is on
 };
 
 class MotorController: public Device, public CanObserver
@@ -134,6 +135,9 @@ private:
     void checkActivity();
     void processThrottleLevel();
     void updateGear();
+    int16_t processBrakeHold(uint8_t brakeHold, int16_t throttleLevel, int16_t brakeLevel);
+    void processAbsOrGearChange(bool gearChangeSupport);
+    bool checkBatteryTemperatureForRegen();
 };
 
 #endif

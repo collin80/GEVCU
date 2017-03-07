@@ -124,6 +124,77 @@ void MotorController::checkActivity()
     }
 }
 
+int16_t MotorController::processBrakeHold(uint8_t brakeHold, int16_t throttleLvl, int16_t brakeLvl)
+{
+    if (brakeHoldActive) {
+        if (brakeHoldStart == 0) {
+            if (brakeLvl == 0) { // engage brake hold once the brake is released
+                brakeHoldStart = millis();
+                brakeHoldLevel = 0;
+    Logger::console("brake hold engaged for %dms", CFG_BRAKE_HOLD_MAX_TIME);
+            }
+    else Logger::console("brake pressed: %d", brakeLvl);
+        } else {
+            if (brakeHoldStart + CFG_BRAKE_HOLD_MAX_TIME < millis() || throttleLvl > 0) { // deactivate after 5sec or when accelerator gives positive torque
+                brakeHoldActive = false;
+                brakeHoldLevel = 0;
+                brakeHoldStart = 0;
+    Logger::console("brake hold deactivated");
+            } else {
+                if (speedActual < 0 && brakeHoldLevel < brakeHold * 10) {
+                    brakeHoldLevel += 5;
+                }
+                if (speedActual > 0 && brakeHoldLevel > 0) {
+                    brakeHoldLevel--;
+                }
+                throttleLvl = brakeHoldLevel;
+            }
+Logger::console("brake hold level: %.1f%%, start: %dms, duration: %dms, speedActual: %d, throttle: %.1f%%", brakeHoldLevel / 10.0f, brakeHoldStart, millis() - brakeHoldStart, speedActual, throttleLvl / 10.0f);
+        }
+    } else {
+//    Logger::console("brake hold inactive, brake press %d", brakeLvl);
+        if (brakeLvl < 0 && speedActual == 0) { // init brake hold at stand-still when brake is pressed
+            brakeHoldActive = true;
+            brakeHoldStart = 0;
+    Logger::console("brake hold activated");
+        }
+    }
+    return throttleLvl;
+}
+
+/**
+ * /brief In case ABS is active, apply no power to wheels to prevent loss of control through regen forces. If gear shift support is enabled, additionally
+ * the motor will be spun up/down to the next
+ */
+void MotorController::processAbsOrGearChange(bool gearChangeSupport) {
+    // phase 1 - duration approx 700ms
+    torqueRequested = 0;
+    speedRequested = 0;
+
+    if (gearChangeSupport) {
+        // phase 2
+        // break/accel  with about 20Nm for about 500ms
+
+    }
+}
+
+/**
+ * /brief Check if the battery temperatures are below the minimum temperature (configured in charger) in which case no regen should be applied.
+ *
+ * @return true if it's ok to apply regen, false if no regen must be applied
+ */
+bool MotorController::checkBatteryTemperatureForRegen() {
+    int16_t lowestBatteryTemperature = status.getLowestBatteryTemperature();
+
+    if (lowestBatteryTemperature != CFG_NO_TEMPERATURE_DATA && (lowestBatteryTemperature * 10) < minimumBatteryTemperature) {
+        status.enableRegen = false;
+        Logger::info(this, "No regenerative braking due to low battery temperature! (%f < %f)", lowestBatteryTemperature / 10.0f, minimumBatteryTemperature / 10.0f);
+        return false;
+    }
+
+    return true;
+}
+
 /*
  * From the throttle and brake level, calculate the requested torque and speed.
  * Depending on power mode, the throttle dependent value is torque or speed. The other
@@ -141,53 +212,14 @@ void MotorController::processThrottleLevel()
         if (accelerator) {
             throttleLevel = accelerator->getLevel();
         }
-        // if the brake has been pressed it may override the accelerator
-        if (brake && brake->getLevel() < 0) {
-            if (brake->getLevel() < accelerator->getLevel()) {
-                throttleLevel = brake->getLevel();
-            }
-            if (config->brakeHold > 0 && speedActual == 0) {
-                brakeHoldActive = true;
-                brakeHoldStart = 0;
-            }
+        if (brake && brake->getLevel() < 0) { // if the brake has been pressed it overrides the accelerator
+            throttleLevel = brake->getLevel();
         }
-
-        if (brakeHoldActive) {
-            if (brakeHoldStart == 0) {
-                if (brake->getLevel() == 0) {
-                    brakeHoldStart = millis();
-                    brakeHoldLevel = 0;
-                }
-            } else {
-                if (brakeHoldStart + 5000 < millis() || throttleLevel > 0) {
-                    brakeHoldActive = false;
-                    brakeHoldLevel = 0;
-                    brakeHoldStart = 0;
-                } else {
-                    if (speedActual < 0 && brakeHoldLevel < config->brakeHold * 10) {
-                        brakeHoldLevel++;
-                    }
-                    if (speedActual > 0 && brakeHoldLevel > 0) {
-                        brakeHoldLevel--;
-                    }
-                    throttleLevel = brakeHoldLevel;
-                }
-            }
-Logger::console("brake hold level: %d%%, start: %dms, speedActual: %d", brakeHoldLevel, brakeHoldStart, speedActual);
+        if (brake && config->brakeHold > 0) { // check if brake hold should be applied
+            throttleLevel = processBrakeHold(config->brakeHold, throttleLevel, brake->getLevel());
         }
-
-        if (throttleLevel < 0) {
-            if (status.enableRegen) {
-                // do not apply regen if the batteries are too cold (otherwise they might get damaged)
-                int16_t lowestBatteryTemperature = status.getLowestBatteryTemperature();
-                if (lowestBatteryTemperature != CFG_NO_TEMPERATURE_DATA && (lowestBatteryTemperature * 10) < minimumBatteryTemperature) {
-                    throttleLevel = 0;
-                    status.enableRegen = false;
-                    Logger::info(this, "No regenerative braking due to low battery temperature! (%f < %f)", lowestBatteryTemperature / 10.0f, minimumBatteryTemperature / 10.0f);
-                }
-            } else {
-                throttleLevel = 0;
-            }
+        if (throttleLevel < 0 && (!status.enableRegen || !checkBatteryTemperatureForRegen())) { // do not apply regen if the batteries are too cold
+            throttleLevel = 0;
         }
 
         if (config->powerMode == modeSpeed) {
@@ -214,10 +246,8 @@ Logger::console("brake hold level: %d%%, start: %dms, speedActual: %d", brakeHol
         torqueRequested = 0;
     }
 
-    // in case ABS is active, apply no power to wheels to prevent loss of control through regen forces
     if (systemIO.isABSActive()) {
-        torqueRequested = 0;
-        speedRequested = 0;
+        processAbsOrGearChange(config->gearChangeSupport);
     }
 }
 
@@ -397,6 +427,8 @@ void MotorController::loadConfiguration()
         prefsHandler->read(EEMC_CREEP_LEVEL, &config->creepLevel);
         prefsHandler->read(EEMC_CREEP_SPEED, &config->creepSpeed);
         prefsHandler->read(EEMC_BRAKE_HOLD, &config->brakeHold);
+        prefsHandler->read(EEMC_GEAR_CHANGE_SUPPORT, &temp);
+        config->gearChangeSupport = temp;
 //TODO this is only to prevent launching off with bad config
 config->creepLevel = min(config->creepLevel, 20);
 config->creepSpeed = min(config->creepSpeed, 700);
@@ -413,13 +445,14 @@ config->creepSpeed = min(config->creepSpeed, 700);
         config->creepLevel = 0;
         config->creepSpeed = 0;
         config->brakeHold = 0;
+        config->gearChangeSupport = false;
     }
 
     Logger::info(this, "Power mode: %s, Max torque: %i", (config->powerMode == modeTorque ? "torque" : "speed"), config->torqueMax);
     Logger::info(this, "Max RPM: %i, Slew rate: %i", config->speedMax, config->slewRate);
     Logger::info(this, "Max mech power motor: %fkW, Max mech power regen: %fkW", config->maxMechanicalPowerMotor / 10.0f,
             config->maxMechanicalPowerRegen / 10.0f);
-    Logger::info(this, "Creep level: %i, Creep speed: %i, Brake Hold: %d", config->creepLevel, config->creepSpeed, config->brakeHold);
+    Logger::info(this, "Creep level: %i, Creep speed: %i, Brake Hold: %d, Gear Change Support: %d", config->creepLevel, config->creepSpeed, config->brakeHold, config->gearChangeSupport);
 }
 
 void MotorController::saveConfiguration()
@@ -440,5 +473,6 @@ void MotorController::saveConfiguration()
     prefsHandler->write(EEMC_CREEP_LEVEL, config->creepLevel);
     prefsHandler->write(EEMC_CREEP_SPEED, config->creepSpeed);
     prefsHandler->write(EEMC_BRAKE_HOLD, config->brakeHold);
+    prefsHandler->write(EEMC_GEAR_CHANGE_SUPPORT, (uint8_t) (config->gearChangeSupport ? 1 : 0));
     prefsHandler->saveChecksum();
 }

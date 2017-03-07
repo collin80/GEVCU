@@ -57,8 +57,9 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  * the same timer (out of a limited number of 9 timers).
  */
 #define CFG_TICK_INTERVAL_HEARTBEAT                 2000000
-#define CFG_TICK_INTERVAL_POT_THROTTLE              40000
-#define CFG_TICK_INTERVAL_CAN_THROTTLE              40000
+#define CFG_TICK_INTERVAL_POT_THROTTLE              100000
+#define CFG_TICK_INTERVAL_CAN_THROTTLE              100000
+#define CFG_TICK_INTERVAL_CAN_OBD2                  200000
 #define CFG_TICK_INTERVAL_MOTOR_CONTROLLER          40000
 #define CFG_TICK_INTERVAL_MOTOR_CONTROLLER_DMOC     40000
 #define CFG_TICK_INTERVAL_MOTOR_CONTROLLER_CODAUQM  10000
@@ -86,12 +87,13 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  *
  */
 #define CFG_THROTTLE_TOLERANCE  150 //the max that things can go over or under the min/max without fault - 1/10% each #
+#define CFG_TORQUE_BRAKE_LIGHT_ON -500 // torque in 0.1Nm where brake light should be turned on - to prevent being kissed from behind
+#define CFG_BRAKE_HOLD_MAX_TIME 5000 // max amount of ms to apply the brake hold functionality
 #define CFG_PRE_CHARGE_RELAY_DELAY 200 // a delay to allow relays to (de-)activate before proceeding with next steps
 #define CFG_PRE_CHARGE_START 1000 // delay for the pre-charge process to start - ensuring other deivces become available
 #define CFG_THREE_CONTACTOR_PRECHARGE // do we use three contactors instead of two for pre-charge cycle ?
 #define CFG_NO_TEMPERATURE_DATA 9999 // temperature used to indicate that no external temp sensor is connected
 #define CFG_MIN_BATTERY_CHARGE_TEMPERATURE 5 // GEVCU won't start the battery charging process if the battery temp is below 5 deg C
-#define CFG_TORQUE_BRAKE_LIGHT_ON -500 // torque in 0.1Nm where brake light should be turned on - to prevent being kissed from behind
 #define CFG_WIFI_WPA2 // enable WPA2 encryption for ad-hoc wifi network at wifi reset (via command 'w'), comment line to disable
 #define CFG_CAN_TEMPERATURE_OFFSET 50 // offset of temperatures reported via CAN bus - make sure GEVCU extension uses the same value!
 
