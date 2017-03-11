@@ -104,7 +104,7 @@ void SystemIO::handleTick() {
     uint16_t batteryCapacity = 350; // in 0.1kWh
     uint16_t cons = map(constrain(status.getEnergyConsumption(), 0, batteryCapacity), 0, batteryCapacity, 0, 1000);
     setStateOfCharge(map(sqrt(sqrt(cons)) * 1000, 0, 5623, 255, 0));
-    Logger::console("soc pwm: %d", status.stateOfCharge);
+    Logger::debug("sysio: consumption: %.1f kWh, SOC PWM: %d/255", cons / 10.0f, status.stateOfCharge);
 
     handleCooling();
     handleCharging();
@@ -499,8 +499,10 @@ void SystemIO::setPowerLimitation(bool enabled) {
  * Set the value of the estimated state of charge in the range of 0 to 255 (e.g. for a gas tank display)
  */
 void SystemIO::setStateOfCharge(uint8_t value) {
-    setAnalogOut(configuration->stateOfChargeOutput, value);
-    status.stateOfCharge = value;
+    if (value != status.stateOfCharge) {
+        setAnalogOut(configuration->stateOfChargeOutput, value);
+        status.stateOfCharge = value;
+    }
 }
 
 /*
