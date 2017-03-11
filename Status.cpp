@@ -132,6 +132,8 @@ Status::Status()
     temperatureCoolant = CFG_NO_TEMPERATURE_DATA;
     heaterTemperature = CFG_NO_TEMPERATURE_DATA;
     temperatureExterior = CFG_NO_TEMPERATURE_DATA;
+    barometricPressure = 0;
+    vehicleSpeed = 0;
 
     stateOfCharge = 0;
 }
