@@ -106,7 +106,7 @@ void SerialConsole::printMenuMotorController()
         Logger::console("MOSLEW=%d - slew rate (in 0.1 percent/sec, 0=disabled)", config->slewRate);
         Logger::console("MOMWMX=%d - maximal mechanical power of motor (in 100W steps)", config->maxMechanicalPowerMotor);
         Logger::console("MORWMX=%d - maximal mechanical power of regen (in 100W steps)", config->maxMechanicalPowerRegen);
-        Logger::console("MOBRHD=%d - percentage of max torque to apply for brake hold (in %)", config->brakeHold);
+        Logger::console("MOBRHD=%d - percentage of max torque to apply for brake hold (in 1%%)", config->brakeHold);
         Logger::console("MOGCHS=%d - enable gear change support (1=aproximate rpm at gear shift, 0=off)", config->gearChangeSupport);
         Logger::console("NOMV=%d - Fully charged pack voltage that automatically resets the kWh counter (in 0.1V)", config->nominalVolt);
         if (motorController->getId() == BRUSA_DMC5) {
@@ -238,7 +238,7 @@ void SerialConsole::printMenuCharger()
         Logger::console("CHTPMX=%d - Maximum battery temperature for charging (in 0.1 deg C)", config->maximumTemperature);
         Logger::console("CHAHMX=%d - Maximum ampere hours (in 0.1Ah)", config->maximumAmpereHours);
         Logger::console("CHCTMX=%d - Maximum charge time (in 1 min)", config->maximumChargeTime);
-        Logger::console("CHTDRC=%d - Derating of charge current (in 0.1Ah per deg C)", config->deratingRate);
+        Logger::console("CHTDRC=%d - Derating of charge current (in 0.1A per deg C)", config->deratingRate);
         Logger::console("CHTDRS=%d - Reference temperature for derating (in 0.1 deg C)", config->deratingReferenceTemperature);
         Logger::console("CHTHYS=%d - Hysterese temperature where charging will be stopped (in 0.1 deg C)", config->hystereseStopTemperature);
         Logger::console("CHTHYR=%d - Hysterese temperature where charging will resume (in 0.1 deg C)", config->hystereseResumeTemperature);
