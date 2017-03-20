@@ -100,7 +100,7 @@ void ICHIPWIFI::setup()
 void ICHIPWIFI::tearDown()
 {
     Device::tearDown();
-    digitalWrite(42, LOW);
+    digitalWrite(CFG_WIFI_ENABLE, LOW);
 }
 
 /**
