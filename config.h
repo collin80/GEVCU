@@ -168,7 +168,7 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  * PIN ASSIGNMENT
  */
 #define CFG_OUTPUT_NONE    				255
-#define CFG_BLINK_LED       			73 //13 is L, 73 is TX, 72 is RX
+#define CFG_BLINK_LED       			13 //13 is L, 73 is TX, 72 is RX
 #define CFG_EEPROM_WRITE_PROTECT		19 // pin used to control the write-enable signal for the eeprom, use 18 for GEVCU 2.x
 #define CFG_WIFI_ENABLE                 42 // pin used to enable wifi chip
 #define CFG_WIFI_RESET                  18 // pin to reset wifi chip
