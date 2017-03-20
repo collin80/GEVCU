@@ -104,7 +104,7 @@ void SystemIO::handleTick() {
     uint16_t batteryCapacity = 350; // in 0.1kWh
     uint16_t cons = map(constrain(status.getEnergyConsumption(), 0, batteryCapacity), 0, batteryCapacity, 0, 1000);
     setStateOfCharge(map(sqrt(sqrt(cons)) * 1000, 0, 5623, 255, 0));
-    Logger::debug("sysio: consumption: %.1f kWh, SOC PWM: %d/255", cons / 10.0f, status.stateOfCharge);
+    Logger::debug("sysio: consumption: %.1f %%, SOC PWM: %d/255", cons / 10.0f, status.stateOfCharge);
 
     handleCooling();
     handleCharging();
@@ -499,10 +499,8 @@ void SystemIO::setPowerLimitation(bool enabled) {
  * Set the value of the estimated state of charge in the range of 0 to 255 (e.g. for a gas tank display)
  */
 void SystemIO::setStateOfCharge(uint8_t value) {
-    if (value != status.stateOfCharge) {
-        setAnalogOut(configuration->stateOfChargeOutput, value);
-        status.stateOfCharge = value;
-    }
+    setAnalogOut(configuration->stateOfChargeOutput, value);
+    status.stateOfCharge = value;
 }
 
 /*
@@ -724,16 +722,6 @@ uint16_t SystemIO::getRawADC(uint8_t which) {
  *  Figure out what hardware we are running on and fill in the pin tables.
  */
 void SystemIO::initializePinTables() {
-    uint8_t rawadc;
-    prefsHandler->read(EESIO_RAWADC, &rawadc);
-
-    if (rawadc != 0) {
-        useRawADC = true;
-        Logger::info("Using raw ADC mode");
-    } else {
-        useRawADC = false;
-    }
-
 //    numberADCSamples = 64;
     switch (getSystemType()) {
     case GEVCU2:
@@ -748,6 +736,10 @@ void SystemIO::initializePinTables() {
     default:
         initGevcuLegacyPinTable();
         break;
+    }
+
+    if (useRawADC) {
+        Logger::info("Using raw ADC mode");
     }
 }
 
@@ -878,9 +870,10 @@ void SystemIO::initializeAnalogIO() {
 
     //requires the value to be contiguous in memory
     for (int i = 0; i < CFG_NUMBER_ANALOG_INPUTS; i++) {
-        prefsHandler->read(EESIO_ADC0_GAIN + 4 * i, &adcComp[i].gain);
-        prefsHandler->read(EESIO_ADC0_OFFSET + 4 * i, &adcComp[i].offset);
-
+        //prefsHandler->read(EESIO_ADC0_GAIN + 4 * i, &adcComp[i].gain);
+        //prefsHandler->read(EESIO_ADC0_OFFSET + 4 * i, &adcComp[i].offset);
+        adcComp[i].gain = 1024;
+        adcComp[i].offset = 0;
         //Logger::debug("ADC:%d GAIN: %d Offset: %d", i, adc_comp[i].gain, adc_comp[i].offset);
 //        for (int j = 0; j < numberADCSamples; j++) {
 //            adcAverageBuffer[i][j] = 0;
@@ -1117,6 +1110,16 @@ void SystemIO::loadConfiguration() {
         configuration->systemType = GEVCU2;
         configuration->logLevel = Logger::Info;
 
+        adcComp[0].gain = 1024;
+        adcComp[1].gain = 1024;
+        adcComp[2].gain = 1024;
+        adcComp[3].gain = 1024;
+
+        adcComp[0].offset = 0;
+        adcComp[1].offset = 0;
+        adcComp[2].offset = 0;
+        adcComp[3].offset = 0;
+
         saveConfiguration();
     }
     Logger::info("enable input: %d, charge power avail input: %d, interlock input: %d, reverse input: %d, abs input: %d", configuration->enableInput, configuration->chargePowerAvailableInput, configuration->interlockInput, configuration->reverseInput, configuration->absInput);
@@ -1166,6 +1169,15 @@ void SystemIO::saveConfiguration() {
 
     prefsHandler->write(EESYS_SYSTEM_TYPE, (uint8_t) configuration->systemType);
     prefsHandler->write(EESYS_LOG_LEVEL, (uint8_t) configuration->logLevel);
+
+    prefsHandler->write(EESIO_ADC0_GAIN, adcComp[0].gain);
+    prefsHandler->write(EESIO_ADC1_GAIN, adcComp[1].gain);
+    prefsHandler->write(EESIO_ADC2_GAIN, adcComp[2].gain);
+    prefsHandler->write(EESIO_ADC3_GAIN, adcComp[3].gain);
+    prefsHandler->write(EESIO_ADC0_OFFSET, adcComp[0].offset);
+    prefsHandler->write(EESIO_ADC1_OFFSET, adcComp[1].offset);
+    prefsHandler->write(EESIO_ADC2_OFFSET, adcComp[2].offset);
+    prefsHandler->write(EESIO_ADC3_OFFSET, adcComp[3].offset);
 
     prefsHandler->saveChecksum();
 }
