@@ -86,6 +86,7 @@ void SerialConsole::printMenu()
     printMenuSystemIO();
     printMenuCharger();
     printMenuDcDcConverter();
+    printMenuCanOBD2();
 }
 
 void SerialConsole::printMenuMotorController()
@@ -97,6 +98,7 @@ void SerialConsole::printMenuMotorController()
         Logger::console("\nMOTOR CONTROLS\n");
         Logger::console("TORQ=%d - Set torque upper limit (in 0.1Nm)", config->torqueMax);
         Logger::console("RPMS=%d - Set maximum speed (in RPMs)", config->speedMax);
+        Logger::console("MOMODE=%d - Set power mode (0=torque, 1=speed, default=0)", config->torqueMax);
         Logger::console("CRLVL=%d - Torque to use for creep (0=disable) (in 1%%)", config->creepLevel);
         Logger::console("CRSPD=%d - maximal speed until creep is applied (in RPMs)", config->creepSpeed);
         Logger::console("REVLIM=%d - How much torque to allow in reverse (in 0.1%%)", config->reversePercent);
@@ -118,6 +120,9 @@ void SerialConsole::printMenuMotorController()
         }
     }
 }
+
+PowerMode powerMode;
+
 
 void SerialConsole::printMenuThrottle()
 {
@@ -162,6 +167,10 @@ void SerialConsole::printMenuBrake()
         if (brake->getId() == POTBRAKEPEDAL) {
             PotBrakeConfiguration *potConfig = (PotBrakeConfiguration *) config;
             Logger::console("B1ADC=%d - Set brake ADC pin", potConfig->AdcPin1);
+        }
+        if (brake->getId() == CANBRAKEPEDAL) {
+            CanBrakeConfiguration *canConfig = (CanBrakeConfiguration *) config;
+            Logger::console("BCTP=%d - Set car type", canConfig->carType);
         }
         Logger::console("B1MN=%d - Set brake min value", config->minimumLevel);
         Logger::console("B1MX=%d - Set brake max value", config->maximumLevel);
@@ -252,6 +261,24 @@ void SerialConsole::printMenuDcDcConverter()
         Logger::console("DCBOLVV=%d - Boost mode LV under voltage limit (in 0.1V)", config->lvUndervoltageLimit);
         Logger::console("DCBOLVC=%d - Boost mode LV current limit (in 1A)", config->lvBoostModeCurrentLinit);
         Logger::console("DCBOHVC=%d - Boost mode HV current limit (in 0.1A)", config->hvBoostModeCurrentLimit);
+        if (dcDcConverter->getId() == BRUSA_BSC6) {
+            BrusaBSC6Configuration *bscConfig = (BrusaBSC6Configuration *) config;
+            Logger::console("DCDBG=%d - Enable debug mode of BSC6 (0=off,1=on)", bscConfig->debugMode);
+        }
+    }
+}
+
+void SerialConsole::printMenuCanOBD2()
+{
+    CanOBD2 *canObd2 = (CanOBD2 *)deviceManager.getDeviceByID(CANOBD2);
+
+    if (canObd2 && canObd2->isEnabled() && canObd2->getConfiguration()) {
+        CanOBD2Configuration *config = (CanOBD2Configuration *) canObd2->getConfiguration();
+        Logger::console("\nCAN OBD2 CONTROLS\n");
+        Logger::console("ODBRES=%d - can bus number on which to respond to ODB2 PID requests (0=EV bus, 1=car bus, default=0)", config->canBusRespond);
+        Logger::console("ODBRESO=%d - offset to can ID 0x7e8 to respond to OBD2 PID requests (0-7, default=0)", config->canIdOffsetRespond);
+        Logger::console("OBDPOL=%d - can bus number on which we poll data from the car (0=EV, 1=car, default=1)", config->canBusPoll);
+        Logger::console("OBDPOLO=%d - offset to can ID 0x7e0 to request ODB2 data (0-7, 255=broadcast, default = 255)", config->canIdOffsetPoll);
     }
 }
 
@@ -368,6 +395,9 @@ bool SerialConsole::handleConfigCmdMotorController(String command, long value)
         value = constrain(value, 0, 1000000);
         Logger::console("Setting speed limit to %drpm", value);
         config->speedMax = value;
+    } else if (command == String("MOMODE")) {
+        value = constrain(value, 0, 1);
+        Logger::console("Setting power mode to %s", (value == 0 ? "torque" : "speed (be careful !!)"));
     } else if (command == String("CRLVL")) {
         value = constrain(value, 0, 100);
         Logger::console("Setting creep level to %d%%", value);
@@ -506,7 +536,10 @@ bool SerialConsole::handleConfigCmdBrake(String command, long value)
     }
     config = (ThrottleConfiguration *) brake->getConfiguration();
 
-    if (command == String("B1MN")) {
+    if (command == String("BCTP") && (brake->getId() == CANBRAKEPEDAL)) {
+        Logger::console("Setting brake car type to %d", value);
+        ((CanBrakeConfiguration *) config)->carType = value;
+    } else if (command == String("B1MN")) {
         Logger::console("Setting brake min to %d", value);
         config->minimumLevel = value;
     } else if (command == String("B1MX")) {
@@ -774,6 +807,11 @@ bool SerialConsole::handleConfigCmdDcDcConverter(String command, long value)
         value = constrain(value, 0, 10000);
         Logger::console("Setting boost HV current limit to %fA", value / 10.0f);
         config->hvBoostModeCurrentLimit = value;
+    } else if (command == String("DCDBG") && dcdcConverter->getId() == BRUSA_BSC6) {
+        BrusaBSC6Configuration *bscConfig = (BrusaBSC6Configuration *) config;
+        value = constrain(value, 0, 1);
+        Logger::console("Setting BSC6 debug mode %d", value);
+        bscConfig->debugMode = value;
     } else {
         return false;
     }
@@ -855,6 +893,41 @@ void SerialConsole::sendWifiCommand(String command, String parameter)
     command.concat(parameter);
     Logger::info("sent \"%s%s\" to wifi device", Constants::ichipCommandPrefix, command.c_str());
     deviceManager.sendMessage(DEVICE_WIFI, ICHIP2128, MSG_COMMAND, (void *) command.c_str());
+}
+
+bool SerialConsole::handleConfigCmdCanOBD2(String command, long value)
+{
+    CanOBD2 *canObd2 = (CanOBD2 *) deviceManager.getDeviceByID(CANOBD2);
+    CanOBD2Configuration *config = NULL;
+
+    if (!canObd2) {
+        return false;
+    }
+    config = (CanOBD2Configuration *) canObd2->getConfiguration();
+
+    if (command == String("ODBRES")) {
+        value = constrain(value, 0, 1);
+        Logger::console("Setting listener can bus to %d", value);
+        config->canBusRespond = value;
+    } else if (command == String("ODBRESO")) {
+        value = constrain(value, 0, 7);
+        Logger::console("Setting respond can ID offset to %d", value);
+        config->canIdOffsetRespond = value;
+    } else if (command == String("OBDPOL")) {
+        value = constrain(value, 0, 1);
+        Logger::console("Setting query can bus to %d", value);
+        config->canBusPoll = value;
+    } else if (command == String("OBDPOLO")) {
+        if (value != 255) {
+            value = constrain(value, 0, 7);
+        }
+        Logger::console("Setting request can ID to %d", value);
+        config->canIdOffsetPoll = value;
+    } else {
+        return false;
+    }
+    canObd2->saveConfiguration();
+    return true;
 }
 
 void SerialConsole::handleShortCmd()
