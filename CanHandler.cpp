@@ -57,7 +57,7 @@ CanHandler::CanHandler(CanBusNode canBusNode)
 void CanHandler::setup()
 {
     // Initialize the canbus at the specified baudrate
-    bus->init(canBusNode == CAN_BUS_EV ? CFG_CAN0_SPEED : CFG_CAN1_SPEED);
+    bus->begin(canBusNode == CAN_BUS_EV ? CFG_CAN0_SPEED : CFG_CAN1_SPEED, 255);
     bus->setNumTXBoxes(canBusNode == CAN_BUS_EV ? CFG_CAN0_NUM_TX_MAILBOXES : CFG_CAN1_NUM_TX_MAILBOXES);
     Logger::info("CAN%d init ok", (canBusNode == CAN_BUS_EV ? 0 : 1));
 }
