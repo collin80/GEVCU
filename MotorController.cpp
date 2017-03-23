@@ -133,7 +133,6 @@ int16_t MotorController::processBrakeHold(uint8_t brakeHold, int16_t throttleLvl
                 brakeHoldLevel = 0;
     Logger::console("brake hold engaged for %dms", CFG_BRAKE_HOLD_MAX_TIME);
             }
-    else Logger::console("brake pressed: %d", brakeLvl);
         } else {
             if (brakeHoldStart + CFG_BRAKE_HOLD_MAX_TIME < millis() || throttleLvl > 0) { // deactivate after 5sec or when accelerator gives positive torque
                 brakeHoldActive = false;
@@ -142,7 +141,7 @@ int16_t MotorController::processBrakeHold(uint8_t brakeHold, int16_t throttleLvl
     Logger::console("brake hold deactivated");
             } else {
                 if (speedActual < 0 && brakeHoldLevel < brakeHold * 10) {
-                    brakeHoldLevel += 5;
+                    brakeHoldLevel += 2;
                 }
                 if (speedActual > 0 && brakeHoldLevel > 0) {
                     brakeHoldLevel--;
@@ -152,7 +151,6 @@ int16_t MotorController::processBrakeHold(uint8_t brakeHold, int16_t throttleLvl
 Logger::console("brake hold level: %.1f%%, start: %dms, duration: %dms, speedActual: %d, throttle: %.1f%%", brakeHoldLevel / 10.0f, brakeHoldStart, millis() - brakeHoldStart, speedActual, throttleLvl / 10.0f);
         }
     } else {
-//    Logger::console("brake hold inactive, brake press %d", brakeLvl);
         if (brakeLvl < 0 && speedActual == 0) { // init brake hold at stand-still when brake is pressed
             brakeHoldActive = true;
             brakeHoldStart = 0;
@@ -429,18 +427,15 @@ void MotorController::loadConfiguration()
         prefsHandler->read(EEMC_BRAKE_HOLD, &config->brakeHold);
         prefsHandler->read(EEMC_GEAR_CHANGE_SUPPORT, &temp);
         config->gearChangeSupport = temp;
-//TODO this is only to prevent launching off with bad config
-config->creepLevel = min(config->creepLevel, 20);
-config->creepSpeed = min(config->creepSpeed, 700);
     } else { //checksum invalid. Reinitialize values and store to EEPROM
         config->invertDirection = false;
-        config->speedMax = MaxRPMValue;
-        config->torqueMax = MaxTorqueValue;
-        config->slewRate = SlewRateValue;
+        config->speedMax = 6000;
+        config->torqueMax = 3000;
+        config->slewRate = 0;
         config->maxMechanicalPowerMotor = 2000;
         config->maxMechanicalPowerRegen = 400;
-        config->reversePercent = ReversePercent;
-        config->nominalVolt = NominalVolt;
+        config->reversePercent = 50;
+        config->nominalVolt = 3300;
         config->powerMode = modeTorque;
         config->creepLevel = 0;
         config->creepSpeed = 0;

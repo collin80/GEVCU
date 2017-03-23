@@ -146,10 +146,10 @@ bool PotThrottle::validateSignal(RawSignalData *rawSignal)
 
         if (config->throttleSubType == 2) {
             // inverted throttle 2 means the sum of the two throttles should be 1000
-            if (abs(1000 - calcThrottle1 - calcThrottle2) > ThrottleMaxErrValue) {
+            if (abs(1000 - calcThrottle1 - calcThrottle2) > CFG_THROTTLE_MAX_ERROR) {
                 if (throttleStatus == OK)
                     Logger::error(this, "Sum of throttle 1 (%ld) and throttle 2 (%ld) exceeds max variance from 1000 (%ld)",
-                                  calcThrottle1, calcThrottle2, ThrottleMaxErrValue);
+                                  calcThrottle1, calcThrottle2, CFG_THROTTLE_MAX_ERROR);
 
                 throttleStatus = ERR_MISMATCH;
 				faultHandler.raiseFault(POTACCELPEDAL, FAULT_THROTTLE_MISMATCH_AB, true);
@@ -160,7 +160,7 @@ bool PotThrottle::validateSignal(RawSignalData *rawSignal)
 				faultHandler.cancelOngoingFault(POTACCELPEDAL, FAULT_THROTTLE_MISMATCH_AB);
 			}
         } else {
-            if ((calcThrottle1 - ThrottleMaxErrValue) > calcThrottle2) {  //then throttle1 is too large compared to 2
+            if ((calcThrottle1 - CFG_THROTTLE_MAX_ERROR) > calcThrottle2) {  //then throttle1 is too large compared to 2
                 if (throttleStatus == OK) {
                     Logger::error(this, "throttle 1 too high (%ld) compared to 2 (%ld)", calcThrottle1, calcThrottle2);
                 }
@@ -170,7 +170,7 @@ bool PotThrottle::validateSignal(RawSignalData *rawSignal)
                 return false;
             }
 
-           else if ((calcThrottle2 - ThrottleMaxErrValue) > calcThrottle1) {  //then throttle2 is too large compared to 1
+           else if ((calcThrottle2 - CFG_THROTTLE_MAX_ERROR) > calcThrottle1) {  //then throttle2 is too large compared to 1
                 if (throttleStatus == OK) {
                     Logger::error(this, "throttle 2 too high (%ld) compared to 1 (%ld)", calcThrottle2, calcThrottle1);
                 }
@@ -264,12 +264,12 @@ void PotThrottle::loadConfiguration()
             config->numberPotMeters = 2;
         }
     } else { //checksum invalid. Reinitialize values and store to EEPROM
-        config->minimumLevel2 = Throttle2MinValue;
-        config->maximumLevel2 = Throttle2MaxValue;
-        config->numberPotMeters = ThrottleNumPots;
-        config->throttleSubType = ThrottleSubtype;
-        config->AdcPin1 = ThrottleADC1;
-        config->AdcPin2 = ThrottleADC2;
+        config->minimumLevel2 = 0;
+        config->maximumLevel2 = 0;
+        config->numberPotMeters = 1;
+        config->throttleSubType = 1;
+        config->AdcPin1 = 0;
+        config->AdcPin2 = 1;
 
         saveConfiguration();
     }

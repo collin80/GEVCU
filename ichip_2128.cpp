@@ -1026,7 +1026,6 @@ bool ICHIPWIFI::processParameterChangeSystemIO(char *key, char *value)
         config->brakeLightOutput = atol(value);
     } else if (!strcmp(key, Constants::reverseLightOutput)) {
         config->reverseLightOutput = atol(value);
-        systemIO.saveConfiguration();
     } else if (!strcmp(key, Constants::warningOutput)) {
         config->warningOutput = atol(value);
     } else if (!strcmp(key, Constants::powerLimitationOutput)) {

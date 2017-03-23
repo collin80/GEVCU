@@ -34,8 +34,8 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 #include <due_can.h>
 
-#define CFG_BUILD_NUM	1059        //increment this every time a git commit is done.
-#define CFG_VERSION "GEVCU 2017-02-01"
+#define CFG_BUILD_NUM	1060        //increment this every time a git commit is done.
+#define CFG_VERSION "GEVCU 2017-03-23"
 #define CFG_DEFAULT_LOGLEVEL Logger::Info
 
 //define this to add in latency and efficiency calculations. Comment it out for builds you're going to 
@@ -96,55 +96,16 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #define CFG_MIN_BATTERY_CHARGE_TEMPERATURE 5 // GEVCU won't start the battery charging process if the battery temp is below 5 deg C
 #define CFG_WIFI_WPA2 // enable WPA2 encryption for ad-hoc wifi network at wifi reset (via command 'w'), comment line to disable
 #define CFG_CAN_TEMPERATURE_OFFSET 50 // offset of temperatures reported via CAN bus - make sure GEVCU extension uses the same value!
+#define CFG_ADC_GAIN 1024 // ADC gain centered at 1024 being 1 to 1 gain, thus 512 is 0.5 gain, 2048 is double, etc
+#define CFG_ADC_OFFSET 0 // ADC offset from zero - ADC reads 12 bit so the offset will be [0,4095] - Offset is subtracted from read ADC value
+#define CFG_THROTTLE_MAX_ERROR 150 //tenths of percentage allowable deviation between pedals
 
 /*
  * HARD CODED PARAMETERS
  *
  * If USE_HARD_CODED is defined or the checksum of the parameters stored in EEPROM,
- * the parameter values defined here are used instead of those stored in the EEPROM.
  */
 //#define USE_HARD_CODED
-#define ThrottleNumPots         1       //# of pots to use by default
-#define ThrottleADC1            0       //Which pin to use
-#define ThrottleADC2            1       //Which pin to use
-#define ThrottleSubtype         1       //subtype 1 is a standard linear pot throttle
-#define ThrottleRegenMinValue	270		//where does Regen stop (1/10 of percent)
-#define ThrottleRegenMaxValue	30		//where Regen is at maximum (1/10 of percent)
-#define ThrottleFwdValue		300		//where does forward motion start
-#define ThrottleMapValue		750		//Where is the 1/2 way point for throttle
-#define ThrottleMinRegenValue	0		//how many percent of full power to use at minimal regen
-#define ThrottleMaxRegenValue	50		//how many percent of full power to use at maximum regen
-#define ThrottleCreepValue		0		//how many percent of full power to use at creep
-#define ThrottleMaxErrValue		150		//tenths of percentage allowable deviation between pedals
-#define Throttle1MinValue		95		//Value ADC reads when pedal is up
-#define Throttle1MaxValue		3150		//Value ADC reads when pedal fully depressed
-#define Throttle2MinValue		0		//Value ADC reads when pedal is up
-#define Throttle2MaxValue		0	//Value ADC reads when pedal fully depressed
-#define BrakeMinValue			100		//Value ADC reads when brake is not pressed
-#define BrakeMaxValue			3200		//Value ADC reads when brake is pushed all of the way down
-#define BrakeMinRegenValue		0		//percent of full power to use for brake regen (min)
-#define BrakeMaxRegenValue		50		//percent of full power to use for brake regen (max)
-#define BrakeADC                2       //which ADC pin to use
-
-
-#define MaxTorqueValue		3000 //in tenths of a Nm
-#define MaxRPMValue         6000 //DMOC will ignore this but we can use it ourselves for limiting
-#define SlewRateValue       0 // 0.1 percent/sec the requested torque/speed output should change
-#define EnableInput         255 // digital input port for enable signal
-#define PrechargeMillis     3000 // milliseconds for pre-charge cycle
-#define NominalVolt         3300 //a reasonable figure for a lithium cell pack driving the DMOC (in tenths of a volt)
-#define PrechargeRelayOutput 4
-#define MainContactorRelayOutput 5
-#define SecondaryContactorRelayOutput 2
-#define EnableRelayOutput   3
-#define BrakeLightOutput    255
-#define ReverseLightOutput  255
-#define ReversePercent      50
-#define CoolingFanRelayOutput  255  //output to use for cooling fan
-#define CoolingTemperatureOn 40 //temperature (in C) to turn on cooling fan
-#define CoolingTemperatureOff 35 //temperature to turn it off
-#define InterlockInput 255
-
 
 /*
  * ARRAY SIZE

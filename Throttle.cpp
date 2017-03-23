@@ -237,14 +237,14 @@ void Throttle::loadConfiguration()
         prefsHandler->read(EETH_MIN_ACCEL_REGEN, &config->minimumRegen);
         prefsHandler->read(EETH_MAX_ACCEL_REGEN, &config->maximumRegen);
     } else { //checksum invalid. Reinitialize values, leave storing them to the subclasses
-        config->minimumLevel = Throttle1MinValue;
-        config->maximumLevel = Throttle1MaxValue;
-        config->positionRegenMinimum = ThrottleRegenMinValue;
-        config->positionRegenMaximum = ThrottleRegenMaxValue;
-        config->positionForwardMotionStart = ThrottleFwdValue;
-        config->positionHalfPower = ThrottleMapValue;
-        config->minimumRegen = ThrottleMinRegenValue; //percentage of minimal power to use when regen starts
-        config->maximumRegen = ThrottleMaxRegenValue; //percentage of full power to use for regen at throttle
+        config->minimumLevel = 95;
+        config->maximumLevel = 3150;
+        config->positionRegenMinimum = 270;
+        config->positionRegenMaximum = 30;
+        config->positionForwardMotionStart = 300;
+        config->positionHalfPower = 750;
+        config->minimumRegen = 0;
+        config->maximumRegen = 50;
     }
 
     Logger::info(this, "RegenMax: %ld RegenMin: %ld Fwd: %ld Map: %ld", config->positionRegenMaximum, config->positionRegenMinimum,

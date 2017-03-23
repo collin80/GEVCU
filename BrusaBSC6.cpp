@@ -314,7 +314,7 @@ void BrusaBSC6::loadConfiguration()
     if (prefsHandler->checksumValid()) { //checksum is good, read in the values stored in EEPROM
 #endif
         uint8_t temp;
-        prefsHandler->read(DCDC_DEBUG_MODE, &temp);
+        prefsHandler->read(EEDC_DEBUG_MODE, &temp);
         config->debugMode = (temp != 0);
     } else { //checksum invalid. Reinitialize values and store to EEPROM
         config->debugMode = false; // no debug messages
@@ -332,7 +332,7 @@ void BrusaBSC6::saveConfiguration()
 
     DcDcConverter::saveConfiguration(); // call parent
 
-    prefsHandler->write(DCDC_DEBUG_MODE, (uint8_t) (config->debugMode ? 1 : 0));
+    prefsHandler->write(EEDC_DEBUG_MODE, (uint8_t) (config->debugMode ? 1 : 0));
 
     prefsHandler->saveChecksum();
 }
