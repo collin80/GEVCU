@@ -131,21 +131,24 @@ int16_t MotorController::processBrakeHold(uint8_t brakeHold, int16_t throttleLvl
             if (brakeLvl == 0) { // engage brake hold once the brake is released
                 brakeHoldStart = millis();
                 brakeHoldLevel = 0;
-    Logger::console("brake hold engaged for %dms", CFG_BRAKE_HOLD_MAX_TIME);
+                Logger::info("brake hold engaged for %dms", CFG_BRAKE_HOLD_MAX_TIME);
             }
         } else {
-            if (brakeHoldStart + CFG_BRAKE_HOLD_MAX_TIME < millis() || throttleLvl > 0) { // deactivate after 5sec or when accelerator gives positive torque
+            if (brakeHoldStart + CFG_BRAKE_HOLD_MAX_TIME < millis() || throttleLvl > brakeHoldLevel) { // deactivate after 5sec or when accelerator gives more torque
                 brakeHoldActive = false;
                 brakeHoldLevel = 0;
                 brakeHoldStart = 0;
-    Logger::console("brake hold deactivated");
+                Logger::info("brake hold deactivated");
             } else {
+                //TODO make divisor configurable
+                uint16_t delta = abs(speedActual) / 50 + 1; // make sure it's always bigger than 0
                 if (speedActual < 0 && brakeHoldLevel < brakeHold * 10) {
-                    brakeHoldLevel += 2;
+                    brakeHoldLevel += delta;
                 }
                 if (speedActual > 0 && brakeHoldLevel > 0) {
-                    brakeHoldLevel--;
+                    brakeHoldLevel -= delta;
                 }
+                brakeHoldLevel = constrain(brakeHoldLevel, 0, brakeHold * 10); // it might have overshot above
                 throttleLvl = brakeHoldLevel;
             }
 Logger::console("brake hold level: %.1f%%, start: %dms, duration: %dms, speedActual: %d, throttle: %.1f%%", brakeHoldLevel / 10.0f, brakeHoldStart, millis() - brakeHoldStart, speedActual, throttleLvl / 10.0f);
@@ -154,7 +157,7 @@ Logger::console("brake hold level: %.1f%%, start: %dms, duration: %dms, speedAct
         if (brakeLvl < 0 && speedActual == 0) { // init brake hold at stand-still when brake is pressed
             brakeHoldActive = true;
             brakeHoldStart = 0;
-    Logger::console("brake hold activated");
+            Logger::info("brake hold activated");
         }
     }
     return throttleLvl;
@@ -227,7 +230,7 @@ void MotorController::processThrottleLevel()
             speedRequested = config->speedMax;
             int32_t torqueTarget = throttleLevel * config->torqueMax / 1000;
 
-            if (config->slewRate == 0) {
+            if (config->slewRate == 0 || brakeHoldActive) {
                 torqueRequested = torqueTarget;
             } else { // calc slew part and add/subtract from torqueRequested
                 uint32_t currentTimestamp = millis();
