@@ -125,6 +125,7 @@ the end of the stardard data. The below numbers are offsets from the device's ee
 #define EEMC_CREEP_SPEED                    70 // 2 bytes - max speed for creep
 #define EEMC_BRAKE_HOLD                     72 // 1 byte - percentage of max torque to achieve brake hold (0=off)
 #define EEMC_GEAR_CHANGE_SUPPORT            73 // 1 byte - flag, true if gear chaning support is enabled
+#define EEMC_BRAKE_HOLD_COEFF               74 // 1 byte - brake hold force coefficient
 
 // Throttle data
 #define EETH_LEVEL_MIN                      20 //2 bytes - ADC value of minimum value for first channel

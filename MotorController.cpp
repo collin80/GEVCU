@@ -40,6 +40,7 @@ MotorController::MotorController() :
     throttleLevel = 0;
     speedRequested = 0;
     speedActual = 0;
+    lowestSpeedActual = 0;
     torqueRequested = 0;
     torqueActual = 0;
     torqueAvailable = 0;
@@ -54,6 +55,8 @@ MotorController::MotorController() :
     brakeHoldActive = false;
     brakeHoldStart = 0;
     brakeHoldLevel = 0;
+    brakeHoldEstimatedLevel = 0;
+    brakeHoldEstimateApplied = false;
     minimumBatteryTemperature = 50; // 5 deg C
 }
 
@@ -124,34 +127,54 @@ void MotorController::checkActivity()
     }
 }
 
-int16_t MotorController::processBrakeHold(uint8_t brakeHold, int16_t throttleLvl, int16_t brakeLvl)
+int16_t MotorController::processBrakeHold(MotorControllerConfiguration *config, int16_t throttleLvl, int16_t brakeLvl)
 {
     if (brakeHoldActive) {
         if (brakeHoldStart == 0) {
             if (brakeLvl == 0) { // engage brake hold once the brake is released
                 brakeHoldStart = millis();
                 brakeHoldLevel = 0;
+                brakeHoldEstimateApplied = false;
+                brakeHoldEstimatedLevel = 0;
+                lowestSpeedActual = 0;
                 Logger::info("brake hold engaged for %dms", CFG_BRAKE_HOLD_MAX_TIME);
             }
         } else {
-            if (brakeHoldStart + CFG_BRAKE_HOLD_MAX_TIME < millis() || throttleLvl > brakeHoldLevel) { // deactivate after 5sec or when accelerator gives more torque
+            // deactivate after 5sec or when accelerator gives more torque or we're rolling forward without motor power
+            if (brakeHoldStart + CFG_BRAKE_HOLD_MAX_TIME < millis() || throttleLvl > brakeHoldLevel || (lowestSpeedActual == 0 && speedActual > 0 && brakeHoldLevel == 0)) {
                 brakeHoldActive = false;
                 brakeHoldLevel = 0;
                 brakeHoldStart = 0;
+           //TODO find out how to smoothly disengage the applied power (slew)
+           throttleLvl = 0;
+           slewTimestamp = millis();
                 Logger::info("brake hold deactivated");
             } else {
-                //TODO make divisor configurable
-                uint16_t delta = abs(speedActual) / 50 + 1; // make sure it's always bigger than 0
-                if (speedActual < 0 && brakeHoldLevel < brakeHold * 10) {
+                // find brakeHoldLevel where reverse speed is not increasing - this would be the approx. final force to apply once the car stands still
+                if (!brakeHoldEstimateApplied && speedActual < lowestSpeedActual) {
+                    lowestSpeedActual = speedActual;
+                    brakeHoldEstimatedLevel = brakeHoldLevel; // remember the level where the car starts to decelerate
+                }
+
+                uint16_t delta = abs(speedActual) / config->brakeHoldForceCoefficient / (brakeHoldEstimateApplied ? 2 : 1) + 1; // make sure it's always bigger than 0
+                if (speedActual < 0 && brakeHoldLevel < config->brakeHold * 10) {
                     brakeHoldLevel += delta;
                 }
-                if (speedActual > 0 && brakeHoldLevel > 0) {
-                    brakeHoldLevel -= delta;
+                if (speedActual >= 0 && brakeHoldLevel > 0) {
+                    if (brakeHoldEstimatedLevel != 0 && !brakeHoldEstimateApplied) { // this must be called only once when the car stopped rolling backwards --> apply estimated level
+                        brakeHoldEstimateApplied = true;
+                        brakeHoldLevel = brakeHoldEstimatedLevel;
+Logger::console("*************** applied estimated level: %d *************", brakeHoldLevel);
+                    } else {
+                        brakeHoldLevel -= (delta * 2); // decrease faster to limit oscillation
+                    }
                 }
-                brakeHoldLevel = constrain(brakeHoldLevel, 0, brakeHold * 10); // it might have overshot above
+
+
+                brakeHoldLevel = constrain(brakeHoldLevel, 0, config->brakeHold * 10); // it might have overshot above
                 throttleLvl = brakeHoldLevel;
             }
-Logger::console("brake hold level: %.1f%%, start: %dms, duration: %dms, speedActual: %d, throttle: %.1f%%", brakeHoldLevel / 10.0f, brakeHoldStart, millis() - brakeHoldStart, speedActual, throttleLvl / 10.0f);
+Logger::console("brake hold level: %.1f, duration: %d, speedActual: %d, throttle: %.1f, estimHold: %f", brakeHoldLevel / 10.0f, millis() - brakeHoldStart, speedActual, throttleLvl / 10.0f, brakeHoldEstimatedLevel);
         }
     } else {
         if (brakeLvl < 0 && speedActual == 0) { // init brake hold at stand-still when brake is pressed
@@ -160,6 +183,8 @@ Logger::console("brake hold level: %.1f%%, start: %dms, duration: %dms, speedAct
             Logger::info("brake hold activated");
         }
     }
+
+
     return throttleLvl;
 }
 
@@ -217,7 +242,7 @@ void MotorController::processThrottleLevel()
             throttleLevel = brake->getLevel();
         }
         if (brake && config->brakeHold > 0) { // check if brake hold should be applied
-            throttleLevel = processBrakeHold(config->brakeHold, throttleLevel, brake->getLevel());
+            throttleLevel = processBrakeHold(config, throttleLevel, brake->getLevel());
         }
         if (throttleLevel < 0 && (!status.enableRegen || !checkBatteryTemperatureForRegen())) { // do not apply regen if the batteries are too cold
             throttleLevel = 0;
@@ -428,6 +453,7 @@ void MotorController::loadConfiguration()
         prefsHandler->read(EEMC_CREEP_LEVEL, &config->creepLevel);
         prefsHandler->read(EEMC_CREEP_SPEED, &config->creepSpeed);
         prefsHandler->read(EEMC_BRAKE_HOLD, &config->brakeHold);
+        prefsHandler->read(EEMC_BRAKE_HOLD_COEFF, &config->brakeHoldForceCoefficient);
         prefsHandler->read(EEMC_GEAR_CHANGE_SUPPORT, &temp);
         config->gearChangeSupport = temp;
     } else { //checksum invalid. Reinitialize values and store to EEPROM
@@ -471,6 +497,7 @@ void MotorController::saveConfiguration()
     prefsHandler->write(EEMC_CREEP_LEVEL, config->creepLevel);
     prefsHandler->write(EEMC_CREEP_SPEED, config->creepSpeed);
     prefsHandler->write(EEMC_BRAKE_HOLD, config->brakeHold);
+    prefsHandler->write(EEMC_BRAKE_HOLD_COEFF, config->brakeHoldForceCoefficient);
     prefsHandler->write(EEMC_GEAR_CHANGE_SUPPORT, (uint8_t) (config->gearChangeSupport ? 1 : 0));
     prefsHandler->saveChecksum();
 }
