@@ -99,6 +99,8 @@ private:
     CAN_FRAME pollFrame;
 
     uint8_t arrayPos;
+    bool lastRequestAnswered;
+    uint32_t timestamp;
 
     void processRequest(CAN_FRAME* frame);
     void processResponse(CAN_FRAME* frame);

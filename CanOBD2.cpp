@@ -40,6 +40,8 @@ CanOBD2::CanOBD2() :
     canHandlerPoll = NULL;
 
     arrayPos = 0;
+    lastRequestAnswered = true;
+    timestamp = 0;
 }
 
 void CanOBD2::setup()
@@ -83,7 +85,7 @@ uint8_t pids[] = { PID_VEHICLE_SPEED, PID_AMBIENT_TEMP, PID_BAROMETRIC_PRESSURE 
 void CanOBD2::handleTick()
 {
     Device::handleTick(); // Call parent handleTick
-    if (canHandlerPoll != NULL) {
+    if (lastRequestAnswered && canHandlerPoll != NULL) {
         CanOBD2Configuration *config = (CanOBD2Configuration *) getConfiguration();
 
         canHandlerPoll->prepareOutputFrame(&pollFrame, config->canIdOffsetPoll == 255 ? CAN_ID_BROADCAST : CAN_ID_REQUEST + config->canIdOffsetPoll);
@@ -94,6 +96,8 @@ void CanOBD2::handleTick()
         if ((arrayPos + 1) > (sizeof(pids) / sizeof(uint8_t))) {
             arrayPos = 0;
         }
+        lastRequestAnswered = false;
+        timestamp = millis();
     }
 }
 
@@ -129,21 +133,18 @@ void CanOBD2::processResponse(CAN_FRAME *frame)
         switch(pid) {
         case PID_VEHICLE_SPEED:
             status.vehicleSpeed = b[3];
-    Logger::console("v speed: %d kmh", status.vehicleSpeed);
-            break;
-        case PID_THROTTLE_POS:
-  //          Logger::console("throttle pos: %d", b[3]);
-            //TODO handle throttle pos
+    Logger::console("v speed: %d kmh (%dms)", status.vehicleSpeed, millis() - timestamp);
             break;
         case PID_AMBIENT_TEMP:
             status.temperatureExterior = (b[3] - 40) * 10;
-    Logger::console("ext temp: %.1f C", status.temperatureExterior / 10.0f);
+    Logger::console("ext temp: %.1f C (%dms)", status.temperatureExterior / 10.0f, millis() - timestamp);
             break;
         case PID_BAROMETRIC_PRESSURE:
             status.barometricPressure = b[3];
-   Logger::console("baro: %d kPa", status.barometricPressure);
+   Logger::console("baro: %d kPa (%dms)", status.barometricPressure, millis() - timestamp);
             break;
         }
+        lastRequestAnswered = true;
     }
 }
 
