@@ -40,7 +40,6 @@ MotorController::MotorController() :
     throttleLevel = 0;
     speedRequested = 0;
     speedActual = 0;
-    lowestSpeedActual = 0;
     torqueRequested = 0;
     torqueActual = 0;
     torqueAvailable = 0;
@@ -55,8 +54,6 @@ MotorController::MotorController() :
     brakeHoldActive = false;
     brakeHoldStart = 0;
     brakeHoldLevel = 0;
-    brakeHoldEstimatedLevel = 0;
-    brakeHoldEstimateApplied = false;
     minimumBatteryTemperature = 50; // 5 deg C
 }
 
@@ -134,47 +131,30 @@ int16_t MotorController::processBrakeHold(MotorControllerConfiguration *config, 
             if (brakeLvl == 0) { // engage brake hold once the brake is released
                 brakeHoldStart = millis();
                 brakeHoldLevel = 0;
-                brakeHoldEstimateApplied = false;
-                brakeHoldEstimatedLevel = 0;
-                lowestSpeedActual = 0;
                 Logger::info("brake hold engaged for %dms", CFG_BRAKE_HOLD_MAX_TIME);
             }
         } else {
             // deactivate after 5sec or when accelerator gives more torque or we're rolling forward without motor power
-            if (brakeHoldStart + CFG_BRAKE_HOLD_MAX_TIME < millis() || throttleLvl > brakeHoldLevel || (lowestSpeedActual == 0 && speedActual > 0 && brakeHoldLevel == 0)) {
-                brakeHoldActive = false;
-                brakeHoldLevel = 0;
-                brakeHoldStart = 0;
-           //TODO find out how to smoothly disengage the applied power (slew)
-           throttleLvl = 0;
-           slewTimestamp = millis();
-                Logger::info("brake hold deactivated");
+            if (brakeHoldStart + CFG_BRAKE_HOLD_MAX_TIME < millis() || throttleLvl > brakeHoldLevel || (speedActual > 0 && brakeHoldLevel == 0)) {
+               brakeHoldActive = false;
+               brakeHoldLevel = 0;
+               brakeHoldStart = 0;
+               throttleLvl = 0;
+               slewTimestamp = millis(); // this should re-activate slew --> slowly reduce to 0 torque
+               Logger::info("brake hold deactivated");
             } else {
-                // find brakeHoldLevel where reverse speed is not increasing - this would be the approx. final force to apply once the car stands still
-                if (!brakeHoldEstimateApplied && speedActual < lowestSpeedActual) {
-                    lowestSpeedActual = speedActual;
-                    brakeHoldEstimatedLevel = brakeHoldLevel; // remember the level where the car starts to decelerate
-                }
-
-                uint16_t delta = abs(speedActual) / config->brakeHoldForceCoefficient / (brakeHoldEstimateApplied ? 2 : 1) + 1; // make sure it's always bigger than 0
+                uint16_t delta = abs(speedActual) * 2 / config->brakeHoldForceCoefficient + 1; // make sure it's always bigger than 0
                 if (speedActual < 0 && brakeHoldLevel < config->brakeHold * 10) {
                     brakeHoldLevel += delta;
                 }
                 if (speedActual >= 0 && brakeHoldLevel > 0) {
-                    if (brakeHoldEstimatedLevel != 0 && !brakeHoldEstimateApplied) { // this must be called only once when the car stopped rolling backwards --> apply estimated level
-                        brakeHoldEstimateApplied = true;
-                        brakeHoldLevel = brakeHoldEstimatedLevel;
-Logger::console("*************** applied estimated level: %d *************", brakeHoldLevel);
-                    } else {
-                        brakeHoldLevel -= (delta * 2); // decrease faster to limit oscillation
-                    }
+                    brakeHoldLevel -= (delta * 2); // decrease faster to limit oscillation
                 }
-
 
                 brakeHoldLevel = constrain(brakeHoldLevel, 0, config->brakeHold * 10); // it might have overshot above
                 throttleLvl = brakeHoldLevel;
             }
-Logger::console("brake hold level: %.1f, duration: %d, speedActual: %d, throttle: %.1f, estimHold: %f", brakeHoldLevel / 10.0f, millis() - brakeHoldStart, speedActual, throttleLvl / 10.0f, brakeHoldEstimatedLevel);
+Logger::console("brake hold level: %.1f, duration: %d, speedActual: %d, throttle: %.1f", brakeHoldLevel / 10.0f, millis() - brakeHoldStart, speedActual, throttleLvl / 10.0f);
         }
     } else {
         if (brakeLvl < 0 && speedActual == 0) { // init brake hold at stand-still when brake is pressed
@@ -183,8 +163,6 @@ Logger::console("brake hold level: %.1f, duration: %d, speedActual: %d, throttle
             Logger::info("brake hold activated");
         }
     }
-
-
     return throttleLvl;
 }
 
