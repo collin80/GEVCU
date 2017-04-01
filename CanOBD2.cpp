@@ -133,7 +133,7 @@ void CanOBD2::processResponse(CAN_FRAME *frame)
         switch(pid) {
         case PID_VEHICLE_SPEED:
             status.vehicleSpeed = b[3];
-    Logger::console("v speed: %d kmh (%dms)", status.vehicleSpeed, millis() - timestamp);
+    Logger::console("v speed: %d kmh (%dms), speed ratio (rpm/kmh): %f", status.vehicleSpeed, millis() - timestamp, deviceManager.getMotorController()->getSpeedActual() / status.vehicleSpeed);
             break;
         case PID_AMBIENT_TEMP:
             status.temperatureExterior = (b[3] - 40) * 10;
