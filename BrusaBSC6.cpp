@@ -206,31 +206,33 @@ void BrusaBSC6::processValues2(uint8_t data[])
     temperature = (uint8_t)data[1] * 10;
 
     bitfield = (uint32_t)((data[3] << 0) | (data[2] << 8) | (data[4] << 16));
-    // TODO: react on various bitfields if set ?
-//    lowVoltageUndervoltage
-//    lowVoltageOvervoltage
-//    highVoltageUndervoltage
-//    highVoltageOvervoltage
-//    internalSupply
-//    temperatureSensor
-//    trafoStartup
-//    overTemperature
-//    highVoltageFuse
-//    lowVoltageFuse
-//    currentSensorLowSide
-//    currentDeviation
-//    interLock
-//    internalSupply12V
-//    internalSupply6V
-//    voltageDeviation
-//    invalidValue
-//    commandMessageLost
-//    limitMessageLost
-//    crcErrorNVSRAM
-//    brokenTemperatureSensor
 
     if (bitfield != 0) {
-        Logger::error(this, "%#08x", bitfield);
+        String error;
+
+        appendMessage(error, bitfield, lowVoltageUndervoltage, "LV under-voltage");
+        appendMessage(error, bitfield, lowVoltageOvervoltage, "LV over-voltage");
+        appendMessage(error, bitfield, highVoltageUndervoltage, "HV under-voltage");
+        appendMessage(error, bitfield, highVoltageOvervoltage, "HV over-voltage");
+        appendMessage(error, bitfield, internalSupply, "internal supply");
+        appendMessage(error, bitfield, temperatureSensor, "temperature sensor");
+        appendMessage(error, bitfield, trafoStartup, "trafo startup");
+        appendMessage(error, bitfield, overTemperature, "over temperature");
+        appendMessage(error, bitfield, highVoltageFuse, "HV fuse");
+        appendMessage(error, bitfield, lowVoltageFuse, "LV fuse");
+        appendMessage(error, bitfield, currentSensorLowSide, "current sensor low side");
+        appendMessage(error, bitfield, currentDeviation, "current deviation");
+        appendMessage(error, bitfield, interLock, "interlock");
+        appendMessage(error, bitfield, internalSupply12V, "internal supply 12V");
+        appendMessage(error, bitfield, internalSupply6V, "internal supply 6V");
+        appendMessage(error, bitfield, voltageDeviation, "voltage deviation");
+        appendMessage(error, bitfield, invalidValue, "invalid value");
+        appendMessage(error, bitfield, commandMessageLost, "cmd msg lost");
+        appendMessage(error, bitfield, limitMessageLost, "limit msg lost");
+        appendMessage(error, bitfield, crcErrorNVSRAM, "CRC error NVSRAM");
+        appendMessage(error, bitfield, brokenTemperatureSensor, "broken temp sensor");
+
+        Logger::error(this, "error (%#08x): %s", bitfield, error.c_str());
     }
     if (Logger::isDebug()) {
         Logger::debug(this, "LV current avail: %dA, maximum Temperature: %.1fC", lvCurrentAvailable, (float) temperature / 10.0F);
@@ -312,7 +314,7 @@ void BrusaBSC6::loadConfiguration()
     if (prefsHandler->checksumValid()) { //checksum is good, read in the values stored in EEPROM
 #endif
         uint8_t temp;
-        prefsHandler->read(DCDC_DEBUG_MODE, &temp);
+        prefsHandler->read(EEDC_DEBUG_MODE, &temp);
         config->debugMode = (temp != 0);
     } else { //checksum invalid. Reinitialize values and store to EEPROM
         config->debugMode = false; // no debug messages
@@ -330,7 +332,7 @@ void BrusaBSC6::saveConfiguration()
 
     DcDcConverter::saveConfiguration(); // call parent
 
-    prefsHandler->write(DCDC_DEBUG_MODE, (uint8_t) (config->debugMode ? 1 : 0));
+    prefsHandler->write(EEDC_DEBUG_MODE, (uint8_t) (config->debugMode ? 1 : 0));
 
     prefsHandler->saveChecksum();
 }

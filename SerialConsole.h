@@ -35,11 +35,14 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include "PotThrottle.h"
 #include "PotBrake.h"
 #include "CanThrottle.h"
+#include "CanBrake.h"
 #include "DeviceManager.h"
 #include "MotorController.h"
 #include "BrusaDMC5.h"
+#include "BrusaBSC6.h"
 #include "ThrottleDetector.h"
 #include "ichip_2128.h"
+#include "CanOBD2.h"
 
 class SerialConsole
 {
@@ -73,12 +76,14 @@ private:
     bool handleConfigCmdDcDcConverter(String command, long value);
     bool handleConfigCmdSystem(String command, long value, char *parameter);
     bool handleConfigCmdWifi(String command, String parameter);
+    bool handleConfigCmdCanOBD2(String command, long value);
     void printMenuMotorController();
     void printMenuThrottle();
     void printMenuBrake();
     void printMenuSystemIO();
     void printMenuCharger();
     void printMenuDcDcConverter();
+    void printMenuCanOBD2();
 };
 
 extern SerialConsole serialConsole;

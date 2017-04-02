@@ -190,13 +190,11 @@ void PotBrake::loadConfiguration()
         prefsHandler->read(EETH_MIN_BRAKE_REGEN, &config->minimumRegen);
         prefsHandler->read(EETH_ADC_1, &config->AdcPin1);
     } else {
-        //these four values are ADC values
-        //The next three are tenths of a percent
-        config->maximumRegen = BrakeMaxRegenValue; //percentage of full power to use for regen at brake pedal transducer
-        config->minimumRegen = BrakeMinRegenValue;
-        config->minimumLevel = BrakeMinValue;
-        config->maximumLevel = BrakeMaxValue;
-        config->AdcPin1 = BrakeADC;
+        config->minimumLevel = 100;
+        config->maximumLevel = 3200;
+        config->maximumRegen = 50;
+        config->minimumRegen = 0;
+        config->AdcPin1 = 2;
         saveConfiguration();
     }
 

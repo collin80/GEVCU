@@ -99,7 +99,7 @@
     <ClInclude Include="DeviceTypes.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="CanPIDListener.h">
+    <ClInclude Include="CanOBD2.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="ELM327_Emu.h">
@@ -188,7 +188,7 @@
     <ClCompile Include="ThinkBatteryManager.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="CanPIDListener.cpp">
+    <ClCompile Include="CanOBD2.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="ELM327_Emu.cpp">

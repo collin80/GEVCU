@@ -121,6 +121,11 @@ the end of the stardard data. The below numbers are offsets from the device's ee
 #define EEMC_OSCILLATION_LIMITER            66 // 1 byte - flag to enable oscillation limiter (1=true/0=false)
 #define EEMC_INVERT_DIRECTION               67 // 1 byte - flag to indicate if the motor's direction should be inverted
 #define EEMC_POWER_MODE                     68 // 1 byte - speed or torque mode
+#define EEMC_CREEP_LEVEL                    69 // 1 byte - percentage of throttle used to simulate creep
+#define EEMC_CREEP_SPEED                    70 // 2 bytes - max speed for creep
+#define EEMC_BRAKE_HOLD                     72 // 1 byte - percentage of max torque to achieve brake hold (0=off)
+#define EEMC_GEAR_CHANGE_SUPPORT            73 // 1 byte - flag, true if gear chaning support is enabled
+#define EEMC_BRAKE_HOLD_COEFF               74 // 1 byte - brake hold force coefficient
 
 // Throttle data
 #define EETH_LEVEL_MIN                      20 //2 bytes - ADC value of minimum value for first channel
@@ -139,52 +144,43 @@ the end of the stardard data. The below numbers are offsets from the device's ee
 #define EETH_MIN_BRAKE_REGEN                44 //2 bytes - the starting level for brake regen as a percentage of throttle
 #define EETH_MIN_ACCEL_REGEN                46 //2 bytes - the starting level for accelerator regen as a percentage of throttle
 #define EETH_REGEN_MAX                      48 //2 bytes - unsigned int - tenths of a percent (0-1000) of pedal position where regen is at maximum
-#define EETH_CREEP                          50 //2 bytes - percentage of throttle used to simulate creep
+#define EETH_UNUSED                         50 //2 bytes -
 #define EETH_CAR_TYPE                       52 //1 byte - type of car for querying the throttle position via CAN bus
 #define EETH_ADC_1                          53 //1 byte - which ADC port to use for first throttle input
 #define EETH_ADC_2                          54 //1 byte - which ADC port to use for second throttle input
 
 // DC-DC converter data
-#define DCDC_BOOST_MODE                     20 // 1 byte, boost mode = 1, buck mode = 0
-#define DCDC_DEBUG_MODE                     21 // 1 byte, debug mode enabled
-#define DCDC_LOW_VOLTAGE                    22 // 2 byte, low voltage
-#define DCDC_HIGH_VOLTAGE                   24 // 2 byte, hich voltage
-#define DCDC_HV_UNDERVOLTAGE_LIMIT          26 // 2 byte, HV undervoltage limit
-#define DCDC_LV_BUCK_CURRENT_LIMIT          28 // 2 byte, LV buck current limit
-#define DCDC_HV_BUCK_CURRENT_LIMIT          30 // 2 byte, HV buck current limit
-#define DCDC_LV_UNDERVOLTAGE_LIMIT          32 // 2 byte, LV undervoltage limit
-#define DCDC_LV_BOOST_CURRENT_LIMIT         34 // 2 byte, LV boost current limit
-#define DCDC_HV_BOOST_CURRENT_LIMIT         36 // 2 byte, HV boost current limit
+#define EEDC_BOOST_MODE                     20 // 1 byte, boost mode = 1, buck mode = 0
+#define EEDC_DEBUG_MODE                     21 // 1 byte, debug mode enabled
+#define EEDC_LOW_VOLTAGE                    22 // 2 byte, low voltage
+#define EEDC_HIGH_VOLTAGE                   24 // 2 byte, hich voltage
+#define EEDC_HV_UNDERVOLTAGE_LIMIT          26 // 2 byte, HV undervoltage limit
+#define EEDC_LV_BUCK_CURRENT_LIMIT          28 // 2 byte, LV buck current limit
+#define EEDC_HV_BUCK_CURRENT_LIMIT          30 // 2 byte, HV buck current limit
+#define EEDC_LV_UNDERVOLTAGE_LIMIT          32 // 2 byte, LV undervoltage limit
+#define EEDC_LV_BOOST_CURRENT_LIMIT         34 // 2 byte, LV boost current limit
+#define EEDC_HV_BOOST_CURRENT_LIMIT         36 // 2 byte, HV boost current limit
 
 // Charger data
-#define CHRG_MAX_INPUT_CURRENT              20 // 2 bytes, max mains current in 0.1A
-#define CHRG_CONSTANT_CURRENT               22 // 2 bytes, constant current in 0.1A
-#define CHRG_CONSTANT_VOLTAGE               24 // 2 bytes, constant voltage in 0.1V
-#define CHRG_TERMINATE_CURRENT              26 // 2 bytes, terminate current in 0.1A
-#define CHRG_MIN_BATTERY_VOLTAGE            28 // 2 bytes, minimum battery voltage to start charging in 0.1V
-#define CHRG_MAX_BATTERY_VOLTAGE            30 // 2 bytes, maximum battery voltage to charge in 0.1V
-#define CHRG_MIN_BATTERY_TEMPERATURE        32 // 2 bytes, minimum battery temp to charge in 0.1deg C
-#define CHRG_MAX_BATTERY_TEMPERATURE        34 // 2 bytes, maximum battery temp to charge in 0.1deg C
-#define CHRG_MAX_AMPERE_HOURS               36 // 2 bytes, maximum Ah to charge in 0.1Ah
-#define CHRG_MAX_CHARGE_TIME                38 // 2 bytes, maximum charge time in minutes
-#define CHRG_DERATING_TEMPERATURE           40 // 2 bytes, 0.1Ah per deg Celsius
-#define CHRG_DERATING_REFERENCE             42 // 2 bytes, 0.1 deg Celsius where derating will reach 0 Amp
-#define CHRG_HYSTERESE_STOP                 44 // 2 bytes, temperature where charging is interrupted in 0.1deg C
-#define CHRG_HYSTERESE_RESUME               46 // 2 bytes, temperature where chargin is resumed in 0.1deg C
+#define EECH_MAX_INPUT_CURRENT              20 // 2 bytes, max mains current in 0.1A
+#define EECH_CONSTANT_CURRENT               22 // 2 bytes, constant current in 0.1A
+#define EECH_CONSTANT_VOLTAGE               24 // 2 bytes, constant voltage in 0.1V
+#define EECH_TERMINATE_CURRENT              26 // 2 bytes, terminate current in 0.1A
+#define EECH_MIN_BATTERY_VOLTAGE            28 // 2 bytes, minimum battery voltage to start charging in 0.1V
+#define EECH_MAX_BATTERY_VOLTAGE            30 // 2 bytes, maximum battery voltage to charge in 0.1V
+#define EECH_MIN_BATTERY_TEMPERATURE        32 // 2 bytes, minimum battery temp to charge in 0.1deg C
+#define EECH_MAX_BATTERY_TEMPERATURE        34 // 2 bytes, maximum battery temp to charge in 0.1deg C
+#define EECH_MAX_AMPERE_HOURS               36 // 2 bytes, maximum Ah to charge in 0.1Ah
+#define EECH_MAX_CHARGE_TIME                38 // 2 bytes, maximum charge time in minutes
+#define EECH_DERATING_TEMPERATURE           40 // 2 bytes, 0.1Ah per deg Celsius
+#define EECH_DERATING_REFERENCE             42 // 2 bytes, 0.1 deg Celsius where derating will reach 0 Amp
+#define EECH_HYSTERESE_STOP                 44 // 2 bytes, temperature where charging is interrupted in 0.1deg C
+#define EECH_HYSTERESE_RESUME               46 // 2 bytes, temperature where chargin is resumed in 0.1deg C
 
 // System I/O
-#define EESYS_SYSTEM_TYPE                   10 //1 byte - 1 = Old school protoboards 2 = GEVCU2/DUED 3 = GEVCU3 - Defaults to 2 if invalid or not set up
-#define EESYS_LOG_LEVEL                     11 //1 byte - the log level
-#define EESYS_ENEGRY_CONSUMPTION            12 //4 bytes - accumulated power consumption
-#define EESIO_RAWADC                        20 //1 byte - if not zero then use raw ADC mode (no preconditioning or buffering or differential).
-#define EESIO_ADC0_GAIN                     30 //2 bytes - ADC gain centered at 1024 being 1 to 1 gain, thus 512 is 0.5 gain, 2048 is double, etc
-#define EESIO_ADC0_OFFSET                   32 //2 bytes - ADC offset from zero - ADC reads 12 bit so the offset will be [0,4095] - Offset is subtracted from read ADC value
-#define EESIO_ADC1_GAIN                     34 //2 bytes - ADC gain centered at 1024 being 1 to 1 gain, thus 512 is 0.5 gain, 2048 is double, etc
-#define EESIO_ADC1_OFFSET                   36 //2 bytes - ADC offset from zero - ADC reads 12 bit so the offset will be [0,4095] - Offset is subtracted from read ADC value
-#define EESIO_ADC2_GAIN                     38 //2 bytes - ADC gain centered at 1024 being 1 to 1 gain, thus 512 is 0.5 gain, 2048 is double, etc
-#define EESIO_ADC2_OFFSET                   40 //2 bytes - ADC offset from zero - ADC reads 12 bit so the offset will be [0,4095] - Offset is subtracted from read ADC value
-#define EESIO_ADC3_GAIN                     42 //2 bytes - ADC gain centered at 1024 being 1 to 1 gain, thus 512 is 0.5 gain, 2048 is double, etc
-#define EESIO_ADC3_OFFSET                   44 //2 bytes - ADC offset from zero - ADC reads 12 bit so the offset will be [0,4095] - Offset is subtracted from read ADC value
+#define EESIO_SYSTEM_TYPE                   10 //1 byte - 1 = Old school protoboards 2 = GEVCU2/DUED 3 = GEVCU3 - Defaults to 2 if invalid or not set up
+#define EESIO_LOG_LEVEL                     11 //1 byte - the log level
+#define EESIO_ENEGRY_CONSUMPTION            12 //4 bytes - accumulated power consumption
 #define EESIO_ENABLE_INPUT                  45 // 1 byte - digital input to enable GEVCU (255 = no input required)
 #define EESIO_PRECHARGE_MILLIS              46 // 2 bytes - milliseconds for precharge cycle
 #define EESIO_SECONDARY_CONTACTOR_OUTPUT    48 // 1 byte - digital output for secondary contactor (255 = no output)
@@ -211,6 +207,13 @@ the end of the stardard data. The below numbers are offsets from the device's ee
 #define EESIO_POWER_STEERING_OUTPUT         69 // 1 byte - digital output for power steering
 #define EESIO_UNUSED_OUTPUT                 70 // 1 byte - digital output for ...
 #define EESIO_STATE_OF_CHARGE_OUTPUT        71 // 1 byte - digital output for indication of SoC (255 = no output)
+#define EESIO_ABS_INPUT                     72 // 1 byte - digital input for ABS signal (255 = no output)
+
+// CanOBD2
+#define EEOBD2_CAN_BUS_RESPOND              10 // 1 byte - which can bus should we respond to OBD2 requests (0=ev, 1=car, 255=ignore)
+#define EEOBD2_CAN_ID_OFFSET_RESPOND        11 // 1 byte - offset for can id on wich we listen to incoming requests (0-7)
+#define EEOBD2_CAN_BUS_POLL                 12 // 1 byte - which can bus should we poll OBD2 data from (0=ev, 1=car, 255=ignore)
+#define EEOBD2_CAN_ID_OFFSET_POLL           13 // 1 byte - offset for can id on which we will request OBD2 data from (0-7, 255=broadcast)
 
 // Fault Handler
 #define EEFAULT_VALID                       0 //1 byte - Set to value of 0xB2 if fault data has been initialized

@@ -1,0 +1,47 @@
+<html>
+<head>
+	<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+	<title>GEVCU 6.0</title>
+	<link rel="stylesheet" type="text/css" href="styles/main.css" />
+	<script type='text/javascript' src='common.js'></script>
+	<script type='text/javascript' src='util/throttleSettingsCanvas.js'></script>
+	<script type='text/javascript' src='util/settings.js'></script>
+	<script>
+		function init() {
+			loadPage("control");
+			loadPage("motor");
+			loadPage("charger");
+			loadPage("dcdc");
+			loadPage("inputs");
+			loadPage("outputs");
+			loadPage("devices");
+			loadPage("about");
+			showTab('control');
+		}
+	</script>
+</head>
+<body onload="init()">
+	<span style="float: right; font-size: 75%"><a href="index.htm">full-screen dashboard</a></span>
+	<h1>GEVCU 5.4</h1>
+	<div class="tabHeader" id="tabHeader">
+		<a href="javascript:showTab('control')" id="controllink">Control</a>
+		<a href="javascript:showTab('motor')" id="motorlink">Motor</a>
+		<a href="javascript:showTab('charger')" id="chargerlink">Charger</a>
+		<a href="javascript:showTab('dcdc')" id="dcdclink">DC-DC</a>
+		<a href="javascript:showTab('inputs')" id="inputslink">Inputs</a>
+		<a href="javascript:showTab('outputs')" id="outputslink">Outputs</a>
+		<a href="javascript:showTab('devices')" id="deviceslink">Devices</a>
+		<a href="javascript:showTab('about')" id="aboutlink">About</a>
+	</div>
+	<div class="tabs" id="tabs">
+		<div class="tab" id="control"></div>
+		<div class="tab" id="motor"></div>
+		<div class="tab" id="charger"></div>
+		<div class="tab" id="dcdc"></div>
+		<div class="tab" id="inputs"></div>
+		<div class="tab" id="outputs"></div>
+		<div class="tab" id="devices"></div>
+		<div class="tab" id="about"></div>
+	</div>
+</body>
+</html>

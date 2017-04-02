@@ -40,6 +40,7 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #define CAN_ID_GEVCU_EXT_TEMPERATURE     0x728 // Temperature CAN message        11100101000
 #define CAN_ID_GEVCU_EXT_FLOW_HEAT       0x729 // Flow CAN message heater        11100101001
 #define CAN_ID_GEVCU_EXT_FLOW_COOL       0x72a // Flow CAN message cooling       11100101010
+#define CAN_ID_GEVCU_EXT_HEATER          0x72b // Status info from heater        11100101011
 #define CAN_MASK                0x7fc // mask for above id's                     11111111100
 #define CAN_MASKED_ID           0x728 // masked id for id's from 0x258 to 0x268  11100101000
 

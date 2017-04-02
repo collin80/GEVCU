@@ -96,8 +96,10 @@ void CanBrake::handleStateChange(Status::SystemState oldState, Status::SystemSta
     Throttle::handleStateChange(oldState, newState);
 
     if (newState == Status::ready || newState == Status::running) {
-        canHandlerCar.attach(this, responseId, responseMask, responseExtended);
-        tickHandler.attach(this, CFG_TICK_INTERVAL_CAN_THROTTLE);
+        if (oldState != Status::ready && oldState != Status::running) {
+            canHandlerCar.attach(this, responseId, responseMask, responseExtended);
+            tickHandler.attach(this, CFG_TICK_INTERVAL_CAN_THROTTLE);
+        }
     } else {
         if (oldState == Status::ready || oldState == Status::running) {
             tearDown();
@@ -159,7 +161,6 @@ bool CanBrake::validateSignal(RawSignalData* rawSignal)
         }
 
         throttleStatus = ERR_MISC;
-        running = false;
         return false;
     }
 

@@ -96,6 +96,8 @@ Status::Status()
     enableCharger = false;
     enableDcDc = false;
     enableHeater = false;
+    enableRegen = true;
+    enableCreep = true;
 
     heaterValve = false;
     heaterPump = false;
@@ -111,10 +113,12 @@ Status::Status()
     chargePowerAvailable= false;
     interlockPresent    = false;
     reverseInput        = false;
+    absActive           = false;
 
     energyConsumption = 0;
     flowCoolant = 0;
     flowHeater = 0;
+    heaterPower = 0;
 
     for (int i = 0; i < CFG_NUMBER_DIGITAL_OUTPUTS; i++) {
         digitalOutput[i] = false;
@@ -126,8 +130,10 @@ Status::Status()
         temperatureBattery[i] = CFG_NO_TEMPERATURE_DATA;
     }
     temperatureCoolant = CFG_NO_TEMPERATURE_DATA;
-    temperatureHeater = CFG_NO_TEMPERATURE_DATA;
+    heaterTemperature = CFG_NO_TEMPERATURE_DATA;
     temperatureExterior = CFG_NO_TEMPERATURE_DATA;
+    barometricPressure = 0;
+    vehicleSpeed = 0;
 
     stateOfCharge = 0;
 }
@@ -383,7 +389,7 @@ uint32_t Status::getBitField3() {
     bitfield |= (brakeLight                         ? 1 << 7 : 0);  // 0x00000080
     bitfield |= (reverseLight                       ? 1 << 8 : 0);  // 0x00000100
     bitfield |= (enableIn                           ? 1 << 9 : 0);  // 0x00000200
-//    bitfield |= (reserve                          ? 1 << 1 : 0);  // 0x00000400
+    bitfield |= (absActive                          ? 1 << 10 : 0); // 0x00000400
 //    bitfield |= (reserve                          ? 1 << 11 : 0); // 0x00000800
 //    bitfield |= (reserve                          ? 1 << 12 : 0); // 0x00001000
 //    bitfield |= (reserve                          ? 1 << 13 : 0); // 0x00002000

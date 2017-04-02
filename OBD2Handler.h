@@ -40,15 +40,15 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 class OBD2Handler
 {
 public:
-    bool processRequest(uint8_t mode, uint8_t pid, char *inData, char *outData);
+    bool processRequest(byte *inData, byte *outData);
     static OBD2Handler *getInstance();
 
 protected:
 
 private:
     OBD2Handler(); //it's not right to try to directly instantiate this class
-    bool processShowData(uint8_t pid, char *inData, char *outData);
-    bool processShowCustomData(uint16_t pid, char *inData, char *outData);
+    bool processShowData(uint16_t pid, byte *inData, byte *outData);
+    bool processShowCustomData(uint16_t pid, byte *inData, byte *outData);
 
     MotorController* motorController;
     Throttle* accelPedal;

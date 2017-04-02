@@ -1,0 +1,137 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<web-app xmlns="http://xmlns.jcp.org/xml/ns/javaee" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://xmlns.jcp.org/xml/ns/javaee http://xmlns.jcp.org/xml/ns/javaee/web-app_3_1.xsd" version="3.1" metadata-complete="true">
+
+  <display-name>GEVCU</display-name>
+  <description>GEVCU Website with fake data</description>
+
+  <filter>
+        <filter-name>TextReplaceFilter</filter-name>
+        <filter-class>filters.TextReplaceFilter</filter-class>
+        <!-- config.js -->
+	  	<init-param><param-name>~numberPotMeters~</param-name><param-value>2</param-value></init-param>
+		<init-param><param-name>~throttleSubType~</param-name><param-value>1</param-value></init-param>
+		<init-param><param-name>~minimumLevel~</param-name><param-value>111</param-value></init-param>
+		<init-param><param-name>~minimumLevel2~</param-name><param-value>222</param-value></init-param>
+		<init-param><param-name>~maximumLevel~</param-name><param-value>3333</param-value></init-param>
+		<init-param><param-name>~maximumLevel2~</param-name><param-value>4000</param-value></init-param>
+		<init-param><param-name>~positionRegenMaximum~</param-name><param-value>10</param-value></init-param>
+		<init-param><param-name>~positionRegenMinimum~</param-name><param-value>20</param-value></init-param>
+		<init-param><param-name>~positionForwardStart~</param-name><param-value>30</param-value></init-param>
+		<init-param><param-name>~positionHalfPower~</param-name><param-value>80</param-value></init-param>
+		<init-param><param-name>~minimumRegen~</param-name><param-value>5</param-value></init-param>
+		<init-param><param-name>~maximumRegen~</param-name><param-value>80</param-value></init-param>
+		<init-param><param-name>~creepLevel~</param-name><param-value>10</param-value></init-param>
+		<init-param><param-name>~creepSpeed~</param-name><param-value>700</param-value></init-param>
+		<init-param><param-name>~brakeMinimumLevel~</param-name><param-value>11</param-value></init-param>
+		<init-param><param-name>~brakeMaximumLevel~</param-name><param-value>4001</param-value></init-param>
+		<init-param><param-name>~brakeMinimumRegen~</param-name><param-value>20</param-value></init-param>
+		<init-param><param-name>~brakeMaximumRegen~</param-name><param-value>100</param-value></init-param>
+		<init-param><param-name>~brakeHold~</param-name><param-value>50</param-value></init-param>
+	
+		<init-param><param-name>~speedMax~</param-name><param-value>7000</param-value></init-param>
+		<init-param><param-name>~torqueMax~</param-name><param-value>220</param-value></init-param>
+		<init-param><param-name>~motorMode~</param-name><param-value>1</param-value></init-param>
+		<init-param><param-name>~nominalVolt~</param-name><param-value>399</param-value></init-param>
+		<init-param><param-name>~invertDirection~</param-name><param-value>1</param-value></init-param>
+		<init-param><param-name>~slewRate~</param-name><param-value>100</param-value></init-param>
+	
+		<init-param><param-name>~maxMechPowerMotor~</param-name><param-value>110</param-value></init-param>
+		<init-param><param-name>~maxMechPowerRegen~</param-name><param-value>109</param-value></init-param>
+		<init-param><param-name>~dcVoltLimitMotor~</param-name><param-value>300</param-value></init-param>
+		<init-param><param-name>~dcVoltLimitRegen~</param-name><param-value>410</param-value></init-param>
+		<init-param><param-name>~dcCurrentLimitMotor~</param-name><param-value>300</param-value></init-param>
+		<init-param><param-name>~dcCurrentLimitRegen~</param-name><param-value>200</param-value></init-param>
+		<init-param><param-name>~enableOscLimiter~</param-name><param-value>1</param-value></init-param>
+
+        <!-- dashboard.js -->
+		<init-param><param-name>~torqueRange~</param-name><param-value>-220,220</param-value></init-param>
+		<init-param><param-name>~rpmRange~</param-name><param-value>0,8000</param-value></init-param>
+		<init-param><param-name>~currentRange~</param-name><param-value>-200,200</param-value></init-param>
+		<init-param><param-name>~motorTempRange~</param-name><param-value>0,90,120</param-value></init-param>
+		<init-param><param-name>~controllerTempRange~</param-name><param-value>0,60,80</param-value></init-param>
+		<init-param><param-name>~batteryRangeLow~</param-name><param-value>297,337,348</param-value></init-param>
+		<init-param><param-name>~batteryRangeHigh~</param-name><param-value>402,416,428</param-value></init-param>
+		<init-param><param-name>~energyRange~</param-name><param-value>0,30,38</param-value></init-param>
+		<init-param><param-name>~powerRange~</param-name><param-value>-150,150</param-value></init-param>
+
+		<!-- devices.js -->
+		<init-param><param-name>~x1000~</param-name><param-value>1</param-value></init-param>
+		<init-param><param-name>~x1001~</param-name><param-value>1</param-value></init-param>
+		<init-param><param-name>~x1002~</param-name><param-value>1</param-value></init-param>
+		<init-param><param-name>~x1010~</param-name><param-value>1</param-value></init-param>
+		<init-param><param-name>~x1020~</param-name><param-value>1</param-value></init-param>
+		<init-param><param-name>~x1022~</param-name><param-value>1</param-value></init-param>
+		<init-param><param-name>~x1031~</param-name><param-value>1</param-value></init-param>
+		<init-param><param-name>~x1032~</param-name><param-value>1</param-value></init-param>
+		<init-param><param-name>~x1033~</param-name><param-value>1</param-value></init-param>
+		<init-param><param-name>~x1034~</param-name><param-value>0</param-value></init-param>
+		<init-param><param-name>~x1040~</param-name><param-value>1</param-value></init-param>
+		<init-param><param-name>~x2000~</param-name><param-value>0</param-value></init-param>
+		<init-param><param-name>~x3000~</param-name><param-value>1</param-value></init-param>
+		<init-param><param-name>~x5001~</param-name><param-value>0</param-value></init-param>
+		<init-param><param-name>~x5003~</param-name><param-value>1</param-value></init-param>
+		<init-param><param-name>~x6000~</param-name><param-value>0</param-value></init-param>
+		<init-param><param-name>~x6500~</param-name><param-value>1</param-value></init-param>
+		<init-param><param-name>~logLevel~</param-name><param-value>2</param-value></init-param>
+
+		<!-- inputs.js -->
+		<init-param><param-name>~absInput~</param-name><param-value>3</param-value></init-param>
+		<init-param><param-name>~enableInput~</param-name><param-value>0</param-value></init-param>
+		<init-param><param-name>~reverseInput~</param-name><param-value>2</param-value></init-param>
+		<init-param><param-name>~chargePwrAvailInput~</param-name><param-value>1</param-value></init-param>
+		<init-param><param-name>~interlockInput~</param-name><param-value>255</param-value></init-param>
+
+		<!-- outputs.js -->
+		<init-param><param-name>~prechargeMillis~</param-name><param-value>1500</param-value></init-param>
+		<init-param><param-name>~prechargeRelayOutput~</param-name><param-value>1</param-value></init-param>
+		<init-param><param-name>~mainContactorOutput~</param-name><param-value>0</param-value></init-param>
+		<init-param><param-name>~secondaryContOutput~</param-name><param-value>2</param-value></init-param>
+		<init-param><param-name>~fastChargeContOutput~</param-name><param-value>3</param-value></init-param>
+		<init-param><param-name>~enableMotorOutput~</param-name><param-value>4</param-value></init-param>
+		<init-param><param-name>~enableChargerOutput~</param-name><param-value>5</param-value></init-param>
+		<init-param><param-name>~enableDcDcOutput~</param-name><param-value>6</param-value></init-param>
+		<init-param><param-name>~enableHeaterOutput~</param-name><param-value>7</param-value></init-param>
+		<init-param><param-name>~heaterValveOutput~</param-name><param-value>255</param-value></init-param>
+		<init-param><param-name>~heaterPumpOutput~</param-name><param-value>255</param-value></init-param>
+		<init-param><param-name>~coolingPumpOutput~</param-name><param-value>255</param-value></init-param>
+		<init-param><param-name>~coolingFanOutput~</param-name><param-value>255</param-value></init-param>
+		<init-param><param-name>~coolingTempOn~</param-name><param-value>50</param-value></init-param>
+		<init-param><param-name>~coolingTempOff~</param-name><param-value>40</param-value></init-param>
+		<init-param><param-name>~brakeLightOutput~</param-name><param-value>255</param-value></init-param>
+		<init-param><param-name>~reverseLightOutput~</param-name><param-value>255</param-value></init-param>
+		<init-param><param-name>~warningOutput~</param-name><param-value>255</param-value></init-param>
+		<init-param><param-name>~powerLimitOutput~</param-name><param-value>255</param-value></init-param>
+
+		<!-- dcdc.js -->
+		<init-param><param-name>~dcDcMode~</param-name><param-value>0</param-value></init-param>
+		<init-param><param-name>~lowVoltageCommand~</param-name><param-value>13.5</param-value></init-param>
+		<init-param><param-name>~hvUndervoltageLimit~</param-name><param-value>270</param-value></init-param>
+		<init-param><param-name>~lvBuckCurrentLimit~</param-name><param-value>150</param-value></init-param>
+		<init-param><param-name>~hvBuckCurrentLimit~</param-name><param-value>20</param-value></init-param>
+		<init-param><param-name>~highVoltageCommand~</param-name><param-value>400</param-value></init-param>
+		<init-param><param-name>~lvUndervoltageLimit~</param-name><param-value>11.5</param-value></init-param>
+		<init-param><param-name>~lvBoostCurrentLimit~</param-name><param-value>150</param-value></init-param>
+		<init-param><param-name>~hvBoostCurrentLimit~</param-name><param-value>20</param-value></init-param>
+
+        <!-- charger.js -->
+        <init-param><param-name>~maximumInputCurrent~</param-name><param-value>32</param-value></init-param>
+        <init-param><param-name>~constantCurrent~</param-name><param-value>10</param-value></init-param>
+        <init-param><param-name>~constantVoltage~</param-name><param-value>416.3</param-value></init-param>
+        <init-param><param-name>~terminateCurrent~</param-name><param-value>4</param-value></init-param>
+        <init-param><param-name>~minBatteryVoltage~</param-name><param-value>270</param-value></init-param>
+        <init-param><param-name>~maxBatteryVoltage~</param-name><param-value>420</param-value></init-param>
+        <init-param><param-name>~minimumTemperature~</param-name><param-value>5</param-value></init-param>
+        <init-param><param-name>~maximumTemperature~</param-name><param-value>60</param-value></init-param>
+        <init-param><param-name>~maximumAmpereHours~</param-name><param-value>100</param-value></init-param>
+        <init-param><param-name>~maximumChargeTime~</param-name><param-value>600</param-value></init-param>
+        <init-param><param-name>~deratingRate~</param-name><param-value>10</param-value></init-param>
+        <init-param><param-name>~deratingReferenceTmp~</param-name><param-value>50</param-value></init-param>
+        <init-param><param-name>~hystereseStopTemp~</param-name><param-value>60</param-value></init-param>
+        <init-param><param-name>~hystereseResumeTemp~</param-name><param-value>40</param-value></init-param>
+    </filter>
+    
+    <filter-mapping>
+        <filter-name>TextReplaceFilter</filter-name>
+		<url-pattern>*.js</url-pattern>
+    </filter-mapping>
+</web-app>

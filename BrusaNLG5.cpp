@@ -36,7 +36,7 @@ BrusaNLG5::BrusaNLG5() : Charger()
     commonName = "Brusa NLG5 Charger";
 
     errorPresent = false;
-    clearErrorLatch = false;
+    clearErrorLatch = true;
     currentLimitControlPilot = 0;
     currentLimitPowerIndicator = 0;
     auxBatteryVoltage = 0;
@@ -91,10 +91,10 @@ void BrusaNLG5::sendControl()
     if (powerOn && (ready || running)) {
         outputFrame.data.bytes[0] |= enable;
     }
-//    if (errorPresent && clearErrorLatch) {
-//        outputFrame.data.bytes[0] |= errorLatch;
-//        clearErrorLatch = false;
-//    }
+    if (errorPresent && clearErrorLatch) {
+        outputFrame.data.bytes[0] |= errorLatch;
+        clearErrorLatch = false;
+    }
     outputFrame.data.bytes[1] = (constrain(config->maximumInputCurrent, 0, 500) & 0xFF00) >> 8;
     outputFrame.data.bytes[2] = (constrain(config->maximumInputCurrent, 0, 500) & 0x00FF);
 
@@ -176,9 +176,12 @@ void BrusaNLG5::processStatus(uint8_t data[])
     ready = true;
     running = bitfield & hardwareEnabled;
 
-    if ((bitfield & error) && powerOn && ((chargeStartTime - millis()) > 1000)) {
-        Logger::error(this, "Charger reported an error, terminating charge.");
-        status.setSystemState(Status::error);
+    if ((bitfield & error) && powerOn) {
+        errorPresent = true;
+        if (millis() > 10000) {
+            Logger::error(this, "Charger reported an error, terminating charge.");
+            status.setSystemState(Status::error);
+        }
     }
 
 //    bypassDetection1
@@ -274,55 +277,56 @@ void BrusaNLG5::processError(uint8_t data[])
 {
     bitfield = (uint32_t)((data[1] << 0) | (data[0] << 8) | (data[3] << 16) | (data[2] << 24));
 
-    //TODO: handle bit field values
-//    extTemperatureSensor3Defect
-//    extTemperatureSensor2Defect
-//    extTemperatureSensor1Defect
-//    temperatureSensorTransformer
-//    temperatureSensorDiodes
-//    temperatureSensorPowerStage
-//    temperatureSensorCapacitor
-//    batteryPolarity
-//    mainFuseDefective
-//    outputFuseDefective
-//    mainsVoltagePlausibility
-//    batteryVoltagePlausibility
-//    shortCircuit
-//    mainsOvervoltage1
-//    mainsOvervoltage2
-//    batteryOvervoltage
-//    emergencyChargeTime
-//    emergencyAmpHours
-//    emergencyBatteryVoltage
-//    emergencyBatteryTemperature
-//    canReceiveOverflow
-//    canTransmitOverflow
-//    canOff
-//    canTimeout
-//    initializationError
-//    watchDogTimeout
-//    crcPowerEeprom
-//    crcSystemEeprom
-//    crcNVSRAM
-//    crcFlashMemory
-
     if (bitfield != 0 && powerOn) {
-        Logger::error(this, "error bitfield: %#08x", bitfield);
+        String error;
+
+        appendMessage(error, bitfield, extTemperatureSensor3Defect, "ext temp sensor 3 defect");
+        appendMessage(error, bitfield, extTemperatureSensor2Defect, "ext temp sensor 2 defect");
+        appendMessage(error, bitfield, extTemperatureSensor1Defect, "ext temp sensor 1 defect");
+        appendMessage(error, bitfield, temperatureSensorTransformer, "temp sensor transformer");
+        appendMessage(error, bitfield, temperatureSensorDiodes, "temp sensor diodes");
+        appendMessage(error, bitfield, temperatureSensorPowerStage, "temp sensor power stage");
+        appendMessage(error, bitfield, temperatureSensorCapacitor, "temp sensor capacitor");
+        appendMessage(error, bitfield, batteryPolarity, "battery polarity");
+        appendMessage(error, bitfield, mainFuseDefective, "main fuse defective");
+        appendMessage(error, bitfield, outputFuseDefective, "output fuse defective");
+        appendMessage(error, bitfield, mainsVoltagePlausibility, "mains voltage plausability");
+        appendMessage(error, bitfield, batteryVoltagePlausibility, "battery voltage plausibility");
+        appendMessage(error, bitfield, shortCircuit, "short circuit");
+        appendMessage(error, bitfield, mainsOvervoltage1, "mains overvoltage 1");
+        appendMessage(error, bitfield, mainsOvervoltage2, "mains overvoltage 2");
+        appendMessage(error, bitfield, batteryOvervoltage, "battery overvoltage");
+        appendMessage(error, bitfield, emergencyChargeTime, "emergency charge time");
+        appendMessage(error, bitfield, emergencyAmpHours, "emergency amp hours");
+        appendMessage(error, bitfield, emergencyBatteryVoltage, "emergency battery voltage");
+        appendMessage(error, bitfield, emergencyBatteryTemperature, "emergency battery temperature");
+        appendMessage(error, bitfield, canReceiveOverflow, "CAN receive overflow");
+        appendMessage(error, bitfield, canTransmitOverflow, "CAN transmit overflow");
+        appendMessage(error, bitfield, canOff, "CAN off");
+        appendMessage(error, bitfield, canTimeout, "CAN timeout");
+        appendMessage(error, bitfield, initializationError, "init error");
+        appendMessage(error, bitfield, watchDogTimeout, "watchdog timeout");
+        appendMessage(error, bitfield, crcPowerEeprom, "CRC power eeprom");
+        appendMessage(error, bitfield, crcSystemEeprom, "CRC system eeprom");
+        appendMessage(error, bitfield, crcNVSRAM, "CRC NVSRAM");
+        appendMessage(error, bitfield, crcFlashMemory, "CRC flash memory");
+
+        Logger::error(this, "error (%#08x): %s", bitfield, error.c_str());
     }
 
     bitfield = (uint32_t)data[4];
-
-    //TODO: handle bit field values
-//    saveCharging
-//    ledDriver
-//    controlMessageNotActive
-//    valueOutOfRange
-//    limitOvertemperature
-//    limitLowBatteryVoltage
-//    limitLowMainsVoltage
-
     if (bitfield != 0) {
-        Logger::warn(this, "limit bitfield: %#08x", bitfield);
+        String warning;
+
+        appendMessage(warning, bitfield, saveCharging, "save charging");
+        appendMessage(warning, bitfield, ledDriver, "LED driver");
+        appendMessage(warning, bitfield, controlMessageNotActive, "ctrl msg not active");
+        appendMessage(warning, bitfield, valueOutOfRange, "value out of range");
+        appendMessage(warning, bitfield, limitOvertemperature, "limit over temperature");
+        appendMessage(warning, bitfield, limitLowBatteryVoltage, "limit low battery voltage");
+        appendMessage(warning, bitfield, limitLowMainsVoltage, "limit low mains voltage");
+
+        Logger::warn(this, "limit (%#08x): %s", bitfield, warning.c_str());
     }
 }
 

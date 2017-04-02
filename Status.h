@@ -128,6 +128,9 @@ public:
     bool chargePowerAvailable; // is shore power available (connected to charging station)
     bool interlockPresent; // is the interlock circuit closed and the signal available ?
     bool reverseInput; // is the reverse signal present ?
+    bool absActive; // is ABS or another source active to disable any power output to the motor
+    bool enableRegen; // is regen currently activated ?
+    bool enableCreep; // is creep activated ?
 
     uint32_t energyConsumption; // accumulated consumption in wattSeconds (or kilowattmilliseconds)
     uint8_t stateOfCharge; // 0 to 255 to indicate the state of charge (divide by 2.55 to get percent)
@@ -139,8 +142,12 @@ public:
 
     int16_t temperatureBattery[CFG_NUMBER_BATTERY_TEMPERATURE_SENSORS]; // temperature reported via CAN from external device
     int16_t temperatureCoolant; // temperature of the coolant water, reported via CAN from GEVCU extension
-    int16_t temperatureHeater; // temperature of the heater water, calculated from analog input
+    int16_t heaterTemperature; // temperature of the heater water, calculated from analog input
     int16_t temperatureExterior; // exterior temperature (ambient) reported via CAN from GEVCU extension
+    uint16_t heaterPower; // the power of the heater in Watt
+    uint8_t vehicleSpeed; // vehicle speed in kmh
+    uint8_t barometricPressure; // barometric pressure in kPa
+
 
     Status();
     SystemState getSystemState();

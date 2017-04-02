@@ -33,6 +33,9 @@ uint32_t Logger::lastLogTime = 0;
 bool Logger::debugging = false;
 Logger::LogLevel *Logger::deviceLoglevel = new Logger::LogLevel[deviceIdsSize];
 char *Logger::msgBuffer = new char[CFG_LOG_BUFFER_SIZE];
+char *Logger::lastMsgBuffer = new char[CFG_LOG_BUFFER_SIZE];
+uint16_t Logger::lastMsgRepeated = 0;
+uint32_t Logger::repeatStart = 0;
 
 /*
  * Output a debug message with a variable amount of parameters.
@@ -195,7 +198,6 @@ void Logger::setLoglevel(LogLevel level)
  */
 void Logger::setLoglevel(Device *device, LogLevel level)
 {
-Logger::console("setting loglevel for device '%s' to %d", device->getCommonName(), level);
 	debugging = false;
     for (int deviceEntry = 0; deviceEntry < deviceIdsSize; deviceEntry ++) {
     	if (deviceIds[deviceEntry] == device->getId()) {
@@ -286,7 +288,24 @@ void Logger::log(char *deviceName, LogLevel level, char *format, va_list args)
 
     // send to wifi
     if (level != Debug) {
-        char *params[] = { logLevel, deviceName, msgBuffer };
-        deviceManager.sendMessage(DEVICE_WIFI, INVALID, MSG_LOG, params);
+    	if (strcmp(msgBuffer, lastMsgBuffer) == 0 && (repeatStart == 0 || (repeatStart + CFG_LOG_REPEAT_MSG_TIME) > millis())) {
+    		if (lastMsgRepeated == 0) {
+    			repeatStart = millis();
+    		}
+    		lastMsgRepeated++;
+    	} else {
+    		if (lastMsgRepeated > 1) {
+    			sprintf(lastMsgBuffer, "Last message repeated %d times", lastMsgRepeated);
+        		char *params[] = { "INFO", NULL, lastMsgBuffer };
+        		deviceManager.sendMessage(DEVICE_WIFI, INVALID, MSG_LOG, params);
+        		lastMsgRepeated = 0;
+        		repeatStart = 0;
+        		lastMsgBuffer[0] = 0;
+    		}
+
+    		char *params[] = { logLevel, deviceName, msgBuffer };
+    		deviceManager.sendMessage(DEVICE_WIFI, INVALID, MSG_LOG, params);
+    		strcpy(lastMsgBuffer, msgBuffer);
+    	}
     }
 }

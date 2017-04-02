@@ -54,6 +54,7 @@ public:
     uint8_t chargePowerAvailableInput; // # of input to signal availability of charging power (shore power)
     uint8_t interlockInput; // # of input to signal if the interlock circuit is closed and HV voltage can be applied
     uint8_t reverseInput; // # of input to signal if reverse mode is selected
+    uint8_t absInput; // # of input to signal if ABS system is active
 
     uint16_t prechargeMillis; // milliseconds required for the pre-charge cycle
     uint8_t prechargeRelayOutput; // # of output to use for the pre-charge relay or 255 if not used
@@ -104,6 +105,7 @@ public:
     bool isChargePowerAvailable();
     bool isInterlockPresent();
     bool isReverseSignalPresent();
+    bool isABSActive();
 
     void setEnableMotor(bool);
     void setEnableCharger(bool);

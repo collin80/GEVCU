@@ -84,7 +84,7 @@
     </ClInclude>
     <ClInclude Include="CanBrake.h" />
     <ClInclude Include="CanHandler.h" />
-    <ClInclude Include="CanPIDListener.h" />
+    <ClInclude Include="CanOBD2.h" />
     <ClInclude Include="CanThrottle.h" />
     <ClInclude Include="config.h" />
     <ClInclude Include="constants.h">
@@ -137,7 +137,7 @@
     <ClCompile Include="BrusaMotorController.cpp" />
     <ClCompile Include="CanBrake.cpp" />
     <ClCompile Include="CanHandler.cpp" />
-    <ClCompile Include="CanPIDListener.cpp" />
+    <ClCompile Include="CanOBD2.cpp" />
     <ClCompile Include="CanThrottle.cpp" />
     <ClCompile Include="Device.cpp" />
     <ClCompile Include="DeviceManager.cpp" />

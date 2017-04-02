@@ -124,15 +124,15 @@ void DcDcConverter::loadConfiguration()
     if (prefsHandler->checksumValid()) { //checksum is good, read in the values stored in EEPROM
 #endif
         uint8_t temp;
-        prefsHandler->read(DCDC_BOOST_MODE, &config->mode);
-        prefsHandler->read(DCDC_LOW_VOLTAGE, &config->lowVoltageCommand);
-        prefsHandler->read(DCDC_HV_UNDERVOLTAGE_LIMIT, &config->hvUndervoltageLimit);
-        prefsHandler->read(DCDC_LV_BUCK_CURRENT_LIMIT, &config->lvBuckModeCurrentLimit);
-        prefsHandler->read(DCDC_HV_BUCK_CURRENT_LIMIT, &config->hvBuckModeCurrentLimit);
-        prefsHandler->read(DCDC_HIGH_VOLTAGE, &config->highVoltageCommand);
-        prefsHandler->read(DCDC_LV_UNDERVOLTAGE_LIMIT, &config->lvUndervoltageLimit);
-        prefsHandler->read(DCDC_LV_BOOST_CURRENT_LIMIT, &config->lvBoostModeCurrentLinit);
-        prefsHandler->read(DCDC_HV_BOOST_CURRENT_LIMIT, &config->hvBoostModeCurrentLimit);
+        prefsHandler->read(EEDC_BOOST_MODE, &config->mode);
+        prefsHandler->read(EEDC_LOW_VOLTAGE, &config->lowVoltageCommand);
+        prefsHandler->read(EEDC_HV_UNDERVOLTAGE_LIMIT, &config->hvUndervoltageLimit);
+        prefsHandler->read(EEDC_LV_BUCK_CURRENT_LIMIT, &config->lvBuckModeCurrentLimit);
+        prefsHandler->read(EEDC_HV_BUCK_CURRENT_LIMIT, &config->hvBuckModeCurrentLimit);
+        prefsHandler->read(EEDC_HIGH_VOLTAGE, &config->highVoltageCommand);
+        prefsHandler->read(EEDC_LV_UNDERVOLTAGE_LIMIT, &config->lvUndervoltageLimit);
+        prefsHandler->read(EEDC_LV_BOOST_CURRENT_LIMIT, &config->lvBoostModeCurrentLinit);
+        prefsHandler->read(EEDC_HV_BOOST_CURRENT_LIMIT, &config->hvBoostModeCurrentLimit);
     } else { //checksum invalid. Reinitialize values and store to EEPROM
         config->mode = false; // default mode: buck, meaning: reduce from HV to LV
         config->lowVoltageCommand = 135; // 13.5 V
@@ -160,15 +160,15 @@ void DcDcConverter::saveConfiguration()
 
     Device::saveConfiguration(); // call parent
 
-    prefsHandler->write(DCDC_BOOST_MODE, config->mode);
-    prefsHandler->write(DCDC_LOW_VOLTAGE, config->lowVoltageCommand);
-    prefsHandler->write(DCDC_HV_UNDERVOLTAGE_LIMIT, config->hvUndervoltageLimit);
-    prefsHandler->write(DCDC_LV_BUCK_CURRENT_LIMIT, config->lvBuckModeCurrentLimit);
-    prefsHandler->write(DCDC_HV_BUCK_CURRENT_LIMIT, config->hvBuckModeCurrentLimit);
-    prefsHandler->write(DCDC_HIGH_VOLTAGE, config->highVoltageCommand);
-    prefsHandler->write(DCDC_LV_UNDERVOLTAGE_LIMIT, config->lvUndervoltageLimit);
-    prefsHandler->write(DCDC_LV_BOOST_CURRENT_LIMIT, config->lvBoostModeCurrentLinit);
-    prefsHandler->write(DCDC_HV_BOOST_CURRENT_LIMIT, config->hvBoostModeCurrentLimit);
+    prefsHandler->write(EEDC_BOOST_MODE, config->mode);
+    prefsHandler->write(EEDC_LOW_VOLTAGE, config->lowVoltageCommand);
+    prefsHandler->write(EEDC_HV_UNDERVOLTAGE_LIMIT, config->hvUndervoltageLimit);
+    prefsHandler->write(EEDC_LV_BUCK_CURRENT_LIMIT, config->lvBuckModeCurrentLimit);
+    prefsHandler->write(EEDC_HV_BUCK_CURRENT_LIMIT, config->hvBuckModeCurrentLimit);
+    prefsHandler->write(EEDC_HIGH_VOLTAGE, config->highVoltageCommand);
+    prefsHandler->write(EEDC_LV_UNDERVOLTAGE_LIMIT, config->lvUndervoltageLimit);
+    prefsHandler->write(EEDC_LV_BOOST_CURRENT_LIMIT, config->lvBoostModeCurrentLinit);
+    prefsHandler->write(EEDC_HV_BOOST_CURRENT_LIMIT, config->hvBoostModeCurrentLimit);
 
     prefsHandler->saveChecksum();
 }

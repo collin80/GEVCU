@@ -57,6 +57,7 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include "CodaMotorController.h"
 #include "FaultHandler.h"
 #include "CanIO.h"
+#include "CanOBD2.h"
 
 #ifdef __cplusplus
 extern "C" {

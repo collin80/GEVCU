@@ -61,6 +61,11 @@ public:
     uint8_t reversePercent;
     uint16_t nominalVolt; //nominal pack voltage in tenths of a volt
     PowerMode powerMode;
+    uint8_t creepLevel; // percentage of torque used for creep function (imitate creep of automatic transmission, set 0 to disable)
+    uint16_t creepSpeed; // max speed for creep
+    uint8_t brakeHold; // percentage of max torque to achieve brake hold (0 = off)
+    uint8_t brakeHoldForceCoefficient; // quotient by which the negative rpm is divided to get the force increase/decrease during brake hold (must NOT be 0!)
+    bool gearChangeSupport; // flag indication if gear change support (adjusting rpm) is on
 };
 
 class MotorController: public Device, public CanObserver
@@ -121,12 +126,19 @@ private:
     int16_t speedRequested; // in rpm, calculated in MotorController - must not be manipulated by subclasses
     uint8_t ticksNoMessage; // counter how many ticks the device went through without any message from the controller
     uint32_t slewTimestamp; // time stamp of last slew rate calculation
+    int16_t minimumBatteryTemperature; // battery temperature in 0.1 deg Celsius below which no regen will not occur
+    bool brakeHoldActive; // flag to signal if brake hold was activated by a standing car and pressed brake
+    uint32_t brakeHoldStart; // timestamp at which the brake hold was activated
+    int16_t brakeHoldLevel; // current throttle level applied by brake hold (must be signed to prevent overflow!!)
     Gears gear;
 
     void updateEnergyConsumption();
     void checkActivity();
     void processThrottleLevel();
     void updateGear();
+    int16_t processBrakeHold(MotorControllerConfiguration *config, int16_t throttleLevel, int16_t brakeLevel);
+    void processAbsOrGearChange(bool gearChangeSupport);
+    bool checkBatteryTemperatureForRegen();
 };
 
 #endif

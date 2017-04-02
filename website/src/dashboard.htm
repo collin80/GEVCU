@@ -1,149 +1,164 @@
-<div id="state_2_" class="hidden">
-	<div style="background: grey; width: 100%; text-align: center;">
-		<span class="systemState">Pre-Charging the system</span>
+<div class="infoBar">
+	<span class="infoBarCell" id="battery">
+		<img alt="Bat:" src="pics/battery.png" height="15em">
+		<span id="temperatureBattery1">-</span>,
+		<span id="temperatureBattery2">-</span>,
+		<span id="temperatureBattery3">-</span>,
+		<span id="temperatureBattery4">-</span>,
+		<span id="temperatureBattery5">-</span>,
+		<span id="temperatureBattery6">-</span> &#176;C
+	</span>
+	<span class="infoBarCell" id="coolant">
+		<img alt="Coolant:" src="pics/coolant.png" height="15em">
+		<span id="temperatureCoolant">-</span> &#176;C,
+		<span id="flowCoolant">-</span> l/min
+	</span>
+	<span class="infoBarCell" id="heater">
+		<img alt="Heater:" src="pics/heater.png" height="15em">
+		<span id="temperatureHeater">-</span> &#176;C,
+		<span id="flowHeater">-</span> l/min,
+		<span id="heaterPower">-</span> W
+	</span>
+	<span class="infoBarCell" id="exterior">
+		<img alt="Ext:" src="pics/ext.png" height="15em">
+		<span id="temperatureExterior">-</span> &#176;C
+	</span>
+	<span class="infoBarCell" id="timeRunning">--:--:--</span>
+</div>
+<div id="state_1_" style="display: none;">
+	<div>
+		<span class="systemState">Initializing System</span>
 	</div>
 </div>
-<div id="state_3_" class="hidden">
-	<div style="background: cyan; color: black; width: 100%; text-align: center;">
-		<span class="systemState">The system is pre-charged</span>
+<div id="state_2_" style="display: none;">
+	<div>
+		<span class="systemState">Precharging System</span>
 	</div>
 </div>
-<div id="state_4_" class="hidden">
-	<div style="background: yellow; color: black; width: 100%; text-align: center;">
-		<span class="systemState">Battery pre-heating before charging</span>
+<div id="state_3_" style="display: none;">
+	<div>
+		<span class="systemState">System Pre-Charged</span>
 	</div>
 </div>
-<div id="state_5_" class="hidden">
-	<div style="background: orange; color: black; width: 100%; text-align: center;">
-		<span class="systemState">The system is charging</span>
+<div id="state_4_" style="display: none;">
+	<div>
+		<span class="systemState">Battery Heating</span>
 	</div>
 </div>
-<div id="state_6_" class="hidden">
-	<div style="background: green; width: 100%; text-align: center;">
-		<span class="systemState">The system is charged</span>
+<div id="state_5_" style="display: none;">
+	<div>
+		<span class="systemState">Charging</span>
+		<button id="stopCharge" class="button" onclick="sendMsg('stopCharge')">Stop charging</button>
+	</div>
+	<div class="info">
+		<span id="chargeHoursRemain">-</span> hours <span id="chargeMinsRemain">--</span> minutes remaining
+	</div>
+	<div>
+		<meter id="chargeLevelMeter" value="0" min="0" low="10" max="100"></meter>
+	</div>
+	<div class="chargeLevel" style="margin-top: -2.1em;">
+		<span id="chargeLevel">--</span>%
+	</div>
+	<div id="inputCurrentSelector">
+		Input current:
+		<span id="inputCurrentSpan" title="maximum input current for this charge session"></span> A
+	</div>
+	<div class="subInfo">
+		<span class="subInfoCell">
+			Mains: <span id="chargerInputVoltage">---.-</span>V, <span id="chargerInputCurrent">--.-</span>A
+		</span>
+		<span class="subInfoCell">
+			Charger: <span id="chargerTemperature">--.-</span> &#176;C
+		</span>
+		<span class="subInfoCell">
+			Battery: <span id="chargerBatteryVoltage">---.-</span>V, <span id="chargerBatteryCurrent">-.-</span>A
+		</span>
 	</div>
 </div>
-<div id="state_7_" class="hidden">
-	<div style="background: green; width: 100%; text-align: center;">
-		<span class="systemState">The system is ready</span>
+<div id="state_6_" style="display: none;">
+	<div>
+		<span class="systemState">Charged</span>
 	</div>
 </div>
-<div id="state_99_" class="hidden">
-	<div style="background: red; width: 100%; text-align: center;">
-		<span class="systemState">ERROR !!</span>
+<div id="state_7_" style="display: none;">
+	<div>
+		<span class="systemState">Ready</span>
 	</div>
 </div>
-<table style="width: 100%;">
-	<tr>
-		<td style="vertical-align: top; width: 80px;">
-			<div>
-				Up-Time:<br/>
-				<span id="timeRunning" style="font-family: 'Led';">--:--:--</span>
-			</div>
-			<div id="state_4_5_6_7_8_99_" class="hidden">
-				<br/>
-				Battery:<br />
-				<div style="font-family: 'Led';">
-					<span id="temperatureBattery1">-</span> &#176;C
-				</div>
-				<div style="font-family: 'Led';">
-					<span id="temperatureBattery2">-</span> &#176;C
-				</div>
-				<div style="font-family: 'Led';">
-					<span id="temperatureBattery3">-</span> &#176;C
-				</div>
-				<div style="font-family: 'Led';">
-					<span id="temperatureBattery4">-</span> &#176;C
-				</div>
-				<div style="font-family: 'Led';">
-					<span id="temperatureBattery5">-</span> &#176;C
-				</div>
-				<div style="font-family: 'Led';">
-					<span id="temperatureBattery6">-</span> &#176;C
-				</div>
-			</div>
-			<div id="state_7_8_" class="hidden">
-				<div>
-				<br/>
-				Gear:<br/>
-				<span id="gear" style="font-family: 'Led';">--</span>
-			</div></div>
-		</td>
-		<td>
-			<div id="state_7_8_" class="hidden">
-				<div class="gauges">
-					<canvas id="throttleGauge">Your browser does not support the HTML5 canvas tag.</canvas>
-					<canvas id="torqueActualGauge"></canvas>
-					<canvas id="speedActualGauge"></canvas>
-					<canvas id="dcCurrentGauge"></canvas>
-					<br clear="all" />
-					<canvas id="temperatureMotorGauge"></canvas>
-					<canvas id="temperatureControllerGauge"></canvas>
-					<canvas id="dcVoltageGauge"></canvas>
-					<canvas id="energyConsumptionGauge"></canvas>
-					<canvas id="mechanicalPowerGauge"></canvas>
-				</div>
-			</div>
-			<div id="state_5_" class="hidden">
-				<div style="width: 100%; text-align: center;">
-					<button class="button" style="width: 80%;" onclick="stopCharge()">Terminate Charge</button>
-				</div>
-			</div>
-			<div id="state_5_6_" class="hidden">
-				<div class="gauges">
-					<canvas id="chargerInputVoltageGauge"></canvas>
-					<canvas id="chargerInputCurrentGauge"></canvas>
-					<canvas id="chargerBatteryVoltageGauge"></canvas>
-					<canvas id="chargerBatteryCurrentGauge"></canvas>
-					<canvas id="chargerTemperatureGauge"></canvas>
-				</div>
-			</div>
-			<div id="state_4_5_6_7_8_99_" class="hidden">
-				<div class="gauges">
-					<canvas id="dcDcHvVoltageGauge"></canvas>
-					<canvas id="dcDcHvCurrentGauge"></canvas>
-					<canvas id="dcDcLvVoltageGauge"></canvas>
-					<canvas id="dcDcLvCurrentGauge"></canvas>
-					<canvas id="dcDcTemperatureGauge"></canvas>
-				</div>
-				<div>
-				</div>
-			</div>
-		</td>
-		<td style="vertical-align: top; width: 80px;">
-			<div id="state_4_5_6_7_8_99_" class="hidden">
-				<div>Coolant:</div>
-				<div style="font-family: 'Led';">
-					<span id="temperatureCoolant">-</span> &#176;C
-				</div>
-				<div style="font-family: 'Led';">
-					<span id="flowCoolant">-</span> l/min
-				</div>
-				<br />
-				<div>Heater:</div>
-				<div style="font-family: 'Led';">
-					<span id="temperatureHeater">-</span> &#176;C
-				</div>
-				<div style="font-family: 'Led';">
-					<span id="flowHeater">-</span> l/min
-				</div>
-				<br />
-				<div>Exterior:</div>
-				<div style="font-family: 'Led';">
-					<span id="temperatureExterior">-</span> &#176;C
-				</div>
-			</div>
+<div id="state_8_" style="display: none;">
+	<div>
+		<span class="systemState">Running</span>
+		<span class="buttonBar">
+			<span class="buttonBarCell"></span>
+			<span class="buttonBarCell">Regen:
+		    <label class="switch switch-green">
+		      <input id="enableRegen" type="checkbox" class="switch-input" onchange="sendMsg('cmdRegen:' + checked);">
+		      <span class="switch-label" data-on="ON" data-off="OFF"></span>
+		      <span class="switch-handle"></span>
+		    </label></span>
+			<span class="buttonBarCell">Creep:
+		    <label class="switch">
+		      <input id="enableCreep" type="checkbox" class="switch-input" checked onchange="sendMsg('cmdCreep:' + checked)">
+		      <span class="switch-label" data-on="ON" data-off="OFF"></span>
+		      <span class="switch-handle"></span>
+		    </label></span>
+			<span class="buttonBarCell">EHPS:
+		    <label class="switch switch">
+		      <input id="powerSteering" type="checkbox" class="switch-input" checked onchange="sendMsg('cmdEhps:' + checked)">
+		      <span class="switch-label" data-on="ON" data-off="OFF"></span>
+		      <span class="switch-handle"></span>
+		    </label></span>
+			<span class="buttonBarCell">Heater:
+		    <label class="switch switch-orange">
+		      <input id="enableHeater" type="checkbox" checked class="switch-input" checked onchange="sendMsg('cmdHeater:' + checked)">
+		      <span class="switch-label" data-on="ON" data-off="OFF"></span>
+		      <span class="switch-handle"></span>
+		    </label></span>
+		</span>
+	</div>
+ 	</div>
+<div id="state_9_" style="display: none;">
+	<div>
+		<span class="systemState">Shutdown</span>
+	</div>
+</div>
+<div id="state_99_" style="display: none;">
+	<div>
+		<span class="systemState error">ERROR</span>
+	</div>
+</div>
 
-		</td>
-	</tr>
-</table>
+<div id="state_7_8_" style="display: none;">
+	<div class="gauges">
+		<span id="dcGauge"></span>
+		<span id="motorGauge"></span>
+		<span id="temperatureGauge"></span>
+		<span id="powerGauge"></span>
+		<span id="testGauge"></span>
+	</div>
+</div>
+
+<div id="state_4_5_6_7_8_99_" style="display: none;">
+	<div class="subinfo">
+		<span class="subInfoCell">
+			In: <span id="dcDcHvVoltage">---.-</span>V, <span id="dcDcHvCurrent">--.-</span>A
+		</span>
+		<span class="subInfoCell">
+			DCDC: <span id="dcDcTemperature">--.-</span> &#176;C
+		</span>
+		<span class="subInfoCell">
+			Out: <span id="dcDcLvVoltage">---.-</span>V, <span id="dcDcLvCurrent">-.-</span>A
+		</span>
+	</div>
+</div>
+
 <div id="annunciator"></div>
 <audio id="soundError">
-	<source src="soundError.mp3" type="audio/mpeg">
+	<source src="sound/error.mp3" type="audio/mpeg">
 </audio>
 <audio id="soundWarn">
-	<source src="soundWarn.mp3" type="audio/mpeg">
+	<source src="sound/warn.mp3" type="audio/mpeg">
 </audio>
 <audio id="soundInfo">
-	<source src="soundInfo.mp3" type="audio/mpeg">
+	<source src="sound/info.mp3" type="audio/mpeg">
 </audio>

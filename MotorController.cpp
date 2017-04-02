@@ -51,6 +51,10 @@ MotorController::MotorController() :
     slewTimestamp = millis();
     saveEnergyConsumption = false;
     ticksNoMessage = 0;
+    brakeHoldActive = false;
+    brakeHoldStart = 0;
+    brakeHoldLevel = 0;
+    minimumBatteryTemperature = 50; // 5 deg C
 }
 
 DeviceType MotorController::getType()
@@ -120,6 +124,81 @@ void MotorController::checkActivity()
     }
 }
 
+int16_t MotorController::processBrakeHold(MotorControllerConfiguration *config, int16_t throttleLvl, int16_t brakeLvl)
+{
+    if (brakeHoldActive) {
+        if (brakeHoldStart == 0) {
+            if (brakeLvl == 0) { // engage brake hold once the brake is released
+                brakeHoldStart = millis();
+                brakeHoldLevel = 0;
+                Logger::info("brake hold engaged for %dms", CFG_BRAKE_HOLD_MAX_TIME);
+            }
+        } else {
+            // deactivate after 5sec or when accelerator gives more torque or we're rolling forward without motor power
+            if (brakeHoldStart + CFG_BRAKE_HOLD_MAX_TIME < millis() || throttleLvl > brakeHoldLevel || (speedActual > 0 && brakeHoldLevel == 0)) {
+               brakeHoldActive = false;
+               brakeHoldLevel = 0;
+               brakeHoldStart = 0;
+               throttleLvl = 0;
+               slewTimestamp = millis(); // this should re-activate slew --> slowly reduce to 0 torque
+               Logger::info("brake hold deactivated");
+            } else {
+                uint16_t delta = abs(speedActual) * 2 / config->brakeHoldForceCoefficient + 1; // make sure it's always bigger than 0
+                if (speedActual < 0 && brakeHoldLevel < config->brakeHold * 10) {
+                    brakeHoldLevel += delta;
+                }
+                if (speedActual >= 0 && brakeHoldLevel > 0) {
+                    brakeHoldLevel -= (delta * 2); // decrease faster to limit oscillation
+                }
+
+                brakeHoldLevel = constrain(brakeHoldLevel, 0, config->brakeHold * 10); // it might have overshot above
+                throttleLvl = brakeHoldLevel;
+            }
+Logger::console("brake hold level: %.1f, duration: %d, speedActual: %d, throttle: %.1f", brakeHoldLevel / 10.0f, millis() - brakeHoldStart, speedActual, throttleLvl / 10.0f);
+        }
+    } else {
+        if (brakeLvl < 0 && speedActual == 0) { // init brake hold at stand-still when brake is pressed
+            brakeHoldActive = true;
+            brakeHoldStart = 0;
+            Logger::info("brake hold activated");
+        }
+    }
+    return throttleLvl;
+}
+
+/**
+ * /brief In case ABS is active, apply no power to wheels to prevent loss of control through regen forces. If gear shift support is enabled, additionally
+ * the motor will be spun up/down to the next
+ */
+void MotorController::processAbsOrGearChange(bool gearChangeSupport) {
+    // phase 1 - duration approx 700ms
+    torqueRequested = 0;
+    speedRequested = 0;
+
+    if (gearChangeSupport) {
+        // phase 2
+        // break/accel  with about 20Nm for about 500ms
+
+    }
+}
+
+/**
+ * /brief Check if the battery temperatures are below the minimum temperature (configured in charger) in which case no regen should be applied.
+ *
+ * @return true if it's ok to apply regen, false if no regen must be applied
+ */
+bool MotorController::checkBatteryTemperatureForRegen() {
+    int16_t lowestBatteryTemperature = status.getLowestBatteryTemperature();
+
+    if (lowestBatteryTemperature != CFG_NO_TEMPERATURE_DATA && (lowestBatteryTemperature * 10) < minimumBatteryTemperature) {
+        status.enableRegen = false;
+        Logger::info(this, "No regenerative braking due to low battery temperature! (%f < %f)", lowestBatteryTemperature / 10.0f, minimumBatteryTemperature / 10.0f);
+        return false;
+    }
+
+    return true;
+}
+
 /*
  * From the throttle and brake level, calculate the requested torque and speed.
  * Depending on power mode, the throttle dependent value is torque or speed. The other
@@ -130,19 +209,23 @@ void MotorController::processThrottleLevel()
     MotorControllerConfiguration *config = (MotorControllerConfiguration *) getConfiguration();
     Throttle *accelerator = deviceManager.getAccelerator();
     Throttle *brake = deviceManager.getBrake();
-    boolean disableSlew = false;
 
-    throttleLevel = 0; //force to zero in case not in operational condition
+    throttleLevel = 0; //force to zero in case not in operational condition or no throttle is enabled
     speedRequested = 0;
     if (powerOn && ready) {
         if (accelerator) {
             throttleLevel = accelerator->getLevel();
         }
-        // if the brake has been pressed it may override the accelerator
-        if (brake && brake->getLevel() < 0 && brake->getLevel() < accelerator->getLevel()) {
+        if (brake && brake->getLevel() < 0) { // if the brake has been pressed it overrides the accelerator
             throttleLevel = brake->getLevel();
-            disableSlew = true;
         }
+        if (brake && config->brakeHold > 0) { // check if brake hold should be applied
+            throttleLevel = processBrakeHold(config, throttleLevel, brake->getLevel());
+        }
+        if (throttleLevel < 0 && (!status.enableRegen || !checkBatteryTemperatureForRegen())) { // do not apply regen if the batteries are too cold
+            throttleLevel = 0;
+        }
+
         if (config->powerMode == modeSpeed) {
             int32_t speedTarget = throttleLevel * config->speedMax / 1000;
             torqueRequested = config->torqueMax;
@@ -150,28 +233,25 @@ void MotorController::processThrottleLevel()
             speedRequested = config->speedMax;
             int32_t torqueTarget = throttleLevel * config->torqueMax / 1000;
 
-            if (config->slewRate == 0 || disableSlew) {
+            if (config->slewRate == 0 || brakeHoldActive) {
                 torqueRequested = torqueTarget;
-            } else {
+            } else { // calc slew part and add/subtract from torqueRequested
                 uint32_t currentTimestamp = millis();
-                uint16_t slewPart = 0;
-
-                slewPart = config->torqueMax * config->slewRate / 1000 * (currentTimestamp - slewTimestamp) / 1000;
+                uint16_t slewPart = config->torqueMax * config->slewRate / 1000 * (currentTimestamp - slewTimestamp) / 1000;
                 if (torqueTarget < torqueRequested) {
-                    torqueRequested -= slewPart;
-                    if (torqueRequested < torqueTarget) {
-                        torqueRequested = torqueTarget;
-                    }
+                    torqueRequested = max(torqueRequested - slewPart, torqueTarget);
                 } else {
-                    torqueRequested += slewPart;
-                    if (torqueRequested > torqueTarget) {
-                        torqueRequested = torqueTarget;
-                    }
+                    torqueRequested = min(torqueRequested + slewPart, torqueTarget);
                 }
-//Logger::info("torque target: %ld, requested: %ld", torqueTarget, torqueRequested);
                 slewTimestamp = currentTimestamp;
             }
         }
+    } else {
+        torqueRequested = 0;
+    }
+
+    if (systemIO.isABSActive()) {
+        processAbsOrGearChange(config->gearChangeSupport);
     }
 }
 
@@ -219,6 +299,21 @@ void MotorController::handleStateChange(Status::SystemState oldState, Status::Sy
     }
 
     systemIO.setEnableMotor(newState == Status::ready || newState == Status::running);
+
+    systemIO.setPowerSteering(powerOn); // TODO move this somewhere else, own device ?
+    systemIO.setEnableHeater(powerOn);
+    systemIO.setHeaterPump(powerOn);
+
+    if (newState == Status::ready) { // at this time also the charger config should be loaded
+        // get the minimum temperature from the charger
+        Charger *charger = deviceManager.getCharger();
+        if (charger) {
+            ChargerConfiguration *config = (ChargerConfiguration *) charger->getConfiguration();
+            if (config) {
+                minimumBatteryTemperature = config->minimumTemperature;
+            }
+        }
+    }
 }
 
 void MotorController::setup()
@@ -333,22 +428,33 @@ void MotorController::loadConfiguration()
         prefsHandler->read(EEMC_REVERSE_LIMIT, &config->reversePercent);
         prefsHandler->read(EEMC_NOMINAL_V, &config->nominalVolt);
         prefsHandler->read(EEMC_POWER_MODE, (uint8_t *) &config->powerMode);
+        prefsHandler->read(EEMC_CREEP_LEVEL, &config->creepLevel);
+        prefsHandler->read(EEMC_CREEP_SPEED, &config->creepSpeed);
+        prefsHandler->read(EEMC_BRAKE_HOLD, &config->brakeHold);
+        prefsHandler->read(EEMC_BRAKE_HOLD_COEFF, &config->brakeHoldForceCoefficient);
+        prefsHandler->read(EEMC_GEAR_CHANGE_SUPPORT, &temp);
+        config->gearChangeSupport = temp;
     } else { //checksum invalid. Reinitialize values and store to EEPROM
         config->invertDirection = false;
-        config->speedMax = MaxRPMValue;
-        config->torqueMax = MaxTorqueValue;
-        config->slewRate = SlewRateValue;
+        config->speedMax = 6000;
+        config->torqueMax = 3000;
+        config->slewRate = 0;
         config->maxMechanicalPowerMotor = 2000;
         config->maxMechanicalPowerRegen = 400;
-        config->reversePercent = ReversePercent;
-        config->nominalVolt = NominalVolt;
+        config->reversePercent = 50;
+        config->nominalVolt = 3300;
         config->powerMode = modeTorque;
+        config->creepLevel = 0;
+        config->creepSpeed = 0;
+        config->brakeHold = 0;
+        config->gearChangeSupport = false;
     }
 
     Logger::info(this, "Power mode: %s, Max torque: %i", (config->powerMode == modeTorque ? "torque" : "speed"), config->torqueMax);
     Logger::info(this, "Max RPM: %i, Slew rate: %i", config->speedMax, config->slewRate);
     Logger::info(this, "Max mech power motor: %fkW, Max mech power regen: %fkW", config->maxMechanicalPowerMotor / 10.0f,
             config->maxMechanicalPowerRegen / 10.0f);
+    Logger::info(this, "Creep level: %i, Creep speed: %i, Brake Hold: %d, Gear Change Support: %d", config->creepLevel, config->creepSpeed, config->brakeHold, config->gearChangeSupport);
 }
 
 void MotorController::saveConfiguration()
@@ -361,8 +467,15 @@ void MotorController::saveConfiguration()
     prefsHandler->write(EEMC_MAX_RPM, config->speedMax);
     prefsHandler->write(EEMC_MAX_TORQUE, config->torqueMax);
     prefsHandler->write(EEMC_SLEW_RATE, config->slewRate);
+    prefsHandler->write(EEMC_MAX_MECH_POWER_MOTOR, config->maxMechanicalPowerMotor);
+    prefsHandler->write(EEMC_MAX_MECH_POWER_REGEN, config->maxMechanicalPowerRegen);
     prefsHandler->write(EEMC_REVERSE_LIMIT, config->reversePercent);
     prefsHandler->write(EEMC_NOMINAL_V, config->nominalVolt);
     prefsHandler->write(EEMC_POWER_MODE, (uint8_t) config->powerMode);
+    prefsHandler->write(EEMC_CREEP_LEVEL, config->creepLevel);
+    prefsHandler->write(EEMC_CREEP_SPEED, config->creepSpeed);
+    prefsHandler->write(EEMC_BRAKE_HOLD, config->brakeHold);
+    prefsHandler->write(EEMC_BRAKE_HOLD_COEFF, config->brakeHoldForceCoefficient);
+    prefsHandler->write(EEMC_GEAR_CHANGE_SUPPORT, (uint8_t) (config->gearChangeSupport ? 1 : 0));
     prefsHandler->saveChecksum();
 }

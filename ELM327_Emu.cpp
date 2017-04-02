@@ -148,7 +148,7 @@ void ELM327Emu::loop()
 */
 void ELM327Emu::processCmd()
 {
-    String retString = elmProc->processELMCmd(incomingBuffer);
+    String retString = elmProc->processInput(incomingBuffer);
 
     serialInterface->print(retString);
 

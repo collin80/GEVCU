@@ -3,12 +3,28 @@
 ELM327Processor::ELM327Processor()
 {
     obd2Handler = OBD2Handler::getInstance();
+    bHeader = false;
+    bLineFeed = false;
 }
 
-String ELM327Processor::processELMCmd(char *cmd)
+String ELM327Processor::generateUpdate()
+{
+    return "";
+}
+
+String ELM327Processor::generateLogEntry(char *logLevel, char *deviceName, char *message)
+{
+    return "";
+}
+
+String ELM327Processor::processInput(char *cmd)
 {
     String retString = String();
     String lineEnding;
+
+    for (char *p = cmd; *p; p++) {
+        *p = tolower(*p);
+    }
 
     if (bLineFeed) {
         lineEnding = String("\r\n");
@@ -73,13 +89,11 @@ String ELM327Processor::processELMCmd(char *cmd)
         //a 16 bit number and mask off to get the bytes
         if (strlen(cmd) == 4) {
             uint32_t valu = strtol((char *) cmd, NULL, 16);   //the pid format is always in hex
-            uint8_t pidnum = (uint8_t)(valu & 0xFF);
-            uint8_t mode = (uint8_t)((valu >> 8) & 0xFF);
-            Logger::debug("ElM327EMU - Mode: %i, PID: %i", mode, pidnum);
-            char out[7];
+            byte in[] = { 2, ((valu >> 8) & 0xFF), (valu & 0xFF) };
+            byte out[7];
             char buff[10];
 
-            if (obd2Handler->processRequest(mode, pidnum, NULL, out)) {
+            if (obd2Handler->processRequest(in, out)) {
                 if (bHeader) {
                     retString.concat("7E8");
                     out[0] += 2; //not sending only data bits but mode and pid too
@@ -89,10 +103,9 @@ String ELM327Processor::processELMCmd(char *cmd)
                         retString.concat(buff);
                     }
                 } else {
-                    mode += 0x40;
-                    sprintf(buff, "%02X", mode);
+                    sprintf(buff, "%02X", out[1]);
                     retString.concat(buff);
-                    sprintf(buff, "%02X", pidnum);
+                    sprintf(buff, "%02X", out[2]);
                     retString.concat(buff);
 
                     for (int i = 1; i <= out[0]; i++) {

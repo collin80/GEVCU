@@ -63,8 +63,7 @@ void Charger::handleTick()
         if (wattSeconds < status.energyConsumption) { // energyConsumption is unsigned, don't overflow!
             status.energyConsumption -= wattSeconds;
         } else {
-            status.energyConsumption = 0;
-            systemIO.saveEnergyConsumption();
+            status.energyConsumption = 0; // don't store it here bece because DCDC increases conumption again --> continuous saving
         }
         wattSeconds = 0;
     }
@@ -143,7 +142,7 @@ uint16_t Charger::calculateOutputCurrent()
             status.energyConsumption = 0;
             status.setSystemState(Status::charged);
         }
-        if ((millis() - chargeStartTime) > config->maximumChargeTime * 60000) {
+        if ((millis() - chargeStartTime) > (uint32_t) config->maximumChargeTime * 60000) {
             requestedOutputCurrent = 0;
             Logger::error(this, "Maximum charge time exceeded (%dmin)", (millis() - chargeStartTime) / 60000);
             status.setSystemState(Status::error);
@@ -153,7 +152,7 @@ uint16_t Charger::calculateOutputCurrent()
             Logger::error(this, "Maximum battery voltage exceeded (%.1fV)", (float) batteryVoltage / 10.0f);
             status.setSystemState(Status::error);
         }
-        if (batteryVoltage < config->minimumBatteryVoltage) {
+        if ((batteryVoltage < config->minimumBatteryVoltage) && (millis() - chargeStartTime) > 5000) {
             requestedOutputCurrent = 0;
             Logger::error(this, "Battery voltage too low (%.1fV)", (float) batteryVoltage / 10.0f);
             status.setSystemState(Status::error);
@@ -236,20 +235,20 @@ void Charger::loadConfiguration()
 #else
     if (prefsHandler->checksumValid()) { //checksum is good, read in the values stored in EEPROM
 #endif
-        prefsHandler->read(CHRG_MAX_INPUT_CURRENT, &config->maximumInputCurrent);
-        prefsHandler->read(CHRG_CONSTANT_CURRENT, &config->constantCurrent);
-        prefsHandler->read(CHRG_CONSTANT_VOLTAGE, &config->constantVoltage);
-        prefsHandler->read(CHRG_TERMINATE_CURRENT, &config->terminateCurrent);
-        prefsHandler->read(CHRG_MIN_BATTERY_VOLTAGE, &config->minimumBatteryVoltage);
-        prefsHandler->read(CHRG_MAX_BATTERY_VOLTAGE, &config->maximumBatteryVoltage);
-        prefsHandler->read(CHRG_MIN_BATTERY_TEMPERATURE, (uint16_t *) &config->minimumTemperature);
-        prefsHandler->read(CHRG_MAX_BATTERY_TEMPERATURE, &config->maximumTemperature);
-        prefsHandler->read(CHRG_MAX_AMPERE_HOURS, &config->maximumAmpereHours);
-        prefsHandler->read(CHRG_MAX_CHARGE_TIME, &config->maximumChargeTime);
-        prefsHandler->read(CHRG_DERATING_TEMPERATURE, &config->deratingRate);
-        prefsHandler->read(CHRG_DERATING_REFERENCE, &config->deratingReferenceTemperature);
-        prefsHandler->read(CHRG_HYSTERESE_STOP, &config->hystereseStopTemperature);
-        prefsHandler->read(CHRG_HYSTERESE_RESUME, &config->hystereseResumeTemperature);
+        prefsHandler->read(EECH_MAX_INPUT_CURRENT, &config->maximumInputCurrent);
+        prefsHandler->read(EECH_CONSTANT_CURRENT, &config->constantCurrent);
+        prefsHandler->read(EECH_CONSTANT_VOLTAGE, &config->constantVoltage);
+        prefsHandler->read(EECH_TERMINATE_CURRENT, &config->terminateCurrent);
+        prefsHandler->read(EECH_MIN_BATTERY_VOLTAGE, &config->minimumBatteryVoltage);
+        prefsHandler->read(EECH_MAX_BATTERY_VOLTAGE, &config->maximumBatteryVoltage);
+        prefsHandler->read(EECH_MIN_BATTERY_TEMPERATURE, (uint16_t *) &config->minimumTemperature);
+        prefsHandler->read(EECH_MAX_BATTERY_TEMPERATURE, &config->maximumTemperature);
+        prefsHandler->read(EECH_MAX_AMPERE_HOURS, &config->maximumAmpereHours);
+        prefsHandler->read(EECH_MAX_CHARGE_TIME, &config->maximumChargeTime);
+        prefsHandler->read(EECH_DERATING_TEMPERATURE, &config->deratingRate);
+        prefsHandler->read(EECH_DERATING_REFERENCE, &config->deratingReferenceTemperature);
+        prefsHandler->read(EECH_HYSTERESE_STOP, &config->hystereseStopTemperature);
+        prefsHandler->read(EECH_HYSTERESE_RESUME, &config->hystereseResumeTemperature);
     } else { //checksum invalid. Reinitialize values and store to EEPROM
         config->maximumInputCurrent = 100;
         config->constantCurrent = 100;
@@ -281,20 +280,20 @@ void Charger::saveConfiguration()
 
     Device::saveConfiguration(); // call parent
 
-    prefsHandler->write(CHRG_MAX_INPUT_CURRENT, config->maximumInputCurrent);
-    prefsHandler->write(CHRG_CONSTANT_CURRENT, config->constantCurrent);
-    prefsHandler->write(CHRG_CONSTANT_VOLTAGE, config->constantVoltage);
-    prefsHandler->write(CHRG_TERMINATE_CURRENT, config->terminateCurrent);
-    prefsHandler->write(CHRG_MIN_BATTERY_VOLTAGE, config->minimumBatteryVoltage);
-    prefsHandler->write(CHRG_MAX_BATTERY_VOLTAGE, config->maximumBatteryVoltage);
-    prefsHandler->write(CHRG_MIN_BATTERY_TEMPERATURE, (uint16_t) config->minimumTemperature);
-    prefsHandler->write(CHRG_MAX_BATTERY_TEMPERATURE, config->maximumTemperature);
-    prefsHandler->write(CHRG_MAX_AMPERE_HOURS, config->maximumAmpereHours);
-    prefsHandler->write(CHRG_MAX_CHARGE_TIME, config->maximumChargeTime);
-    prefsHandler->write(CHRG_DERATING_TEMPERATURE, config->deratingRate);
-    prefsHandler->write(CHRG_DERATING_REFERENCE, config->deratingReferenceTemperature);
-    prefsHandler->write(CHRG_HYSTERESE_STOP, config->hystereseStopTemperature);
-    prefsHandler->write(CHRG_HYSTERESE_RESUME, config->hystereseResumeTemperature);
+    prefsHandler->write(EECH_MAX_INPUT_CURRENT, config->maximumInputCurrent);
+    prefsHandler->write(EECH_CONSTANT_CURRENT, config->constantCurrent);
+    prefsHandler->write(EECH_CONSTANT_VOLTAGE, config->constantVoltage);
+    prefsHandler->write(EECH_TERMINATE_CURRENT, config->terminateCurrent);
+    prefsHandler->write(EECH_MIN_BATTERY_VOLTAGE, config->minimumBatteryVoltage);
+    prefsHandler->write(EECH_MAX_BATTERY_VOLTAGE, config->maximumBatteryVoltage);
+    prefsHandler->write(EECH_MIN_BATTERY_TEMPERATURE, (uint16_t) config->minimumTemperature);
+    prefsHandler->write(EECH_MAX_BATTERY_TEMPERATURE, config->maximumTemperature);
+    prefsHandler->write(EECH_MAX_AMPERE_HOURS, config->maximumAmpereHours);
+    prefsHandler->write(EECH_MAX_CHARGE_TIME, config->maximumChargeTime);
+    prefsHandler->write(EECH_DERATING_TEMPERATURE, config->deratingRate);
+    prefsHandler->write(EECH_DERATING_REFERENCE, config->deratingReferenceTemperature);
+    prefsHandler->write(EECH_HYSTERESE_STOP, config->hystereseStopTemperature);
+    prefsHandler->write(EECH_HYSTERESE_RESUME, config->hystereseResumeTemperature);
 
     prefsHandler->saveChecksum();
 }

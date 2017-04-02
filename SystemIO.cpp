@@ -84,13 +84,11 @@ void SystemIO::handleTick() {
         // if the system is ready and the enable input is high, then switch to state "running", this should enable the motor controller
         if (state == Status::ready) {
             status.setSystemState(Status::running);
-            setPowerSteering(true); // TODO move this somewhere else, own device ?
         }
     } else {
         // if enable input is low and the motor controller is running, then disable it by switching to state "ready"
         if (state == Status::running) {
             status.setSystemState(Status::ready);
-            setPowerSteering(false); // TODO move this somewhere else, own device ?
         }
     }
 
@@ -103,7 +101,10 @@ void SystemIO::handleTick() {
     }
 
     //TODO move to method and configure max kWh and if inverted or not
-    setStateOfCharge(map(status.getEnergyConsumption(), 0, 500, 0, 255));
+    uint16_t batteryCapacity = 350; // in 0.1kWh
+    uint16_t cons = map(constrain(status.getEnergyConsumption(), 0, batteryCapacity), 0, batteryCapacity, 0, 1000);
+    setStateOfCharge(map(sqrt(sqrt(cons)) * 1000, 0, 5623, 255, 0));
+    Logger::debug("sysio: consumption: %.1f %%, SOC PWM: %d/255", cons / 10.0f, status.stateOfCharge);
 
     handleCooling();
     handleCharging();
@@ -173,6 +174,7 @@ void SystemIO::handlePreCharge() {
 #ifdef CFG_THREE_CONTACTOR_PRECHARGE
             delay(CFG_PRE_CHARGE_RELAY_DELAY);
             setSecondaryContactor(true);
+            setFastChargeContactor(true); // TODO workaround to get the heater into the pre-charge cycle too
 #endif
         }
     } else {
@@ -324,6 +326,12 @@ bool SystemIO::isInterlockPresent() {
 bool SystemIO::isReverseSignalPresent() {
     bool flag = getDigitalIn(configuration->reverseInput);
     status.reverseInput = flag;
+    return flag;
+}
+
+bool SystemIO::isABSActive() {
+    bool flag = getDigitalIn(configuration->absInput);
+    status.absActive = flag;
     return flag;
 }
 
@@ -714,16 +722,6 @@ uint16_t SystemIO::getRawADC(uint8_t which) {
  *  Figure out what hardware we are running on and fill in the pin tables.
  */
 void SystemIO::initializePinTables() {
-    uint8_t rawadc;
-    prefsHandler->read(EESIO_RAWADC, &rawadc);
-
-    if (rawadc != 0) {
-        useRawADC = true;
-        Logger::info("Using raw ADC mode");
-    } else {
-        useRawADC = false;
-    }
-
 //    numberADCSamples = 64;
     switch (getSystemType()) {
     case GEVCU2:
@@ -738,6 +736,10 @@ void SystemIO::initializePinTables() {
     default:
         initGevcuLegacyPinTable();
         break;
+    }
+
+    if (useRawADC) {
+        Logger::info("Using raw ADC mode");
     }
 }
 
@@ -868,10 +870,8 @@ void SystemIO::initializeAnalogIO() {
 
     //requires the value to be contiguous in memory
     for (int i = 0; i < CFG_NUMBER_ANALOG_INPUTS; i++) {
-        prefsHandler->read(EESIO_ADC0_GAIN + 4 * i, &adcComp[i].gain);
-        prefsHandler->read(EESIO_ADC0_OFFSET + 4 * i, &adcComp[i].offset);
-
-        //Logger::debug("ADC:%d GAIN: %d Offset: %d", i, adc_comp[i].gain, adc_comp[i].offset);
+        adcComp[i].gain = CFG_ADC_GAIN;
+        adcComp[i].offset = CFG_ADC_OFFSET;
 //        for (int j = 0; j < numberADCSamples; j++) {
 //            adcAverageBuffer[i][j] = 0;
 //        }
@@ -904,7 +904,7 @@ void SystemIO::setupFastADC() {
      If, for instance, someone wanted to average over 6ms instead then the prescaler could be set to 24x instead.
      */
     ADC->ADC_MR = (1 << 7) //free running
-    + (5 << 8) //12x MCLK divider ((This value + 1) * 2) = divisor
+            + (5 << 8) //12x MCLK divider ((This value + 1) * 2) = divisor
             + (1 << 16) //8 periods start up time (0=0clks, 1=8clks, 2=16clks, 3=24, 4=64, 5=80, 6=96, etc)
             + (1 << 20) //settling time (0=3clks, 1=5clks, 2=9clks, 3=17clks)
             + (4 << 24) //tracking time (Value + 1) clocks
@@ -1015,7 +1015,7 @@ Logger::LogLevel SystemIO::getLogLevel() {
 void SystemIO::saveEnergyConsumption()
 {
     Logger::info("storing energy consumption: %.2fkWh", (float)status.energyConsumption / 3600000.0f);
-    prefsHandler->write(EESYS_ENEGRY_CONSUMPTION, status.energyConsumption);
+    prefsHandler->write(EESIO_ENEGRY_CONSUMPTION, status.energyConsumption);
     prefsHandler->saveChecksum();
     prefsHandler->suggestCacheWrite();
 }
@@ -1036,6 +1036,7 @@ void SystemIO::loadConfiguration() {
         prefsHandler->read(EESIO_CHARGE_POWER_AVAILABLE_INPUT, &configuration->chargePowerAvailableInput);
         prefsHandler->read(EESIO_INTERLOCK_INPUT, &configuration->interlockInput);
         prefsHandler->read(EESIO_REVERSE_INPUT, &configuration->reverseInput);
+        prefsHandler->read(EESIO_ABS_INPUT, &configuration->absInput);
 
         prefsHandler->read(EESIO_PRECHARGE_MILLIS, &configuration->prechargeMillis);
         prefsHandler->read(EESIO_PRECHARGE_RELAY_OUTPUT, &configuration->prechargeRelayOutput);
@@ -1064,24 +1065,25 @@ void SystemIO::loadConfiguration() {
         prefsHandler->read(EESIO_POWER_LIMITATION_OUTPUT, &configuration->powerLimitationOutput);
         prefsHandler->read(EESIO_STATE_OF_CHARGE_OUTPUT, &configuration->stateOfChargeOutput);
 
-        prefsHandler->read(EESYS_SYSTEM_TYPE, (uint8_t *) &configuration->systemType);
-        prefsHandler->read(EESYS_LOG_LEVEL, (uint8_t *) &configuration->logLevel);
+        prefsHandler->read(EESIO_SYSTEM_TYPE, (uint8_t *) &configuration->systemType);
+        prefsHandler->read(EESIO_LOG_LEVEL, (uint8_t *) &configuration->logLevel);
         Logger::setLoglevel((Logger::LogLevel) configuration->logLevel);
-        prefsHandler->read(EESYS_ENEGRY_CONSUMPTION, &status.energyConsumption);
+        prefsHandler->read(EESIO_ENEGRY_CONSUMPTION, &status.energyConsumption);
 
     } else { //checksum invalid. Reinitialize values and store to EEPROM
-        configuration->enableInput = EnableInput;
-        configuration->chargePowerAvailableInput = CFG_OUTPUT_NONE;
-        configuration->interlockInput = InterlockInput;
+        configuration->enableInput = 0;
+        configuration->chargePowerAvailableInput = 1;
+        configuration->interlockInput = CFG_OUTPUT_NONE;
         configuration->reverseInput = CFG_OUTPUT_NONE;
+        configuration->absInput = CFG_OUTPUT_NONE;
 
-        configuration->prechargeMillis = PrechargeMillis;
-        configuration->prechargeRelayOutput = PrechargeRelayOutput;
-        configuration->mainContactorOutput = MainContactorRelayOutput;
-        configuration->secondaryContactorOutput = SecondaryContactorRelayOutput;
+        configuration->prechargeMillis = 3000;
+        configuration->prechargeRelayOutput = 4;
+        configuration->mainContactorOutput = 5;
+        configuration->secondaryContactorOutput = 2;
         configuration->fastChargeContactorOutput = CFG_OUTPUT_NONE;
 
-        configuration->enableMotorOutput = EnableRelayOutput;
+        configuration->enableMotorOutput = 3;
         configuration->enableChargerOutput = CFG_OUTPUT_NONE;
         configuration->enableDcDcOutput = CFG_OUTPUT_NONE;
         configuration->enableHeaterOutput = CFG_OUTPUT_NONE;
@@ -1089,12 +1091,12 @@ void SystemIO::loadConfiguration() {
         configuration->heaterValveOutput = CFG_OUTPUT_NONE;
         configuration->heaterPumpOutput = CFG_OUTPUT_NONE;
         configuration->coolingPumpOutput = CFG_OUTPUT_NONE;
-        configuration->coolingFanOutput = CoolingFanRelayOutput;
-        configuration->coolingTempOn = CoolingTemperatureOn;
-        configuration->coolingTempOff = CoolingTemperatureOff;
+        configuration->coolingFanOutput = CFG_OUTPUT_NONE;
+        configuration->coolingTempOn = 40;
+        configuration->coolingTempOff = 35;
 
-        configuration->brakeLightOutput = BrakeLightOutput;
-        configuration->reverseLightOutput = ReverseLightOutput;
+        configuration->brakeLightOutput = CFG_OUTPUT_NONE;
+        configuration->reverseLightOutput = CFG_OUTPUT_NONE;
         configuration->powerSteeringOutput = CFG_OUTPUT_NONE;
         configuration->unusedOutput = CFG_OUTPUT_NONE;
 
@@ -1107,7 +1109,7 @@ void SystemIO::loadConfiguration() {
 
         saveConfiguration();
     }
-    Logger::info("enable input: %d, charge power avail input: %d, interlock input: %d, reverse input: %d", configuration->enableInput, configuration->chargePowerAvailableInput, configuration->interlockInput, configuration->reverseInput);
+    Logger::info("enable input: %d, charge power avail input: %d, interlock input: %d, reverse input: %d, abs input: %d", configuration->enableInput, configuration->chargePowerAvailableInput, configuration->interlockInput, configuration->reverseInput, configuration->absInput);
     Logger::info("pre-charge milliseconds: %d, pre-charge relay: %d, main contactor: %d", configuration->prechargeMillis, configuration->prechargeRelayOutput, configuration->mainContactorOutput);
     Logger::info("secondary contactor: %d, fast charge contactor: %d", configuration->secondaryContactorOutput, configuration->fastChargeContactorOutput);
     Logger::info("enable motor: %d, enable charger: %d, enable DCDC: %d, enable heater: %d", configuration->enableMotorOutput, configuration->enableChargerOutput, configuration->enableDcDcOutput, configuration->enableHeaterOutput);
@@ -1123,6 +1125,7 @@ void SystemIO::saveConfiguration() {
     prefsHandler->write(EESIO_CHARGE_POWER_AVAILABLE_INPUT, configuration->chargePowerAvailableInput);
     prefsHandler->write(EESIO_INTERLOCK_INPUT, configuration->interlockInput);
     prefsHandler->write(EESIO_REVERSE_INPUT, configuration->reverseInput);
+    prefsHandler->write(EESIO_ABS_INPUT, configuration->absInput);
 
     prefsHandler->write(EESIO_PRECHARGE_MILLIS, configuration->prechargeMillis);
     prefsHandler->write(EESIO_PRECHARGE_RELAY_OUTPUT, configuration->prechargeRelayOutput);
@@ -1151,8 +1154,8 @@ void SystemIO::saveConfiguration() {
     prefsHandler->write(EESIO_POWER_LIMITATION_OUTPUT, configuration->powerLimitationOutput);
     prefsHandler->write(EESIO_STATE_OF_CHARGE_OUTPUT, configuration->stateOfChargeOutput);
 
-    prefsHandler->write(EESYS_SYSTEM_TYPE, (uint8_t) configuration->systemType);
-    prefsHandler->write(EESYS_LOG_LEVEL, (uint8_t) configuration->logLevel);
+    prefsHandler->write(EESIO_SYSTEM_TYPE, (uint8_t) configuration->systemType);
+    prefsHandler->write(EESIO_LOG_LEVEL, (uint8_t) configuration->logLevel);
 
     prefsHandler->saveChecksum();
 }

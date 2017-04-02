@@ -124,7 +124,7 @@ void BrusaDMC5::sendControl()
     canHandlerEv.prepareOutputFrame(&outputFrame, CAN_ID_CONTROL);
     if ((status.canControlMessageLost || status.canControl2MessageLost || status.canLimitMessageLost)) {
         outputFrame.data.bytes[0] |= clearErrorLatch;
-        Logger::error(this, "clearing error latch - ctrl lost: %d, ctrl2 lost: %d, limit lost: %d", status.canControlMessageLost,
+        Logger::warn(this, "clearing error latch - ctrl lost: %d, ctrl2 lost: %d, limit lost: %d", status.canControlMessageLost,
                 status.canControl2MessageLost, status.canLimitMessageLost);
     } else {
         // to safe energy only enable the power-stage when positive acceleration is requested or the motor is still spinning (to control regen)
@@ -268,12 +268,17 @@ void BrusaDMC5::processStatus(uint8_t data[])
         torqueActual *= -1;
     }
 
-    ready = (bitfield & dmc5Ready) ? true : false;
-    running = (bitfield & dmc5Running) ? true : false;
-    if ((bitfield & errorFlag) && status.getSystemState() != Status::error) {
-        Logger::error(this, "Error reported from motor controller!");
-        status.setSystemState(Status::error);
+    if (bitfield & errorFlag) {
+    	if (running || ready) {
+            Logger::error(this, "Error reported from motor controller!");
+    	}
+    	running = false;
+    	ready = false;
+    } else {
+        ready = (bitfield & dmc5Ready) ? true : false;
+        running = (bitfield & dmc5Running) ? true : false;
     }
+
     status.warning = (bitfield & warningFlag) ? true : false;
     status.limitationTorque = (bitfield & torqueLimitation) ? true : false;
     status.limitationMotorModel = (bitfield & motorModelLimitation) ? true : false;
@@ -368,7 +373,7 @@ void BrusaDMC5::processErrors(uint8_t data[])
     status.maximumModulationLimiter = (bitfield & maximumModulationLimiter) ? true : false;
     status.temperatureSensor = (bitfield & temperatureSensor) ? true : false;
 
-    if (bitfield) {
+    if (bitfield && bitfield != oscillationLimitControllerActive) {
         Logger::warn(this, "%#08x", bitfield);
     }
 }
@@ -475,8 +480,6 @@ void BrusaDMC5::saveConfiguration()
 
     MotorController::saveConfiguration(); // call parent
 
-    prefsHandler->write(EEMC_MAX_MECH_POWER_MOTOR, config->maxMechanicalPowerMotor);
-    prefsHandler->write(EEMC_MAX_MECH_POWER_REGEN, config->maxMechanicalPowerRegen);
     prefsHandler->write(EEMC_DC_VOLT_LIMIT_MOTOR, config->dcVoltLimitMotor);
     prefsHandler->write(EEMC_DC_VOLT_LIMIT_REGEN, config->dcVoltLimitRegen);
     prefsHandler->write(EEMC_DC_CURRENT_LIMIT_MOTOR, config->dcCurrentLimitMotor);

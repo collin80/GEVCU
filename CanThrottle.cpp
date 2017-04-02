@@ -51,6 +51,12 @@ void CanThrottle::setup()
     CanThrottleConfiguration *config = (CanThrottleConfiguration *) getConfiguration();
 
     switch (config->carType) {
+    case OBD2:
+        requestFrame.id = 0x7df; // OBD2 broadcast (or specific address from 0x7e0 to 0x7e7)
+        memcpy(requestFrame.data.bytes, (const uint8_t[] ) { 0x02, 0x01, 0x4c, 0x00, 0x00, 0x00, 0x00, 0x00 }, 8); // 2=data bytes, 1=current data, 4c=throttle commanded
+        responseId = 0x7e8; // usually ECU responds on 0x7e8 (possible range: 0x7e8 to 0x7ef)
+        ready = true;
+        break;
     case Volvo_S80_Gas:
         // Request: dlc=0x08 fid=0x7e0 id=0x7e0 ide=0x00 rtr=0x00 data=0x03,0x22,0xEE,0xCB,0x00,0x00,0x00,0x00 (vida: [0x00, 0x00, 0x07, 0xe0, 0x22, 0xee, 0xcb])
         // Raw response: dlc=0x08 fid=0x7e8 id=0x7e8 ide=0x00 rtr=0x00 data=0x04,0x62,0xEE,0xCB,0x14,0x00,0x00,0x00 (vida: [0x00, 0x00, 0x07, 0xe8, 0x62, 0xee, 0xcb, 0x14])
@@ -95,8 +101,10 @@ void CanThrottle::handleStateChange(Status::SystemState oldState, Status::System
     Throttle::handleStateChange(oldState, newState);
 
     if (newState == Status::ready || newState == Status::running) {
-        canHandlerCar.attach(this, responseId, responseMask, responseExtended);
-        tickHandler.attach(this, CFG_TICK_INTERVAL_CAN_THROTTLE);
+        if (oldState != Status::ready && oldState != Status::running) {
+            canHandlerCar.attach(this, responseId, responseMask, responseExtended);
+            tickHandler.attach(this, CFG_TICK_INTERVAL_CAN_THROTTLE);
+        }
     } else {
         if (oldState == Status::ready || oldState == Status::running) {
             tearDown();
@@ -129,8 +137,14 @@ void CanThrottle::handleCanFrame(CAN_FRAME *frame)
 
     if (frame->id == responseId) {
         switch (config->carType) {
+        case OBD2:
+            if (frame->data.bytes[0] == 0x3 && frame->data.bytes[1] == 0x41 && frame->data.bytes[2] == 0x4c) { // [0]=num data bytes, [1]=mode + 0x40, [2]=PID
+                rawSignal.input1 = frame->data.bytes[3];
+                ticksNoResponse = 0;
+            }
+            break;
         case Volvo_S80_Gas:
-            // only evaluate messages with payload 0x04,0x62,0xEE,0xCB as other ECU data is also sent by with 0x738 - this must not cause the motor to spin up (e.g. diagnostic software)
+            // only evaluate messages with payload 0x04,0x62,0xEE,0xCB as other ECU data is also sent by with 0x738
             if (frame->data.bytes[0] == 0x04 && frame->data.bytes[1] == 0x62 && frame->data.bytes[2] == 0xee && frame->data.bytes[3] == 0xcb) {
                 rawSignal.input1 = frame->data.bytes[4];
                 ticksNoResponse = 0;

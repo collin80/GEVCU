@@ -173,6 +173,9 @@ void Device::handleMessage(uint32_t msgType, void* message)
     case MSG_ENABLE:
         enable();
         break;
+    case MSG_KILL:
+        tearDown();
+        break;
     case MSG_STATE_CHANGE:
         Status::SystemState *state = (Status::SystemState *) message;
         handleStateChange(state[0], state[1]);
@@ -196,6 +199,18 @@ void Device::handleStateChange(Status::SystemState oldState, Status::SystemState
     case Status::shutdown: // stop all devices
         this->tearDown();
         break;
+    }
+}
+
+/**
+ * If a flag is set in a bitfield, add a message part to a message
+ */
+void Device::appendMessage(String &message, uint32_t bitfield, uint32_t flag, char *part) {
+    if (bitfield & flag) {
+        if (message.length() > 0) {
+            message.concat(", ");
+        }
+        message.concat(part);
     }
 }
 

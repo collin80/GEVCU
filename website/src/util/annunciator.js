@@ -72,6 +72,7 @@ var Status = { /* Status::Bitfield3 */
     brakeLight                         : 1 << 7,  // 0x00000080
     reverseLight                       : 1 << 8,  // 0x00000100
     enableIn                           : 1 << 9,  // 0x00000200
+    absActive                          : 1 << 10, // 0x00000400
     
     digitalOutput0                     : 1 << 20, // 0x00100000
     digitalOutput1                     : 1 << 21, // 0x00200000
@@ -91,11 +92,14 @@ var Status = { /* Status::Bitfield3 */
 function updateAnnunciatorFields(name, bitfield) {
 	switch (name) {
 	case 'bitfield1':
+		if (bitfield != 0) {
+			foldAnnunciator(true);
+		}
 		updateField("warning", FieldClass.warn, bitfield & Warning.warning);
 		updateField("driverShutdownPathActive", FieldClass.warn, bitfield & Warning.driverShutdownPathActive);
 		updateField("externalShutdownPath1Off", FieldClass.warn, bitfield & Warning.externalShutdownPath1Off);
 		updateField("externalShutdownPath2Off", FieldClass.warn, bitfield & Warning.externalShutdownPath2Off);
-		updateField("oscillationLimitControllerActive", FieldClass.warn, bitfield & Warning.oscillationLimitControllerActive);
+		updateField("oscillationLimitControllerActive", FieldClass.ok, bitfield & Warning.oscillationLimitControllerActive);
 		updateField("speedSensorSignal", FieldClass.warn, bitfield & Warning.speedSensorSignal);
 		updateField("maximumModulationLimiter", FieldClass.warn, bitfield & Warning.maximumModulationLimiter);
 		updateField("temperatureSensor", FieldClass.warn, bitfield & Warning.temperatureSensor);
@@ -113,6 +117,9 @@ function updateAnnunciatorFields(name, bitfield) {
 		updateField("limitationDcCurrent", FieldClass.warn, bitfield & Warning.limitationDcCurrent);
 		break;
 	case 'bitfield2':
+		if (bitfield != 0) {
+			foldAnnunciator(true);
+		}
 		updateField("error", FieldClass.error, bitfield & Error.error);
 		updateField("speedSensor", FieldClass.error, bitfield & Error.speedSensor);
 		updateField("speedSensorSupply", FieldClass.error, bitfield & Error.speedSensorSupply);
@@ -153,6 +160,7 @@ function updateAnnunciatorFields(name, bitfield) {
 		updateField("coolingRelay", FieldClass.ok, bitfield & Status.coolingRelay);
 		updateField("brakeLight", FieldClass.ok, bitfield & Status.brakeLight);
 		updateField("reverseLight", FieldClass.ok, bitfield & Status.reverseLight);
+		updateField("absActive", FieldClass.warn, bitfield & Status.absActive);
 		updateField("digitalOutput0", FieldClass.ok, bitfield & Status.digitalOutput0);
 		updateField("digitalOutput1", FieldClass.ok, bitfield & Status.digitalOutput1);
 		updateField("digitalOutput2", FieldClass.ok, bitfield & Status.digitalOutput2);
@@ -177,4 +185,18 @@ function updateField(id, fieldClass, flag) {
 	}
 	if (target)
 		target.className = (flag == 0 ? FieldClass.off : fieldClass);
+}
+
+function foldAnnunciator(open) {
+	var annunciators = document.getElementById('annunciators');
+	if (annunciators) {
+		var display = '';
+		if(typeof open == "undefined") {
+			var oldDisplay = annunciators.style.display;
+			display = (oldDisplay == 'none' ? '' : 'none');
+		} else {
+			display = (open ? '' : 'none'); 
+		}
+		annunciators.style.display = display;
+	}
 }

@@ -35,7 +35,7 @@
 #include <due_wire.h>
 
 //Total # of allowable pages to cache. Limits RAM usage
-#define NUM_CACHED_PAGES   16
+#define NUM_CACHED_PAGES   20
 
 //maximum allowable age of a cache
 #define MAX_AGE  128

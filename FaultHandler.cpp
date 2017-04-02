@@ -56,7 +56,7 @@ void FaultHandler::setup()
 void FaultHandler::handleTick()
 {
     globalTime = baseTime + (millis() / 100);
-    memCache.Write(EE_FAULT_LOG + EEFAULT_RUNTIME, globalTime);
+//    memCache.Write(EE_FAULT_LOG + EEFAULT_RUNTIME, globalTime);
 }
 
 void FaultHandler::raiseFault(uint16_t device, uint16_t code, bool ongoing = false)
