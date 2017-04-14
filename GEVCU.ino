@@ -81,15 +81,17 @@ void createDevices()
     deviceManager.addDevice(new CanOBD2());
 }
 
+void delayStart(uint8_t seconds) {
+    for (int i = seconds; i > 0; i--) {
+        SerialUSB.println(i);
+        delay(1000);
+    }
+}
+
 void setup()
 {
-//  This delay lets you see startup messages on native USB.  But it breaks DMOC645 really badly.  You have to have comm way before 5 seconds.
-//    for (int i = 5; i > 0; i--) {
-//        SerialUSB.println(i);
-//        delay(1000);
-//    }
-
     SerialUSB.begin(CFG_SERIAL_SPEED);
+//    delayStart(10);
     SerialUSB.println(CFG_VERSION);
 
     //TODO resets CPU when power drops below 2.8V --> give the EEPROM enough time to finish an ongoing write at power-down
