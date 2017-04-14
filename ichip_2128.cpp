@@ -436,7 +436,8 @@ void ICHIPWIFI::loop()
         }
     }
     if (millis() > lastSendTime + 1000) {
-        state = IDLE; //something went wrong so reset state
+        Logger::debug(this, "response timeout");
+        sendBufferedCommand(); //something went wrong so reset state
     }
 }
 
@@ -489,8 +490,9 @@ void ICHIPWIFI::processSocketResponseSize()
 {
     incomingBuffer[ibWritePtr] = 0; //null terminate the string
     ibWritePtr = 0; //reset the write pointer
-    remainingSocketRead = constrain(atoi(&incomingBuffer[2]) - 1, -1, 1024);
+    remainingSocketRead = constrain(atoi(&incomingBuffer[2]), -1, 1024);
     Logger::debug(this, "processing remaining socket read: %d", remainingSocketRead);
+    incomingBuffer[0] = 0; // clear buffer to prevent old data messing up fin/opcode
 }
 
 /**
@@ -502,14 +504,11 @@ void ICHIPWIFI::processSocketResponseSize()
  */
 void ICHIPWIFI::processIncomingSocketData()
 {
+    Logger::debug(this, "processing incoming socket data");
+
     if (strstr(incomingBuffer, Constants::ichipErrorString) != NULL) {
         Logger::warn(this, "could not retrieve data from socket %d, closing socket", lastSendSocket->handle);
         closeSocket(lastSendSocket);
-    }
-    if (incomingBuffer[0] == 0 || strcmp(incomingBuffer, "I/0") == 0) { // nothing to read, move on to next command
-        remainingSocketRead = -1;
-        sendBufferedCommand();
-        return;
     }
 
     if (lastSendSocket != NULL) {
@@ -533,8 +532,6 @@ void ICHIPWIFI::processIncomingSocketData()
         }
     }
 
-    // empty line marks end of transmission -> switch back to IDLE to be able to send (buffered) messages
-    // beware that WebSocket relies on empty lines to indicate the end of transmission
     if (remainingSocketRead == 0) {
         remainingSocketRead = -1;
         sendBufferedCommand();
@@ -1076,8 +1073,6 @@ void ICHIPWIFI::loadParameters()
     loadParametersSystemIO();
     loadParametersDevices();
     loadParametersDashboard();
-
-    Logger::info(this, "wifi parameters loaded");
 }
 
 /**
