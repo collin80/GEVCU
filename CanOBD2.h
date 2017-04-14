@@ -33,6 +33,7 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include "CanHandler.h"
 #include "constants.h"
 #include "OBD2Handler.h"
+#include "DeviceManager.h"
 
 #define CAN_ID_BROADCAST      0x7df // broadcast address for requests         11111011111
 #define CAN_ID_REQUEST        0x7e0 // to 0x7e7, specific request address     11111100000 - 11111100111
@@ -100,7 +101,6 @@ private:
 
     uint8_t arrayPos;
     bool lastRequestAnswered;
-    uint32_t timestamp;
 
     void processRequest(CAN_FRAME* frame);
     void processResponse(CAN_FRAME* frame);

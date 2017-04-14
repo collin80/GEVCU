@@ -41,7 +41,6 @@ CanOBD2::CanOBD2() :
 
     arrayPos = 0;
     lastRequestAnswered = true;
-    timestamp = 0;
 }
 
 void CanOBD2::setup()
@@ -76,17 +75,18 @@ void CanOBD2::tearDown()
     }
 }
 
-/*
- * Send a request to the ECU.
- *
- */
 uint8_t pids[] = { PID_VEHICLE_SPEED, PID_AMBIENT_TEMP, PID_BAROMETRIC_PRESSURE };
 
+/**
+ * /brief Send a request to the ECU to query the vehicle speed, temperature, etc.
+ */
 void CanOBD2::handleTick()
 {
     Device::handleTick(); // Call parent handleTick
     if (lastRequestAnswered && canHandlerPoll != NULL) {
         CanOBD2Configuration *config = (CanOBD2Configuration *) getConfiguration();
+
+        Logger::debug(this, "sending request for PID %X", pids[arrayPos]);
 
         canHandlerPoll->prepareOutputFrame(&pollFrame, config->canIdOffsetPoll == 255 ? CAN_ID_BROADCAST : CAN_ID_REQUEST + config->canIdOffsetPoll);
         pollFrame.data.bytes[0] = 2; // 2 following bytes
@@ -97,7 +97,6 @@ void CanOBD2::handleTick()
             arrayPos = 0;
         }
         lastRequestAnswered = false;
-        timestamp = millis();
     }
 }
 
@@ -111,6 +110,7 @@ void CanOBD2::processRequest(CAN_FRAME *frame)
     CanOBD2Configuration *config = (CanOBD2Configuration *) getConfiguration();
     CAN_FRAME outputFrame;
 
+    Logger::debug(this, "received OBD2 request for GEVCU data");
     if (canHandlerRespond != NULL) {
         canHandlerRespond->prepareOutputFrame(&outputFrame, CAN_ID_RESPONSE + config->canIdOffsetRespond);
         if (OBD2Handler::getInstance()->processRequest(frame->data.bytes, outputFrame.data.bytes)) {
@@ -129,19 +129,23 @@ void CanOBD2::processResponse(CAN_FRAME *frame)
     if (canHandlerPoll != NULL) {
         uint8_t* b = frame->data.bytes;
         uint8_t pid = b[2];
-//Logger::console("pid response: len=%d, mode=%X, pid=%X, data=%d %d %d %d, name=%s", b[0], b[1], b[2], b[3], b[4], b[5], b[6], getPidName(pid));
+
+        if(Logger::isDebug()) {
+            Logger::debug("received pid response: len=%d, mode=%X, pid=%X, data=%d %d %d %d", b[0], b[1], b[2], b[3], b[4], b[5], b[6]);
+        }
+
         switch(pid) {
         case PID_VEHICLE_SPEED:
             status.vehicleSpeed = b[3];
-    Logger::console("v speed: %d kmh (%dms), speed ratio (rpm/kmh): %f", status.vehicleSpeed, millis() - timestamp, deviceManager.getMotorController()->getSpeedActual() / status.vehicleSpeed);
+    Logger::debug("v speed: %d kmh, motor speed: %d, ratio (rpm/kmh): %f", status.vehicleSpeed, deviceManager.getMotorController()->getSpeedActual(), deviceManager.getMotorController()->getSpeedActual() / status.vehicleSpeed);
             break;
         case PID_AMBIENT_TEMP:
             status.temperatureExterior = (b[3] - 40) * 10;
-    Logger::console("ext temp: %.1f C (%dms)", status.temperatureExterior / 10.0f, millis() - timestamp);
+    Logger::debug("ext temp: %.1f C", status.temperatureExterior / 10.0f);
             break;
         case PID_BAROMETRIC_PRESSURE:
             status.barometricPressure = b[3];
-   Logger::console("baro: %d kPa (%dms)", status.barometricPressure, millis() - timestamp);
+   Logger::debug("baro: %d kPa", status.barometricPressure);
             break;
         }
         lastRequestAnswered = true;
