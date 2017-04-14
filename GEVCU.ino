@@ -92,6 +92,9 @@ void setup()
     SerialUSB.begin(CFG_SERIAL_SPEED);
     SerialUSB.println(CFG_VERSION);
 
+    //TODO resets CPU when power drops below 2.8V --> give the EEPROM enough time to finish an ongoing write at power-down
+    SUPC->SUPC_SMMR = 0xA | (1<<8) | (1<<12);
+
     memCache.setup();
     faultHandler.setup();
     systemIO.setup();
