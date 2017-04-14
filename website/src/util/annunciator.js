@@ -191,7 +191,7 @@ function foldAnnunciator(open) {
 	var annunciators = document.getElementById('annunciators');
 	if (annunciators) {
 		var display = '';
-		if(typeof open == "undefined") {
+		if(typeof(open) == "undefined") {
 			var oldDisplay = annunciators.style.display;
 			display = (oldDisplay == 'none' ? '' : 'none');
 		} else {

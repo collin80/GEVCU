@@ -41,7 +41,7 @@ function loadPage(pageId) {
 			ajaxCall("config/dashboard.js", function (response) {
 				var data = JSON.parse(response);
 				generateGauges(data);
-				initWorker();
+				initHandler();
 			});
 		}
 		if (pageId == 'annunciator') {

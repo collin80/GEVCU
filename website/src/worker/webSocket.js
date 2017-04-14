@@ -11,7 +11,6 @@ onmessage = function(event) {
 		closeWebSocket();
 		break;
 	case 'message':
-		console.log('webSocket msg: ' + event.data.message);
 		socket.send(event.data.message);
 		break;
 	default:

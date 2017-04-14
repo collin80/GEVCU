@@ -1,13 +1,13 @@
-var worker; // a background worker to receive and process data
+var handler; // a background worker to receive and process data
 
 function showTab(pageId) {
 	// show the correct div and hide the others
-		alertify.set('notifier','position', 'top-right');
-		// add an event listener so sounds can get loaded on mobile devices after user interaction
-		window.addEventListener('keydown', removeBehaviorsRestrictions);
-		window.addEventListener('mousedown', removeBehaviorsRestrictions);
-		window.addEventListener('touchstart', removeBehaviorsRestrictions);
-		startWorker();
+	alertify.set('notifier', 'position', 'top-right');
+	// add an event listener so sounds can get loaded on mobile devices after user interaction
+	window.addEventListener('keydown', removeBehaviorsRestrictions);
+	window.addEventListener('mousedown', removeBehaviorsRestrictions);
+	window.addEventListener('touchstart', removeBehaviorsRestrictions);
+	startHandler();
 }
 
 // on most mobile browsers sounds can only be loaded during a user interaction (stupid !)
@@ -20,44 +20,48 @@ function removeBehaviorsRestrictions() {
 	window.removeEventListener('touchstart', removeBehaviorsRestrictions);
 }
 
-function initWorker() {
+function initHandler() {
 	for (var name in Gauge.Collection) {
 		if (name != "get") {
 			var config = Gauge.Collection.get(name).config;
-			
+
 			for (var i = 0; i < config.values.length; i++) {
-				worker.postMessage({cmd: 'init', config: {
-					id: config.values[i].id,
-					minValue: config.values[i].minValue,
-					maxValue: config.values[i].maxValue,
-					startValue: config.values[i].startValue,
-					offset: config.values[i].offset,
-					angle: config.values[i].angle,
-					ccw: config.values[i].ccw,
-					range: config.values[i].range,
-					animation: config.animation,
-				}});
+				handler.postMessage({
+					cmd : 'init',
+					config : {
+						id : config.values[i].id,
+						minValue : config.values[i].minValue,
+						maxValue : config.values[i].maxValue,
+						startValue : config.values[i].startValue,
+						offset : config.values[i].offset,
+						angle : config.values[i].angle,
+						ccw : config.values[i].ccw,
+						range : config.values[i].range,
+						animation : config.animation,
+					}
+				});
 			}
 		}
 	}
 }
 
-function startWorker() {
-	if(typeof(worker) == "undefined") {
-		worker = new PseudoWorker();
-//		worker = new Worker("worker/handler.js");
-		worker.onmessage = this.handleWorkerMessage;
+function startHandler() {
+	if (typeof (handler) == "undefined") {
+		handler = new PseudoWorker();
+		// handler = new Worker("worker/handler.js");
+		handler.onmessage = this.processHandlerMessage;
 	}
-	worker.postMessage({cmd: 'start'});
+	handler.postMessage({ cmd : 'start' });
 }
 
-function stopWorker() {
-	if(typeof(worker) != "undefined") {
-		worker.postMessage({cmd: 'stop'});
+function stopHandler() {
+	if (typeof (handler) != "undefined") {
+		handler.postMessage({ cmd : 'stop' });
+		handler = undefined;
 	}
 }
 
-this.handleWorkerMessage = function(event) {
+this.processHandlerMessage = function(event) {
 	var data = event.data;
 	if (data.dial) {
 		var dial = data.dial;
@@ -85,7 +89,7 @@ this.handleWorkerMessage = function(event) {
 		if (target) {
 			target.value = value;
 		}
-		
+
 		setNodeValue(name, value);
 
 		if (name == 'systemState') {
@@ -124,5 +128,5 @@ function updateSystemState(state) {
 
 // send message via handler to websocket
 function sendMsg(message) {
-	worker.postMessage({cmd: 'message', message: message + '     '});
+	handler.postMessage({ cmd: 'message', message: message });
 }
