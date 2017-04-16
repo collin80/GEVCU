@@ -372,7 +372,7 @@ void ICHIPWIFI::loop()
         }
 
         // in GET_SOCKET mode, check if we need to parse the size info from a SRCV command yet
-        if (state == GET_SOCKET && remainingSocketRead == -1 && ibWritePtr > 2 && incoming == ':' &&
+        if (state == GET_SOCKET && remainingSocketRead == -1 && ibWritePtr > 2 && (incoming == ':' || incomingBuffer[2] == '0') &&
                 incomingBuffer[0] == 'I' && incomingBuffer[1] == '/' && isdigit(incomingBuffer[2])) {
             processSocketResponseSize();
             return;
@@ -490,9 +490,13 @@ void ICHIPWIFI::processSocketResponseSize()
 {
     incomingBuffer[ibWritePtr] = 0; //null terminate the string
     ibWritePtr = 0; //reset the write pointer
-    remainingSocketRead = constrain(atoi(&incomingBuffer[2]), -1, 1024);
-    Logger::debug(this, "processing remaining socket read: %d", remainingSocketRead);
-    incomingBuffer[0] = 0; // clear buffer to prevent old data messing up fin/opcode
+    remainingSocketRead = constrain(atoi(&incomingBuffer[2]), 0, 1024);
+    if(remainingSocketRead == 0) {
+        remainingSocketRead--;
+        sendBufferedCommand();
+    } else {
+        Logger::debug(this, "processing remaining socket read: %d", remainingSocketRead);
+    }
 }
 
 /**
