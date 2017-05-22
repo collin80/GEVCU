@@ -188,7 +188,8 @@ int TickHandler::findObserver(int timer, TickObserver *observer)
 }
 
 /*
- * Check if a tick is available, forward it to registered observers.
+ * Process all queued tick observers in tickBuffer and call their handleTick() method.
+ * The entries were enqueued during an interrupt by handleInterrupt().
  */
 void TickHandler::process()
 {
@@ -211,7 +212,7 @@ void TickHandler::cleanBuffer()
 
 /*
  * Handle the interrupt of any timer.
- * All the registered TickObservers of the timer are called.
+ * All the registered TickObservers of the timer are added to tickBuffer (queue) to be processed outside of an interrupt (loop)
  */
 void TickHandler::handleInterrupt(int timerNumber)
 {

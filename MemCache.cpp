@@ -510,7 +510,7 @@ boolean MemCache::cache_writepage(uint8_t page)
     buffer[1] = 0; //pages are 256 bytes so LSB is always 0 for the start of a page
     i2c_id = 0b01010000 + ((addr >> 16) & 0x03);  //10100 is the chip ID then the two upper bits of the address
 
-    Logger::info("flushing page %d to eeprom address %d", page, pages[page].address);
+    Logger::debug("flushing page %d to eeprom address %d", page, pages[page].address);
 
     for (d = 0; d < 256; d++) {
         buffer[d + 2] = pages[page].data[d];

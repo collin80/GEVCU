@@ -39,6 +39,7 @@ WebSocket::WebSocket()
     paramCache.timeRunning = 0;
     webSocketKey = NULL;
     isFirst = true;
+    updateCounter = 0;
     connected = false;
 }
 
@@ -233,18 +234,21 @@ String WebSocket::processData(char *input)
     case OPCODE_TEXT: {
         char *text = input + offset;
         bool flag = (strstr(text, "true") ? true : false);
-Logger::console("Websocket: text='%s', flag='%d'", text, flag);
         if (strstr(text, "stopCharge")) {
             status.setSystemState(Status::charged);
         } else if (strstr(text, "cmdRegen:")) {
             status.enableRegen = flag;
+            Logger::info("Regen is now switched %s", (flag ? "on" : "off"));
         } else if (strstr(text, "cmdCreep:")) {
             status.enableCreep = flag;
+            Logger::info("Creep is now switched %s", (flag ? "on" : "off"));
         } else if (strstr(text, "cmdEhps:")) {
             systemIO.setPowerSteering(flag);
-        } else if (strstr(text, "cmdHeater:")) {
+            Logger::info("EHPS is now switched %s", (flag ? "on" : "off"));
+       } else if (strstr(text, "cmdHeater:")) {
             systemIO.setEnableHeater(flag);
             systemIO.setHeaterPump(flag);
+            Logger::info("Heater is now switched %s", (flag ? "on" : "off"));
         }
         break;
     }
@@ -257,7 +261,7 @@ Logger::console("Websocket: text='%s', flag='%d'", text, flag);
         return Constants::disconnect;
         break;
     case OPCODE_PING:
-        Logger::warn("websocket: ping not supported");
+        Logger::warn("websocket: ping not supported: %d,%d,%d,%d,%d,%d: %s", input[0], input[1], input[2], input[3], input[4], input[5], input);
         break;
     case OPCODE_PONG:
         break;
@@ -278,15 +282,17 @@ String WebSocket::generateUpdate()
     isFirst = true;
 
     if (motorController) {
-        processParameter(&paramCache.speedActual, motorController->getSpeedActual(), Constants::speedActual);
-        processParameter(&paramCache.torqueActual, motorController->getTorqueActual(), Constants::torqueActual, 10);
-        processParameter(&paramCache.dcCurrent, motorController->getDcCurrent(), Constants::dcCurrent, 10);
-        processParameter(&paramCache.dcVoltage, motorController->getDcVoltage(), Constants::dcVoltage, 10);
-//        processParameter(&paramCache.mechanicalPower, motorController->getMechanicalPower(), Constants::mechanicalPower, 1000);
-        processParameter(&paramCache.temperatureMotor, motorController->getTemperatureMotor(), Constants::temperatureMotor, 10);
-        processParameter(&paramCache.temperatureController, motorController->getTemperatureController(), Constants::temperatureController, 10);
-        processParameter((int16_t *) &paramCache.gear, (int16_t) motorController->getGear(), Constants::gear);
 //        processParameter(&paramCache.throttle, motorController->getThrottleLevel(), Constants::throttle, 10);
+        processParameter(&paramCache.torqueActual, motorController->getTorqueActual(), Constants::torqueActual, 10);
+        processParameter((int16_t *) &paramCache.gear, (int16_t) motorController->getGear(), Constants::gear);
+        if (updateCounter == 0 || updateCounter == 5) { // very fluctuating values which would unnecessarily strain the cpu (of a tablet)
+            processParameter(&paramCache.speedActual, motorController->getSpeedActual(), Constants::speedActual);
+            processParameter(&paramCache.dcCurrent, motorController->getDcCurrent(), Constants::dcCurrent);
+            processParameter(&paramCache.dcVoltage, motorController->getDcVoltage(), Constants::dcVoltage);
+//            processParameter(&paramCache.mechanicalPower, motorController->getMechanicalPower(), Constants::mechanicalPower, 1000);
+            processParameter(&paramCache.temperatureMotor, motorController->getTemperatureMotor(), Constants::temperatureMotor, 10);
+            processParameter(&paramCache.temperatureController, motorController->getTemperatureController(), Constants::temperatureController, 10);
+        }
     }
 
     processParameter(&paramCache.bitfield1, status.getBitField1(), Constants::bitfield1);
@@ -307,13 +313,20 @@ String WebSocket::generateUpdate()
             processParameter(&paramCache.dcDcTemperature, dcDcConverter->getTemperature(), Constants::dcDcTemperature, 10);
         }
 
-        Charger* charger = deviceManager.getCharger();
-        if (charger) {
-            processParameter(&paramCache.chargerInputVoltage, charger->getInputVoltage(), Constants::chargerInputVoltage, 10);
-            processParameter(&paramCache.chargerInputCurrent, charger->getInputCurrent(), Constants::chargerInputCurrent, 100);
-            processParameter(&paramCache.chargerBatteryVoltage, charger->getBatteryVoltage(), Constants::chargerBatteryVoltage, 10);
-            processParameter(&paramCache.chargerBatteryCurrent, charger->getBatteryCurrent(), Constants::chargerBatteryCurrent, 100);
-            processParameter(&paramCache.chargerTemperature, charger->getTemperature(), Constants::chargerTemperature, 10);
+        if (status.getSystemState() == Status::charging || status.getSystemState() == Status::charged) {
+            Charger* charger = deviceManager.getCharger();
+            if (charger) {
+                processParameter(&paramCache.chargerInputVoltage, charger->getInputVoltage(), Constants::chargerInputVoltage, 10);
+                processParameter(&paramCache.chargerInputCurrent, charger->getInputCurrent(), Constants::chargerInputCurrent, 100);
+                processParameter(&paramCache.chargerBatteryVoltage, charger->getBatteryVoltage(), Constants::chargerBatteryVoltage, 10);
+                processParameter(&paramCache.chargerBatteryCurrent, charger->getBatteryCurrent(), Constants::chargerBatteryCurrent, 100);
+                processParameter(&paramCache.chargerTemperature, charger->getTemperature(), Constants::chargerTemperature, 10);
+
+                uint16_t secs = millis() / 1000; //TODO calc mins
+                processParameter(&paramCache.chargeHoursRemain, secs / 60, Constants::chargeHoursRemain);
+                processParameter(&paramCache.chargeMinsRemain, secs % 60, Constants::chargeMinsRemain);
+                processParameter(&paramCache.chargeLevel, map (secs, 0 , 28800, 0, 100), Constants::chargeLevel);
+            }
         }
 
         processParameter(&paramCache.energyConsumption, status.getEnergyConsumption(), Constants::energyConsumption, 10);
@@ -332,10 +345,15 @@ String WebSocket::generateUpdate()
         processParameter(&paramCache.enableCreep, status.enableCreep, Constants::enableCreep);
     }
 
+    if (++updateCounter > 9) {
+        updateCounter = 0;
+    }
+
     if (isFirst) {    // return empty string -> nothing will be sent, lower resource usage
         return data;
     }
     data.concat("\r}\r"); // close JSON object
+
     return prepareWebSocketFrame(OPCODE_TEXT, data);
 }
 

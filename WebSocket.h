@@ -45,6 +45,9 @@ struct ParamCache {
     uint16_t chargerBatteryVoltage;
     uint16_t chargerBatteryCurrent;
     int16_t chargerTemperature;
+    uint16_t chargeHoursRemain;
+    uint16_t chargeMinsRemain;
+    uint16_t chargeLevel;
     uint32_t flowCoolant;
     uint32_t flowHeater;
     uint16_t heaterPower;
@@ -69,6 +72,7 @@ private:
     enum { OPCODE_CONTINUATION = 0x0, OPCODE_TEXT = 0x1, OPCODE_BINARY = 0x2, OPCODE_CLOSE = 0x8, OPCODE_PING = 0x9, OPCODE_PONG = 0xa };
     ParamCache paramCache;
     bool isFirst;
+    uint8_t updateCounter;
     char buffer[30];
     String *webSocketKey;
     String data;

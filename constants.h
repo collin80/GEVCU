@@ -168,6 +168,9 @@ static const char* chargerInputCurrent = "chargerInputCurrent";
 static const char* chargerBatteryVoltage = "chargerBatteryVoltage";
 static const char* chargerBatteryCurrent = "chargerBatteryCurrent";
 static const char* chargerTemperature = "chargerTemperature";
+static const char* chargeHoursRemain = "chargeHoursRemain";
+static const char* chargeMinsRemain = "chargeMinsRemain";
+static const char* chargeLevel = "chargeLevel";
 
 static const char* flowCoolant = "flowCoolant";
 static const char* flowHeater = "flowHeater";

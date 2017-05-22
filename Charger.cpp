@@ -54,7 +54,7 @@ void Charger::handleTick()
     Device::handleTick(); // call parent
 
     uint32_t timeStamp = millis();
-    ampereMilliSeconds += (timeStamp - lastTick) * batteryCurrent;
+    ampereMilliSeconds += (timeStamp - lastTick) * batteryCurrent *0.925; // TODO make offset configurable
     // we're actually calculating kilowatt-milliseconds which is the same as watt seconds
     wattSeconds += (timeStamp - lastTick) * batteryCurrent * batteryVoltage / 1000000;
 
@@ -63,7 +63,7 @@ void Charger::handleTick()
         if (wattSeconds < status.energyConsumption) { // energyConsumption is unsigned, don't overflow!
             status.energyConsumption -= wattSeconds;
         } else {
-            status.energyConsumption = 0; // don't store it here bece because DCDC increases conumption again --> continuous saving
+            status.energyConsumption = 0; // don't store it here bece because DCDC increases consumption again --> continuous saving
         }
         wattSeconds = 0;
     }
