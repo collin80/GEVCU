@@ -218,6 +218,7 @@ void SerialConsole::printMenuSystemIO()
         Logger::console("WARNLT=%d - Digital output to use for reverse light (255 to disable)", config->warningOutput);
         Logger::console("LIMITLT=%d - Digital output to use for limitation indicator (255 to disable)", config->powerLimitationOutput);
         Logger::console("SOCHG=%d - Analog output to use to indicate state of charge (255 to disable)", config->stateOfChargeOutput);
+        Logger::console("STLGT=%d - Analog output to use to indicate system status (255 to disable)", config->statusLightOutput);
         Logger::console("OUTPUT=<0-7> - toggles state of specified digital output");
     }
 }
@@ -677,6 +678,10 @@ bool SerialConsole::handleConfigCmdSystemIO(String command, long value)
         value = constrain(value, 0, 255);
         Logger::console("State of charge set to output %d.", value);
         config->stateOfChargeOutput = value;
+    } else if (command == String("STLGT")) {
+        value = constrain(value, 0, 255);
+        Logger::console("Statu light set to output %d.", value);
+        config->statusLightOutput = value;
     } else if (command == String("OUTPUT") && value < 8) {
         Logger::console("DOUT%d,  STATE: %d", value, systemIO.getDigitalOut(value));
         systemIO.setDigitalOut(value, !systemIO.getDigitalOut(value));

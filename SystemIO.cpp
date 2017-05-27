@@ -504,6 +504,14 @@ void SystemIO::setStateOfCharge(uint8_t value) {
 }
 
 /*
+ * Set the PWM value of the status light from 0 to 255
+ */
+void SystemIO::setStatusLight(uint8_t value) {
+    setAnalogOut(configuration->statusLightOutput, value);
+    status.statusLight = value;
+}
+
+/*
  * Polls for the end of an ADC conversion event. Then processes buffer to extract the averaged
  * value. It takes this value and averages it with the existing value in an 8 position buffer
  * which serves as a super fast place for other code to retrieve ADC values.
@@ -1064,6 +1072,7 @@ void SystemIO::loadConfiguration() {
         prefsHandler->read(EESIO_WARNING_OUTPUT, &configuration->warningOutput);
         prefsHandler->read(EESIO_POWER_LIMITATION_OUTPUT, &configuration->powerLimitationOutput);
         prefsHandler->read(EESIO_STATE_OF_CHARGE_OUTPUT, &configuration->stateOfChargeOutput);
+        prefsHandler->read(EESIO_STATUS_LIGHT_OUTPUT, &configuration->statusLightOutput);
 
         prefsHandler->read(EESIO_SYSTEM_TYPE, (uint8_t *) &configuration->systemType);
         prefsHandler->read(EESIO_LOG_LEVEL, (uint8_t *) &configuration->logLevel);
@@ -1103,6 +1112,7 @@ void SystemIO::loadConfiguration() {
         configuration->warningOutput = CFG_OUTPUT_NONE;
         configuration->powerLimitationOutput = CFG_OUTPUT_NONE;
         configuration->stateOfChargeOutput = CFG_OUTPUT_NONE;
+        configuration->statusLightOutput = CFG_OUTPUT_NONE;
 
         configuration->systemType = GEVCU2;
         configuration->logLevel = Logger::Info;
@@ -1116,7 +1126,7 @@ void SystemIO::loadConfiguration() {
     Logger::info("heater valve: %d, heater pump: %d", configuration->heaterValveOutput, configuration->heaterPumpOutput);
     Logger::info("cooling pump: %d, cooling fan: %d, cooling temperature ON: %d, cooling tempreature Off: %d", configuration->coolingPumpOutput, configuration->coolingFanOutput, configuration->coolingTempOn, configuration->coolingTempOff);
     Logger::info("brake light: %d, reverse light: %d, power steering: %d, unused: %d", configuration->brakeLightOutput, configuration->reverseLightOutput, configuration->powerSteeringOutput, configuration->unusedOutput);
-    Logger::info("warning: %d, power limitation: %d, soc: %d", configuration->warningOutput, configuration->powerLimitationOutput, configuration->stateOfChargeOutput);
+    Logger::info("warning: %d, power limitation: %d, soc: %d, status: %d", configuration->warningOutput, configuration->powerLimitationOutput, configuration->stateOfChargeOutput, configuration->statusLightOutput);
     Logger::info("sys type: %d, log level: %d", configuration->systemType, configuration->logLevel);
 }
 
@@ -1153,6 +1163,7 @@ void SystemIO::saveConfiguration() {
     prefsHandler->write(EESIO_WARNING_OUTPUT, configuration->warningOutput);
     prefsHandler->write(EESIO_POWER_LIMITATION_OUTPUT, configuration->powerLimitationOutput);
     prefsHandler->write(EESIO_STATE_OF_CHARGE_OUTPUT, configuration->stateOfChargeOutput);
+    prefsHandler->write(EESIO_STATUS_LIGHT_OUTPUT, configuration->statusLightOutput);
 
     prefsHandler->write(EESIO_SYSTEM_TYPE, (uint8_t) configuration->systemType);
     prefsHandler->write(EESIO_LOG_LEVEL, (uint8_t) configuration->logLevel);

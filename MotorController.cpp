@@ -82,10 +82,12 @@ void MotorController::updateEnergyConsumption()
             if (saveEnergyConsumption) {
                 systemIO.saveEnergyConsumption();
                 saveEnergyConsumption = false;
+                deviceManager.sendMessage(DEVICE_DISPLAY, STATUSINDICATOR, MSG_UPDATE, (void *)"on");
             }
         } else {
-            if (speedActual > 1000) { // prevent activation when crawling in a queue
+            if (speedActual > 1000 && !saveEnergyConsumption) { // prevent activation when crawling in a queue
                 saveEnergyConsumption = true;
+                deviceManager.sendMessage(DEVICE_DISPLAY, STATUSINDICATOR, MSG_UPDATE, (void *) "off");
             }
         }
     }

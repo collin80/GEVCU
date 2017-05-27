@@ -79,6 +79,7 @@ void createDevices()
     deviceManager.addDevice(new ICHIPWIFI());
     deviceManager.addDevice(new CanIO());
     deviceManager.addDevice(new CanOBD2());
+    deviceManager.addDevice(new StatusIndicator());
 }
 
 void delayStart(uint8_t seconds) {

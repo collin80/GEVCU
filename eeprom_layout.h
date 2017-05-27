@@ -208,6 +208,7 @@ the end of the stardard data. The below numbers are offsets from the device's ee
 #define EESIO_UNUSED_OUTPUT                 70 // 1 byte - digital output for ...
 #define EESIO_STATE_OF_CHARGE_OUTPUT        71 // 1 byte - digital output for indication of SoC (255 = no output)
 #define EESIO_ABS_INPUT                     72 // 1 byte - digital input for ABS signal (255 = no output)
+#define EESIO_STATUS_LIGHT_OUTPUT           73 // 1 byte - digital oupt for PWM operated status light
 
 // CanOBD2
 #define EEOBD2_CAN_BUS_RESPOND              10 // 1 byte - which can bus should we respond to OBD2 requests (0=ev, 1=car, 255=ignore)

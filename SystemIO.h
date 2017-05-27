@@ -82,6 +82,7 @@ public:
     uint8_t warningOutput; // #of output for warning light/relay or 255 if not used
     uint8_t powerLimitationOutput; // #of output for power limitation light or 255 if not used
     uint8_t stateOfChargeOutput; // #of output to indicate the SoC or 255 if not used
+    uint8_t statusLightOutput; // #of output for the status light or 255 if not used
 
     SystemType systemType; // the system type
     Logger::LogLevel logLevel; // the system's loglevel
@@ -125,6 +126,7 @@ public:
     void setWarning(bool);
     void setPowerLimitation(bool);
     void setStateOfCharge(uint8_t);
+    void setStatusLight(uint8_t);
 
     uint16_t getAnalogIn(uint8_t which);
     void setDigitalOut(uint8_t which, boolean active);
