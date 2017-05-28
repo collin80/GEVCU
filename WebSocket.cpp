@@ -287,22 +287,24 @@ String WebSocket::generateUpdate()
         processParameter((int16_t *) &paramCache.gear, (int16_t) motorController->getGear(), Constants::gear);
         if (updateCounter == 0 || updateCounter == 5) { // very fluctuating values which would unnecessarily strain the cpu (of a tablet)
             processParameter(&paramCache.speedActual, motorController->getSpeedActual(), Constants::speedActual);
-            processParameter(&paramCache.dcCurrent, motorController->getDcCurrent(), Constants::dcCurrent);
-            processParameter(&paramCache.dcVoltage, motorController->getDcVoltage(), Constants::dcVoltage);
 //            processParameter(&paramCache.mechanicalPower, motorController->getMechanicalPower(), Constants::mechanicalPower, 1000);
-            processParameter(&paramCache.temperatureMotor, motorController->getTemperatureMotor(), Constants::temperatureMotor, 10);
-            processParameter(&paramCache.temperatureController, motorController->getTemperatureController(), Constants::temperatureController, 10);
+            if (updateCounter == 0) {
+                processParameter(&paramCache.dcCurrent, motorController->getDcCurrent(), Constants::dcCurrent, 10);
+                processParameter(&paramCache.dcVoltage, motorController->getDcVoltage(), Constants::dcVoltage, 10);
+                processParameter(&paramCache.temperatureMotor, motorController->getTemperatureMotor(), Constants::temperatureMotor, 10);
+                processParameter(&paramCache.temperatureController, motorController->getTemperatureController(), Constants::temperatureController, 10);
+            }
         }
     }
 
     processParameter(&paramCache.bitfield1, status.getBitField1(), Constants::bitfield1);
     processParameter(&paramCache.bitfield2, status.getBitField2(), Constants::bitfield2);
     processParameter(&paramCache.bitfield3, status.getBitField3(), Constants::bitfield3);
-    processParameter(&paramCache.systemState, (int16_t) status.getSystemState(), Constants::systemState);
 
     if (ms > paramCache.timeRunning + 900) { // just update this every second or so
         paramCache.timeRunning = ms;
         addParam(Constants::timeRunning, getTimeRunning(), false);
+        processParameter(&paramCache.systemState, (int16_t) status.getSystemState(), Constants::systemState);
 
         DcDcConverter* dcDcConverter = deviceManager.getDcDcConverter();
         if (dcDcConverter) {
