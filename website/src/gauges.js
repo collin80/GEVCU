@@ -182,7 +182,7 @@ function generateGauges(config) {
 					{ from : config.motorTempRange[2], to : rangeMotor.max, color : 'rgba(255, 0, 0, .75)' }
 				],
 				animation : {
-					duration : 500
+					duration : 1000
 				}
 			},
 			{
@@ -203,7 +203,7 @@ function generateGauges(config) {
 					{ from : config.controllerTempRange[2], to : rangeController.max, color : 'rgba(255, 0, 0, .75)' }
 				],
 				animation : {
-					duration : 500
+					duration : 1000
 				}
 			}
 
