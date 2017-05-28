@@ -20,7 +20,7 @@ function handleMessage(data) {
 	var from = config.animation ? toValue : value;
 	toValue = value;
 
-	config.animation ? animate(from, value) : sendUpdate(value);
+	config.animation && (!config.animation.threshold || Math.abs(from - value) > config.animation.threshold) ? animate(from, value) : sendUpdate(value);
 }
 
 function radians(degrees) {
@@ -113,5 +113,7 @@ var animateFx = {
 function processConfig(config) {
 	this.config = config;
 	toValue = this.config.minValue;
-	this.config.animation.fn = animateFx[this.config.animation.fn];
+	if (this.config.animation && this.config.animation.fn) {
+		this.config.animation.fn = animateFx[this.config.animation.fn];
+	}
 }

@@ -60,7 +60,11 @@ function generateGauges(config) {
 				valueFormat : { "int" : 3, "dec" : 1 },
 				majorTicks  : rangeBatteryVoltage.ticks,
 				minorTicks  : 5,
-				highlights  : batteryVoltageHighlights
+				highlights  : batteryVoltageHighlights,
+				animation : {
+					duration : 1000
+				}
+
 			},
 			{
 				id          : 'energyConsumptionGaugeValue',
@@ -78,7 +82,10 @@ function generateGauges(config) {
 					{ from : config.energyRange[1], to : config.energyRange[2] - intervalEnergy, color : 'rgba(255, 220,  0, .75)' },
 					{ from : config.energyRange[2] - intervalEnergy, to : config.energyRange[2], color : 'rgba(255, 127,  0, .75)' },
 					{ from : config.energyRange[2], to : rangeEnergy.max, color : 'rgba(255, 0,  0, .75)' }
-		   		]
+		   		],
+				animation : {
+					duration : 1000
+				}
 			},
 			{
 				id          : 'dcCurrentGaugeValue',
@@ -95,9 +102,12 @@ function generateGauges(config) {
 					{ from : config.currentRange[0] *.9, to : 0, color : 'rgba(0, 255, 0, .65)' },
 					{ from : 0, to : config.currentRange[1] * .9, color : 'rgba(0, 180,  255, .75)' },
 					{ from : config.currentRange[1] * .9, to : rangeCurrent.max, color : 'rgba(180, 180, 255, .75)' }
-				]
+				],
+				animation : {
+					duration : 1000
+				}
 			}
-		],
+		]
 	});
 
 	var rangeRpm = calcRange(config.rpmRange[0], config.rpmRange[1] + 1000,2);
@@ -122,7 +132,10 @@ function generateGauges(config) {
 					{ from : config.rpmRange[1] - 2000, to : config.rpmRange[1] - 1000, color : 'rgba(255, 255, 0, .75)' },
 					{ from : config.rpmRange[1] - 1000, to : config.rpmRange[1], color : 'rgba(255, 127, 0, .75)' },
 					{ from : config.rpmRange[1], to : rangeRpm.max, color : 'rgba(255, 0, 0, .75)' }
-				]
+				],
+				animation : {
+					duration : 500
+				}
 			},
 			{
 				id          : 'torqueActualGaugeValue',
@@ -167,7 +180,10 @@ function generateGauges(config) {
 					{ from : config.motorTempRange[1], to : config.motorTempRange[2] - intervalMotor, color : 'rgba(255, 220, 0, .75)' },
 					{ from : config.motorTempRange[2] - intervalMotor, to : config.motorTempRange[2], color : 'rgba(255, 127, 0, .75)' },
 					{ from : config.motorTempRange[2], to : rangeMotor.max, color : 'rgba(255, 0, 0, .75)' }
-				]
+				],
+				animation : {
+					duration : 500
+				}
 			},
 			{
 				id          : 'temperatureControllerGaugeValue',
@@ -185,7 +201,10 @@ function generateGauges(config) {
 					{ from : config.controllerTempRange[1], to : config.controllerTempRange[2] - intervalController, color : 'rgba(255, 220, 0, .75)' },
 					{ from : config.controllerTempRange[2] - intervalController, to : config.controllerTempRange[2], color : 'rgba(255, 127, 0, .75)' },
 					{ from : config.controllerTempRange[2], to : rangeController.max, color : 'rgba(255, 0, 0, .75)' }
-				]
+				],
+				animation : {
+					duration : 500
+				}
 			}
 
 		],

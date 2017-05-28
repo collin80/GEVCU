@@ -26,7 +26,7 @@ function initHandler() {
 			var config = Gauge.Collection.get(name).config;
 
 			for (var i = 0; i < config.values.length; i++) {
-				handler.postMessage({
+				var message = {
 					cmd : 'init',
 					config : {
 						id : config.values[i].id,
@@ -37,9 +37,24 @@ function initHandler() {
 						angle : config.values[i].angle,
 						ccw : config.values[i].ccw,
 						range : config.values[i].range,
-						animation : config.animation,
+						animation : {
+							delay : config.animation.delay,
+							duration : config.animation.duration,
+							fn : config.animation.fn,
+							threshold : config.values[i].range / config.values[i].angle / 5
+						}
 					}
-				});
+				};
+				// check if value specific anim options were given and override gauge's defaults
+				if (config.values[i].animation) {
+					if (config.values[i].animation.delay) 
+						message.config.animation.delay = config.values[i].animation.delay; 
+					if (config.values[i].animation.duration) 
+						message.config.animation.duration = config.values[i].animation.duration; 
+					if (config.values[i].animation.fn) 
+						message.config.animation.fn = config.values[i].animation.fn; 
+				}
+				handler.postMessage(message);
 			}
 		}
 	}
@@ -65,7 +80,7 @@ this.processHandlerMessage = function(event) {
 	var data = event.data;
 	if (data.dial) {
 		var dial = data.dial;
-		var gauge = Gauge.Collection.get(dial.id);
+		var gauge = Gauge.DialCollection.get(dial.id);
 		if (gauge) {
 			if (dial.angle != undefined) {
 				gauge.drawNeedle(dial.id, dial.angle);

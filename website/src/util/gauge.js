@@ -77,7 +77,7 @@ var Gauge = function(config) {
 			}
 		],
 		animation : {
-			delay    : 35,
+			delay    : 70,
 			duration : 200,
 			fn       : 'linear'
 		}
@@ -133,6 +133,8 @@ var Gauge = function(config) {
 	;
 
 	function baseInit() {
+		Gauge.Collection[config.renderTo] = self;
+
 		// important. first add all canvas before accessing one !!
 		addCanvas(config.renderTo + "Plate");
 		for (var i = 0; i < config.values.length; i++) {
@@ -155,7 +157,7 @@ var Gauge = function(config) {
 				value.startValue = 0;
 			}
 			configValues[value.id] = value;
-			Gauge.Collection[value.id] = self;
+			Gauge.DialCollection[value.id] = self;
 		}
 		ctxInfo = prepareCanvas(config.renderTo + "Info", true);
 		ctxInfoValues = prepareCanvas(config.renderTo + "InfoValues", true);
@@ -815,6 +817,11 @@ Gauge.initialized = false;
 
 Gauge.Collection = [];
 Gauge.Collection.get = function(id) {
+	return this[id];
+}
+
+Gauge.DialCollection = [];
+Gauge.DialCollection.get = function(id) {
 	return this[id];
 }
 
