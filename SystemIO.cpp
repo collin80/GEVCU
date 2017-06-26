@@ -84,6 +84,13 @@ void SystemIO::handleTick() {
         // if the system is ready and the enable input is high, then switch to state "running", this should enable the motor controller
         if (state == Status::ready) {
             status.setSystemState(Status::running);
+
+            // also check if exterior temperature is low and we need to auto-enable the heater
+            if (status.temperatureExterior <= configuration->heaterTemperatureOn) {
+                systemIO.setEnableHeater(true);
+                systemIO.setHeaterPump(true);
+            }
+            setPowerSteering(true);
         }
     } else {
         // if enable input is low and the motor controller is running, then disable it by switching to state "ready"
@@ -98,6 +105,17 @@ void SystemIO::handleTick() {
 
     if (state == Status::preCharged) {
         state = status.setSystemState(Status::ready);
+    }
+
+    // don't let the heater or power steering running
+    if (state != Status::running) {
+        if (status.enableHeater) {
+            systemIO.setEnableHeater(false);
+            systemIO.setHeaterPump(false);
+        }
+        if (status.powerSteering) {
+            systemIO.setPowerSteering(false);
+        }
     }
 
     //TODO move to method and configure max kWh and if inverted or not
@@ -399,7 +417,7 @@ void SystemIO::setEnableDcDc(bool enabled) {
 }
 
 /*
- * Enable / disable the battery heater output and set the status flag.
+ * Enable / disable the heater output and set the status flag.
  */
 void SystemIO::setEnableHeater(bool enabled) {
     setDigitalOut(configuration->enableHeaterOutput, enabled);
@@ -1056,6 +1074,7 @@ void SystemIO::loadConfiguration() {
         prefsHandler->read(EESIO_ENABLE_CHARGER_OUTPUT, &configuration->enableChargerOutput);
         prefsHandler->read(EESIO_ENABLE_DCDC_OUTPUT, &configuration->enableDcDcOutput);
         prefsHandler->read(EESIO_ENABLE_HEATER_OUTPUT, &configuration->enableHeaterOutput);
+        prefsHandler->read(EESIO_HEATER_TEMPERATURE_ON, &configuration->heaterTemperatureOn);
 
         prefsHandler->read(EESIO_HEATER_VALVE_OUTPUT, &configuration->heaterValveOutput);
         prefsHandler->read(EESIO_HEATER_PUMP_OUTPUT, &configuration->heaterPumpOutput);
@@ -1096,6 +1115,7 @@ void SystemIO::loadConfiguration() {
         configuration->enableChargerOutput = CFG_OUTPUT_NONE;
         configuration->enableDcDcOutput = CFG_OUTPUT_NONE;
         configuration->enableHeaterOutput = CFG_OUTPUT_NONE;
+        configuration->heaterTemperatureOn = 3;
 
         configuration->heaterValveOutput = CFG_OUTPUT_NONE;
         configuration->heaterPumpOutput = CFG_OUTPUT_NONE;
@@ -1122,7 +1142,7 @@ void SystemIO::loadConfiguration() {
     Logger::info("enable input: %d, charge power avail input: %d, interlock input: %d, reverse input: %d, abs input: %d", configuration->enableInput, configuration->chargePowerAvailableInput, configuration->interlockInput, configuration->reverseInput, configuration->absInput);
     Logger::info("pre-charge milliseconds: %d, pre-charge relay: %d, main contactor: %d", configuration->prechargeMillis, configuration->prechargeRelayOutput, configuration->mainContactorOutput);
     Logger::info("secondary contactor: %d, fast charge contactor: %d", configuration->secondaryContactorOutput, configuration->fastChargeContactorOutput);
-    Logger::info("enable motor: %d, enable charger: %d, enable DCDC: %d, enable heater: %d", configuration->enableMotorOutput, configuration->enableChargerOutput, configuration->enableDcDcOutput, configuration->enableHeaterOutput);
+    Logger::info("enable motor: %d, enable charger: %d, enable DCDC: %d, enable heater: %d, heater temp on: %d deg C", configuration->enableMotorOutput, configuration->enableChargerOutput, configuration->enableDcDcOutput, configuration->enableHeaterOutput, configuration->heaterTemperatureOn);
     Logger::info("heater valve: %d, heater pump: %d", configuration->heaterValveOutput, configuration->heaterPumpOutput);
     Logger::info("cooling pump: %d, cooling fan: %d, cooling temperature ON: %d, cooling tempreature Off: %d", configuration->coolingPumpOutput, configuration->coolingFanOutput, configuration->coolingTempOn, configuration->coolingTempOff);
     Logger::info("brake light: %d, reverse light: %d, power steering: %d, unused: %d", configuration->brakeLightOutput, configuration->reverseLightOutput, configuration->powerSteeringOutput, configuration->unusedOutput);
@@ -1147,6 +1167,7 @@ void SystemIO::saveConfiguration() {
     prefsHandler->write(EESIO_ENABLE_CHARGER_OUTPUT, configuration->enableChargerOutput);
     prefsHandler->write(EESIO_ENABLE_DCDC_OUTPUT, configuration->enableDcDcOutput);
     prefsHandler->write(EESIO_ENABLE_HEATER_OUTPUT, configuration->enableHeaterOutput);
+    prefsHandler->write(EESIO_HEATER_TEMPERATURE_ON, configuration->heaterTemperatureOn);
 
     prefsHandler->write(EESIO_HEATER_VALVE_OUTPUT, configuration->heaterValveOutput);
     prefsHandler->write(EESIO_HEATER_PUMP_OUTPUT, configuration->heaterPumpOutput);

@@ -66,6 +66,7 @@ public:
     uint8_t enableChargerOutput; // # of output to activate the charger
     uint8_t enableDcDcOutput; // # of output to enable the DC to DC cenverter
     uint8_t enableHeaterOutput; // # of output to enable heater
+    uint8_t heaterTemperatureOn; // temperature in deg C below which the heater is turned on
 
     uint8_t heaterValveOutput; // # of output to control heater valve (heat cabin or batteries)
     uint8_t heaterPumpOutput; // # of output to control heater pump

@@ -114,6 +114,7 @@ Status::Status()
     interlockPresent    = false;
     reverseInput        = false;
     absActive           = false;
+    statusLight         = false;
 
     energyConsumption = 0;
     flowCoolant = 0;

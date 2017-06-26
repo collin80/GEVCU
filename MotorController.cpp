@@ -302,10 +302,6 @@ void MotorController::handleStateChange(Status::SystemState oldState, Status::Sy
 
     systemIO.setEnableMotor(newState == Status::ready || newState == Status::running);
 
-    systemIO.setPowerSteering(powerOn); // TODO move this somewhere else, own device ?
-    systemIO.setEnableHeater(powerOn);
-    systemIO.setHeaterPump(powerOn);
-
     if (newState == Status::ready) { // at this time also the charger config should be loaded
         // get the minimum temperature from the charger
         Charger *charger = deviceManager.getCharger();

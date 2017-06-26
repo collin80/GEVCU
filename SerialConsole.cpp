@@ -202,6 +202,7 @@ void SerialConsole::printMenuSystemIO()
         Logger::console("ENABLEC=%d - Digital output to use for enable charger signal (255 to disable)", config->enableChargerOutput);
         Logger::console("ENABLED=%d - Digital output to use for enable dc-dc converter signal (255 to disable)", config->enableDcDcOutput);
         Logger::console("ENABLEH=%d - Digital output to use for enable heater signal (255 to disable)\n", config->enableHeaterOutput);
+        Logger::console("HEATERON=%d - external temperature below which heater is turned on (0 - 40 deg C, 255 = ignore)", config->heaterTemperatureOn);
 
         Logger::console("HEATVALV=%d - Digital output to actuate heater valve (255 to disable)", config->heaterValveOutput);
         Logger::console("HEATPUMP=%d - Digital output to turn on heater pump (255 to disable)", config->heaterPumpOutput);
@@ -634,6 +635,10 @@ bool SerialConsole::handleConfigCmdSystemIO(String command, long value)
         value = constrain(value, 0, 255);
         Logger::console("Setting heater valve signal output %d", value);
         config->heaterValveOutput = value;
+    } else if (command == String("HEATERON")) {
+        value = constrain(value, 0, 40);
+        Logger::console("Setting enable heater temp on to %d deg C", value);
+        config->heaterTemperatureOn = value;
     } else if (command == String("HEATPUMP")) {
         value = constrain(value, 0, 255);
         Logger::console("Setting heater pump signal to output %d", value);
