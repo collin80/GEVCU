@@ -173,11 +173,18 @@ Logger::console("brake hold level: %.1f, duration: %d, speedActual: %d, throttle
  * the motor will be spun up/down to the next
  */
 void MotorController::processAbsOrGearChange(bool gearChangeSupport) {
+
+    //TODO help find out if random jerks originate from here
+    Logger::info(this, "ABS or gear change activated!");
+
     // phase 1 - duration approx 700ms
     torqueRequested = 0;
     speedRequested = 0;
 
     if (gearChangeSupport) {
+
+        //TODO implement phase 2
+
         // phase 2
         // break/accel  with about 20Nm for about 500ms
 
@@ -239,7 +246,8 @@ void MotorController::processThrottleLevel()
                 torqueRequested = torqueTarget;
             } else { // calc slew part and add/subtract from torqueRequested
                 uint32_t currentTimestamp = millis();
-                uint16_t slewPart = config->torqueMax * config->slewRate / 1000 * (currentTimestamp - slewTimestamp) / 1000;
+                uint16_t slewPart = abs(torqueTarget - torqueRequested) * config->slewRate / 1000 * (currentTimestamp - slewTimestamp) / 1000;
+
                 if (torqueTarget < torqueRequested) {
                     torqueRequested = max(torqueRequested - slewPart, torqueTarget);
                 } else {
