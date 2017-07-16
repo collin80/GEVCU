@@ -247,6 +247,9 @@ void MotorController::processThrottleLevel()
             } else { // calc slew part and add/subtract from torqueRequested
                 uint32_t currentTimestamp = millis();
                 uint16_t slewPart = abs(torqueTarget - torqueRequested) * config->slewRate / 1000 * (currentTimestamp - slewTimestamp) / 1000;
+                if (slewPart == 0 && torqueRequested != torqueTarget) {
+                		slewPart = 1;
+                }
 
                 if (torqueTarget < torqueRequested) {
                     torqueRequested = max(torqueRequested - slewPart, torqueTarget);
