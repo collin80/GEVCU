@@ -33,6 +33,16 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include "SystemIO.h"
 #include "Status.h"
 
+class IndicatorConfig {
+public:
+	uint8_t maxLevel;
+	uint8_t minLevel;
+	uint8_t increment;
+	uint8_t decrement;
+	int16_t cyclesUp;
+	int16_t cyclesDown;
+};
+
 class StatusIndicator: public Device
 {
 public:
@@ -50,11 +60,10 @@ public:
 protected:
 
 private:
-    enum MODE { none, on, off, blink, pulse };
-
-    uint8_t lightLevel;
-    MODE mode;
-    boolean up;
+    int16_t step;
+    boolean increment;
+    IndicatorConfig cfg;
+    void setMode(uint8_t maxLevel, uint8_t minLevel, uint8_t increment, uint8_t decrement, int16_t cyclesUp, int16_t cyclesDown);
 };
 
 #endif /* STATUSINDICATOR_H_ */

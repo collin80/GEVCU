@@ -31,9 +31,9 @@ StatusIndicator::StatusIndicator() :
 {
     prefsHandler = new PrefHandler(STATUSINDICATOR);
     commonName = "Status Display";
-    lightLevel = 0;
-    mode = none;
-    up = false;
+    step = 0;
+    increment = false;
+    cfg.cyclesDown = cfg.cyclesUp = 1;
 }
 
 void StatusIndicator::setup()
@@ -47,47 +47,27 @@ void StatusIndicator::setup()
 
 void StatusIndicator::handleTick()
 {
-    switch (mode) {
-    case on:
-        lightLevel += 5;
-        if (lightLevel >= 250) {
-            lightLevel = 255;
-            mode = none;
+    step += (increment ? cfg.increment : -cfg.decrement);
+    if (step > 250) {
+        increment = false;
+        step = 250;
+        if (cfg.cyclesUp > 0) {
+            cfg.cyclesUp--;
         }
-        break;
-    case off:
-        lightLevel -= 5;
-        if (lightLevel <= 5) {
-            lightLevel = 0;
-            mode = none;
-        }
-        break;
-    case blink:
-        lightLevel += (up ? 5 : -5);
-        if (lightLevel >= 250) {
-            lightLevel = 255;
-            up = false;
-        }
-        if (lightLevel <= 40) {
-            lightLevel = 40;
-            up = true;
-        }
-        break;
-    case pulse:
-        lightLevel += (up ? 2 : -2);
-        if (lightLevel >= 125) {
-            lightLevel = 125;
-            up = false;
-        }
-        if (lightLevel <= 0) {
-            lightLevel = 0;
-            up = true;
-        }
-        break;
-    default:
-        tickHandler.detach(this);
     }
-    systemIO.setStatusLight(lightLevel);
+    if (step < 1) {
+        increment = true;
+        step = 0;
+        if (cfg.cyclesDown > 0) {
+            cfg.cyclesDown--;
+        }
+    }
+    systemIO.setStatusLight(1 / (1 + exp(((step / 20.0f) - 8) * -0.75f)) * cfg.maxLevel + cfg.minLevel);
+
+    if ((increment && cfg.cyclesUp == 0) || (!increment && cfg.cyclesDown == 0)) {
+        tickHandler.detach(this);
+        systemIO.setStatusLight((increment ? cfg.minLevel : cfg.maxLevel));
+    }
 }
 
 /**
@@ -100,51 +80,54 @@ void StatusIndicator::handleStateChange(Status::SystemState oldState, Status::Sy
 {
     Device::handleStateChange(oldState, newState);
 
-    if (mode == none) {
-        tickHandler.attach(this, CFG_TICK_INTERVAL_STATUS);
-    }
-
     switch (newState) {
     case Status::init:
     case Status::charged:
-        mode = pulse;
+        handleMessage(MSG_UPDATE, (void *) "pulse");
         break;
     case Status::charging:
-        mode = blink;
+        handleMessage(MSG_UPDATE, (void *) "blink");
         break;
     case Status::running:
-        mode = on;
+        handleMessage(MSG_UPDATE, (void *) "on");
         break;
     }
-    up = (lightLevel == 0);
 }
 
 void StatusIndicator::handleMessage(uint32_t messageType, void* message)
 {
     Device::handleMessage(messageType, message);
 
-    if (mode == none) {
-        tickHandler.attach(this, CFG_TICK_INTERVAL_STATUS);
-    }
-
     switch (messageType) {
     case MSG_UPDATE: {
         char *param = (char *) message;
 
-        if(!strcmp("on", param)) {
-            mode = on;
-        } else if(!strcmp("off", param)) {
-            mode = off;
-        } else if(!strcmp("blink", param)) {
-            mode = blink;
-        } else if(!strcmp("pulse", param)) {
-            mode = pulse;
+        if (!strcmp("on", param)) {
+            setMode(255, 0, 5, 5, 1, 0);
+            increment = true;
+        } else if (!strcmp("off", param)) {
+            setMode(255, 0, 3, 3, 0, 1);
+            increment = false;
+        } else if (!strcmp("blink", param)) {
+            setMode(250, 6, 4, 3, -1, -1);
+        } else if (!strcmp("pulse", param)) {
+            setMode(45, 4, 1, 1, -1, -1);
         }
-
-        up = (lightLevel == 0);
         break;
     }
     }
+}
+
+void StatusIndicator::setMode(uint8_t maxLevel, uint8_t minLevel, uint8_t increment, uint8_t decrement, int16_t cyclesUp, int16_t cyclesDown)
+{
+    cfg.maxLevel = maxLevel;
+    cfg.minLevel = minLevel;
+    cfg.increment = increment;
+    cfg.decrement = decrement;
+    cfg.cyclesUp = cyclesUp;
+    cfg.cyclesDown = cyclesDown;
+
+    tickHandler.attach(this, CFG_TICK_INTERVAL_STATUS);
 }
 
 DeviceType StatusIndicator::getType()

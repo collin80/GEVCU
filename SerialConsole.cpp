@@ -685,8 +685,11 @@ bool SerialConsole::handleConfigCmdSystemIO(String command, long value)
         config->stateOfChargeOutput = value;
     } else if (command == String("STLGT")) {
         value = constrain(value, 0, 255);
-        Logger::console("Statu light set to output %d.", value);
+        Logger::console("Status light set to output %d.", value);
         config->statusLightOutput = value;
+    } else if (command == String("STLGTMD")) {
+        Logger::console("Status light set to mode %s.", cmdBuffer + command.length() + 1);
+        deviceManager.sendMessage(DEVICE_DISPLAY, STATUSINDICATOR, MSG_UPDATE, (void *)(cmdBuffer + command.length() + 1));
     } else if (command == String("OUTPUT") && value < 8) {
         Logger::console("DOUT%d,  STATE: %d", value, systemIO.getDigitalOut(value));
         systemIO.setDigitalOut(value, !systemIO.getDigitalOut(value));
