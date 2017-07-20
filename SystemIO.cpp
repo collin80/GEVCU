@@ -68,9 +68,7 @@ void SystemIO::setup() {
 }
 
 void SystemIO::handleTick() {
-    Status::SystemState state = status.getSystemState();
-
-    if (state == Status::error) {
+    if (status.getSystemState() == Status::error) {
         powerDownSystem();
         return;
     }
@@ -82,7 +80,7 @@ void SystemIO::handleTick() {
 
     if (isEnableSignalPresent()) {
         // if the system is ready and the enable input is high, then switch to state "running", this should enable the motor controller
-        if (state == Status::ready) {
+        if (status.getSystemState() == Status::ready) {
             status.setSystemState(Status::running);
 
             // also check if exterior temperature is low and we need to auto-enable the heater
@@ -94,21 +92,21 @@ void SystemIO::handleTick() {
         }
     } else {
         // if enable input is low and the motor controller is running, then disable it by switching to state "ready"
-        if (state == Status::running) {
+        if (status.getSystemState() == Status::running) {
             status.setSystemState(Status::ready);
         }
     }
 
-    if (state == Status::preCharge) {
+    if (status.getSystemState() == Status::preCharge) {
         handlePreCharge();
     }
 
-    if (state == Status::preCharged) {
-        state = status.setSystemState(Status::ready);
+    if (status.getSystemState() == Status::preCharged) {
+        status.setSystemState(Status::ready);
     }
 
     // don't let the heater or power steering running
-    if (state != Status::running) {
+    if (status.getSystemState() != Status::running) {
         if (status.enableHeater) {
             systemIO.setEnableHeater(false);
             systemIO.setHeaterPump(false);
@@ -121,7 +119,11 @@ void SystemIO::handleTick() {
     //TODO move to method and configure max kWh and if inverted or not
     uint16_t batteryCapacity = 350; // in 0.1kWh
     uint16_t cons = map(constrain(status.getEnergyConsumption(), 0, batteryCapacity), 0, batteryCapacity, 0, 1000);
-    setStateOfCharge(map(sqrt(sqrt(cons)) * 1000, 0, 5623, 255, 0));
+    if (millis() < 60000) {
+        setStateOfCharge(250); // TODO: test to init gas tank gauge
+    } else {
+        setStateOfCharge(map(sqrt(sqrt(cons)) * 1000, 0, 5623, 255, 0));
+    }
     Logger::debug("sysio: consumption: %.1f %%, SOC PWM: %d/255", cons / 10.0f, status.stateOfCharge);
 
     handleCooling();
@@ -250,7 +252,6 @@ void SystemIO::handleCharging() {
     if (isChargePowerAvailable()) { // we're connected to "shore" power
         if (state == Status::running) {
             state = status.setSystemState(Status::ready);
-            setPowerSteering(false); //TODO move somewhere else !
         }
         if (state == Status::ready || state == Status::batteryHeating) {
             int16_t batteryTemp = status.getLowestBatteryTemperature();
