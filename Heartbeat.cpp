@@ -40,8 +40,8 @@ void Heartbeat::setup()
 {
     Device::setup();
 
-    pinMode(CFG_BLINK_LED, OUTPUT);
-    digitalWrite(CFG_BLINK_LED, LOW);
+    pinMode(CFG_IO_BLINK_LED, OUTPUT);
+    digitalWrite(CFG_IO_BLINK_LED, LOW);
     ready = true;
     running = true;
 
@@ -72,9 +72,9 @@ void Heartbeat::handleTick()
     lastTickTime = millis();
 
     if (led) {
-        digitalWrite(CFG_BLINK_LED, HIGH);
+        digitalWrite(CFG_IO_BLINK_LED, HIGH);
     } else {
-        digitalWrite(CFG_BLINK_LED, LOW);
+        digitalWrite(CFG_IO_BLINK_LED, LOW);
     }
 
     led = !led;

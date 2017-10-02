@@ -320,7 +320,7 @@ void SerialConsole::handleConsoleCmd()
         if (ptrBuffer == 1) { //command is a single ascii character
             handleShortCmd();
         } else { //if cmd over 1 char then assume (for now) that it is a config line
-            handleConfigCmd();
+            handleCmd();
         }
     }
 
@@ -330,7 +330,7 @@ void SerialConsole::handleConsoleCmd()
 /*For simplicity the configuration setting code uses four characters for each configuration choice. This makes things easier for
  comparison purposes.
  */
-void SerialConsole::handleConfigCmd()
+void SerialConsole::handleCmd()
 {
     int i;
     int value;

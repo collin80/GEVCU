@@ -67,7 +67,7 @@ private:
     void sendWifiCommand(String command, String parameter);
     void handleConsoleCmd();
     void handleShortCmd();
-    void handleConfigCmd();
+    void handleCmd();
     bool handleConfigCmdMotorController(String command, long value);
     bool handleConfigCmdThrottle(String command, long value);
     bool handleConfigCmdBrake(String command, long value);
