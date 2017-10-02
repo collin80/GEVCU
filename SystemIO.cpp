@@ -217,7 +217,7 @@ void SystemIO::handleCooling() {
     MotorController *motorController = deviceManager.getMotorController();
     Status::SystemState state = status.getSystemState();
 
-    if (state == Status::ready || state == Status::running || state == Status::charging || state == Status::batteryHeating) {
+    if (state == Status::ready || state == Status::running) {
         if (!status.coolingPump) {
             setCoolingPump(true);
         }
