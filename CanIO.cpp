@@ -26,7 +26,8 @@
 
 #include "CanIO.h"
 
-CanIO::CanIO() : Device()
+CanIO::CanIO() :
+        Device()
 {
     prefsHandler = new PrefHandler(CANIO);
     commonName = "CAN I/O";
@@ -100,7 +101,6 @@ void CanIO::handleMessage(uint32_t msgType, void* message)
     }
 }
 
-
 /*
  * Send the status of the IO over CAN so it can be used by other devices.
  */
@@ -168,21 +168,16 @@ void CanIO::sendAnalogData()
 void CanIO::processTemperature(byte bytes[])
 {
     for (int i = 0; i < CFG_NUMBER_BATTERY_TEMPERATURE_SENSORS; i++) {
-        if (bytes[i] != 0) {
-            status.temperatureBattery[i] = (bytes[i] - CFG_CAN_TEMPERATURE_OFFSET) * 10;
-            if (Logger::isDebug()) {
-            	Logger::debug(this, "battery temperature %d: %.1f", i, status.temperatureBattery[i] / 10.0f);
-            }
+        status.temperatureBattery[i] = (bytes[i] == 0 ? CFG_NO_TEMPERATURE_DATA : (bytes[i] - CFG_CAN_TEMPERATURE_OFFSET) * 10);
+        if (Logger::isDebug()) {
+            Logger::debug(this, "battery temperature %d: %.1f", i, status.temperatureBattery[i] / 10.0f);
         }
     }
-    if (bytes[6] != 0) {
-        status.temperatureCoolant = (bytes[6] - CFG_CAN_TEMPERATURE_OFFSET) * 10;
-    }
-    if (bytes[7] != 0) {
-        status.temperatureExterior = (bytes[7] - CFG_CAN_TEMPERATURE_OFFSET) * 10;
-    }
+    status.temperatureCoolant = (bytes[6] == 0 ? CFG_NO_TEMPERATURE_DATA : (bytes[6] - CFG_CAN_TEMPERATURE_OFFSET) * 10);
+    status.temperatureExterior = (bytes[7] == 0 ? CFG_NO_TEMPERATURE_DATA : (bytes[7] - CFG_CAN_TEMPERATURE_OFFSET) * 10);
     if (Logger::isDebug()) {
-        Logger::debug(this, "coolant temperature: %.1f, exterior temperature %.1f", status.temperatureCoolant / 10.0f, status.temperatureExterior / 10.0f);
+        Logger::debug(this, "coolant temperature: %.1f, exterior temperature %.1f", status.temperatureCoolant / 10.0f,
+                status.temperatureExterior / 10.0f);
     }
 }
 
