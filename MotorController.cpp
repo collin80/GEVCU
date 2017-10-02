@@ -133,7 +133,7 @@ int16_t MotorController::processBrakeHold(MotorControllerConfiguration *config, 
             if (brakeLvl == 0) { // engage brake hold once the brake is released
                 brakeHoldStart = millis();
                 brakeHoldLevel = 0;
-                Logger::info("brake hold engaged for %dms", CFG_BRAKE_HOLD_MAX_TIME);
+                Logger::debug("brake hold engaged for %dms", CFG_BRAKE_HOLD_MAX_TIME);
             }
         } else {
             // deactivate after 5sec or when accelerator gives more torque or we're rolling forward without motor power
@@ -143,7 +143,7 @@ int16_t MotorController::processBrakeHold(MotorControllerConfiguration *config, 
                brakeHoldStart = 0;
                throttleLvl = 0;
                slewTimestamp = millis(); // this should re-activate slew --> slowly reduce to 0 torque
-               Logger::info("brake hold deactivated");
+               Logger::debug("brake hold deactivated");
             } else {
                 uint16_t delta = abs(speedActual) * 2 / config->brakeHoldForceCoefficient + 1; // make sure it's always bigger than 0
                 if (speedActual < 0 && brakeHoldLevel < config->brakeHold * 10) {
@@ -156,13 +156,12 @@ int16_t MotorController::processBrakeHold(MotorControllerConfiguration *config, 
                 brakeHoldLevel = constrain(brakeHoldLevel, 0, config->brakeHold * 10); // it might have overshot above
                 throttleLvl = brakeHoldLevel;
             }
-Logger::console("brake hold level: %.1f, duration: %d, speedActual: %d, throttle: %.1f", brakeHoldLevel / 10.0f, millis() - brakeHoldStart, speedActual, throttleLvl / 10.0f);
         }
     } else {
         if (brakeLvl < 0 && speedActual == 0) { // init brake hold at stand-still when brake is pressed
             brakeHoldActive = true;
             brakeHoldStart = 0;
-            Logger::info("brake hold activated");
+            Logger::debug("brake hold activated");
         }
     }
     return throttleLvl;
@@ -222,10 +221,10 @@ void MotorController::processThrottleLevel()
     throttleLevel = 0; //force to zero in case not in operational condition or no throttle is enabled
     speedRequested = 0;
     if (powerOn && ready) {
-        if (accelerator) {
+        if (accelerator && !accelerator->isFaulted()) {
             throttleLevel = accelerator->getLevel();
         }
-        if (brake && brake->getLevel() < 0) { // if the brake has been pressed it overrides the accelerator
+        if (brake && !brake->isFaulted() && brake->getLevel() < 0) { // if the brake has been pressed it overrides the accelerator
             throttleLevel = brake->getLevel();
         }
         if (brake && config->brakeHold > 0) { // check if brake hold should be applied
