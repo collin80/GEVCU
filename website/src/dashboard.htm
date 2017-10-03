@@ -25,27 +25,19 @@
 	</span>
 	<span class="infoBarCell" id="timeRunning">--:--:--</span>
 </div>
-<div id="state_1_" style="display: none;">
-	<div>
-		<span class="systemState">Initializing System</span>
-	</div>
+<div id="state_1_">
+	<div><span class="systemState">Initializing System</span>	</div>
 </div>
-<div id="state_2_" style="display: none;">
-	<div>
-		<span class="systemState">Precharging System</span>
-	</div>
+<div id="state_2_">
+	<div><span class="systemState">Precharging System</span></div>
 </div>
-<div id="state_3_" style="display: none;">
-	<div>
-		<span class="systemState">System Pre-Charged</span>
-	</div>
+<div id="state_3_">
+	<div><span class="systemState">System Pre-Charged</span></div>
 </div>
-<div id="state_4_" style="display: none;">
-	<div>
-		<span class="systemState">Battery Heating</span>
-	</div>
+<div id="state_4_">
+	<div><span class="systemState">Battery Heating</span></div>
 </div>
-<div id="state_5_" style="display: none;">
+<div id="state_5_">
 	<div>
 		<span class="systemState">Charging</span>
 		<button id="stopCharge" class="button" onclick="sendMsg('stopCharge')">Stop charging</button>
@@ -75,17 +67,13 @@
 		</span>
 	</div>
 </div>
-<div id="state_6_" style="display: none;">
-	<div>
-		<span class="systemState">Charged</span>
-	</div>
+<div id="state_6_">
+	<div><span class="systemState">Charged</span></div>
 </div>
-<div id="state_7_" style="display: none;">
-	<div>
-		<span class="systemState">Ready</span>
-	</div>
+<div id="state_7_">
+	<div><span class="systemState">Ready</span></div>
 </div>
-<div id="state_8_" style="display: none;">
+<div id="state_8_">
 	<div>
 		<span class="systemState">Running</span>
 		<span class="buttonBar">
@@ -117,28 +105,23 @@
 		</span>
 	</div>
  	</div>
-<div id="state_9_" style="display: none;">
-	<div>
-		<span class="systemState">Shutdown</span>
-	</div>
+<div id="state_9_">
+	<div><span class="systemState">Shutdown</span></div>
 </div>
-<div id="state_99_" style="display: none;">
-	<div>
-		<span class="systemState error">ERROR</span>
-	</div>
+<div id="state_99_">
+	<div><span class="systemState error">ERROR</span>	</div>
 </div>
 
-<div id="state_7_8_" style="display: none;">
+<div id="state_7_8_">
 	<div class="gauges">
 		<span id="dcGauge"></span>
 		<span id="motorGauge"></span>
 		<span id="temperatureGauge"></span>
 		<span id="powerGauge"></span>
-		<span id="testGauge"></span>
 	</div>
 </div>
 
-<div id="state_4_5_6_7_8_99_" style="display: none;">
+<div id="state_4_5_6_7_8_99_">
 	<div class="subinfo">
 		<span class="subInfoCell">
 			In: <span id="dcDcHvVoltage">---.-</span>V, <span id="dcDcHvCurrent">--.-</span>A
@@ -153,12 +136,7 @@
 </div>
 
 <div id="annunciator"></div>
-<audio id="soundError">
-	<source src="sound/error.mp3" type="audio/mpeg">
-</audio>
-<audio id="soundWarn">
-	<source src="sound/warn.mp3" type="audio/mpeg">
-</audio>
-<audio id="soundInfo">
-	<source src="sound/info.mp3" type="audio/mpeg">
-</audio>
+
+<audio id="soundError"><source src="sound/error.mp3" type="audio/mpeg"></audio>
+<audio id="soundWarn"><source src="sound/warn.mp3" type="audio/mpeg"></audio>
+<audio id="soundInfo"><source src="sound/info.mp3" type="audio/mpeg"></audio>

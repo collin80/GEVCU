@@ -335,7 +335,7 @@ uint32_t Status::getBitField1() {
 uint32_t Status::getBitField2() {
     uint32_t bitfield = 0;
 
-    bitfield |= (systemState == error               ? 1 << 0 : 0);  // 0x00000001
+//    bitfield |= (systemState == error               ? 1 << 0 : 0);  // 0x00000001
     bitfield |= (speedSensor                        ? 1 << 1 : 0);  // 0x00000002
     bitfield |= (speedSensorSupply                  ? 1 << 2 : 0);  // 0x00000004
     bitfield |= (canLimitMessageInvalid             ? 1 << 3 : 0);  // 0x00000008
@@ -380,8 +380,8 @@ uint32_t Status::getBitField2() {
 uint32_t Status::getBitField3() {
     uint32_t bitfield = 0;
 
-    bitfield |= (systemState == ready               ? 1 << 0 : 0);  // 0x00000001
-    bitfield |= (systemState == running             ? 1 << 1 : 0);  // 0x00000002
+    bitfield |= (brakeHold                          ? 1 << 0 : 0);  // 0x00000001
+//    bitfield |= (systemState == running             ? 1 << 1 : 0);  // 0x00000002
     bitfield |= (preChargeRelay                     ? 1 << 2 : 0);  // 0x00000004
     bitfield |= (secondaryContactor                 ? 1 << 3 : 0);  // 0x00000008
     bitfield |= (mainContactor                      ? 1 << 4 : 0);  // 0x00000010

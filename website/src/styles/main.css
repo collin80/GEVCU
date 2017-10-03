@@ -8,9 +8,8 @@ body {
 }
 
 /************* Top Info Bar *************/
-
 .infoBar {
-	margin: 0 0 0 0;
+	margin: 0;
 	padding: 0;
 	background: #333;
 	color: #ccc;
@@ -19,7 +18,7 @@ body {
 	display: table;
 }
 
-.infoBarCell  {
+.infoBarCell {
 	display: table-cell;
 	text-align: left;
 	width: 29%;
@@ -39,8 +38,7 @@ body {
 }
 
 /************* Buttons *************/
-
-.button  {
+.button {
 	display: inline-block;
 	padding: 0.5em 1em;
 	margin-bottom: 0.3em;
@@ -73,7 +71,6 @@ button#stopCharge {
 }
 
 /************* System state and global colors *************/
-
 .systemState {
 	font-size: 2.5em;
 	font-weight: bold;
@@ -94,7 +91,6 @@ button#stopCharge {
 }
 
 /************* Charge Level *************/
-
 meter#chargeLevelMeter {
 	margin: 5em 10% 5em 10%;
 	height: 5em;
@@ -102,14 +98,14 @@ meter#chargeLevelMeter {
 	box-shadow: 1em 2em 0.5em #000;
 }
 
-.chargeLevel  {
+.chargeLevel {
 	margin-bottom: 0.5em;
 	text-align: center;
 	color: #555;
 	font-weight: bold;
 	font-size: 6em;
 	text-shadow: 0 0 0.2em #aff, 0 0 0.5em #fff;
-} 
+}
 
 div#inputCurrentSelector {
 	font-size: 2em;
@@ -132,146 +128,147 @@ input#inputCurrentLevel {
 }
 
 /************* Sub Info *************/
-
-.subInfo   {
-	margin: 0.5em 15% 0.5em 15%;
-	padding: 1em 1em 1em 1em;
+.subInfo {
+	margin: 0.5em 15% 1.5em 15%;
+	padding: .5em .5em .5em .5em;
 	display: table;
 	table-layout: fixed;
 	width: 70%;
-	background: #444;
-	background: linear-gradient(to bottom right, #778, #445);
+	background: linear-gradient(to bottom right, #667, #124);
+	font-size: 1.2em;
 	border-radius: 0.7em;
 	box-shadow: .5em 0.5em 0.5em #000;
 }
 
-.subInfoCell  {
+.subInfoCell {
 	display: table-cell;
 	text-align: center;
 }
 
 /************* Toggle Switches *************/
-
 .switch {
-  position: relative;
-  display: inline-block;
-  vertical-align: bottom;
-  width: 5.6em;
-  height: 2.0em;
-  padding: 0.3em;
-  background-color: white;
-  border-radius: 1.8em;
-  box-shadow: inset 0 -0.1em rgb(45, 64, 104), inset 0 0.1em 0.1em rgba(0, 0, 0, 0.05);
-  cursor: pointer;
-  background-image: linear-gradient(to bottom, rgb(25, 25, 44), rgb(45, 64, 104) 2.5em);
+	position: relative;
+	display: inline-block;
+	vertical-align: bottom;
+	width: 5.6em;
+	height: 2.0em;
+	padding: 0.3em;
+	background-color: white;
+	border-radius: 1.8em;
+	box-shadow: inset 0 -0.1em rgb(45, 64, 104), inset 0 0.1em 0.1em rgba(0, 0, 0, 0.05);
+	cursor: pointer;
+	background-image: linear-gradient(to bottom, rgb(25, 25, 44), rgb(45, 64, 104) 2.5em);
 }
 
 .switch-input {
-  position: absolute;
-  top: 0;
-  left: 0;
-  opacity: 0;
+	position: absolute;
+	top: 0;
+	left: 0;
+	opacity: 0;
 }
 
 .switch-label {
-  position: relative;
-  display: block;
-  height: inherit;
-  font-size: 1em;
-  background: #eceeef;
-  border-radius: inherit;
-  box-shadow: inset 0 0.1em 0.2em rgba(0, 0, 0, 0.12), inset 0 0 2px rgba(0, 0, 0, 0.15);
-  transition: 0.15s ease-out;
-  transition-property: opacity background;
+	position: relative;
+	display: block;
+	height: inherit;
+	font-size: 1em;
+	background: #eceeef;
+	border-radius: inherit;
+	box-shadow: inset 0 0.1em 0.2em rgba(0, 0, 0, 0.12), inset 0 0 2px rgba(0, 0, 0, 0.15);
+	transition: 0.15s ease-out;
+	transition-property: opacity background;
 }
+
 .switch-label:before, .switch-label:after {
-  position: absolute;
-  top: 50%;
-  margin-top: -.5em;
-  line-height: 1;
-  transition: inherit;
+	position: absolute;
+	top: 50%;
+	margin-top: -.5em;
+	line-height: 1;
+	transition: inherit;
 }
+
 .switch-label:before {
-  content: attr(data-off);
-  right: 1.1em;
-  color: #aaa;
-  text-shadow: 0 0.1em rgba(255, 255, 255, 0.5);
+	content: attr(data-off);
+	right: 1.1em;
+	color: #aaa;
+	text-shadow: 0 0.1em rgba(255, 255, 255, 0.5);
 }
+
 .switch-label:after {
-  content: attr(data-on);
-  left: 1.1em;
-  color: white;
-  text-shadow: 0 0.1em rgba(0, 0, 0, 0.2);
-  opacity: 0;
+	content: attr(data-on);
+	left: 1.1em;
+	color: white;
+	text-shadow: 0 0.1em rgba(0, 0, 0, 0.2);
+	opacity: 0;
 }
+
 .switch-input:checked ~~ .switch-label {
-  background: #47a8d8;
-  box-shadow: inset 0 0.1em 0.2em rgba(0, 0, 0, 0.15), inset 0 0 0.3em rgba(0, 0, 0, 0.2);
+	background: #47a8d8;
+	box-shadow: inset 0 0.1em 0.2em rgba(0, 0, 0, 0.15), inset 0 0 0.3em rgba(0, 0, 0, 0.2);
 }
+
 .switch-input:checked ~~ .switch-label:before {
-  opacity: 0;
+	opacity: 0;
 }
+
 .switch-input:checked ~~ .switch-label:after {
-  opacity: 1;
+	opacity: 1;
 }
 
 .switch-handle {
-  position: absolute;
-  top: 0.4em;
-  left: 0.4em;
-  width: 1.8em;
-  height: 1.8em;
-  background: white;
-  border-radius: 1.0em;
-  box-shadow: 0.1em 0.1em 0.5em rgba(0, 0, 0, 0.2);
-  background-image: linear-gradient(to bottom, white 40%, #f0f0f0);
-  transition: left 0.15s ease-out;
+	position: absolute;
+	top: 0.4em;
+	left: 0.4em;
+	width: 1.8em;
+	height: 1.8em;
+	background: white;
+	border-radius: 1.0em;
+	box-shadow: 0.1em 0.1em 0.5em rgba(0, 0, 0, 0.2);
+	background-image: linear-gradient(to bottom, white 40%, #f0f0f0);
+	transition: left 0.15s ease-out;
 }
+
 .switch-handle:before {
-  content: '';
-  position: absolute;
-  top: 50%;
-  left: 50%;
-  margin: -0.6em 0 0 -0.6em;
-  width: 1.2em;
-  height: 1.2em;
-  background: #f9f9f9;
-  border-radius: 0.6em;
-  box-shadow: inset 0 0.1em rgba(0, 0, 0, 0.02);
-  background-image: linear-gradient(to bottom, #eeeeee, white);
+	content: '';
+	position: absolute;
+	top: 50%;
+	left: 50%;
+	margin: -0.6em 0 0 -0.6em;
+	width: 1.2em;
+	height: 1.2em;
+	background: #f9f9f9;
+	border-radius: 0.6em;
+	box-shadow: inset 0 0.1em rgba(0, 0, 0, 0.02);
+	background-image: linear-gradient(to bottom, #eeeeee, white);
 }
+
 .switch-input:checked ~~ .switch-handle {
-  left: 4.0em;
-  box-shadow: -0.1em 0.1em 0.5em rgba(0, 0, 0, 0.2);
+	left: 4.0em;
+	box-shadow: -0.1em 0.1em 0.5em rgba(0, 0, 0, 0.2);
 }
 
-.switch-green > .switch-input:checked ~~ .switch-label {
-  background: #4fb845;
+.switch-green>.switch-input:checked ~~ .switch-label {
+	background: #4fb845;
 }
 
-.switch-orange > .switch-input:checked ~~ .switch-label {
-  background: #d89645;
+.switch-orange>.switch-input:checked ~~ .switch-label {
+	background: #d89645;
 }
 
 .buttonBar {
 	width: 80%;
 	display: inline-flex;
-	justify-content: space-between;
-	align-items: center;
+	margin-top: -3.7em;
 }
 
-.buttonBarCell  {
+.buttonBarCell {
 	display: flex;
 	align-items: center;
-    margin: auto;
+	margin: auto;
+	font-size: 1.2em;
 }
 
 /*** ***/
-
-
-
-
-
 div.tabHeader {
 	height: 32px;
 	overflow: hidden;
@@ -292,9 +289,10 @@ div.tabHeader a {
 	color: #8888ff;
 }
 
-div.tabHeader a:hover,div.tabHeader a.Active {
+div.tabHeader a:hover, div.tabHeader a.Active {
 	background-color: #ffff55;
-	background: linear-gradient(bottom, rgb(2, 44, 84) 1%, rgb(15, 15, 16) 70%);
+	background: linear-gradient(bottom, rgb(2, 44, 84) 1%, rgb(15, 15, 16)
+		70%);
 }
 
 div.tabHeader a.on {
@@ -312,53 +310,107 @@ div.gauges {
 	text-align: center;
 }
 
+div#annunciator {
+	padding: 0px;
+	margin: 0px;
+}
+
 div#annunciators {
 	padding: 0px;
-	margin: 10px 20px;
+	margin: 0px;
+	text-align: center;
 }
 
-div#annunciators span {
-	float: left;
+div#annunciators div {
+	display: inline-table;
 	height: 30px;
 	width: 110px;
-	border: 2px solid #000000;
+	border: 2px solid rgba(0, 0, 0, 0.6);
 	text-align: center;
 	font-size: 12px;
-	padding: 2px;
-	margin: 0px;
-	background: #080808;
+	font-weight: bold;
+	padding: 2px 0px 0px 0px;
+	margin: 0px -5px -3px -1px;
+	background: rgba(0, 0, 0, 0.4);
 	color: #353535;
 }
 
-div#annunciators span.annunciatorOff {
+div#annunciators div.annunciatorOff {
 	color: #353535;
 }
 
-div#annunciators span.annunciatorWarn {
+div#annunciators div.annunciatorWarn {
 	color: #ffbb00;
 }
 
-div#annunciators span.annunciatorError {
+div#annunciators div.annunciatorError {
 	color: #ff2200;
 }
 
-div#annunciators span.annunciatorOk {
+div#annunciators div.annunciatorOk {
 	color: #22ee22;
+}
+
+img.annunciatorOff {
+	opacity: .05;
+}
+
+img#brakeHold {
+	position: absolute;
+    top: 120px;
+    left: 20px;
+}
+
+img#brakeLight {
+	position: absolute;
+    top: 100px;
+    left: 160px;
+}
+
+img#warning {
+	position: absolute;
+    top: 120px;
+    left: 300px;
+}
+
+img#limitationTorque {
+	position: absolute;
+    top: 120px;
+    right: 340px;
+}
+
+img#coolingRelay {
+	position: absolute;
+    top: 100px;
+    right: 240px;
+}
+
+img#reverseLight {
+	position: absolute;
+    top: 100px;
+    right: 130px;
+}
+
+img#absActive {
+	position: absolute;
+    top: 120px;
+    right: 20px;
 }
 
 div.foldAnnunciators {
 	font-size: 2em;
 	font-weight: bold;
 	color: #888;
-	position: absolute;
+	position: fixed;
 	bottom: 0.5em;
 	left: 0.5em;
 }
 
 div.settings {
-	position: absolute;
+	position: fixed;
 	bottom: 1em;
-	right: 1em;"
+	right: 1em;
+	"
 }
 
 input[type=range] {
@@ -392,7 +444,7 @@ h3 {
 }
 
 #configTable td {
-    padding: 3px 7px 2px 7px;
+	padding: 3px 7px 2px 7px;
 }
 
 #configTable th {
@@ -407,11 +459,11 @@ input {
 }
 
 /* for safari  */
-input[type="range"]{
-   -webkit-appearance:none !important;
-   background: rgb(FF, FF, FF);
-    width: 200px;
-    height: 6px;
-    border-radius: 8px;
-    box-shadow: inset 0px 0px 1px 1px rgba(0, 0, 0, 0.9), 0px 1px 1px 0px rgba(255, 255, 255, 0.13);
+input[type="range"] {
+	-webkit-appearance: none !important;
+	background: rgb(FF, FF, FF);
+	width: 200px;
+	height: 6px;
+	border-radius: 8px;
+	box-shadow: inset 0px 0px 1px 1px rgba(0, 0, 0, 0.9), 0px 1px 1px 0px rgba(255, 255, 255, 0.13);
 }

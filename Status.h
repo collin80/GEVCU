@@ -104,6 +104,7 @@ public:
     bool internalSupply; // problem with the internal power supply of the motor controller
     bool osTrap; // a severe problem in the operation system of the motor controller occured
 
+    bool brakeHold; // is brake hold acitve ?
     bool preChargeRelay; // is the pre-charge relay activated ?
     bool mainContactor; // is the main contactor relay activated ?
     bool secondaryContactor; // is the secondary relay activated ?

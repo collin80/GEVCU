@@ -31,7 +31,7 @@ var Warning = { /* Status::Bitfield1 */
 };
 
 var Error = { /* Status::Bitfield2 */
-    error                              : 1 << 0,  // 0x00000001
+//    error                              : 1 << 0,  // 0x00000001
     speedSensor                        : 1 << 1,  // 0x00000002
     speedSensorSupply                  : 1 << 2,  // 0x00000004
     canLimitMessageInvalid             : 1 << 3,  // 0x00000008
@@ -62,8 +62,8 @@ var Error = { /* Status::Bitfield2 */
 };
 
 var Status = { /* Status::Bitfield3 */
-    ready                              : 1 << 0,  // 0x00000001
-    running                            : 1 << 1,  // 0x00000002
+    brakeHold                          : 1 << 0,  // 0x00000001
+//    running                            : 1 << 1,  // 0x00000002
     preChargeRelay                     : 1 << 2,  // 0x00000004
     secondaryContactorRelay            : 1 << 3,  // 0x00000008
     mainContactorRelay                 : 1 << 4,  // 0x00000010
@@ -120,7 +120,7 @@ function updateAnnunciatorFields(name, bitfield) {
 		if (bitfield != 0) {
 			foldAnnunciator(true);
 		}
-		updateField("error", FieldClass.error, bitfield & Error.error);
+//		updateField("error", FieldClass.error, bitfield & Error.error);
 		updateField("speedSensor", FieldClass.error, bitfield & Error.speedSensor);
 		updateField("speedSensorSupply", FieldClass.error, bitfield & Error.speedSensorSupply);
 		updateField("canLimitMessageInvalid", FieldClass.error, bitfield & Error.canLimitMessageInvalid);
@@ -150,8 +150,8 @@ function updateAnnunciatorFields(name, bitfield) {
 		updateField("osTrap", FieldClass.error, bitfield & Error.osTrap);
 		break;
 	case 'bitfield3':
-		updateField("ready", FieldClass.ok, bitfield & Status.ready);
-		updateField("running", FieldClass.ok, bitfield & Status.running);
+		updateField("brakeHold", FieldClass.ok, bitfield & Status.brakeHold);
+//		updateField("running", FieldClass.ok, bitfield & Status.running);
 		updateField("enableIn", FieldClass.ok, bitfield & Status.enableIn);
 		updateField("preChargeRelay", FieldClass.ok, bitfield & Status.preChargeRelay);
 		updateField("mainContactorRelay", FieldClass.ok, bitfield & Status.mainContactorRelay);
