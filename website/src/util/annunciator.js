@@ -92,7 +92,7 @@ var Status = { /* Status::Bitfield3 */
 function updateAnnunciatorFields(name, bitfield) {
 	switch (name) {
 	case 'bitfield1':
-		if (bitfield != 0) {
+		if (bitfield != 0 && bitfield != (Warning.limitationTorque | Warning.limitationSpeed)) {
 			foldAnnunciator(true);
 		}
 		updateField("warning", FieldClass.warn, bitfield & Warning.warning);
