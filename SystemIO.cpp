@@ -1041,7 +1041,7 @@ Logger::LogLevel SystemIO::getLogLevel() {
  */
 void SystemIO::saveEnergyConsumption()
 {
-    Logger::info("storing energy consumption: %.2fkWh", (float)status.energyConsumption / 3600000.0f);
+    Logger::debug("storing energy consumption: %.2fkWh", (float)status.energyConsumption / 3600000.0f);
     prefsHandler->write(EESIO_ENEGRY_CONSUMPTION, status.energyConsumption);
     prefsHandler->saveChecksum();
     prefsHandler->suggestCacheWrite();
