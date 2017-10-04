@@ -2,9 +2,31 @@ body {
 	color: #fff;
 	font-family: arial, verdana, sans-serif;
 	background: #333;
-	background: linear-gradient(to bottom, rgb(25, 25, 44), rgb(45, 64, 104));
+	background: linear-gradient(to bottom, rgb(25, 25, 44), rgb(35, 54, 94));
 	background-attachment: fixed;
 	margin: 0 0.5em 0.5em 0.5em;
+}
+
+.mainTitle {
+	top: 50%;
+	left: 50%;
+	position: absolute;
+	transform: translate(-50%, -50%);
+	font-size: 15em;
+	font-weight: bold;
+	text-shadow: 0.05em 0.05em 0.05em #000;
+	animation: fadein 5s;
+}
+
+.subTitle {
+	text-align: center;
+	font-size: .3em;
+	animation: fadein 8s;
+}
+
+@keyframes fadein {
+    from { opacity: 0; }
+    to   { opacity: 1; }
 }
 
 /************* Top Info Bar *************/
@@ -13,7 +35,7 @@ body {
 	padding: 0;
 	background: #333;
 	color: #ccc;
-	font-size: 1em;
+	font-size: 1.3em;
 	width: 100%;
 	display: table;
 }
@@ -129,15 +151,15 @@ input#inputCurrentLevel {
 
 /************* Sub Info *************/
 .subInfo {
-	margin: 0.5em 15% 1.5em 15%;
+	margin: 0.5em 15% .5em 15%;
 	padding: .5em .5em .5em .5em;
 	display: table;
 	table-layout: fixed;
 	width: 70%;
-	background: linear-gradient(to bottom right, #667, #124);
-	font-size: 1.2em;
+	background: linear-gradient(to bottom right, #667, #334);
+	font-size: 1.3em;
 	border-radius: 0.7em;
-	box-shadow: .5em 0.5em 0.5em #000;
+	box-shadow: .3em 0.3em 0.3em #000;
 }
 
 .subInfoCell {
@@ -265,7 +287,7 @@ input#inputCurrentLevel {
 	display: flex;
 	align-items: center;
 	margin: auto;
-	font-size: 1.2em;
+	font-size: 1.3em;
 }
 
 /*** ***/
@@ -312,7 +334,7 @@ div.gauges {
 
 div#annunciator {
 	padding: 0px;
-	margin: 0px;
+	margin: 20px 0px 0px 0px;
 }
 
 div#annunciators {
@@ -357,43 +379,43 @@ img.annunciatorOff {
 
 img#brakeHold {
 	position: absolute;
-    top: 120px;
+    top: 110px;
     left: 20px;
 }
 
 img#brakeLight {
 	position: absolute;
-    top: 100px;
+    top: 110px;
     left: 160px;
 }
 
 img#warning {
 	position: absolute;
-    top: 120px;
+    top: 110px;
     left: 300px;
 }
 
 img#limitationTorque {
 	position: absolute;
-    top: 120px;
+    top: 110px;
     right: 340px;
 }
 
 img#coolingRelay {
 	position: absolute;
-    top: 100px;
-    right: 240px;
+    top: 110px;
+    right: 250px;
 }
 
 img#reverseLight {
 	position: absolute;
-    top: 100px;
+    top: 110px;
     right: 130px;
 }
 
 img#absActive {
 	position: absolute;
-    top: 120px;
+    top: 110px;
     right: 20px;
 }
 
