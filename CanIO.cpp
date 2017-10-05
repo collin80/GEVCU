@@ -31,11 +31,13 @@ CanIO::CanIO() :
 {
     prefsHandler = new PrefHandler(CANIO);
     commonName = "CAN I/O";
+    motorController = NULL;
 }
 
 void CanIO::setup()
 {
     Device::setup();
+    motorController = deviceManager.getMotorController();
 
     canHandlerEv.attach(this, CAN_MASKED_ID, CAN_MASK, false);
 
@@ -60,6 +62,7 @@ void CanIO::handleTick()
 {
     sendIOStatus();
     sendAnalogData();
+    sendMotorData();
 }
 
 /*
@@ -163,6 +166,16 @@ void CanIO::sendAnalogData()
     outputFrame.data.s2 = systemIO.getAnalogIn(2);
     outputFrame.data.s3 = systemIO.getAnalogIn(3);
     canHandlerEv.sendFrame(outputFrame);
+}
+
+/*
+ * Send the values of the motor controller over the car's CAN so it can be used by a CAN filter.
+ */
+void CanIO::sendMotorData()
+{
+    canHandlerCar.prepareOutputFrame(&outputFrame, CAN_ID_GEVCU_MOTOR_DATA);
+    outputFrame.data.s0 = min(motorController->getSpeedActual(), 0);
+    canHandlerCar.sendFrame(outputFrame);
 }
 
 void CanIO::processTemperature(byte bytes[])

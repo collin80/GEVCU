@@ -31,10 +31,12 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include "TickHandler.h"
 #include "DeviceManager.h"
 #include "Status.h"
+#include "MotorController.h"
 
 // messages to send
 #define CAN_ID_GEVCU_STATUS     0x724 // I/O status message id
 #define CAN_ID_GEVCU_ANALOG_IO  0x725 // analog I/O status message id
+#define CAN_ID_GEVCU_MOTOR_DATA 0x129 // motor data for CAN filter
 
 // messages to listen to
 #define CAN_ID_GEVCU_EXT_TEMPERATURE     0x728 // Temperature CAN message        11100101000
@@ -108,10 +110,12 @@ protected:
 
 private:
     CAN_FRAME outputFrame; // the output CAN frame;
+    MotorController *motorController;
 
     void processTemperature(byte []);
     void sendIOStatus();
     void sendAnalogData();
+    void sendMotorData();
 };
 
 #endif /* CANIO_H_ */
