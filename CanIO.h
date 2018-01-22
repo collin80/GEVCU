@@ -32,6 +32,7 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include "DeviceManager.h"
 #include "Status.h"
 #include "MotorController.h"
+#include "DcDcConverter.h"
 
 // messages to send
 #define CAN_ID_GEVCU_STATUS     0x724 // I/O status message id
@@ -111,6 +112,7 @@ protected:
 private:
     CAN_FRAME outputFrame; // the output CAN frame;
     MotorController *motorController;
+    DcDcConverter *dcdcConverter;
 
     void processTemperature(byte []);
     void sendIOStatus();

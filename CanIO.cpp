@@ -32,12 +32,14 @@ CanIO::CanIO() :
     prefsHandler = new PrefHandler(CANIO);
     commonName = "CAN I/O";
     motorController = NULL;
+    dcdcConverter = NULL;
 }
 
 void CanIO::setup()
 {
     Device::setup();
     motorController = deviceManager.getMotorController();
+    dcdcConverter = deviceManager.getDcDcConverter();
 
     canHandlerEv.attach(this, CAN_MASKED_ID, CAN_MASK, false);
 
@@ -174,7 +176,12 @@ void CanIO::sendAnalogData()
 void CanIO::sendMotorData()
 {
     canHandlerCar.prepareOutputFrame(&outputFrame, CAN_ID_GEVCU_MOTOR_DATA);
-    outputFrame.data.s0 = min(motorController->getSpeedActual(), 0);
+    if (motorController != NULL) {
+        outputFrame.data.s0 = max(motorController->getSpeedActual(), 0);
+    }
+    if (dcdcConverter != NULL) {
+        outputFrame.data.s1 = (dcdcConverter->isRunning() ? 0x01 : 0x00);
+    }
     canHandlerCar.sendFrame(outputFrame);
 }
 

@@ -115,6 +115,7 @@ Status::Status()
     reverseInput        = false;
     absActive           = false;
     statusLight         = false;
+    brakeHold           = false;
 
     energyConsumption = 0;
     flowCoolant = 0;

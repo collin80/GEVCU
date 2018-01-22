@@ -340,7 +340,9 @@ String WebSocket::generateUpdate()
         }
         processParameter(&paramCache.temperatureCoolant, status.temperatureCoolant, Constants::temperatureCoolant, 10);
         processParameter(&paramCache.temperatureHeater, status.heaterTemperature, Constants::temperatureHeater);
-        processParameter(&paramCache.temperatureExterior, status.temperatureExterior, Constants::temperatureExterior, 10);
+        if (status.temperatureExterior != CFG_NO_TEMPERATURE_DATA) {
+            processParameter(&paramCache.temperatureExterior, status.temperatureExterior, Constants::temperatureExterior, 10);
+        }
         processParameter(&paramCache.enableRegen, status.enableRegen, Constants::enableRegen);
         processParameter(&paramCache.enableHeater, status.enableHeater, Constants::enableHeater);
         processParameter(&paramCache.powerSteering, status.powerSteering, Constants::powerSteering);

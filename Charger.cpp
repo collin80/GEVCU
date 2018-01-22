@@ -169,7 +169,7 @@ uint16_t Charger::calculateOutputCurrent()
             status.setSystemState(Status::error);
         }
         temperature = status.getLowestBatteryTemperature();
-        if (temperature != CFG_NO_TEMPERATURE_DATA && temperature < config->minimumTemperature) {
+        if (temperature != CFG_NO_TEMPERATURE_DATA && temperature < config->minimumTemperature && temperature != 0) {
             requestedOutputCurrent = 0;
             Logger::error(this, "Battery temperature too low (%.1f deg C)", (float) temperature / 10.0f);
             status.setSystemState(Status::error);
