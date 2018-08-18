@@ -59,7 +59,7 @@ void OrionBMS::tearDown()
 
 void OrionBMS::handleCanFrame(CAN_FRAME *frame)
 {
-    byte data[] = frame->data.bytes;
+    byte *data = frame->data.bytes;
 
     switch (frame->id) {
     case CAN_ID_VALUES_1: //TODO increase interval from 8ms to ...ms
@@ -90,17 +90,17 @@ void OrionBMS::handleCanFrame(CAN_FRAME *frame)
             // Bit #7 (0x40): Is-Ready signal status
             // Bit #8 (0x80): Is-Charging signal status
         soc = data[1]; // byte 1: pack SOC (0.5%)
-        packResistance = ((data[2] << 8) | data[3]); // byte 2+3: pack resistance (1mOhm)
-        packOpenVoltage = ((data[4] << 8) | data[5]); // byte 4+5: pack open voltage (0.1V)
-        packAmpHours = data[6]; // byte 6: pack amphours (0.1Ah)
+//        packResistance = ((data[2] << 8) | data[3]); // byte 2+3: pack resistance (1mOhm)
+//        packOpenVoltage = ((data[4] << 8) | data[5]); // byte 4+5: pack open voltage (0.1V)
+//        packAmpHours = data[6]; // byte 6: pack amphours (0.1Ah)
         // byte 7: CRC
         break;
 
     case CAN_ID_VALUES_4:
-        packHealth = data[0]; // byte 0: pack state of health (1%)
-        packDepthOfDischarge = data[1]; // byte 1: pack depth of discharge (0.5%)
-        packCycles = ((data[2] << 8) | data[3]); // byte 2+3: pack cycles (1 Cycle)
-        currentLimitStatus = data[4]; // byte 4: current limit status
+//        packHealth = data[0]; // byte 0: pack state of health (1%)
+//        packDepthOfDischarge = data[1]; // byte 1: pack depth of discharge (0.5%)
+//        packCycles = ((data[2] << 8) | data[3]); // byte 2+3: pack cycles (1 Cycle)
+//        currentLimitStatus = data[4]; // byte 4: current limit status
             //DCL Reduced Due To Low SOC (Bit #0)
             //DCL Reduced Due To High Cell Resistance (Bit #1)
             //DCL Reduced Due To Temperature (Bit #2)
@@ -115,7 +115,7 @@ void OrionBMS::handleCanFrame(CAN_FRAME *frame)
             //CCL Reduced Due To High Pack Voltage (Bit #13)
             //CCL Reduced Due To Charger Latch (Bit #14): This means the CCL is likely 0A because the charger has been turned off. This latch is removed when the Charge Power signal is removed and re-applied (ie: unplugging the car and plugging it back in).
             //CCL Reduced Due To Alternate Current Limit [MPI] (Bit #15)
-        internalTemp = data[1]; // byte 5: internal temperature (1C)
+//        internalTemp = data[1]; // byte 5: internal temperature (1C)
         break;
 
     case CAN_ID_CELL_VOLTAGE:
@@ -131,7 +131,7 @@ void OrionBMS::handleCanFrame(CAN_FRAME *frame)
         lowestCellResistanceId = data[2]; // byte 2: low cell resistance ID (0-180)
         highestCellResistance = ((data[3] << 8) | data[4]); // byte 3+4: high cell resistance (0.01mOhm)
         highestCellResistanceId = data[5]; // byte 5: high cell resistance ID (0-180)
-        averageCellResistance = ((data[6] << 8) | data[7])// byte 6+7: average cell resistance (0.01mOhm)
+        averageCellResistance = ((data[6] << 8) | data[7]); // byte 6+7: average cell resistance (0.01mOhm)
         break;
     }
 }
