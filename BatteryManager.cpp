@@ -3,43 +3,60 @@
  *
  * Parent class for all battery management/monitoring systems
  *
-Copyright (c) 2013 Collin Kidder, Michael Neuweiler, Charles Galpin
+ Copyright (c) 2013 Collin Kidder, Michael Neuweiler, Charles Galpin
 
-Permission is hereby granted, free of charge, to any person obtaining
-a copy of this software and associated documentation files (the
-"Software"), to deal in the Software without restriction, including
-without limitation the rights to use, copy, modify, merge, publish,
-distribute, sublicense, and/or sell copies of the Software, and to
-permit persons to whom the Software is furnished to do so, subject to
-the following conditions:
+ Permission is hereby granted, free of charge, to any person obtaining
+ a copy of this software and associated documentation files (the
+ "Software"), to deal in the Software without restriction, including
+ without limitation the rights to use, copy, modify, merge, publish,
+ distribute, sublicense, and/or sell copies of the Software, and to
+ permit persons to whom the Software is furnished to do so, subject to
+ the following conditions:
 
-The above copyright notice and this permission notice shall be included
-in all copies or substantial portions of the Software.
+ The above copyright notice and this permission notice shall be included
+ in all copies or substantial portions of the Software.
 
-THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
-EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
-MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.
-IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY
-CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT,
-TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
-SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+ EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
+ MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.
+ IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY
+ CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT,
+ TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
+ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
  */
 
 #include "BatteryManager.h"
 
-BatteryManager::BatteryManager() : Device()
+BatteryManager::BatteryManager() :
+        Device()
 {
     packVoltage = 0;
     packCurrent = 0;
-    lowestCellV = 0;
-    lowestCellTemp = 0;
-    SOC = 0;
+    soc = 0;
+    allowCharge = allowDischarge = false;
+    chargeLimit = dischargeLimit = 0;
+    lowestCellTemp = highestCellTemp = 0;
+    lowestCellTempId = highestCellTempId = ID_UNKNOWN;
+    lowestCellVolts = highestCellVolts = averageCellVolts = 0;
+    lowestCellVoltsId = highestCellVoltsId = ID_UNKNOWN;
+    lowestCellResistance = highestCellResistance = averageCellResistance = 0;
+    lowestCellResistanceId = highestCellResistanceId = ID_UNKNOWN;
+}
+
+void BatteryManager::setup()
+{
+    Device::setup();
+
+}
+
+void BatteryManager::tearDown()
+{
+    Device::tearDown();
+
+    allowCharge = false;
     allowDischarge = false;
     chargeLimit = 0;
-    highestCellV = 0;
-    highestCellTemp = 0;
-    allowCharge = false;
     dischargeLimit = 0;
 }
 
@@ -52,13 +69,159 @@ void BatteryManager::handleTick()
 {
 }
 
-int BatteryManager::getPackVoltage()
+bool BatteryManager::hasPackVoltage()
+{
+    return false;
+}
+
+bool BatteryManager::hasPackCurrent()
+{
+    return false;
+}
+
+bool BatteryManager::hasSoc()
+{
+    return false;
+}
+
+bool BatteryManager::hasChargeLimit()
+{
+    return false;
+}
+
+bool BatteryManager::hasDischargeLimit()
+{
+    return false;
+}
+
+bool BatteryManager::hasAllowCharging()
+{
+    return false;
+}
+
+bool BatteryManager::hasAllowDischarging()
+{
+    return false;
+}
+
+bool BatteryManager::hasCellTemperatures()
+{
+    return false;
+}
+
+
+bool BatteryManager::hasCellVoltages()
+{
+    return false;
+}
+
+bool BatteryManager::hasCellResistance()
+{
+    return false;
+}
+
+
+uint16_t BatteryManager::getPackVoltage()
 {
     return packVoltage;
 }
 
-signed int BatteryManager::getPackCurrent()
+int16_t BatteryManager::getPackCurrent()
 {
     return packCurrent;
 }
 
+uint8_t BatteryManager::getSoc()
+{
+    return soc;
+}
+
+uint16_t BatteryManager::getDischargeLimit()
+{
+    return dischargeLimit;
+}
+
+uint16_t BatteryManager::getChargeLimit()
+{
+    return chargeLimit;
+}
+
+bool BatteryManager::isChargeAllowed()
+{
+    return allowCharge;
+}
+
+bool BatteryManager::isDischargeAllowed()
+{
+    return allowDischarge;
+}
+
+int16_t BatteryManager::getLowestCellTemp()
+{
+    return lowestCellTemp;
+}
+
+int16_t BatteryManager::getHighestCellTemp()
+{
+    return highestCellTemp;
+}
+
+uint16_t BatteryManager::getLowestCellVolts()
+{
+    return lowestCellVolts;
+}
+
+uint16_t BatteryManager::getHighestCellVolts()
+{
+    return highestCellVolts;
+}
+
+uint16_t BatteryManager::getAverageCellVolts()
+{
+    return averageCellVolts;
+}
+
+uint16_t BatteryManager::getLowestCellResistance()
+{
+    return lowestCellResistance;
+}
+
+uint16_t BatteryManager::getHighestCellResistance()
+{
+    return highestCellResistance;
+}
+
+uint16_t BatteryManager::getAverageCellResistance()
+{
+    return averageCellVolts;
+}
+
+uint8_t BatteryManager::getLowestCellTempId()
+{
+    return lowestCellTempId;
+}
+
+uint8_t BatteryManager::getHighestCellTempId()
+{
+    return highestCellTempId;
+}
+
+uint8_t BatteryManager::getLowestCellVoltsId()
+{
+    return lowestCellVoltsId;
+}
+
+uint8_t BatteryManager::getHighestCellVoltsId()
+{
+    return highestCellVoltsId;
+}
+
+uint8_t BatteryManager::getLowestCellResistanceId()
+{
+    return lowestCellResistanceId;
+}
+
+uint8_t BatteryManager::getHighestCellResistanceId()
+{
+    return highestCellResistanceId;
+}

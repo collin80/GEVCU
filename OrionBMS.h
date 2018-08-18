@@ -1,7 +1,7 @@
 /*
- * BatteryManager.h
+ * OrionBMS.h
  *
- * Parent class for battery management / monitoring systems
+ * Controller for Orion Battery Management System
  *
 Copyright (c) 2013 Collin Kidder, Michael Neuweiler, Charles Galpin
 
@@ -26,8 +26,8 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
  */
 
-#ifndef THINKBATT_H_
-#define THINKBATT_H_
+#ifndef ORIONBMS_H_
+#define ORIONBMS_H_
 
 #include <Arduino.h>
 #include "config.h"
@@ -37,10 +37,24 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include "CanHandler.h"
 #include "FaultHandler.h"
 
-class ThinkBatteryManager : public BatteryManager, CanObserver
+// CAN bus id's for frames received from Orion BMS
+
+#define CAN_ID_VALUES_1         0x03b // receive actual values information       00000111011
+#define CAN_ID_VALUES_2         0x3cb // receive actual values information       01111001011
+#define CAN_MASK_1              0x40f // mask for above id's                     10000001111
+#define CAN_MASKED_ID_1         0x00b // masked id for above id's                00000001011
+
+#define CAN_ID_VALUES_3         0x6b2 // receive actual values information       11010110010
+#define CAN_ID_VALUES_4         0x6b3 // receive                                 11010110011
+#define CAN_ID_CELL_VOLTAGE     0x6b4 // receive cell voltages (min/max/avg)     11010110100
+#define CAN_ID_CELL_RESISTANCE  0x6b5 // receive cell resistances (min/max/avg)  11010110101
+#define CAN_MASK_2              0x006 // mask for above id's                     11111111000
+#define CAN_MASKED_ID_2         0x002 // masked id for above id's                11010110000
+
+class OrionBMS : public BatteryManager, CanObserver
 {
 public:
-    ThinkBatteryManager();
+    OrionBMS();
     void setup();
     void tearDown();
     void handleTick();
@@ -49,10 +63,14 @@ public:
     bool hasPackVoltage();
     bool hasPackCurrent();
     bool hasCellTemperatures();
+    bool hasSoc();
+    bool hasChargeLimit();
+    bool hasDischargeLimit();
     bool hasAllowCharging();
     bool hasAllowDischarging();
 protected:
 private:
+    uint8_t relayStatus;
     void sendKeepAlive();
 };
 

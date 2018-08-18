@@ -33,34 +33,62 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include "config.h"
 #include "Device.h"
 
+#define ID_UNKNOWN 255
+
 class BatteryManager : public Device
 {
 public:
     BatteryManager();
-    int getPackVoltage(); //in tenths of a volt
-    signed int getPackCurrent(); //in tenths of an amp
-    //bool allowCharging();
-    //bool allowDischarging();
+    void setup();
+    void tearDown();
     DeviceType getType();
     void handleTick();
-    //a bunch of boolean functions. Derived classes must implment
-    //these functions to tell everyone else what they support
-    virtual bool hasPackVoltage() = 0;
-    virtual bool hasPackCurrent() = 0;
-    virtual bool hasTemperatures() = 0;
-    virtual bool isChargeOK() = 0;
-    virtual bool isDischargeOK() = 0;
-protected:
-    int packVoltage; //tenths of a volt
-    signed int packCurrent; //tenths of an amp
-    int SOC; //state of charge in percent
-    int lowestCellV, highestCellV; //in mv
-    int lowestCellTemp, highestCellTemp;
-    //should be some form of discharge and charge limit. I don't know if it should be % or amps
-    //some BMS systems will report one way and some the other.
-    int dischargeLimit, chargeLimit;
-    bool allowCharge, allowDischarge;
+    //Derived classes must implment these functions to tell what they support
+    virtual bool hasPackVoltage();
+    virtual bool hasPackCurrent();
+    virtual bool hasSoc();
+    virtual bool hasChargeLimit();
+    virtual bool hasDischargeLimit();
+    virtual bool hasAllowCharging();
+    virtual bool hasAllowDischarging();
+    virtual bool hasCellTemperatures();
+    virtual bool hasCellVoltages();
+    virtual bool hasCellResistance();
 
+    uint16_t getPackVoltage(); // in 0.1V
+    int16_t getPackCurrent(); // in 0.1A
+    uint8_t getSoc(); // in 0.5%
+    uint16_t getDischargeLimit(); // in 1A
+    uint16_t getChargeLimit(); // in 1A
+    bool isChargeAllowed();
+    bool isDischargeAllowed();
+    int16_t getLowestCellTemp(); // in 0.1C
+    int16_t getHighestCellTemp(); // in 0.1C
+    uint16_t getLowestCellVolts(); // in mV
+    uint16_t getHighestCellVolts(); // in mV
+    uint16_t getAverageCellVolts(); // in 0.0001V
+    uint16_t getLowestCellResistance(); // in 0.01mOhm
+    uint16_t getHighestCellResistance(); // in 0.01mOhm
+    uint16_t getAverageCellResistance(); // in 0.01mOhm
+    uint8_t getLowestCellTempId();
+    uint8_t getHighestCellTempId();
+    uint8_t getLowestCellVoltsId();
+    uint8_t getHighestCellVoltsId();
+    uint8_t getLowestCellResistanceId();
+    uint8_t getHighestCellResistanceId();
+
+protected:
+    uint16_t packVoltage; //tenths of a volt
+    int16_t packCurrent; //tenths of an amp
+    uint8_t soc; //state of charge in 0.5%
+    uint16_t dischargeLimit, chargeLimit; // in 1A
+    bool allowCharge, allowDischarge;
+    int16_t lowestCellTemp, highestCellTemp; // in 0.1C
+    uint8_t lowestCellTempId, highestCellTempId; // 0-254, 255=undefined
+    uint16_t lowestCellVolts, highestCellVolts, averageCellVolts; // in 0.0001V
+    uint8_t lowestCellVoltsId, highestCellVoltsId; // 0-254, 255=undefined
+    uint16_t lowestCellResistance, highestCellResistance, averageCellResistance; // in 0.01mOhm
+    uint8_t lowestCellResistanceId, highestCellResistanceId; // 0-254, 255=undefined
 private:
 };
 

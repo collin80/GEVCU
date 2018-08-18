@@ -75,6 +75,7 @@ void createDevices()
     deviceManager.addDevice(new BrusaBSC6());
     deviceManager.addDevice(new BrusaNLG5());
     deviceManager.addDevice(new ThinkBatteryManager());
+    deviceManager.addDevice(new OrionBMS());
 //    deviceManager.addDevice(new ELM327Emu());
     deviceManager.addDevice(new ICHIPWIFI());
     deviceManager.addDevice(new CanIO());

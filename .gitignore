@@ -22,3 +22,4 @@ Release
 *.map
 *.srec
 *.vcx*
+/sloeber.ino.cpp

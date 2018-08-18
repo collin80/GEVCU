@@ -38,6 +38,7 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include "PotBrake.h"
 #include "BatteryManager.h"
 #include "ThinkBatteryManager.h"
+#include "OrionBMS.h"
 #include "MotorController.h"
 #include "DmocMotorController.h"
 #include "BrusaDMC5.h"

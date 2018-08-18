@@ -32,8 +32,6 @@ ThinkBatteryManager::ThinkBatteryManager() :
         BatteryManager()
 {
     prefsHandler = new PrefHandler(THINKBMS);
-    allowCharge = false;
-    allowDischarge = false;
     commonName = "Th!nk City BMS";
 }
 
@@ -198,18 +196,17 @@ bool ThinkBatteryManager::hasPackCurrent()
     return true;
 }
 
-bool ThinkBatteryManager::hasTemperatures()
+bool ThinkBatteryManager::hasCellTemperatures()
 {
     return true;
 }
 
-bool ThinkBatteryManager::isChargeOK()
+bool ThinkBatteryManager::hasAllowCharging()
 {
-    return allowCharge;
+    return true;
 }
 
-bool ThinkBatteryManager::isDischargeOK()
+bool ThinkBatteryManager::hasAllowDischarging()
 {
-    return allowDischarge;
+    return true;
 }
-
