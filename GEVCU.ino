@@ -114,6 +114,11 @@ void setup()
      */
     status.setSystemState(Status::init);
 
+    // if no dcdc converter is enabled, set status to true to keep high power devices running
+    if (deviceManager.getDcDcConverter() == NULL) {
+        status.dcdcRunning = true;
+    }
+
     serialConsole.printMenu();
 
     wifiDevice = deviceManager.getDeviceByID(ICHIP2128);

@@ -34,8 +34,8 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 #include <due_can.h>
 
-#define CFG_BUILD_NUM	1062        //increment this every time a git commit is done.
-#define CFG_VERSION "GEVCU 2017-06-27"
+#define CFG_BUILD_NUM	1063        //increment this every time a git commit is done.
+#define CFG_VERSION "GEVCU 2018-08-22"
 #define CFG_DEFAULT_LOGLEVEL Logger::Info
 
 //define this to add in latency and efficiency calculations. Comment it out for builds you're going to 

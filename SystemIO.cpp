@@ -45,6 +45,8 @@ SystemIO::SystemIO() {
     prefsHandler = NULL;
     preChargeStart = 0;
     useRawADC = false;
+    deactivatedPowerSteering =  false;
+    deactivatedHeater =  false;
 }
 
 SystemIO::~SystemIO() {
@@ -68,52 +70,8 @@ void SystemIO::setup() {
 }
 
 void SystemIO::handleTick() {
-    if (status.getSystemState() == Status::error) {
-        powerDownSystem();
+    if (!handleState()) {
         return;
-    }
-
-    if (!isInterlockPresent()) {
-        Logger::error("Interlock circuit open - security risk, disabling HV !!");
-        status.setSystemState(Status::error);
-    }
-
-    if (isEnableSignalPresent()) {
-        // if the system is ready and the enable input is high, then switch to state "running", this should enable the motor controller
-        if (status.getSystemState() == Status::ready) {
-            status.setSystemState(Status::running);
-
-            // also check if exterior temperature is low and we need to auto-enable the heater
-            if (status.temperatureExterior <= configuration->heaterTemperatureOn) {
-                systemIO.setEnableHeater(true);
-                systemIO.setHeaterPump(true);
-            }
-            setPowerSteering(true);
-        }
-    } else {
-        // if enable input is low and the motor controller is running, then disable it by switching to state "ready"
-        if (status.getSystemState() == Status::running) {
-            status.setSystemState(Status::ready);
-        }
-    }
-
-    if (status.getSystemState() == Status::preCharge) {
-        handlePreCharge();
-    }
-
-    if (status.getSystemState() == Status::preCharged) {
-        status.setSystemState(Status::ready);
-    }
-
-    // don't let the heater or power steering running
-    if (status.getSystemState() != Status::running) {
-        if (status.enableHeater) {
-            systemIO.setEnableHeater(false);
-            systemIO.setHeaterPump(false);
-        }
-        if (status.powerSteering) {
-            systemIO.setPowerSteering(false);
-        }
     }
 
     //TODO move to method and configure max kWh and if inverted or not
@@ -130,8 +88,63 @@ void SystemIO::handleTick() {
     handleCharging();
     handleBrakeLight();
     handleReverseLight();
+    handleHighPowerDevices();
 
     updateDigitalInputStatus();
+}
+
+bool SystemIO::handleState() {
+    Status::SystemState state = status.getSystemState();
+
+    if (state == Status::error) {
+        powerDownSystem();
+        return false;
+    }
+
+    if (!isInterlockPresent()) {
+        Logger::error("Interlock circuit open - security risk, disabling HV !!");
+        state = status.setSystemState(Status::error);
+    }
+
+    if (isEnableSignalPresent()) {
+        // if the system is ready and the enable input is high, then switch to state "running", this should enable the motor controller
+        if (state == Status::ready) {
+            state = status.setSystemState(Status::running);
+
+            // also check if exterior temperature is low and we need to auto-enable the heater
+            if (status.temperatureExterior <= configuration->heaterTemperatureOn) {
+                systemIO.setEnableHeater(true);
+                systemIO.setHeaterPump(true);
+            }
+            setPowerSteering(true);
+        }
+    } else {
+        // if enable input is low and the motor controller is running, then disable it by switching to state "ready"
+        if (state == Status::running) {
+            state = status.setSystemState(Status::ready);
+        }
+    }
+
+    if (state == Status::preCharge) {
+        handlePreCharge();
+    }
+
+    if (state == Status::preCharged) {
+        state = status.setSystemState(Status::ready);
+    }
+
+    // don't let the heater or power steering running
+    if (state != Status::running) {
+        if (status.enableHeater) {
+            systemIO.setEnableHeater(false);
+            systemIO.setHeaterPump(false);
+        }
+        if (status.powerSteering) {
+            systemIO.setPowerSteering(false);
+        }
+    }
+
+    return true;
 }
 
 /*
@@ -215,9 +228,11 @@ void SystemIO::handlePreCharge() {
  */
 void SystemIO::handleCooling() {
     MotorController *motorController = deviceManager.getMotorController();
+    DcDcConverter *dcdcConverter = deviceManager.getDcDcConverter();
     Status::SystemState state = status.getSystemState();
 
-    if (state == Status::ready || state == Status::running) {
+    if (state == Status::ready || state == Status::running ||
+            (dcdcConverter != NULL && dcdcConverter->isRunning() && dcdcConverter->getTemperature() > 350)) {
         if (!status.coolingPump) {
             setCoolingPump(true);
         }
@@ -232,7 +247,7 @@ void SystemIO::handleCooling() {
             return;
         }
 
-        if (motorController->getTemperatureController() / 10 > configuration->coolingTempOn && !status.coolingFan) {
+        if (motorController->getTemperatureController() / 10 > configuration->coolingTempOn && !status.coolingFan && status.dcdcRunning) {
             setCoolingFan(true);
         }
 
@@ -303,6 +318,34 @@ void SystemIO::handleReverseLight() {
     } else {
         if (status.reverseLight) {
             setReverseLight(false);
+        }
+    }
+}
+
+/**
+ * Shut-Down high power devices in case the DCDC converter is not running and power them back on
+ * once the converter is running
+ */
+void SystemIO::handleHighPowerDevices() {
+    if (status.dcdcRunning) {
+        if (deactivatedHeater) {
+            deactivatedHeater = false;
+            setEnableHeater(true);
+            setHeaterPump(true);
+        }
+        if (deactivatedPowerSteering) {
+            deactivatedPowerSteering = false;
+            setPowerSteering(true);
+        }
+    } else {
+        if (status.enableHeater) {
+            deactivatedHeater = true;
+            setEnableHeater(false);
+            setHeaterPump(false);
+        }
+        if (status.powerSteering) {
+            deactivatedPowerSteering = true;
+            setPowerSteering(false);
         }
     }
 }

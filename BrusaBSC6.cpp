@@ -179,6 +179,7 @@ void BrusaBSC6::processValues1(uint8_t data[])
     bitfield = (uint32_t)data[7] & 0x0F;
 
     running = (bitfield & bsc6Running) ? true : false;
+    status.dcdcRunning = running;
     ready = (bitfield & bsc6Ready) ? true : false;
     if (bitfield & automatic) {
         //TODO implement handling of automatic flag

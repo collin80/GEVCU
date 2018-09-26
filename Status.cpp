@@ -138,6 +138,7 @@ Status::Status()
     vehicleSpeed = 0;
 
     stateOfCharge = 0;
+    dcdcRunning = false;
 }
 
 /*

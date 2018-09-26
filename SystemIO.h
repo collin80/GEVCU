@@ -168,6 +168,7 @@ private:
     uint32_t preChargeStart; // time-stamp when pre-charge cycle has started
     SystemIOConfiguration *configuration;
     PrefHandler *prefsHandler;
+    bool deactivatedPowerSteering, deactivatedHeater;
 
     void initializePinTables();
     void initGevcu2PinTable();
@@ -184,11 +185,13 @@ private:
     void updateDigitalInputStatus();
     void powerDownSystem();
 
+    bool handleState();
     void handleCooling();
     void handlePreCharge();
     void handleCharging();
     void handleBrakeLight();
     void handleReverseLight();
+    void handleHighPowerDevices();
 
     bool getDigitalIn(uint8_t which);
     void setAnalogOut(uint8_t which, uint8_t value);

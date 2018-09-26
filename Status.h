@@ -149,7 +149,7 @@ public:
     uint16_t heaterPower; // the power of the heater in Watt
     uint8_t vehicleSpeed; // vehicle speed in kmh
     uint8_t barometricPressure; // barometric pressure in kPa
-
+    bool dcdcRunning; // is the dcdc converter running ? (true if no dcdc converter is enabled)
 
     Status();
     SystemState getSystemState();
