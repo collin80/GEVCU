@@ -19,7 +19,7 @@ function showTab(pageId) {
 			node.className = (node == linkToActivate) ? 'on' : '';
 		}
 	}
-	if (pageId == 'control') {
+	if (pageId == 'controls') {
 		resizeThrottleCanvas();
 	}
 	loadData(pageId);
@@ -103,8 +103,8 @@ function loadData(pageId) {
 				setNodeValue(name, value);
 			}
 		}
-		
-		if (pageId == 'control') {
+
+		if (pageId == 'controls') {
 			refreshThrottleVisualization();
 		}
 	});
@@ -124,7 +124,7 @@ function selectItemByValue(node, value) {
 function ajaxCall(url, callback) {
 	try {
 		var xmlhttp = new XMLHttpRequest();
-		xmlhttp.onreadystatechange = function() { 
+		xmlhttp.onreadystatechange = function() {
 			if (xmlhttp.readyState == 4 && xmlhttp.status == 200) {
 				callback(xmlhttp.responseText);
 			}

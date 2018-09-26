@@ -8,7 +8,7 @@
 	<script type='text/javascript' src='util/settings.js'></script>
 	<script>
 		function init() {
-			loadPage("control");
+			loadPage("controls");
 			loadPage("motor");
 			loadPage("charger");
 			loadPage("dcdc");
@@ -16,7 +16,7 @@
 			loadPage("outputs");
 			loadPage("devices");
 			loadPage("about");
-			showTab('control');
+			showTab('controls');
 		}
 	</script>
 </head>
@@ -24,7 +24,7 @@
 	<span style="float: right; font-size: 75%"><a href="index.htm">full-screen dashboard</a></span>
 	<h1>GEVCU 5.4</h1>
 	<div class="tabHeader" id="tabHeader">
-		<a href="javascript:showTab('control')" id="controllink">Control</a>
+		<a href="javascript:showTab('controls')" id="controlslink">Control</a>
 		<a href="javascript:showTab('motor')" id="motorlink">Motor</a>
 		<a href="javascript:showTab('charger')" id="chargerlink">Charger</a>
 		<a href="javascript:showTab('dcdc')" id="dcdclink">DC-DC</a>
@@ -34,7 +34,7 @@
 		<a href="javascript:showTab('about')" id="aboutlink">About</a>
 	</div>
 	<div class="tabs" id="tabs">
-		<div class="tab" id="control"></div>
+		<div class="tab" id="controls"></div>
 		<div class="tab" id="motor"></div>
 		<div class="tab" id="charger"></div>
 		<div class="tab" id="dcdc"></div>
