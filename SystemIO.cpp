@@ -135,7 +135,8 @@ bool SystemIO::handleState() {
 
     // don't let the heater or power steering running
     if (state != Status::running) {
-        if (status.enableHeater) {
+        if (status.enableHeater && state != Status::batteryHeating && state != Status::charging &&
+                state != Status::charged && state != Status::ready) {
             systemIO.setEnableHeater(false);
             systemIO.setHeaterPump(false);
         }
