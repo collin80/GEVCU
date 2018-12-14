@@ -30,15 +30,11 @@
  */
 
 /**
- * @param {Object}
- *            config
  * @constructor
  */
-var Gauge = function(config) {
-	/**
-	 * Default gauge configuration
-	 */
-	this.config = {
+var Gauge = function(gaugeConfig) {
+	// default gauge configuration
+	var config = {
 		renderTo    : null,
 		width       : 200,
 		height      : 200,
@@ -46,7 +42,6 @@ var Gauge = function(config) {
 		angle       : 330,
 		gap         : 30,
 		glow        : true,
-		drawArc     : true,
 		drawHighlights: false,
 		colors      : {
 			plate      : '#fff',
@@ -55,112 +50,115 @@ var Gauge = function(config) {
 			title      : '#888',
 			units      : '#888',
 			numbers    : '#444',
-			needle     : { start : 'rgba(240, 128, 128, 1)', end : 'rgba(255, 160, 122, .9)' }
+			needle     : { start : 'rgba(240, 128, 128, 1)', end : 'rgba(255, 160, 122, .9)' },
+			limits     : { start : 'rgba(100, 150, 180, 1)', end : 'rgba(100, 150, 180, .9)' }
 		},
-		values      : [
+		dials       : [
 			{
-				id          : false,
-				title       : false,
-				units       : false,
-				minValue    : 0,
-				maxValue    : 100,
-				ccw         : false,
-				majorTicks       : [],
-				minorTicks       : 10,
-				strokeTicks      : true,
-				valueFormat      : { "int" : 3, "dec" : 2 },
+				id         : false,
+				title      : false,
+				units      : false,
+				minValue   : 0,
+				maxValue   : 100,
+				ccw        : false,
+				drawArc    : true,
+				drawLimits : true,
+				limits     : {
+					min: 0,
+					max: 100
+				},
+				majorTicks  : [],
+				minorTicks  : 10,
+				strokeTicks : true,
+				valueFormat : { "int" : 3, "dec" : 2 },
 		        majorTicksFormat : { "int" : 1, "dec" : 0 },
 				highlights  : [
 					{ from : 20, to : 60, color : '#eee' },
 					{ from : 60, to : 80, color : '#ccc' },
-					{ from : 80, to : 100, color : '#999' }]
+					{ from : 80, to : 100, color : '#999' }],
+				animation : {
+					delay    : 70,
+					duration : 200,
+					fn       : 'linear'
+				}
 			}
 		],
-		animation : {
-			delay    : 70,
-			duration : 200,
-			fn       : 'linear'
-		}
 	}
 
-	var
-		configValues = [],
-		self      = this,
-		imready   = false
-	;
-
 	/**
-	 * Ready event for the gauge. Use it whenever you initialize the gauge to be
-	 * assured it was fully drawn before you start the update on it
-	 * 
-	 * @event {Function} onready
+	 * Recursively copy the values from one config to another. (to not lose the default values)
 	 */
-	this.onready = function() {}
-	
-	/**
-	 * Recursively copy the values of one object to another.
-	 * 
-	 * @param dst destination object
-	 * @param src source object
-	 * @returns
-	 */
-	function applyRecursive(dst, src) {
+	function copyConfig(dst, src) {
 		for (var i in src) {
 			if (typeof src[i] == "object" && !(Object.prototype.toString.call(src[i]) === '[object Array]') && i != 'renderTo') {
 				if (typeof dst[i] != "object") {
 					dst[i] = {};
 				}
-				applyRecursive(dst[i], src[i]);
+				copyConfig(dst[i], src[i]);
 			} else {
 				dst[i] = src[i];
 			}
 		}
 	}
 
-	applyRecursive(this.config, config);
-	config = this.config;
-
+	copyConfig(config, gaugeConfig);
 	if (!config.renderTo) {
 		throw Error("Canvas element was not specified when creating the Gauge object!");
 	}
 
-	var ctxInfo, ctxInfoValues,
+	var ctxInfo, ctxInfoValues, ctxLimits,
 		CW  = config.width,
 		CH  = config.height,
 		CX  = CW / 2,
 		CY  = CH / 2,
-		max = CX < CY ? CX : CY
+		max = CX < CY ? CX : CY,
+		dialRIn  = max / 100 * 94,
+		dialROut = max / 100 * 25,
+		dialPad1 = max / 100 * 1,
+		dialPad2 = max / 100 * 1,
+		dialShadowColor = '#000',
+		dialFillStyle = false
 	;
 
 	function baseInit() {
-		Gauge.Collection[config.renderTo] = self;
+		Gauge.gauges[config.renderTo] = this;
 
 		// important. first add all canvas before accessing one !!
 		addCanvas(config.renderTo + "Plate");
-		for (var i = 0; i < config.values.length; i++) {
-			addCanvas(config.values[i].id);
-		}
+		config.dials.forEach(dialConfig => { addCanvas(dialConfig.id); });
+		addCanvas(config.renderTo + "Limits")
 		addCanvas(config.renderTo + "Info");
 		addCanvas(config.renderTo + "InfoValues");
 
 		// now it's safe to look them up
+		var i = 0;
 		var ctxPlate = prepareCanvas(config.renderTo + "Plate", false);
-		for (var i = 0; i < config.values.length; i++) {
-			var value = config.values[i];
-			value.position = i;
-			value.ctx = prepareCanvas(value.id, true);
-			value.fromValue = value.value = value.toValue = value.minValue;
-			value.offset = config.start + (config.angle + config.gap) * i / config.values.length;
-			value.angle = (config.angle - config.gap * (config.values.length - 1)) / config.values.length;
-			value.range = value.maxValue - value.minValue;
-			if(typeof value.startValue == "undefined") {
-				value.startValue = 0;
+		config.dials.forEach(dialConfig => {
+			var ctx = prepareCanvas(dialConfig.id, true);
+			dialConfig.offset = config.start + (config.angle + config.gap) * i / config.dials.length;
+			dialConfig.angle = (config.angle - config.gap * (config.dials.length - 1)) / config.dials.length;
+			dialConfig.range = dialConfig.maxValue - dialConfig.minValue;
+			dialConfig.colors = config.colors;
+			if (dialConfig.animation) {
+				dialConfig.animation.delay = dialConfig.animation.delay || 70; 
+				dialConfig.animation.duration = dialConfig.animation.duration || 200;
+				dialConfig.animation.fn = dialConfig.animation.fn || 'linear';
+				dialConfig.animation.threshold = dialConfig.animation.threshold || (dialConfig.range / dialConfig.angle / 5);
+				dialConfig.textPosition = i;
+				dialConfig.startValue = dialConfig.startValue || 0; 
 			}
-			configValues[value.id] = value;
-			Gauge.DialCollection[value.id] = self;
-		}
+			Gauge.dials[dialConfig.id.substring(0, dialConfig.id.length - 4)] = new Dial(ctx, dialConfig);
+			i++;
+		});
+		ctxLimits = prepareCanvas(config.renderTo + "Limits", true);
 		ctxInfo = prepareCanvas(config.renderTo + "Info", true);
 		ctxInfoValues = prepareCanvas(config.renderTo + "InfoValues", true);
+		ctxInfoValues.shadowOffsetX = 0.004 * max;
+		ctxInfoValues.shadowOffsetY = 0.004 * max;
+		ctxInfoValues.shadowBlur    = 0.012 * max;
+		ctxInfoValues.shadowColor   = 'rgba(0, 0, 0, 0.3)';
+		ctxInfoValues.fillStyle = "#adf";
+		ctxInfoValues.textAlign = "center";
 
 		drawPlate(ctxPlate);
 		drawHighlights(ctxPlate);
@@ -170,38 +168,27 @@ var Gauge = function(config) {
 		
 		drawInfoArea(ctxInfo);
 		drawTitle(ctxInfo);
-		drawUnits(ctxInfo);
+//		drawUnits(ctxInfo);
+//		if (config.drawLimits)
+//			drawLimits(ctxLimits);
 	//	drawValueBox(ctxInfo);
-		
-		draw();
 	}
 
-	// do basic initialization
 	baseInit();
 	
 	/**
 	 * Add a canvas with a specified id to the 'renderTo' container.
-	 * 
-	 * @param id
-	 *            id for the canvas
 	 */
-	function addCanvas(id) {
+	function addCanvas(canvasId) {
 		var container = config.renderTo.tagName ? config.renderTo : document.getElementById(config.renderTo);
-		container.innerHTML += "<canvas id='" + id + "'></canvas>";
+		container.innerHTML += "<canvas id='" + canvasId + "'></canvas>";
 	}
 
 	/**
 	 * Resize, shift and translate a canvas / context.
-	 * 
-	 * @param id
-	 *            for the canvas id
-	 * @param relocate
-	 *            if the canvas should by shifted to the left and upwards by its
-	 *            size
-	 * @returns the context of the canvas
 	 */
-	function prepareCanvas(id, relocate) {
-		var canvas = document.getElementById(id);
+	function prepareCanvas(canvasId, relocate) {
+		var canvas = document.getElementById(canvasId);
 		canvas.width  = config.width;
 		canvas.height = config.height;
 		
@@ -213,30 +200,6 @@ var Gauge = function(config) {
 		context.translate(CX, CY);// translate canvas to have 0,0 in center
 		context.save();
 		return context;
-	}
-
-	/**
-	 * Draws the variable parts of the gauge.
-	 * 
-	 * @return {Gauge} this - returns the self Gauge object
-	 */
-	function draw(id, value) {
-		// draw all values if no id is passed
-		if(typeof value == "undefined") {
-			for (var i = 0; i < configValues.length; i++) {
-				this.draw(configValues[i].id, configValues[i].minValue);
-			}
-			return;
-		}
-
-		drawNeedle(id, value);
-		drawArc(id, value);
-
-		if (!imready) {
-			self.onready && self.onready();
-			imready = true;
-		}
-		return this;
 	}
 
 	/**
@@ -310,29 +273,35 @@ var Gauge = function(config) {
 	 *            num The number to format
 	 * @returns {string} The formatted number
 	 */
-    function formatMajorTickNumber(num) {
+    function formatMajorTickNumber(num, dialNumber) {
         var r, isDec = false;
+        var int = 3, dec = 0;
+        
+        if (config.dials[dialNumber] && config.dials[dialNumber].majorTicksFormat) {
+        	int = config.dials[dialNumber].majorTicksFormat.int;
+        	dec = config.dials[dialNumber].majorTicksFormat.dec;
+        }
 
         // First, force the correct number of digits right of the decimal.
-        if(config.majorTicksFormat.dec === 0) {
+        if(dec === 0) {
             r = Math.round(num).toString();
         } else {
-            r = num.toFixed(config.majorTicksFormat.dec);
+            r = num.toFixed(dec);
         }
 
         // Second, force the correct number of digits left of the decimal.
-        if(config.majorTicksFormat["int"] > 1) {
+        if(int > 1) {
             // Does this number have a decimal?
             isDec = (r.indexOf('.') > -1);
 
             // Is this number a negative number?
             if(r.indexOf('-') > -1) {
                 return '-' + [
-					config.majorTicksFormat["int"] + config.majorTicksFormat.dec + 2 + (isDec ? 1 : 0) - r.length
+					int + dec + 2 + (isDec ? 1 : 0) - r.length
 				].join('0') + r.replace('-', '');
             } else {
                 return [
-                	config.majorTicksFormat["int"] + config.majorTicksFormat.dec + 1 + (isDec ? 1 : 0) - r.length
+                	int + dec + 1 + (isDec ? 1 : 0) - r.length
 				].join('0') + r;
             }
         } else {
@@ -340,7 +309,9 @@ var Gauge = function(config) {
         }
     }
 
-	// major ticks draw
+	/**
+	 * draw major ticks
+	 */
 	function drawMajorTicks(ctx) {
 		var r = max / 100 * 88;
 
@@ -348,20 +319,22 @@ var Gauge = function(config) {
 		ctx.strokeStyle = config.colors.majorTicks;
 		ctx.save();
 
-		for (var v = 0; v < config.values.length; v++) {
-	        if(config.values[v].majorTicks.length == 0) {
+		var v = 0;
+		config.dials.forEach(dialConfig => {
+	        if(dialConfig.majorTicks.length == 0) {
 	            var numberOfDefaultTicks = 5;
-	            var tickSize = (config.values[v].maxValue - config.values[v].minValue)/numberOfDefaultTicks;
+	            var tickSize = (dialConfig.maxValue - dialConfig.minValue) / numberOfDefaultTicks;
 	
 	            for(var i = 0; i < numberOfDefaultTicks; i++) {
-	                config.values[v].majorTicks.push(formatMajorTickNumber(config.values[v].minValue+(tickSize*i)));
+	            	dialConfig.majorTicks.push(formatMajorTickNumber(dialConfig.minValue + (tickSize * i), v));
 	            }
-	            config.values[v].majorTicks.push(formatMajorTickNumber(config.values[v].maxValue));
+	            dialConfig.majorTicks.push(formatMajorTickNumber(dialConfig.maxValue), v++);
 	        }
 	
-			var range = config.values[v].majorTicks.length - 1;
-			for (var i = 0; i < config.values[v].majorTicks.length; ++i) {
-				ctx.rotate(radians(config.values[v].offset + i * config.values[v].angle / range));
+			var range = dialConfig.majorTicks.length - 1;
+			var i = 0;
+			dialConfig.majorTicks.forEach(tick => {
+				ctx.rotate(radians(dialConfig.offset + i++ * dialConfig.angle / range));
 
 				ctx.beginPath();
 				ctx.moveTo(0, r);
@@ -370,9 +343,9 @@ var Gauge = function(config) {
 
 				ctx.restore();
 				ctx.save();
-			}
+			});
 	
-			if (config.values[v].strokeTicks) {
+			if (dialConfig.strokeTicks) {
 				ctx.rotate(radians(90));
 
 				ctx.beginPath();
@@ -381,10 +354,12 @@ var Gauge = function(config) {
 				ctx.restore();
 				ctx.save();
 			}
-		}
+		});
 	}
 
-	// minor ticks draw
+	/**
+	 * draw minor ticks
+	 */
 	function drawMinorTicks(ctx) {
 		var r = max / 100 * 88;
 
@@ -393,10 +368,10 @@ var Gauge = function(config) {
 
 		ctx.save();
 
-		for (var v = 0; v < config.values.length; v++) {
-			var range = config.values[v].minorTicks * (config.values[v].majorTicks.length - 1);	
+		config.dials.forEach(dialConfig => {
+			var range = dialConfig.minorTicks * (dialConfig.majorTicks.length - 1);	
 			for (var i = 0; i < range; ++i) {
-				ctx.rotate(radians(config.values[v].offset + i * config.values[v].angle / range));
+				ctx.rotate(radians(dialConfig.offset + i * dialConfig.angle / range));
 	
 				ctx.beginPath();
 				ctx.moveTo(0, r);
@@ -406,40 +381,44 @@ var Gauge = function(config) {
 				ctx.restore();
 				ctx.save();
 			}
-		}
+		});
 	}
 
-	// tick numbers draw
+	/**
+	 * draw the numbers of the plate
+	 */
 	function drawNumbers(ctx) {
 		var r = max / 100 * 60;
 
-		for (var v = 0; v < config.values.length; v++) {
-			var range = config.values[v].majorTicks.length - 1;
-			for (var i = 0; i < config.values[v].majorTicks.length; ++i) {
+		config.dials.forEach(dialConfig => {
+			var range = dialConfig.majorTicks.length - 1;
+			for (var i = 0; i < dialConfig.majorTicks.length; ++i) {
 				var 
-					p = rpoint(r, radians(config.values[v].offset + i * config.values[v].angle / range)),
-					idx = (config.values[v].ccw ? config.values[v].majorTicks.length - 1 - i : i)
+					p = rpoint(r, radians(dialConfig.offset + i * dialConfig.angle / range)),
+					idx = (dialConfig.ccw ? dialConfig.majorTicks.length - 1 - i : i)
 				;
 	
 				ctx.font      = 20 * (max / 200) + "px Arial";
 				ctx.fillStyle = config.colors.numbers;
 				ctx.lineWidth = 0;
 				ctx.textAlign = "center";
-				ctx.fillText(config.values[v].majorTicks[idx], p.x, p.y + 3);
+				ctx.fillText(dialConfig.majorTicks[idx], p.x, p.y + 3);
 			}
-		}
+		});
 	}
 
-	// title draw
+	/**
+	 * draw the dial titles
+	 */
 	function drawTitle(ctx) {
 		var 
 			r = max * 0.45,
-			l = config.values.length,
+			l = config.dials.length,
 			fh = 24 * (max / 200) - (1.6 * (l - 1)),
 			y;
 		;
 		for (var v = 0; v < l; v++) {
-			if (!config.values[v].title) {
+			if (!config.dials[v].title) {
 				continue;
 			}
 			y = r * (v - (l - 1) / 2) * (0.2 + 1 / l) - fh / 2;
@@ -448,25 +427,27 @@ var Gauge = function(config) {
 			ctx.font = fh + "px Arial";
 			ctx.fillStyle = config.colors.title;
 			ctx.textAlign = "center";
-			ctx.fillText(config.values[v].title, 0, y);
+			ctx.fillText(config.dials[v].title, 0, y);
 			ctx.restore();
 		}
 	}
 
-	// units draw
+	/**
+	 * draw the units
+	 */
 	function drawUnits(ctx) {
-//		for (var v = 0; v < config.values.length; v++) {
-//			if (!config.values[v].units) {
-//				return;
-//			}
-//	
-//			ctx.save();
-//			ctx.font = 22 * (max / 200) + "px Arial";
-//			ctx.fillStyle = config.colors.units;
-//			ctx.textAlign = "center";
-//			ctx.fillText(config.values[v].units, 0, max / 3.25 * v);
-//			ctx.restore();
-//		}
+		for (var v = 0; v < config.dials.length; v++) {
+			if (!config.dials[v].units) {
+				return;
+			}
+	
+			ctx.save();
+			ctx.font = 22 * (max / 200) + "px Arial";
+			ctx.fillStyle = config.colors.units;
+			ctx.textAlign = "center";
+			ctx.fillText(config.dials[v].units, 0, max / 3.25 * v);
+			ctx.restore();
+		}
 	}
 
 	function padValue(val, cint, cdec) {
@@ -508,7 +489,9 @@ var Gauge = function(config) {
 		return { x : X, y : Y };
 	}
 
-	// draws the highlight colors
+	/**
+	 * draws the highlight colors
+	 */
 	function drawHighlights(ctx) {
 		if (!config.drawHighlights) {
 			return;
@@ -519,23 +502,23 @@ var Gauge = function(config) {
 		var r1 = max / 100 * 84;
 		var width = max / 100 * 9;
 
-		for (var v = 0; v < config.values.length; v++) {
-			for (var i = 0, s = config.values[v].highlights.length; i < s; i++) {
+		for (var v = 0; v < config.dials.length; v++) {
+			for (var i = 0, s = config.dials[v].highlights.length; i < s; i++) {
 				var
-					hlt = config.values[v].highlights[i],
-					range = config.values[v].maxValue - config.values[v].minValue,
+					hlt = config.dials[v].highlights[i],
+					range = config.dials[v].maxValue - config.dials[v].minValue,
 					sa, ea
 				;
-				if (config.values[v].ccw) {
-					sa = (config.values[v].maxValue - hlt.to) * config.values[v].angle / range;
-					ea = (config.values[v].maxValue - hlt.from) * config.values[v].angle / range;
+				if (config.dials[v].ccw) {
+					sa = (config.dials[v].maxValue - hlt.to) * config.dials[v].angle / range;
+					ea = (config.dials[v].maxValue - hlt.from) * config.dials[v].angle / range;
 				} else {
-					sa = (hlt.from - config.values[v].minValue) * config.values[v].angle / range;
-					ea = (hlt.to - config.values[v].minValue) * config.values[v].angle / range;
+					sa = (hlt.from - config.dials[v].minValue) * config.dials[v].angle / range;
+					ea = (hlt.to - config.dials[v].minValue) * config.dials[v].angle / range;
 				}
 
 				ctx.beginPath();
-				ctx.arc(0, 0, r1, radians(90 + config.values[v].offset + sa), radians(90 + config.values[v].offset + ea), false);
+				ctx.arc(0, 0, r1, radians(90 + config.dials[v].offset + sa), radians(90 + config.dials[v].offset + ea), false);
 				ctx.lineWidth = width;
 				ctx.strokeStyle = hlt.color;
 				ctx.stroke();
@@ -543,54 +526,9 @@ var Gauge = function(config) {
 		}
 	}
 	
-	var
-		dialRIn  = max / 100 * 94,
-		dialROut = max / 100 * 25,
-		dialPad1 = max / 100 * 1,
-		dialPad2 = max / 100 * 1,
-		dialShadowColor = '#000',
-		dialFillStyle = false
-	;
-
-	// draw the gauge needle(s)
-	this.drawNeedle = function(id, angle) {
-		var
-			ctx = configValues[id].ctx
-		;
-		// clear the canvas
-		ctx.clearRect(-CX, -CY, CW, CH);
-		ctx.save();
-		ctx.rotate(angle);
-
-		if (config.glow) {
-			ctx.shadowOffsetX = 2;
-			ctx.shadowOffsetY = 2;
-			ctx.shadowBlur    = 3;
-			ctx.shadowColor   = dialShadowColor;
-		}
-
-		ctx.beginPath();
-		ctx.moveTo(-dialPad2, -dialROut);
-		ctx.lineTo(-dialPad1, 0);
-		ctx.lineTo(-1, dialRIn);
-		ctx.lineTo(1, dialRIn);
-		ctx.lineTo(dialPad1, 0);
-		ctx.lineTo(dialPad2, -dialROut);
-		ctx.closePath();
-
-		if (!dialFillStyle) {
-			dialFillStyle = lgrad(ctx, config.colors.needle.start, config.colors.needle.end, dialRIn - dialROut);
-		}
-		ctx.fillStyle = dialFillStyle;
-		ctx.fill();
-		ctx.restore();
-	}
-
 	function drawInfoArea(ctx) {
-		var
-			r1 = max / 100 * 45,
-			r2 = max / 100 * 44;
-		;
+		var r1 = max / 100 * 45;
+		var r2 = max / 100 * 44;
 
 		ctx.beginPath();
 		ctx.arc(0, 0, r1, 0, Math.PI * 2, true);
@@ -611,46 +549,6 @@ var Gauge = function(config) {
 		arcShadowColor = 'rgba(200, 200, 235, 0.9)'
 	;
 
-	this.drawArc = function(id, angleStart, angleEnd) {
-		if (!config.drawArc) {
-			return;
-		}
-		
-		var
-			value = configValues[id],
-			ctx = value.ctx
-		;
-		
-		if (config.glow) {
-			ctx.shadowOffsetX = 2;
-			ctx.shadowOffsetY = 2;
-			ctx.shadowBlur    = 10;
-			ctx.shadowColor   = arcShadowColor;
-		}
-
-		ctx.beginPath();
-		ctx.arc(0, 0, arcR, angleStart, angleEnd, false);
-		ctx.lineWidth = arcWidth;
-
-		if (!value.arcStrokeStyle) {
-			var
-				range = value.majorTicks.length - 1,
-				p1 = rpoint(arcR, radians(value.offset)),
-				p2 = rpoint(arcR, radians(value.offset + value.angle))
-			;
-			value.arcStrokeStyle = ctx.createLinearGradient(p1.x, p1.y, p2.x, p2.y);
-			for (var i = 0; i < value.highlights.length; i++) {
-				var
-					hlt = value.highlights[i],
-					range = (value.minValue < 0 ? value.maxValue : value.maxValue - value.minValue)
-				;
-				value.arcStrokeStyle.addColorStop(constrain((value.ccw ? value.maxValue - (hlt.to + hlt.from)/2 : (hlt.to + hlt.from)/2 - value.minValue) / range, 0, 1), hlt.color);  
-			}
-		}
-		ctx.strokeStyle = value.arcStrokeStyle;
-		ctx.stroke();
-	}
-	
 	function roundRect(ctx, x, y, w, h, r) {
 		ctx.beginPath();
 
@@ -675,11 +573,11 @@ var Gauge = function(config) {
 	function drawValueBox(ctx) {
 		ctx.save();
 		
-		for (var v = 0; v < config.values.length; v++) {
+		for (var v = 0; v < config.dials.length; v++) {
 			ctx.font = (max / 5) + "px Led";
 			var
-				cdec = config.values[v].valueFormat['dec'],
-				cint = config.values[v].valueFormat['int'],
+				cdec = config.dials[v].valueFormat['dec'],
+				cint = config.dials[v].valueFormat['int'],
 				tw   = ctx.measureText('-' + padValue(0, cint, cdec)).width,
 				y = max / 4 * v,
 				x = 0,
@@ -722,46 +620,186 @@ var Gauge = function(config) {
 		}
 	}
 
-	this.drawValue = function(id, val) {
-		var
-			value = configValues[id],
-			ctx = ctxInfoValues,
-			r = max * 0.45,
-			l = config.values.length,
-			fh = 42 * (max / 200) - (1.6 * (l - 1))
-		;
-
-		ctx.save();
-		ctx.font = fh + "px Led";
-		var
-			cdec = value.valueFormat['dec'],
-			cint = value.valueFormat['int'],
-			text = padValue(val, cint, cdec),
-			y = r * (value.position - (l - 1) / 2) * (0.2 + 1 / l) + fh * 0.55;
-			x = 0
-		;
-		ctx.clearRect(ctx.canvas.width / -2, y - max / 5, ctx.canvas.width, max / 4.5);
-
-		ctx.save();
-
-		ctx.shadowOffsetX = 0.004 * max;
-		ctx.shadowOffsetY = 0.004 * max;
-		ctx.shadowBlur    = 0.012 * max;
-		ctx.shadowColor   = 'rgba(0, 0, 0, 0.3)';
-	
-//		ctx.fillStyle = "#444";
-		ctx.fillStyle = "#adf";
-		ctx.textAlign = "center";
-		ctx.fillText(text, -x, y);
-
-		ctx.restore();
-	}
-
 	function constrain(val,low,high) {
 		return (val < low ? low : (val > high ? high : val));
 	}
-}
 
+	function drawLimits() {
+		ctxLimits.clearRect(-CX, -CY, CW, CH);
+		
+		config.dials.forEach(dialConfig => {
+			var cfg = Gauge.dials[dialConfig.id.substring(0, dialConfig.id.length - 4)].getConfig();
+			if (cfg.limits) {
+	 			if (cfg.limits.min || cfg.limits.min === 0) {
+					drawLimitNeedle(cfg, cfg.limits.min);
+				}
+				if (cfg.limits.max || cfg.limits.max === 0) {
+					drawLimitNeedle(cfg, cfg.limits.max);
+				}
+			}
+		});
+	}
+
+	function drawLimitNeedle(cfg, value) {
+		if (value < 0) {
+			value = Math.abs(cfg.minValue - value);
+		} else if (cfg.minValue > 0) {
+			value -= cfg.minValue;
+		} else {
+			value = Math.abs(cfg.minValue) + value;
+		}
+		var angle = radians(cfg.offset + (cfg.ccw ? cfg.range - value : value) * cfg.angle / cfg.range);
+
+		ctxLimits.save();
+		ctxLimits.rotate(angle);
+
+		ctxLimits.beginPath();
+		ctxLimits.moveTo(-dialPad2, -dialROut * .85);
+		ctxLimits.lineTo(-dialPad1, 0);
+		ctxLimits.lineTo(-1, dialRIn * .85);
+		ctxLimits.lineTo(1, dialRIn * .85);
+		ctxLimits.lineTo(dialPad1, 0);
+		ctxLimits.lineTo(dialPad2, -dialROut * .85);
+		ctxLimits.closePath();
+
+		ctxLimits.fillStyle = lgrad(ctxLimits, config.colors.limits.start, config.colors.limits.end, dialRIn - dialROut);
+		ctxLimits.fill();
+		ctxLimits.restore();
+	}
+
+	function Dial(ctx, config) {
+		var worker = createGaugeDialWorker();
+
+		/**
+		 * forward the value update to this dial's worker and wait for messages
+		 */
+		this.setValue = function(value) {
+			worker.postMessage({value: value});
+		}
+		this.setValue(config.startValue);
+
+		/**
+		 * set the limits
+		 */
+		this.setLimits = function(min, max) {
+			if (!config.limits) {
+				config.limits = {};
+			}
+			config.limits.min = min;
+			config.limits.max = max;
+			drawLimits();
+		}
+		
+		this.getConfig = function() {
+			return config;
+		}
+
+		/**
+		 * process update message from worker an redraw affected UI elements
+		 */
+		function update(data) {
+			if (data.angle) {
+				drawNeedle(data.angle);
+				drawArc(data.arcStart, data.arcEnd);
+			} else if (data.text) {
+				drawValue(data.text);
+			}
+		}
+		
+		function createGaugeDialWorker() {
+			var worker = new Worker("worker/gaugeDial.js");
+			worker.onmessage = function(event) {
+				update(event.data);
+			}
+			worker.postMessage({config: config});
+			return worker;
+		}
+
+		/**
+		 * draw the dial's needle
+		 */
+		function drawNeedle(angle) {
+			ctx.clearRect(-CX, -CY, CW, CH);
+			ctx.save();
+			ctx.rotate(angle);
+	
+			if (gaugeConfig.glow) {
+				ctx.shadowOffsetX = 2;
+				ctx.shadowOffsetY = 2;
+				ctx.shadowBlur    = 3;
+				ctx.shadowColor   = dialShadowColor;
+			}
+	
+			ctx.beginPath();
+			ctx.moveTo(-dialPad2, -dialROut);
+			ctx.lineTo(-dialPad1, 0);
+			ctx.lineTo(-1, dialRIn);
+			ctx.lineTo(1, dialRIn);
+			ctx.lineTo(dialPad1, 0);
+			ctx.lineTo(dialPad2, -dialROut);
+			ctx.closePath();
+	
+			if (!dialFillStyle) {
+				dialFillStyle = lgrad(ctx, config.colors.needle.start, config.colors.needle.end, dialRIn - dialROut);
+			}
+			ctx.fillStyle = dialFillStyle;
+			ctx.fill();
+			ctx.restore();
+		}
+		
+		function drawArc(angleStart, angleEnd) {
+			if (!config.drawArc) {
+				return;
+			}
+			
+			if (config.glow) {
+				ctx.shadowOffsetX = 2;
+				ctx.shadowOffsetY = 2;
+				ctx.shadowBlur    = 10;
+				ctx.shadowColor   = arcShadowColor;
+			}
+
+			ctx.beginPath();
+			ctx.arc(0, 0, arcR, angleStart, angleEnd, false);
+			ctx.lineWidth = arcWidth;
+
+			if (!config.arcStrokeStyle) {
+				var
+					range = config.majorTicks.length - 1,
+					p1 = rpoint(arcR, radians(config.offset)),
+					p2 = rpoint(arcR, radians(config.offset + config.angle))
+				;
+				config.arcStrokeStyle = ctx.createLinearGradient(p1.x, p1.y, p2.x, p2.y);
+				for (var i = 0; i < config.highlights.length; i++) {
+					var
+						hlt = config.highlights[i],
+						range = (config.minValue < 0 ? config.maxValue : config.maxValue - config.minValue)
+					;
+					config.arcStrokeStyle.addColorStop(constrain((config.ccw ? config.maxValue - (hlt.to + hlt.from)/2 : (hlt.to + hlt.from)/2 - config.minValue) / range, 0, 1), hlt.color);  
+				}
+			}
+			ctx.strokeStyle = config.arcStrokeStyle;
+			ctx.stroke();
+		}
+
+		var
+			r = max * 0.45,
+			l = gaugeConfig.dials.length,
+			fh = 42 * (max / 200) - (1.6 * (l - 1)),
+	
+			cdec = config.valueFormat['dec'],
+			cint = config.valueFormat['int'],
+			y = r * (config.textPosition - (l - 1) / 2) * (0.2 + 1 / l) + fh * 0.55,
+			x = 0
+		;
+
+		function drawValue(val) {
+			ctxInfoValues.clearRect(ctxInfoValues.canvas.width / -2, y - max / 5, ctxInfoValues.canvas.width, max / 4.5);
+			ctxInfoValues.font = fh + "px Led";
+			ctxInfoValues.fillText(padValue(val, cint, cdec), -x, y);
+		}
+	}
+}
 
 // initialize (load font by adding style to the head and temporarely adding a
 // div which refers to the font
@@ -815,14 +853,6 @@ Gauge.initialized = false;
 	}, 1);
 })();
 
-Gauge.Collection = [];
-Gauge.Collection.get = function(id) {
-	return this[id];
-}
-
-Gauge.DialCollection = [];
-Gauge.DialCollection.get = function(id) {
-	return this[id];
-}
-
-window['Gauge'] = Gauge;
+Gauge.gauges = [];
+Gauge.dials = [];
+window.Gauge = Gauge;

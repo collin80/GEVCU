@@ -1,98 +1,63 @@
-var handler; // a background worker to receive and process data
+var dashboard = dashboard || {};
 
-function showTab(pageId) {
-	// show the correct div and hide the others
-	alertify.set('notifier', 'position', 'top-right');
-	// add an event listener so sounds can get loaded on mobile devices after user interaction
-	window.addEventListener('keydown', removeBehaviorsRestrictions);
-	window.addEventListener('mousedown', removeBehaviorsRestrictions);
-	window.addEventListener('touchstart', removeBehaviorsRestrictions);
-	startHandler();
-}
+(function () {
+	var webSocketWorker;
 
-// on most mobile browsers sounds can only be loaded during a user interaction (stupid !)
-function removeBehaviorsRestrictions() {
-	soundError.load();
-	soundWarn.load();
-	soundInfo.load();
-	window.removeEventListener('keydown', removeBehaviorsRestrictions);
-	window.removeEventListener('mousedown', removeBehaviorsRestrictions);
-	window.removeEventListener('touchstart', removeBehaviorsRestrictions);
-}
+	dashboard.activate = activate;
+	dashboard.hideStateDivs = hideStateDivs;
+	
+	function activate() {
+		// show the correct div and hide the others
+		// add an event listener so sounds can get loaded on mobile devices
+		// after user interaction
+		window.addEventListener('keydown', removeBehaviorsRestrictions);
+		window.addEventListener('mousedown', removeBehaviorsRestrictions);
+		window.addEventListener('touchstart', removeBehaviorsRestrictions);
+		startWebSocketWorker();
+	}
 
-function initHandler() {
-	for (var name in Gauge.Collection) {
-		if (name != "get") {
-			var config = Gauge.Collection.get(name).config;
+	// on most mobile browsers sounds can only be loaded during a user
+	// interaction (stupid !)
+	function removeBehaviorsRestrictions() {
+		soundError.load();
+		soundWarn.load();
+		soundInfo.load();
+		window.removeEventListener('keydown', removeBehaviorsRestrictions);
+		window.removeEventListener('mousedown', removeBehaviorsRestrictions);
+		window.removeEventListener('touchstart', removeBehaviorsRestrictions);
+	}
 
-			for (var i = 0; i < config.values.length; i++) {
-				var message = {
-					cmd : 'init',
-					config : {
-						id : config.values[i].id,
-						minValue : config.values[i].minValue,
-						maxValue : config.values[i].maxValue,
-						startValue : config.values[i].startValue,
-						offset : config.values[i].offset,
-						angle : config.values[i].angle,
-						ccw : config.values[i].ccw,
-						range : config.values[i].range,
-						animation : {
-							delay : config.animation.delay,
-							duration : config.animation.duration,
-							fn : config.animation.fn,
-							threshold : config.values[i].range / config.values[i].angle / 5
+	function startWebSocketWorker() {
+		if(typeof(webSocketWorker) == "undefined") {
+			webSocketWorker = new Worker("worker/webSocket.js");
+
+			webSocketWorker.onmessage = function(event) {
+				for (name in event.data) {
+					var data = event.data[name];
+					var dial = Gauge.dials[name];
+					if(dial) {
+						if (data.limits) {
+							dial.setLimits(data.limits.min, data.limits.max);
+						} else {
+							dial.setValue(data);
 						}
+					} else {
+						processWebsocketMessage(name, data);
 					}
-				};
-				// check if value specific anim options were given and override gauge's defaults
-				if (config.values[i].animation) {
-					if (config.values[i].animation.delay) 
-						message.config.animation.delay = config.values[i].animation.delay; 
-					if (config.values[i].animation.duration) 
-						message.config.animation.duration = config.values[i].animation.duration; 
-					if (config.values[i].animation.fn) 
-						message.config.animation.fn = config.values[i].animation.fn; 
 				}
-				handler.postMessage(message);
-			}
+			};
+		}
+		webSocketWorker.postMessage({cmd: 'start'});
+	}
+
+	function stopWebSocketWorker() {
+		if(webSocketWorker) {
+			webSocketWorker.postMessage({cmd: 'stop'});
+			webSocketWorker = undefined;
 		}
 	}
-}
-
-function startHandler() {
-	if (typeof (handler) == "undefined") {
-		handler = new PseudoWorker();
-		// handler = new Worker("worker/handler.js");
-		handler.onmessage = this.processHandlerMessage;
-	}
-	handler.postMessage({ cmd : 'start' });
-}
-
-function stopHandler() {
-	if (typeof (handler) != "undefined") {
-		handler.postMessage({ cmd : 'stop' });
-		handler = undefined;
-	}
-}
-
-this.processHandlerMessage = function(event) {
-	var data = event.data;
-	if (data.dial) {
-		var dial = data.dial;
-		var gauge = Gauge.DialCollection.get(dial.id);
-		if (gauge) {
-			if (dial.angle != undefined) {
-				gauge.drawNeedle(dial.id, dial.angle);
-				gauge.drawArc(dial.id, dial.arcStart, dial.arcEnd);
-			} else if (dial.text != undefined) {
-				gauge.drawValue(dial.id, dial.text);
-			}
-		}
-	} else if (data.node) {
-		var name = data.node.name;
-		var value = data.node.value;
-
+	
+	function processWebsocketMessage(name, value) {
 		// a bitfield value for annunciator fields
 		if (name.indexOf('bitfield') != -1) {
 			updateAnnunciatorFields(name, value);
@@ -125,23 +90,33 @@ this.processHandlerMessage = function(event) {
 			}
 		}
 	}
-}
 
-function updateSystemState(state) {
-	var div = document.getElementsByTagName('div')
-	for (i = 0; i < div.length; i++) {
-		var idStr = div[i].id;
-		if (idStr && idStr.indexOf('state_') != -1) {
-			if (idStr.indexOf('_' + state + '_') != -1) {
-				div[i].style.display = '';
-			} else {
+	function hideStateDivs() {
+		var div = document.getElementsByTagName('div')
+		for (i = 0; i < div.length; i++) {
+			var idStr = div[i].id;
+			if (idStr && idStr.indexOf('state_') != -1) {
 				div[i].style.display = 'none';
 			}
 		}
 	}
-}
 
-// send message via handler to websocket
-function sendMsg(message) {
-	handler.postMessage({ cmd: 'message', message: message });
-}
+	function updateSystemState(state) {
+		var div = document.getElementsByTagName('div')
+		for (i = 0; i < div.length; i++) {
+			var idStr = div[i].id;
+			if (idStr && idStr.indexOf('state_') != -1) {
+				if (idStr.indexOf('_' + state + '_') != -1) {
+					div[i].style.display = '';
+				} else {
+					div[i].style.display = 'none';
+				}
+			}
+		}
+	}
+
+	// send message to ichip via websocket
+	function sendMsg(message) {
+		webSocketWorker.postMessage(event.data);
+	}
+})();

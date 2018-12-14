@@ -40,7 +40,7 @@ function generateGauges(config) {
 
 	var rangeCurrent = calcRange(config.currentRange[0], config.currentRange[1], 3);
 	
-	var intervalEnergy = Math.round((config.energyRange[2] - config.energyRange[1]) / 2);
+	var intervalEnergy = Math.round((config.energyRange[1] - config.energyRange[0]) / 2);
 	var rangeEnergy = calcRange(config.energyRange[0], config.energyRange[2], 2);
 
 	var dcGauge = new Gauge({
@@ -49,9 +49,9 @@ function generateGauges(config) {
 		height      : 350,
 		gap         : 15,
 		colors      : gaugeColors,
-		values      : [
+		dials       : [
 			{
-				id          : 'dcVoltageGaugeValue',
+				id          : 'dcVoltageDial',
 				title       : "DC Voltage",
 				units       : 'Vdc',
 				minValue    : rangeBatteryVoltage.min,
@@ -61,34 +61,36 @@ function generateGauges(config) {
 				majorTicks  : rangeBatteryVoltage.ticks,
 				minorTicks  : 5,
 				highlights  : batteryVoltageHighlights,
+				drawArc     : true,
 				animation : {
 					duration : 1000
 				}
 
 			},
 			{
-				id          : 'energyConsumptionGaugeValue',
-				title       : "Energy",
-				units       : 'kWh',
+				id          : 'energyConsumptionDial',
+				title       : "SOC",
+				units       : '%',
 				minValue    : rangeEnergy.min,
 				maxValue    : rangeEnergy.max,
-				ccw         : true,
+				startValue  : rangeEnergy.max,
+				ccw         : false,
 				valueFormat : { "int" : 2, "dec" : 1 },
 				majorTicks  : rangeEnergy.ticks,
 				minorTicks  : 5,
 				highlights  : [
-					{ from : rangeEnergy.min, to : config.energyRange[1] - intervalEnergy, color : 'rgba(0, 255,  0, .65)' },
-					{ from : config.energyRange[1] - intervalEnergy, to : config.energyRange[1], color : 'rgba(180, 255,  0, .75)' },
-					{ from : config.energyRange[1], to : config.energyRange[2] - intervalEnergy, color : 'rgba(255, 220,  0, .75)' },
-					{ from : config.energyRange[2] - intervalEnergy, to : config.energyRange[2], color : 'rgba(255, 127,  0, .75)' },
-					{ from : config.energyRange[2], to : rangeEnergy.max, color : 'rgba(255, 0,  0, .75)' }
+					{ from : rangeEnergy.min, to : config.energyRange[1] - intervalEnergy, color : 'rgba(255, 0,  0, .75)' },
+					{ from : config.energyRange[1] - intervalEnergy, to : config.energyRange[1], color : 'rgba(255, 220,  0, .75)' },
+					{ from : config.energyRange[1], to : config.energyRange[1] + intervalEnergy, color : 'rgba(180, 255,  0, .75)' },
+					{ from : config.energyRange[1] + intervalEnergy, to : rangeEnergy.max, color : 'rgba(0, 255,  0, .65)' }
 		   		],
+				drawArc     : true,
 				animation : {
 					duration : 1000
 				}
 			},
 			{
-				id          : 'dcCurrentGaugeValue',
+				id          : 'dcCurrentDial',
 				title       : "DC Current",
 				units       : 'Amps',
 				minValue    : rangeCurrent.min,
@@ -97,12 +99,14 @@ function generateGauges(config) {
 				valueFormat : { "int" : 3, "dec" : 1 },
 				majorTicks  : rangeCurrent.ticks,
 				minorTicks  : 5,
+				drawLimits  : true,
 				highlights  : [
-		   			{ from : rangeCurrent.min, to : config.currentRange[0] * .9, color : 'rgba(255, 255, 0, .75)' },
-					{ from : config.currentRange[0] *.9, to : 0, color : 'rgba(0, 255, 0, .65)' },
-					{ from : 0, to : config.currentRange[1] * .9, color : 'rgba(0, 180,  255, .75)' },
-					{ from : config.currentRange[1] * .9, to : rangeCurrent.max, color : 'rgba(180, 180, 255, .75)' }
+		   			{ from : rangeCurrent.min, to : config.currentRange[0] * 0.5, color : 'rgba(255, 255, 0, .75)' },
+					{ from : config.currentRange[0] * 0.5, to : 0, color : 'rgba(0, 255, 0, .65)' },
+					{ from : 0, to : config.currentRange[1] * 0.5, color : 'rgba(0, 180,  255, .75)' },
+					{ from : config.currentRange[1] * 0.5, to : rangeCurrent.max, color : 'rgba(180, 120, 255, .75)' }
 				],
+				drawArc     : true,
 				animation : {
 					duration : 1000
 				}
@@ -117,9 +121,9 @@ function generateGauges(config) {
 		width       : 450,
 		height      : 450,
 		colors      : gaugeColors,
-		values      : [
-			{
-				id          : 'speedActualGaugeValue',
+		dials       : [
+/*			{
+				id          : 'speedActualDial',
 				title       : "RPM",
 				units       : '',
 				minValue    : rangeRpm.min,
@@ -133,12 +137,34 @@ function generateGauges(config) {
 					{ from : config.rpmRange[1] - 1000, to : config.rpmRange[1], color : 'rgba(255, 127, 0, .75)' },
 					{ from : config.rpmRange[1], to : rangeRpm.max, color : 'rgba(255, 0, 0, .75)' }
 				],
+				drawArc     : true,
 				animation : {
-					duration : 500
+					duration : 100
+				}
+			},
+*/
+			{
+				id          : 'throttleDial',
+				title       : "Throttle",
+				units       : '',
+				minValue    : -100,
+				maxValue    : 100,
+				valueFormat : { "int" : 3, "dec" : 0 },
+				majorTicks  : [ -100, -75, -50, -25, 0, 25, 50, 75, 100 ],
+				minorTicks  : 5,
+				highlights  : [
+					{ from : -100, to : -50, color : 'rgba(0, 255,  0, .65)' },
+					{ from : -50, to : 0, color : 'rgba(255, 255, 0, .75)' },
+					{ from : 0, to : 50, color : 'rgba(255, 127, 0, .75)' },
+					{ from : 50, to : 100, color : 'rgba(255, 0, 0, .75)' }
+				],
+				drawArc     : true,
+				animation : {
+					duration : 100
 				}
 			},
 			{
-				id          : 'torqueActualGaugeValue',
+				id          : 'torqueActualDial',
 				title       : "Torque",
 				units       : 'Nm',
 				minValue    : rangeTorque.min,
@@ -150,7 +176,11 @@ function generateGauges(config) {
 				highlights  : [
 					{ from : rangeTorque.min, to : 0, color : 'rgba(0, 255, 0, .65)' },
 					{ from : 0, to : rangeTorque.max, color : 'rgba(0, 180,  255, .75)' }
-				]
+				],
+				drawArc     : true,
+				animation : {
+					duration : 100
+				}
 			}
 		],
 	});
@@ -164,9 +194,9 @@ function generateGauges(config) {
 		width       : 350,
 		height      : 350,
 		colors      : gaugeColors,
-		values      : [
+		dials       : [
 			{
-				id          : 'temperatureMotorGaugeValue',
+				id          : 'temperatureMotorDial',
 				title       : "Motor",
 				units       : '\u2103',
 				minValue    : rangeMotor.min,
@@ -181,12 +211,13 @@ function generateGauges(config) {
 					{ from : config.motorTempRange[2] - intervalMotor, to : config.motorTempRange[2], color : 'rgba(255, 127, 0, .75)' },
 					{ from : config.motorTempRange[2], to : rangeMotor.max, color : 'rgba(255, 0, 0, .75)' }
 				],
+				drawArc     : true,
 				animation : {
 					duration : 1000
 				}
 			},
 			{
-				id          : 'temperatureControllerGaugeValue',
+				id          : 'temperatureControllerDial',
 				title       : "Controller",
 				units       : '\u2103',
 				minValue    : rangeController.min,
@@ -202,6 +233,7 @@ function generateGauges(config) {
 					{ from : config.controllerTempRange[2] - intervalController, to : config.controllerTempRange[2], color : 'rgba(255, 127, 0, .75)' },
 					{ from : config.controllerTempRange[2], to : rangeController.max, color : 'rgba(255, 0, 0, .75)' }
 				],
+				drawArc     : true,
 				animation : {
 					duration : 1000
 				}

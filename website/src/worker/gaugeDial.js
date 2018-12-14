@@ -14,13 +14,13 @@ function handleMessage(data) {
 		return;
 	}
 
-    postMessage({id : config.id, text: data});
+    postMessage({text : data.value});
 
-    var value = constrain(data, config.minValue, config.maxValue);
+    var value = constrain(data.value, config.minValue, config.maxValue);
 	var from = config.animation ? toValue : value;
 	toValue = value;
 
-	config.animation && (!config.animation.threshold || Math.abs(from - value) > config.animation.threshold) ? animate(from, value) : sendUpdate(value);
+	config.animation && (!config.animation.threshold || Math.abs(from - value) > config.animation.threshold)  && config.animation.fn ? animate(from, value) : sendUpdate(value);
 }
 
 function radians(degrees) {
@@ -36,7 +36,7 @@ function sendUpdate(value) {
 		cfg = config,  // reduce global searches
 		angle, arcStart, arcEnd
 	;
-	
+
 	if (value < 0) {
 		value = Math.abs(cfg.minValue - value);
 	} else if (cfg.minValue > 0) {
@@ -61,7 +61,7 @@ function sendUpdate(value) {
 		arcEnd = temp;
 	}
    
-    postMessage({id : cfg.id, arcStart : radians(90 + arcStart), arcEnd: radians(90 + arcEnd), angle: radians(angle)});
+    postMessage({arcStart : radians(90 + arcStart), arcEnd: radians(90 + arcEnd), angle: radians(angle)});
 }
 
 function _animate(opts) {
@@ -112,7 +112,7 @@ var animateFx = {
 
 function processConfig(config) {
 	this.config = config;
-	toValue = this.config.minValue;
+	toValue = this.config.startValue;
 	if (this.config.animation && this.config.animation.fn) {
 		this.config.animation.fn = animateFx[this.config.animation.fn];
 	}

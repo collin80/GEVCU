@@ -49,9 +49,9 @@
 		<init-param><param-name>~currentRange~</param-name><param-value>-200,200</param-value></init-param>
 		<init-param><param-name>~motorTempRange~</param-name><param-value>0,90,120</param-value></init-param>
 		<init-param><param-name>~controllerTempRange~</param-name><param-value>0,60,80</param-value></init-param>
-		<init-param><param-name>~batteryRangeLow~</param-name><param-value>297,337,348</param-value></init-param>
-		<init-param><param-name>~batteryRangeHigh~</param-name><param-value>402,416,428</param-value></init-param>
-		<init-param><param-name>~energyRange~</param-name><param-value>0,30,38</param-value></init-param>
+		<init-param><param-name>~batteryRangeLow~</param-name><param-value>297,357,368</param-value></init-param>
+		<init-param><param-name>~batteryRangeHigh~</param-name><param-value>387,405,418</param-value></init-param>
+		<init-param><param-name>~energyRange~</param-name><param-value>0,20,100</param-value></init-param>
 		<init-param><param-name>~powerRange~</param-name><param-value>-150,150</param-value></init-param>
 
 		<!-- devices.js -->

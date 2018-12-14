@@ -437,6 +437,7 @@ void ICHIPWIFI::loop()
     }
     if (millis() > lastSendTime + 1000) {
         Logger::debug(this, "response timeout");
+        lastSendTime = millis();
         sendBufferedCommand(); //something went wrong so reset state
     }
 }
@@ -1319,10 +1320,10 @@ void ICHIPWIFI::loadParametersDashboard()
         //TODO make params configurable
         setParam(Constants::currentRange, "-200,200");
         setParam(Constants::batteryRangeLow, "297,357,368");
-        setParam(Constants::batteryRangeHigh, "402,416,428");
+        setParam(Constants::batteryRangeHigh, "387,405,418");
         setParam(Constants::motorTempRange, "0,90,120");
         setParam(Constants::controllerTempRange, "0,60,80");
-        setParam(Constants::energyRange, "0,30,38");
+        setParam(Constants::energyRange, "0,20,100");
     }
 }
 
