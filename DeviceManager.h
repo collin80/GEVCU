@@ -31,10 +31,12 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include "MotorController.h"
 #include "Charger.h"
 #include "DcDcConverter.h"
+#include "BatteryManager.h"
 #include "Sys_Messages.h"
 #include "DeviceTypes.h"
 
 class Device;
+class Charger;
 class MotorController; // cyclic reference between MotorController and DeviceManager
 
 class DeviceManager
@@ -51,6 +53,7 @@ public:
     MotorController *getMotorController();
     Charger *getCharger();
     DcDcConverter *getDcDcConverter();
+    BatteryManager *getBatteryManager();
     Device *getDeviceByID(DeviceId);
     Device *getDeviceByType(DeviceType);
     void printDeviceList();
@@ -64,6 +67,7 @@ private:
     MotorController *motorController;
     DcDcConverter *dcDcConverter;
     Charger *charger;
+    BatteryManager *batteryManager;
 
     int8_t findDevice(Device *device);
 };

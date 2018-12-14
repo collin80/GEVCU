@@ -195,6 +195,29 @@ static const char* enableHeater = "enableHeater";
 static const char* powerSteering = "powerSteering";
 static const char* enableCreep = "enableCreep";
 
+static const char* packVoltage = "packVoltage";
+static const char* packCurrent = "packCurrent";
+static const char* soc = "soc";
+static const char* dischargeLimit = "dischargeLimit";
+static const char* chargeLimit = "chargeLimit";
+static const char* chargeAllowed = "chargeAllowed";
+static const char* dischargeAllowed = "dischargeAllowed";
+static const char* lowestCellTemp = "lowestCellTemp";
+static const char* highestCellTemp = "highestCellTemp";
+static const char* lowestCellVolts = "lowestCellVolts";
+static const char* highestCellVolts = "highestCellVolts";
+static const char* averageCellVolts = "averageCellVolts";
+static const char* deltaCellVolts = "deltaCellVolts";
+static const char* lowestCellResistance = "lowestCellResistance";
+static const char* highestCellResistance = "highestCellResistance";
+static const char* averageCellResistance = "averageCellResistance";
+static const char* deltaCellResistance = "deltaCellResistance";
+static const char* lowestCellTempId = "lowestCellTempId";
+static const char* highestCellTempId = "highestCellTempId";
+static const char* lowestCellVoltsId = "lowestCellVoltsId";
+static const char* highestCellVoltsId = "highestCellVoltsId";
+static const char* lowestCellResistanceId = "lowestCellResistanceId";
+static const char* highestCellResistanceId = "highestCellResistanceId";
 }
 
 #endif /* CONSTANTS_H_ */

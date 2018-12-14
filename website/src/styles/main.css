@@ -100,7 +100,7 @@ button#stopCharge {
 	text-shadow: 0em 0em 0.4em #ddd;
 }
 
-.error.systemState {
+.systemState .error {
 	text-shadow: 0em 0em 0.4em #000;
 }
 
@@ -171,9 +171,8 @@ input#inputCurrentLevel {
 .switch {
 	position: relative;
 	display: inline-block;
-	vertical-align: bottom;
-	width: 5.6em;
-	height: 2.0em;
+	width: 5.0em;
+	height: 1.5em;
 	padding: 0.3em;
 	background-color: white;
 	border-radius: 1.8em;
@@ -239,10 +238,10 @@ input#inputCurrentLevel {
 
 .switch-handle {
 	position: absolute;
-	top: 0.4em;
-	left: 0.4em;
-	width: 1.8em;
-	height: 1.8em;
+	top: 0.35em;
+	left: 0.35em;
+	width: 1.4em;
+	height: 1.4em;
 	background: white;
 	border-radius: 1.0em;
 	box-shadow: 0.1em 0.1em 0.5em rgba(0, 0, 0, 0.2);
@@ -278,9 +277,8 @@ input#inputCurrentLevel {
 }
 
 .buttonBar {
-	width: 80%;
 	display: inline-flex;
-	margin-top: -3.7em;
+	flex-grow: 1;
 }
 
 .buttonBarCell {
@@ -377,6 +375,44 @@ img.annunciatorOff {
 	opacity: .05;
 }
 
+div#batteries {
+	padding: 0px;
+}
+
+div#batteryLevels {
+	width: 1130px;
+	text-align: center;
+  margin-left:auto; 
+    margin-right:auto;
+}
+
+div#batteryLevels div {
+	display: inline-table;
+	height: 20px;
+	width: 110px;
+	border: 2px solid rgba(0, 0, 0, 0.6);
+	text-align: center;
+	font-size: 16px;
+	font-weight: bold;
+	padding: 2px 0px 0px 0px;
+	margin: 0px -5px -3px -1px;
+	background: rgba(0, 0, 0, 0.4);
+	color: #000;
+}
+
+div#batteryLevels div.warn {
+	background: #ffbb00;
+}
+
+div#batteryLevels div.bad {
+	background: #ff2200;
+}
+
+div#batteryLevels div.ok {
+	background: #22ee22;
+}
+
+
 img#brakeHold {
 	position: absolute;
     top: 110px;
@@ -425,14 +461,23 @@ div.foldAnnunciators {
 	color: #888;
 	position: fixed;
 	bottom: 0.5em;
-	left: 0.5em;
+	left: 1.5em;
 }
+
+div.foldBatteries {
+	font-size: 2em;
+	font-weight: bold;
+	color: #888;
+	position: fixed;
+	bottom: 0.5em;
+	left: 2.5em;
+}
+
 
 div.settings {
 	position: fixed;
 	bottom: 1em;
-	right: 1em;
-	"
+	right: 2em;
 }
 
 input[type=range] {

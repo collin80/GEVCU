@@ -31,7 +31,7 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 #include <Arduino.h>
 #include "config.h"
-#include "Device.h"
+#include "DeviceManager.h"
 
 class ChargerConfiguration : public DeviceConfiguration
 {
@@ -86,7 +86,7 @@ protected:
 private:
     uint64_t ampereMilliSeconds; // ampere hours put into the battery in 1 ampere-milliseconds (divide by 3600000 to get Ah)
     uint32_t wattSeconds; // watt hours put into the battery in 1 watt-second (divide by 3600000 to get kWh)
-    uint16_t requestedOutputCurrent; // calculated current to be delivered by the charger, use getOutputCurrent() to retrieve this value - never use it directly !!
+    uint16_t requestedOutputCurrent; // calculated current to be delivered by the charger (in 0.1A), use getOutputCurrent() to retrieve this value - never use it directly !!
 };
 
 #endif

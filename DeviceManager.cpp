@@ -46,6 +46,7 @@ DeviceManager::DeviceManager()
     motorController = NULL;
     charger = NULL;
     dcDcConverter = NULL;
+    batteryManager = NULL;
 
     for (int i = 0; i < CFG_DEV_MGR_MAX_DEVICES; i++) {
         devices[i] = NULL;
@@ -155,15 +156,8 @@ void DeviceManager::setParameter(DeviceType deviceType, DeviceId deviceId, uint3
 
 Throttle *DeviceManager::getAccelerator()
 {
-    //try to find one if nothing registered. Cache it if we find one
     if (!throttle) {
         throttle = (Throttle *) getDeviceByType(DEVICE_THROTTLE);
-    }
-    //if there is no throttle then instantiate a dummy throttle
-    //so down range code doesn't puke
-    if (!throttle) {
-        Logger::debug("getAccelerator() called but there is no registered accelerator!");
-        return 0; //NULL!
     }
     return throttle;
 }
@@ -173,10 +167,6 @@ Throttle *DeviceManager::getBrake()
     if (!brake) {
         brake = (Throttle *) getDeviceByType(DEVICE_BRAKE);
     }
-    if (!brake) {
-        //Logger::debug("getBrake() called but there is no registered brake!");
-        return 0; //NULL!
-    }
     return brake;
 }
 
@@ -184,10 +174,6 @@ MotorController *DeviceManager::getMotorController()
 {
     if (!motorController) {
         motorController = (MotorController *) getDeviceByType(DEVICE_MOTORCTRL);
-    }
-    if (!motorController) {
-        Logger::debug("getMotorController() called but there is no registered motor controller!");
-        return 0; //NULL!
     }
     return motorController;
 }
@@ -197,10 +183,6 @@ Charger *DeviceManager::getCharger()
     if (!charger) {
         charger = (Charger *) getDeviceByType(DEVICE_CHARGER);
     }
-    if (!charger) {
-        Logger::debug("getCharger() called but there is no registered charger!");
-        return 0; //NULL!
-    }
     return charger;
 }
 
@@ -209,13 +191,16 @@ DcDcConverter *DeviceManager::getDcDcConverter()
     if (!dcDcConverter) {
         dcDcConverter = (DcDcConverter *) getDeviceByType(DEVICE_DCDC);
     }
-    if (!dcDcConverter) {
-        Logger::debug("getDcDcConverter() called but there is no registered DC-DC converter!");
-        return 0; //NULL!
-    }
     return dcDcConverter;
 }
 
+BatteryManager *DeviceManager::getBatteryManager()
+{
+    if (!batteryManager) {
+        batteryManager = (BatteryManager *) getDeviceByType(DEVICE_BMS);
+    }
+    return batteryManager;
+}
 
 /*
 Allows one to request a reference to a device with the given ID. This lets code specifically request a certain

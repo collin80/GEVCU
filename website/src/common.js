@@ -22,6 +22,9 @@ function showTab(pageId) {
 	if (pageId == 'controls') {
 		resizeThrottleCanvas();
 	}
+	if (pageId == 'dashboard') {
+		dashboard.activate();
+	}
 	loadData(pageId);
 }
 
@@ -35,17 +38,20 @@ function loadPage(pageId) {
 			resizeThrottleCanvas();
 		}
 		if (pageId == 'dashboard') {
-			loadPage("annunciator");
-
 			// load config for dashboard gauges, then generate them
 			ajaxCall("config/dashboard.js", function (response) {
 				var data = JSON.parse(response);
 				generateGauges(data);
-				initHandler();
 			});
+			loadPage("annunciator");
+			loadPage("batteries");
+			dashboard.hideStateDivs();
 		}
 		if (pageId == 'annunciator') {
 			foldAnnunciator(false);
+		}
+		if (pageId == 'batteries') {
+			foldBatteries(false);
 		}
 	});
 }
@@ -93,7 +99,7 @@ function loadData(pageId) {
 	ajaxCall('config/' + pageId + '.js', function(response) {
 		var data = JSON.parse(response);
 
-		hideDeviceTr();
+//		hideDeviceTr();
 		for (name in data) {
 			var value = data[name];
 			if (name.indexOf('device_x') == 0 && value == '1') {

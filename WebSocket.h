@@ -21,7 +21,7 @@
 struct ParamCache {
     uint32_t timeRunning;
     int16_t torqueActual;
-//    int16_t throttle;
+    int16_t throttle;
     int16_t speedActual;
     uint16_t dcVoltage;
     int16_t dcCurrent;
@@ -59,6 +59,30 @@ struct ParamCache {
     bool enableRegen;
     bool enableHeater;
     bool enableCreep;
+
+    uint16_t packVoltage;
+    int16_t packCurrent;
+    uint16_t soc;
+    uint16_t dischargeLimit;
+    uint16_t chargeLimit;
+    bool chargeAllowed;
+    bool dischargeAllowed;
+    int16_t lowestCellTemp;
+    int16_t highestCellTemp;
+    uint16_t lowestCellVolts;
+    uint16_t highestCellVolts;
+    uint16_t averageCellVolts;
+    uint16_t deltaCellVolts;
+    uint16_t lowestCellResistance;
+    uint16_t highestCellResistance;
+    uint16_t averageCellResistance;
+    uint16_t deltaCellResistance;
+    uint8_t lowestCellTempId;
+    uint8_t highestCellTempId;
+    uint8_t lowestCellVoltsId;
+    uint8_t highestCellVoltsId;
+    uint8_t lowestCellResistanceId;
+    uint8_t highestCellResistanceId;
 };
 
 class WebSocket : public SocketProcessor {
@@ -83,6 +107,7 @@ private:
     String processData(char *input);
     String prepareWebSocketFrame(uint8_t opcode, String data);
     String getResponseKey(String key);
+    void processParameter(uint8_t *cacheParam, uint8_t value, const char *key);
     void processParameter(int16_t *cacheParam, int16_t value, const char *key);
     void processParameter(uint16_t *cacheParam, uint16_t value, const char *key);
     void processParameter(int32_t *cacheParam, int32_t value, const char *key);

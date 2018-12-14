@@ -282,7 +282,7 @@ String WebSocket::generateUpdate()
     isFirst = true;
 
     if (motorController) {
-//        processParameter(&paramCache.throttle, motorController->getThrottleLevel(), Constants::throttle, 10);
+        processParameter(&paramCache.throttle, motorController->getThrottleLevel(), Constants::throttle, 10);
         processParameter(&paramCache.torqueActual, motorController->getTorqueActual(), Constants::torqueActual, 10);
         processParameter((int16_t *) &paramCache.gear, (int16_t) motorController->getGear(), Constants::gear);
         if (updateCounter == 0 || updateCounter == 5) { // very fluctuating values which would unnecessarily strain the cpu (of a tablet)
@@ -306,6 +306,46 @@ String WebSocket::generateUpdate()
         addParam(Constants::timeRunning, getTimeRunning(), false);
         processParameter(&paramCache.systemState, (int16_t) status.getSystemState(), Constants::systemState);
 
+        BatteryManager* batteryManager = deviceManager.getBatteryManager();
+        if (batteryManager) {
+            if (batteryManager->hasPackVoltage())
+                processParameter(&paramCache.packVoltage, batteryManager->getPackVoltage(), Constants::packVoltage, 10);
+            if (batteryManager->hasPackCurrent())
+                processParameter(&paramCache.packCurrent, batteryManager->getPackCurrent(), Constants::packCurrent, 10);
+            if (batteryManager->hasSoc())
+                processParameter(&paramCache.soc, (uint16_t)(batteryManager->getSoc() * 25), Constants::soc, 100);
+            if (batteryManager->hasDischargeLimit())
+                processParameter(&paramCache.dischargeLimit, batteryManager->getDischargeLimit(), Constants::dischargeLimit);
+            else
+                processParameter(&paramCache.dischargeAllowed, batteryManager->isDischargeAllowed(), Constants::dischargeAllowed);
+            if (batteryManager->hasChargeLimit())
+                processParameter(&paramCache.chargeLimit, batteryManager->getChargeLimit(), Constants::chargeLimit);
+            else
+                processParameter(&paramCache.chargeAllowed, batteryManager->isChargeAllowed(), Constants::chargeAllowed);
+            if (batteryManager->hasCellTemperatures()) {
+                processParameter(&paramCache.lowestCellTemp, batteryManager->getLowestCellTemp(), Constants::lowestCellTemp, 10);
+                processParameter(&paramCache.highestCellTemp, batteryManager->getHighestCellTemp(), Constants::highestCellTemp, 10);
+                processParameter(&paramCache.lowestCellTempId, batteryManager->getLowestCellTempId(), Constants::lowestCellTempId);
+                processParameter(&paramCache.highestCellTempId, batteryManager->getHighestCellTempId(), Constants::highestCellTempId);
+            }
+            if (batteryManager->hasCellVoltages()) {
+                processParameter(&paramCache.lowestCellVolts, batteryManager->getLowestCellVolts(), Constants::lowestCellVolts, 1000);
+                processParameter(&paramCache.highestCellVolts, batteryManager->getHighestCellVolts(), Constants::highestCellVolts, 1000);
+                processParameter(&paramCache.averageCellVolts, batteryManager->getAverageCellVolts(), Constants::averageCellVolts, 10000);
+                processParameter(&paramCache.deltaCellVolts, batteryManager->getHighestCellVolts() - batteryManager->getLowestCellVolts(), Constants::deltaCellVolts, 10000);
+                processParameter(&paramCache.lowestCellVoltsId, batteryManager->getLowestCellVoltsId(), Constants::lowestCellVoltsId);
+                processParameter(&paramCache.highestCellVoltsId, batteryManager->getHighestCellVoltsId(), Constants::highestCellVoltsId);
+            }
+            if (batteryManager->hasCellResistance()) {
+                processParameter(&paramCache.lowestCellResistance, batteryManager->getLowestCellResistance(), Constants::lowestCellResistance, 100);
+                processParameter(&paramCache.highestCellResistance, batteryManager->getHighestCellResistance(), Constants::highestCellResistance, 100);
+                processParameter(&paramCache.averageCellResistance, batteryManager->getAverageCellResistance(), Constants::averageCellResistance, 100);
+                processParameter(&paramCache.deltaCellResistance, batteryManager->getHighestCellResistance() - batteryManager->getLowestCellResistance(), Constants::deltaCellResistance, 10000);
+                processParameter(&paramCache.lowestCellResistanceId, batteryManager->getLowestCellResistanceId(), Constants::lowestCellResistanceId);
+                processParameter(&paramCache.highestCellResistanceId, batteryManager->getHighestCellResistanceId(), Constants::highestCellResistanceId);
+            }
+        }
+
         DcDcConverter* dcDcConverter = deviceManager.getDcDcConverter();
         if (dcDcConverter) {
             processParameter(&paramCache.dcDcHvVoltage, dcDcConverter->getHvVoltage(), Constants::dcDcHvVoltage, 10);
@@ -327,7 +367,10 @@ String WebSocket::generateUpdate()
                 uint16_t secs = millis() / 1000; //TODO calc mins
                 processParameter(&paramCache.chargeHoursRemain, secs / 60, Constants::chargeHoursRemain);
                 processParameter(&paramCache.chargeMinsRemain, secs % 60, Constants::chargeMinsRemain);
-                processParameter(&paramCache.chargeLevel, map (secs, 0 , 28800, 0, 100), Constants::chargeLevel);
+                if (batteryManager && batteryManager->hasSoc())
+                    processParameter(&paramCache.chargeLevel, batteryManager->getSoc(), Constants::chargeLevel);
+                else
+                    processParameter(&paramCache.chargeLevel, map (secs, 0 , 28800, 0, 100), Constants::chargeLevel);
             }
         }
 
@@ -459,13 +502,29 @@ void WebSocket::addParam(const char* key, char *value, bool isNumeric)
  * \param value the current value to be analyzed / added
  * \param name the name of the parameter
  */
+void WebSocket::processParameter(uint8_t *cacheParam, uint8_t value, const char *name)
+{
+    if (*cacheParam == value)
+        return;
+    *cacheParam = value;
+    sprintf(buffer, "%u", value);
+    addParam(name, buffer, true);
+}
+
+/**
+ * \brief Add a parameter to the response data if it has changed against the cached parameter
+ *
+ * \param cacheParam a pointer to the cached value against which the value is compared
+ * \param value the current value to be analyzed / added
+ * \param name the name of the parameter
+ */
 void WebSocket::processParameter(int16_t *cacheParam, int16_t value, const char *name)
 {
-    if (*cacheParam != value) {
-        *cacheParam = value;
-        sprintf(buffer, "%d", value);
-        addParam(name, buffer, true);
-    }
+    if (*cacheParam == value)
+        return;
+    *cacheParam = value;
+    sprintf(buffer, "%d", value);
+    addParam(name, buffer, true);
 }
 
 /**
@@ -477,11 +536,11 @@ void WebSocket::processParameter(int16_t *cacheParam, int16_t value, const char 
  */
 void WebSocket::processParameter(uint16_t *cacheParam, uint16_t value, const char *name)
 {
-    if (*cacheParam != value) {
-        *cacheParam = value;
-        sprintf(buffer, "%u", value);
-        addParam(name, buffer, true);
-    }
+    if (*cacheParam == value)
+        return;
+    *cacheParam = value;
+    sprintf(buffer, "%u", value);
+    addParam(name, buffer, true);
 }
 
 /**
@@ -493,11 +552,11 @@ void WebSocket::processParameter(uint16_t *cacheParam, uint16_t value, const cha
  */
 void WebSocket::processParameter(int32_t *cacheParam, int32_t value, const char *name)
 {
-    if (*cacheParam != value) {
-        *cacheParam = value;
-        sprintf(buffer, "%ld", value);
-        addParam(name, buffer, true);
-    }
+    if (*cacheParam == value)
+        return;
+    *cacheParam = value;
+    sprintf(buffer, "%ld", value);
+    addParam(name, buffer, true);
 }
 
 /**
@@ -509,11 +568,11 @@ void WebSocket::processParameter(int32_t *cacheParam, int32_t value, const char 
  */
 void WebSocket::processParameter(uint32_t *cacheParam, uint32_t value, const char *name)
 {
-    if (*cacheParam != value) {
-        *cacheParam = value;
-        sprintf(buffer, "%lu", value);
-        addParam(name, buffer, true);
-    }
+    if (*cacheParam == value)
+        return;
+    *cacheParam = value;
+    sprintf(buffer, "%lu", value);
+    addParam(name, buffer, true);
 }
 
 /**
@@ -526,14 +585,13 @@ void WebSocket::processParameter(uint32_t *cacheParam, uint32_t value, const cha
  */
 void WebSocket::processParameter(int16_t *cacheParam, int16_t value, const char *name, int divisor)
 {
-    if (*cacheParam != value) {
-        *cacheParam = value;
-
-        char format[10];
-        sprintf(format, "%%.%df", round(log10(divisor)));
-        sprintf(buffer, format, static_cast<float>(value) / divisor);
-        addParam(name, buffer, true);
-    }
+    if (*cacheParam == value)
+        return;
+    *cacheParam = value;
+    char format[10];
+    sprintf(format, "%%.%df", round(log10(divisor)));
+    sprintf(buffer, format, static_cast<float>(value) / divisor);
+    addParam(name, buffer, true);
 }
 
 /**
@@ -546,14 +604,13 @@ void WebSocket::processParameter(int16_t *cacheParam, int16_t value, const char 
  */
 void WebSocket::processParameter(uint16_t *cacheParam, uint16_t value, const char *name, int divisor)
 {
-    if (*cacheParam != value) {
-        *cacheParam = value;
-
-        char format[10];
-        sprintf(format, "%%.%df", round(log10(divisor)));
-        sprintf(buffer, format, static_cast<float>(value) / divisor);
-        addParam(name, buffer, true);
-    }
+    if (*cacheParam == value)
+        return;
+    *cacheParam = value;
+    char format[10];
+    sprintf(format, "%%.%df", round(log10(divisor)));
+    sprintf(buffer, format, static_cast<float>(value) / divisor);
+    addParam(name, buffer, true);
 }
 
 /**
@@ -566,14 +623,13 @@ void WebSocket::processParameter(uint16_t *cacheParam, uint16_t value, const cha
  */
 void WebSocket::processParameter(int32_t *cacheParam, int32_t value, const char *name, int divisor)
 {
-    if (*cacheParam != value) {
-        *cacheParam = value;
-
-        char format[10];
-        sprintf(format, "%%.%df", round(log10(divisor)));
-        sprintf(buffer, format, static_cast<float>(value) / divisor);
-        addParam(name, buffer, true);
-    }
+    if (*cacheParam == value)
+        return;
+    *cacheParam = value;
+    char format[10];
+    sprintf(format, "%%.%df", round(log10(divisor)));
+    sprintf(buffer, format, static_cast<float>(value) / divisor);
+    addParam(name, buffer, true);
 }
 
 /**
@@ -586,14 +642,14 @@ void WebSocket::processParameter(int32_t *cacheParam, int32_t value, const char 
  */
 void WebSocket::processParameter(uint32_t *cacheParam, uint32_t value, const char *name, int divisor)
 {
-    if (*cacheParam != value) {
-        *cacheParam = value;
+    if (*cacheParam == value)
+        return;
+    *cacheParam = value;
 
-        char format[10];
-        sprintf(format, "%%.%df", round(log10(divisor)));
-        sprintf(buffer, format, static_cast<float>(value) / divisor);
-        addParam(name, buffer, true);
-    }
+    char format[10];
+    sprintf(format, "%%.%df", round(log10(divisor)));
+    sprintf(buffer, format, static_cast<float>(value) / divisor);
+    addParam(name, buffer, true);
 }
 
 /**
@@ -605,12 +661,11 @@ void WebSocket::processParameter(uint32_t *cacheParam, uint32_t value, const cha
  */
 void WebSocket::processParameter(bool *cacheParam, bool value, const char *name)
 {
-    if (*cacheParam != value) {
-        *cacheParam = value;
-
-        strcpy(buffer, (value ? "true" : "false"));
-        addParam(name, buffer, true);
-    }
+    if (*cacheParam == value)
+        return;
+    *cacheParam = value;
+    strcpy(buffer, (value ? "true" : "false"));
+    addParam(name, buffer, true);
 }
 
 /**
@@ -630,4 +685,3 @@ char *WebSocket::getTimeRunning()
     sprintf(buffer, "%02d:%02d:%02d", hours, minutes, seconds);
     return buffer;
 }
-

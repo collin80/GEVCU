@@ -81,8 +81,10 @@ protected:
     uint16_t packVoltage; //tenths of a volt
     int16_t packCurrent; //tenths of an amp
     uint8_t soc; //state of charge in 0.5%
+    uint16_t packAmphours; // Ah of pack in 0.1Ah
     uint16_t dischargeLimit, chargeLimit; // in 1A
     bool allowCharge, allowDischarge;
+    int16_t systemTemperature; // in 0.1C
     int16_t lowestCellTemp, highestCellTemp; // in 0.1C
     uint8_t lowestCellTempId, highestCellTempId; // 0-254, 255=undefined
     uint16_t lowestCellVolts, highestCellVolts, averageCellVolts; // in 0.0001V

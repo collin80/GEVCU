@@ -34,8 +34,10 @@ BatteryManager::BatteryManager() :
     packVoltage = 0;
     packCurrent = 0;
     soc = 0;
+    packAmphours = 0;
     allowCharge = allowDischarge = false;
     chargeLimit = dischargeLimit = 0;
+    systemTemperature = 0;
     lowestCellTemp = highestCellTemp = 0;
     lowestCellTempId = highestCellTempId = ID_UNKNOWN;
     lowestCellVolts = highestCellVolts = averageCellVolts = 0;

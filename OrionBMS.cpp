@@ -34,6 +34,9 @@ OrionBMS::OrionBMS() :
     prefsHandler = new PrefHandler(ORIONBMS);
     commonName = "Orion BMS";
     relayStatus = 0;
+    flags = 0;
+    currentLimit = 0;
+    packSummedVoltage = 0;
 }
 
 void OrionBMS::setup()
@@ -62,45 +65,25 @@ void OrionBMS::handleCanFrame(CAN_FRAME *frame)
     byte *data = frame->data.bytes;
 
     switch (frame->id) {
-    case CAN_ID_VALUES_1: //TODO increase interval from 8ms to ...ms
+    case CAN_ID_VALUES_1:
         packCurrent = ((data[0] << 8) | data[1]); // byte 0+1: pack current (0.1A)
         packVoltage = ((data[2] << 8) | data[3]); // byte 2+3: pack voltage (0.1V)
-        // byte 4: CRC
+        packSummedVoltage = ((data[4] << 8) | data[5]); // byte 4+5: pack voltage (0.1V)
+        flags = data[6];
+        systemTemperature = data[7] * 10; // byte 7: temperature of BMS (1C)
+        if (Logger::isDebug()) {
+            Logger::debug(this, "pack current: %fA, voltage: %fV (summed: %fV), flags: %#08x, temp: %dC",
+                    (float) packCurrent / 10.0F, (float) packVoltage / 10.0F, (float) packSummedVoltage / 10.0F, flags, systemTemperature);
+        }
         break;
 
     case CAN_ID_VALUES_2:
-        dischargeLimit = data[0]; // byte 0: pack discharge current limit (DCL) (1A)
-        chargeLimit = data[1]; // byte 1: pack charge current limit (CCL) (1A)
-        // byte 2: (optional: rolling counter 0-255)
-        // byte 3: simulated SOC (NOT NEEDED, only for plugin hybrids)
-        highestCellTemp = data[4] * 10; // byte 4: high temperature (1C)
-        lowestCellTemp = data[5] * 10; // byte 5: low temperature (1C)
-        // byte 6: CRC
-        // byte 7:
-        break;
-
-    case CAN_ID_VALUES_3:
-        relayStatus = data[0]; // byte 0: relay status
-            // Bit #1 (0x01): Discharge relay enabled
-            // Bit #2 (0x02): Charge relay enabled
-            // Bit #3 (0x04): Charger safety enabled
-            // Bit #4 (0x08): Malfunction indicator active (DTC status)
-            // Bit #5 (0x10): Multi-Purpose Input signal status
-            // Bit #6 (0x20): Always-on signal status
-            // Bit #7 (0x40): Is-Ready signal status
-            // Bit #8 (0x80): Is-Charging signal status
-        soc = data[1]; // byte 1: pack SOC (0.5%)
-//        packResistance = ((data[2] << 8) | data[3]); // byte 2+3: pack resistance (1mOhm)
-//        packOpenVoltage = ((data[4] << 8) | data[5]); // byte 4+5: pack open voltage (0.1V)
-//        packAmpHours = data[6]; // byte 6: pack amphours (0.1Ah)
-        // byte 7: CRC
-        break;
-
-    case CAN_ID_VALUES_4:
-//        packHealth = data[0]; // byte 0: pack state of health (1%)
-//        packDepthOfDischarge = data[1]; // byte 1: pack depth of discharge (0.5%)
-//        packCycles = ((data[2] << 8) | data[3]); // byte 2+3: pack cycles (1 Cycle)
-//        currentLimitStatus = data[4]; // byte 4: current limit status
+//        if (checksumOk) {
+            dischargeLimit = data[0]; // byte 0: pack discharge current limit (DCL) (1A)
+            allowDischarge = (dischargeLimit > 0);
+            chargeLimit = data[1]; // byte 1: pack charge current limit (CCL) (1A)
+            allowCharge = (chargeLimit > 0);
+            currentLimit = data[2]; // this is acutally a 2 byte flag ?!?!?
             //DCL Reduced Due To Low SOC (Bit #0)
             //DCL Reduced Due To High Cell Resistance (Bit #1)
             //DCL Reduced Due To Temperature (Bit #2)
@@ -115,24 +98,62 @@ void OrionBMS::handleCanFrame(CAN_FRAME *frame)
             //CCL Reduced Due To High Pack Voltage (Bit #13)
             //CCL Reduced Due To Charger Latch (Bit #14): This means the CCL is likely 0A because the charger has been turned off. This latch is removed when the Charge Power signal is removed and re-applied (ie: unplugging the car and plugging it back in).
             //CCL Reduced Due To Alternate Current Limit [MPI] (Bit #15)
-//        internalTemp = data[1]; // byte 5: internal temperature (1C)
+            relayStatus = data[3];
+            // Bit #1 (0x01): Discharge relay enabled
+            // Bit #2 (0x02): Charge relay enabled
+            // Bit #3 (0x04): Charger safety enabled
+            // Bit #4 (0x08): Malfunction indicator active (DTC status)
+            // Bit #5 (0x10): Multi-Purpose Input signal status
+            // Bit #6 (0x20): Always-on signal status
+            // Bit #7 (0x40): Is-Ready signal status
+            // Bit #8 (0x80): Is-Charging signal status
+            soc = data[4]; // byte 4: pack state of charge (0.5%)
+            packAmphours = ((data[5] << 8) | data[6]); // byte 5+6: remaining Ah of pack (in 0.1Ah)
+
+            if (Logger::isDebug()) {
+                Logger::debug(this, "discharge limit: %dA, charge limit: %dA, limit flags: %#08x, relay: %#08x, soc: %f%%, pack capacity: %f Ah",
+                        dischargeLimit, chargeLimit, currentLimit, relayStatus, (float) soc / 2.0F, (float) packAmphours / 10.0F);
+            }
+//        }
         break;
 
-    case CAN_ID_CELL_VOLTAGE:
+    case CAN_ID_VALUES_3:
         lowestCellVolts = ((data[0] << 8) | data[1]); // byte 0+1: low cell voltage (0.0001V)
         lowestCellVoltsId = data[2]; // byte 2: low cell voltage ID (0-180)
         highestCellVolts = ((data[3] << 8) | data[4]); // byte 3+4: high cell voltage (0.0001V)
         highestCellVoltsId = data[5]; // byte 5: high cell voltage ID (0-180)
         averageCellVolts = ((data[6] << 8) | data[7]); // byte 6+7: average cell voltage (0.0001V)
+        if (Logger::isDebug()) {
+            Logger::debug(this, "low cell: %fV (%d), high cell: %fV (%d), avg: %fV",
+                    (float) lowestCellVolts / 10000.0F, lowestCellVoltsId, (float) highestCellVolts / 10000.0F, highestCellVoltsId, (float) averageCellVolts / 10000.0F);
+        }
+        break;
+
+    case CAN_ID_VALUES_4:
+        lowestCellResistance = ((data[0] << 8) | data[1]); // byte 0+1: low cell resistance (0.01 mOhm)
+        lowestCellResistanceId = data[2]; // byte 2: low cell resistance ID (0-180)
+        highestCellResistance = ((data[3] << 8) | data[4]); // byte 3+4: high cell resistance (0.01 mOhm)
+        highestCellResistanceId = data[5]; // byte 5: high cell resistance ID (0-180)
+        averageCellResistance = ((data[6] << 8) | data[7]); // byte 6+7: average cell resistance (0.01 mOhm)
+        if (Logger::isDebug()) {
+            Logger::debug(this, "low cell: %fmOhm (%d), high cell: %fmOhm (%d), avg: %fmOhm",
+                    (float) lowestCellResistance / 100.0F, lowestCellResistanceId, (float) highestCellResistance / 100.0F, highestCellResistanceId, (float) averageCellResistance / 100.0F);
+        }
+        break;
+
+    case CAN_ID_CELL_VOLTAGE:
         break;
 
     case CAN_ID_CELL_RESISTANCE:
-        lowestCellResistance = ((data[0] << 8) | data[1]); // byte 0+1: low cell resistance (0.01mOhm)
-        lowestCellResistanceId = data[2]; // byte 2: low cell resistance ID (0-180)
-        highestCellResistance = ((data[3] << 8) | data[4]); // byte 3+4: high cell resistance (0.01mOhm)
-        highestCellResistanceId = data[5]; // byte 5: high cell resistance ID (0-180)
-        averageCellResistance = ((data[6] << 8) | data[7]); // byte 6+7: average cell resistance (0.01mOhm)
         break;
+
+//        lowestCellTempId, highestCellTempId; // 0-254, 255=undefined
+//        packResistance = ((data[2] << 8) | data[3]); // byte 2+3: pack resistance (1mOhm)
+//        packOpenVoltage = ((data[4] << 8) | data[5]); // byte 4+5: pack open voltage (0.1V)
+//        packHealth = data[0]; // byte 0: pack state of health (1%)
+//        packDepthOfDischarge = data[1]; // byte 1: pack depth of discharge (0.5%)
+//        packCycles = ((data[2] << 8) | data[3]); // byte 2+3: pack cycles (1 Cycle)
+
     }
 }
 

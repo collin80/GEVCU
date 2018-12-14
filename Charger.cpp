@@ -122,6 +122,7 @@ uint16_t Charger::calculateOutputCurrent()
 {
     if (powerOn && running) {
         ChargerConfiguration *config = (ChargerConfiguration *) getConfiguration();
+        BatteryManager *batteryManager = deviceManager.getBatteryManager();
         int16_t temperature;
 
 //TODO inmplement temp hysterese / derating according to the following config variables:
@@ -132,8 +133,16 @@ uint16_t Charger::calculateOutputCurrent()
 //        uint16_t hystereseResumeTemperature; // 0.1 deg Celsius where charging is resumed
 
         // in constant voltage phase decrease current accordingly
-        if (batteryVoltage > config->constantVoltage) {
-            requestedOutputCurrent--; //TODO verify if this is an appropriate way to decrease the current
+        if (batteryVoltage > config->constantVoltage && requestedOutputCurrent > 0) {
+            requestedOutputCurrent--;
+        }
+        if (batteryManager) {
+            if (batteryManager->hasChargeLimit()) {
+                requestedOutputCurrent = batteryManager->getChargeLimit() * 10;
+            } else if (batteryManager->hasAllowCharging() && !batteryManager->isChargeAllowed()) {
+                requestedOutputCurrent = 0;
+                Logger::info(this, "BMS terminated charging");
+            }
         }
         if (requestedOutputCurrent < config->terminateCurrent ||
                 ((millis() - chargeStartTime) > 5000 && batteryCurrent < config->terminateCurrent)) { // give the charger 5sec to ramp up the current
