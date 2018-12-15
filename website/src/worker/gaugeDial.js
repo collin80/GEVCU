@@ -108,7 +108,7 @@ var animateFx = {
 				return Math.pow(2, 10 * (p - 1)) * Math.cos(20 * Math.PI * x / 3 * p);
 			})(1 - p);
 		}
-	};
+};
 
 function processConfig(config) {
 	this.config = config;

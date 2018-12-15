@@ -1,11 +1,11 @@
 var dashboard = dashboard || {};
 
-(function () {
+(function() {
 	var webSocketWorker;
 
 	dashboard.activate = activate;
 	dashboard.hideStateDivs = hideStateDivs;
-	
+
 	function activate() {
 		// show the correct div and hide the others
 		// add an event listener so sounds can get loaded on mobile devices
@@ -28,14 +28,14 @@ var dashboard = dashboard || {};
 	}
 
 	function startWebSocketWorker() {
-		if(typeof(webSocketWorker) == "undefined") {
+		if (typeof (webSocketWorker) == "undefined") {
 			webSocketWorker = new Worker("worker/webSocket.js");
 
 			webSocketWorker.onmessage = function(event) {
 				for (name in event.data) {
 					var data = event.data[name];
 					var dial = Gauge.dials[name];
-					if(dial) {
+					if (dial) {
 						if (data.limits) {
 							dial.setLimits(data.limits.min, data.limits.max);
 						} else {
@@ -47,16 +47,20 @@ var dashboard = dashboard || {};
 				}
 			};
 		}
-		webSocketWorker.postMessage({cmd: 'start'});
+		webSocketWorker.postMessage({
+			cmd : 'start'
+		});
 	}
 
 	function stopWebSocketWorker() {
-		if(webSocketWorker) {
-			webSocketWorker.postMessage({cmd: 'stop'});
+		if (webSocketWorker) {
+			webSocketWorker.postMessage({
+				cmd : 'stop'
+			});
 			webSocketWorker = undefined;
 		}
 	}
-	
+
 	function processWebsocketMessage(name, value) {
 		// a bitfield value for annunciator fields
 		if (name.indexOf('bitfield') != -1) {

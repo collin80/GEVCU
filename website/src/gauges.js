@@ -239,6 +239,6 @@ function generateGauges(config) {
 				}
 			}
 
-		],
+			],
 	});
 }

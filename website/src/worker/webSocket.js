@@ -19,11 +19,11 @@ onmessage = function(event) {
 }
 
 function openWebSocket() {
-	if(socket == null) {
+	if (socket == null) {
 		var url = "ws://" + location.hostname + ":2000";
 		console.log('webSocket: opening web socket connection ' + url);
 		socket = new WebSocket(url);
-	
+
 		// Log errors and try to reconnect
 		socket.onerror = function(error) {
 			console.log('webSocket error: ' + error);
