@@ -40,8 +40,8 @@ function generateGauges(config) {
 
 	var rangeCurrent = calcRange(config.currentRange[0], config.currentRange[1], 3);
 	
-	var intervalEnergy = Math.round((config.energyRange[1] - config.energyRange[0]) / 2);
-	var rangeEnergy = calcRange(config.energyRange[0], config.energyRange[2], 2);
+	var intervalSoc = Math.round((config.socRange[1] - config.socRange[0]) / 2);
+	var rangeSoc = calcRange(config.socRange[0], config.socRange[2], 2);
 
 	var dcGauge = new Gauge({
 		renderTo    : 'dcGauge',
@@ -68,21 +68,21 @@ function generateGauges(config) {
 
 			},
 			{
-				id          : 'energyConsumptionDial',
+				id          : 'socDial',
 				title       : "SOC",
 				units       : '%',
-				minValue    : rangeEnergy.min,
-				maxValue    : rangeEnergy.max,
-				startValue  : rangeEnergy.max,
+				minValue    : rangeSoc.min,
+				maxValue    : rangeSoc.max,
+				startValue  : rangeSoc.max,
 				ccw         : false,
 				valueFormat : { "int" : 2, "dec" : 1 },
-				majorTicks  : rangeEnergy.ticks,
+				majorTicks  : rangeSoc.ticks,
 				minorTicks  : 5,
 				highlights  : [
-					{ from : rangeEnergy.min, to : config.energyRange[1] - intervalEnergy, color : 'rgba(255, 0,  0, .75)' },
-					{ from : config.energyRange[1] - intervalEnergy, to : config.energyRange[1], color : 'rgba(255, 220,  0, .75)' },
-					{ from : config.energyRange[1], to : config.energyRange[1] + intervalEnergy, color : 'rgba(180, 255,  0, .75)' },
-					{ from : config.energyRange[1] + intervalEnergy, to : rangeEnergy.max, color : 'rgba(0, 255,  0, .65)' }
+					{ from : rangeSoc.min, to : config.socRange[1] - intervalSoc, color : 'rgba(255, 0,  0, .75)' },
+					{ from : config.socRange[1] - intervalSoc, to : config.socRange[1], color : 'rgba(255, 220,  0, .75)' },
+					{ from : config.socRange[1], to : config.socRange[1] + intervalSoc, color : 'rgba(180, 255,  0, .75)' },
+					{ from : config.socRange[1] + intervalSoc, to : rangeSoc.max, color : 'rgba(0, 255,  0, .65)' }
 		   		],
 				drawArc     : true,
 				animation : {

@@ -6,6 +6,6 @@
 	"controllerTempRange": [ ~controllerTempRange~ ],
 	"batteryRangeLow": [ ~batteryRangeLow~ ],
 	"batteryRangeHigh": [ ~batteryRangeHigh~ ],
-	"energyRange": [ ~energyRange~ ],
+	"socRange": [ ~socRange~ ],
 	"powerRange": [ ~powerRange~ ]
 }

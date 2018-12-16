@@ -30,21 +30,8 @@ var dashboard = dashboard || {};
 	function startWebSocketWorker() {
 		if (typeof (webSocketWorker) == "undefined") {
 			webSocketWorker = new Worker("worker/webSocket.js");
-
 			webSocketWorker.onmessage = function(event) {
-				for (name in event.data) {
-					var data = event.data[name];
-					var dial = Gauge.dials[name];
-					if (dial) {
-						if (data.limits) {
-							dial.setLimits(data.limits.min, data.limits.max);
-						} else {
-							dial.setValue(data);
-						}
-					} else {
-						processWebsocketMessage(name, data);
-					}
-				}
+				processWebsocketMessage(event.data)
 			};
 		}
 		webSocketWorker.postMessage({
@@ -61,40 +48,38 @@ var dashboard = dashboard || {};
 		}
 	}
 
-	function processWebsocketMessage(name, value) {
-		// a bitfield value for annunciator fields
-		if (name.indexOf('bitfield') != -1) {
-			updateAnnunciatorFields(name, value);
-			return;
-		}
+	function processWebsocketMessage(message) {
+		for (name in message) {
+			var data = message[name];
 
-		// set the meter value (additionally to a text node)
-		var target = getCache(name + "Meter");
-		if (target) {
-			target.value = value;
-		}
-
-		setNodeValue(name, value);
-
-		if (name == 'systemState') {
-			updateSystemState(value);
-		}
-		if (name == 'logMessage') {
-			var message = value.message;
-			var level = value.level;
-			if (level == 'ERROR') {
-				alertify.error(message, 0);
-				soundError.play();
-			} else if (level == 'WARNING') {
-				alertify.warning(message, 60);
-				soundWarn.play();
+			var dial = Gauge.dials[name];
+			if (dial) {
+				dial.setValue(data);
+			} else if (name == 'limits') {
+				for (limitName in data) {
+					var limit = data[limitName];
+					dial = Gauge.dials[limitName];
+					if (dial) {
+						dial.setLimits(limit.min, limit.max);
+					}
+				}
+			} else if (name.indexOf('bitfield') != -1) { // a bitfield value for annunciator fields
+				updateAnnunciatorFields(name, data);
+			} else if (name == 'systemState') {
+				updateSystemState(data);
+			} else if (name == 'logMessage') {
+				log(data.level, data.message);
 			} else {
-				alertify.success(message, 30);
-				soundInfo.play();
+				// set the meter value (additionally to a text node)
+				var target = getCache(name + "Meter");
+				if (target) {
+					target.value = data;
+				}
+				setNodeValue(name, data);
 			}
 		}
 	}
-
+	
 	function hideStateDivs() {
 		var div = document.getElementsByTagName('div')
 		for (i = 0; i < div.length; i++) {
@@ -102,6 +87,19 @@ var dashboard = dashboard || {};
 			if (idStr && idStr.indexOf('state_') != -1) {
 				div[i].style.display = 'none';
 			}
+		}
+	}
+	
+	function log(level, message) {
+		if (level == 'ERROR') {
+			alertify.error(message, 0);
+			soundError.play();
+		} else if (level == 'WARNING') {
+			alertify.warning(message, 60);
+			soundWarn.play();
+		} else {
+			alertify.success(message, 30);
+			soundInfo.play();
 		}
 	}
 
