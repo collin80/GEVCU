@@ -160,7 +160,6 @@ public:
     uint32_t getBitField3();
     int16_t getLowestBatteryTemperature();
     int16_t getHighestBatteryTemperature();
-    uint16_t getEnergyConsumption();
 
 private:
     SystemState systemState; // the current state of the system, to be modified by the state machine of this class only

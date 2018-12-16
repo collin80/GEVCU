@@ -49,7 +49,7 @@ MotorController::MotorController() :
     acCurrent = 0;
     lastTick = 0;
     slewTimestamp = millis();
-    saveEnergyConsumption = false;
+    rolling = false;
     ticksNoMessage = 0;
     brakeHoldActive = false;
     brakeHoldStart = 0;
@@ -63,35 +63,24 @@ DeviceType MotorController::getType()
 }
 
 /*
- * Calculate mechanical power and add energy consumption to kWh counter.
+ * Activate/Deactivate status indicator at standstill/rolling
  */
-void MotorController::updateEnergyConsumption()
+void MotorController::updateStatusIndicator()
 {
-    MotorControllerConfiguration *config = (MotorControllerConfiguration *) getConfiguration();
-    uint32_t timeStamp = millis();
-
     if (running) {
-        //If our voltage is higher than fully charged with no regen, zero our meter
-        if (dcVoltage > config->nominalVolt && torqueActual > 0) {
-            status.energyConsumption = 0;
-        }
-        // we're actually calculating kilowatt-milliseconds which is the same as watt seconds
-        status.energyConsumption += (int32_t)(timeStamp - lastTick) * getMechanicalPower() / 1000;
-
-        if (speedActual == 0) { // save at stand-still
-            if (saveEnergyConsumption) {
-                systemIO.saveEnergyConsumption();
-                saveEnergyConsumption = false;
-                deviceManager.sendMessage(DEVICE_DISPLAY, STATUSINDICATOR, MSG_UPDATE, (void *)"on");
+        if (speedActual == 0) {
+            if (rolling) {
+                rolling = false;
+                if (status.enableCreep) // a little hack to temporarely disable light
+                    deviceManager.sendMessage(DEVICE_DISPLAY, STATUSINDICATOR, MSG_UPDATE, (void *)"on");
             }
         } else {
-            if (speedActual > 1000 && !saveEnergyConsumption) { // prevent activation when crawling in a queue
-                saveEnergyConsumption = true;
+            if (speedActual > 1000 && !rolling) {
+                rolling = true;
                 deviceManager.sendMessage(DEVICE_DISPLAY, STATUSINDICATOR, MSG_UPDATE, (void *) "off");
             }
         }
     }
-    lastTick = timeStamp; //reset our timer for next check
 }
 
 /*
@@ -265,7 +254,7 @@ void MotorController::processThrottleLevel()
     if (systemIO.isABSActive()) {
         processAbsOrGearChange(config->gearChangeSupport);
     }
-}
+ß}
 
 void MotorController::updateGear()
 {
@@ -283,7 +272,7 @@ void MotorController::handleTick()
     processThrottleLevel();
     updateGear();
 
-    updateEnergyConsumption();
+    updateStatusIndicator();
 
     if (Logger::isDebug()) {
         Logger::debug(this, "throttle: %f%%, requested Speed: %ld rpm, requested Torque: %f Nm, gear: %d", throttleLevel / 10.0f, speedRequested,
@@ -328,7 +317,7 @@ void MotorController::setup()
 {
     Device::setup();
 
-    saveEnergyConsumption = false;
+    rolling = false;
     slewTimestamp = millis();
 }
 

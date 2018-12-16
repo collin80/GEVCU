@@ -48,8 +48,6 @@ void DcDcConverter::handleTick()
     Device::handleTick(); // call parent
 
     uint32_t timeStamp = millis();
-    // add our contribution to the energy consumption - even if it's small compared to the motor
-    status.energyConsumption += (int32_t)(timeStamp - lastTick) * hvCurrent * hvVoltage / 100000;
     lastTick = timeStamp;
 }
 

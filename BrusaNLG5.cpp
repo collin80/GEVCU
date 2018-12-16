@@ -119,7 +119,8 @@ void BrusaNLG5::handleStateChange(Status::SystemState oldState, Status::SystemSt
 {
     Charger::handleStateChange(oldState, newState);
 
-    if (newState == Status::charging) {
+    if ((newState == Status::charging || newState == Status::batteryHeating) &&
+            oldState != Status::charging && oldState != Status::batteryHeating) {
         tickHandler.attach(this, CFG_TICK_INTERVAL_CHARGE_NLG5);
         canHandlerEv.attach(this, CAN_MASKED_ID, CAN_MASK, false);
         canTickCounter = 0;

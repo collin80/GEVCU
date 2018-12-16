@@ -1323,7 +1323,7 @@ void ICHIPWIFI::loadParametersDashboard()
         setParam(Constants::batteryRangeHigh, "387,405,418");
         setParam(Constants::motorTempRange, "0,90,120");
         setParam(Constants::controllerTempRange, "0,60,80");
-        setParam(Constants::energyRange, "0,20,100");
+        setParam(Constants::socRange, "0,20,100");
     }
 }
 

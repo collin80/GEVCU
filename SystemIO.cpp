@@ -74,16 +74,6 @@ void SystemIO::handleTick() {
         return;
     }
 
-    //TODO move to method and configure max kWh and if inverted or not
-    uint16_t batteryCapacity = 350; // in 0.1kWh
-    uint16_t cons = map(constrain(status.getEnergyConsumption(), 0, batteryCapacity), 0, batteryCapacity, 0, 1000);
-    if (millis() < 60000) {
-        setStateOfCharge(250); // TODO: test to init gas tank gauge
-    } else {
-        setStateOfCharge(map(sqrt(sqrt(cons)) * 1000, 0, 5623, 255, 0));
-    }
-    Logger::debug("sysio: consumption: %.1f %%, SOC PWM: %d/255", cons / 10.0f, status.stateOfCharge);
-
     handleCooling();
     handleCharging();
     handleBrakeLight();
@@ -1080,17 +1070,6 @@ Logger::LogLevel SystemIO::getLogLevel() {
 //    return ((uint16_t) sum);
 //}
 
-/*
- * Store the current level of energy consumption to eeprom
- */
-void SystemIO::saveEnergyConsumption()
-{
-    Logger::debug("storing energy consumption: %.2fkWh", (float)status.energyConsumption / 3600000.0f);
-    prefsHandler->write(EESIO_ENEGRY_CONSUMPTION, status.energyConsumption);
-    prefsHandler->saveChecksum();
-    prefsHandler->suggestCacheWrite();
-}
-
 SystemIOConfiguration *SystemIO::getConfiguration() {
     return configuration;
 }
@@ -1141,8 +1120,6 @@ void SystemIO::loadConfiguration() {
         prefsHandler->read(EESIO_SYSTEM_TYPE, (uint8_t *) &configuration->systemType);
         prefsHandler->read(EESIO_LOG_LEVEL, (uint8_t *) &configuration->logLevel);
         Logger::setLoglevel((Logger::LogLevel) configuration->logLevel);
-        prefsHandler->read(EESIO_ENEGRY_CONSUMPTION, &status.energyConsumption);
-
     } else { //checksum invalid. Reinitialize values and store to EEPROM
         configuration->enableInput = 0;
         configuration->chargePowerAvailableInput = 1;

@@ -197,16 +197,45 @@ void BrusaDMC5::sendControl2()
 void BrusaDMC5::sendLimits()
 {
     BrusaDMC5Configuration *config = (BrusaDMC5Configuration *) getConfiguration();
+    BatteryManager *batteryManager = deviceManager.getBatteryManager();
+
+    uint16_t currentLimitMotor = config->dcCurrentLimitMotor;
+    uint16_t currentLimitRegen = config->dcCurrentLimitRegen;
+
+    if (batteryManager) {
+        if (batteryManager->hasDischargeLimit()) {
+//            currentLimitMotor = batteryManager->getDischargeLimit() * 10;
+            Logger::info(this, "Motor power limited by BMS to %dA (instead %dA)", batteryManager->getDischargeLimit(), currentLimitMotor/10);
+        } else if (batteryManager->hasAllowDischarging() && !batteryManager->isDischargeAllowed()) {
+//            currentLimitMotor = 0;
+            Logger::info(this, "Motor power limited by BMS to 0");
+        }
+
+        if (batteryManager->hasChargeLimit()) {
+            currentLimitRegen = batteryManager->getChargeLimit() * 10;
+            Logger::info(this, "Regen power limited by BMS to %dA (instead %dA)", batteryManager->getChargeLimit(), currentLimitRegen/10);
+        } else if (batteryManager->hasAllowCharging() && !batteryManager->isChargeAllowed()) {
+            currentLimitRegen = 0;
+            Logger::info(this, "Regen power limited by BMS to 0");
+        }
+
+        if (currentLimitMotor < config->dcCurrentLimitMotor) {
+//            Logger::info(this, "Motor power limited by BMS");
+        }
+        if (currentLimitRegen < config->dcCurrentLimitRegen) {
+//            Logger::info(this, "Regen power limited by BMS");
+        }
+    }
 
     canHandlerEv.prepareOutputFrame(&outputFrame, CAN_ID_LIMIT);
     outputFrame.data.bytes[0] = (constrain(config->dcVoltLimitMotor, 0, 65535) & 0xFF00) >> 8;
     outputFrame.data.bytes[1] = (constrain(config->dcVoltLimitMotor, 0, 65535) & 0x00FF);
     outputFrame.data.bytes[2] = (constrain(config->dcVoltLimitRegen, 0, 65535) & 0xFF00) >> 8;
     outputFrame.data.bytes[3] = (constrain(config->dcVoltLimitRegen, 0, 65535) & 0x00FF);
-    outputFrame.data.bytes[4] = (constrain(config->dcCurrentLimitMotor, 0, 65535) & 0xFF00) >> 8;
-    outputFrame.data.bytes[5] = (constrain(config->dcCurrentLimitMotor, 0, 65535) & 0x00FF);
-    outputFrame.data.bytes[6] = (constrain(config->dcCurrentLimitRegen, 0, 65535) & 0xFF00) >> 8;
-    outputFrame.data.bytes[7] = (constrain(config->dcCurrentLimitRegen, 0, 65535) & 0x00FF);
+    outputFrame.data.bytes[4] = (constrain(currentLimitMotor, 0, 65535) & 0xFF00) >> 8;
+    outputFrame.data.bytes[5] = (constrain(currentLimitMotor, 0, 65535) & 0x00FF);
+    outputFrame.data.bytes[6] = (constrain(currentLimitRegen, 0, 65535) & 0xFF00) >> 8;
+    outputFrame.data.bytes[7] = (constrain(currentLimitRegen, 0, 65535) & 0x00FF);
 
     canHandlerEv.sendFrame(outputFrame);
 }
@@ -269,9 +298,9 @@ void BrusaDMC5::processStatus(uint8_t data[])
     }
 
     if (bitfield & errorFlag) {
-    	if (running || ready) {
+//    	if (running || ready) {
             Logger::error(this, "Error reported from motor controller!");
-    	}
+//    	}
     	running = false;
     	ready = false;
     } else {

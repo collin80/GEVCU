@@ -206,3 +206,13 @@ bool OrionBMS::hasAllowDischarging()
 {
     return true;
 }
+
+bool OrionBMS::hasCellVoltages()
+{
+    return true;
+}
+
+bool OrionBMS::hasCellResistance()
+{
+    return true;
+}

@@ -26,7 +26,6 @@ struct ParamCache {
     uint16_t dcVoltage;
     int16_t dcCurrent;
     int16_t acCurrent;
-    uint16_t energyConsumption;
     uint32_t bitfield1;
     uint32_t bitfield2;
     uint32_t bitfield3;
@@ -100,7 +99,15 @@ private:
     char buffer[30];
     String *webSocketKey;
     String data;
+    String limits;
     bool connected;
+    // limits
+    uint16_t dcVoltageMin;
+    uint16_t dcVoltageMax;
+    int16_t dcCurrentMin;
+    int16_t dcCurrentMax;
+    int16_t temperatureMotorMax;
+    int16_t temperatureControllerMax;
 
     void processConnectionRequest(char *input);
     String prepareConnectionRequestResponse();
@@ -118,6 +125,9 @@ private:
     void processParameter(uint32_t *cacheParam, uint32_t value, const char *key, int divisor);
     void processParameter(bool *cacheParam, bool value, const char *name);
     void addParam(const char *key, char *value, bool isNumeric);
+    void processLimits(int16_t *min, int16_t *max, int16_t value, const char *key);
+    void processLimits(uint16_t *min, uint16_t *max, uint16_t value, const char *key);
+    void addLimit(char *min, char *max, const char *name);
     char *getTimeRunning();
     void initParamCache();
 };

@@ -116,7 +116,7 @@ protected:
     int16_t temperatureMotor; // temperature of motor in 0.1 degree C
     int16_t temperatureController; // temperature of controller in 0.1 degree C
 
-    bool saveEnergyConsumption; // flag wether to save power consumption to eeprom
+    bool rolling; // flag wether to save power consumption to eeprom
     uint32_t lastTick;
     void reportActivity();
 
@@ -132,7 +132,7 @@ private:
     int16_t brakeHoldLevel; // current throttle level applied by brake hold (must be signed to prevent overflow!!)
     Gears gear;
 
-    void updateEnergyConsumption();
+    void updateStatusIndicator();
     void checkActivity();
     void processThrottleLevel();
     void updateGear();

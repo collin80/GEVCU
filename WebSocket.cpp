@@ -41,6 +41,12 @@ WebSocket::WebSocket()
     isFirst = true;
     updateCounter = 0;
     connected = false;
+    dcVoltageMin = 0;
+    dcVoltageMax = 0;
+    dcCurrentMin = 0;
+    dcCurrentMax = 0;
+    temperatureMotorMax = 0;
+    temperatureControllerMax = 0;
 }
 
 /**
@@ -51,12 +57,11 @@ void WebSocket::initParamCache()
 {
     paramCache.timeRunning = millis(); // this way less important data is sent one second later
     paramCache.torqueActual = -1;
-//    paramCache.throttle = -1;
+    paramCache.throttle = -1;
     paramCache.speedActual = -1;
     paramCache.dcVoltage = -1;
     paramCache.dcCurrent = -1;
     paramCache.acCurrent = -1;
-    paramCache.energyConsumption = -1;
     paramCache.bitfield1 = 0;
     paramCache.bitfield2 = 0;
     paramCache.bitfield3 = 0;
@@ -88,6 +93,30 @@ void WebSocket::initParamCache()
     paramCache.powerSteering = !status.powerSteering;
     paramCache.enableHeater = !status.enableHeater;
     paramCache.enableCreep = !status.enableCreep;
+
+    paramCache.packVoltage = 0;
+    paramCache.packCurrent = 0;
+    paramCache.soc = 0;
+    paramCache.dischargeLimit = 0;
+    paramCache.chargeLimit = 0;
+    paramCache.chargeAllowed = 0;
+    paramCache.dischargeAllowed = 0;
+    paramCache.lowestCellTemp = 0;
+    paramCache.highestCellTemp = 0;
+    paramCache.lowestCellVolts = 0;
+    paramCache.highestCellVolts = 0;
+    paramCache.averageCellVolts = 0;
+    paramCache.deltaCellVolts = 0;
+    paramCache.lowestCellResistance = 0;
+    paramCache.highestCellResistance = 0;
+    paramCache.averageCellResistance = 0;
+    paramCache.deltaCellResistance = 0;
+    paramCache.lowestCellTempId = 0;
+    paramCache.highestCellTempId = 0;
+    paramCache.lowestCellVoltsId = 0;
+    paramCache.highestCellVoltsId = 0;
+    paramCache.lowestCellResistanceId = 0;
+    paramCache.highestCellResistanceId = 0;
 }
 
 /**
@@ -279,6 +308,7 @@ String WebSocket::generateUpdate()
     MotorController* motorController = deviceManager.getMotorController();
     uint32_t ms = millis();
     data = String();
+    limits = String();
     isFirst = true;
 
     if (motorController) {
@@ -290,9 +320,14 @@ String WebSocket::generateUpdate()
 //            processParameter(&paramCache.mechanicalPower, motorController->getMechanicalPower(), Constants::mechanicalPower, 1000);
             if (updateCounter == 0) {
                 processParameter(&paramCache.dcCurrent, motorController->getDcCurrent(), Constants::dcCurrent, 10);
+                if (!deviceManager.getBatteryManager())
+                    processLimits(&dcCurrentMin, &dcCurrentMax, motorController->getDcCurrent(), Constants::dcCurrent);
                 processParameter(&paramCache.dcVoltage, motorController->getDcVoltage(), Constants::dcVoltage, 10);
+                processLimits(&dcVoltageMin, &dcVoltageMax, motorController->getDcVoltage(), Constants::dcVoltage);
                 processParameter(&paramCache.temperatureMotor, motorController->getTemperatureMotor(), Constants::temperatureMotor, 10);
+                processLimits(NULL, &temperatureMotorMax, motorController->getTemperatureMotor(), Constants::temperatureMotor);
                 processParameter(&paramCache.temperatureController, motorController->getTemperatureController(), Constants::temperatureController, 10);
+                processLimits(NULL, &temperatureControllerMax, motorController->getTemperatureController(), Constants::temperatureController);
             }
         }
     }
@@ -314,8 +349,14 @@ String WebSocket::generateUpdate()
                 processParameter(&paramCache.packCurrent, batteryManager->getPackCurrent(), Constants::packCurrent, 10);
             if (batteryManager->hasSoc())
                 processParameter(&paramCache.soc, (uint16_t)(batteryManager->getSoc() * 25), Constants::soc, 100);
-            if (batteryManager->hasDischargeLimit())
+            if (batteryManager->hasDischargeLimit()) {
                 processParameter(&paramCache.dischargeLimit, batteryManager->getDischargeLimit(), Constants::dischargeLimit);
+                if (batteryManager->getDischargeLimit() != dcCurrentMin || batteryManager->getChargeLimit() != dcCurrentMax) {
+                    dcCurrentMin = batteryManager->getDischargeLimit() * -1;
+                    dcCurrentMax = batteryManager->getChargeLimit();
+                    addLimit((char *)String(dcCurrentMin).c_str(), (char *)String(dcCurrentMax).c_str(), Constants::dcCurrent);
+                }
+            }
             else
                 processParameter(&paramCache.dischargeAllowed, batteryManager->isDischargeAllowed(), Constants::dischargeAllowed);
             if (batteryManager->hasChargeLimit())
@@ -368,13 +409,12 @@ String WebSocket::generateUpdate()
                 processParameter(&paramCache.chargeHoursRemain, secs / 60, Constants::chargeHoursRemain);
                 processParameter(&paramCache.chargeMinsRemain, secs % 60, Constants::chargeMinsRemain);
                 if (batteryManager && batteryManager->hasSoc())
-                    processParameter(&paramCache.chargeLevel, batteryManager->getSoc(), Constants::chargeLevel);
+                    processParameter(&paramCache.chargeLevel, batteryManager->getSoc() * 25, Constants::chargeLevel, 100);
                 else
                     processParameter(&paramCache.chargeLevel, map (secs, 0 , 28800, 0, 100), Constants::chargeLevel);
             }
         }
 
-        processParameter(&paramCache.energyConsumption, status.getEnergyConsumption(), Constants::energyConsumption, 10);
         processParameter(&paramCache.heaterPower, status.heaterPower, Constants::heaterPower);
         processParameter(&paramCache.flowCoolant, status.flowCoolant * 6, Constants::flowCoolant, 100);
         processParameter(&paramCache.flowHeater, status.flowHeater * 6, Constants::flowHeater, 100);
@@ -390,6 +430,14 @@ String WebSocket::generateUpdate()
         processParameter(&paramCache.enableHeater, status.enableHeater, Constants::enableHeater);
         processParameter(&paramCache.powerSteering, status.powerSteering, Constants::powerSteering);
         processParameter(&paramCache.enableCreep, status.enableCreep, Constants::enableCreep);
+
+        if (limits.length() > 0) {
+            String out;
+            out.concat("{");
+            out.concat(limits.substring(0, limits.length() - 1));
+            out.concat("}");
+            addParam("limits", (char *)out.c_str(), true);
+        }
     }
 
     if (++updateCounter > 9) {
@@ -666,6 +714,52 @@ void WebSocket::processParameter(bool *cacheParam, bool value, const char *name)
     *cacheParam = value;
     strcpy(buffer, (value ? "true" : "false"));
     addParam(name, buffer, true);
+}
+
+void WebSocket::processLimits(int16_t *min, int16_t *max, int16_t value, const char *name) {
+    if (min && *min > value) {
+        *min = value;
+        sprintf(buffer, "%d", value);
+        addLimit(buffer, NULL, name);
+    }
+    if (max && value > *max) {
+        *max = value;
+        sprintf(buffer, "%d", value);
+        addLimit(NULL, buffer, name);
+    }
+}
+
+void WebSocket::processLimits(uint16_t *min, uint16_t *max, uint16_t value, const char *name) {
+    if (min && *min > value) {
+        *min = value;
+        sprintf(buffer, "%u", value);
+        addLimit(buffer, NULL, name);
+    }
+    if (max && value > *max) {
+        *max = value;
+        sprintf(buffer, "%u", value);
+        addLimit(NULL, buffer, name);
+    }
+}
+
+void WebSocket::addLimit(char *min, char *max, const char *name) {
+    if (!min && !max)
+        return;
+
+    limits.concat("\"");
+    limits.concat(name);
+    limits.concat("\": {");
+    if (min) {
+        limits.concat("\"min\": ");
+        limits.concat(min);
+        if (max)
+            limits.concat(",");
+    }
+    if (max) {
+        limits.concat("\"max\": ");
+        limits.concat(max);
+    }
+    limits.concat("},");
 }
 
 /**

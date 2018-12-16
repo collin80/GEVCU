@@ -36,7 +36,6 @@ Charger::Charger() : Device()
     batteryCurrent = 0;
     temperature = 0;
     ampereMilliSeconds = 0;
-    wattSeconds = 0;
     chargeStartTime = 0;
     requestedOutputCurrent = 0;
     lastTick = 0;
@@ -54,19 +53,7 @@ void Charger::handleTick()
     Device::handleTick(); // call parent
 
     uint32_t timeStamp = millis();
-    ampereMilliSeconds += (timeStamp - lastTick) * batteryCurrent *0.925; // TODO make offset configurable
-    // we're actually calculating kilowatt-milliseconds which is the same as watt seconds
-    wattSeconds += (timeStamp - lastTick) * batteryCurrent * batteryVoltage / 1000000;
-
-    // adjust global energy consumption every 1kWsec that was charged
-    if (wattSeconds > 1000 && status.energyConsumption > 0) {
-        if (wattSeconds < status.energyConsumption) { // energyConsumption is unsigned, don't overflow!
-            status.energyConsumption -= wattSeconds;
-        } else {
-            status.energyConsumption = 0; // don't store it here bece because DCDC increases consumption again --> continuous saving
-        }
-        wattSeconds = 0;
-    }
+    ampereMilliSeconds += (timeStamp - lastTick) * batteryCurrent;
     lastTick = timeStamp;
 }
 
@@ -77,7 +64,7 @@ void Charger::handleTick()
 void Charger::handleStateChange(Status::SystemState oldState, Status::SystemState newState)
 {
     Device::handleStateChange(oldState, newState);
-    if (newState == Status::charging) {
+    if (newState == Status::charging || newState == Status::batteryHeating) {
         ChargerConfiguration *config = (ChargerConfiguration *) getConfiguration();
 
         // re-initialize variables
@@ -86,7 +73,6 @@ void Charger::handleStateChange(Status::SystemState oldState, Status::SystemStat
         batteryVoltage = 0;
         batteryCurrent = 0;
         ampereMilliSeconds = 0;
-        wattSeconds = 0;
         chargeStartTime = millis();
         lastTick = millis();
 
@@ -95,7 +81,6 @@ void Charger::handleStateChange(Status::SystemState oldState, Status::SystemStat
     } else {
         if (powerOn) {
             Logger::info(this, "Charging finished after %d min, %.2f Ah", (millis() - chargeStartTime) / 60000, (float) ampereMilliSeconds / 360000000.0f);
-            systemIO.saveEnergyConsumption();
         }
         requestedOutputCurrent = 0;
         powerOn = false;
@@ -147,8 +132,7 @@ uint16_t Charger::calculateOutputCurrent()
         if (requestedOutputCurrent < config->terminateCurrent ||
                 ((millis() - chargeStartTime) > 5000 && batteryCurrent < config->terminateCurrent)) { // give the charger 5sec to ramp up the current
             requestedOutputCurrent = 0;
-            Logger::info(this, "Reached end of normal charge cycle, resetting kWh counter");
-            status.energyConsumption = 0;
+            Logger::info(this, "Reached end of normal charge cycle");
             status.setSystemState(Status::charged);
         }
         if ((millis() - chargeStartTime) > (uint32_t) config->maximumChargeTime * 60000) {
@@ -174,14 +158,13 @@ uint16_t Charger::calculateOutputCurrent()
         temperature = status.getHighestBatteryTemperature();
         if (temperature != CFG_NO_TEMPERATURE_DATA && temperature > config->maximumTemperature) {
             requestedOutputCurrent = 0;
-            Logger::error(this, "Battery temperature too high (%.1f deg C)", (float) temperature / 10.0f);
+            Logger::error(this, "Battery temperature too high (%.1fC)", (float) temperature / 10.0f);
             status.setSystemState(Status::error);
         }
         temperature = status.getLowestBatteryTemperature();
         if (temperature != CFG_NO_TEMPERATURE_DATA && temperature < config->minimumTemperature && temperature != 0) {
             requestedOutputCurrent = 0;
-            Logger::error(this, "Battery temperature too low (%.1f deg C)", (float) temperature / 10.0f);
-            status.setSystemState(Status::error);
+            Logger::warn(this, "Battery temperature too low (%.1fC)", (float) temperature / 10.0f);
         }
         return requestedOutputCurrent;
     }

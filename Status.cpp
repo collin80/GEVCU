@@ -117,7 +117,6 @@ Status::Status()
     statusLight         = false;
     brakeHold           = false;
 
-    energyConsumption = 0;
     flowCoolant = 0;
     flowHeater = 0;
     heaterPower = 0;
@@ -416,12 +415,4 @@ uint32_t Status::getBitField3() {
     bitfield |= (digitalInput[3]                    ? 1 << 31 : 0); // 0x80000000
 
     return bitfield;
-}
-
-/*
- * Get energy consumption in 0.1kWh
- */
-uint16_t Status::getEnergyConsumption()
-{
-    return energyConsumption / 360000;
 }

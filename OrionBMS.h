@@ -68,6 +68,9 @@ public:
     bool hasDischargeLimit();
     bool hasAllowCharging();
     bool hasAllowDischarging();
+    bool hasCellVoltages();
+    bool hasCellResistance();
+
 protected:
 private:
     uint8_t relayStatus, flags;

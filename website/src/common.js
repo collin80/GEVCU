@@ -10,20 +10,21 @@ function showTab(pageId) {
 		}
 	}
 
-	// change the class of the selected tab
-	var tabHeader = document.getElementById('tabHeader');
-	var linkToActivate = document.getElementById(pageId + 'link');
-	for (var i = 0; i < tabHeader.childNodes.length; i++) {
-		var node = tabHeader.childNodes[i];
-		if (node.nodeType == 1) { /* Element */
-			node.className = (node == linkToActivate) ? 'on' : '';
-		}
-	}
-	if (pageId == 'controls') {
-		resizeThrottleCanvas();
-	}
 	if (pageId == 'dashboard') {
 		dashboard.activate();
+	} else {
+		// change the class of the selected tab
+		var tabHeader = document.getElementById('tabHeader');
+		var linkToActivate = document.getElementById(pageId + 'link');
+		for (var i = 0; i < tabHeader.childNodes.length; i++) {
+			var node = tabHeader.childNodes[i];
+			if (node.nodeType == 1) { /* Element */
+				node.className = (node == linkToActivate) ? 'on' : '';
+			}
+		}
+		if (pageId == 'controls') {
+			resizeThrottleCanvas();
+		}
 	}
 	loadData(pageId);
 }
