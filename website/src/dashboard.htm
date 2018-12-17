@@ -43,28 +43,28 @@
 	<div class="buttonBar">
 		<div class="buttonBarCell" id="state_8_">Regen:
 			<label class="switch switch-green">
-				<input id="enableRegen" type="checkbox" class="switch-input" onchange="sendMsg('cmdRegen:' + checked);"/>
+				<input id="enableRegen" type="checkbox" class="switch-input" onchange="dashboard.sendMsg('cmdRegen:' + checked);"/>
 				<span class="switch-label" data-on="ON" data-off="OFF"></span>
 				<span class="switch-handle"></span>
 		    </label>
 		</div>
 		<div class="buttonBarCell" id="state_8_">Creep:
 			<label class="switch">
-				<input id="enableCreep" type="checkbox" class="switch-input" onchange="sendMsg('cmdCreep:' + checked)"/>
+				<input id="enableCreep" type="checkbox" class="switch-input" onchange="dashboard.sendMsg('cmdCreep:' + checked)"/>
 				<span class="switch-label" data-on="ON" data-off="OFF"></span>
 				<span class="switch-handle"></span>
 			</label>
 		</div>
 		<div class="buttonBarCell" id="state_7_8_">EHPS:
 			<label class="switch switch">
-				<input id="powerSteering" type="checkbox" class="switch-input" onchange="sendMsg('cmdEhps:' + checked)"/>
+				<input id="powerSteering" type="checkbox" class="switch-input" onchange="dashboard.sendMsg('cmdEhps:' + checked)"/>
 				<span class="switch-label" data-on="ON" data-off="OFF"></span>
 				<span class="switch-handle"></span>
 			</label>
 		</div>
 		<div class="buttonBarCell" id="state_4_5_6_7_8_">Heater:
 			<label class="switch switch-orange">
-				<input id="enableHeater" type="checkbox" class="switch-input" onchange="sendMsg('cmdHeater:' + checked)"/>
+				<input id="enableHeater" type="checkbox" class="switch-input" onchange="dashboard.sendMsg('cmdHeater:' + checked)"/>
 				<span class="switch-label" data-on="ON" data-off="OFF"></span>
 				<span class="switch-handle"></span>
 	    	</label>
@@ -73,7 +73,7 @@
 </div>
 
 <div id="state_5_">
-	<button id="stopCharge" class="button" onclick="sendMsg('stopCharge')">Stop charging</button>
+	<button id="stopCharge" class="button" onclick="dashboard.sendMsg('stopCharge')">Stop charging</button>
 	<div class="info">
 		<span id="chargeHoursRemain">-</span> hours <span id="chargeMinsRemain">--</span> minutes remaining
 	</div>

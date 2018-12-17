@@ -5,6 +5,7 @@ var dashboard = dashboard || {};
 
 	dashboard.activate = activate;
 	dashboard.hideStateDivs = hideStateDivs;
+	dashboard.sendMsg = sendMsg;
 
 	function activate() {
 		// show the correct div and hide the others
@@ -119,6 +120,6 @@ var dashboard = dashboard || {};
 
 	// send message to ichip via websocket
 	function sendMsg(message) {
-		webSocketWorker.postMessage(event.data);
+		webSocketWorker.postMessage({cmd: 'message', message: message});
 	}
 })();
