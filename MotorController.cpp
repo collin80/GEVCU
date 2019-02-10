@@ -254,7 +254,7 @@ void MotorController::processThrottleLevel()
     if (systemIO.isABSActive()) {
         processAbsOrGearChange(config->gearChangeSupport);
     }
-ß}
+}
 
 void MotorController::updateGear()
 {
