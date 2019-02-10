@@ -204,6 +204,11 @@ int16_t Charger::getTemperature()
     return temperature;
 }
 
+void Charger::setMaximumInputCurrent(uint16_t current) {
+    ChargerConfiguration *config = (ChargerConfiguration *) getConfiguration();
+    config->maximumInputCurrent = current;
+}
+
 /*
  * Load configuration data from EEPROM.
  *

@@ -134,7 +134,7 @@ public:
     bool enableCreep; // is creep activated ?
 
     uint32_t energyConsumption; // accumulated consumption in wattSeconds (or kilowattmilliseconds)
-    uint8_t stateOfCharge; // 0 to 255 to indicate the state of charge (divide by 2.55 to get percent)
+    uint8_t stateOfCharge; // state of charge (in 0.5%)
     uint32_t flowCoolant; // ml per second coolant flow
     uint32_t flowHeater; // ml per second heater flow
     uint8_t statusLight; // 0 to 255 for the PWM of the status light

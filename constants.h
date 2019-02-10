@@ -193,6 +193,7 @@ static const char* enableRegen = "enableRegen";
 static const char* enableHeater = "enableHeater";
 static const char* powerSteering = "powerSteering";
 static const char* enableCreep = "enableCreep";
+static const char* chargeInputLevels = "chargeInputLevels";
 
 static const char* packVoltage = "packVoltage";
 static const char* packCurrent = "packCurrent";

@@ -74,6 +74,11 @@ void SystemIO::handleTick() {
         return;
     }
 
+    BatteryManager *batteryManager = deviceManager.getBatteryManager();
+    if (batteryManager != NULL && batteryManager->hasSoc()) {
+        setStateOfCharge(batteryManager->getSoc());
+    }
+
     handleCooling();
     handleCharging();
     handleBrakeLight();

@@ -71,6 +71,7 @@ public:
     uint16_t getInputCurrent();
     uint16_t getInputVoltage();
     int16_t getTemperature();
+    void setMaximumInputCurrent(uint16_t current);
 
 protected:
     uint16_t inputCurrent; // the reported input current in 0.01A
