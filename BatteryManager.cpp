@@ -44,6 +44,8 @@ BatteryManager::BatteryManager() :
     lowestCellVoltsId = highestCellVoltsId = ID_UNKNOWN;
     lowestCellResistance = highestCellResistance = averageCellResistance = 0;
     lowestCellResistanceId = highestCellResistanceId = ID_UNKNOWN;
+    packHealth = 0;
+    packCycles = packResistance = 0;
 }
 
 void BatteryManager::setup()
@@ -122,6 +124,20 @@ bool BatteryManager::hasCellResistance()
     return false;
 }
 
+bool BatteryManager::hasPackHealth()
+{
+    return false;
+}
+
+bool BatteryManager::hasPackCycles()
+{
+    return false;
+}
+
+bool BatteryManager::hasPackResistance()
+{
+    return false;
+}
 
 uint16_t BatteryManager::getPackVoltage()
 {
@@ -227,3 +243,19 @@ uint8_t BatteryManager::getHighestCellResistanceId()
 {
     return highestCellResistanceId;
 }
+
+uint8_t BatteryManager::getPackHealth()
+{
+    return packHealth;
+}
+
+uint16_t BatteryManager::getPackCycles()
+{
+    return packCycles;
+}
+
+uint16_t BatteryManager::getPackResistance()
+{
+    return packResistance;
+}
+

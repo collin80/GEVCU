@@ -43,8 +43,7 @@ void OrionBMS::setup()
 {
     BatteryManager::setup();
 
-    canHandlerEv.attach(this, CAN_MASKED_ID_1, CAN_MASK_1, false);
-    canHandlerEv.attach(this, CAN_MASKED_ID_2, CAN_MASK_2, false);
+    canHandlerEv.attach(this, CAN_MASKED_ID, CAN_MASK, false);
     ready = true;
 
     tickHandler.attach(this, CFG_TICK_INTERVAL_BMS_ORION);
@@ -56,8 +55,7 @@ void OrionBMS::setup()
 void OrionBMS::tearDown()
 {
     BatteryManager::tearDown();
-    canHandlerEv.detach(this, CAN_MASKED_ID_1, CAN_MASK_1);
-    canHandlerEv.detach(this, CAN_MASKED_ID_2, CAN_MASK_2);
+    canHandlerEv.detach(this, CAN_MASKED_ID, CAN_MASK);
 }
 
 void OrionBMS::handleCanFrame(CAN_FRAME *frame)
@@ -65,7 +63,7 @@ void OrionBMS::handleCanFrame(CAN_FRAME *frame)
     byte *data = frame->data.bytes;
 
     switch (frame->id) {
-    case CAN_ID_VALUES_1:
+    case CAN_ID_PACK:
         packCurrent = ((data[0] << 8) | data[1]); // byte 0+1: pack current (0.1A)
         packVoltage = ((data[2] << 8) | data[3]); // byte 2+3: pack voltage (0.1V)
         packSummedVoltage = ((data[4] << 8) | data[5]); // byte 4+5: pack voltage (0.1V)
@@ -77,8 +75,8 @@ void OrionBMS::handleCanFrame(CAN_FRAME *frame)
         }
         break;
 
-    case CAN_ID_VALUES_2:
-//        if (checksumOk) {
+    case CAN_ID_LIMITS_SOC:
+        if (data[7] == CRC8::calculate(data, 7)) {
             dischargeLimit = data[0]; // byte 0: pack discharge current limit (DCL) (1A)
             allowDischarge = (dischargeLimit > 0);
             chargeLimit = data[1]; // byte 1: pack charge current limit (CCL) (1A)
@@ -114,10 +112,14 @@ void OrionBMS::handleCanFrame(CAN_FRAME *frame)
                 Logger::debug(this, "discharge limit: %dA, charge limit: %dA, limit flags: %#08x, relay: %#08x, soc: %f%%, pack capacity: %f Ah",
                         dischargeLimit, chargeLimit, currentLimit, relayStatus, (float) soc / 2.0F, (float) packAmphours / 10.0F);
             }
-//        }
+        } else {
+            Logger::warn(this, "CRC of CAN message invalid (%X instead of %X)", data[7], CRC8::calculate(data, 7));
+        }
+if (Logger::isDebug())
+Logger::debug(this, "crc: %X, calc: %X, text: %X", data[7], CRC8::calculate(data, 7), CRC8::calculate(data, 8));
         break;
 
-    case CAN_ID_VALUES_3:
+    case CAN_ID_CELL_VOLTAGE:
         lowestCellVolts = ((data[0] << 8) | data[1]); // byte 0+1: low cell voltage (0.0001V)
         lowestCellVoltsId = data[2]; // byte 2: low cell voltage ID (0-180)
         highestCellVolts = ((data[3] << 8) | data[4]); // byte 3+4: high cell voltage (0.0001V)
@@ -129,7 +131,7 @@ void OrionBMS::handleCanFrame(CAN_FRAME *frame)
         }
         break;
 
-    case CAN_ID_VALUES_4:
+    case CAN_ID_CELL_RESISTANCE:
         lowestCellResistance = ((data[0] << 8) | data[1]); // byte 0+1: low cell resistance (0.01 mOhm)
         lowestCellResistanceId = data[2]; // byte 2: low cell resistance ID (0-180)
         highestCellResistance = ((data[3] << 8) | data[4]); // byte 3+4: high cell resistance (0.01 mOhm)
@@ -141,19 +143,15 @@ void OrionBMS::handleCanFrame(CAN_FRAME *frame)
         }
         break;
 
-    case CAN_ID_CELL_VOLTAGE:
+    case CAN_ID_HEALTH:
+        packHealth = data[0]; // byte 0: pack health (1%)
+        packCycles = ((data[1] << 8) | data[2]); // byte 1+2: number of total pack cycles
+        packResistance = ((data[3] << 8) | data[4]); // byte 3+4: pack resistance (1 mOhm)
+        if (Logger::isDebug()) {
+            Logger::debug(this, "pack health: %d, pack cycles: %d, pack Resistance: %dmOhm",
+                    packHealth, packCycles, packResistance);
+        }
         break;
-
-    case CAN_ID_CELL_RESISTANCE:
-        break;
-
-//        lowestCellTempId, highestCellTempId; // 0-254, 255=undefined
-//        packResistance = ((data[2] << 8) | data[3]); // byte 2+3: pack resistance (1mOhm)
-//        packOpenVoltage = ((data[4] << 8) | data[5]); // byte 4+5: pack open voltage (0.1V)
-//        packHealth = data[0]; // byte 0: pack state of health (1%)
-//        packDepthOfDischarge = data[1]; // byte 1: pack depth of discharge (0.5%)
-//        packCycles = ((data[2] << 8) | data[3]); // byte 2+3: pack cycles (1 Cycle)
-
     }
 }
 
@@ -213,6 +211,21 @@ bool OrionBMS::hasCellVoltages()
 }
 
 bool OrionBMS::hasCellResistance()
+{
+    return true;
+}
+
+bool OrionBMS::hasPackHealth()
+{
+    return true;
+}
+
+bool OrionBMS::hasPackCycles()
+{
+    return true;
+}
+
+bool OrionBMS::hasPackResistance()
 {
     return true;
 }

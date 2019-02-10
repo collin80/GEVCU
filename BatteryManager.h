@@ -54,6 +54,9 @@ public:
     virtual bool hasCellTemperatures();
     virtual bool hasCellVoltages();
     virtual bool hasCellResistance();
+    virtual bool hasPackHealth();
+    virtual bool hasPackCycles();
+    virtual bool hasPackResistance();
 
     uint16_t getPackVoltage(); // in 0.1V
     int16_t getPackCurrent(); // in 0.1A
@@ -76,6 +79,9 @@ public:
     uint8_t getHighestCellVoltsId();
     uint8_t getLowestCellResistanceId();
     uint8_t getHighestCellResistanceId();
+    uint8_t getPackHealth(); // in 1%
+    uint16_t getPackCycles();
+    uint16_t getPackResistance(); // in 1mOhm
 
 protected:
     uint16_t packVoltage; //tenths of a volt
@@ -91,6 +97,9 @@ protected:
     uint8_t lowestCellVoltsId, highestCellVoltsId; // 0-254, 255=undefined
     uint16_t lowestCellResistance, highestCellResistance, averageCellResistance; // in 0.01mOhm
     uint8_t lowestCellResistanceId, highestCellResistanceId; // 0-254, 255=undefined
+    uint8_t packHealth; // pack health (1%)
+    uint16_t packCycles; // number of total pack cycles
+    uint16_t packResistance; // pack resistance (1 mOhm)
 private:
 };
 
