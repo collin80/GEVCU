@@ -85,6 +85,7 @@ const DeviceId deviceIds[] = {
         CANBRAKEPEDAL,
         ICHIP2128,
         THINKBMS,
+        ORIONBMS,
         BRUSA_BSC6,
         HEARTBEAT,
         CANIO,
