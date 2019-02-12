@@ -57,7 +57,7 @@ function generateGauges(config) {
 				minValue    : rangeBatteryVoltage.min,
 				maxValue    : rangeBatteryVoltage.max,
 				startValue  : (config.batteryRangeLow[2] + intervalBatteryVoltageLow + config.batteryRangeHigh[0]) / 2,
-				valueFormat : { "int" : 3, "dec" : 1 },
+				valueFormat : { "ints" : 3, "dec" : 1 },
 				majorTicks  : rangeBatteryVoltage.ticks,
 				minorTicks  : 5,
 				highlights  : batteryVoltageHighlights,
@@ -75,7 +75,7 @@ function generateGauges(config) {
 				maxValue    : rangeSoc.max,
 				startValue  : rangeSoc.max,
 				ccw         : false,
-				valueFormat : { "int" : 2, "dec" : 1 },
+				valueFormat : { "ints" : 2, "dec" : 1 },
 				majorTicks  : rangeSoc.ticks,
 				minorTicks  : 5,
 				highlights  : [
@@ -96,7 +96,7 @@ function generateGauges(config) {
 				minValue    : rangeCurrent.min,
 				maxValue    : rangeCurrent.max,
 				ccw         : true,
-				valueFormat : { "int" : 3, "dec" : 1 },
+				valueFormat : { "ints" : 3, "dec" : 1 },
 				majorTicks  : rangeCurrent.ticks,
 				minorTicks  : 5,
 				drawLimits  : true,
@@ -128,7 +128,7 @@ function generateGauges(config) {
 				units       : '',
 				minValue    : rangeRpm.min,
 				maxValue    : rangeRpm.max,
-				valueFormat : { "int" : 4, "dec" : 0 },
+				valueFormat : { "ints" : 4, "dec" : 0 },
 				majorTicks  : rangeRpm.ticks,
 				minorTicks  : 5,
 				highlights  : [
@@ -149,7 +149,7 @@ function generateGauges(config) {
 				units       : '',
 				minValue    : -100,
 				maxValue    : 100,
-				valueFormat : { "int" : 3, "dec" : 0 },
+				valueFormat : { "ints" : 3, "dec" : 0 },
 				majorTicks  : [ -100, -75, -50, -25, 0, 25, 50, 75, 100 ],
 				minorTicks  : 5,
 				highlights  : [
@@ -170,7 +170,7 @@ function generateGauges(config) {
 				minValue    : rangeTorque.min,
 				maxValue    : rangeTorque.max,
 				ccw         : true,
-				valueFormat : { "int" : 3, "dec" : 0 },
+				valueFormat : { "ints" : 3, "dec" : 0 },
 				majorTicks  : rangeTorque.ticks,
 				minorTicks  : 5,
 				highlights  : [
@@ -201,7 +201,7 @@ function generateGauges(config) {
 				units       : '\u2103',
 				minValue    : rangeMotor.min,
 				maxValue    : rangeMotor.max,
-				valueFormat : { "int" : 3, "dec" : 1 },
+				valueFormat : { "ints" : 3, "dec" : 1 },
 				majorTicks  : rangeMotor.ticks,
 				minorTicks  : 5,
 				highlights  : [
@@ -223,7 +223,7 @@ function generateGauges(config) {
 				minValue    : rangeController.min,
 				maxValue    : rangeController.max,
 				ccw         : true,
-				valueFormat : { "int" : 3, "dec" : 1 },
+				valueFormat : { "ints" : 3, "dec" : 1 },
 				majorTicks  : rangeController.ticks,
 				minorTicks  : 5,
 				highlights  : [

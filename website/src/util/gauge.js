@@ -69,8 +69,8 @@ var Gauge = function(gaugeConfig) {
 				majorTicks  : [],
 				minorTicks  : 10,
 				strokeTicks : true,
-				valueFormat : { "int" : 3, "dec" : 2 },
-		        majorTicksFormat : { "int" : 1, "dec" : 0 },
+				valueFormat : { "ints" : 3, "dec" : 2 },
+		        majorTicksFormat : { "ints" : 1, "dec" : 0 },
 				highlights  : [
 					{ from : 20, to : 60, color : '#eee' },
 					{ from : 60, to : 80, color : '#ccc' },
@@ -122,15 +122,17 @@ var Gauge = function(gaugeConfig) {
 	function baseInit() {
 		// important. first add all canvas before accessing one !!
 		addCanvas(config.renderTo + "Plate");
-		config.dials.forEach(dialConfig => { addCanvas(dialConfig.id); });
+		for (var i = 0; i < config.dials.length; i++) {
+			addCanvas(config.dials[i].id);
+		}
 		addCanvas(config.renderTo + "Limits")
 		addCanvas(config.renderTo + "Info");
 		addCanvas(config.renderTo + "InfoValues");
 
 		// now it's safe to look them up
-		var i = 0;
 		var ctxPlate = prepareCanvas(config.renderTo + "Plate", false);
-		config.dials.forEach(dialConfig => {
+		for (var i = 0; i < config.dials.length; i++) {
+			var dialConfig=config.dials[i];
 			var ctx = prepareCanvas(dialConfig.id, true);
 			dialConfig.offset = config.start + (config.angle + config.gap) * i / config.dials.length;
 			dialConfig.angle = (config.angle - config.gap * (config.dials.length - 1)) / config.dials.length;
@@ -146,8 +148,7 @@ var Gauge = function(gaugeConfig) {
 				dialConfig.startValue = dialConfig.startValue || 0; 
 			}
 			Gauge.dials[dialConfig.id.substring(0, dialConfig.id.length - 4)] = new Dial(ctx, dialConfig);
-			i++;
-		});
+		}
 		ctxLimits = prepareCanvas(config.renderTo + "Limits", true);
 		ctxInfo = prepareCanvas(config.renderTo + "Info", true);
 		ctxInfoValues = prepareCanvas(config.renderTo + "InfoValues", true);
@@ -270,10 +271,10 @@ var Gauge = function(gaugeConfig) {
 	 */
     function formatMajorTickNumber(num, dialNumber) {
         var r, isDec = false;
-        var int = 3, dec = 0;
+        var ints = 3, dec = 0;
         
         if (config.dials[dialNumber] && config.dials[dialNumber].majorTicksFormat) {
-        	int = config.dials[dialNumber].majorTicksFormat.int;
+        	ints = config.dials[dialNumber].majorTicksFormat.ints;
         	dec = config.dials[dialNumber].majorTicksFormat.dec;
         }
 
@@ -285,18 +286,18 @@ var Gauge = function(gaugeConfig) {
         }
 
         // Second, force the correct number of digits left of the decimal.
-        if(int > 1) {
+        if(ints > 1) {
             // Does this number have a decimal?
             isDec = (r.indexOf('.') > -1);
 
             // Is this number a negative number?
             if(r.indexOf('-') > -1) {
                 return '-' + [
-					int + dec + 2 + (isDec ? 1 : 0) - r.length
+					ints + dec + 2 + (isDec ? 1 : 0) - r.length
 				].join('0') + r.replace('-', '');
             } else {
                 return [
-                	int + dec + 1 + (isDec ? 1 : 0) - r.length
+                	ints + dec + 1 + (isDec ? 1 : 0) - r.length
 				].join('0') + r;
             }
         } else {
@@ -314,22 +315,22 @@ var Gauge = function(gaugeConfig) {
 		ctx.strokeStyle = config.colors.majorTicks;
 		ctx.save();
 
-		var v = 0;
-		config.dials.forEach(dialConfig => {
+		for (var i = 0; i < config.dials.length; i++) {
+			var dialConfig = config.dials[i];
 	        if(dialConfig.majorTicks.length == 0) {
 	            var numberOfDefaultTicks = 5;
 	            var tickSize = (dialConfig.maxValue - dialConfig.minValue) / numberOfDefaultTicks;
 	
-	            for(var i = 0; i < numberOfDefaultTicks; i++) {
-	            	dialConfig.majorTicks.push(formatMajorTickNumber(dialConfig.minValue + (tickSize * i), v));
+	            for(var j = 0; j < numberOfDefaultTicks; j++) {
+	            	dialConfig.majorTicks.push(formatMajorTickNumber(dialConfig.minValue + (tickSize * j), i));
 	            }
-	            dialConfig.majorTicks.push(formatMajorTickNumber(dialConfig.maxValue), v++);
+	            dialConfig.majorTicks.push(formatMajorTickNumber(dialConfig.maxValue), i);
 	        }
 	
 			var range = dialConfig.majorTicks.length - 1;
-			var i = 0;
-			dialConfig.majorTicks.forEach(tick => {
-				ctx.rotate(radians(dialConfig.offset + i++ * dialConfig.angle / range));
+			for (var j = 0; j < dialConfig.majorTicks.length; j++) {
+				var tick = dialConfig.majorTicks[j];
+				ctx.rotate(radians(dialConfig.offset + j * dialConfig.angle / range));
 
 				ctx.beginPath();
 				ctx.moveTo(0, r);
@@ -338,7 +339,7 @@ var Gauge = function(gaugeConfig) {
 
 				ctx.restore();
 				ctx.save();
-			});
+			}
 	
 			if (dialConfig.strokeTicks) {
 				ctx.rotate(radians(90));
@@ -349,7 +350,7 @@ var Gauge = function(gaugeConfig) {
 				ctx.restore();
 				ctx.save();
 			}
-		});
+		}
 	}
 
 	/**
@@ -363,10 +364,11 @@ var Gauge = function(gaugeConfig) {
 
 		ctx.save();
 
-		config.dials.forEach(dialConfig => {
+		for (var i = 0; i < config.dials.length; i++) {
+			var dialConfig = config.dials[i];
 			var range = dialConfig.minorTicks * (dialConfig.majorTicks.length - 1);	
-			for (var i = 0; i < range; ++i) {
-				ctx.rotate(radians(dialConfig.offset + i * dialConfig.angle / range));
+			for (var j = 0; j < range; ++j) {
+				ctx.rotate(radians(dialConfig.offset + j * dialConfig.angle / range));
 	
 				ctx.beginPath();
 				ctx.moveTo(0, r);
@@ -376,7 +378,7 @@ var Gauge = function(gaugeConfig) {
 				ctx.restore();
 				ctx.save();
 			}
-		});
+		}
 	}
 
 	/**
@@ -385,12 +387,13 @@ var Gauge = function(gaugeConfig) {
 	function drawNumbers(ctx) {
 		var r = max / 100 * 60;
 
-		config.dials.forEach(dialConfig => {
+		for (var i = 0; i < config.dials.length; i++) {
+			var dialConfig = config.dials[i];
 			var range = dialConfig.majorTicks.length - 1;
-			for (var i = 0; i < dialConfig.majorTicks.length; ++i) {
+			for (var j = 0; j < dialConfig.majorTicks.length; ++j) {
 				var 
-					p = rpoint(r, radians(dialConfig.offset + i * dialConfig.angle / range)),
-					idx = (dialConfig.ccw ? dialConfig.majorTicks.length - 1 - i : i)
+					p = rpoint(r, radians(dialConfig.offset + j * dialConfig.angle / range)),
+					idx = (dialConfig.ccw ? dialConfig.majorTicks.length - 1 - j : j)
 				;
 	
 				ctx.font      = 20 * (max / 200) + "px Arial";
@@ -399,7 +402,7 @@ var Gauge = function(gaugeConfig) {
 				ctx.textAlign = "center";
 				ctx.fillText(dialConfig.majorTicks[idx], p.x, p.y + 3);
 			}
-		});
+		}
 	}
 
 	/**
@@ -497,8 +500,10 @@ var Gauge = function(gaugeConfig) {
 		var r1 = max / 100 * 84;
 		var width = max / 100 * 9;
 
-		config.dials.forEach(dialConfig => {
-			dialConfig.highlights.forEach(hlt => {
+		for (var i = 0; i < config.dials.length; i++) {
+			var dialConfig = config.dials[i];
+			for (var j = 0; j < dialConfig.highlights.length; j++) {
+				var hlt = dialConfig.highlights[j];
 				var
 					range = dialConfig.maxValue - dialConfig.minValue,
 					sa, ea
@@ -516,8 +521,8 @@ var Gauge = function(gaugeConfig) {
 				ctx.lineWidth = width;
 				ctx.strokeStyle = hlt.color;
 				ctx.stroke();
-			});
-		});
+			}
+		}
 	}
 	
 	function drawInfoArea(ctx) {
@@ -565,7 +570,7 @@ var Gauge = function(gaugeConfig) {
 			ctx.font = (max / 5) + "px Led";
 			var
 				cdec = config.dials[v].valueFormat['dec'],
-				cint = config.dials[v].valueFormat['int'],
+				cint = config.dials[v].valueFormat['ints'],
 				tw   = ctx.measureText('-' + padValue(0, cint, cdec)).width,
 				y = max / 4 * v,
 				x = 0,
@@ -615,7 +620,8 @@ var Gauge = function(gaugeConfig) {
 	function drawLimits() {
 		ctxLimits.clearRect(-CX, -CY, CW, CH);
 		
-		config.dials.forEach(dialConfig => {
+		for (var i = 0; i < config.dials.length; i++) {
+			var dialConfig = config.dials[i];
 			var cfg = Gauge.dials[dialConfig.id.substring(0, dialConfig.id.length - 4)].getConfig();
 			if (cfg.limits) {
 	 			if (cfg.limits.min || cfg.limits.min === 0) {
@@ -625,7 +631,7 @@ var Gauge = function(gaugeConfig) {
 					drawLimitNeedle(cfg, cfg.limits.max);
 				}
 			}
-		});
+		}
 	}
 
 	function drawLimitNeedle(cfg, value) {
@@ -798,7 +804,7 @@ var Gauge = function(gaugeConfig) {
 		function drawValueText(val) {
 			ctxInfoValues.clearRect(ctxInfoValues.canvas.width / -2, textYPos - max / 5, ctxInfoValues.canvas.width, max / 4.5);
 			ctxInfoValues.font = textSize + "px Led";
-			ctxInfoValues.fillText(padValue(val, config.valueFormat.int, config.valueFormat.dec), -textXPos, textYPos);
+			ctxInfoValues.fillText(padValue(val, config.valueFormat.ints, config.valueFormat.dec), -textXPos, textYPos);
 		}
 	}
 }

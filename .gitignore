@@ -3,6 +3,7 @@ bin/
 bin-debug/
 bin-release/
 .ino.cpp
+website/minified
 
 # Other files and folders
 .settings/
