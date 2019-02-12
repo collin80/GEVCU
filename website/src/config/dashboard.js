@@ -7,5 +7,6 @@
 	"batteryRangeLow": [ ~batteryRangeLow~ ],
 	"batteryRangeHigh": [ ~batteryRangeHigh~ ],
 	"socRange": [ ~socRange~ ],
-	"powerRange": [ ~powerRange~ ]
+	"powerRange": [ ~powerRange~ ],
+	"chargeInputLevels": [ ~chargeInputLevels~ ]
 }
