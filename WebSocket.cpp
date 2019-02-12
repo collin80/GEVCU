@@ -274,10 +274,14 @@ String WebSocket::processData(char *input)
         } else if (strstr(text, "cmdEhps:")) {
             systemIO.setPowerSteering(flag);
             Logger::info("EHPS is now switched %s", (flag ? "on" : "off"));
-       } else if (strstr(text, "cmdHeater:")) {
+        } else if (strstr(text, "cmdHeater:")) {
             systemIO.setEnableHeater(flag);
             systemIO.setHeaterPump(flag);
             Logger::info("Heater is now switched %s", (flag ? "on" : "off"));
+        } else if (strstr(text, "cmdChargeLevel:")) {
+            uint8_t inputCurrent = atoi(text);
+            Logger::info("Setting charge level to %d A", inputCurrent);
+            deviceManager.getCharger()->setMaximumInputCurrent(inputCurrent * 10);
         }
         break;
     }
@@ -348,12 +352,12 @@ String WebSocket::generateUpdate()
             if (batteryManager->hasPackCurrent())
                 processParameter(&paramCache.packCurrent, batteryManager->getPackCurrent(), Constants::packCurrent, 10);
             if (batteryManager->hasSoc())
-                processParameter(&paramCache.soc, (uint16_t)(batteryManager->getSoc() * 25), Constants::soc, 100);
+                processParameter(&paramCache.soc, (uint16_t)(batteryManager->getSoc() * 50), Constants::soc, 100);
             if (batteryManager->hasDischargeLimit()) {
                 processParameter(&paramCache.dischargeLimit, batteryManager->getDischargeLimit(), Constants::dischargeLimit);
                 if (batteryManager->getDischargeLimit() != dcCurrentMin || batteryManager->getChargeLimit() != dcCurrentMax) {
-                    dcCurrentMin = batteryManager->getDischargeLimit() * -1;
-                    dcCurrentMax = batteryManager->getChargeLimit();
+                    dcCurrentMax = batteryManager->getDischargeLimit();
+                    dcCurrentMin = batteryManager->getChargeLimit() * -1;
                     addLimit((char *)String(dcCurrentMin).c_str(), (char *)String(dcCurrentMax).c_str(), Constants::dcCurrent);
                 }
             }
@@ -370,8 +374,8 @@ String WebSocket::generateUpdate()
                 processParameter(&paramCache.highestCellTempId, batteryManager->getHighestCellTempId(), Constants::highestCellTempId);
             }
             if (batteryManager->hasCellVoltages()) {
-                processParameter(&paramCache.lowestCellVolts, batteryManager->getLowestCellVolts(), Constants::lowestCellVolts, 1000);
-                processParameter(&paramCache.highestCellVolts, batteryManager->getHighestCellVolts(), Constants::highestCellVolts, 1000);
+                processParameter(&paramCache.lowestCellVolts, batteryManager->getLowestCellVolts(), Constants::lowestCellVolts, 10000);
+                processParameter(&paramCache.highestCellVolts, batteryManager->getHighestCellVolts(), Constants::highestCellVolts, 10000);
                 processParameter(&paramCache.averageCellVolts, batteryManager->getAverageCellVolts(), Constants::averageCellVolts, 10000);
                 processParameter(&paramCache.deltaCellVolts, batteryManager->getHighestCellVolts() - batteryManager->getLowestCellVolts(), Constants::deltaCellVolts, 10000);
                 processParameter(&paramCache.lowestCellVoltsId, batteryManager->getLowestCellVoltsId(), Constants::lowestCellVoltsId);
@@ -409,7 +413,7 @@ String WebSocket::generateUpdate()
                 processParameter(&paramCache.chargeHoursRemain, secs / 60, Constants::chargeHoursRemain);
                 processParameter(&paramCache.chargeMinsRemain, secs % 60, Constants::chargeMinsRemain);
                 if (batteryManager && batteryManager->hasSoc())
-                    processParameter(&paramCache.chargeLevel, batteryManager->getSoc() * 25, Constants::chargeLevel, 100);
+                    processParameter(&paramCache.chargeLevel, batteryManager->getSoc() * 50, Constants::chargeLevel, 100);
                 else
                     processParameter(&paramCache.chargeLevel, map (secs, 0 , 28800, 0, 100), Constants::chargeLevel);
             }
@@ -468,16 +472,15 @@ String WebSocket::generateLogEntry(char *logLevel, char *deviceName, char *messa
     if (!connected) {
         return data;
     }
-
-    data.concat("{\r\"logMessage\": {\r\"level\": \"");
+    data.concat("{\"logMessage\": {\"level\": \"");
     data.concat(logLevel);
-    data.concat("\",\r\"message\": \"");
+    data.concat("\",\"message\": \"");
     if (deviceName != NULL) {
         data.concat(deviceName);
         data.concat(": ");
     }
     data.concat(message);
-    data.concat("\"\r}\r}");
+    data.concat("\"}}");
 
     return prepareWebSocketFrame(OPCODE_TEXT, data);
 }

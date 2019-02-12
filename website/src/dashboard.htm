@@ -84,8 +84,7 @@
 		<span id="chargeLevel">--</span>%
 	</div>
 	<div id="inputCurrentSelector">
-		Input current:
-		<span id="inputCurrentSpan" title="maximum input current for this charge session"></span> A
+		Max. input current: <select id="chargeInputLevel" onChange="dashboard.setChargeInputLevel()"></select> A
 	</div>
 	<div class="subInfo">
 		<span class="subInfoCell">
@@ -129,8 +128,8 @@
 </div>
 
 <div id="state_2_3_4_5_6_7_8_9_99_">
-	<div id="annunciator"></div>
 	<div id="batteries"></div>
+	<div id="annunciator"></div>
 </div>
 
 <audio id="soundError"><source src="sound/error.mp3" type="audio/mpeg"></audio>

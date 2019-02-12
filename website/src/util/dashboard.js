@@ -6,6 +6,8 @@ var dashboard = dashboard || {};
 	dashboard.activate = activate;
 	dashboard.hideStateDivs = hideStateDivs;
 	dashboard.sendMsg = sendMsg;
+	dashboard.addChargeOptions = addChargeOptions;
+	dashboard.setChargeInputLevel = setChargeInputLevel;
 
 	function activate() {
 		// show the correct div and hide the others
@@ -121,5 +123,18 @@ var dashboard = dashboard || {};
 	// send message to ichip via websocket
 	function sendMsg(message) {
 		webSocketWorker.postMessage({cmd: 'message', message: message});
+	}
+	
+	function addChargeOptions(data) {
+		var select = document.getElementById("chargeInputLevel");
+		for (var level in data.chargeInputLevels) {
+			select.add(new Option(level, level));
+		}
+		select.value=data.chargeInputLevels[data.chargeInputLevels.length - 1];
+	}
+	
+	function setChargeInputLevel(){
+		var select = document.getElementById("chargeInputLevel");
+		sendMsg('cmdChargeLevel:' + select.options[select.selectedIndex].value);
 	}
 })();
