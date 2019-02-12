@@ -157,7 +157,7 @@ input#inputCurrentLevel {
 	table-layout: fixed;
 	width: 70%;
 	background: linear-gradient(to bottom right, #667, #334);
-	font-size: 1.3em;
+	font-size: 1.8em;
 	border-radius: 0.7em;
 	box-shadow: .3em 0.3em 0.3em #000;
 }
