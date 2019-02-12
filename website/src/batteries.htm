@@ -1,20 +1,31 @@
 <div class="foldBatteries" onClick="foldBatteries();">B</div>
 <div id="batteryInfo">
-	<div>
-		<div>Maximum:
-			<span id="highestCellVolts">-</span>V (#<span id="highestCellVoltsId">-</span>),
-			<span id="highestCellResistance">-</span>mOhm (#<span id="highestCellResistanceId">-</span>),
-			<span id="highestCellTemp">-</span>&#176;C (#<span id="highestCellTempId">-</span>)
+	<div class="subinfo">
+		<div class="subInfoCell">
+			<div>Maximum:</div>
+			<div>Minimum:</div>
+			<div>Delta / Avg:</div>
+			<div>Pack:</div>
+			<div>Limits:</div>
 		</div>
-		<div>Minimum:
-			<span id="lowestCellVolts">-</span>V (#<span id="lowestCellVoltsId">-</span>),
-			<span id="lowestCellResistance">-</span>mOhm (#<span id="lowestCellResistanceId">-</span>),
-			<span id="lowestCellTemp">-</span>&#176;C (#<span id="lowestCellTempId">-</span>)
+		<div class="subInfoCell">
+			<div><span id="highestCellVolts">-</span> V, #<span id="highestCellVoltsId">-</span></div>
+			<div><span id="lowestCellVolts">-</span> V, #<span id="lowestCellVoltsId">-</span></div>
+			<div><span id="deltaCellVolts">-</span> V / <span id="averageCellVolts">-</span>V</div>
+			<div><span id="packVoltage">-</span> V</div>
+			<div><span id="dischargeLimit">-</span> A</div>
 		</div>
-		<div>Delta: <span id="deltaCellVolts">-</span>V, <span id="deltaCellResistance">-</span>mOhm,
-		Average: <span id="averageCellVolts">-</span>V, <span id="averageCellResistance">-</span>mOhm</div>
-		<div>Pack : <span id="packVoltage">-</span>V, <span id="packCurrent">-</span>A</div>
-		<div>Discharge/Charge Limit: <span id="dischargeLimit">-</span>/<span id="chargeLimit">-</span>A (<span id="dischargeAllowed">-</span>/<span id="chargeAllowed">-</span>)</div>
+		<div class="subInfoCell">
+			<div><span id="highestCellResistance">-</span> mOhm, #<span id="highestCellResistanceId">-</span></div>
+			<div><span id="lowestCellResistance">-</span> mOhm, #<span id="lowestCellResistanceId">-</span></div>
+			<div><span id="deltaCellResistance">-</span> / <span id="averageCellResistance">-</span> mOhm</div>
+			<div><span id="packCurrent">-</span>A</div>
+			<div><span id="chargeLimit">-</span>A</div>
+		</div>
+		<div class="subInfoCell">
+			<div><span id="highestCellTemp">-</span>&#176;C, #<span id="highestCellTempId">-</span></div>
+			<div><span id="lowestCellTemp">-</span>&#176;C, #<span id="lowestCellTempId">-</span></div>
+		</div>
 	</div>
 	<!-- div id="batteryLevels">
 		<div id="batt_1" class="ok">001: 3.22V</div>

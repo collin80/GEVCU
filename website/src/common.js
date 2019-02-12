@@ -52,7 +52,7 @@ function loadPage(pageId) {
 			foldAnnunciator(false);
 		}
 		if (pageId == 'batteries') {
-			foldBatteries(false);
+//			foldBatteries(false);
 		}
 	});
 }
