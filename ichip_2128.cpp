@@ -87,10 +87,14 @@ void ICHIPWIFI::setup()
     remainingSocketRead = -1;
     lastSendTime = timeStarted = millis();
     state = IDLE;
+
+    // don't try to re-attach if called from reset() - to avoid warning message
+    if (!tickHandler.isAttached(this, CFG_TICK_INTERVAL_WIFI)) {
+        tickHandler.attach(this, CFG_TICK_INTERVAL_WIFI);
+    }
+
     ready = true;
     running = true;
-
-    tickHandler.attach(this, CFG_TICK_INTERVAL_WIFI);
 }
 
 /**
@@ -259,9 +263,14 @@ void ICHIPWIFI::sendSocketUpdate()
  */
 void ICHIPWIFI::handleTick()
 {
-    if (watchdogCounter++ > 50) { // after 50 * 200ms no reception, reset ichip
+    if (!running) { // re-init after a reset
+        setup();
+        return;
+    }
+    if (watchdogCounter++ > 250) { // after 250 * 100ms no reception, reset ichip
         Logger::warn(this, "watchdog: no response from ichip");
         reset();
+        return;
     }
 
     if (socketListenerHandle != 0) {
@@ -421,11 +430,12 @@ void ICHIPWIFI::loop()
                 }
             }
             // if we got an I/OK or I/ERROR in the reply then the command is done sending data. So, see if there is a buffered cmd to send.
-            if (strstr(incomingBuffer, "I/OK") != NULL || strstr(incomingBuffer, Constants::ichipErrorString) != NULL) {
+            if (strstr(incomingBuffer, "I/OK") != NULL) {
                 watchdogCounter = 0; // the ichip responds --> it's alive
-                if(strstr(incomingBuffer, Constants::ichipErrorString) != NULL) {
-                    Logger::console("ichip responded with error: '%s', state %d", incomingBuffer, state);
-                }
+                sendBufferedCommand();
+            }
+            if (strstr(incomingBuffer, Constants::ichipErrorString) != NULL) {
+                Logger::warn("ichip responded with error: '%s', state %d", incomingBuffer, state);
                 sendBufferedCommand();
             }
             return; // before processing the next line, return to the loop() to allow other devices to process.
@@ -553,7 +563,8 @@ void ICHIPWIFI::processIncomingSocketData()
  */
 void ICHIPWIFI::processSocketSendResponse()
 {
-    if (strstr(incomingBuffer, Constants::ichipErrorString) != NULL) {
+    if (strstr(incomingBuffer, Constants::ichipErrorString) != NULL &&
+            strstr(incomingBuffer, "(203)") != NULL) {
         Logger::info(this, "connection closed by remote client (%s), closing socket", incomingBuffer);
         closeSocket(lastSendSocket);
     }
@@ -1324,6 +1335,7 @@ void ICHIPWIFI::loadParametersDashboard()
         setParam(Constants::motorTempRange, "0,90,120");
         setParam(Constants::controllerTempRange, "0,60,80");
         setParam(Constants::socRange, "0,20,100");
+        setParam(Constants::chargeInputLevels, "5, 10, 13, 16");
     }
 }
 
@@ -1333,15 +1345,12 @@ void ICHIPWIFI::loadParametersDashboard()
  */
 void ICHIPWIFI::reset()
 {
-    tickHandler.detach(this); // stop other activity
     Logger::info(this, "resetting the ichip");
 
-    // cycle reset pin
+    // cycle reset pin (next tick() will activate it again
     digitalWrite(CFG_WIFI_RESET, LOW);
-    delay(2); // according to specs 1ms should be sufficient
-    digitalWrite(CFG_WIFI_RESET, HIGH);
-
-    setup();
+    running = false;
+    ready = false;
 }
 
 
