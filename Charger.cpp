@@ -123,7 +123,7 @@ uint16_t Charger::calculateOutputCurrent()
         }
         if (batteryManager) {
             if (batteryManager->hasChargeLimit()) {
-                requestedOutputCurrent = batteryManager->getChargeLimit() * 10;
+                requestedOutputCurrent = min(batteryManager->getChargeLimit() * 10, requestedOutputCurrent); // don't allow it to fluctuate up and down, stay down
             } else if (batteryManager->hasAllowCharging() && !batteryManager->isChargeAllowed()) {
                 requestedOutputCurrent = 0;
                 Logger::info(this, "BMS terminated charging");
