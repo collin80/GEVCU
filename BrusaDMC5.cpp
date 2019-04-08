@@ -47,6 +47,7 @@ BrusaDMC5::BrusaDMC5() : MotorController()
     limiterStateNumber = 0;
     tickCounter = 0;
     bitfield = 0;
+    canMessageLost = false;
 
     commonName = "Brusa DMC5 Inverter";
 }
@@ -122,10 +123,9 @@ void BrusaDMC5::sendControl()
 {
     BrusaDMC5Configuration *config = (BrusaDMC5Configuration *) getConfiguration();
     canHandlerEv.prepareOutputFrame(&outputFrame, CAN_ID_CONTROL);
-    if ((status.canControlMessageLost || status.canControl2MessageLost || status.canLimitMessageLost)) {
+    if (canMessageLost) {
         outputFrame.data.bytes[0] |= clearErrorLatch;
-        Logger::warn(this, "clearing error latch - ctrl lost: %d, ctrl2 lost: %d, limit lost: %d", status.canControlMessageLost,
-                status.canControl2MessageLost, status.canLimitMessageLost);
+        Logger::warn(this, "clearing error latch");
     } else {
         // to safe energy only enable the power-stage when positive acceleration is requested or the motor is still spinning (to control regen)
         // see warning in Brusa docs about field weakening current to prevent uncontrollable regen
@@ -205,18 +205,18 @@ void BrusaDMC5::sendLimits()
     if (batteryManager) {
         if (batteryManager->hasDischargeLimit()) {
 //            currentLimitMotor = batteryManager->getDischargeLimit() * 10;
-            Logger::info(this, "Motor power limited by BMS to %dA (instead %dA)", batteryManager->getDischargeLimit(), currentLimitMotor/10);
+//            Logger::info(this, "Motor power limited by BMS to %dA (instead %dA)", batteryManager->getDischargeLimit(), currentLimitMotor/10);
         } else if (batteryManager->hasAllowDischarging() && !batteryManager->isDischargeAllowed()) {
 //            currentLimitMotor = 0;
-            Logger::info(this, "Motor power limited by BMS to 0");
+//            Logger::info(this, "Motor power limited by BMS to 0");
         }
 
         if (batteryManager->hasChargeLimit()) {
             currentLimitRegen = batteryManager->getChargeLimit() * 10;
-            Logger::info(this, "Regen power limited by BMS to %dA (instead %dA)", batteryManager->getChargeLimit(), currentLimitRegen/10);
+//            Logger::info(this, "Regen power limited by BMS to %dA (instead %dA)", batteryManager->getChargeLimit(), currentLimitRegen/10);
         } else if (batteryManager->hasAllowCharging() && !batteryManager->isChargeAllowed()) {
             currentLimitRegen = 0;
-            Logger::info(this, "Regen power limited by BMS to 0");
+//            Logger::info(this, "Regen power limited by BMS to 0");
         }
 
         if (currentLimitMotor < config->dcCurrentLimitMotor) {
@@ -357,54 +357,77 @@ void BrusaDMC5::processErrors(uint8_t data[])
 {
     bitfield = (uint32_t) (data[1] | (data[0] << 8) | (data[5] << 16) | (data[4] << 24));
 
-    status.speedSensorSupply = (bitfield & speedSensorSupply) ? true : false;
-    status.speedSensor = (bitfield & speedSensor) ? true : false;
-    status.canLimitMessageInvalid = (bitfield & canLimitMessageInvalid) ? true : false;
-    status.canControlMessageInvalid = (bitfield & canControlMessageInvalid) ? true : false;
-    status.canLimitMessageLost = (bitfield & canLimitMessageLost) ? true : false;
-    status.overvoltageInternalSupply = (bitfield & overvoltageSkyConverter) ? true : false;
-    status.voltageMeasurement = (bitfield & voltageMeasurement) ? true : false;
-    status.shortCircuit = (bitfield & shortCircuit) ? true : false;
-    status.canControlMessageLost = (bitfield & canControlMessageLost) ? true : false;
+    if (bitfield & speedSensorSupply)
+        Logger::error(this, "power supply of speed sensor failed");
+    if (bitfield & speedSensor)
+        Logger::error(this, "encoder or position sensor delivers faulty signal");
+    if (bitfield & canLimitMessageInvalid)
+        Logger::error(this, "limit data CAN message is invalid");
+    if (bitfield & canControlMessageInvalid)
+        Logger::error(this, "control data CAN message is invalid");
+    if (bitfield & canLimitMessageLost)
+        Logger::error(this, "timeout of limit CAN message");
+    if (bitfield & overvoltageSkyConverter)
+        Logger::error(this, "over voltage of the internal power supply");
+    if (bitfield & voltageMeasurement)
+        Logger::error(this, "differences in the redundant voltage measurement");
+    if (bitfield & shortCircuit)
+        Logger::error(this, "short circuit in the power stage");
+    if (bitfield & canControlMessageLost)
+        Logger::error(this, "timeout of control message");
+    if (bitfield & canControl2MessageLost)
+        Logger::error(this, "timeout of control2 message");
+    if (bitfield & canLimitMessageLost)
+        Logger::error(this, "timeout of limit message");
+    if (bitfield & initalisation)
+        Logger::error(this, "error during initialisation");
+    if (bitfield & analogInput)
+        Logger::error(this, "an analog input signal is outside its boundaries");
+    if (bitfield & driverShutdown)
+        Logger::error(this, "power stage of the motor controller was shut-down in an uncontrolled fashion");
+    if (bitfield & powerMismatch)
+        Logger::error(this, "plausibility error between electrical and mechanical power");
+    if (bitfield & motorEeprom)
+        Logger::error(this, "error in motor/controller EEPROM module");
+    if (bitfield & storage)
+        Logger::error(this, "data consistency check failed in motor controller");
+    if (bitfield & enablePinSignalLost)
+        Logger::error(this, "enable signal lost, motor controller shut-down (is imminent)");
+    if (bitfield & canCommunicationStartup)
+        Logger::error(this, "motor controller received CAN messages which were not appropriate to its state");
+    if (bitfield & internalSupply)
+        Logger::error(this, "problem with the internal power supply");
+    if (bitfield & osTrap)
+        Logger::error(this, "severe problem in OS of motor controller");
+
+    canMessageLost = ((bitfield & canControlMessageLost) | (bitfield & canControl2MessageLost) | (bitfield & canLimitMessageLost)) ? true : false;
     status.overtempController = (bitfield & overtemp) ? true : false;
     status.overtempMotor = (bitfield & overtempMotor) ? true : false;
     status.overspeed = (bitfield & overspeed) ? true : false;
     status.hvUndervoltage = (bitfield & undervoltage) ? true : false;
     status.hvOvervoltage = (bitfield & overvoltage) ? true : false;
     status.hvOvercurrent = (bitfield & overcurrent) ? true : false;
-    status.initalisation = (bitfield & initalisation) ? true : false;
-    status.analogInput = (bitfield & analogInput) ? true : false;
-    status.unexpectedShutdown = (bitfield & driverShutdown) ? true : false;
-    status.powerMismatch = (bitfield & powerMismatch) ? true : false;
-    status.canControl2MessageLost = (bitfield & canControl2MessageLost) ? true : false;
-    status.motorEeprom = (bitfield & motorEeprom) ? true : false;
-    status.storage = (bitfield & storage) ? true : false;
-    status.enableSignalLost = (bitfield & enablePinSignalLost) ? true : false;
-    status.canCommunicationStartup = (bitfield & canCommunicationStartup) ? true : false;
-    status.internalSupply = (bitfield & internalSupply) ? true : false;
     status.acOvercurrent = (bitfield & acOvercurrent) ? true : false;
-    status.osTrap = (bitfield & osTrap) ? true : false;
-
-    if (bitfield) {
-        Logger::error(this, "%#08x", bitfield);
-    }
 
     bitfield = (uint32_t) (data[7] | (data[6] << 8));
 
+    if (bitfield & externalShutdownPathAw2Off)
+        Logger::warn(this, "external shut-down path AW1 off");
+    if (bitfield & externalShutdownPathAw1Off)
+        Logger::warn(this, "external shut-down path AW2 off");
+    if (bitfield & driverShutdownPathActive)
+        Logger::warn(this, "driver shut-down path active");
+    if (bitfield & powerMismatchDetected)
+        Logger::warn(this, "power mismatch detected");
+    if (bitfield & speedSensorSignal)
+            Logger::warn(this, "speed sensor signal is bad");
+    if (bitfield & temperatureSensor)
+        Logger::warn(this, "invalid data from temperature sensor(s)");
+
     status.systemCheckActive = (bitfield & systemCheckActive) ? true : false;
-    status.externalShutdownPath2Off = (bitfield & externalShutdownPathAw2Off) ? true : false;
-    status.externalShutdownPath1Off = (bitfield & externalShutdownPathAw1Off) ? true : false;
-    status.oscillationLimitControllerActive = (bitfield & oscillationLimitControllerActive) ? true : false;
-    status.driverShutdownPathActive = (bitfield & driverShutdownPathActive) ? true : false;
-    status.powerMismatch = (bitfield & powerMismatchDetected) ? true : false;
-    status.speedSensorSignal = (bitfield & speedSensorSignal) ? true : false;
+    status.oscillationLimiter = (bitfield & oscillationLimitControllerActive) ? true : false;
     status.hvUndervoltage = (bitfield & hvUndervoltage) ? true : false;
     status.maximumModulationLimiter = (bitfield & maximumModulationLimiter) ? true : false;
-    status.temperatureSensor = (bitfield & temperatureSensor) ? true : false;
-
-    if (bitfield && bitfield != oscillationLimitControllerActive) {
-        Logger::warn(this, "%#08x", bitfield);
-    }
 }
 
 /*

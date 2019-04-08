@@ -48,12 +48,6 @@ function loadPage(pageId) {
 			loadPage("batteries");
 			dashboard.hideStateDivs();
 		}
-		if (pageId == 'annunciator') {
-			foldAnnunciator(false);
-		}
-		if (pageId == 'batteries') {
-//			foldBatteries(false);
-		}
 	});
 }
 

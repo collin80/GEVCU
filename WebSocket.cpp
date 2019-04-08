@@ -62,9 +62,9 @@ void WebSocket::initParamCache()
     paramCache.dcVoltage = -1;
     paramCache.dcCurrent = -1;
     paramCache.acCurrent = -1;
-    paramCache.bitfield1 = 0;
-    paramCache.bitfield2 = 0;
-    paramCache.bitfield3 = 0;
+    paramCache.bitfieldMotor = 0;
+    paramCache.bitfieldBms = 0;
+    paramCache.bitfieldIO = 0;
     paramCache.systemState = 0;
     paramCache.gear = MotorController::ERROR;
     paramCache.temperatureMotor = -1;
@@ -336,9 +336,9 @@ String WebSocket::generateUpdate()
         }
     }
 
-    processParameter(&paramCache.bitfield1, status.getBitField1(), Constants::bitfield1);
-    processParameter(&paramCache.bitfield2, status.getBitField2(), Constants::bitfield2);
-    processParameter(&paramCache.bitfield3, status.getBitField3(), Constants::bitfield3);
+    processParameter(&paramCache.bitfieldMotor, status.getBitFieldMotor(), Constants::bitfieldMotor);
+    processParameter(&paramCache.bitfieldBms, status.getBitFieldBms(), Constants::bitfieldBms);
+    processParameter(&paramCache.bitfieldIO, status.getBitFieldIO(), Constants::bitfieldIO);
 
     if (ms > paramCache.timeRunning + 900) { // just update this every second or so
         paramCache.timeRunning = ms;
@@ -385,9 +385,18 @@ String WebSocket::generateUpdate()
                 processParameter(&paramCache.lowestCellResistance, batteryManager->getLowestCellResistance(), Constants::lowestCellResistance, 100);
                 processParameter(&paramCache.highestCellResistance, batteryManager->getHighestCellResistance(), Constants::highestCellResistance, 100);
                 processParameter(&paramCache.averageCellResistance, batteryManager->getAverageCellResistance(), Constants::averageCellResistance, 100);
-                processParameter(&paramCache.deltaCellResistance, batteryManager->getHighestCellResistance() - batteryManager->getLowestCellResistance(), Constants::deltaCellResistance, 10000);
+                processParameter(&paramCache.deltaCellResistance, (batteryManager->getHighestCellResistance() - batteryManager->getLowestCellResistance()), Constants::deltaCellResistance, 100);
                 processParameter(&paramCache.lowestCellResistanceId, batteryManager->getLowestCellResistanceId(), Constants::lowestCellResistanceId);
                 processParameter(&paramCache.highestCellResistanceId, batteryManager->getHighestCellResistanceId(), Constants::highestCellResistanceId);
+            }
+            if (batteryManager->hasPackResistance()) {
+                processParameter(&paramCache.packResistance, batteryManager->getPackResistance(), Constants::packResistance);
+            }
+            if (batteryManager->hasPackHealth()) {
+                processParameter(&paramCache.packHealth, batteryManager->getPackHealth(), Constants::packHealth);
+            }
+            if (batteryManager->hasPackCycles()) {
+                processParameter(&paramCache.packCycles, batteryManager->getPackCycles(), Constants::packCycles);
             }
         }
 

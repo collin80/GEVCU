@@ -7,6 +7,31 @@ body {
 	margin: 0 0.5em 0.5em 0.5em;
 }
 
+a {
+	color: #5555ff;
+}
+
+h1 {
+	color: #9999dd;
+	font-size: 2.5em;
+	margin-top: 10px;
+	margin-bottom: 5px;
+}
+
+h2 {
+	color: #bbbbff;
+	margin-top: 15px;
+	margin-bottom: 5px;
+	padding: 0px 0px 0px 0px;
+}
+
+h3 {
+	color: #bbbbff;
+	margin-top: 14px;
+	margin-bottom: 4px;
+	padding: 0px 0px 0px 0px;
+}
+
 .mainTitle {
 	top: 50%;
 	left: 50%;
@@ -151,11 +176,11 @@ input#inputCurrentLevel {
 
 /************* Sub Info *************/
 .subInfo {
-	margin: 0.5em 15% .5em 15%;
-	padding: .5em .5em .5em .5em;
+	margin: .25em 10% .25em 10%;
+	padding: .25em .5em .25em .5em;
 	display: table;
 	table-layout: fixed;
-	width: 70%;
+	width: 80%;
 	background: linear-gradient(to bottom right, #667, #334);
 	font-size: 1.8em;
 	border-radius: 0.7em;
@@ -164,7 +189,12 @@ input#inputCurrentLevel {
 
 .subInfoCell {
 	display: table-cell;
-	text-align: center;
+	padding-left: 20px;
+}
+
+/************* BMS *************/
+div#batteries {
+	padding: 0px;
 }
 
 /************* Toggle Switches *************/
@@ -288,7 +318,7 @@ input#inputCurrentLevel {
 	font-size: 1.3em;
 }
 
-/*** ***/
+/*** Tabs ***/
 div.tabHeader {
 	height: 32px;
 	overflow: hidden;
@@ -326,28 +356,54 @@ div.tabs {
 	overflow: hidden;
 }
 
+/************* Gauges *************/
 div.gauges {
 	text-align: center;
 }
 
+/************* Annunciators *************/
 div#annunciator {
 	padding: 0px;
 	margin: 20px 0px 0px 0px;
 }
 
 div#annunciators {
-	padding: 0px;
+	padding: 10px 0 0 0;
 	margin: 0px;
 	text-align: center;
+	position: fixed;
+	bottom: -100%;
+	background: #183558;
+	z-index: 5;
+}
+
+.fly-in {
+	animation: slide-in 0.5s;
+	animation-fill-mode: both;
+}
+
+.fly-out {
+	animation: slide-out 2s;
+	animation-fill-mode: both;
+}
+
+@keyframes slide-in {
+  from { bottom: -100%; }
+  to { bottom: 0.1%; }
+}
+
+@keyframes slide-out {
+  from { bottom: 0.1%; }
+  to { bottom: -100%; }
 }
 
 div#annunciators div {
 	display: inline-table;
-	height: 30px;
-	width: 110px;
+	height: 40px;
+	width: 150px;
 	border: 2px solid rgba(0, 0, 0, 0.6);
 	text-align: center;
-	font-size: 12px;
+	font-size: 18px;
 	font-weight: bold;
 	padding: 2px 0px 0px 0px;
 	margin: 0px -5px -3px -1px;
@@ -375,44 +431,6 @@ img.annunciatorOff {
 	opacity: .05;
 }
 
-div#batteries {
-	padding: 0px;
-}
-
-div#batteryLevels {
-	width: 1130px;
-	text-align: center;
-  margin-left:auto; 
-    margin-right:auto;
-}
-
-div#batteryLevels div {
-	display: inline-table;
-	height: 20px;
-	width: 110px;
-	border: 2px solid rgba(0, 0, 0, 0.6);
-	text-align: center;
-	font-size: 16px;
-	font-weight: bold;
-	padding: 2px 0px 0px 0px;
-	margin: 0px -5px -3px -1px;
-	background: rgba(0, 0, 0, 0.4);
-	color: #000;
-}
-
-div#batteryLevels div.warn {
-	background: #ffbb00;
-}
-
-div#batteryLevels div.bad {
-	background: #ff2200;
-}
-
-div#batteryLevels div.ok {
-	background: #22ee22;
-}
-
-
 img#brakeHold {
 	position: absolute;
     top: 110px;
@@ -437,7 +455,7 @@ img#limitationTorque {
     right: 340px;
 }
 
-img#coolingRelay {
+img#coolingFan {
 	position: absolute;
     top: 110px;
     right: 250px;
@@ -455,12 +473,13 @@ img#absActive {
     right: 20px;
 }
 
+/************* Actions *************/
 div.foldAnnunciators {
 	font-size: 2em;
 	font-weight: bold;
 	color: #888;
 	position: fixed;
-	bottom: 0.5em;
+	bottom: 0.7em;
 	left: 1.5em;
 }
 
@@ -469,47 +488,18 @@ div.foldBatteries {
 	font-weight: bold;
 	color: #888;
 	position: fixed;
-	bottom: 0.5em;
+	bottom: 0.7em;
 	left: 2.5em;
 }
 
-
 div.settings {
 	position: fixed;
-	bottom: 1em;
+	bottom: 1.2em;
 	right: 2em;
+	z-index: 10;
 }
 
-input[type=range] {
-	padding: 0 5px;
-	width: 200px;
-}
-
-a {
-	color: #5555ff;
-}
-
-h1 {
-	color: #9999dd;
-	font-size: 2.5em;
-	margin-top: 10px;
-	margin-bottom: 5px;
-}
-
-h2 {
-	color: #bbbbff;
-	margin-top: 15px;
-	margin-bottom: 5px;
-	padding: 0px 0px 0px 0px;
-}
-
-h3 {
-	color: #bbbbff;
-	margin-top: 14px;
-	margin-bottom: 4px;
-	padding: 0px 0px 0px 0px;
-}
-
+/************* Settings *************/
 #configTable td {
 	padding: 3px 7px 2px 7px;
 }
@@ -525,12 +515,13 @@ input {
 	width: 70px;
 }
 
-/* for safari  */
-input[type="range"] {
-	-webkit-appearance: none !important;
-	background: rgb(FF, FF, FF);
+input[type=range] {
+	padding: 0 5px;
 	width: 200px;
 	height: 6px;
 	border-radius: 8px;
+	background: rgb(FF, FF, FF);
 	box-shadow: inset 0px 0px 1px 1px rgba(0, 0, 0, 0.9), 0px 1px 1px 0px rgba(255, 255, 255, 0.13);
+	/* for safari  */
+	-webkit-appearance: none !important;
 }

@@ -171,6 +171,7 @@ private:
     int16_t minNegativeTorque; // minimum negative available torque in 0.01Nm
     uint8_t limiterStateNumber; // state number of active limiter
     uint32_t bitfield; // various bit fields
+    bool canMessageLost; // if any of the CAN messages was lost
 
     int tickCounter; // count how many times handleTick() was called
     CAN_FRAME outputFrame; // the output CAN frame;

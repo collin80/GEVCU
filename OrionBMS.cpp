@@ -68,6 +68,14 @@ void OrionBMS::handleCanFrame(CAN_FRAME *frame)
         packVoltage = ((data[2] << 8) | data[3]); // byte 2+3: pack voltage (0.1V)
         packSummedVoltage = ((data[4] << 8) | data[5]); // byte 4+5: pack voltage (0.1V)
         flags = data[6];
+        status.bmsVoltageFailsafe = (flags & voltageFailsafe) ? true : false;
+        status.bmsCurrentFailsafe = (flags & currentFailsafe) ? true : false;
+        status.bmsDepleted = (flags & depleted) ? true : false;
+        status.bmsBalancingActive = (flags & balancingActive) ? true : false;
+        status.bmsDtcWeakCellFault = (flags & dtcWeakCellFault) ? true : false;
+        status.bmsDtcLowCellVolage = (flags & dtcLowCellVolage) ? true : false;
+        status.bmsDtcHVIsolationFault = (flags & dtcHVIsolationFault) ? true : false;
+        status.bmsDtcVoltageRedundancyFault = (flags & dtcVoltageRedundancyFault) ? true : false;
         systemTemperature = data[7] * 10; // byte 7: temperature of BMS (1C)
         if (Logger::isDebug()) {
             Logger::debug(this, "pack current: %fA, voltage: %fV (summed: %fV), flags: %#08x, temp: %dC",
@@ -76,35 +84,31 @@ void OrionBMS::handleCanFrame(CAN_FRAME *frame)
         break;
 
     case CAN_ID_LIMITS_SOC:
-        if (data[7] == CRC8::calculate(data, 7)) {
+        if (true /*CRC8::calculate(data, 8) == 0x0e*/) {
             dischargeLimit = data[0]; // byte 0: pack discharge current limit (DCL) (1A)
             allowDischarge = (dischargeLimit > 0);
             chargeLimit = data[1]; // byte 1: pack charge current limit (CCL) (1A)
             allowCharge = (chargeLimit > 0);
             currentLimit = data[2]; // this is acutally a 2 byte flag ?!?!?
-            //DCL Reduced Due To Low SOC (Bit #0)
-            //DCL Reduced Due To High Cell Resistance (Bit #1)
-            //DCL Reduced Due To Temperature (Bit #2)
-            //DCL Reduced Due To Low Cell Voltage (Bit #3)
-            //DCL Reduced Due To Low Pack Voltage (Bit #4)
-            //DCL and CCL Reduced Due To Voltage Failsafe (Bit #6)
-            //DCL and CCL Reduced Due To Communication Failsafe (Bit #7): This only applies if there are multiple BMS units connected together in series over CANBUS.
-            //CCL Reduced Due To High SOC (Bit #9)
-            //CCL Reduced Due To High Cell Resistance (Bit #10)
-            //CCL Reduced Due To Temperature (Bit #11)
-            //CCL Reduced Due To High Cell Voltage (Bit #12)
-            //CCL Reduced Due To High Pack Voltage (Bit #13)
-            //CCL Reduced Due To Charger Latch (Bit #14): This means the CCL is likely 0A because the charger has been turned off. This latch is removed when the Charge Power signal is removed and re-applied (ie: unplugging the car and plugging it back in).
-            //CCL Reduced Due To Alternate Current Limit [MPI] (Bit #15)
+            status.bmsDclLowSoc = (currentLimit & dclLowSoc) ? true : false;
+            status.bmsDclHighCellResistance = (currentLimit & dclHighCellResistance) ? true : false;
+            status.bmsDclTemperature = (currentLimit & dclTemperature) ? true : false;
+            status.bmsDclLowCellVoltage = (currentLimit & dclLowCellVoltage) ? true : false;
+            status.bmsDclLowPackVoltage = (currentLimit & dclLowPackVoltage) ? true : false;
+            status.bmsDclCclVoltageFailsafe = (currentLimit & dclCclVoltageFailsafe) ? true : false;
+            status.bmsDclCclCommunication = (currentLimit & dclCclCommunication) ? true : false;
+            status.bmsCclHighSoc = (currentLimit & cclHighSoc) ? true : false;
+            status.bmsCclHighCellResistance = (currentLimit & cclHighCellResistance) ? true : false;
+            status.bmsCclTemperature = (currentLimit & cclTemperature) ? true : false;
+            status.bmsCclHighCellVoltage = (currentLimit & cclHighCellVoltage) ? true : false;
+            status.bmsCclHighPackVoltage = (currentLimit & cclHighPackVoltage) ? true : false;
+            status.bmsCclChargerLatch = (currentLimit & cclChargerLatch) ? true : false;
+            status.bmsCclAlternate = (currentLimit & cclAlternate) ? true : false;
             relayStatus = data[3];
-            // Bit #1 (0x01): Discharge relay enabled
-            // Bit #2 (0x02): Charge relay enabled
-            // Bit #3 (0x04): Charger safety enabled
-            // Bit #4 (0x08): Malfunction indicator active (DTC status)
-            // Bit #5 (0x10): Multi-Purpose Input signal status
-            // Bit #6 (0x20): Always-on signal status
-            // Bit #7 (0x40): Is-Ready signal status
-            // Bit #8 (0x80): Is-Charging signal status
+            status.bmsRelayDischarge = (relayStatus & relayDischarge) ? true : false;// Bit #1 (0x01): Discharge relay enabled
+            status.bmsRelayCharge = (relayStatus & relayCharge) ? true : false;// Bit #2 (0x02): Charge relay enabled
+            status.bmsChagerSafety = (relayStatus & chagerSafety) ? true : false;// Bit #3 (0x04): Charger safety enabled
+            status.bmsDtcPresent = (relayStatus & dtcPresent) ? true : false;// Bit #4 (0x08): Malfunction indicator active (DTC status)
             soc = data[4]; // byte 4: pack state of charge (0.5%)
             packAmphours = ((data[5] << 8) | data[6]); // byte 5+6: remaining Ah of pack (in 0.1Ah)
 
@@ -115,8 +119,10 @@ void OrionBMS::handleCanFrame(CAN_FRAME *frame)
         } else {
             Logger::warn(this, "CRC of CAN message invalid (%X instead of %X)", data[7], CRC8::calculate(data, 7));
         }
-if (Logger::isDebug())
-Logger::debug(this, "crc: %X, calc: %X, text: %X", data[7], CRC8::calculate(data, 7), CRC8::calculate(data, 8));
+if (Logger::isDebug()) {
+Logger::debug(this, "crc: %X, calc: %X, test: %X", data[7], CRC8::calculate(data, 7), CRC8::calculate(data, 8));
+canHandlerEv.logFrame(*frame);
+}
         break;
 
     case CAN_ID_CELL_VOLTAGE:

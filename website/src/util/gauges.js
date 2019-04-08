@@ -73,7 +73,7 @@ function generateGauges(config) {
 				units       : '%',
 				minValue    : rangeSoc.min,
 				maxValue    : rangeSoc.max,
-				startValue  : rangeSoc.max,
+				startValue  : rangeSoc.min,
 				ccw         : false,
 				valueFormat : { "ints" : 2, "dec" : 1 },
 				majorTicks  : rangeSoc.ticks,

@@ -10,7 +10,6 @@ var dashboard = dashboard || {};
 	dashboard.setChargeInputLevel = setChargeInputLevel;
 
 	function activate() {
-		// show the correct div and hide the others
 		// add an event listener so sounds can get loaded on mobile devices
 		// after user interaction
 		window.addEventListener('keydown', removeBehaviorsRestrictions);
@@ -88,7 +87,7 @@ var dashboard = dashboard || {};
 		for (i = 0; i < div.length; i++) {
 			var idStr = div[i].id;
 			if (idStr && idStr.indexOf('state_') != -1) {
-				div[i].style.display = 'none';
+				div[i].style.display = (idStr.indexOf('_0_') == -1 ? 'none' : '');
 			}
 		}
 	}

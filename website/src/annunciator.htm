@@ -3,47 +3,22 @@
 	<img id="warning" src="pics/warning.gif" class="annunciatorOff"/>
 	<img id="brakeHold" src="pics/hold.gif" class="annunciatorOff"/>
 	<img id="brakeLight" src="pics/brake.gif" class="annunciatorOff"/>
-	<img id="coolingRelay" src="pics/fan.gif" class="annunciatorOff"/>
+	<img id="coolingFan" src="pics/fan.gif" class="annunciatorOff"/>
 	<img id="reverseLight" src="pics/reverse.gif" class="annunciatorOff"/>
 	<img id="absActive" src="pics/abs.gif" class="annunciatorOff"/>
 	<img id="limitationTorque" src="pics/torque.gif" class="annunciatorOff"/>
 </div>
 
-<div id="annunciators">
+<div id="annunciators" onClick="foldAnnunciator(false);">
 	<div id="overtempController">OVERTEMP CONTROLLER</div>
 	<div id="overtempMotor">OVERTEMP MOTOR</div>
+	<div id="overspeed">OVERSPEED</div>
 	<div id="hvOvervoltage">OVERVOLTAGE</div>
 	<div id="hvOvercurrent">OVERCURRENT</div>
-	<div id="overspeed">OVERSPEED</div>
-	<div id="shortCircuit">SHORT CIRCUIT</div>
-	<div id="initalisation">INITIALIZATION</div>
 	<div id="acOvercurrent">AC OVERCURRENT</div>
-	<div id="voltageMeasurement">VOLTAGE MEASUREMENT</div>
-	<div id="overvoltageInternalSupply">OVERVOLTAGE INT. SUPPLY</div>
-	<div id="oscillationLimitControllerActive">OSC LIMITCTRL ACTIVE</div>
-	<div id="speedSensor">SPEED SENSOR</div>
-	<div id="speedSensorSupply">SPEED SENSOR SUPPLY</div>
-	<div id="internalSupply">INTERNAL SUPPLY</div>
-	<div id="osTrap">OS TRAP</div>
-	<div id="enableSignalLost">ENABLE SIGNAL LOST</div>
-	<div id="unexpectedShutdown">UNEXPECTED SHUTDOWN</div>
-	<div id="analogInput">ANALOG INPUT</div>
 	<div id="hvUndervoltage">HV UNDERVOLTAGE</div>
-	<div id="canControlMessageInvalid">CAN CTRL MSG INVALID</div>
-	<div id="canControlMessageLost">CAN CTRL MSG LOST</div>
-	<div id="canControl2MessageLost">CAN CTRL2 MSG LOST</div>
-	<div id="canLimitMessageInvalid">CAN LIMIT MSG INVALID</div>
-	<div id="canLimitMessageLost">CAN LIMIT MSG LOST</div>
-	<div id="canCommunicationStartup">CAN COMM STARTUP</div>
-	<div id="powerMismatch">POWER MISMATCH</div>
+	<div id="oscillationLimiter">OSC LIMITER ACTIVE</div>
 	<div id="maximumModulationLimiter">MODULATION LIMITER</div>
-	<div id="externalShutdownPath1Off">EXT AW1 OFF</div>
-	<div id="externalShutdownPath2Off">EXT AW2 OFF</div>
-	<div id="driverShutdownPathActive">DRIVER SHUTDN PATH</div>
-	<div id="speedSensorSignal">SPEED SENSOR SIGNAL</div>
-	<div id="temperatureSensor">TEMPERATURE SENSOR</div>
-	<div id="motorEeprom">MOTOR EEPROM</div>
-	<div id="storage">STORAGE</div>
 	<div id="limitationAcVoltage">TORQ LIMIT AC VOLTAGE</div>
 	<div id="limitationMotorModel">TORQ LIMIT MOTOR MODEL</div>
 	<div id="limitationMechanicalPower">TORQ LIMIT MECH POWER</div>
@@ -56,11 +31,39 @@
 	<div id="limitationSlewRate">TORQ LIMIT SLEW RATE</div>
 	<div id="limitationMotorTemperature">TORQ LIMIT MOTOR TEMP</div>
 
+    <div id="bmsRelayDischarge">BMS DISCHG</div>
+    <div id="bmsRelayCharge">BMS CHG</div>
+    <div id="bmsChagerSafety">CHARGER SAFETY</div>
+    <div id="bmsDtcPresent">BMS DTC</div>
+    <div id="bmsVoltageFailsafe">VOLT FAIL</div>
+    <div id="bmsCurrentFailsafe">CURRENT FAIL</div>
+    <div id="bmsDepleted">BATTERY DEPLETED</div>
+    <div id="bmsBalancingActive">BATTERY BALANCING</div>
+    <div id="bmsDtcWeakCellFault">WEAK CELL</div>
+    <div id="bmsDtcLowCellVolage">LOW CELL</div>
+    <div id="bmsDtcHVIsolationFault">HV ISOLATION FAULT</div>
+    <div id="bmsDtcVoltageRedundancyFault">VOLTAGE RED. FAULT</div>
+    
+    <div id="bmsDclLowSoc">DCL LOW SOC</div>
+    <div id="bmsDclHighCellResistance">DCL HIGH CELL RES</div>
+    <div id="bmsDclTemperature">DCL TEMP</div>
+    <div id="bmsDclLowCellVoltage">DCL LOW CELL VOLT</div>
+    <div id="bmsDclLowPackVoltage">DCL LOW PACK VOLT</div>
+    <div id="bmsDclCclVoltageFailsafe">CL VOLT FAILSAFE</div>
+    <div id="bmsDclCclCommunication">CL COMM</div>
+    <div id="bmsCclHighSoc">CCL HIGH SOC</div>
+    <div id="bmsCclHighCellResistance">CCL HIGH CELL RES</div>
+    <div id="bmsCclTemperature">CCL TEMP</div>
+    <div id="bmsCclHighCellVoltage">CCL HIGH CELL VOLT</div>
+    <div id="bmsCclHighPackVoltage">CCL HIGH PACK VOLT</div>
+    <div id="bmsCclChargerLatch">CCL CHARGER LATCH</div>
+    <div id="bmsCclAlternate">CCL ALT</div>
+
 	<div id="enableIn">ENABLE INPUT</div>
 	<div id="preChargeRelay">PRECHARGE RELAY</div>
-	<div id="mainContactorRelay">MAIN CONTACTOR</div>
-	<div id="secondaryContactorRelay">SECONDARY CONTACTOR</div>
-	<div id="enableOut">ENABLE OUTPUT</div>
+	<div id="mainContactor">MAIN CONTACTOR</div>
+	<div id="secondaryContactor">SECONDARY CONTACTOR</div>
+	<div id="enableMotor">ENABLE MOTOR</div>
 	<div id="digitalInput0">INPUT 0</div>
 	<div id="digitalInput1">INPUT 1</div>
 	<div id="digitalInput2">INPUT 2</div>

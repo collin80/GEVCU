@@ -50,25 +50,10 @@ Status::Status()
     limitationDcCurrent             = false;
 
     warning                         = false;
-    driverShutdownPathActive        = false;
-    externalShutdownPath1Off        = false;
-    externalShutdownPath2Off        = false;
-    oscillationLimitControllerActive= false;
-    speedSensorSignal               = false;
+    oscillationLimiter= false;
     maximumModulationLimiter        = false;
-    temperatureSensor               = false;
     systemCheckActive               = false;
 
-    speedSensor                     = false;
-    speedSensorSupply               = false;
-    canLimitMessageInvalid          = false;
-    canControlMessageInvalid        = false;
-    canLimitMessageLost             = false;
-    overvoltageInternalSupply       = false;
-    voltageMeasurement              = false;
-    shortCircuit                    = false;
-    canControlMessageLost           = false;
-    canControl2MessageLost          = false;
     overtempController              = false;
     overtempMotor                   = false;
     overspeed                       = false;
@@ -76,16 +61,6 @@ Status::Status()
     hvOvervoltage                   = false;
     hvOvercurrent                   = false;
     acOvercurrent                   = false;
-    initalisation                   = false;
-    analogInput                     = false;
-    unexpectedShutdown              = false;
-    powerMismatch                   = false;
-    motorEeprom                     = false;
-    storage                         = false;
-    enableSignalLost                = false;
-    canCommunicationStartup         = false;
-    internalSupply                  = false;
-    osTrap                          = false;
 
     preChargeRelay = false;
     mainContactor = false;
@@ -120,6 +95,33 @@ Status::Status()
     flowCoolant = 0;
     flowHeater = 0;
     heaterPower = 0;
+
+    bmsDclLowSoc = false;
+    bmsDclHighCellResistance = false;
+    bmsDclTemperature = false;
+    bmsDclLowCellVoltage = false;
+    bmsDclLowPackVoltage = false;
+    bmsDclCclVoltageFailsafe = false;
+    bmsDclCclCommunication = false;
+    bmsCclHighSoc = false;
+    bmsCclHighCellResistance = false;
+    bmsCclTemperature = false;
+    bmsCclHighCellVoltage = false;
+    bmsCclHighPackVoltage = false;
+    bmsCclChargerLatch = false;
+    bmsCclAlternate = false;
+    bmsRelayDischarge = false;
+    bmsRelayCharge = false;
+    bmsChagerSafety = false;
+    bmsDtcPresent = false;
+    bmsVoltageFailsafe = false;
+    bmsCurrentFailsafe = false;
+    bmsDepleted = false;
+    bmsBalancingActive = false;
+    bmsDtcWeakCellFault = false;
+    bmsDtcLowCellVolage = false;
+    bmsDtcHVIsolationFault = false;
+    bmsDtcVoltageRedundancyFault = false;
 
     for (int i = 0; i < CFG_NUMBER_DIGITAL_OUTPUTS; i++) {
         digitalOutput[i] = false;
@@ -283,42 +285,44 @@ char *Status::systemStateToStr(SystemState state)
  * Calculate the bit field 1 from the respective flags for faster transmission
  * to the web site.
  *
- * Bitfield 1 contains warnings and torque limitation information
+ * Bitfield contains warnings, errors and torque limitation information from the motor controller
  */
-uint32_t Status::getBitField1() {
+uint32_t Status::getBitFieldMotor() {
     uint32_t bitfield = 0;
 
+    // warnings
     bitfield |= (warning                            ? 1 << 0 : 0);  // 0x00000001
-    bitfield |= (driverShutdownPathActive           ? 1 << 1 : 0);  // 0x00000002
-    bitfield |= (externalShutdownPath1Off           ? 1 << 2 : 0);  // 0x00000004
-    bitfield |= (externalShutdownPath2Off           ? 1 << 3 : 0);  // 0x00000008
-    bitfield |= (oscillationLimitControllerActive   ? 1 << 4 : 0);  // 0x00000010
-    bitfield |= (speedSensorSignal                  ? 1 << 5 : 0);  // 0x00000020
-    bitfield |= (maximumModulationLimiter           ? 1 << 6 : 0);  // 0x00000040
-    bitfield |= (temperatureSensor                  ? 1 << 7 : 0);  // 0x00000080
+    bitfield |= (oscillationLimiter                 ? 1 << 1 : 0);  // 0x00000002
+    bitfield |= (maximumModulationLimiter           ? 1 << 2 : 0);  // 0x00000004
+//    bitfield |= (reserve                          ? 1 << 3 : 0);  // 0x00000008
+//    bitfield |= (reserve                          ? 1 << 4 : 0);  // 0x00000010
+//    bitfield |= (reserve                          ? 1 << 5 : 0);  // 0x00000020
+//    bitfield |= (reserve                          ? 1 << 6 : 0);  // 0x00000040
+//    bitfield |= (reserve                          ? 1 << 7 : 0);  // 0x00000080
 
-//    bitfield |= (reserve                          ? 1 << 8 : 0);  // 0x00000100
-//    bitfield |= (reserve                          ? 1 << 9 : 0);  // 0x00000200
-//    bitfield |= (reserve                          ? 1 << 10 : 0); // 0x00000400
-//    bitfield |= (reserve                          ? 1 << 11 : 0); // 0x00000800
+    // errors
+    bitfield |= (overtempController                 ? 1 << 8 : 0);  // 0x00000100
+    bitfield |= (overtempMotor                      ? 1 << 9 : 0);  // 0x00000200
+    bitfield |= (overspeed                          ? 1 << 10 : 0); // 0x00000400
+    bitfield |= (hvUndervoltage                     ? 1 << 11 : 0); // 0x00000800
+    bitfield |= (hvOvervoltage                      ? 1 << 12 : 0); // 0x00001000
+    bitfield |= (hvOvercurrent                      ? 1 << 13 : 0); // 0x00002000
+    bitfield |= (acOvercurrent                      ? 1 << 14 : 0); // 0x00004000
+//    bitfield |= (reserve                          ? 1 << 15 : 0); // 0x00008000
 
-    bitfield |= (limitationTorque                   ? 1 << 12 : 0); // 0x00001000
-    bitfield |= (limitationMaxTorque                ? 1 << 13 : 0); // 0x00002000
-    bitfield |= (limitationSpeed                    ? 1 << 14 : 0); // 0x00004000
-    bitfield |= (limitationControllerTemperature    ? 1 << 15 : 0); // 0x00008000
-    bitfield |= (limitationMotorTemperature         ? 1 << 16 : 0); // 0x00010000
-    bitfield |= (limitationSlewRate                 ? 1 << 17 : 0); // 0x00020000
-    bitfield |= (limitationMotorModel               ? 1 << 18 : 0); // 0x00040000
-    bitfield |= (limitationMechanicalPower          ? 1 << 19 : 0); // 0x00080000
-    bitfield |= (limitationAcVoltage                ? 1 << 20 : 0); // 0x00100000
-    bitfield |= (limitationAcCurrent                ? 1 << 21 : 0); // 0x00200000
-    bitfield |= (limitationDcVoltage                ? 1 << 22 : 0); // 0x00400000
-    bitfield |= (limitationDcCurrent                ? 1 << 23 : 0); // 0x00800000
-
-//    bitfield |= (reserve                          ? 1 << 24 : 0); // 0x01000000
-//    bitfield |= (reserve                          ? 1 << 25 : 0); // 0x02000000
-//    bitfield |= (reserve                          ? 1 << 26 : 0); // 0x04000000
-//    bitfield |= (reserve                          ? 1 << 27 : 0); // 0x08000000
+    // limitations
+    bitfield |= (limitationTorque                   ? 1 << 16 : 0); // 0x00010000
+    bitfield |= (limitationMaxTorque                ? 1 << 17 : 0); // 0x00020000
+    bitfield |= (limitationSpeed                    ? 1 << 18 : 0); // 0x00040000
+    bitfield |= (limitationControllerTemperature    ? 1 << 19 : 0); // 0x00080000
+    bitfield |= (limitationMotorTemperature         ? 1 << 20 : 0); // 0x00100000
+    bitfield |= (limitationSlewRate                 ? 1 << 21 : 0); // 0x00200000
+    bitfield |= (limitationMotorModel               ? 1 << 22 : 0); // 0x00400000
+    bitfield |= (limitationMechanicalPower          ? 1 << 23 : 0); // 0x00800000
+    bitfield |= (limitationAcVoltage                ? 1 << 24 : 0); // 0x01000000
+    bitfield |= (limitationAcCurrent                ? 1 << 25 : 0); // 0x02000000
+    bitfield |= (limitationDcVoltage                ? 1 << 26 : 0); // 0x04000000
+    bitfield |= (limitationDcCurrent                ? 1 << 27 : 0); // 0x08000000
 //    bitfield |= (reserve                          ? 1 << 28 : 0); // 0x10000000
 //    bitfield |= (reserve                          ? 1 << 29 : 0); // 0x20000000
 //    bitfield |= (reserve                          ? 1 << 30 : 0); // 0x40000000
@@ -331,43 +335,47 @@ uint32_t Status::getBitField1() {
  * Calculate the bit field 2 from the respective flags for faster transmission
  * to the web site.
  *
- * Bitfield 2 containts error information
+ * Bitfield contains bms information
  */
-uint32_t Status::getBitField2() {
+uint32_t Status::getBitFieldBms() {
     uint32_t bitfield = 0;
 
-//    bitfield |= (systemState == error               ? 1 << 0 : 0);  // 0x00000001
-    bitfield |= (speedSensor                        ? 1 << 1 : 0);  // 0x00000002
-    bitfield |= (speedSensorSupply                  ? 1 << 2 : 0);  // 0x00000004
-    bitfield |= (canLimitMessageInvalid             ? 1 << 3 : 0);  // 0x00000008
-    bitfield |= (canControlMessageInvalid           ? 1 << 4 : 0);  // 0x00000010
-    bitfield |= (canLimitMessageLost                ? 1 << 5 : 0);  // 0x00000020
-    bitfield |= (overvoltageInternalSupply          ? 1 << 6 : 0);  // 0x00000040
-    bitfield |= (voltageMeasurement                 ? 1 << 7 : 0);  // 0x00000080
-    bitfield |= (shortCircuit                       ? 1 << 8 : 0);  // 0x00000100
-    bitfield |= (canControlMessageLost              ? 1 << 9 : 0);  // 0x00000200
-    bitfield |= (canControl2MessageLost             ? 1 << 10 : 0); // 0x00000400
-    bitfield |= (overtempController                 ? 1 << 11 : 0); // 0x00000800
-    bitfield |= (overtempMotor                      ? 1 << 12 : 0); // 0x00001000
-    bitfield |= (overspeed                          ? 1 << 13 : 0); // 0x00002000
-    bitfield |= (hvUndervoltage                     ? 1 << 14 : 0); // 0x00004000
-    bitfield |= (hvOvervoltage                      ? 1 << 15 : 0); // 0x00008000
-    bitfield |= (hvOvercurrent                      ? 1 << 16 : 0); // 0x00010000
-    bitfield |= (acOvercurrent                      ? 1 << 17 : 0); // 0x00020000
-    bitfield |= (initalisation                      ? 1 << 18 : 0); // 0x00040000
-    bitfield |= (analogInput                        ? 1 << 19 : 0); // 0x00080000
-    bitfield |= (unexpectedShutdown                 ? 1 << 20 : 0); // 0x00100000
-    bitfield |= (powerMismatch                      ? 1 << 21 : 0); // 0x00200000
-    bitfield |= (motorEeprom                        ? 1 << 22 : 0); // 0x00400000
-    bitfield |= (storage                            ? 1 << 23 : 0); // 0x00800000
-    bitfield |= (enableSignalLost                   ? 1 << 24 : 0); // 0x01000000
-    bitfield |= (canCommunicationStartup            ? 1 << 25 : 0); // 0x02000000
-    bitfield |= (internalSupply                     ? 1 << 26 : 0); // 0x04000000
-//    bitfield |= (reserve                          ? 1 << 27 : 0); // 0x08000000
-//    bitfield |= (reserve                          ? 1 << 28 : 0); // 0x10000000
-//    bitfield |= (reserve                          ? 1 << 29 : 0); // 0x20000000
+    // status
+    bitfield |= (bmsRelayDischarge                  ? 1 << 0 : 0);  // 0x00000001
+    bitfield |= (bmsRelayCharge                     ? 1 << 1 : 0);  // 0x00000002
+    bitfield |= (bmsChagerSafety                    ? 1 << 2 : 0);  // 0x00000004
+    bitfield |= (bmsDtcPresent                      ? 1 << 3 : 0);  // 0x00000008
+//    bitfield |= (reserve                          ? 1 << 4 : 0);  // 0x00000010
+//    bitfield |= (reserve                          ? 1 << 5 : 0);  // 0x00000020
+//    bitfield |= (reserve                          ? 1 << 6 : 0);  // 0x00000040
+//    bitfield |= (reserve                          ? 1 << 7 : 0);  // 0x00000080
+
+    bitfield |= (bmsVoltageFailsafe                 ? 1 << 8 : 0);  // 0x00000100
+    bitfield |= (bmsCurrentFailsafe                 ? 1 << 9 : 0);  // 0x00000200
+    bitfield |= (bmsDepleted                        ? 1 << 10 : 0); // 0x00000400
+    bitfield |= (bmsBalancingActive                 ? 1 << 11 : 0); // 0x00000800
+    bitfield |= (bmsDtcWeakCellFault                ? 1 << 12 : 0); // 0x00001000
+    bitfield |= (bmsDtcLowCellVolage                ? 1 << 13 : 0); // 0x00002000
+    bitfield |= (bmsDtcHVIsolationFault             ? 1 << 14 : 0); // 0x00004000
+    bitfield |= (bmsDtcVoltageRedundancyFault       ? 1 << 15 : 0); // 0x00008000
+
+    // limitations
+    bitfield |= (bmsDclLowSoc                       ? 1 << 16 : 0); // 0x00010000
+    bitfield |= (bmsDclHighCellResistance           ? 1 << 17 : 0); // 0x00020000
+    bitfield |= (bmsDclTemperature                  ? 1 << 18 : 0); // 0x00040000
+    bitfield |= (bmsDclLowCellVoltage               ? 1 << 19 : 0); // 0x00080000
+    bitfield |= (bmsDclLowPackVoltage               ? 1 << 20 : 0); // 0x00100000
+    bitfield |= (bmsDclCclVoltageFailsafe           ? 1 << 21 : 0); // 0x00200000
+    bitfield |= (bmsDclCclCommunication             ? 1 << 22 : 0); // 0x00400000
+    bitfield |= (bmsCclHighSoc                      ? 1 << 23 : 0); // 0x00800000
+    bitfield |= (bmsCclHighCellResistance           ? 1 << 24 : 0); // 0x01000000
+    bitfield |= (bmsCclTemperature                  ? 1 << 25 : 0); // 0x02000000
+    bitfield |= (bmsCclHighCellVoltage              ? 1 << 26 : 0); // 0x04000000
+    bitfield |= (bmsCclHighPackVoltage              ? 1 << 27 : 0); // 0x08000000
+    bitfield |= (bmsCclChargerLatch                 ? 1 << 28 : 0); // 0x10000000
+    bitfield |= (bmsCclAlternate                    ? 1 << 29 : 0); // 0x20000000
 //    bitfield |= (reserve                          ? 1 << 30 : 0); // 0x40000000
-    bitfield |= (osTrap                             ? 1 << 31 : 0); // 0x80000000
+//    bitfield |= (reserve                          ? 1 << 31 : 0); // 0x80000000
 
     return bitfield;
 }
@@ -376,22 +384,22 @@ uint32_t Status::getBitField2() {
  * Calculate the bit field 3 from the respective flags for faster transmission
  * to the web site.
  *
- * Bitfield 3 containts information about the digital outputs
+ * Bitfield contains information about the digital inputs/outputs
  */
-uint32_t Status::getBitField3() {
+uint32_t Status::getBitFieldIO() {
     uint32_t bitfield = 0;
 
     bitfield |= (brakeHold                          ? 1 << 0 : 0);  // 0x00000001
-//    bitfield |= (systemState == running             ? 1 << 1 : 0);  // 0x00000002
-    bitfield |= (preChargeRelay                     ? 1 << 2 : 0);  // 0x00000004
-    bitfield |= (secondaryContactor                 ? 1 << 3 : 0);  // 0x00000008
-    bitfield |= (mainContactor                      ? 1 << 4 : 0);  // 0x00000010
-    bitfield |= (enableMotor                        ? 1 << 5 : 0);  // 0x00000020
-    bitfield |= (coolingFan                         ? 1 << 6 : 0);  // 0x00000040
-    bitfield |= (brakeLight                         ? 1 << 7 : 0);  // 0x00000080
-    bitfield |= (reverseLight                       ? 1 << 8 : 0);  // 0x00000100
-    bitfield |= (enableIn                           ? 1 << 9 : 0);  // 0x00000200
-    bitfield |= (absActive                          ? 1 << 10 : 0); // 0x00000400
+    bitfield |= (preChargeRelay                     ? 1 << 1 : 0);  // 0x00000002
+    bitfield |= (secondaryContactor                 ? 1 << 2 : 0);  // 0x00000004
+    bitfield |= (mainContactor                      ? 1 << 3 : 0);  // 0x00000008
+    bitfield |= (enableMotor                        ? 1 << 4 : 0);  // 0x00000010
+    bitfield |= (coolingFan                         ? 1 << 5 : 0);  // 0x00000020
+    bitfield |= (brakeLight                         ? 1 << 6 : 0);  // 0x00000040
+    bitfield |= (reverseLight                       ? 1 << 7 : 0);  // 0x00000080
+    bitfield |= (enableIn                           ? 1 << 8 : 0);  // 0x00000100
+    bitfield |= (absActive                          ? 1 << 9 : 0);  // 0x00000200
+//    bitfield |= (reserve                          ? 1 << 10 : 0); // 0x00000400
 //    bitfield |= (reserve                          ? 1 << 11 : 0); // 0x00000800
 //    bitfield |= (reserve                          ? 1 << 12 : 0); // 0x00001000
 //    bitfield |= (reserve                          ? 1 << 13 : 0); // 0x00002000

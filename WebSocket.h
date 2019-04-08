@@ -26,9 +26,9 @@ struct ParamCache {
     uint16_t dcVoltage;
     int16_t dcCurrent;
     int16_t acCurrent;
-    uint32_t bitfield1;
-    uint32_t bitfield2;
-    uint32_t bitfield3;
+    uint32_t bitfieldMotor;
+    uint32_t bitfieldBms;
+    uint32_t bitfieldIO;
     uint16_t systemState;
     MotorController::Gears gear;
     int16_t temperatureMotor;
@@ -61,6 +61,9 @@ struct ParamCache {
 
     uint16_t packVoltage;
     int16_t packCurrent;
+    uint16_t packResistance;
+    uint8_t packHealth;
+    uint16_t packCycles;
     uint16_t soc;
     uint16_t dischargeLimit;
     uint16_t chargeLimit;

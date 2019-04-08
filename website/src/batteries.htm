@@ -1,30 +1,33 @@
 <div class="foldBatteries" onClick="foldBatteries();">B</div>
 <div id="batteryInfo">
 	<div class="subinfo">
-		<div class="subInfoCell">
+		<div class="subInfoCell" style="width: 20%">
 			<div>Maximum:</div>
 			<div>Minimum:</div>
-			<div>Delta / Avg:</div>
+			<div>Delta:</div>
 			<div>Pack:</div>
 			<div>Limits:</div>
 		</div>
 		<div class="subInfoCell">
 			<div><span id="highestCellVolts">-</span> V, #<span id="highestCellVoltsId">-</span></div>
 			<div><span id="lowestCellVolts">-</span> V, #<span id="lowestCellVoltsId">-</span></div>
-			<div><span id="deltaCellVolts">-</span> V / <span id="averageCellVolts">-</span>V</div>
-			<div><span id="packVoltage">-</span> V</div>
-			<div><span id="dischargeLimit">-</span> A</div>
+			<div><span id="deltaCellVolts">-</span> V</div>
+			<div><span id="packVoltage">-</span> V / <span id="packCurrent">-</span>A</div>
+			<div><span id="dischargeLimit">-</span> A discharge</div>
 		</div>
 		<div class="subInfoCell">
-			<div><span id="highestCellResistance">-</span> mOhm, #<span id="highestCellResistanceId">-</span></div>
-			<div><span id="lowestCellResistance">-</span> mOhm, #<span id="lowestCellResistanceId">-</span></div>
-			<div><span id="deltaCellResistance">-</span> / <span id="averageCellResistance">-</span> mOhm</div>
-			<div><span id="packCurrent">-</span>A</div>
-			<div><span id="chargeLimit">-</span>A</div>
+			<div><span id="highestCellResistance">-</span> m&#937;, #<span id="highestCellResistanceId">-</span></div>
+			<div><span id="lowestCellResistance">-</span> m&#937;, #<span id="lowestCellResistanceId">-</span></div>
+			<div><span id="deltaCellResistance">-</span> m&#937;</div>
+			<div><span id="packResistance">-</span> m&#937;</div>
+			<div><span id="chargeLimit">-</span> A charge</div>
 		</div>
 		<div class="subInfoCell">
 			<div><span id="highestCellTemp">-</span>&#176;C, #<span id="highestCellTempId">-</span></div>
 			<div><span id="lowestCellTemp">-</span>&#176;C, #<span id="lowestCellTempId">-</span></div>
+			<div></div>
+			<div><span id="packHealth">-</span> % health</div>
+			<div><span id="packCycles">-</span> cycles</div>
 		</div>
 	</div>
 	<!-- div id="batteryLevels">

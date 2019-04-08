@@ -66,26 +66,11 @@ public:
 
     // warning flags
     bool warning; // a general warning condition is present but the system could still be/become operational
-    bool driverShutdownPathActive; // a shut-down path of the motor controller is active and prevents activation of the power stage
-    bool externalShutdownPath1Off; // the external shut-down path 1 of the motor controller is switched off
-    bool externalShutdownPath2Off; // the external shut-down path 2 of the motor controller is switched off
-    bool oscillationLimitControllerActive; // the oscillation limiter of the motor controller is active to dampen oscillations in the requested torque
-    bool speedSensorSignal; // the speed sensor signal is bad but not bad enough to report an error (e.g. certain amount of lost position counts or invalid transitions)
+    bool oscillationLimiter; // the oscillation limiter of the motor controller is active to dampen oscillations in the requested torque
     bool maximumModulationLimiter; // the motor's maximum modulation limiter is active
-    bool temperatureSensor; // invalid data is received from one or a group of temperature sensors
     bool systemCheckActive; // is the system not ready yet because of a system check?
 
     // error flags
-    bool speedSensor; // the encoder or position sensor deliver a faulty signal
-    bool speedSensorSupply; // power supply of the speed sensor failed
-    bool canLimitMessageInvalid; // the limit data of the CAN message sent to the motor controller is invalid
-    bool canControlMessageInvalid; // the control data of the CAN message sent to the motor controller is invalid
-    bool canLimitMessageLost; // timeout of CAN message with limit data
-    bool overvoltageInternalSupply; // over voltage of the internal power supply of the motor controller
-    bool voltageMeasurement; // the motor controller detected differences in the redundant voltage measurement
-    bool shortCircuit; // short circuit in the power stage
-    bool canControlMessageLost; // timeout of CAN message with control data
-    bool canControl2MessageLost; // timeout of CAN message with supplementary control data
     bool overtempController; // severe over temperature in motor controller
     bool overtempMotor; // severe over temperature in motor
     bool overspeed; // over speed detected
@@ -93,16 +78,6 @@ public:
     bool hvOvervoltage; // the HV voltage exceeded the motor controller's limits
     bool hvOvercurrent; // the HV current exceeded the motor controller's limits
     bool acOvercurrent; // the demanded AC current would exceed / exceeds the allowed maximum current
-    bool initalisation; // error during initialisation
-    bool analogInput; // an analog input signal is outside its boundaries
-    bool unexpectedShutdown; // the power stage of the motor controller was shut-down in an uncontrolled fashion
-    bool powerMismatch; // plausibility error between electrical and mechanical power
-    bool motorEeprom; // error in motor/controller EEPROM module
-    bool storage; // data consistency check failed in motor controller
-    bool enableSignalLost; // the enable signal was lost, motor controller shut-down (is imminent)
-    bool canCommunicationStartup; // the motor controller received CAN messages which were not appropriate to its state
-    bool internalSupply; // problem with the internal power supply of the motor controller
-    bool osTrap; // a severe problem in the operation system of the motor controller occured
 
     bool brakeHold; // is brake hold acitve ?
     bool preChargeRelay; // is the pre-charge relay activated ?
@@ -133,7 +108,6 @@ public:
     bool enableRegen; // is regen currently activated ?
     bool enableCreep; // is creep activated ?
 
-    uint32_t energyConsumption; // accumulated consumption in wattSeconds (or kilowattmilliseconds)
     uint8_t stateOfCharge; // state of charge (in 0.5%)
     uint32_t flowCoolant; // ml per second coolant flow
     uint32_t flowHeater; // ml per second heater flow
@@ -151,13 +125,40 @@ public:
     uint8_t barometricPressure; // barometric pressure in kPa
     bool dcdcRunning; // is the dcdc converter running ? (true if no dcdc converter is enabled)
 
+    bool bmsDclLowSoc; //DischargeLimit Reduced Due To Low SOC
+    bool bmsDclHighCellResistance; //DischargeLimit Reduced Due To High Cell Resistance
+    bool bmsDclTemperature; //DischargeLimit Reduced Due To Temperature
+    bool bmsDclLowCellVoltage; //DischargeLimit Reduced Due To Low Cell Voltage
+    bool bmsDclLowPackVoltage; //DischargeLimit Reduced Due To Low Pack Voltage
+    bool bmsDclCclVoltageFailsafe; //DischargeLimit and ChargeLimit Reduced Due To Voltage Failsafe
+    bool bmsDclCclCommunication; //DischargeLimit and ChargeLimit Reduced Due To Communication Failsafe: This only applies if there are multiple BMS units connected together in series over CANBUS.
+    bool bmsCclHighSoc; //ChargeLimit Reduced Due To High SOC
+    bool bmsCclHighCellResistance; //ChargeLimit Reduced Due To High Cell Resistance
+    bool bmsCclTemperature; //ChargeLimit Reduced Due To Temperature
+    bool bmsCclHighCellVoltage; //ChargeLimit Reduced Due To High Cell Voltage
+    bool bmsCclHighPackVoltage; //ChargeLimit Reduced Due To High Pack Voltage
+    bool bmsCclChargerLatch; //ChargeLimit Reduced Due To Charger Latch): This means the ChargeLimit is likely 0A because the charger has been turned off. This latch is removed when the Charge Power signal is removed and re-applied (ie: unplugging the car and plugging it back in).
+    bool bmsCclAlternate; //ChargeLimit Reduced Due To Alternate Current Limit [MPI]
+    bool bmsRelayDischarge; // Discharge relay enabled
+    bool bmsRelayCharge; // Charge relay enabled
+    bool bmsChagerSafety; // Charger safety enabled
+    bool bmsDtcPresent; // Malfunction indicator active (DTC status)
+    bool bmsVoltageFailsafe;
+    bool bmsCurrentFailsafe;
+    bool bmsDepleted;
+    bool bmsBalancingActive;
+    bool bmsDtcWeakCellFault;
+    bool bmsDtcLowCellVolage;
+    bool bmsDtcHVIsolationFault;
+    bool bmsDtcVoltageRedundancyFault;
+
     Status();
     SystemState getSystemState();
     SystemState setSystemState(SystemState);
     char *systemStateToStr(SystemState);
-    uint32_t getBitField1();
-    uint32_t getBitField2();
-    uint32_t getBitField3();
+    uint32_t getBitFieldMotor();
+    uint32_t getBitFieldBms();
+    uint32_t getBitFieldIO();
     int16_t getLowestBatteryTemperature();
     int16_t getHighestBatteryTemperature();
 
