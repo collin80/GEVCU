@@ -195,8 +195,6 @@ static const char* powerSteering = "powerSteering";
 static const char* enableCreep = "enableCreep";
 static const char* chargeInputLevels = "chargeInputLevels";
 
-static const char* packVoltage = "packVoltage";
-static const char* packCurrent = "packCurrent";
 static const char* packResistance = "packResistance";
 static const char* packHealth = "packHealth";
 static const char* packCycles = "packCycles";

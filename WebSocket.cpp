@@ -94,8 +94,6 @@ void WebSocket::initParamCache()
     paramCache.enableHeater = !status.enableHeater;
     paramCache.enableCreep = !status.enableCreep;
 
-    paramCache.packVoltage = 0;
-    paramCache.packCurrent = 0;
     paramCache.soc = 0;
     paramCache.dischargeLimit = 0;
     paramCache.chargeLimit = 0;
@@ -310,6 +308,7 @@ String WebSocket::processData(char *input)
 String WebSocket::generateUpdate()
 {
     MotorController* motorController = deviceManager.getMotorController();
+    BatteryManager* batteryManager = deviceManager.getBatteryManager();
     uint32_t ms = millis();
     data = String();
     limits = String();
@@ -321,18 +320,22 @@ String WebSocket::generateUpdate()
         processParameter((int16_t *) &paramCache.gear, (int16_t) motorController->getGear(), Constants::gear);
         if (updateCounter == 0 || updateCounter == 5) { // very fluctuating values which would unnecessarily strain the cpu (of a tablet)
             processParameter(&paramCache.speedActual, motorController->getSpeedActual(), Constants::speedActual);
-//            processParameter(&paramCache.mechanicalPower, motorController->getMechanicalPower(), Constants::mechanicalPower, 1000);
-            if (updateCounter == 0) {
-                processParameter(&paramCache.dcCurrent, motorController->getDcCurrent(), Constants::dcCurrent, 10);
-                if (!deviceManager.getBatteryManager())
-                    processLimits(&dcCurrentMin, &dcCurrentMax, motorController->getDcCurrent(), Constants::dcCurrent);
+            if (batteryManager && batteryManager->hasPackVoltage()) {
+                processParameter(&paramCache.dcVoltage, batteryManager->getPackVoltage(), Constants::dcVoltage, 10);
+            } else {
                 processParameter(&paramCache.dcVoltage, motorController->getDcVoltage(), Constants::dcVoltage, 10);
                 processLimits(&dcVoltageMin, &dcVoltageMax, motorController->getDcVoltage(), Constants::dcVoltage);
-                processParameter(&paramCache.temperatureMotor, motorController->getTemperatureMotor(), Constants::temperatureMotor, 10);
-                processLimits(NULL, &temperatureMotorMax, motorController->getTemperatureMotor(), Constants::temperatureMotor);
-                processParameter(&paramCache.temperatureController, motorController->getTemperatureController(), Constants::temperatureController, 10);
-                processLimits(NULL, &temperatureControllerMax, motorController->getTemperatureController(), Constants::temperatureController);
             }
+            if (batteryManager && batteryManager->hasPackCurrent()) {
+                processParameter(&paramCache.dcCurrent, batteryManager->getPackCurrent(), Constants::dcCurrent, 10);
+            } else {
+                processParameter(&paramCache.dcCurrent, motorController->getDcCurrent(), Constants::dcCurrent, 10);
+                processLimits(&dcCurrentMin, &dcCurrentMax, motorController->getDcCurrent(), Constants::dcCurrent);
+            }
+            processParameter(&paramCache.temperatureMotor, motorController->getTemperatureMotor(), Constants::temperatureMotor, 10);
+            processLimits(NULL, &temperatureMotorMax, motorController->getTemperatureMotor(), Constants::temperatureMotor);
+            processParameter(&paramCache.temperatureController, motorController->getTemperatureController(), Constants::temperatureController, 10);
+            processLimits(NULL, &temperatureControllerMax, motorController->getTemperatureController(), Constants::temperatureController);
         }
     }
 
@@ -345,12 +348,7 @@ String WebSocket::generateUpdate()
         addParam(Constants::timeRunning, getTimeRunning(), false);
         processParameter(&paramCache.systemState, (int16_t) status.getSystemState(), Constants::systemState);
 
-        BatteryManager* batteryManager = deviceManager.getBatteryManager();
         if (batteryManager) {
-            if (batteryManager->hasPackVoltage())
-                processParameter(&paramCache.packVoltage, batteryManager->getPackVoltage(), Constants::packVoltage, 10);
-            if (batteryManager->hasPackCurrent())
-                processParameter(&paramCache.packCurrent, batteryManager->getPackCurrent(), Constants::packCurrent, 10);
             if (batteryManager->hasSoc())
                 processParameter(&paramCache.soc, (uint16_t)(batteryManager->getSoc() * 50), Constants::soc, 100);
             if (batteryManager->hasDischargeLimit()) {

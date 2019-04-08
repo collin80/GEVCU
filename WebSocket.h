@@ -59,8 +59,6 @@ struct ParamCache {
     bool enableHeater;
     bool enableCreep;
 
-    uint16_t packVoltage;
-    int16_t packCurrent;
     uint16_t packResistance;
     uint8_t packHealth;
     uint16_t packCycles;
