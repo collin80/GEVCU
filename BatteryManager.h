@@ -82,6 +82,7 @@ public:
     uint8_t getPackHealth(); // in 1%
     uint16_t getPackCycles();
     uint16_t getPackResistance(); // in 1mOhm
+    uint8_t getSystemTemperature(); // in 1C
 
 protected:
     uint16_t packVoltage; //tenths of a volt
@@ -90,7 +91,7 @@ protected:
     uint16_t packAmphours; // Ah of pack in 0.1Ah
     uint16_t dischargeLimit, chargeLimit; // in 1A
     bool allowCharge, allowDischarge;
-    int16_t systemTemperature; // in 0.1C
+    int8_t systemTemperature; // in 1C
     int16_t lowestCellTemp, highestCellTemp; // in 0.1C
     uint8_t lowestCellTempId, highestCellTempId; // 0-254, 255=undefined
     uint16_t lowestCellVolts, highestCellVolts, averageCellVolts; // in 0.0001V

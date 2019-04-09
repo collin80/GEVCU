@@ -76,7 +76,7 @@ void OrionBMS::handleCanFrame(CAN_FRAME *frame)
         status.bmsDtcLowCellVolage = (flags & dtcLowCellVolage) ? true : false;
         status.bmsDtcHVIsolationFault = (flags & dtcHVIsolationFault) ? true : false;
         status.bmsDtcVoltageRedundancyFault = (flags & dtcVoltageRedundancyFault) ? true : false;
-        systemTemperature = data[7] * 10; // byte 7: temperature of BMS (1C)
+        systemTemperature = data[7]; // byte 7: temperature of BMS (1C)
         if (Logger::isDebug()) {
             Logger::debug(this, "pack current: %fA, voltage: %fV (summed: %fV), flags: %#08x, temp: %dC",
                     (float) packCurrent / 10.0F, (float) packVoltage / 10.0F, (float) packSummedVoltage / 10.0F, flags, systemTemperature);
@@ -85,11 +85,11 @@ void OrionBMS::handleCanFrame(CAN_FRAME *frame)
 
     case CAN_ID_LIMITS_SOC:
         if (true /*CRC8::calculate(data, 8) == 0x0e*/) {
-            dischargeLimit = data[0]; // byte 0: pack discharge current limit (DCL) (1A)
+            dischargeLimit = ((data[0] << 8) | data[1]); // byte 0+1: pack discharge current limit (DCL) (1A)
             allowDischarge = (dischargeLimit > 0);
-            chargeLimit = data[1]; // byte 1: pack charge current limit (CCL) (1A)
+            chargeLimit = ((data[2] << 8) | data[3]); // byte 2+3: pack charge current limit (CCL) (1A)
             allowCharge = (chargeLimit > 0);
-            currentLimit = data[2]; // this is acutally a 2 byte flag ?!?!?
+            currentLimit = ((data[4] << 8) | data[5]); // byte 4+5: bitfield with reason for current limmitation
             status.bmsDclLowSoc = (currentLimit & dclLowSoc) ? true : false;
             status.bmsDclHighCellResistance = (currentLimit & dclHighCellResistance) ? true : false;
             status.bmsDclTemperature = (currentLimit & dclTemperature) ? true : false;
@@ -104,17 +104,15 @@ void OrionBMS::handleCanFrame(CAN_FRAME *frame)
             status.bmsCclHighPackVoltage = (currentLimit & cclHighPackVoltage) ? true : false;
             status.bmsCclChargerLatch = (currentLimit & cclChargerLatch) ? true : false;
             status.bmsCclAlternate = (currentLimit & cclAlternate) ? true : false;
-            relayStatus = data[3];
+            relayStatus = data[6];
             status.bmsRelayDischarge = (relayStatus & relayDischarge) ? true : false;// Bit #1 (0x01): Discharge relay enabled
             status.bmsRelayCharge = (relayStatus & relayCharge) ? true : false;// Bit #2 (0x02): Charge relay enabled
             status.bmsChagerSafety = (relayStatus & chagerSafety) ? true : false;// Bit #3 (0x04): Charger safety enabled
             status.bmsDtcPresent = (relayStatus & dtcPresent) ? true : false;// Bit #4 (0x08): Malfunction indicator active (DTC status)
-            soc = data[4]; // byte 4: pack state of charge (0.5%)
-            packAmphours = ((data[5] << 8) | data[6]); // byte 5+6: remaining Ah of pack (in 0.1Ah)
 
             if (Logger::isDebug()) {
-                Logger::debug(this, "discharge limit: %dA, charge limit: %dA, limit flags: %#08x, relay: %#08x, soc: %f%%, pack capacity: %f Ah",
-                        dischargeLimit, chargeLimit, currentLimit, relayStatus, (float) soc / 2.0F, (float) packAmphours / 10.0F);
+                Logger::debug(this, "discharge limit: %dA, charge limit: %dA, limit flags: %#08x, relay: %#08x",
+                        dischargeLimit, chargeLimit, currentLimit, relayStatus);
             }
         } else {
             Logger::warn(this, "CRC of CAN message invalid (%X instead of %X)", data[7], CRC8::calculate(data, 7));
@@ -153,9 +151,12 @@ canHandlerEv.logFrame(*frame);
         packHealth = data[0]; // byte 0: pack health (1%)
         packCycles = ((data[1] << 8) | data[2]); // byte 1+2: number of total pack cycles
         packResistance = ((data[3] << 8) | data[4]); // byte 3+4: pack resistance (1 mOhm)
+        lowestCellTemp = data[5];
+        highestCellTemp= data[6];
+        soc = data[7]; // byte 7: pack state of charge (0.5%)
         if (Logger::isDebug()) {
-            Logger::debug(this, "pack health: %d, pack cycles: %d, pack Resistance: %dmOhm",
-                    packHealth, packCycles, packResistance);
+            Logger::debug(this, "pack health: %d, pack cycles: %d, pack Resistance: %dmOhm, low temp: %d, high temp: %d, soc: %.1f",
+                    packHealth, packCycles, packResistance, lowestCellTemp, highestCellTemp, (float) soc / 2.0F);
         }
         break;
     }

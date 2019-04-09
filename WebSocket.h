@@ -83,6 +83,7 @@ struct ParamCache {
     uint8_t highestCellVoltsId;
     uint8_t lowestCellResistanceId;
     uint8_t highestCellResistanceId;
+    uint8_t bmsTemperature;
 };
 
 class WebSocket : public SocketProcessor {

@@ -219,6 +219,7 @@ static const char* lowestCellVoltsId = "lowestCellVoltsId";
 static const char* highestCellVoltsId = "highestCellVoltsId";
 static const char* lowestCellResistanceId = "lowestCellResistanceId";
 static const char* highestCellResistanceId = "highestCellResistanceId";
+static const char* bmsTemp = "bmsTemp";
 }
 
 #endif /* CONSTANTS_H_ */

@@ -259,3 +259,7 @@ uint16_t BatteryManager::getPackResistance()
     return packResistance;
 }
 
+uint8_t BatteryManager::getSystemTemperature()
+{
+    return systemTemperature;
+}

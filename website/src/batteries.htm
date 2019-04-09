@@ -4,7 +4,7 @@
 		<div class="subInfoCell" style="width: 20%">
 			<div>Maximum:</div>
 			<div>Minimum:</div>
-			<div>Delta:</div>
+			<div>Delta / Sys:</div>
 			<div>Pack:</div>
 			<div>Limits:</div>
 		</div>
@@ -25,131 +25,9 @@
 		<div class="subInfoCell">
 			<div><span id="highestCellTemp">-</span>&#176;C, #<span id="highestCellTempId">-</span></div>
 			<div><span id="lowestCellTemp">-</span>&#176;C, #<span id="lowestCellTempId">-</span></div>
-			<div>&nbsp;</div>
+			<div><span id="bmsTemp">-</span>&#176;C</div>
 			<div><span id="packCycles">-</span> cycles</div>
 			<div></div>
 		</div>
 	</div>
-	<!-- div id="batteryLevels">
-		<div id="batt_1" class="ok">001: 3.22V</div>
-		<div id="batt_2" class="bad">002: 2.82V</div>
-		<div id="batt_3" class="warn">003: 3.02V</div>
-		<div id="batt_4" class="ok">004: 3.29V</div>
-		<div id="batt_5" class="ok">005: 3.09V</div>
-		<div id="batt_6">006: 3.04V</div>
-		<div id="batt_7" class="ok">007: 3.25V</div>
-		<div id="batt_8" class="ok">008: 3.15V</div>
-		<div id="batt_9" class="ok">009: 3.07V</div>
-		<div id="batt_10">010: 2.98V</div>
-		<div id="batt_11" class="ok">3.09V</div>
-		<div id="batt_12" class="ok">3.11V</div>
-		<div id="batt_13">3.18V</div>
-		<div id="batt_14">3.11V</div>
-		<div id="batt_15">3.22V</div>
-		<div id="batt_16">3.04V</div>
-		<div id="batt_17">3.00V</div>
-		<div id="batt_18">2.93V</div>
-		<div id="batt_19">2.75V</div>
-		<div id="batt_20">2.98V</div>
-		<div id="batt_21">3.09V</div>
-		<div id="batt_22">3.11V</div>
-		<div id="batt_23">3.18V</div>
-		<div id="batt_24">3.11V</div>
-		<div id="batt_25">3.22V</div>
-		<div id="batt_26">3.04V</div>
-		<div id="batt_27">3.00V</div>
-		<div id="batt_28">2.93V</div>
-		<div id="batt_29">2.75V</div>
-		<div id="batt_30">2.98V</div>
-		<div id="batt_31">3.09V</div>
-		<div id="batt_32">3.11V</div>
-		<div id="batt_33">3.18V</div>
-		<div id="batt_34">3.11V</div>
-		<div id="batt_35">3.22V</div>
-		<div id="batt_36">3.04V</div>
-		<div id="batt_37">3.00V</div>
-		<div id="batt_38">2.93V</div>
-		<div id="batt_39">2.75V</div>
-		<div id="batt_40">2.98V</div>
-		<div id="batt_41">3.09V</div>
-		<div id="batt_42">3.11V</div>
-		<div id="batt_43">3.18V</div>
-		<div id="batt_44">3.11V</div>
-		<div id="batt_45">3.22V</div>
-		<div id="batt_46">3.04V</div>
-		<div id="batt_47">3.00V</div>
-		<div id="batt_48">2.93V</div>
-		<div id="batt_49">2.75V</div>
-		<div id="batt_50">2.98V</div>
-		<div id="batt_51">3.09V</div>
-		<div id="batt_52">3.11V</div>
-		<div id="batt_53">3.18V</div>
-		<div id="batt_54">3.11V</div>
-		<div id="batt_55">3.22V</div>
-		<div id="batt_56">3.04V</div>
-		<div id="batt_57">3.00V</div>
-		<div id="batt_58">2.93V</div>
-		<div id="batt_59">2.75V</div>
-		<div id="batt_60">2.98V</div>
-		<div id="batt_61">3.09V</div>
-		<div id="batt_62">3.11V</div>
-		<div id="batt_63">3.18V</div>
-		<div id="batt_64">3.11V</div>
-		<div id="batt_65">3.22V</div>
-		<div id="batt_66">3.04V</div>
-		<div id="batt_67">3.00V</div>
-		<div id="batt_68">2.93V</div>
-		<div id="batt_69">2.75V</div>
-		<div id="batt_70">2.98V</div>
-		<div id="batt_71">3.09V</div>
-		<div id="batt_72">3.11V</div>
-		<div id="batt_73">3.18V</div>
-		<div id="batt_74">3.11V</div>
-		<div id="batt_75">3.22V</div>
-		<div id="batt_76">3.04V</div>
-		<div id="batt_77">3.00V</div>
-		<div id="batt_78">2.93V</div>
-		<div id="batt_79">2.75V</div>
-		<div id="batt_80">2.98V</div>
-		<div id="batt_81">3.09V</div>
-		<div id="batt_82">3.11V</div>
-		<div id="batt_83">3.18V</div>
-		<div id="batt_84">3.11V</div>
-		<div id="batt_85">3.22V</div>
-		<div id="batt_86">3.04V</div>
-		<div id="batt_87">3.00V</div>
-		<div id="batt_88">2.93V</div>
-		<div id="batt_89">2.75V</div>
-		<div id="batt_90">2.98V</div>
-		<div id="batt_91">3.09V</div>
-		<div id="batt_92">3.11V</div>
-		<div id="batt_93">3.18V</div>
-		<div id="batt_94">3.11V</div>
-		<div id="batt_95">3.22V</div>
-		<div id="batt_96">3.04V</div>
-		<div id="batt_97">3.00V</div>
-		<div id="batt_98">2.93V</div>
-		<div id="batt_99">2.75V</div>
-		<div id="batt_90">2.98V</div>
-		<div id="batt_101">3.09V</div>
-		<div id="batt_102">3.11V</div>
-		<div id="batt_103">3.18V</div>
-		<div id="batt_104">3.11V</div>
-		<div id="batt_105">3.22V</div>
-		<div id="batt_106">3.04V</div>
-		<div id="batt_107">3.00V</div>
-		<div id="batt_108">2.93V</div>
-		<div id="batt_109">2.75V</div>
-		<div id="batt_110">2.98V</div>
-		<div id="batt_111">3.09V</div>
-		<div id="batt_112">3.11V</div>
-		<div id="batt_113">3.18V</div>
-		<div id="batt_114">3.11V</div>
-		<div id="batt_115">3.22V</div>
-		<div id="batt_116">3.04V</div>
-		<div id="batt_117">3.00V</div>
-		<div id="batt_118">2.93V</div>
-		<div id="batt_119">2.75V</div>
-		<div id="batt_120">2.98V</div>
-	</div-->
 </div>

@@ -349,6 +349,7 @@ String WebSocket::generateUpdate()
         processParameter(&paramCache.systemState, (int16_t) status.getSystemState(), Constants::systemState);
 
         if (batteryManager) {
+            processParameter(&paramCache.bmsTemperature, batteryManager->getSystemTemperature(), Constants::bmsTemp);
             if (batteryManager->hasSoc())
                 processParameter(&paramCache.soc, (uint16_t)(batteryManager->getSoc() * 50), Constants::soc, 100);
             if (batteryManager->hasDischargeLimit()) {
@@ -358,9 +359,9 @@ String WebSocket::generateUpdate()
                     dcCurrentMin = batteryManager->getChargeLimit() * -1;
                     addLimit((char *)String(dcCurrentMin).c_str(), (char *)String(dcCurrentMax).c_str(), Constants::dcCurrent);
                 }
-            }
-            else
+            } else {
                 processParameter(&paramCache.dischargeAllowed, batteryManager->isDischargeAllowed(), Constants::dischargeAllowed);
+            }
             if (batteryManager->hasChargeLimit())
                 processParameter(&paramCache.chargeLimit, batteryManager->getChargeLimit(), Constants::chargeLimit);
             else

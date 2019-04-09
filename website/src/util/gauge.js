@@ -679,8 +679,8 @@ var Gauge = function(gaugeConfig) {
 			if (!config.limits) {
 				config.limits = {};
 			}
-			config.limits.min = min;
-			config.limits.max = max;
+			config.limits.min = constrain(min, config.minValue, config.maxValue);
+			config.limits.max = constrain(max, config.minValue, config.maxValue);
 			drawLimits();
 		}
 		
