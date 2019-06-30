@@ -130,6 +130,7 @@ private:
     bool brakeHoldActive; // flag to signal if brake hold was activated by a standing car and pressed brake
     uint32_t brakeHoldStart; // timestamp at which the brake hold was activated
     int16_t brakeHoldLevel; // current throttle level applied by brake hold (must be signed to prevent overflow!!)
+    uint32_t gearChangeTimestamp;
     Gears gear;
 
     void updateStatusIndicator();

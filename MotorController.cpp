@@ -49,6 +49,7 @@ MotorController::MotorController() :
     acCurrent = 0;
     lastTick = 0;
     slewTimestamp = millis();
+    gearChangeTimestamp = 0;
     rolling = false;
     ticksNoMessage = 0;
     brakeHoldActive = false;
@@ -72,7 +73,7 @@ void MotorController::updateStatusIndicator()
             if (rolling) {
                 rolling = false;
                 if (status.enableCreep) // a little hack to temporarely disable light
-                    deviceManager.sendMessage(DEVICE_DISPLAY, STATUSINDICATOR, MSG_UPDATE, (void *)"on");
+                    deviceManager.sendMessage(DEVICE_DISPLAY, STATUSINDICATOR, MSG_UPDATE, (void *) "on");
             }
         } else {
             if (speedActual > 1000 && !rolling) {
@@ -127,12 +128,12 @@ int16_t MotorController::processBrakeHold(MotorControllerConfiguration *config, 
         } else {
             // deactivate after 5sec or when accelerator gives more torque or we're rolling forward without motor power
             if (brakeHoldStart + CFG_BRAKE_HOLD_MAX_TIME < millis() || throttleLvl > brakeHoldLevel || (speedActual > 0 && brakeHoldLevel == 0)) {
-               brakeHoldActive = false;
-               brakeHoldLevel = 0;
-               brakeHoldStart = 0;
-               throttleLvl = 0;
-               slewTimestamp = millis(); // this should re-activate slew --> slowly reduce to 0 torque
-               Logger::debug("brake hold deactivated");
+                brakeHoldActive = false;
+                brakeHoldLevel = 0;
+                brakeHoldStart = 0;
+                throttleLvl = 0;
+                slewTimestamp = millis(); // this should re-activate slew --> slowly reduce to 0 torque
+                Logger::debug("brake hold deactivated");
             } else {
                 uint16_t delta = abs(speedActual) * 2 / config->brakeHoldForceCoefficient + 1; // make sure it's always bigger than 0
                 if (speedActual < 0 && brakeHoldLevel < config->brakeHold * 10) {
@@ -160,23 +161,36 @@ int16_t MotorController::processBrakeHold(MotorControllerConfiguration *config, 
  * /brief In case ABS is active, apply no power to wheels to prevent loss of control through regen forces. If gear shift support is enabled, additionally
  * the motor will be spun up/down to the next
  */
-void MotorController::processAbsOrGearChange(bool gearChangeSupport) {
+void MotorController::processAbsOrGearChange(bool gearChangeSupport)
+{
+    if (systemIO.isABSActive()) {
+        torqueRequested = 0;
+        speedRequested = 0;
+        Logger::info(this, "ABS active");
 
-    //TODO help find out if random jerks originate from here
-    Logger::info(this, "ABS or gear change activated!");
+        if (gearChangeSupport) {
+            if (gearChangeTimestamp == 0) {
+                Logger::info(this, "Start gear change cycle");
+                gearChangeTimestamp = millis();
+                return;
+            }
 
-    // phase 1 - duration approx 700ms
-    torqueRequested = 0;
-    speedRequested = 0;
-
-    if (gearChangeSupport) {
-
-        //TODO implement phase 2
-
-        // phase 2
-        // break/accel  with about 20Nm for about 500ms
-
+            uint32_t duration = millis() - gearChangeTimestamp;
+            // break/accel  with about 20Nm after 500ms for 500ms
+            if (duration > 500 && duration < 1000) {
+                Logger::info(this, "Adjusting motor speed");
+                speedRequested = 2500;
+                torqueRequested = 200; // TODO positive and negative?
+                return;
+            }
+        }
+    } else {
+        if (gearChangeTimestamp) {
+            Logger::info(this, "Gear change cycle finished");
+            gearChangeTimestamp = 0;
+        }
     }
+
 }
 
 /**
@@ -184,12 +198,14 @@ void MotorController::processAbsOrGearChange(bool gearChangeSupport) {
  *
  * @return true if it's ok to apply regen, false if no regen must be applied
  */
-bool MotorController::checkBatteryTemperatureForRegen() {
+bool MotorController::checkBatteryTemperatureForRegen()
+{
     int16_t lowestBatteryTemperature = status.getLowestBatteryTemperature();
 
     if (lowestBatteryTemperature != CFG_NO_TEMPERATURE_DATA && (lowestBatteryTemperature * 10) < minimumBatteryTemperature) {
         status.enableRegen = false;
-        Logger::info(this, "No regenerative braking due to low battery temperature! (%f < %f)", lowestBatteryTemperature / 10.0f, minimumBatteryTemperature / 10.0f);
+        Logger::info(this, "No regenerative braking due to low battery temperature! (%f < %f)", lowestBatteryTemperature / 10.0f,
+                minimumBatteryTemperature / 10.0f);
         return false;
     }
 
@@ -236,7 +252,7 @@ void MotorController::processThrottleLevel()
                 uint32_t currentTimestamp = millis();
                 uint16_t slewPart = abs(torqueTarget - torqueRequested) * config->slewRate / 1000 * (currentTimestamp - slewTimestamp) / 1000;
                 if (slewPart == 0 && torqueRequested != torqueTarget) {
-                		slewPart = 1;
+                    slewPart = 1;
                 }
 
                 if (torqueTarget < torqueRequested) {
@@ -251,9 +267,7 @@ void MotorController::processThrottleLevel()
         torqueRequested = 0;
     }
 
-    if (systemIO.isABSActive()) {
-        processAbsOrGearChange(config->gearChangeSupport);
-    }
+    processAbsOrGearChange(config->gearChangeSupport);
 }
 
 void MotorController::updateGear()
@@ -451,7 +465,8 @@ void MotorController::loadConfiguration()
     Logger::info(this, "Max RPM: %i, Slew rate: %i", config->speedMax, config->slewRate);
     Logger::info(this, "Max mech power motor: %fkW, Max mech power regen: %fkW", config->maxMechanicalPowerMotor / 10.0f,
             config->maxMechanicalPowerRegen / 10.0f);
-    Logger::info(this, "Creep level: %i, Creep speed: %i, Brake Hold: %d, Gear Change Support: %d", config->creepLevel, config->creepSpeed, config->brakeHold, config->gearChangeSupport);
+    Logger::info(this, "Creep level: %i, Creep speed: %i, Brake Hold: %d, Gear Change Support: %d", config->creepLevel, config->creepSpeed,
+            config->brakeHold, config->gearChangeSupport);
 }
 
 void MotorController::saveConfiguration()
