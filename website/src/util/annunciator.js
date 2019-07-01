@@ -81,28 +81,17 @@ var IO = { /* Status::BitfieldIO */
     reverseLight                       : 1 << 7,  // 0x00000080
     enableIn                           : 1 << 8,  // 0x00000100
     absActive                          : 1 << 9,  // 0x00000200
-
-    digitalOutput0                     : 1 << 20, // 0x00100000
-    digitalOutput1                     : 1 << 21, // 0x00200000
-    digitalOutput2                     : 1 << 22, // 0x00400000
-    digitalOutput3                     : 1 << 23, // 0x00800000
-    digitalOutput4                     : 1 << 24, // 0x01000000
-    digitalOutput5                     : 1 << 25, // 0x02000000
-    digitalOutput6                     : 1 << 26, // 0x04000000
-    digitalOutput7                     : 1 << 27, // 0x08000000
-    digitalInput0                      : 1 << 28, // 0x10000000
-    digitalInput1                      : 1 << 29, // 0x20000000
-    digitalInput2                      : 1 << 30, // 0x40000000
-    digitalInput3                      : 1 << 31, // 0x80000000
 };
 
+var foldTimeout = null;
+var openedAutomatically = false;
+var bitfieldMotor = 0;
+var bitfieldBms = 0;
+var bitfieldIO = 0;
 
 function updateAnnunciatorFields(name, bitfield) {
 	switch (name) {
 	case 'bitfieldMotor':
-		if (bitfield != 0 && bitfield != (Motor.limitationTorque | Motor.limitationSpeed)) {
-			foldAnnunciator(true);
-		}
 	    // warnings
 		updateField("warning"                       , FieldClass.warn, bitfield & Motor.warning);
 		updateField("oscillationLimiter"            , FieldClass.ok, bitfield & Motor.oscillationLimiter);
@@ -128,13 +117,11 @@ function updateAnnunciatorFields(name, bitfield) {
 		updateField("limitationAcCurrent"           , FieldClass.warn, bitfield & Motor.limitationAcCurrent);
 		updateField("limitationDcVoltage"           , FieldClass.warn, bitfield & Motor.limitationDcVoltage);
 		updateField("limitationDcCurrent"           , FieldClass.warn, bitfield & Motor.limitationDcCurrent);
+
+		bitfieldMotor = bitfield & ~(Motor.oscillationLimiter | Motor.limitationTorque | Motor.limitationSpeed);
 		break;
 		
 	case 'bitfieldBms':
-		if (bitfield != 0 && bitfield > 0x07) { // only open when dtc present or higher value
-			foldAnnunciator(true);
-		}
-
 		updateField("bmsRelayDischarge"             , FieldClass.ok, bitfield & BMS.bmsRelayDischarge);
 		updateField("bmsRelayCharge"                , FieldClass.ok, bitfield & BMS.bmsRelayCharge);
 		updateField("bmsChagerSafety"               , FieldClass.warn, bitfield & BMS.bmsChagerSafety);
@@ -164,7 +151,9 @@ function updateAnnunciatorFields(name, bitfield) {
 		updateField("bmsCclHighPackVoltage"         , FieldClass.warn, bitfield & BMS.bmsCclHighPackVoltage);
 		updateField("bmsCclChargerLatch"            , FieldClass.warn, bitfield & BMS.bmsCclChargerLatch);
 		updateField("bmsCclAlternate"               , FieldClass.warn, bitfield & BMS.bmsCclAlternate);
-	    break;
+
+		bitfieldBms = bitfield & ~(BMS.bmsRelayDischarge | BMS.bmsRelayCharge | BMS.bmsChagerSafety);
+		break;
 	    
 	case 'bitfieldIO':
 		updateField("brakeHold"                     , FieldClass.ok, bitfield & IO.brakeHold);
@@ -178,19 +167,26 @@ function updateAnnunciatorFields(name, bitfield) {
 		updateField("enableIn"                      , FieldClass.ok, bitfield & IO.enableIn);
 		updateField("absActive"                     , FieldClass.ok, bitfield & IO.absActive);
 
-		updateField("digitalOutput0"                , FieldClass.ok, bitfield & IO.digitalOutput0);
-		updateField("digitalOutput1"                , FieldClass.ok, bitfield & IO.digitalOutput1);
-		updateField("digitalOutput2"                , FieldClass.ok, bitfield & IO.digitalOutput2);
-		updateField("digitalOutput3"                , FieldClass.ok, bitfield & IO.digitalOutput3);
-		updateField("digitalOutput4"                , FieldClass.ok, bitfield & IO.digitalOutput4);
-		updateField("digitalOutput5"                , FieldClass.ok, bitfield & IO.digitalOutput5);
-		updateField("digitalOutput6"                , FieldClass.ok, bitfield & IO.digitalOutput6);
-		updateField("digitalOutput7"                , FieldClass.ok, bitfield & IO.digitalOutput7);
-		updateField("digitalInput0"                 , FieldClass.ok, bitfield & IO.digitalInput0);
-		updateField("digitalInput1"                 , FieldClass.ok, bitfield & IO.digitalInput1);
-		updateField("digitalInput2"                 , FieldClass.ok, bitfield & IO.digitalInput2);
-		updateField("digitalInput3"                 , FieldClass.ok, bitfield & IO.digitalInput3);
+		bitfieldIO = bitfield;
 		break;
+	}
+
+	if (bitfieldMotor != 0 || bitfieldBms != 0) {
+		if (foldTimeout) {
+			clearTimeout(foldTimeout);
+			foldTimeout = null;
+		}
+		if(!openedAutomatically) {
+			foldAnnunciator(true);
+			openedAutomatically = true;
+		}
+	} else if (openedAutomatically && foldTimeout == null) {
+		// auto-fold after 10sec no error or warning
+		foldTimeout = setTimeout(function () {
+			foldAnnunciator(false);
+			openedAutomatically = false;
+			foldTimeout = null;
+		}, 10000);
 	}
 }
 
