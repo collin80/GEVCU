@@ -118,7 +118,7 @@ function updateAnnunciatorFields(name, bitfield) {
 		updateField("limitationDcVoltage"           , FieldClass.warn, bitfield & Motor.limitationDcVoltage);
 		updateField("limitationDcCurrent"           , FieldClass.warn, bitfield & Motor.limitationDcCurrent);
 
-		bitfieldMotor = bitfield & ~(Motor.oscillationLimiter | Motor.limitationTorque | Motor.limitationSpeed);
+		bitfieldMotor = bitfield & ~~(Motor.oscillationLimiter | Motor.limitationTorque | Motor.limitationSpeed);
 		break;
 		
 	case 'bitfieldBms':
@@ -152,7 +152,7 @@ function updateAnnunciatorFields(name, bitfield) {
 		updateField("bmsCclChargerLatch"            , FieldClass.warn, bitfield & BMS.bmsCclChargerLatch);
 		updateField("bmsCclAlternate"               , FieldClass.warn, bitfield & BMS.bmsCclAlternate);
 
-		bitfieldBms = bitfield & ~(BMS.bmsRelayDischarge | BMS.bmsRelayCharge | BMS.bmsChagerSafety);
+		bitfieldBms = bitfield & ~~(BMS.bmsRelayDischarge | BMS.bmsRelayCharge | BMS.bmsChagerSafety);
 		break;
 	    
 	case 'bitfieldIO':
