@@ -203,10 +203,10 @@ void SystemIO::handlePreCharge() {
 #ifdef CFG_THREE_CONTACTOR_PRECHARGE
             delay(CFG_PRE_CHARGE_RELAY_DELAY);
             setSecondaryContactor(true);
-            setFastChargeContactor(true); // TODO workaround to get the heater into the pre-charge cycle too
 #endif
         }
     } else {
+        logPreCharge();
         if ((millis() - preChargeStart) > configuration->prechargeMillis) {
             setMainContactor(true);
             delay(CFG_PRE_CHARGE_RELAY_DELAY);
@@ -216,6 +216,42 @@ void SystemIO::handlePreCharge() {
             Logger::info("Pre-charge sequence complete after %i milliseconds", millis() - preChargeStart);
         }
     }
+}
+
+/**
+ * Print the voltages reported by the devices during a pre-charge cycle
+ */
+void SystemIO::logPreCharge() {
+    uint16_t voltsMotor = 0, voltsDcDc = 0, voltsBms = 0;
+    if (deviceManager.getMotorController())
+        voltsMotor = deviceManager.getMotorController()->getDcVoltage();
+    if (deviceManager.getDcDcConverter())
+        voltsDcDc = deviceManager.getDcDcConverter()->getHvVoltage();
+    if (deviceManager.getBatteryManager())
+        voltsBms = deviceManager.getBatteryManager()->getPackVoltage();
+    Logger::info("pre-charge info: time: %dms, motor: %dV, dcdc: %dV, bms: %dV", millis() - preChargeStart, voltsMotor, voltsDcDc, voltsBms);
+}
+
+/**
+ * Perform a 10 sec pre-charge cycle and print out voltages reported by the devices
+ */
+void SystemIO::measurePreCharge() {
+    setPrechargeRelay(true);
+    Logger::info("closing pre-charge relay");
+#ifdef CFG_THREE_CONTACTOR_PRECHARGE
+    delay(CFG_PRE_CHARGE_RELAY_DELAY);
+    setSecondaryContactor(true);
+    Logger::info("closing secondary contactor");
+#endif
+    preChargeStart = millis();
+    while (millis() < preChargeStart + 10000) {
+        tickHandler.process();
+        canHandlerEv.process();
+        canHandlerCar.process();
+
+        logPreCharge();
+    }
+    status.setSystemState(Status::shutdown);
 }
 
 /*
@@ -228,12 +264,12 @@ void SystemIO::handleCooling() {
     Status::SystemState state = status.getSystemState();
 
     if (state == Status::ready || state == Status::running ||
-            (dcdcConverter != NULL && dcdcConverter->isRunning() && dcdcConverter->getTemperature() > 350)) {
+            (dcdcConverter != NULL && dcdcConverter->isRunning() && dcdcConverter->getTemperature() > 400)) {
         if (!status.coolingPump) {
             setCoolingPump(true);
         }
     } else {
-        if (status.coolingPump) {
+        if (status.coolingPump && (dcdcConverter == NULL || !dcdcConverter->isRunning() || dcdcConverter->getTemperature() < 350)) {
             setCoolingPump(false);
         }
     }

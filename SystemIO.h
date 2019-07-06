@@ -139,6 +139,7 @@ public:
     SystemType getSystemType();
     void setLogLevel(Logger::LogLevel);
     Logger::LogLevel getLogLevel();
+    void measurePreCharge();
 
 protected:
 
@@ -200,6 +201,8 @@ private:
     void setMainContactor(bool);
     void setSecondaryContactor(bool);
     void setFastChargeContactor(bool);
+
+    void logPreCharge();
 
 };
 

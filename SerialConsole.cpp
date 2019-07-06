@@ -69,6 +69,7 @@ void SerialConsole::printMenu()
     Logger::console("w = reset wifi to factory defaults, setup GEVCU ad-hoc network");
     Logger::console("W = activate wifi WPS mode for pairing");
     Logger::console("s = Scan WiFi for nearby access points");
+    Logger::console("P = perform pre-charge measurement");
 
     Logger::console("\nConfig Commands (enter command=newvalue)\n");
     Logger::console("LOGLEVEL=[deviceId,]%d - set log level (0=debug, 1=info, 2=warn, 3=error, 4=off)", Logger::getLogLevel());
@@ -1077,6 +1078,11 @@ void SerialConsole::handleShortCmd()
 
     case 'X':
         setup(); //this is probably a bad idea. Do not do this while connected to anything you care about - only for debugging in safety!
+        break;
+
+    case 'P':
+        Logger::console("measuring pre-charge cycle");
+        systemIO.measurePreCharge();
         break;
     }
 }
