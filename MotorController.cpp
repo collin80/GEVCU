@@ -251,6 +251,13 @@ void MotorController::processThrottleLevel()
             } else { // calc slew part and add/subtract from torqueRequested
                 uint32_t currentTimestamp = millis();
                 uint16_t slewPart = abs(torqueTarget - torqueRequested) * config->slewRate / 1000 * (currentTimestamp - slewTimestamp) / 1000;
+
+                // if we're we're reversing torque, reduce the slew part in the 0 area to make transitions between positive and negative tarque smoother
+                if ((torqueActual * torqueRequested < 0) && abs(torqueRequested) < 150) {
+                    slewPart /= 4;
+                }
+
+
                 if (slewPart == 0 && torqueRequested != torqueTarget) {
                     slewPart = 1;
                 }
