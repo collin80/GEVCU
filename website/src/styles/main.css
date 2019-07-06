@@ -181,7 +181,7 @@ input#inputCurrentLevel {
 	display: table;
 	table-layout: fixed;
 	width: 80%;
-	background: linear-gradient(to bottom right, #667, #334);
+	background: linear-gradient(to bottom right, #445, #113);
 	font-size: 1.8em;
 	border-radius: 0.7em;
 	box-shadow: .3em 0.3em 0.3em #000;
@@ -190,6 +190,7 @@ input#inputCurrentLevel {
 .subInfoCell {
 	display: table-cell;
 	padding-left: 20px;
+	font-weight: bold;
 }
 
 /************* BMS *************/
@@ -359,6 +360,24 @@ div.tabs {
 /************* Gauges *************/
 div.gauges {
 	text-align: center;
+}
+
+
+/************** Pop-Up Messages **********/
+
+div.ajs-message {
+	font-size: 28px;
+	font-weight: bold;
+}
+
+div.ajs-message.ajs-error {
+	background: rgba(117,2,2,.95) !important;
+	text-shadow: -2px -2px 0 rgba(0,0,0,.5) !important;	
+}
+
+div.ajs-message.ajs-success {
+    background: rgba(45,115,57,.95) !important;
+	text-shadow: -2px -2px 0 rgba(0,0,0,.5) !important;	
 }
 
 /************* Annunciators *************/
