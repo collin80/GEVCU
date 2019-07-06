@@ -151,8 +151,8 @@ canHandlerEv.logFrame(*frame);
         packHealth = data[0]; // byte 0: pack health (1%)
         packCycles = ((data[1] << 8) | data[2]); // byte 1+2: number of total pack cycles
         packResistance = ((data[3] << 8) | data[4]); // byte 3+4: pack resistance (1 mOhm)
-        lowestCellTemp = data[5];
-        highestCellTemp= data[6];
+        lowestCellTemp = data[5] * 10;
+        highestCellTemp= data[6] * 10;
         soc = data[7]; // byte 7: pack state of charge (0.5%)
         if (Logger::isDebug()) {
             Logger::debug(this, "pack health: %d, pack cycles: %d, pack Resistance: %dmOhm, low temp: %d, high temp: %d, soc: %.1f",
