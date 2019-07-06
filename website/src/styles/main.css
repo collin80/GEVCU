@@ -368,6 +368,7 @@ div.gauges {
 div.ajs-message {
 	font-size: 28px;
 	font-weight: bold;
+	width: 1000px !important;
 }
 
 div.ajs-message.ajs-error {
@@ -378,6 +379,10 @@ div.ajs-message.ajs-error {
 div.ajs-message.ajs-success {
     background: rgba(45,115,57,.95) !important;
 	text-shadow: -2px -2px 0 rgba(0,0,0,.5) !important;	
+}
+
+.ajs-message.ajs-visible {
+	right: 1000px !important;
 }
 
 /************* Annunciators *************/
