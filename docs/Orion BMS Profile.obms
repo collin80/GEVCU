@@ -1,0 +1,1379 @@
+<?xml version="1.0" encoding="UTF-8"?> 
+<java version="1.6.0_45" class="java.beans.XMLDecoder"> 
+ <object class="bmsapp.DefaultProfile"> 
+  <void property="balanceDelay"> 
+   <int>80</int> 
+  </void> 
+  <void property="balanceDeltaVoltage"> 
+   <int>100</int> 
+  </void> 
+  <void property="balanceDuration"> 
+   <int>1200</int> 
+  </void> 
+  <void property="balanceVoltage"> 
+   <int>35000</int> 
+  </void> 
+  <void property="canbus2Frequency"> 
+   <int>3</int> 
+  </void> 
+  <void property="canbusFrequency"> 
+   <int>2</int> 
+  </void> 
+  <void property="chargedSOC"> 
+   <int>95</int> 
+  </void> 
+  <void property="currentSensorDivider1"> 
+   <int>34952</int> 
+  </void> 
+  <void property="currentSensorDivider2"> 
+   <int>5242</int> 
+  </void> 
+  <void property="currentSensorMaxAmps"> 
+   <int>6000</int> 
+  </void> 
+  <void property="currentSensorMinAmps"> 
+   <int>8</int> 
+  </void> 
+  <void property="currentSensorPolarity"> 
+   <int>1</int> 
+  </void> 
+  <void property="currentSensorSelected"> 
+   <int>3</int> 
+  </void> 
+  <void property="currentSensorSwitchChan"> 
+   <int>26256</int> 
+  </void> 
+  <void property="currentSensorType"> 
+   <int>3</int> 
+  </void> 
+  <void property="customDtcs"> 
+   <void index="0"> 
+    <int>2591</int> 
+   </void> 
+   <void index="1"> 
+    <int>2560</int> 
+   </void> 
+   <void index="2"> 
+    <int>2688</int> 
+   </void> 
+   <void index="3"> 
+    <int>2810</int> 
+   </void> 
+   <void index="4"> 
+    <int>2564</int> 
+   </void> 
+   <void index="5"> 
+    <int>2752</int> 
+   </void> 
+   <void index="6"> 
+    <int>2561</int> 
+   </void> 
+   <void index="7"> 
+    <int>2563</int> 
+   </void> 
+   <void index="8"> 
+    <int>2562</int> 
+   </void> 
+   <void index="9"> 
+    <int>2689</int> 
+   </void> 
+   <void index="10"> 
+    <int>2716</int> 
+   </void> 
+   <void index="11"> 
+    <int>49408</int> 
+   </void> 
+   <void index="12"> 
+    <int>1376</int> 
+   </void> 
+   <void index="13"> 
+    <int>2726</int> 
+   </void> 
+   <void index="14"> 
+    <int>2565</int> 
+   </void> 
+   <void index="15"> 
+    <int>2566</int> 
+   </void> 
+   <void index="16"> 
+    <int>2567</int> 
+   </void> 
+   <void index="17"> 
+    <int>2568</int> 
+   </void> 
+   <void index="18"> 
+    <int>2569</int> 
+   </void> 
+   <void index="19"> 
+    <int>2570</int> 
+   </void> 
+   <void index="20"> 
+    <int>2571</int> 
+   </void> 
+  </void> 
+  <void property="customFlags"> 
+   <void index="0"> 
+    <void property="typeMatrix"> 
+     <void index="0"> 
+      <int>14</int> 
+     </void> 
+     <void index="1"> 
+      <int>15</int> 
+     </void> 
+     <void index="2"> 
+      <int>5</int> 
+     </void> 
+     <void index="3"> 
+      <int>18</int> 
+     </void> 
+     <void index="4"> 
+      <int>32</int> 
+     </void> 
+     <void index="5"> 
+      <int>33</int> 
+     </void> 
+     <void index="6"> 
+      <int>43</int> 
+     </void> 
+     <void index="7"> 
+      <int>37</int> 
+     </void> 
+    </void> 
+   </void> 
+  </void> 
+  <void property="customMessages"> 
+   <void index="0"> 
+    <void property="flagMatrix"> 
+     <void index="0"> 
+      <int>128</int> 
+     </void> 
+     <void index="2"> 
+      <int>128</int> 
+     </void> 
+     <void index="3"> 
+      <int>64</int> 
+     </void> 
+     <void index="4"> 
+      <int>128</int> 
+     </void> 
+     <void index="5"> 
+      <int>64</int> 
+     </void> 
+     <void index="6"> 
+      <int>64</int> 
+     </void> 
+     <void index="7"> 
+      <int>64</int> 
+     </void> 
+    </void> 
+    <void property="frequency"> 
+     <int>12</int> 
+    </void> 
+    <void property="id"> 
+     <int>1712</int> 
+    </void> 
+    <void property="length"> 
+     <int>8</int> 
+    </void> 
+    <void property="messageFlags"> 
+     <int>192</int> 
+    </void> 
+    <void property="typeMatrix"> 
+     <void index="0"> 
+      <int>12</int> 
+     </void> 
+     <void index="2"> 
+      <int>13</int> 
+     </void> 
+     <void index="4"> 
+      <int>20</int> 
+     </void> 
+     <void index="6"> 
+      <int>3</int> 
+     </void> 
+     <void index="7"> 
+      <int>45</int> 
+     </void> 
+    </void> 
+   </void> 
+   <void index="1"> 
+    <void property="flagMatrix"> 
+     <void index="0"> 
+      <int>128</int> 
+     </void> 
+     <void index="1"> 
+      <int>64</int> 
+     </void> 
+     <void index="2"> 
+      <int>128</int> 
+     </void> 
+     <void index="3"> 
+      <int>64</int> 
+     </void> 
+     <void index="4"> 
+      <int>128</int> 
+     </void> 
+     <void index="5"> 
+      <int>64</int> 
+     </void> 
+     <void index="6"> 
+      <int>64</int> 
+     </void> 
+     <void index="7"> 
+      <int>64</int> 
+     </void> 
+    </void> 
+    <void property="frequency"> 
+     <int>12</int> 
+    </void> 
+    <void property="id"> 
+     <int>1713</int> 
+    </void> 
+    <void property="length"> 
+     <int>8</int> 
+    </void> 
+    <void property="messageFlags"> 
+     <int>192</int> 
+    </void> 
+    <void property="typeMatrix"> 
+     <void index="0"> 
+      <int>11</int> 
+     </void> 
+     <void index="2"> 
+      <int>10</int> 
+     </void> 
+     <void index="4"> 
+      <int>25</int> 
+     </void> 
+     <void index="6"> 
+      <int>4</int> 
+     </void> 
+     <void index="7"> 
+      <int>2</int> 
+     </void> 
+    </void> 
+   </void> 
+   <void index="2"> 
+    <void property="flagMatrix"> 
+     <void index="0"> 
+      <int>128</int> 
+     </void> 
+     <void index="1"> 
+      <int>64</int> 
+     </void> 
+     <void index="2"> 
+      <int>64</int> 
+     </void> 
+     <void index="3"> 
+      <int>128</int> 
+     </void> 
+     <void index="4"> 
+      <int>64</int> 
+     </void> 
+     <void index="5"> 
+      <int>64</int> 
+     </void> 
+     <void index="6"> 
+      <int>128</int> 
+     </void> 
+     <void index="7"> 
+      <int>64</int> 
+     </void> 
+    </void> 
+    <void property="frequency"> 
+     <int>62</int> 
+    </void> 
+    <void property="id"> 
+     <int>1714</int> 
+    </void> 
+    <void property="length"> 
+     <int>8</int> 
+    </void> 
+    <void property="messageFlags"> 
+     <int>192</int> 
+    </void> 
+    <void property="typeMatrix"> 
+     <void index="0"> 
+      <int>50</int> 
+     </void> 
+     <void index="2"> 
+      <int>62</int> 
+     </void> 
+     <void index="3"> 
+      <int>51</int> 
+     </void> 
+     <void index="5"> 
+      <int>61</int> 
+     </void> 
+     <void index="6"> 
+      <int>52</int> 
+     </void> 
+    </void> 
+   </void> 
+   <void index="3"> 
+    <void property="flagMatrix"> 
+     <void index="0"> 
+      <int>128</int> 
+     </void> 
+     <void index="1"> 
+      <int>64</int> 
+     </void> 
+     <void index="2"> 
+      <int>64</int> 
+     </void> 
+     <void index="3"> 
+      <int>128</int> 
+     </void> 
+     <void index="4"> 
+      <int>64</int> 
+     </void> 
+     <void index="5"> 
+      <int>64</int> 
+     </void> 
+     <void index="6"> 
+      <int>128</int> 
+     </void> 
+     <void index="7"> 
+      <int>64</int> 
+     </void> 
+    </void> 
+    <void property="frequency"> 
+     <int>62</int> 
+    </void> 
+    <void property="id"> 
+     <int>1715</int> 
+    </void> 
+    <void property="length"> 
+     <int>8</int> 
+    </void> 
+    <void property="messageFlags"> 
+     <int>192</int> 
+    </void> 
+    <void property="typeMatrix"> 
+     <void index="0"> 
+      <int>56</int> 
+     </void> 
+     <void index="2"> 
+      <int>66</int> 
+     </void> 
+     <void index="3"> 
+      <int>57</int> 
+     </void> 
+     <void index="5"> 
+      <int>65</int> 
+     </void> 
+     <void index="6"> 
+      <int>58</int> 
+     </void> 
+    </void> 
+   </void> 
+   <void index="4"> 
+    <void property="flagMatrix"> 
+     <void index="0"> 
+      <int>64</int> 
+     </void> 
+     <void index="1"> 
+      <int>128</int> 
+     </void> 
+     <void index="2"> 
+      <int>64</int> 
+     </void> 
+     <void index="3"> 
+      <int>128</int> 
+     </void> 
+     <void index="4"> 
+      <int>64</int> 
+     </void> 
+     <void index="5"> 
+      <int>64</int> 
+     </void> 
+     <void index="6"> 
+      <int>64</int> 
+     </void> 
+     <void index="7"> 
+      <int>64</int> 
+     </void> 
+    </void> 
+    <void property="frequency"> 
+     <int>249</int> 
+    </void> 
+    <void property="id"> 
+     <int>1716</int> 
+    </void> 
+    <void property="length"> 
+     <int>8</int> 
+    </void> 
+    <void property="messageFlags"> 
+     <int>192</int> 
+    </void> 
+    <void property="typeMatrix"> 
+     <void index="0"> 
+      <int>19</int> 
+     </void> 
+     <void index="1"> 
+      <int>24</int> 
+     </void> 
+     <void index="3"> 
+      <int>17</int> 
+     </void> 
+     <void index="5"> 
+      <int>41</int> 
+     </void> 
+     <void index="6"> 
+      <int>40</int> 
+     </void> 
+     <void index="7"> 
+      <int>15</int> 
+     </void> 
+    </void> 
+   </void> 
+  </void> 
+  <void property="customModes"> 
+   <void index="0"> 
+    <void property="exitHighMode"> 
+     <int>1</int> 
+    </void> 
+    <void property="exitHighSoc"> 
+     <int>74</int> 
+    </void> 
+   </void> 
+  </void> 
+  <void property="defaultMode"> 
+   <int>1</int> 
+  </void> 
+  <void property="depletedSOC"> 
+   <int>10</int> 
+  </void> 
+  <void property="derateHighSOCAmperage"> 
+   <int>10</int> 
+  </void> 
+  <void property="derateHighSOCStart"> 
+   <int>95</int> 
+  </void> 
+  <void property="derateHighTempCCLAmperage"> 
+   <int>7</int> 
+  </void> 
+  <void property="derateHighTempCCLStart"> 
+   <int>40</int> 
+  </void> 
+  <void property="derateHighTempDCLAmperage"> 
+   <int>10</int> 
+  </void> 
+  <void property="derateHighTempDCLStart"> 
+   <int>40</int> 
+  </void> 
+  <void property="derateLowSOCAmperage"> 
+   <int>24</int> 
+  </void> 
+  <void property="derateLowSOCStart"> 
+   <int>10</int> 
+  </void> 
+  <void property="derateLowTempCCLAmperage"> 
+   <int>13</int> 
+  </void> 
+  <void property="derateLowTempCCLStart"> 
+   <int>15</int> 
+  </void> 
+  <void property="derateLowTempDCLAmperage"> 
+   <int>12</int> 
+  </void> 
+  <void property="derateLowTempDCLStart"> 
+   <int>5</int> 
+  </void> 
+  <void property="driftPoints"> 
+   <void index="0"> 
+    <void property="driftUpProhibit"> 
+     <boolean>true</boolean> 
+    </void> 
+    <void property="socPercent"> 
+     <int>16394</int> 
+    </void> 
+    <void property="voltage"> 
+     <int>28000</int> 
+    </void> 
+   </void> 
+   <void index="1"> 
+    <void property="driftUpProhibit"> 
+     <boolean>true</boolean> 
+    </void> 
+    <void property="socPercent"> 
+     <int>16404</int> 
+    </void> 
+    <void property="voltage"> 
+     <int>30000</int> 
+    </void> 
+   </void> 
+   <void index="2"> 
+    <void property="driftDownProhibit"> 
+     <boolean>true</boolean> 
+    </void> 
+    <void property="socPercent"> 
+     <int>32848</int> 
+    </void> 
+    <void property="voltage"> 
+     <int>35000</int> 
+    </void> 
+   </void> 
+   <void index="3"> 
+    <void property="driftDownProhibit"> 
+     <boolean>true</boolean> 
+    </void> 
+    <void property="socPercent"> 
+     <int>32863</int> 
+    </void> 
+    <void property="voltage"> 
+     <int>36000</int> 
+    </void> 
+   </void> 
+  </void> 
+  <void property="fanDeltaTemperature"> 
+   <int>3</int> 
+  </void> 
+  <void property="fanErrorPercent"> 
+   <int>20</int> 
+  </void> 
+  <void property="fanFrequency"> 
+   <int>5000</int> 
+  </void> 
+  <void property="fanMaxChargingSpeed"> 
+   <int>6</int> 
+  </void> 
+  <void property="fanMaxReadySpeed"> 
+   <int>6</int> 
+  </void> 
+  <void property="intakeThermistorNum"> 
+   <int>1</int> 
+  </void> 
+  <void property="intresDCMultiplier"> 
+   <int>15</int> 
+  </void> 
+  <void property="intresDelay"> 
+   <int>360</int> 
+  </void> 
+  <void property="intresEvalBasePercent"> 
+   <int>26</int> 
+  </void> 
+  <void property="intresEvalCompPercent"> 
+   <int>13</int> 
+  </void> 
+  <void property="intresEvalTimeout"> 
+   <int>50</int> 
+  </void> 
+  <void property="intresMinBaseAmps"> 
+   <int>40</int> 
+  </void> 
+  <void property="intresMinCompAmps"> 
+   <int>20</int> 
+  </void> 
+  <void property="isolationClipping"> 
+   <int>3700</int> 
+  </void> 
+  <void property="isolationThreshold"> 
+   <int>3200</int> 
+  </void> 
+  <void property="limitFlags"> 
+   <int>101</int> 
+  </void> 
+  <void property="maxChargeAmperage"> 
+   <int>200</int> 
+  </void> 
+  <void property="maxChargeCellVoltage"> 
+   <int>35500</int> 
+  </void> 
+  <void property="maxChargePackVoltage"> 
+   <int>10000</int> 
+  </void> 
+  <void property="maximumCCL"> 
+   <int>200</int> 
+  </void> 
+  <void property="maximumCellVoltage"> 
+   <int>36250</int> 
+  </void> 
+  <void property="maximumDCL"> 
+   <int>300</int> 
+  </void> 
+  <void property="maximumDacCCL"> 
+   <int>100</int> 
+  </void> 
+  <void property="maximumDacDCL"> 
+   <int>300</int> 
+  </void> 
+  <void property="maximumIntresMultiplier"> 
+   <int>35</int> 
+  </void> 
+  <void property="maximumOperatingTemp"> 
+   <int>60</int> 
+  </void> 
+  <void property="maximumPackVoltage"> 
+   <int>10000</int> 
+  </void> 
+  <void property="minimumBalanceVoltage"> 
+   <int>33500</int> 
+  </void> 
+  <void property="minimumCellVoltage"> 
+   <int>25000</int> 
+  </void> 
+  <void property="minimumFanTemperature"> 
+   <int>28</int> 
+  </void> 
+  <void property="minimumOperatingDCLTemp"> 
+   <int>-20</int> 
+  </void> 
+  <void property="minimumSOH"> 
+   <int>50</int> 
+  </void> 
+  <void property="minimumTempDCL"> 
+   <int>25</int> 
+  </void> 
+  <void property="mpoHighTemperature"> 
+   <int>85</int> 
+  </void> 
+  <void property="mpoLowTemperature"> 
+   <int>-40</int> 
+  </void> 
+  <void property="nominalVoltage"> 
+   <int>33000</int> 
+  </void> 
+  <void property="obd2EcuId"> 
+   <int>2019</int> 
+  </void> 
+  <void property="packsensorVariance"> 
+   <int>1010</int> 
+  </void> 
+  <void property="parallelStrings"> 
+   <int>1</int> 
+  </void> 
+  <void property="peakCclPercent"> 
+   <int>30</int> 
+  </void> 
+  <void property="peakDclPercent"> 
+   <int>30</int> 
+  </void> 
+  <void property="peakDecCclTime"> 
+   <int>30</int> 
+  </void> 
+  <void property="peakDecDclTime"> 
+   <int>30</int> 
+  </void> 
+  <void property="peakIncCclTime"> 
+   <int>10</int> 
+  </void> 
+  <void property="peakIncDclTime"> 
+   <int>10</int> 
+  </void> 
+  <void property="populatedThermistors"> 
+   <int>15</int> 
+  </void> 
+  <void property="populationTable"> 
+   <void index="0"> 
+    <void property="populated"> 
+     <boolean>true</boolean> 
+    </void> 
+   </void> 
+   <void index="1"> 
+    <void property="populated"> 
+     <boolean>true</boolean> 
+    </void> 
+   </void> 
+   <void index="2"> 
+    <void property="populated"> 
+     <boolean>true</boolean> 
+    </void> 
+   </void> 
+   <void index="3"> 
+    <void property="populated"> 
+     <boolean>true</boolean> 
+    </void> 
+   </void> 
+   <void index="4"> 
+    <void property="populated"> 
+     <boolean>true</boolean> 
+    </void> 
+   </void> 
+   <void index="5"> 
+    <void property="populated"> 
+     <boolean>true</boolean> 
+    </void> 
+   </void> 
+   <void index="6"> 
+    <void property="populated"> 
+     <boolean>true</boolean> 
+    </void> 
+   </void> 
+   <void index="7"> 
+    <void property="populated"> 
+     <boolean>true</boolean> 
+    </void> 
+   </void> 
+   <void index="8"> 
+    <void property="populated"> 
+     <boolean>true</boolean> 
+    </void> 
+   </void> 
+   <void index="9"> 
+    <void property="populated"> 
+     <boolean>true</boolean> 
+    </void> 
+   </void> 
+   <void index="10"> 
+    <void property="populated"> 
+     <boolean>true</boolean> 
+    </void> 
+   </void> 
+   <void index="11"> 
+    <void property="populated"> 
+     <boolean>true</boolean> 
+    </void> 
+   </void> 
+   <void index="12"> 
+    <void property="populated"> 
+     <boolean>true</boolean> 
+    </void> 
+   </void> 
+   <void index="13"> 
+    <void property="populated"> 
+     <boolean>true</boolean> 
+    </void> 
+   </void> 
+   <void index="14"> 
+    <void property="populated"> 
+     <boolean>true</boolean> 
+    </void> 
+   </void> 
+   <void index="15"> 
+    <void property="populated"> 
+     <boolean>true</boolean> 
+    </void> 
+   </void> 
+   <void index="16"> 
+    <void property="populated"> 
+     <boolean>true</boolean> 
+    </void> 
+   </void> 
+   <void index="17"> 
+    <void property="populated"> 
+     <boolean>true</boolean> 
+    </void> 
+   </void> 
+   <void index="24"> 
+    <void property="populated"> 
+     <boolean>true</boolean> 
+    </void> 
+   </void> 
+   <void index="25"> 
+    <void property="populated"> 
+     <boolean>true</boolean> 
+    </void> 
+   </void> 
+   <void index="26"> 
+    <void property="populated"> 
+     <boolean>true</boolean> 
+    </void> 
+   </void> 
+   <void index="27"> 
+    <void property="populated"> 
+     <boolean>true</boolean> 
+    </void> 
+   </void> 
+   <void index="28"> 
+    <void property="populated"> 
+     <boolean>true</boolean> 
+    </void> 
+   </void> 
+   <void index="29"> 
+    <void property="populated"> 
+     <boolean>true</boolean> 
+    </void> 
+   </void> 
+   <void index="30"> 
+    <void property="populated"> 
+     <boolean>true</boolean> 
+    </void> 
+   </void> 
+   <void index="31"> 
+    <void property="populated"> 
+     <boolean>true</boolean> 
+    </void> 
+   </void> 
+   <void index="32"> 
+    <void property="populated"> 
+     <boolean>true</boolean> 
+    </void> 
+   </void> 
+   <void index="33"> 
+    <void property="populated"> 
+     <boolean>true</boolean> 
+    </void> 
+   </void> 
+   <void index="34"> 
+    <void property="populated"> 
+     <boolean>true</boolean> 
+    </void> 
+   </void> 
+   <void index="35"> 
+    <void property="populated"> 
+     <boolean>true</boolean> 
+    </void> 
+   </void> 
+   <void index="36"> 
+    <void property="populated"> 
+     <boolean>true</boolean> 
+    </void> 
+   </void> 
+   <void index="37"> 
+    <void property="populated"> 
+     <boolean>true</boolean> 
+    </void> 
+   </void> 
+   <void index="38"> 
+    <void property="populated"> 
+     <boolean>true</boolean> 
+    </void> 
+   </void> 
+   <void index="39"> 
+    <void property="populated"> 
+     <boolean>true</boolean> 
+    </void> 
+   </void> 
+   <void index="40"> 
+    <void property="populated"> 
+     <boolean>true</boolean> 
+    </void> 
+   </void> 
+   <void index="41"> 
+    <void property="populated"> 
+     <boolean>true</boolean> 
+    </void> 
+   </void> 
+   <void index="42"> 
+    <void property="populated"> 
+     <boolean>true</boolean> 
+    </void> 
+   </void> 
+   <void index="43"> 
+    <void property="populated"> 
+     <boolean>true</boolean> 
+    </void> 
+   </void> 
+   <void index="44"> 
+    <void property="populated"> 
+     <boolean>true</boolean> 
+    </void> 
+   </void> 
+   <void index="45"> 
+    <void property="populated"> 
+     <boolean>true</boolean> 
+    </void> 
+   </void> 
+   <void index="46"> 
+    <void property="populated"> 
+     <boolean>true</boolean> 
+    </void> 
+   </void> 
+   <void index="47"> 
+    <void property="populated"> 
+     <boolean>true</boolean> 
+    </void> 
+   </void> 
+   <void index="48"> 
+    <void property="populated"> 
+     <boolean>true</boolean> 
+    </void> 
+   </void> 
+   <void index="49"> 
+    <void property="populated"> 
+     <boolean>true</boolean> 
+    </void> 
+   </void> 
+   <void index="50"> 
+    <void property="populated"> 
+     <boolean>true</boolean> 
+    </void> 
+   </void> 
+   <void index="51"> 
+    <void property="populated"> 
+     <boolean>true</boolean> 
+    </void> 
+   </void> 
+   <void index="52"> 
+    <void property="populated"> 
+     <boolean>true</boolean> 
+    </void> 
+   </void> 
+   <void index="53"> 
+    <void property="populated"> 
+     <boolean>true</boolean> 
+    </void> 
+   </void> 
+   <void index="54"> 
+    <void property="populated"> 
+     <boolean>true</boolean> 
+    </void> 
+   </void> 
+   <void index="55"> 
+    <void property="populated"> 
+     <boolean>true</boolean> 
+    </void> 
+   </void> 
+   <void index="56"> 
+    <void property="populated"> 
+     <boolean>true</boolean> 
+    </void> 
+   </void> 
+   <void index="57"> 
+    <void property="populated"> 
+     <boolean>true</boolean> 
+    </void> 
+   </void> 
+   <void index="58"> 
+    <void property="populated"> 
+     <boolean>true</boolean> 
+    </void> 
+   </void> 
+   <void index="60"> 
+    <void property="populated"> 
+     <boolean>true</boolean> 
+    </void> 
+   </void> 
+   <void index="61"> 
+    <void property="populated"> 
+     <boolean>true</boolean> 
+    </void> 
+   </void> 
+   <void index="62"> 
+    <void property="populated"> 
+     <boolean>true</boolean> 
+    </void> 
+   </void> 
+   <void index="63"> 
+    <void property="populated"> 
+     <boolean>true</boolean> 
+    </void> 
+   </void> 
+   <void index="64"> 
+    <void property="populated"> 
+     <boolean>true</boolean> 
+    </void> 
+   </void> 
+   <void index="65"> 
+    <void property="populated"> 
+     <boolean>true</boolean> 
+    </void> 
+   </void> 
+   <void index="72"> 
+    <void property="populated"> 
+     <boolean>true</boolean> 
+    </void> 
+   </void> 
+   <void index="73"> 
+    <void property="populated"> 
+     <boolean>true</boolean> 
+    </void> 
+   </void> 
+   <void index="74"> 
+    <void property="populated"> 
+     <boolean>true</boolean> 
+    </void> 
+   </void> 
+   <void index="75"> 
+    <void property="populated"> 
+     <boolean>true</boolean> 
+    </void> 
+   </void> 
+   <void index="76"> 
+    <void property="populated"> 
+     <boolean>true</boolean> 
+    </void> 
+   </void> 
+   <void index="77"> 
+    <void property="populated"> 
+     <boolean>true</boolean> 
+    </void> 
+   </void> 
+   <void index="78"> 
+    <void property="populated"> 
+     <boolean>true</boolean> 
+    </void> 
+   </void> 
+   <void index="79"> 
+    <void property="populated"> 
+     <boolean>true</boolean> 
+    </void> 
+   </void> 
+   <void index="80"> 
+    <void property="populated"> 
+     <boolean>true</boolean> 
+    </void> 
+   </void> 
+   <void index="81"> 
+    <void property="populated"> 
+     <boolean>true</boolean> 
+    </void> 
+   </void> 
+   <void index="84"> 
+    <void property="populated"> 
+     <boolean>true</boolean> 
+    </void> 
+   </void> 
+   <void index="85"> 
+    <void property="populated"> 
+     <boolean>true</boolean> 
+    </void> 
+   </void> 
+   <void index="86"> 
+    <void property="populated"> 
+     <boolean>true</boolean> 
+    </void> 
+   </void> 
+   <void index="87"> 
+    <void property="populated"> 
+     <boolean>true</boolean> 
+    </void> 
+   </void> 
+   <void index="88"> 
+    <void property="populated"> 
+     <boolean>true</boolean> 
+    </void> 
+   </void> 
+   <void index="89"> 
+    <void property="populated"> 
+     <boolean>true</boolean> 
+    </void> 
+   </void> 
+   <void index="90"> 
+    <void property="populated"> 
+     <boolean>true</boolean> 
+    </void> 
+   </void> 
+   <void index="91"> 
+    <void property="populated"> 
+     <boolean>true</boolean> 
+    </void> 
+   </void> 
+   <void index="92"> 
+    <void property="populated"> 
+     <boolean>true</boolean> 
+    </void> 
+   </void> 
+   <void index="96"> 
+    <void property="populated"> 
+     <boolean>true</boolean> 
+    </void> 
+   </void> 
+   <void index="97"> 
+    <void property="populated"> 
+     <boolean>true</boolean> 
+    </void> 
+   </void> 
+   <void index="98"> 
+    <void property="populated"> 
+     <boolean>true</boolean> 
+    </void> 
+   </void> 
+   <void index="99"> 
+    <void property="populated"> 
+     <boolean>true</boolean> 
+    </void> 
+   </void> 
+   <void index="100"> 
+    <void property="populated"> 
+     <boolean>true</boolean> 
+    </void> 
+   </void> 
+   <void index="101"> 
+    <void property="populated"> 
+     <boolean>true</boolean> 
+    </void> 
+   </void> 
+   <void index="102"> 
+    <void property="populated"> 
+     <boolean>true</boolean> 
+    </void> 
+   </void> 
+   <void index="103"> 
+    <void property="populated"> 
+     <boolean>true</boolean> 
+    </void> 
+   </void> 
+   <void index="104"> 
+    <void property="populated"> 
+     <boolean>true</boolean> 
+    </void> 
+   </void> 
+   <void index="105"> 
+    <void property="populated"> 
+     <boolean>true</boolean> 
+    </void> 
+   </void> 
+   <void index="108"> 
+    <void property="populated"> 
+     <boolean>true</boolean> 
+    </void> 
+   </void> 
+   <void index="109"> 
+    <void property="populated"> 
+     <boolean>true</boolean> 
+    </void> 
+   </void> 
+   <void index="110"> 
+    <void property="populated"> 
+     <boolean>true</boolean> 
+    </void> 
+   </void> 
+   <void index="111"> 
+    <void property="populated"> 
+     <boolean>true</boolean> 
+    </void> 
+   </void> 
+   <void index="112"> 
+    <void property="populated"> 
+     <boolean>true</boolean> 
+    </void> 
+   </void> 
+   <void index="113"> 
+    <void property="populated"> 
+     <boolean>true</boolean> 
+    </void> 
+   </void> 
+   <void index="114"> 
+    <void property="populated"> 
+     <boolean>true</boolean> 
+    </void> 
+   </void> 
+   <void index="115"> 
+    <void property="populated"> 
+     <boolean>true</boolean> 
+    </void> 
+   </void> 
+   <void index="116"> 
+    <void property="populated"> 
+     <boolean>true</boolean> 
+    </void> 
+   </void> 
+   <void index="117"> 
+    <void property="populated"> 
+     <boolean>true</boolean> 
+    </void> 
+   </void> 
+   <void index="120"> 
+    <void property="populated"> 
+     <boolean>true</boolean> 
+    </void> 
+   </void> 
+   <void index="121"> 
+    <void property="populated"> 
+     <boolean>true</boolean> 
+    </void> 
+   </void> 
+   <void index="122"> 
+    <void property="populated"> 
+     <boolean>true</boolean> 
+    </void> 
+   </void> 
+   <void index="123"> 
+    <void property="populated"> 
+     <boolean>true</boolean> 
+    </void> 
+   </void> 
+   <void index="124"> 
+    <void property="populated"> 
+     <boolean>true</boolean> 
+    </void> 
+   </void> 
+   <void index="125"> 
+    <void property="populated"> 
+     <boolean>true</boolean> 
+    </void> 
+   </void> 
+   <void index="126"> 
+    <void property="populated"> 
+     <boolean>true</boolean> 
+    </void> 
+   </void> 
+   <void index="127"> 
+    <void property="populated"> 
+     <boolean>true</boolean> 
+    </void> 
+   </void> 
+   <void index="128"> 
+    <void property="populated"> 
+     <boolean>true</boolean> 
+    </void> 
+   </void> 
+   <void index="129"> 
+    <void property="populated"> 
+     <boolean>true</boolean> 
+    </void> 
+   </void> 
+   <void index="132"> 
+    <void property="populated"> 
+     <boolean>true</boolean> 
+    </void> 
+   </void> 
+   <void index="133"> 
+    <void property="populated"> 
+     <boolean>true</boolean> 
+    </void> 
+   </void> 
+   <void index="134"> 
+    <void property="populated"> 
+     <boolean>true</boolean> 
+    </void> 
+   </void> 
+   <void index="135"> 
+    <void property="populated"> 
+     <boolean>true</boolean> 
+    </void> 
+   </void> 
+   <void index="136"> 
+    <void property="populated"> 
+     <boolean>true</boolean> 
+    </void> 
+   </void> 
+   <void index="137"> 
+    <void property="populated"> 
+     <boolean>true</boolean> 
+    </void> 
+   </void> 
+   <void index="138"> 
+    <void property="populated"> 
+     <boolean>true</boolean> 
+    </void> 
+   </void> 
+   <void index="139"> 
+    <void property="populated"> 
+     <boolean>true</boolean> 
+    </void> 
+   </void> 
+   <void index="140"> 
+    <void property="populated"> 
+     <boolean>true</boolean> 
+    </void> 
+   </void> 
+   <void index="141"> 
+    <void property="populated"> 
+     <boolean>true</boolean> 
+    </void> 
+   </void> 
+  </void> 
+  <void property="profileStr"> 
+   <string>0203000007E376000027108D9A61A807D003F2271000000000000000C8012C00000019000000C88AAC2710000000413D00000A6203010A5F320A18050C0F0D5F0A280A280765006488B804B000501C03000000010101010A0A5A1E1E0A0A1E1E0000000F010E740C80000088880000147A00006690177000080001680D00140F141A0028320606230000000000000064012C0082DC00007D01000000000000000000000000000000000000000000000000000000000000D85500000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000008000800080008000800080008000800080008000800080008000800080008000800080000000000000000000000000008000800080008000800080008000800080008000800080008000800080008000800080008000800080008000800080008000800080008000800080008000800080008000800000008000800080008000800080000000000000000000000000008000800080008000800080008000800080008000000000008000800080008000800080008000800080000000000000008000800080008000800080008000800080008000000000008000800080008000800080008000800080008000000000008000800080008000800080008000800080008000000000008000800080008000800080008000800080008000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000004A00000100000000000000000000000000000000000000000000000000000000000000000000000000000000000A1F0A000A800AFA0A040AC00A010A030A020A810A9CC10005600AA60A050A060A070A080A090A0A0A0B0000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000041203A8034402E5028D023B01EE01A80168012D00F900CA00A2007F0063004C003B0031002C002B002A002800280028002700000000000000000000000000000000000000000000000000400A6D6040147530805088B8805F8CA0000000000000000000000000000000000E0F051220212B25000000000000000000000000000000000000000000000000000006B00C08C080008040804040400C000D001400032D0000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000001000100010001000100010001000100010001000100010001000100010001000006B10C08C080408040804040400B000A00190004020000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000001000100010001000100010001000100010001000100010001000100010001000006B23E08C0804040804040804032003E33003D34000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000001000100010001000100010001000100010001000100010001000100010001000006B33E08C080404080404080403800423900413A000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000001000100010001000100010001000100010001000100010001000100010001000006B4F908C04080408040404040131800110029280F000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000100010001000100010001000100010001000100010001000100010001000100000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000001000100010001000100010001000100010001000100010001000100010001000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000010001000100010001000100010001000100010001000100010001000100010000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000100010001000100010001000100010001000100010001000100010001000100000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000001000100010001000100010001000100010001000100010001000100010001000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000010001000100010001000100010001000100010001000100010001000100010000981F</string> 
+  </void> 
+  <void property="relaysPopulated"> 
+   <int>1</int> 
+  </void> 
+  <void property="resistanceTable"> 
+   <void index="0"> 
+    <double>1042.0</double> 
+   </void> 
+   <void index="1"> 
+    <double>936.0</double> 
+   </void> 
+   <void index="2"> 
+    <double>836.0</double> 
+   </void> 
+   <void index="3"> 
+    <double>741.0</double> 
+   </void> 
+   <void index="4"> 
+    <double>653.0</double> 
+   </void> 
+   <void index="5"> 
+    <double>571.0</double> 
+   </void> 
+   <void index="6"> 
+    <double>494.0</double> 
+   </void> 
+   <void index="7"> 
+    <double>424.0</double> 
+   </void> 
+   <void index="8"> 
+    <double>360.0</double> 
+   </void> 
+   <void index="9"> 
+    <double>301.0</double> 
+   </void> 
+   <void index="10"> 
+    <double>249.0</double> 
+   </void> 
+   <void index="11"> 
+    <double>202.0</double> 
+   </void> 
+   <void index="12"> 
+    <double>162.0</double> 
+   </void> 
+   <void index="13"> 
+    <double>127.0</double> 
+   </void> 
+   <void index="14"> 
+    <double>99.0</double> 
+   </void> 
+   <void index="15"> 
+    <double>76.0</double> 
+   </void> 
+   <void index="16"> 
+    <double>59.0</double> 
+   </void> 
+   <void index="17"> 
+    <double>49.0</double> 
+   </void> 
+   <void index="18"> 
+    <double>44.0</double> 
+   </void> 
+   <void index="19"> 
+    <double>43.0</double> 
+   </void> 
+   <void index="20"> 
+    <double>42.0</double> 
+   </void> 
+   <void index="21"> 
+    <double>40.0</double> 
+   </void> 
+   <void index="22"> 
+    <double>40.0</double> 
+   </void> 
+   <void index="23"> 
+    <double>40.0</double> 
+   </void> 
+   <void index="24"> 
+    <double>39.0</double> 
+   </void> 
+  </void> 
+  <void property="simulatedPack100SOC"> 
+   <int>98</int> 
+  </void> 
+  <void property="simulatedPackAmphours"> 
+   <int>65</int> 
+  </void> 
+  <void property="simulatedPackStartSOC"> 
+   <int>61</int> 
+  </void> 
+  <void property="simulatedPackZeroSOC"> 
+   <int>10</int> 
+  </void> 
+  <void property="totalAmphours"> 
+   <int>10000</int> 
+  </void> 
+  <void property="totalCells"> 
+   <int>118</int> 
+  </void> 
+  <void property="voltageDerateCclTime"> 
+   <int>1</int> 
+  </void> 
+  <void property="voltageDerateDclTime"> 
+   <int>1</int> 
+  </void> 
+  <void property="voltageDerateFailTime"> 
+   <int>90</int> 
+  </void> 
+  <void property="voltageRestoreCclTime"> 
+   <int>10</int> 
+  </void> 
+  <void property="voltageRestoreDclTime"> 
+   <int>10</int> 
+  </void> 
+  <void property="weakcellVariance"> 
+   <int>2000</int> 
+  </void> 
+ </object> 
+</java> 
