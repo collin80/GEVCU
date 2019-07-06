@@ -409,18 +409,18 @@ uint32_t Status::getBitFieldIO() {
 //    bitfield |= (reserve                          ? 1 << 17 : 0); // 0x00020000
 //    bitfield |= (reserve                          ? 1 << 18 : 0); // 0x00040000
 //    bitfield |= (reserve                          ? 1 << 19 : 0); // 0x00080000
-    bitfield |= (digitalOutput[0]                   ? 1 << 20 : 0); // 0x00100000
-    bitfield |= (digitalOutput[1]                   ? 1 << 21 : 0); // 0x00200000
-    bitfield |= (digitalOutput[2]                   ? 1 << 22 : 0); // 0x00400000
-    bitfield |= (digitalOutput[3]                   ? 1 << 23 : 0); // 0x00800000
-    bitfield |= (digitalOutput[4]                   ? 1 << 24 : 0); // 0x01000000
-    bitfield |= (digitalOutput[5]                   ? 1 << 25 : 0); // 0x02000000
-    bitfield |= (digitalOutput[6]                   ? 1 << 26 : 0); // 0x04000000
-    bitfield |= (digitalOutput[7]                   ? 1 << 27 : 0); // 0x08000000
-    bitfield |= (digitalInput[0]                    ? 1 << 28 : 0); // 0x10000000
-    bitfield |= (digitalInput[1]                    ? 1 << 29 : 0); // 0x20000000
-    bitfield |= (digitalInput[2]                    ? 1 << 30 : 0); // 0x40000000
-    bitfield |= (digitalInput[3]                    ? 1 << 31 : 0); // 0x80000000
+//    bitfield |= (reserve                          ? 1 << 20 : 0); // 0x00100000
+//    bitfield |= (reserve                          ? 1 << 21 : 0); // 0x00200000
+//    bitfield |= (reserve                          ? 1 << 22 : 0); // 0x00400000
+//    bitfield |= (reserve                          ? 1 << 23 : 0); // 0x00800000
+//    bitfield |= (reserve                          ? 1 << 24 : 0); // 0x01000000
+//    bitfield |= (reserve                          ? 1 << 25 : 0); // 0x02000000
+//    bitfield |= (reserve                          ? 1 << 26 : 0); // 0x04000000
+//    bitfield |= (reserve                          ? 1 << 27 : 0); // 0x08000000
+//    bitfield |= (reserve                          ? 1 << 28 : 0); // 0x10000000
+//    bitfield |= (reserve                          ? 1 << 29 : 0); // 0x20000000
+//    bitfield |= (reserve                          ? 1 << 30 : 0); // 0x40000000
+//    bitfield |= (reserve                          ? 1 << 31 : 0); // 0x80000000
 
     return bitfield;
 }
