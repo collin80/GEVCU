@@ -261,33 +261,34 @@ String WebSocket::processData(char *input)
     case OPCODE_TEXT: {
         char *text = input + offset;
         bool flag = (strstr(text, "true") ? true : false);
+        char *equals = strchr(text, '=');
+        int16_t value = (equals ? atol(equals + 1) : 0);
         if (strstr(text, "stopCharge")) {
             status.setSystemState(Status::charged);
         } else if (strstr(text, "cruiseToggle")) {
             deviceManager.getMotorController()->cruiseControlToggle();
-        } else if (strstr(text, "cruisePlus")) {
-            deviceManager.getMotorController()->cruiseControlAdjust(5);
-        } else if (strstr(text, "cruiseMinus")) {
-            deviceManager.getMotorController()->cruiseControlAdjust(-5);
         } else if (strstr(text, "cruise=")) {
-            deviceManager.getMotorController()->cruiseControlSetSpeed(atol(&text[7]));
-        } else if (strstr(text, "cmdRegen:")) {
+            if (text[7] == '-' || text[7] == '+') {
+                deviceManager.getMotorController()->cruiseControlAdjust(value);
+            } else {
+                deviceManager.getMotorController()->cruiseControlSetSpeed(value);
+            }
+        } else if (strstr(text, "regen=")) {
             status.enableRegen = flag;
             Logger::info("Regen is now switched %s", (flag ? "on" : "off"));
-        } else if (strstr(text, "cmdCreep:")) {
+        } else if (strstr(text, "creep=")) {
             status.enableCreep = flag;
             Logger::info("Creep is now switched %s", (flag ? "on" : "off"));
-        } else if (strstr(text, "cmdEhps:")) {
+        } else if (strstr(text, "ehps=")) {
             systemIO.setPowerSteering(flag);
             Logger::info("EHPS is now switched %s", (flag ? "on" : "off"));
-        } else if (strstr(text, "cmdHeater:")) {
+        } else if (strstr(text, "heater=")) {
             systemIO.setEnableHeater(flag);
             systemIO.setHeaterPump(flag);
             Logger::info("Heater is now switched %s", (flag ? "on" : "off"));
-        } else if (strstr(text, "cmdChargeLevel:")) {
-            uint8_t inputCurrent = atoi(text);
-            Logger::info("Setting charge level to %d A", inputCurrent);
-            deviceManager.getCharger()->setMaximumInputCurrent(inputCurrent * 10);
+        } else if (strstr(text, "chargeInput=")) {
+            Logger::info("Setting charge level to %d Amps", value);
+            deviceManager.getCharger()->setMaximumInputCurrent(value * 10);
         }
         break;
     }

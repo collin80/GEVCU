@@ -43,28 +43,28 @@
 	<div class="buttonBar">
 		<div class="buttonBarCell" id="state_8_">Regen:
 			<label class="switch switch-green">
-				<input id="enableRegen" type="checkbox" class="switch-input" onchange="dashboard.sendMsg('cmdRegen:' + checked);"/>
+				<input id="enableRegen" type="checkbox" class="switch-input" onchange="dashboard.sendMsg('regen=' + checked);"/>
 				<span class="switch-label" data-on="ON" data-off="OFF"></span>
 				<span class="switch-handle"></span>
 		    </label>
 		</div>
 		<div class="buttonBarCell" id="state_8_">Creep:
 			<label class="switch">
-				<input id="enableCreep" type="checkbox" class="switch-input" onchange="dashboard.sendMsg('cmdCreep:' + checked)"/>
+				<input id="enableCreep" type="checkbox" class="switch-input" onchange="dashboard.sendMsg('creep=' + checked)"/>
 				<span class="switch-label" data-on="ON" data-off="OFF"></span>
 				<span class="switch-handle"></span>
 			</label>
 		</div>
 		<div class="buttonBarCell" id="state_7_8_">EHPS:
 			<label class="switch switch">
-				<input id="powerSteering" type="checkbox" class="switch-input" onchange="dashboard.sendMsg('cmdEhps:' + checked)"/>
+				<input id="powerSteering" type="checkbox" class="switch-input" onchange="dashboard.sendMsg('ehps=' + checked)"/>
 				<span class="switch-label" data-on="ON" data-off="OFF"></span>
 				<span class="switch-handle"></span>
 			</label>
 		</div>
 		<div class="buttonBarCell" id="state_4_5_6_7_8_">Heater:
 			<label class="switch switch-orange">
-				<input id="enableHeater" type="checkbox" class="switch-input" onchange="dashboard.sendMsg('cmdHeater:' + checked)"/>
+				<input id="enableHeater" type="checkbox" class="switch-input" onchange="dashboard.sendMsg('heater=' + checked)"/>
 				<span class="switch-label" data-on="ON" data-off="OFF"></span>
 				<span class="switch-handle"></span>
 	    	</label>
@@ -84,7 +84,7 @@
 		<span id="chargeLevel">--</span>%
 	</div>
 	<div id="inputCurrentSelector">
-		Max. input current: <select id="chargeInputLevel" onChange="dashboard.setChargeInputLevel()"></select> A
+		Max. input current: <select id="chargeInputLevel" onChange="dashboard.sendMsg('chargeInput=' + value)"></select> A
 	</div>
 	<div class="subInfo">
 		<span class="subInfoCell">Charger: <span id="chargerTemperature">--.-</span> &#176;C</span>
@@ -115,14 +115,13 @@
 <div id="state_7_8_">
 	<div class="cruiseControl">
 		<button id="cruiseToggle" class="button" onclick="dashboard.sendMsg('cruiseToggle')">Cruise</button>
-		<button id="cruisePlus" class="button" onclick="dashboard.sendMsg('cruisePlus')">+5</button>
-		<button id="cruiseMinus" class="button" onclick="dashboard.sendMsg('cruiseMinus')">-5</button>
-
-		<button id="cruise30" class="button" onclick="dashboard.sendMsg('cruise=50')">30</button>
-		<button id="cruise50" class="button" onclick="dashboard.sendMsg('cruise=50')">50</button>
-		<button id="cruise80" class="button" onclick="dashboard.sendMsg('cruise=80')">80</button>
-		<button id="cruise100" class="button" onclick="dashboard.sendMsg('cruise=100')">100</button>
-		<button id="cruise120" class="button" onclick="dashboard.sendMsg('cruise=120')">120</button>
+		<button id="cruisePlus" class="button" onclick="dashboard.sendMsg('cruise=+5')">+5 kph</button>
+		<button id="cruiseMinus" class="button" onclick="dashboard.sendMsg('cruise=-5')">-5 kph</button>
+		<button id="cruise30" class="button" onclick="dashboard.sendMsg('cruise=50')">30 kph</button>
+		<button id="cruise50" class="button" onclick="dashboard.sendMsg('cruise=50')">50 kph</button>
+		<button id="cruise80" class="button" onclick="dashboard.sendMsg('cruise=80')">80 kph</button>
+		<button id="cruise100" class="button" onclick="dashboard.sendMsg('cruise=100')">100 kph</button>
+		<button id="cruise120" class="button" onclick="dashboard.sendMsg('cruise=120')">120 kph</button>
 	</div>
 </div>
 
