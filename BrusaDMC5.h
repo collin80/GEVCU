@@ -50,12 +50,9 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #define CAN_ID_ACTUAL_VALUES    0x259 // receive actual values (DMC_ACTV)               01001011001
 #define CAN_ID_ERRORS           0x25a // receive error codes (DMC_ERR)                  01001011010
 #define CAN_ID_TORQUE_LIMIT     0x268 // receive torque limit information (DMC_TRQS2)   01001101000
-#define CAN_MASK_1              0x7cc // mask for above id's                            11111001100
-#define CAN_MASKED_ID_1         0x248 // masked id for id's from 0x258 to 0x268         01001001000
-
-#define CAN_ID_TEMP         0x458 // receive temperature information (DMC_TEMP)         10001011000
-#define CAN_MASK_2          0x7ff // mask for above id's                                11111111111
-#define CAN_MASKED_ID_2     0x458 // masked id for id's from 0x258 to 0x268             10001011000
+#define CAN_ID_TEMP             0x458 // receive temperature information (DMC_TEMP)     10001011000
+#define CAN_MASK                0x1cc // mask for above id's                            00111001100
+#define CAN_MASKED_ID           0x048 // masked id for id's from 0x258 to 0x268         00001001000
 
 class BrusaDMC5Configuration : public MotorControllerConfiguration
 {

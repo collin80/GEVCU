@@ -59,8 +59,7 @@ void BrusaDMC5::tearDown()
 {
     MotorController::tearDown();
 
-    canHandlerEv.detach(this, CAN_MASKED_ID_1, CAN_MASK_1);
-    canHandlerEv.detach(this, CAN_MASKED_ID_2, CAN_MASK_2);
+    canHandlerEv.detach(this, CAN_MASKED_ID, CAN_MASK);
 
     // for safety reasons at power off, first request 0 torque
     // this allows the controller to dissipate residual fields first
@@ -79,8 +78,7 @@ void BrusaDMC5::handleStateChange(Status::SystemState oldState, Status::SystemSt
     // (state != ready / running), attach to can/tick handler only when running.
     if (newState == Status::running) {
         // register ourselves as observer of 0x258-0x268 and 0x458 can frames
-        canHandlerEv.attach(this, CAN_MASKED_ID_1, CAN_MASK_1, false);
-        canHandlerEv.attach(this, CAN_MASKED_ID_2, CAN_MASK_2, false);
+        canHandlerEv.attach(this, CAN_MASKED_ID, CAN_MASK, false);
         tickHandler.attach(this, CFG_TICK_INTERVAL_MOTOR_CONTROLLER_BRUSA);
     } else {
         if (oldState == Status::running) {
@@ -137,15 +135,15 @@ void BrusaDMC5::sendControl()
             int16_t speedCommand = getSpeedRequested();
             int16_t torqueCommand = getTorqueRequested();
 
-            outputFrame.data.bytes[0] |= (config->invertDirection ^ (getGear() == REVERSE) ? enableNegativeTorqueSpeed : enablePositiveTorqueSpeed);
+            outputFrame.data.bytes[0] |= (config->invertDirection ^ (getGear() == GEAR_REVERSE) ? enableNegativeTorqueSpeed : enablePositiveTorqueSpeed);
 
             if (config->powerMode == modeSpeed) {
                 outputFrame.data.bytes[0] |= enableSpeedMode;
-                if (config->invertDirection ^ (getGear() == REVERSE)) { // reverse the motor direction if specified
+                if (config->invertDirection ^ (getGear() == GEAR_REVERSE)) { // reverse the motor direction if specified
                     speedCommand *= -1;
                 }
             } else {
-                if (config->invertDirection ^ (getGear() == REVERSE)) { // reverse the motor direction if specified
+                if (config->invertDirection ^ (getGear() == GEAR_REVERSE)) { // reverse the motor direction if specified
                     torqueCommand *= -1;
                 }
             }
@@ -292,7 +290,7 @@ void BrusaDMC5::processStatus(uint8_t data[])
     torqueActual = (int16_t) (data[5] | (data[4] << 8)) / 10;
     speedActual = (int16_t) (data[7] | (data[6] << 8));
 
-    if (config->invertDirection ^ (getGear() == REVERSE)) {
+    if (config->invertDirection ^ (getGear() == GEAR_REVERSE)) {
         speedActual *= -1;
         torqueActual *= -1;
     }
