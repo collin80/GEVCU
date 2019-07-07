@@ -234,11 +234,9 @@ void MotorController::processThrottleLevel()
         if (accelerator && !accelerator->isFaulted()) {
             throttleLevel = accelerator->getLevel();
         }
-
-        if (cruisePid != NULL/* && (cruiseThrottle - 1000) > throttleLevel*/) {
+        if (cruisePid != NULL && (cruiseThrottle - 1000) > throttleLevel) {
             throttleLevel = round(cruiseThrottle) - 1000;
         }
-
         if (brake && !brake->isFaulted() && brake->getLevel() < 0) { // if the brake has been pressed it overrides the accelerator
             throttleLevel = brake->getLevel();
             disableCruiseControl();
@@ -246,11 +244,9 @@ void MotorController::processThrottleLevel()
         if (brake && config->brakeHold > 0) { // check if brake hold should be applied
             throttleLevel = processBrakeHold(config, throttleLevel, brake->getLevel());
         }
-
         if (throttleLevel < 0 && (!status.enableRegen || !checkBatteryTemperatureForRegen())) { // do not apply regen if the batteries are too cold
             throttleLevel = 0;
         }
-
         if (config->powerMode == modeSpeed) {
             int32_t speedTarget = throttleLevel * config->speedMax / 1000;
             torqueRequested = config->torqueMax;
@@ -268,11 +264,9 @@ void MotorController::processThrottleLevel()
                 if ((torqueActual * torqueRequested < 0) && abs(torqueRequested) < 150) {
                     slewPart /= 10; //TODO make configurable
                 }
-
                 if (slewPart == 0 && torqueRequested != torqueTarget) {
                     slewPart = 1;
                 }
-
                 if (torqueTarget < torqueRequested) {
                     torqueRequested = max(torqueRequested - slewPart, torqueTarget);
                 } else {
@@ -407,13 +401,6 @@ void MotorController::setup()
 
     rolling = false;
     slewTimestamp = millis();
-
-
-//TODO move to saveable config
-MotorControllerConfiguration *config = (MotorControllerConfiguration *) getConfiguration();
-config->cruiseKp = 1.0f;
-config->cruiseKi = .20f;
-config->cruiseKd = .10f;
 }
 
 /**
@@ -510,6 +497,7 @@ void MotorController::loadConfiguration()
     if (prefsHandler->checksumValid()) { //checksum is good, read in the values stored in EEPROM
 #endif
         uint8_t temp;
+        uint16_t value;
         prefsHandler->read(EEMC_INVERT_DIRECTION, &temp);
         config->invertDirection = temp;
         prefsHandler->read(EEMC_MAX_RPM, &config->speedMax);
@@ -526,6 +514,12 @@ void MotorController::loadConfiguration()
         prefsHandler->read(EEMC_BRAKE_HOLD_COEFF, &config->brakeHoldForceCoefficient);
         prefsHandler->read(EEMC_GEAR_CHANGE_SUPPORT, &temp);
         config->gearChangeSupport = temp;
+        prefsHandler->read(EEMC_CRUISE_KP, &value);
+        config->cruiseKp = value / 1000.0f;
+        prefsHandler->read(EEMC_CRUISE_KI, &value);
+        config->cruiseKi = value / 1000.0f;
+        prefsHandler->read(EEMC_CRUISE_KD, &value);
+        config->cruiseKd = value / 1000.0f;
     } else { //checksum invalid. Reinitialize values and store to EEPROM
         config->invertDirection = false;
         config->speedMax = 6000;
@@ -540,6 +534,9 @@ void MotorController::loadConfiguration()
         config->creepSpeed = 0;
         config->brakeHold = 0;
         config->gearChangeSupport = false;
+        config->cruiseKp = 1.0f;
+        config->cruiseKi = .20f;
+        config->cruiseKd = .10f;
     }
 
     Logger::info(this, "Power mode: %s, Max torque: %i", (config->powerMode == modeTorque ? "torque" : "speed"), config->torqueMax);
@@ -548,6 +545,7 @@ void MotorController::loadConfiguration()
             config->maxMechanicalPowerRegen / 10.0f);
     Logger::info(this, "Creep level: %i, Creep speed: %i, Brake Hold: %d, Gear Change Support: %d", config->creepLevel, config->creepSpeed,
             config->brakeHold, config->gearChangeSupport);
+    Logger::info(this, "Cruise control Kp: %f, Ki: %f, Kd: %f", config->cruiseKp, config->cruiseKi, config->cruiseKd);
 }
 
 void MotorController::saveConfiguration()
@@ -570,5 +568,9 @@ void MotorController::saveConfiguration()
     prefsHandler->write(EEMC_BRAKE_HOLD, config->brakeHold);
     prefsHandler->write(EEMC_BRAKE_HOLD_COEFF, config->brakeHoldForceCoefficient);
     prefsHandler->write(EEMC_GEAR_CHANGE_SUPPORT, (uint8_t) (config->gearChangeSupport ? 1 : 0));
+    prefsHandler->write(EEMC_CRUISE_KP, (uint16_t) config->cruiseKp);
+    prefsHandler->write(EEMC_CRUISE_KI, (uint16_t) config->cruiseKi);
+    prefsHandler->write(EEMC_CRUISE_KD, (uint16_t) config->cruiseKd);
+
     prefsHandler->saveChecksum();
 }

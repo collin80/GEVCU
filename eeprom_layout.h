@@ -126,6 +126,9 @@ the end of the stardard data. The below numbers are offsets from the device's ee
 #define EEMC_BRAKE_HOLD                     72 // 1 byte - percentage of max torque to achieve brake hold (0=off)
 #define EEMC_GEAR_CHANGE_SUPPORT            73 // 1 byte - flag, true if gear chaning support is enabled
 #define EEMC_BRAKE_HOLD_COEFF               74 // 1 byte - brake hold force coefficient
+#define EEMC_CRUISE_KP                      75 // 2 byte - Kp value for cruise control PID
+#define EEMC_CRUISE_KI                      77 // 2 byte - Ki value for cruise control PID
+#define EEMC_CRUISE_KD                      79 // 2 byte - Kd value for cruise control PID
 
 // Throttle data
 #define EETH_LEVEL_MIN                      20 //2 bytes - ADC value of minimum value for first channel
