@@ -66,7 +66,7 @@ void WebSocket::initParamCache()
     paramCache.bitfieldBms = 0;
     paramCache.bitfieldIO = 0;
     paramCache.systemState = 0;
-    paramCache.gear = MotorController::ERROR;
+    paramCache.gear = MotorController::GEAR_ERROR;
     paramCache.temperatureMotor = -1;
     paramCache.temperatureController = -1;
 //    paramCache.mechanicalPower = -1;
@@ -263,6 +263,14 @@ String WebSocket::processData(char *input)
         bool flag = (strstr(text, "true") ? true : false);
         if (strstr(text, "stopCharge")) {
             status.setSystemState(Status::charged);
+        } else if (strstr(text, "cruiseToggle")) {
+            deviceManager.getMotorController()->cruiseControlToggle();
+        } else if (strstr(text, "cruisePlus")) {
+            deviceManager.getMotorController()->cruiseControlAdjust(5);
+        } else if (strstr(text, "cruiseMinus")) {
+            deviceManager.getMotorController()->cruiseControlAdjust(-5);
+        } else if (strstr(text, "cruise=")) {
+            deviceManager.getMotorController()->cruiseControlSetSpeed(atol(&text[7]));
         } else if (strstr(text, "cmdRegen:")) {
             status.enableRegen = flag;
             Logger::info("Regen is now switched %s", (flag ? "on" : "off"));

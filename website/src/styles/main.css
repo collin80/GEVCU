@@ -198,6 +198,14 @@ div#batteries {
 	padding: 0px;
 }
 
+/************* Cruise Control *************/
+div.cruiseControl {
+    display: flex;
+    justify-content: space-between;
+    padding-left: 10%;
+    padding-right: 10%;
+}
+
 /************* Toggle Switches *************/
 .switch {
 	position: relative;

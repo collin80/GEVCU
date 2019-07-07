@@ -343,7 +343,7 @@ void SystemIO::handleBrakeLight() {
 void SystemIO::handleReverseLight() {
     MotorController *motorController = deviceManager.getMotorController();
 
-    if (motorController && motorController->getGear() == MotorController::REVERSE) {
+    if (motorController && motorController->getGear() == MotorController::GEAR_REVERSE) {
         if (!status.reverseLight) {
             setReverseLight(true);
         }

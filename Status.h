@@ -123,6 +123,7 @@ public:
     uint16_t heaterPower; // the power of the heater in Watt
     uint8_t vehicleSpeed; // vehicle speed in kmh
     uint8_t barometricPressure; // barometric pressure in kPa
+    int16_t cruiseSpeed; // speed set for cruise control (0 = off)
     bool dcdcRunning; // is the dcdc converter running ? (true if no dcdc converter is enabled)
 
     bool bmsDclLowSoc; //DischargeLimit Reduced Due To Low SOC

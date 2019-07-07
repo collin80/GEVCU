@@ -35,7 +35,7 @@ MotorController::MotorController() :
     temperatureController = 0;
 
     powerOn = false;
-    gear = NEUTRAL;
+    gear = GEAR_NEUTRAL;
 
     throttleLevel = 0;
     speedRequested = 0;
@@ -56,6 +56,11 @@ MotorController::MotorController() :
     brakeHoldStart = 0;
     brakeHoldLevel = 0;
     minimumBatteryTemperature = 50; // 5 deg C
+
+    cruisePid = NULL;
+    cruiseSpeedActual = 0;
+    cruiseSpeedTarget = 0;
+    cruiseThrottle = 1000;
 }
 
 DeviceType MotorController::getType()
@@ -229,12 +234,19 @@ void MotorController::processThrottleLevel()
         if (accelerator && !accelerator->isFaulted()) {
             throttleLevel = accelerator->getLevel();
         }
+
+        if (cruisePid != NULL/* && (cruiseThrottle - 1000) > throttleLevel*/) {
+            throttleLevel = round(cruiseThrottle) - 1000;
+        }
+
         if (brake && !brake->isFaulted() && brake->getLevel() < 0) { // if the brake has been pressed it overrides the accelerator
             throttleLevel = brake->getLevel();
+            disableCruiseControl();
         }
         if (brake && config->brakeHold > 0) { // check if brake hold should be applied
             throttleLevel = processBrakeHold(config, throttleLevel, brake->getLevel());
         }
+
         if (throttleLevel < 0 && (!status.enableRegen || !checkBatteryTemperatureForRegen())) { // do not apply regen if the batteries are too cold
             throttleLevel = 0;
         }
@@ -252,11 +264,10 @@ void MotorController::processThrottleLevel()
                 uint32_t currentTimestamp = millis();
                 uint16_t slewPart = abs(torqueTarget - torqueRequested) * config->slewRate / 1000 * (currentTimestamp - slewTimestamp) / 1000;
 
-                // if we're we're reversing torque, reduce the slew part in the 0 area to make transitions between positive and negative tarque smoother
+                // if we're we're reversing torque, reduce the slew part in the 0 area to make transitions between positive and negative torque smoother
                 if ((torqueActual * torqueRequested < 0) && abs(torqueRequested) < 150) {
-                    slewPart /= 4;
+                    slewPart /= 10; //TODO make configurable
                 }
-
 
                 if (slewPart == 0 && torqueRequested != torqueTarget) {
                     slewPart = 1;
@@ -280,15 +291,71 @@ void MotorController::processThrottleLevel()
 void MotorController::updateGear()
 {
     if (powerOn && running) {
-        gear = (systemIO.isReverseSignalPresent() ? REVERSE : DRIVE);
+        gear = (systemIO.isReverseSignalPresent() ? GEAR_REVERSE : GEAR_DRIVE);
     } else {
-        gear = NEUTRAL; // stay in neutral until the controller reports that it's running
+        gear = GEAR_NEUTRAL; // stay in neutral until the controller reports that it's running
     }
+}
+
+void MotorController::cruiseControlToggle() {
+    if (cruisePid == NULL) {
+        MotorControllerConfiguration *config = (MotorControllerConfiguration *) getConfiguration();
+
+        cruiseSpeedTarget = speedActual;
+        cruiseSpeedActual = speedActual;
+        cruiseThrottle = throttleLevel + 1000.0f; // because PID can't handle negative numbers, cruiseThrottle is offset by +1000 (0-2000)
+        status.cruiseSpeed = speedActual;
+
+        Logger::info(this, "Enabling cruise control with speed %f", cruiseSpeedTarget);
+
+        cruisePid = new PID(&cruiseSpeedActual, &cruiseThrottle, &cruiseSpeedTarget, config->cruiseKp, config->cruiseKi, config->cruiseKd, DIRECT);
+        cruisePid->SetOutputLimits(0, 2000);
+
+        uint32_t interval = tickHandler.getInterval(this);
+        if (interval != 0) {
+            cruisePid->SetSampleTime(interval / 1000);
+        }
+        cruisePid->SetMode(AUTOMATIC);
+    } else {
+        disableCruiseControl();
+    }
+}
+
+void MotorController::cruiseControlAdjust(int16_t speedDelta) {
+    if (cruisePid == NULL) {
+        cruiseControlToggle();
+    }
+    cruiseSpeedTarget += speedDelta;
+    Logger::info(this, "Changing cruise control speed to %d", cruiseSpeedTarget);
+}
+
+void MotorController::cruiseControlSetSpeed(int16_t speedTarget) {
+    if (cruisePid == NULL) {
+        cruiseControlToggle();
+    }
+    cruiseSpeedTarget = speedTarget;
+    Logger::info(this, "Setting cruise control speed to %f", cruiseSpeedTarget);
+}
+
+void MotorController::disableCruiseControl() {
+    if (cruisePid == NULL)
+        return;
+
+    Logger::info(this, "Cruise control OFF.");
+    cruisePid = NULL;
+    cruiseSpeedActual = 0;
+    cruiseSpeedTarget = 0;
+    cruiseThrottle = 1000;
 }
 
 void MotorController::handleTick()
 {
     checkActivity();
+
+    if (cruisePid != NULL) {
+        cruiseSpeedActual = speedActual;
+        cruisePid->Compute(); // updates torque
+    }
 
     processThrottleLevel();
     updateGear();
@@ -317,7 +384,7 @@ void MotorController::handleStateChange(Status::SystemState oldState, Status::Sy
 
     if (!powerOn) {
         throttleLevel = 0;
-        gear = NEUTRAL;
+        gear = GEAR_NEUTRAL;
     }
 
     systemIO.setEnableMotor(newState == Status::ready || newState == Status::running);
@@ -340,6 +407,13 @@ void MotorController::setup()
 
     rolling = false;
     slewTimestamp = millis();
+
+
+//TODO move to saveable config
+MotorControllerConfiguration *config = (MotorControllerConfiguration *) getConfiguration();
+config->cruiseKp = 1.0f;
+config->cruiseKi = .20f;
+config->cruiseKd = .10f;
 }
 
 /**
@@ -350,7 +424,7 @@ void MotorController::tearDown()
     Device::tearDown();
 
     throttleLevel = 0;
-    gear = NEUTRAL;
+    gear = GEAR_NEUTRAL;
 }
 
 int16_t MotorController::getThrottleLevel()

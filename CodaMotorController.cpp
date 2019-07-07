@@ -168,7 +168,7 @@ void CodaMotorController::sendCmd1() {
         output.data.bytes[1] = 0x40; //0100 0000 disable
     }
 
-    if (getGear() == REVERSE ^ config->invertDirection) {
+    if (getGear() == GEAR_REVERSE ^ config->invertDirection) {
         output.data.bytes[1] |= 0x10; //xx01 0000 reverse
     } else {
         output.data.bytes[1] |= 0x20; //xx10 0000 forward

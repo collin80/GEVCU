@@ -189,7 +189,7 @@ void DmocMotorController::sendCmd1()
     alive = (alive + 2) & 0x0F;
 
     uint16_t speedCommand = 20000;
-    if (getSpeedRequested() != 0 && powerOn && running && getGear() != NEUTRAL && config->powerMode == modeSpeed) {
+    if (getSpeedRequested() != 0 && powerOn && running && getGear() != GEAR_NEUTRAL && config->powerMode == modeSpeed) {
         speedCommand += getSpeedRequested();
     }
 
@@ -212,10 +212,10 @@ void DmocMotorController::sendCmd1()
     Gears gear = getGear();
     if (running) {
        if(config->invertDirection) {
-           gear = (gear == DRIVE ? REVERSE : DRIVE);
+           gear = (gear == GEAR_DRIVE ? GEAR_REVERSE : GEAR_DRIVE);
        }
     } else { //force neutral gear until the system is enabled.
-        gear = NEUTRAL;
+        gear = GEAR_NEUTRAL;
     }
 
     output.data.bytes[6] = alive + ((byte) gear << 4) + ((byte) newstate << 6);
@@ -240,7 +240,7 @@ void DmocMotorController::sendCmd2()
         if (running) { //don't even try sending torque commands until the DMOC reports it is ready
             int16_t torqueRequested = (speedActual < config->speedMax ? getTorqueRequested() : getTorqueRequested() / 1.3);
 
-            if (config->invertDirection ^ getGear() == REVERSE) {
+            if (config->invertDirection ^ getGear() == GEAR_REVERSE) {
                 torqueRequested *= -1;
             }
             torqueCommand += torqueRequested;
@@ -311,7 +311,7 @@ void DmocMotorController::sendCmd5()
     output.data.bytes[0] = 2;
     output.data.bytes[1] = 127;
 
-    if (powerOn && getGear() != NEUTRAL) {
+    if (powerOn && getGear() != GEAR_NEUTRAL) {
         output.data.bytes[3] = 52;
         output.data.bytes[4] = 26;
         output.data.bytes[5] = 59; //drive

@@ -133,15 +133,28 @@ void TickHandler::attach(TickObserver* observer, uint32_t interval)
  */
 bool TickHandler::isAttached(TickObserver* observer, uint32_t interval)
 {
+    if (getInterval(observer) == interval) {
+        return true;
+    }
+    return false;
+}
+
+/*
+ * Try to find an observer and return its interval when it is attached.
+ * Returns 0 if the observer is not registered.
+ *
+ * \param observer - observer object to search
+ */
+uint32_t TickHandler::getInterval(TickObserver* observer)
+{
     for (int timer = 0; timer < NUM_TIMERS; timer++) {
         for (int observerIndex = 0; observerIndex < CFG_TIMER_NUM_OBSERVERS; observerIndex++) {
-            if (timerEntry[timer].observer[observerIndex] == observer &&
-                    timerEntry[timer].interval == interval) {
-                return true;
+            if (timerEntry[timer].observer[observerIndex] == observer) {
+                return timerEntry[timer].interval;
             }
         }
     }
-    return false;
+    return 0;
 }
 
 /**

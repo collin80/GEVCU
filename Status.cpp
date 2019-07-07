@@ -137,6 +137,7 @@ Status::Status()
     temperatureExterior = CFG_NO_TEMPERATURE_DATA;
     barometricPressure = 0;
     vehicleSpeed = 0;
+    cruiseSpeed = 0;
 
     stateOfCharge = 0;
     dcdcRunning = false;

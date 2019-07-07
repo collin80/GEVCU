@@ -110,6 +110,9 @@ void SerialConsole::printMenuMotorController()
         Logger::console("MOBRHQ=%d - coefficient for brake hold, the higher the smoother brake hold force will be applied (1-255, 10=default)", config->brakeHoldForceCoefficient);
         Logger::console("MOGCHS=%d - enable gear change support (1=aproximate rpm at gear shift, 0=off)", config->gearChangeSupport);
         Logger::console("NOMV=%d - Fully charged pack voltage that automatically resets the kWh counter (in 0.1V)", config->nominalVolt);
+        Logger::console("CRUISEP=%f - P value for cruise control", config->cruiseKp);
+        Logger::console("CRUISEI=%f - I value for cruise control", config->cruiseKi);
+        Logger::console("CRUISED=%f - D value for cruise control", config->cruiseKd);
         if (motorController->getId() == BRUSA_DMC5) {
             BrusaDMC5Configuration *dmc5Config = (BrusaDMC5Configuration *) config;
             Logger::console("MOMVMN=%d - minimum DC voltage limit for motoring (in 0.1V)", dmc5Config->dcVoltLimitMotor);
@@ -456,6 +459,15 @@ bool SerialConsole::handleConfigCmdMotorController(String command, long value)
         value = constrain(value, 0, 1);
         Logger::console("Setting oscillation limiter to %s", (value == 0 ? "disabled" : "enabled"));
         ((BrusaDMC5Configuration *) config)->enableOscillationLimiter = value;
+    } else if (command == String("CRUISEP")) {
+        Logger::console("Setting cruise control P value to %f", value / 1000.0f);
+        config->cruiseKp = value / 1000.0f;
+    } else if (command == String("CRUISEI")) {
+        Logger::console("Setting cruise control I value to %f", value / 1000.0f);
+        config->cruiseKi = value / 1000.0f;
+    } else if (command == String("CRUISED")) {
+        Logger::console("Setting cruise control D value to %f", value / 1000.0f);
+        config->cruiseKd = value / 1000.0f;
     } else {
         return false;
     }

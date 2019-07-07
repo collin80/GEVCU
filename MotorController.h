@@ -36,6 +36,8 @@
 #include "CanHandler.h"
 #include "DeviceManager.h"
 #include "FaultHandler.h"
+#include "PID_v1.h"
+
 
 #define MOTORCTL_INPUT_DRIVE_EN    3
 #define MOTORCTL_INPUT_FORWARD     4
@@ -66,16 +68,17 @@ public:
     uint8_t brakeHold; // percentage of max torque to achieve brake hold (0 = off)
     uint8_t brakeHoldForceCoefficient; // quotient by which the negative rpm is divided to get the force increase/decrease during brake hold (must NOT be 0!)
     bool gearChangeSupport; // flag indication if gear change support (adjusting rpm) is on
+    double cruiseKp, cruiseKi, cruiseKd; // PID parameter for cruise control
 };
 
 class MotorController: public Device, public CanObserver
 {
 public:
     enum Gears {
-        NEUTRAL = 0,
-        DRIVE = 1,
-        REVERSE = 2,
-        ERROR = 3
+        GEAR_NEUTRAL = 0,
+        GEAR_DRIVE = 1,
+        GEAR_REVERSE = 2,
+        GEAR_ERROR = 3
     };
 
     MotorController();
@@ -85,6 +88,10 @@ public:
     void handleTick();
     void handleCanFrame(CAN_FRAME *);
     void handleStateChange(Status::SystemState, Status::SystemState);
+    void cruiseControlToggle();
+    void disableCruiseControl();
+    void cruiseControlAdjust(int16_t);
+    void cruiseControlSetSpeed(int16_t);
 
     void loadConfiguration();
     void saveConfiguration();
@@ -132,6 +139,8 @@ private:
     int16_t brakeHoldLevel; // current throttle level applied by brake hold (must be signed to prevent overflow!!)
     uint32_t gearChangeTimestamp;
     Gears gear;
+    double cruiseSpeedTarget, cruiseSpeedActual, cruiseThrottle; // PID parameters for cruise control, cruiseThrottle is 0-2000 (+1000 offset to throttle because PID can't handle negative values.
+    PID *cruisePid; // PID controller for cruise control
 
     void updateStatusIndicator();
     void checkActivity();

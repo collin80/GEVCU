@@ -94,7 +94,7 @@
 </div>
 
 <div id="state_7_8_">
-	<div class="gauges">
+	<div class="gauges" onclick="dashboard.sendMsg('cruiseToggle')">
 		<span id="dcGauge"></span>
 		<span id="motorGauge"></span>
 		<span id="temperatureGauge"></span>
@@ -110,6 +110,20 @@
 <div id="state_2_3_4_5_6_7_8_9_99_">
 	<div id="batteries"></div>
 	<div id="annunciator"></div>
+</div>
+
+<div id="state_7_8_">
+	<div class="cruiseControl">
+		<button id="cruiseToggle" class="button" onclick="dashboard.sendMsg('cruiseToggle')">Cruise</button>
+		<button id="cruisePlus" class="button" onclick="dashboard.sendMsg('cruisePlus')">+5</button>
+		<button id="cruiseMinus" class="button" onclick="dashboard.sendMsg('cruiseMinus')">-5</button>
+
+		<button id="cruise30" class="button" onclick="dashboard.sendMsg('cruise=50')">30</button>
+		<button id="cruise50" class="button" onclick="dashboard.sendMsg('cruise=50')">50</button>
+		<button id="cruise80" class="button" onclick="dashboard.sendMsg('cruise=80')">80</button>
+		<button id="cruise100" class="button" onclick="dashboard.sendMsg('cruise=100')">100</button>
+		<button id="cruise120" class="button" onclick="dashboard.sendMsg('cruise=120')">120</button>
+	</div>
 </div>
 
 <div id="state_4_5_6_7_8_99_">
