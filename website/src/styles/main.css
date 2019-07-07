@@ -166,6 +166,9 @@ select#chargeInputLevel {
 	color: #fff;
 	text-shadow: 0 0 0.2em #bbb;
 	text-align: center;
+	background: #00000000;
+	border: transparent;
+	-webkit-appearance: media-slider;
 }
 
 input#inputCurrent {
