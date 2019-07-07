@@ -7,7 +7,6 @@ var dashboard = dashboard || {};
 	dashboard.hideStateDivs = hideStateDivs;
 	dashboard.sendMsg = sendMsg;
 	dashboard.addChargeOptions = addChargeOptions;
-	dashboard.setChargeInputLevel = setChargeInputLevel;
 
 	function activate() {
 		// add an event listener so sounds can get loaded on mobile devices
@@ -119,7 +118,7 @@ var dashboard = dashboard || {};
 		}
 	}
 
-	// send message to ichip via websocket
+	// send message to GEVCU via websocket
 	function sendMsg(message) {
 		webSocketWorker.postMessage({cmd: 'message', message: message});
 	}
@@ -127,13 +126,8 @@ var dashboard = dashboard || {};
 	function addChargeOptions(data) {
 		var select = document.getElementById("chargeInputLevel");
 		for (var level in data.chargeInputLevels) {
-			select.add(new Option(level, level));
+			select.add(new Option(data.chargeInputLevels[level], data.chargeInputLevels[level]));
 		}
 		select.value=data.chargeInputLevels[data.chargeInputLevels.length - 1];
-	}
-	
-	function setChargeInputLevel(){
-		var select = document.getElementById("chargeInputLevel");
-		sendMsg('cmdChargeLevel:' + select.options[select.selectedIndex].value);
 	}
 })();

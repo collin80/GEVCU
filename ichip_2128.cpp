@@ -1335,7 +1335,7 @@ void ICHIPWIFI::loadParametersDashboard()
         setParam(Constants::motorTempRange, "0,90,120");
         setParam(Constants::controllerTempRange, "0,60,80");
         setParam(Constants::socRange, "0,20,100");
-        setParam(Constants::chargeInputLevels, "5, 10, 13, 16");
+        setParam(Constants::chargeInputLevels, "5, 6, 7, 8, 9, 10, 13, 16, 20, 24, 32, 40, 48, 56");
     }
 }
 

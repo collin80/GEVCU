@@ -53,7 +53,7 @@
 		<init-param><param-name>~batteryRangeHigh~</param-name><param-value>387,405,418</param-value></init-param>
 		<init-param><param-name>~socRange~</param-name><param-value>0,20,100</param-value></init-param>
 		<init-param><param-name>~powerRange~</param-name><param-value>-150,150</param-value></init-param>
-		<init-param><param-name>~chargeInputLevels~</param-name><param-value>5,10,13,16</param-value></init-param>
+		<init-param><param-name>~chargeInputLevels~</param-name><param-value>5, 6, 7, 8, 9, 10, 13, 16, 24, 32, 40, 45, 50"</param-value></init-param>
 
 		<!-- devices.js -->
 		<init-param><param-name>~x1000~</param-name><param-value>1</param-value></init-param>
