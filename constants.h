@@ -194,6 +194,7 @@ static const char* enableHeater = "enableHeater";
 static const char* powerSteering = "powerSteering";
 static const char* enableCreep = "enableCreep";
 static const char* chargeInputLevels = "chargeInputLevels";
+static const char* cruiseSpeed = "cruiseSpeed";
 
 static const char* packResistance = "packResistance";
 static const char* packHealth = "packHealth";

@@ -268,7 +268,7 @@ String WebSocket::processData(char *input)
         } else if (strstr(text, "cruiseToggle")) {
             deviceManager.getMotorController()->cruiseControlToggle();
         } else if (strstr(text, "cruise=")) {
-            if (text[7] == '-' || text[7] == '+') {
+            if (text[7] == '-' || text[7] == '+') {
                 deviceManager.getMotorController()->cruiseControlAdjust(value);
             } else {
                 deviceManager.getMotorController()->cruiseControlSetSpeed(value);
@@ -451,6 +451,7 @@ String WebSocket::generateUpdate()
         processParameter(&paramCache.enableHeater, status.enableHeater, Constants::enableHeater);
         processParameter(&paramCache.powerSteering, status.powerSteering, Constants::powerSteering);
         processParameter(&paramCache.enableCreep, status.enableCreep, Constants::enableCreep);
+        processParameter(&paramCache.cruiseSpeed, status.cruiseSpeed, Constants::cruiseSpeed);
 
         if (limits.length() > 0) {
             String out;

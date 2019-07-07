@@ -77,8 +77,16 @@ var dashboard = dashboard || {};
 					target.value = data;
 				}
 				setNodeValue(name, data);
+				if (name == 'cruiseSpeed') {
+					showHideCruiseControl(data);
+				}
 			}
 		}
+	}
+
+	function showHideCruiseControl(data) {
+		var div = document.getElementById('cruiseControl');
+		div.style.display = (data > 0 ? '' : 'none');
 	}
 	
 	function hideStateDivs() {

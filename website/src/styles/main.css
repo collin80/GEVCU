@@ -5,6 +5,14 @@ body {
 	background: linear-gradient(to bottom, rgb(25, 25, 44), rgb(35, 54, 94));
 	background-attachment: fixed;
 	margin: 0 0.5em 0.5em 0.5em;
+	
+	/* prevent selection of text */
+	-webkit-touch-callout: none; /* iOS Safari */
+	-webkit-user-select: none; /* Safari */
+	-khtml-user-select: none; /* Konqueror HTML */
+	-moz-user-select: none; /* Firefox */
+	-ms-user-select: none; /* Internet Explorer/Edge */
+	user-select: none;
 }
 
 a {
@@ -209,11 +217,16 @@ div#batteries {
 }
 
 /************* Cruise Control *************/
-div.cruiseControl {
+div#cruiseControl {
     display: flex;
     justify-content: space-between;
     padding-left: 10%;
     padding-right: 10%;
+}
+
+div#cruiseControl div {
+	font-size: 2em;
+    font-weight: bold;
 }
 
 /************* Toggle Switches *************/

@@ -112,17 +112,18 @@
 	<div id="annunciator"></div>
 </div>
 
-<div id="state_7_8_">
-	<div class="cruiseControl">
-		<button id="cruiseToggle" class="button" onclick="dashboard.sendMsg('cruiseToggle')">Cruise</button>
-		<button id="cruisePlus" class="button" onclick="dashboard.sendMsg('cruise=+5')">+5 kph</button>
-		<button id="cruiseMinus" class="button" onclick="dashboard.sendMsg('cruise=-5')">-5 kph</button>
-		<button id="cruise30" class="button" onclick="dashboard.sendMsg('cruise=50')">30 kph</button>
-		<button id="cruise50" class="button" onclick="dashboard.sendMsg('cruise=50')">50 kph</button>
-		<button id="cruise80" class="button" onclick="dashboard.sendMsg('cruise=80')">80 kph</button>
-		<button id="cruise100" class="button" onclick="dashboard.sendMsg('cruise=100')">100 kph</button>
-		<button id="cruise120" class="button" onclick="dashboard.sendMsg('cruise=120')">120 kph</button>
+<div id="cruiseControl" style="display: none;">
+	<div>
+		<img alt="Cruise:" src="pics/cruise.gif" height="40px"/>
+		<span id="cruiseSpeed"></span> rpm
 	</div>
+	<button id="cruisePlus" class="button" onclick="dashboard.sendMsg('cruise=+5')">+5 kmh</button>
+	<button id="cruiseMinus" class="button" onclick="dashboard.sendMsg('cruise=-5')">-5 kmh</button>
+	<button id="cruise30" class="button" onclick="dashboard.sendMsg('cruise=50')">30 kmh</button>
+	<button id="cruise50" class="button" onclick="dashboard.sendMsg('cruise=50')">50 kmh</button>
+	<button id="cruise80" class="button" onclick="dashboard.sendMsg('cruise=80')">80 kmh</button>
+	<button id="cruise100" class="button" onclick="dashboard.sendMsg('cruise=100')">100 kmh</button>
+	<button id="cruise120" class="button" onclick="dashboard.sendMsg('cruise=120')">120 kmh</button>
 </div>
 
 <div id="state_4_5_6_7_8_99_">

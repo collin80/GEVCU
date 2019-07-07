@@ -58,6 +58,7 @@ struct ParamCache {
     bool enableRegen;
     bool enableHeater;
     bool enableCreep;
+    int16_t cruiseSpeed;
 
     uint16_t packResistance;
     uint8_t packHealth;
