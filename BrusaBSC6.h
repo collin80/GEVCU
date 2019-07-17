@@ -132,14 +132,16 @@ private:
     uint16_t lsCommandedCurrent; // -30 - 30A in 0.005A, offset = -30A
     uint8_t internalOperationState;
 
-    CAN_FRAME outputFrame; // the output CAN frame;
+    CAN_FRAME outputFrameControl; // the output CAN frame for control message;
+    CAN_FRAME outputFrameLimits; // the output CAN frame for limit message;
 
-    void sendCommand();
+    void sendControl();
     void sendLimits();
     void processValues1(uint8_t data[]);
     void processValues2(uint8_t data[]);
     void processDebug1(uint8_t data[]);
     void processDebug2(uint8_t data[]);
+    void prepareCanMessages();
 };
 
 #endif /* BRUSABSC6_H_ */

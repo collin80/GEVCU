@@ -96,17 +96,11 @@ void BrusaDMC5::handleStateChange(Status::SystemState oldState, Status::SystemSt
 void BrusaDMC5::handleTick()
 {
     MotorController::handleTick(); // call parent
-    tickCounter++;
 
-    sendControl();  // send CTRL every 20ms
-
-    if (tickCounter == 2) {
-        sendControl2(); // send CTRL_2 every 100ms
-    }
-    if (tickCounter == 4) {
-        sendLimits();   // send LIMIT every 100ms
-    }
-    if (tickCounter > 4) {
+    sendControl();  // send CTRL every 30ms (min 10ms, max 100ms)
+    sendControl2(); // send CTRL_2 every 30ms (min 10ms, max 100ms)
+    if (tickCounter++ > 10) {
+        sendLimits();   // send LIMIT every 11*30ms = 330ms (min 100ms, max 1000ms)
         tickCounter = 0;
     }
 }
@@ -120,25 +114,28 @@ void BrusaDMC5::handleTick()
 void BrusaDMC5::sendControl()
 {
     BrusaDMC5Configuration *config = (BrusaDMC5Configuration *) getConfiguration();
-    canHandlerEv.prepareOutputFrame(&outputFrame, CAN_ID_CONTROL);
+
+    outputFrameControl.data.bytes[0] = 0;
     if (canMessageLost) {
-        outputFrame.data.bytes[0] |= clearErrorLatch;
+        outputFrameControl.data.bytes[0] |= clearErrorLatch;
         Logger::warn(this, "clearing error latch");
-    } else {
+        canMessageLost = false;
+    }// else {
+
         // to safe energy only enable the power-stage when positive acceleration is requested or the motor is still spinning (to control regen)
         // see warning in Brusa docs about field weakening current to prevent uncontrollable regen
         if (ready && ((getThrottleLevel() > 0 && powerOn) || (speedActual != 0))) {
-            outputFrame.data.bytes[0] |= enablePowerStage;
+            outputFrameControl.data.bytes[0] |= enablePowerStage;
         }
 
         if (powerOn && ready) {
             int16_t speedCommand = getSpeedRequested();
             int16_t torqueCommand = getTorqueRequested();
 
-            outputFrame.data.bytes[0] |= (config->invertDirection ^ (getGear() == GEAR_REVERSE) ? enableNegativeTorqueSpeed : enablePositiveTorqueSpeed);
+            outputFrameControl.data.bytes[0] |= (config->invertDirection ^ (getGear() == GEAR_REVERSE) ? enableNegativeTorqueSpeed : enablePositiveTorqueSpeed);
 
             if (config->powerMode == modeSpeed) {
-                outputFrame.data.bytes[0] |= enableSpeedMode;
+                outputFrameControl.data.bytes[0] |= enableSpeedMode;
                 if (config->invertDirection ^ (getGear() == GEAR_REVERSE)) { // reverse the motor direction if specified
                     speedCommand *= -1;
                 }
@@ -147,21 +144,22 @@ void BrusaDMC5::sendControl()
                     torqueCommand *= -1;
                 }
             }
-
             if (config->enableOscillationLimiter) {
-                outputFrame.data.bytes[0] |= enableOscillationLimiter;
+                outputFrameControl.data.bytes[0] |= enableOscillationLimiter;
             }
 
+            speedCommand = constrain(speedCommand, -32760, 32760);
             // set the speed in rpm, the values are constrained to prevent a fatal overflow
-            outputFrame.data.bytes[2] = (constrain(speedCommand, -32760, 32760) & 0xFF00) >> 8;
-            outputFrame.data.bytes[3] = (constrain(speedCommand, -32760, 32760) & 0x00FF);
+            outputFrameControl.data.bytes[2] = (speedCommand & 0xFF00) >> 8;
+            outputFrameControl.data.bytes[3] = (speedCommand & 0x00FF);
 
+            torqueCommand = constrain(torqueCommand, -3275, 3275);
             // set the torque in 0.01Nm (GEVCU uses 0.1Nm -> multiply by 10), the values are constrained to prevent a fatal overflow
-            outputFrame.data.bytes[4] = ((constrain(torqueCommand, -3275, 3275) * 10) & 0xFF00) >> 8;
-            outputFrame.data.bytes[5] = ((constrain(torqueCommand, -3275, 3275) * 10) & 0x00FF);
+            outputFrameControl.data.bytes[4] = ((torqueCommand * 10) & 0xFF00) >> 8;
+            outputFrameControl.data.bytes[5] = ((torqueCommand * 10) & 0x00FF);
         }
-    }
-    canHandlerEv.sendFrame(outputFrame);
+//    }
+    canHandlerEv.sendFrame(outputFrameControl);
 }
 
 /*
@@ -171,20 +169,7 @@ void BrusaDMC5::sendControl()
  */
 void BrusaDMC5::sendControl2()
 {
-    BrusaDMC5Configuration *config = (BrusaDMC5Configuration *) getConfiguration();
-
-    canHandlerEv.prepareOutputFrame(&outputFrame, CAN_ID_CONTROL_2);
-// slew rate is not working in firmware --> use GEVCU's own implementation and leave value at zero
-//    outputFrame.data.bytes[0] = ((constrain(config->slewRate, 0, 100) * 655) & 0xFF00) >> 8;
-//    outputFrame.data.bytes[1] = ((constrain(config->slewRate, 0, 100) * 655) & 0x00FF);
-//    outputFrame.data.bytes[2] = ((constrain(config->slewRate, 0, 100) * 655) & 0xFF00) >> 8;
-//    outputFrame.data.bytes[3] = ((constrain(config->slewRate, 0, 100) * 655) & 0x00FF);
-    outputFrame.data.bytes[4] = ((constrain(config->maxMechanicalPowerMotor, 0, 2621) * 25) & 0xFF00) >> 8;
-    outputFrame.data.bytes[5] = ((constrain(config->maxMechanicalPowerMotor, 0, 2621) * 25) & 0x00FF);
-    outputFrame.data.bytes[6] = ((constrain(config->maxMechanicalPowerRegen, 0, 2621) * 25) & 0xFF00) >> 8;
-    outputFrame.data.bytes[7] = ((constrain(config->maxMechanicalPowerRegen, 0, 2621) * 25) & 0x00FF);
-
-    canHandlerEv.sendFrame(outputFrame);
+    canHandlerEv.sendFrame(outputFrameControl2);
 }
 
 /*
@@ -202,40 +187,27 @@ void BrusaDMC5::sendLimits()
 
     if (batteryManager) {
         if (batteryManager->hasDischargeLimit()) {
-//            currentLimitMotor = batteryManager->getDischargeLimit() * 10;
-//            Logger::info(this, "Motor power limited by BMS to %dA (instead %dA)", batteryManager->getDischargeLimit(), currentLimitMotor/10);
+            currentLimitMotor = batteryManager->getDischargeLimit() * 10;
+ //           Logger::info(this, "Motor power limited by BMS to %dA (instead %dA)", batteryManager->getDischargeLimit(), currentLimitMotor/10);
         } else if (batteryManager->hasAllowDischarging() && !batteryManager->isDischargeAllowed()) {
-//            currentLimitMotor = 0;
-//            Logger::info(this, "Motor power limited by BMS to 0");
+            currentLimitMotor = 0;
+            Logger::info(this, "Motor power limited by BMS to 0");
         }
 
         if (batteryManager->hasChargeLimit()) {
             currentLimitRegen = batteryManager->getChargeLimit() * 10;
-//            Logger::info(this, "Regen power limited by BMS to %dA (instead %dA)", batteryManager->getChargeLimit(), currentLimitRegen/10);
         } else if (batteryManager->hasAllowCharging() && !batteryManager->isChargeAllowed()) {
             currentLimitRegen = 0;
-//            Logger::info(this, "Regen power limited by BMS to 0");
-        }
-
-        if (currentLimitMotor < config->dcCurrentLimitMotor) {
-//            Logger::info(this, "Motor power limited by BMS");
-        }
-        if (currentLimitRegen < config->dcCurrentLimitRegen) {
-//            Logger::info(this, "Regen power limited by BMS");
         }
     }
+    currentLimitMotor = constrain(currentLimitMotor, 0, 65535);
+    currentLimitRegen = constrain(currentLimitRegen, 0, 65535);
+    outputFrameLimits.data.bytes[4] = (currentLimitMotor & 0xFF00) >> 8;
+    outputFrameLimits.data.bytes[5] = (currentLimitMotor & 0x00FF);
+    outputFrameLimits.data.bytes[6] = (currentLimitRegen & 0xFF00) >> 8;
+    outputFrameLimits.data.bytes[7] = (currentLimitRegen & 0x00FF);
 
-    canHandlerEv.prepareOutputFrame(&outputFrame, CAN_ID_LIMIT);
-    outputFrame.data.bytes[0] = (constrain(config->dcVoltLimitMotor, 0, 65535) & 0xFF00) >> 8;
-    outputFrame.data.bytes[1] = (constrain(config->dcVoltLimitMotor, 0, 65535) & 0x00FF);
-    outputFrame.data.bytes[2] = (constrain(config->dcVoltLimitRegen, 0, 65535) & 0xFF00) >> 8;
-    outputFrame.data.bytes[3] = (constrain(config->dcVoltLimitRegen, 0, 65535) & 0x00FF);
-    outputFrame.data.bytes[4] = (constrain(currentLimitMotor, 0, 65535) & 0xFF00) >> 8;
-    outputFrame.data.bytes[5] = (constrain(currentLimitMotor, 0, 65535) & 0x00FF);
-    outputFrame.data.bytes[6] = (constrain(currentLimitRegen, 0, 65535) & 0xFF00) >> 8;
-    outputFrame.data.bytes[7] = (constrain(currentLimitRegen, 0, 65535) & 0x00FF);
-
-    canHandlerEv.sendFrame(outputFrame);
+    canHandlerEv.sendFrame(outputFrameLimits);
 }
 
 /*
@@ -252,22 +224,18 @@ void BrusaDMC5::handleCanFrame(CAN_FRAME *frame)
         processStatus(frame->data.bytes);
         reportActivity();
         break;
-
     case CAN_ID_ACTUAL_VALUES:
         processActualValues(frame->data.bytes);
         reportActivity();
         break;
-
     case CAN_ID_ERRORS:
         processErrors(frame->data.bytes);
         reportActivity();
         break;
-
     case CAN_ID_TORQUE_LIMIT:
         processTorqueLimit(frame->data.bytes);
         reportActivity();
         break;
-
     case CAN_ID_TEMP:
         processTemperature(frame->data.bytes);
         reportActivity();
@@ -296,15 +264,13 @@ void BrusaDMC5::processStatus(uint8_t data[])
     }
 
     if (bitfield & errorFlag) {
-//    	if (running || ready) {
-            Logger::error(this, "Error reported from motor controller!");
-//    	}
-    	running = false;
-    	ready = false;
-    } else {
+        Logger::error(this, "Error reported from motor controller!");
+//        running = false;
+//    	ready = false;
+    }// else {
         ready = (bitfield & dmc5Ready) ? true : false;
         running = (bitfield & dmc5Running) ? true : false;
-    }
+//    }
 
     status.warning = (bitfield & warningFlag) ? true : false;
     status.limitationTorque = (bitfield & torqueLimitation) ? true : false;
@@ -355,50 +321,56 @@ void BrusaDMC5::processErrors(uint8_t data[])
 {
     bitfield = (uint32_t) (data[1] | (data[0] << 8) | (data[5] << 16) | (data[4] << 24));
 
-    if (bitfield & speedSensorSupply)
-        Logger::error(this, "power supply of speed sensor failed");
-    if (bitfield & speedSensor)
-        Logger::error(this, "encoder or position sensor delivers faulty signal");
-    if (bitfield & canLimitMessageInvalid)
-        Logger::error(this, "limit data CAN message is invalid");
-    if (bitfield & canControlMessageInvalid)
-        Logger::error(this, "control data CAN message is invalid");
-    if (bitfield & canLimitMessageLost)
-        Logger::error(this, "timeout of limit CAN message");
-    if (bitfield & overvoltageSkyConverter)
-        Logger::error(this, "over voltage of the internal power supply");
-    if (bitfield & voltageMeasurement)
-        Logger::error(this, "differences in the redundant voltage measurement");
-    if (bitfield & shortCircuit)
-        Logger::error(this, "short circuit in the power stage");
-    if (bitfield & canControlMessageLost)
-        Logger::error(this, "timeout of control message");
-    if (bitfield & canControl2MessageLost)
-        Logger::error(this, "timeout of control2 message");
-    if (bitfield & canLimitMessageLost)
-        Logger::error(this, "timeout of limit message");
-    if (bitfield & initalisation)
-        Logger::error(this, "error during initialisation");
-    if (bitfield & analogInput)
-        Logger::error(this, "an analog input signal is outside its boundaries");
-    if (bitfield & driverShutdown)
-        Logger::error(this, "power stage of the motor controller was shut-down in an uncontrolled fashion");
-    if (bitfield & powerMismatch)
-        Logger::error(this, "plausibility error between electrical and mechanical power");
-    if (bitfield & motorEeprom)
-        Logger::error(this, "error in motor/controller EEPROM module");
-    if (bitfield & storage)
-        Logger::error(this, "data consistency check failed in motor controller");
-    if (bitfield & enablePinSignalLost)
-        Logger::error(this, "enable signal lost, motor controller shut-down (is imminent)");
-    if (bitfield & canCommunicationStartup)
-        Logger::error(this, "motor controller received CAN messages which were not appropriate to its state");
-    if (bitfield & internalSupply)
-        Logger::error(this, "problem with the internal power supply");
-    if (bitfield & osTrap)
-        Logger::error(this, "severe problem in OS of motor controller");
+    canMessageLost = false;
+    if (bitfield != 0) {
+        if (bitfield & speedSensorSupply)
+            Logger::error(this, "power supply of speed sensor failed");
+        if (bitfield & speedSensor)
+            Logger::error(this, "encoder or position sensor delivers faulty signal");
+        if (bitfield & canLimitMessageInvalid)
+            Logger::error(this, "limit data CAN message is invalid");
+        if (bitfield & canControlMessageInvalid)
+            Logger::error(this, "control data CAN message is invalid");
+        if (bitfield & canLimitMessageLost) {
+            Logger::error(this, "timeout of limit CAN message");
+            canMessageLost = true;
+        }
+        if (bitfield & overvoltageSkyConverter)
+            Logger::error(this, "over voltage of the internal power supply");
+        if (bitfield & voltageMeasurement)
+            Logger::error(this, "differences in the redundant voltage measurement");
+        if (bitfield & shortCircuit)
+            Logger::error(this, "short circuit in the power stage");
+        if (bitfield & canControlMessageLost) {
+            Logger::error(this, "timeout of control message");
+            canMessageLost = true;
+        }
+        if (bitfield & canControl2MessageLost) {
+            Logger::error(this, "timeout of control2 message");
+            canMessageLost = true;
+        }
+        if (bitfield & initalisation)
+            Logger::error(this, "error during initialisation");
+        if (bitfield & analogInput)
+            Logger::error(this, "an analog input signal is outside its boundaries");
+        if (bitfield & driverShutdown)
+            Logger::error(this, "power stage of the motor controller was shut-down in an uncontrolled fashion");
+        if (bitfield & powerMismatch)
+            Logger::error(this, "plausibility error between electrical and mechanical power");
+        if (bitfield & motorEeprom)
+            Logger::error(this, "error in motor/controller EEPROM module");
+        if (bitfield & storage)
+            Logger::error(this, "data consistency check failed in motor controller");
+        if (bitfield & enablePinSignalLost)
+            Logger::error(this, "enable signal lost, motor controller shut-down (is imminent)");
+        if (bitfield & canCommunicationStartup)
+            Logger::error(this, "motor controller received CAN messages which were not appropriate to its state");
+        if (bitfield & internalSupply)
+            Logger::error(this, "problem with the internal power supply");
+        if (bitfield & osTrap)
+            Logger::error(this, "severe problem in OS of motor controller");
+    }
 
-    canMessageLost = ((bitfield & canControlMessageLost) | (bitfield & canControl2MessageLost) | (bitfield & canLimitMessageLost)) ? true : false;
     status.overtempController = (bitfield & overtemp) ? true : false;
     status.overtempMotor = (bitfield & overtempMotor) ? true : false;
     status.overspeed = (bitfield & overspeed) ? true : false;
@@ -409,18 +381,20 @@ void BrusaDMC5::processErrors(uint8_t data[])
 
     bitfield = (uint32_t) (data[7] | (data[6] << 8));
 
-    if (bitfield & externalShutdownPathAw2Off)
-        Logger::warn(this, "external shut-down path AW1 off");
-    if (bitfield & externalShutdownPathAw1Off)
-        Logger::warn(this, "external shut-down path AW2 off");
-    if (bitfield & driverShutdownPathActive)
-        Logger::warn(this, "driver shut-down path active");
-    if (bitfield & powerMismatchDetected)
-        Logger::warn(this, "power mismatch detected");
-    if (bitfield & speedSensorSignal)
-            Logger::warn(this, "speed sensor signal is bad");
-    if (bitfield & temperatureSensor)
-        Logger::warn(this, "invalid data from temperature sensor(s)");
+    if (bitfield != 0) {
+        if (bitfield & externalShutdownPathAw2Off)
+            Logger::warn(this, "external shut-down path AW1 off");
+        if (bitfield & externalShutdownPathAw1Off)
+            Logger::warn(this, "external shut-down path AW2 off");
+        if (bitfield & driverShutdownPathActive)
+            Logger::warn(this, "driver shut-down path active");
+        if (bitfield & powerMismatchDetected)
+            Logger::warn(this, "power mismatch detected");
+        if (bitfield & speedSensorSignal)
+                Logger::warn(this, "speed sensor signal is bad");
+        if (bitfield & temperatureSensor)
+            Logger::warn(this, "invalid data from temperature sensor(s)");
+    }
 
     status.systemCheckActive = (bitfield & systemCheckActive) ? true : false;
     status.oscillationLimiter = (bitfield & oscillationLimitControllerActive) ? true : false;
@@ -464,6 +438,35 @@ void BrusaDMC5::processTemperature(uint8_t data[])
         temperatureController = temperaturePowerStage;
     }
 }
+
+/**
+ * Prepare the content of the CAN frames sent to the DMC5 so they don't have to be filled in every tick cycle
+ */
+void BrusaDMC5::prepareCanMessages()
+{
+    BrusaDMC5Configuration *config = (BrusaDMC5Configuration *) getConfiguration();
+
+    canHandlerEv.prepareOutputFrame(&outputFrameControl, CAN_ID_CONTROL);
+
+    canHandlerEv.prepareOutputFrame(&outputFrameControl2, CAN_ID_CONTROL_2);
+// slew rate is not working in firmware --> use GEVCU's own implementation and leave value at zero
+//    outputFrameControl2.data.bytes[0] = ((constrain(config->slewRate, 0, 100) * 655) & 0xFF00) >> 8;
+//    outputFrameControl2.data.bytes[1] = ((constrain(config->slewRate, 0, 100) * 655) & 0x00FF);
+//    outputFrameControl2.data.bytes[2] = ((constrain(config->slewRate, 0, 100) * 655) & 0xFF00) >> 8;
+//    outputFrameControl2.data.bytes[3] = ((constrain(config->slewRate, 0, 100) * 655) & 0x00FF);
+    outputFrameControl2.data.bytes[4] = ((constrain(config->maxMechanicalPowerMotor, 0, 2621) * 25) & 0xFF00) >> 8;
+    outputFrameControl2.data.bytes[5] = ((constrain(config->maxMechanicalPowerMotor, 0, 2621) * 25) & 0x00FF);
+    outputFrameControl2.data.bytes[6] = ((constrain(config->maxMechanicalPowerRegen, 0, 2621) * 25) & 0xFF00) >> 8;
+    outputFrameControl2.data.bytes[7] = ((constrain(config->maxMechanicalPowerRegen, 0, 2621) * 25) & 0x00FF);
+
+
+    canHandlerEv.prepareOutputFrame(&outputFrameLimits, CAN_ID_LIMIT);
+    outputFrameLimits.data.bytes[0] = (constrain(config->dcVoltLimitMotor, 0, 65535) & 0xFF00) >> 8;
+    outputFrameLimits.data.bytes[1] = (constrain(config->dcVoltLimitMotor, 0, 65535) & 0x00FF);
+    outputFrameLimits.data.bytes[2] = (constrain(config->dcVoltLimitRegen, 0, 65535) & 0xFF00) >> 8;
+    outputFrameLimits.data.bytes[3] = (constrain(config->dcVoltLimitRegen, 0, 65535) & 0x00FF);
+}
+
 
 int32_t BrusaDMC5::getMechanicalPower()
 {
@@ -519,6 +522,8 @@ void BrusaDMC5::loadConfiguration()
     Logger::info(this, "DC limit motor: %.1f Volt, DC limit regen: %.1f Volt", config->dcVoltLimitMotor / 10.0f, config->dcVoltLimitRegen / 10.0f);
     Logger::info(this, "DC limit motor: %.1f Amps, DC limit regen: %.1f Amps", config->dcCurrentLimitMotor / 10.0f,
             config->dcCurrentLimitRegen / 10.0f);
+
+    prepareCanMessages();
 }
 
 /*
@@ -536,4 +541,6 @@ void BrusaDMC5::saveConfiguration()
     prefsHandler->write(EEMC_DC_CURRENT_LIMIT_REGEN, config->dcCurrentLimitRegen);
     prefsHandler->write(EEMC_OSCILLATION_LIMITER, (uint8_t) (config->enableOscillationLimiter ? 1 : 0));
     prefsHandler->saveChecksum();
+
+    prepareCanMessages();
 }

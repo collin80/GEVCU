@@ -71,7 +71,6 @@ protected:
     int16_t hvCurrent; // in 0.1A
     int16_t lvCurrent; // in 1A
     int16_t temperature; // in 0.1C
-    uint32_t lastTick; // last time in ms when the handleTick method was called
 
 private:
 };

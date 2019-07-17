@@ -93,7 +93,6 @@ public:
     OrionBMS();
     void setup();
     void tearDown();
-    void handleTick();
     void handleCanFrame(CAN_FRAME *frame);
     DeviceId getId();
     bool hasPackVoltage();

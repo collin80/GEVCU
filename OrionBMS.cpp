@@ -45,8 +45,6 @@ void OrionBMS::setup()
 
     canHandlerEv.attach(this, CAN_MASKED_ID, CAN_MASK, false);
     ready = true;
-
-    tickHandler.attach(this, CFG_TICK_INTERVAL_BMS_ORION);
 }
 
 /**
@@ -84,43 +82,34 @@ void OrionBMS::handleCanFrame(CAN_FRAME *frame)
         break;
 
     case CAN_ID_LIMITS_SOC:
-        if (true /*CRC8::calculate(data, 8) == 0x0e*/) {
-            dischargeLimit = ((data[0] << 8) | data[1]); // byte 0+1: pack discharge current limit (DCL) (1A)
-            allowDischarge = (dischargeLimit > 0);
-            chargeLimit = ((data[2] << 8) | data[3]); // byte 2+3: pack charge current limit (CCL) (1A)
-            allowCharge = (chargeLimit > 0);
-            currentLimit = ((data[4] << 8) | data[5]); // byte 4+5: bitfield with reason for current limmitation
-            status.bmsDclLowSoc = (currentLimit & dclLowSoc) ? true : false;
-            status.bmsDclHighCellResistance = (currentLimit & dclHighCellResistance) ? true : false;
-            status.bmsDclTemperature = (currentLimit & dclTemperature) ? true : false;
-            status.bmsDclLowCellVoltage = (currentLimit & dclLowCellVoltage) ? true : false;
-            status.bmsDclLowPackVoltage = (currentLimit & dclLowPackVoltage) ? true : false;
-            status.bmsDclCclVoltageFailsafe = (currentLimit & dclCclVoltageFailsafe) ? true : false;
-            status.bmsDclCclCommunication = (currentLimit & dclCclCommunication) ? true : false;
-            status.bmsCclHighSoc = (currentLimit & cclHighSoc) ? true : false;
-            status.bmsCclHighCellResistance = (currentLimit & cclHighCellResistance) ? true : false;
-            status.bmsCclTemperature = (currentLimit & cclTemperature) ? true : false;
-            status.bmsCclHighCellVoltage = (currentLimit & cclHighCellVoltage) ? true : false;
-            status.bmsCclHighPackVoltage = (currentLimit & cclHighPackVoltage) ? true : false;
-            status.bmsCclChargerLatch = (currentLimit & cclChargerLatch) ? true : false;
-            status.bmsCclAlternate = (currentLimit & cclAlternate) ? true : false;
-            relayStatus = data[6];
-            status.bmsRelayDischarge = (relayStatus & relayDischarge) ? true : false;// Bit #1 (0x01): Discharge relay enabled
-            status.bmsRelayCharge = (relayStatus & relayCharge) ? true : false;// Bit #2 (0x02): Charge relay enabled
-            status.bmsChagerSafety = (relayStatus & chagerSafety) ? true : false;// Bit #3 (0x04): Charger safety enabled
-            status.bmsDtcPresent = (relayStatus & dtcPresent) ? true : false;// Bit #4 (0x08): Malfunction indicator active (DTC status)
-
-            if (Logger::isDebug()) {
-                Logger::debug(this, "discharge limit: %dA, charge limit: %dA, limit flags: %#08x, relay: %#08x",
-                        dischargeLimit, chargeLimit, currentLimit, relayStatus);
-            }
-        } else {
-            Logger::warn(this, "CRC of CAN message invalid (%X instead of %X)", data[7], CRC8::calculate(data, 7));
+        dischargeLimit = ((data[0] << 8) | data[1]); // byte 0+1: pack discharge current limit (DCL) (1A)
+        allowDischarge = (dischargeLimit > 0);
+        chargeLimit = ((data[2] << 8) | data[3]); // byte 2+3: pack charge current limit (CCL) (1A)
+        allowCharge = (chargeLimit > 0);
+        currentLimit = ((data[4] << 8) | data[5]); // byte 4+5: bitfield with reason for current limmitation
+        status.bmsDclLowSoc = (currentLimit & dclLowSoc) ? true : false;
+        status.bmsDclHighCellResistance = (currentLimit & dclHighCellResistance) ? true : false;
+        status.bmsDclTemperature = (currentLimit & dclTemperature) ? true : false;
+        status.bmsDclLowCellVoltage = (currentLimit & dclLowCellVoltage) ? true : false;
+        status.bmsDclLowPackVoltage = (currentLimit & dclLowPackVoltage) ? true : false;
+        status.bmsDclCclVoltageFailsafe = (currentLimit & dclCclVoltageFailsafe) ? true : false;
+        status.bmsDclCclCommunication = (currentLimit & dclCclCommunication) ? true : false;
+        status.bmsCclHighSoc = (currentLimit & cclHighSoc) ? true : false;
+        status.bmsCclHighCellResistance = (currentLimit & cclHighCellResistance) ? true : false;
+        status.bmsCclTemperature = (currentLimit & cclTemperature) ? true : false;
+        status.bmsCclHighCellVoltage = (currentLimit & cclHighCellVoltage) ? true : false;
+        status.bmsCclHighPackVoltage = (currentLimit & cclHighPackVoltage) ? true : false;
+        status.bmsCclChargerLatch = (currentLimit & cclChargerLatch) ? true : false;
+        status.bmsCclAlternate = (currentLimit & cclAlternate) ? true : false;
+        relayStatus = data[6];
+        status.bmsRelayDischarge = (relayStatus & relayDischarge) ? true : false;// Bit #1 (0x01): Discharge relay enabled
+        status.bmsRelayCharge = (relayStatus & relayCharge) ? true : false;// Bit #2 (0x02): Charge relay enabled
+        status.bmsChagerSafety = (relayStatus & chagerSafety) ? true : false;// Bit #3 (0x04): Charger safety enabled
+        status.bmsDtcPresent = (relayStatus & dtcPresent) ? true : false;// Bit #4 (0x08): Malfunction indicator active (DTC status)
+        if (Logger::isDebug()) {
+            Logger::debug(this, "discharge limit: %dA, charge limit: %dA, limit flags: %#08x, relay: %#08x",
+                    dischargeLimit, chargeLimit, currentLimit, relayStatus);
         }
-if (Logger::isDebug()) {
-Logger::debug(this, "crc: %X, calc: %X, test: %X", data[7], CRC8::calculate(data, 7), CRC8::calculate(data, 8));
-canHandlerEv.logFrame(*frame);
-}
         break;
 
     case CAN_ID_CELL_VOLTAGE:
@@ -160,11 +149,6 @@ canHandlerEv.logFrame(*frame);
         }
         break;
     }
-}
-
-void OrionBMS::handleTick()
-{
-    BatteryManager::handleTick();
 }
 
 DeviceId OrionBMS::getId()

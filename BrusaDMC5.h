@@ -171,7 +171,9 @@ private:
     bool canMessageLost; // if any of the CAN messages was lost
 
     int tickCounter; // count how many times handleTick() was called
-    CAN_FRAME outputFrame; // the output CAN frame;
+    CAN_FRAME outputFrameControl; // the output CAN frame for control messages;
+    CAN_FRAME outputFrameControl2; // the output CAN frame for control2 messages;
+    CAN_FRAME outputFrameLimits; // the output CAN frame for limit messages;
 
     void sendControl();
     void sendControl2();
@@ -181,6 +183,8 @@ private:
     void processErrors(uint8_t data[]);
     void processTorqueLimit(uint8_t data[]);
     void processTemperature(uint8_t data[]);
+    void prepareCanMessages();
+
 };
 
 #endif /* BRUSADMC5_H_ */

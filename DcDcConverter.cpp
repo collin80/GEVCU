@@ -34,7 +34,6 @@ DcDcConverter::DcDcConverter() : Device() {
     hvCurrent = 0;
     lvCurrent = 0;
     temperature = 0;
-    lastTick = 0;
 }
 
 DcDcConverter::~DcDcConverter() {
@@ -46,9 +45,6 @@ DcDcConverter::~DcDcConverter() {
 void DcDcConverter::handleTick()
 {
     Device::handleTick(); // call parent
-
-    uint32_t timeStamp = millis();
-    lastTick = timeStamp;
 }
 
 /*

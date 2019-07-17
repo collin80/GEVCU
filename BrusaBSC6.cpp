@@ -60,7 +60,7 @@ void BrusaBSC6::tearDown()
 {
     DcDcConverter::tearDown();
     canHandlerEv.detach(this, CAN_MASKED_ID, CAN_MASK);
-    sendCommand(); // as powerOn is false now, send last command to deactivate controller
+    sendControl(); // as powerOn is false now, send last command to deactivate controller
 }
 
 void BrusaBSC6::handleStateChange(Status::SystemState oldState, Status::SystemState newState)
@@ -87,7 +87,7 @@ void BrusaBSC6::handleTick()
 {
     DcDcConverter::handleTick(); // call parent
 
-    sendCommand();
+    sendControl();
     sendLimits();
 }
 
@@ -97,26 +97,16 @@ void BrusaBSC6::handleTick()
  * The message is used to set the operation mode, enable the converter
  * and set the voltage limits.
  */
-void BrusaBSC6::sendCommand()
+void BrusaBSC6::sendControl()
 {
     BrusaBSC6Configuration *config = (BrusaBSC6Configuration *) getConfiguration();
-    canHandlerEv.prepareOutputFrame(&outputFrame, CAN_ID_COMMAND);
 
-    if ((ready || running) && powerOn) {
-        outputFrame.data.bytes[0] |= enable;
-    }
-    if (config->mode == 1) {
-        outputFrame.data.bytes[0] |= boostMode;
-    }
-    if (config->debugMode) {
-        outputFrame.data.bytes[0] |= debugMode;
-    }
+    outputFrameControl.data.bytes[0] =
+            ((ready || running) && powerOn ? enable : 0) |
+            (config->mode == 1 ? boostMode : 0) |
+            (config->debugMode ? debugMode : 0);
 
-    outputFrame.data.bytes[1] = constrain(config->lowVoltageCommand, 80, 160); // 8-16V in 0.1V, offset = 0V
-    outputFrame.data.bytes[2] = constrain(config->highVoltageCommand - 170, 20, 255); // 190-425V in 1V, offset = 170V
-
-    outputFrame.length = 3;
-    canHandlerEv.sendFrame(outputFrame);
+    canHandlerEv.sendFrame(outputFrameControl);
 }
 
 /*
@@ -126,18 +116,7 @@ void BrusaBSC6::sendCommand()
  */
 void BrusaBSC6::sendLimits()
 {
-    BrusaBSC6Configuration *config = (BrusaBSC6Configuration *) getConfiguration();
-    canHandlerEv.prepareOutputFrame(&outputFrame, CAN_ID_LIMIT);
-
-    outputFrame.data.bytes[0] = constrain(config->hvUndervoltageLimit - 170, 0, 255);
-    outputFrame.data.bytes[1] = constrain(config->lvBuckModeCurrentLimit, 0, 250);
-    outputFrame.data.bytes[2] = constrain(config->hvBuckModeCurrentLimit, 0, 250);
-    outputFrame.data.bytes[3] = constrain(config->lvUndervoltageLimit, 0, 160);
-    outputFrame.data.bytes[4] = constrain(config->lvBoostModeCurrentLinit, 0, 250);
-    outputFrame.data.bytes[5] = constrain(config->hvBoostModeCurrentLimit, 0, 250);
-    outputFrame.length = 6;
-
-    canHandlerEv.sendFrame(outputFrame);
+    canHandlerEv.sendFrame(outputFrameLimits);
 }
 
 /*
@@ -153,15 +132,12 @@ void BrusaBSC6::handleCanFrame(CAN_FRAME *frame)
         case CAN_ID_VALUES_1:
             processValues1(frame->data.bytes);
             break;
-
         case CAN_ID_VALUES_2:
             processValues2(frame->data.bytes);
             break;
-
         case CAN_ID_DEBUG_1:
             processDebug1(frame->data.bytes);
             break;
-
         case CAN_ID_DEBUG_2:
             processDebug2(frame->data.bytes);
             break;
@@ -284,6 +260,28 @@ void BrusaBSC6::processDebug2(uint8_t data[])
     }
 }
 
+/**
+ * Prepare the content of the CAN frames sent to the BSC6 so they don't have to be filled in every tick cycle
+ */
+void BrusaBSC6::prepareCanMessages()
+{
+    BrusaBSC6Configuration *config = (BrusaBSC6Configuration *) getConfiguration();
+
+    canHandlerEv.prepareOutputFrame(&outputFrameControl, CAN_ID_COMMAND);
+    outputFrameControl.data.bytes[1] = constrain(config->lowVoltageCommand, 80, 160); // 8-16V in 0.1V, offset = 0V
+    outputFrameControl.data.bytes[2] = constrain(config->highVoltageCommand - 170, 20, 255); // 190-425V in 1V, offset = 170V
+    outputFrameControl.length = 3;
+
+    canHandlerEv.prepareOutputFrame(&outputFrameLimits, CAN_ID_LIMIT);
+    outputFrameLimits.data.bytes[0] = constrain(config->hvUndervoltageLimit - 170, 0, 255);
+    outputFrameLimits.data.bytes[1] = constrain(config->lvBuckModeCurrentLimit, 0, 250);
+    outputFrameLimits.data.bytes[2] = constrain(config->hvBuckModeCurrentLimit, 0, 250);
+    outputFrameLimits.data.bytes[3] = constrain(config->lvUndervoltageLimit, 0, 160);
+    outputFrameLimits.data.bytes[4] = constrain(config->lvBoostModeCurrentLinit, 0, 250);
+    outputFrameLimits.data.bytes[5] = constrain(config->hvBoostModeCurrentLimit, 0, 250);
+    outputFrameLimits.length = 6;
+}
+
 /*
  * Return the device id of this device
  */
@@ -322,6 +320,8 @@ void BrusaBSC6::loadConfiguration()
         saveConfiguration();
     }
     Logger::info(this, "debug: %d", config->debugMode);
+
+    prepareCanMessages();
 }
 
 /*
@@ -332,8 +332,8 @@ void BrusaBSC6::saveConfiguration()
     BrusaBSC6Configuration *config = (BrusaBSC6Configuration *) getConfiguration();
 
     DcDcConverter::saveConfiguration(); // call parent
-
     prefsHandler->write(EEDC_DEBUG_MODE, (uint8_t) (config->debugMode ? 1 : 0));
-
     prefsHandler->saveChecksum();
+
+    prepareCanMessages();
 }
