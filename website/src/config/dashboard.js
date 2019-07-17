@@ -8,5 +8,8 @@
 	"batteryRangeHigh": [ ~batteryRangeHigh~ ],
 	"socRange": [ ~socRange~ ],
 	"powerRange": [ ~powerRange~ ],
-	"chargeInputLevels": [ ~chargeInputLevels~ ]
+	"chargeInputLevels": [ ~chargeInputLevels~ ],
+	"cruiseUseRpm": ~cruiseUseRpm~,
+	"cruiseSpeedStep": ~cruiseSpeedStep~,
+	"cruiseSpeedSet": [ ~cruiseSpeedSet~ ]
 }

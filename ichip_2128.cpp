@@ -276,18 +276,12 @@ void ICHIPWIFI::handleTick()
     if (socketListenerHandle != 0) {
         sendSocketUpdate();
 
-        if (tickCounter++ == 10) {
+        if (tickCounter == 5) {
             requestActiveSocketList();
-        }
-
-        if (tickCounter == 20) {
+        } else if (tickCounter % 10 == 0) {
             requestIncomingSocketData();
-        }
-
-        // check if params have changed, but only if idle so we don't mess-up other incoming data
-        if (tickCounter >  29 && state == IDLE) {
+        } else if (tickCounter == 25 && state == IDLE) { // check if params have changed, but only if idle so we don't mess-up other incoming data
             requestNextParam();
-            tickCounter = 0;
         }
     } else { // wait a bit for things to settle before doing a thing
         if (!didParamLoad && millis() > 3000 + timeStarted) {
@@ -299,6 +293,10 @@ void ICHIPWIFI::handleTick()
             didTCPListener = true;
         }
     }
+
+ 	 if (++tickCounter > 30) {
+ 		 tickCounter = 0;
+ 	 }
 }
 
 /**
@@ -1175,6 +1173,9 @@ void ICHIPWIFI::loadParametersMotor()
             setParam(Constants::creepLevel, config->creepLevel);
             setParam(Constants::creepSpeed, config->creepSpeed);
             setParam(Constants::brakeHold, config->brakeHold);
+            setParam(Constants::cruiseUseRpm, (uint8_t)(config->cruiseUseRpm ? 1 : 0));
+            setParam(Constants::cruiseSpeedStep, config->cruiseStepDelta);
+
             if (motorController->getId() == BRUSA_DMC5) {
                 BrusaDMC5Configuration *dmc5Config = (BrusaDMC5Configuration *) config;
                 setParam(Constants::dcVoltLimitMotor, dmc5Config->dcVoltLimitMotor / 10.0f, 1);
@@ -1183,6 +1184,14 @@ void ICHIPWIFI::loadParametersMotor()
                 setParam(Constants::dcCurrentLimitRegen, dmc5Config->dcCurrentLimitRegen / 10.0f, 1);
                 setParam(Constants::enableOscillationLimiter, (uint8_t)(dmc5Config->enableOscillationLimiter ? 1 : 0));
             }
+            String sets;
+            for (uint8_t i; i < CFG_CRUISE_SIZE_SPEED_SET && config->speedSet[i] != 0; i++) {
+                if (i != 0) {
+                    sets += ",";
+                }
+                sets += config->speedSet[i];
+            }
+            setParam((String)Constants::cruiseSpeedSet, sets);
         }
     }
 }
@@ -1335,7 +1344,7 @@ void ICHIPWIFI::loadParametersDashboard()
         setParam(Constants::motorTempRange, "0,90,120");
         setParam(Constants::controllerTempRange, "0,60,80");
         setParam(Constants::socRange, "0,20,100");
-        setParam(Constants::chargeInputLevels, "5, 6, 7, 8, 9, 10, 13, 16, 20, 24, 32, 40, 48, 56");
+        setParam(Constants::chargeInputLevels, "6,7,8,9,10,13,16,20,32,40,56");
     }
 }
 

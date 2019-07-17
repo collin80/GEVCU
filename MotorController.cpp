@@ -61,6 +61,12 @@ MotorController::MotorController() :
     cruiseSpeedActual = 0;
     cruiseSpeedTarget = 0;
     cruiseThrottle = 1000;
+    cruiseSpeedLast = 0;
+    cruiseSpeedBufferPtr = 0;
+    cruiseSpeedSum = 0;
+    cruiseControlEnabled = false;
+    cruiseLastButton = NONE;
+    cruiseButtonPressed = 0;
 }
 
 DeviceType MotorController::getType()
@@ -78,12 +84,12 @@ void MotorController::updateStatusIndicator()
             if (rolling) {
                 rolling = false;
                 if (status.enableCreep) // a little hack to temporarely disable light
-                    deviceManager.sendMessage(DEVICE_DISPLAY, STATUSINDICATOR, MSG_UPDATE, (void *) "on");
+                    deviceManager.sendMessage(DEVICE_DISPLAY, STATUSINDICATOR, MSG_UPDATE, (void*) "on");
             }
         } else {
             if (speedActual > 1000 && !rolling) {
                 rolling = true;
-                deviceManager.sendMessage(DEVICE_DISPLAY, STATUSINDICATOR, MSG_UPDATE, (void *) "off");
+                deviceManager.sendMessage(DEVICE_DISPLAY, STATUSINDICATOR, MSG_UPDATE, (void*) "off");
             }
         }
     }
@@ -128,7 +134,8 @@ int16_t MotorController::processBrakeHold(MotorControllerConfiguration *config, 
             if (brakeLvl == 0) { // engage brake hold once the brake is released
                 brakeHoldStart = millis();
                 brakeHoldLevel = 0;
-                Logger::debug("brake hold engaged for %dms", CFG_BRAKE_HOLD_MAX_TIME);
+                Logger::debug("brake hold engaged for %dms",
+                CFG_BRAKE_HOLD_MAX_TIME);
             }
         } else {
             // deactivate after 5sec or when accelerator gives more torque or we're rolling forward without motor power
@@ -224,7 +231,7 @@ bool MotorController::checkBatteryTemperatureForRegen()
  */
 void MotorController::processThrottleLevel()
 {
-    MotorControllerConfiguration *config = (MotorControllerConfiguration *) getConfiguration();
+    MotorControllerConfiguration *config = (MotorControllerConfiguration*) getConfiguration();
     Throttle *accelerator = deviceManager.getAccelerator();
     Throttle *brake = deviceManager.getBrake();
 
@@ -234,12 +241,12 @@ void MotorController::processThrottleLevel()
         if (accelerator && !accelerator->isFaulted()) {
             throttleLevel = accelerator->getLevel();
         }
-        if (cruisePid != NULL && (cruiseThrottle - 1000) > throttleLevel) {
+        if (cruiseControlEnabled && cruisePid != NULL && (cruiseThrottle - 1000) > throttleLevel) {
             throttleLevel = round(cruiseThrottle) - 1000;
         }
         if (brake && !brake->isFaulted() && brake->getLevel() < 0) { // if the brake has been pressed it overrides the accelerator
             throttleLevel = brake->getLevel();
-            disableCruiseControl();
+            cruiseControlDisengage();
         }
         if (brake && config->brakeHold > 0) { // check if brake hold should be applied
             throttleLevel = processBrakeHold(config, throttleLevel, brake->getLevel());
@@ -291,14 +298,18 @@ void MotorController::updateGear()
     }
 }
 
-void MotorController::cruiseControlToggle() {
+void MotorController::cruiseControlToggle()
+{
     if (cruisePid == NULL) {
-        MotorControllerConfiguration *config = (MotorControllerConfiguration *) getConfiguration();
+        MotorControllerConfiguration *config = (MotorControllerConfiguration*) getConfiguration();
 
+        //TODO add implementation for vehicleSpeed (config->cruiseUserpm)
         cruiseSpeedTarget = speedActual;
         cruiseSpeedActual = speedActual;
+        for (uint8_t i = 0; i < CFG_CRUISE_SPEED_BUFFER_SIZE; i++) { // pre-fill speed averaging buffer
+            cruiseSpeedBuffer[i] = speedActual;
+        }
         cruiseThrottle = throttleLevel + 1000.0f; // because PID can't handle negative numbers, cruiseThrottle is offset by +1000 (0-2000)
-        status.cruiseSpeed = speedActual;
 
         Logger::info(this, "Enabling cruise control with speed %f", cruiseSpeedTarget);
 
@@ -310,36 +321,100 @@ void MotorController::cruiseControlToggle() {
             cruisePid->SetSampleTime(interval / 1000);
         }
         cruisePid->SetMode(AUTOMATIC);
+        cruiseControlEnabled = true;
     } else {
-        disableCruiseControl();
+        cruiseControlDisengage();
     }
 }
 
-void MotorController::cruiseControlAdjust(int16_t speedDelta) {
+void MotorController::cruiseControlAdjust(int16_t speedDelta)
+{
+    if (!cruiseControlEnabled) {
+        return;
+    }
     if (cruisePid == NULL) {
         cruiseControlToggle();
     }
     cruiseSpeedTarget += speedDelta;
-    Logger::info(this, "Changing cruise control speed to %d", cruiseSpeedTarget);
+    cruiseSpeedLast = cruiseSpeedTarget;
 }
 
-void MotorController::cruiseControlSetSpeed(int16_t speedTarget) {
+void MotorController::cruiseControlSetSpeed(int16_t speedTarget)
+{
+    if (!cruiseControlEnabled) {
+        return;
+    }
     if (cruisePid == NULL) {
         cruiseControlToggle();
     }
     cruiseSpeedTarget = speedTarget;
-    Logger::info(this, "Setting cruise control speed to %f", cruiseSpeedTarget);
+    cruiseSpeedLast = cruiseSpeedTarget;
 }
 
-void MotorController::disableCruiseControl() {
+void MotorController::cruiseControlDisengage()
+{
     if (cruisePid == NULL)
         return;
 
-    Logger::info(this, "Cruise control OFF.");
+    Logger::info(this, "Cruise control disengaged.");
     cruisePid = NULL;
     cruiseSpeedActual = 0;
     cruiseSpeedTarget = 0;
     cruiseThrottle = 1000;
+}
+
+void MotorController::handleCruiseControlButton(CruiseControlButton button)
+{
+    if (button == cruiseLastButton) { // debounce - except for long press of plus/minus
+        if (button != PLUS && button != MINUS)
+            return;
+    } else { // remember time button was pressed
+        if (button != NONE)
+            cruiseButtonPressed = millis();
+    }
+
+    MotorControllerConfiguration *config = (MotorControllerConfiguration*) getConfiguration();
+
+    switch (button) {
+    case TOGGLE:
+        if (cruiseControlEnabled) {
+            cruiseControlDisengage();
+        }
+        cruiseControlEnabled = !cruiseControlEnabled;
+        break;
+    case RECALL:
+        if (cruiseSpeedLast > 0) {
+            cruiseControlSetSpeed(cruiseSpeedLast);
+            Logger::info(this, "Resume cruise control, speed: %d", getCruiseControlSpeed());
+        }
+        break;
+    case PLUS:
+        if (cruiseButtonPressed + CFG_CRUISE_BUTTON_LONG_PRESS < millis()) { // long press -> increase target steadily
+            cruiseControlSetSpeed(speedActual + config->cruiseLongPressDelta);
+        }
+        break;
+    case MINUS:
+        if (cruiseButtonPressed + CFG_CRUISE_BUTTON_LONG_PRESS < millis()) { // long press -> decrease target steadily
+            cruiseControlSetSpeed(speedActual - config->cruiseLongPressDelta);
+        }
+        break;
+    case DISENGAGE:
+        cruiseControlDisengage();
+        break;
+    case NONE:
+        if (cruiseLastButton == PLUS || cruiseLastButton == MINUS) {
+            if (cruiseButtonPressed + CFG_CRUISE_BUTTON_LONG_PRESS < millis() || cruisePid == NULL) {
+                // long press -> set target to current speed
+                cruiseControlSetSpeed(speedActual);
+            } else {
+                // short press and cc already active -> increase/decrease by step
+                cruiseControlAdjust(config->cruiseStepDelta * (cruiseLastButton == PLUS ? 1 : -1));
+            }
+            cruiseButtonPressed = 0;
+        }
+        break;
+    }
+    cruiseLastButton = button;
 }
 
 void MotorController::handleTick()
@@ -347,7 +422,16 @@ void MotorController::handleTick()
     checkActivity();
 
     if (cruisePid != NULL) {
-        cruiseSpeedActual = speedActual;
+        //TODO add implementation for vehicleSpeed (config->cruiseUserpm)
+        cruiseSpeedBuffer[cruiseSpeedBufferPtr++] = speedActual;
+        if (cruiseSpeedBufferPtr >= CFG_CRUISE_SPEED_BUFFER_SIZE) {
+            cruiseSpeedBufferPtr = 0;
+        }
+        cruiseSpeedSum = 0;
+        for (uint8_t i = 0; i < CFG_CRUISE_SPEED_BUFFER_SIZE; i++) {
+            cruiseSpeedSum += cruiseSpeedBuffer[i];
+        }
+        cruiseSpeedActual = cruiseSpeedSum / CFG_CRUISE_SPEED_BUFFER_SIZE;
         cruisePid->Compute(); // updates torque
     }
 
@@ -355,11 +439,6 @@ void MotorController::handleTick()
     updateGear();
 
     updateStatusIndicator();
-
-    if (Logger::isDebug()) {
-        Logger::debug(this, "throttle: %f%%, requested Speed: %ld rpm, requested Torque: %f Nm, gear: %d", throttleLevel / 10.0f, speedRequested,
-                torqueRequested / 10.0F, gear);
-    }
 }
 
 void MotorController::handleCanFrame(CAN_FRAME *frame)
@@ -387,7 +466,7 @@ void MotorController::handleStateChange(Status::SystemState oldState, Status::Sy
         // get the minimum temperature from the charger
         Charger *charger = deviceManager.getCharger();
         if (charger) {
-            ChargerConfiguration *config = (ChargerConfiguration *) charger->getConfiguration();
+            ChargerConfiguration *config = (ChargerConfiguration*) charger->getConfiguration();
             if (config) {
                 minimumBatteryTemperature = config->minimumTemperature;
             }
@@ -482,9 +561,19 @@ int16_t MotorController::getTemperatureController()
     return temperatureController;
 }
 
+bool MotorController::isCruiseControlEnabled()
+{
+    return cruiseControlEnabled;
+}
+
+int16_t MotorController::getCruiseControlSpeed()
+{
+    return cruiseSpeedTarget;
+}
+
 void MotorController::loadConfiguration()
 {
-    MotorControllerConfiguration *config = (MotorControllerConfiguration *) getConfiguration();
+    MotorControllerConfiguration *config = (MotorControllerConfiguration*) getConfiguration();
 
     Device::loadConfiguration(); // call parent
     Logger::info(this, "Motor controller configuration:");
@@ -507,7 +596,7 @@ void MotorController::loadConfiguration()
         prefsHandler->read(EEMC_MAX_MECH_POWER_REGEN, &config->maxMechanicalPowerRegen);
         prefsHandler->read(EEMC_REVERSE_LIMIT, &config->reversePercent);
         prefsHandler->read(EEMC_NOMINAL_V, &config->nominalVolt);
-        prefsHandler->read(EEMC_POWER_MODE, (uint8_t *) &config->powerMode);
+        prefsHandler->read(EEMC_POWER_MODE, (uint8_t*) &config->powerMode);
         prefsHandler->read(EEMC_CREEP_LEVEL, &config->creepLevel);
         prefsHandler->read(EEMC_CREEP_SPEED, &config->creepSpeed);
         prefsHandler->read(EEMC_BRAKE_HOLD, &config->brakeHold);
@@ -520,6 +609,10 @@ void MotorController::loadConfiguration()
         config->cruiseKi = value / 1000.0f;
         prefsHandler->read(EEMC_CRUISE_KD, &value);
         config->cruiseKd = value / 1000.0f;
+        prefsHandler->read(EEMC_CRUISE_LONG_PRESS_DELTA, &config->cruiseLongPressDelta);
+        prefsHandler->read(EEMC_CRUISE_STEP_DELTA, &config->cruiseStepDelta);
+        prefsHandler->read(EEMC_CRUISE_USE_RPM, &temp);
+        config->cruiseUseRpm = temp;
     } else { //checksum invalid. Reinitialize values and store to EEPROM
         config->invertDirection = false;
         config->speedMax = 6000;
@@ -537,7 +630,20 @@ void MotorController::loadConfiguration()
         config->cruiseKp = 1.0f;
         config->cruiseKi = .20f;
         config->cruiseKd = .10f;
+        config->cruiseLongPressDelta = 500;
+        config->cruiseStepDelta = 300;
+        config->cruiseUseRpm = true;
     }
+
+    //TODO move to eeprom config?
+    config->speedSet[0] = 1800;
+    config->speedSet[1] = 3035;
+    config->speedSet[2] = 4800;
+    config->speedSet[3] = 3050;
+    config->speedSet[4] = 3700;
+    config->speedSet[5] = 0;
+    config->speedSet[6] = 0;
+    config->speedSet[7] = 0;
 
     Logger::info(this, "Power mode: %s, Max torque: %i", (config->powerMode == modeTorque ? "torque" : "speed"), config->torqueMax);
     Logger::info(this, "Max RPM: %i, Slew rate: %i", config->speedMax, config->slewRate);
@@ -545,12 +651,13 @@ void MotorController::loadConfiguration()
             config->maxMechanicalPowerRegen / 10.0f);
     Logger::info(this, "Creep level: %i, Creep speed: %i, Brake Hold: %d, Gear Change Support: %d", config->creepLevel, config->creepSpeed,
             config->brakeHold, config->gearChangeSupport);
-    Logger::info(this, "Cruise control Kp: %f, Ki: %f, Kd: %f", config->cruiseKp, config->cruiseKi, config->cruiseKd);
+    Logger::info(this, "Cruise Kp: %f, Ki: %f, Kd: %f, long delta: %d, step delta: %d, rpm: %d", config->cruiseKp, config->cruiseKi, config->cruiseKd,
+            config->cruiseLongPressDelta, config->cruiseStepDelta, config->cruiseUseRpm);
 }
 
 void MotorController::saveConfiguration()
 {
-    MotorControllerConfiguration *config = (MotorControllerConfiguration *) getConfiguration();
+    MotorControllerConfiguration *config = (MotorControllerConfiguration*) getConfiguration();
 
     Device::saveConfiguration(); // call parent
 
@@ -568,9 +675,12 @@ void MotorController::saveConfiguration()
     prefsHandler->write(EEMC_BRAKE_HOLD, config->brakeHold);
     prefsHandler->write(EEMC_BRAKE_HOLD_COEFF, config->brakeHoldForceCoefficient);
     prefsHandler->write(EEMC_GEAR_CHANGE_SUPPORT, (uint8_t) (config->gearChangeSupport ? 1 : 0));
-    prefsHandler->write(EEMC_CRUISE_KP, (uint16_t) config->cruiseKp);
-    prefsHandler->write(EEMC_CRUISE_KI, (uint16_t) config->cruiseKi);
-    prefsHandler->write(EEMC_CRUISE_KD, (uint16_t) config->cruiseKd);
+    prefsHandler->write(EEMC_CRUISE_KP, (uint16_t) (config->cruiseKp * 1000));
+    prefsHandler->write(EEMC_CRUISE_KI, (uint16_t) (config->cruiseKi * 1000));
+    prefsHandler->write(EEMC_CRUISE_KD, (uint16_t) (config->cruiseKd * 1000));
+    prefsHandler->write(EEMC_CRUISE_LONG_PRESS_DELTA, config->cruiseLongPressDelta);
+    prefsHandler->write(EEMC_CRUISE_STEP_DELTA, config->cruiseStepDelta);
+    prefsHandler->write(EEMC_CRUISE_USE_RPM, (uint8_t) (config->cruiseUseRpm ? 1 : 0));
 
     prefsHandler->saveChecksum();
 }

@@ -62,11 +62,10 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #define CFG_TICK_INTERVAL_CAN_OBD2                  200000
 #define CFG_TICK_INTERVAL_MOTOR_CONTROLLER_DMOC     40000
 #define CFG_TICK_INTERVAL_MOTOR_CONTROLLER_CODAUQM  10000
-#define CFG_TICK_INTERVAL_MOTOR_CONTROLLER_BRUSA    20000
+#define CFG_TICK_INTERVAL_MOTOR_CONTROLLER_BRUSA    30000
 #define CFG_TICK_INTERVAL_MEM_CACHE                 40000
 #define CFG_TICK_INTERVAL_STATUS                    40000
 #define CFG_TICK_INTERVAL_BMS_THINK                 500000
-#define CFG_TICK_INTERVAL_BMS_ORION                 500000
 #define CFG_TICK_INTERVAL_DCDC_BSC6                 100000
 #define CFG_TICK_INTERVAL_CHARGE_NLG5               100000
 #define CFG_TICK_INTERVAL_WIFI                      100000
@@ -100,6 +99,7 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #define CFG_ADC_GAIN 1024 // ADC gain centered at 1024 being 1 to 1 gain, thus 512 is 0.5 gain, 2048 is double, etc
 #define CFG_ADC_OFFSET 0 // ADC offset from zero - ADC reads 12 bit so the offset will be [0,4095] - Offset is subtracted from read ADC value
 #define CFG_THROTTLE_MAX_ERROR 150 //tenths of percentage allowable deviation between pedals
+#define CFG_WEBSOCKET_MAX_TIME 25 // maximum processing time when assembling websocket message (in ms) - prevents interruptions when sending messages to controller
 
 /*
  * HARD CODED PARAMETERS
@@ -123,8 +123,11 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #define CFG_WEBSOCKET_BUFFER_SIZE 50 // number of characters an incoming socket frame may contain
 #define CFG_WIFI_NUM_SOCKETS 4 // max number of websocket connections
 #define CFG_WIFI_BUFFER_SIZE 1025 // size of buffer for incoming data from wifi
-#define CFG_LOG_BUFFER_SIZE 120 // size of log output messages
+#define LOG_BUFFER_SIZE 120 // size of log output messages
 #define CFG_LOG_REPEAT_MSG_TIME 10000 // ms while a repeated message is suppressed to be sent to the wifi
+#define CFG_CRUISE_SPEED_BUFFER_SIZE 10 // size of the buffer for actual speed when using cruise buffer
+#define CFG_CRUISE_BUTTON_LONG_PRESS 1000 // ms after which a button press is considered a long press (for plus/minus)
+#define CFG_CRUISE_SIZE_SPEED_SET 8 // max number of speed set entries (cruise speed buttons in dashboard)
 
 /*
  * PIN ASSIGNMENT

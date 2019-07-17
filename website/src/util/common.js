@@ -44,6 +44,7 @@ function loadPage(pageId) {
 				var data = JSON.parse(response);
 				generateGauges(data);
 				dashboard.addChargeOptions(data);
+				dashboard.setCruiseData(data);
 			});
 			loadPage("annunciator");
 			loadPage("batteries");

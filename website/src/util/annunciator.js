@@ -124,7 +124,7 @@ function updateAnnunciatorFields(name, bitfield) {
 	case 'bitfieldBms':
 		updateField("bmsRelayDischarge"             , FieldClass.ok, bitfield & BMS.bmsRelayDischarge);
 		updateField("bmsRelayCharge"                , FieldClass.ok, bitfield & BMS.bmsRelayCharge);
-		updateField("bmsChagerSafety"               , FieldClass.warn, bitfield & BMS.bmsChagerSafety);
+		updateField("bmsChagerSafety"               , FieldClass.ok, bitfield & BMS.bmsChagerSafety);
 		updateField("bmsDtcPresent"                 , FieldClass.error, bitfield & BMS.bmsDtcPresent);
 		
 		updateField("bmsVoltageFailsafe"            , FieldClass.error, bitfield & BMS.bmsVoltageFailsafe);

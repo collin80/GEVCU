@@ -95,9 +95,10 @@ h3 {
 /************* Buttons *************/
 .button {
 	display: inline-block;
-	padding: 0.5em 1em;
+	padding: 0.5em 0.5em;
 	margin-bottom: 0.3em;
-	font-size: 1em;
+	font-size: 1.5em;
+	font-weight: bold;
 	cursor: pointer;
 	text-align: center;
 	text-decoration: none;
@@ -220,8 +221,8 @@ div#batteries {
 div#cruiseControl {
     display: flex;
     justify-content: space-between;
-    padding-left: 10%;
-    padding-right: 10%;
+    padding-left: 5%;
+    padding-right: 5%;
 }
 
 div#cruiseControl div {

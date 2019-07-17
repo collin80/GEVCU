@@ -69,6 +69,10 @@ public:
     uint8_t brakeHoldForceCoefficient; // quotient by which the negative rpm is divided to get the force increase/decrease during brake hold (must NOT be 0!)
     bool gearChangeSupport; // flag indication if gear change support (adjusting rpm) is on
     double cruiseKp, cruiseKi, cruiseKd; // PID parameter for cruise control
+	uint16_t cruiseLongPressDelta; // delta in rpm/kph to increase/decrease target speed for cc during long button press
+	uint16_t cruiseStepDelta; // delta in rpm/kph to increase/decrease target speed for cc at short button press
+	bool cruiseUseRpm; // true = use rpm to control cruise control, false = use vehicle speed instead
+	uint16_t speedSet[CFG_CRUISE_SIZE_SPEED_SET]; // speed sets for dashboard buttons
 };
 
 class MotorController: public Device, public CanObserver
@@ -81,6 +85,10 @@ public:
         GEAR_ERROR = 3
     };
 
+    enum CruiseControlButton {
+    	NONE, TOGGLE, RECALL, PLUS, MINUS, DISENGAGE
+    };
+
     MotorController();
     DeviceType getType();
     void setup();
@@ -89,9 +97,12 @@ public:
     void handleCanFrame(CAN_FRAME *);
     void handleStateChange(Status::SystemState, Status::SystemState);
     void cruiseControlToggle();
-    void disableCruiseControl();
+    void cruiseControlDisengage();
     void cruiseControlAdjust(int16_t);
     void cruiseControlSetSpeed(int16_t);
+    void handleCruiseControlButton(CruiseControlButton);
+    bool isCruiseControlEnabled();
+    int16_t getCruiseControlSpeed();
 
     void loadConfiguration();
     void saveConfiguration();
@@ -140,7 +151,14 @@ private:
     uint32_t gearChangeTimestamp;
     Gears gear;
     double cruiseSpeedTarget, cruiseSpeedActual, cruiseThrottle; // PID parameters for cruise control, cruiseThrottle is 0-2000 (+1000 offset to throttle because PID can't handle negative values.
+    double cruiseSpeedLast; // the last active cruise control speed (for recall)
     PID *cruisePid; // PID controller for cruise control
+    int16_t cruiseSpeedBuffer[CFG_CRUISE_SPEED_BUFFER_SIZE]; // buffer to average actual speed measurements and reduce jumps
+    uint8_t cruiseSpeedBufferPtr; // pointer to current speed buffer position
+    uint32_t cruiseSpeedSum; // temp variable to sum up buffered speed
+    bool cruiseControlEnabled; // main switch if cruise control is enabled at all (power switch)
+    CruiseControlButton cruiseLastButton; // which button was last pressed
+    uint32_t cruiseButtonPressed; // timestamp when a cruise control button was pressed
 
     void updateStatusIndicator();
     void checkActivity();

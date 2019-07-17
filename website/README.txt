@@ -16,7 +16,7 @@ Then to update the website after changes,
 2. Choose the "Site Pack" tool
 3. Browse to the website/src dir, select the index.htm as default
 4. Select "C02128" as the platform and click "Pack". At this point the parameters should show.
-5. Select all the parameters, enter 20 for the max length value to fill and click "Fill"
+5. Select all the parameters, enter 30 for the max length value to fill and click "Fill"
 6. Click "Save" and point it to website.img
 
 At this point you upload the image to the GEVCU using http://192.168.3.10/ichip and power cycle the GEVCU to have it activated.

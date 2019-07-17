@@ -7,6 +7,7 @@ var dashboard = dashboard || {};
 	dashboard.hideStateDivs = hideStateDivs;
 	dashboard.sendMsg = sendMsg;
 	dashboard.addChargeOptions = addChargeOptions;
+	dashboard.setCruiseData = setCruiseData;
 
 	function activate() {
 		// add an event listener so sounds can get loaded on mobile devices
@@ -77,7 +78,7 @@ var dashboard = dashboard || {};
 					target.value = data;
 				}
 				setNodeValue(name, data);
-				if (name == 'cruiseSpeed') {
+				if (name == 'cruiseControlEnabled') {
 					showHideCruiseControl(data);
 				}
 			}
@@ -86,7 +87,7 @@ var dashboard = dashboard || {};
 
 	function showHideCruiseControl(data) {
 		var div = document.getElementById('cruiseControl');
-		div.style.display = (data > 0 ? '' : 'none');
+		div.style.display = (data ? '' : 'none');
 	}
 	
 	function hideStateDivs() {
@@ -137,5 +138,33 @@ var dashboard = dashboard || {};
 			select.add(new Option(data.chargeInputLevels[level], data.chargeInputLevels[level]));
 		}
 		select.value=data.chargeInputLevels[data.chargeInputLevels.length - 1];
+	}
+	
+	function setCruiseData(data) {
+		var spans = document.getElementsByClassName("cruiseSpeedUnit");
+		for (var i = 0; i < spans.length; i++) {
+		  spans[i].innerHTML = (data.cruiseUseRpm ? "rpm" : "kmh");
+		}
+
+		addCruiseButton('+' + data.cruiseSpeedStep, data.cruiseUseRpm);
+		addCruiseButton('-' + data.cruiseSpeedStep, data.cruiseUseRpm);
+
+		for (var speed in data.cruiseSpeedSet) {
+			addCruiseButton(data.cruiseSpeedSet[speed], data.cruiseUseRpm);
+		}
+	}
+	
+	function addCruiseButton(speed, unit) {
+		var cruiseControlDiv = document.getElementById("cruiseControl");
+		
+		var button = document.createElement("BUTTON");
+		button.innerHTML = speed;// + " " + (unit ? "rpm" : "kmh");
+		var cl = document.createAttribute("class");
+		cl.value = "button";
+		button.setAttributeNode(cl);  
+		var oncl = document.createAttribute("onclick");
+		oncl.value = "dashboard.sendMsg('cruise=" + speed +"')";
+		button.setAttributeNode(oncl);  
+		cruiseControlDiv.appendChild(button);
 	}
 })();

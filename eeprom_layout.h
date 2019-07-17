@@ -129,6 +129,9 @@ the end of the stardard data. The below numbers are offsets from the device's ee
 #define EEMC_CRUISE_KP                      75 // 2 byte - Kp value for cruise control PID
 #define EEMC_CRUISE_KI                      77 // 2 byte - Ki value for cruise control PID
 #define EEMC_CRUISE_KD                      79 // 2 byte - Kd value for cruise control PID
+#define EEMC_CRUISE_LONG_PRESS_DELTA        81 // 2 byte - delta to target speed when pressing +/- button long (kph/rpm)
+#define EEMC_CRUISE_STEP_DELTA              83 // 2 byte - delta to actual speen wehn pressing +/- button a short time
+#define EEMC_CRUISE_USE_RPM                 85 // 1 byte - flag if true, cruise control uses rpm, if false kph to control vehicle speed
 
 // Throttle data
 #define EETH_LEVEL_MIN                      20 //2 bytes - ADC value of minimum value for first channel

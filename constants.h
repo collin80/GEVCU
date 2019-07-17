@@ -74,6 +74,9 @@ static const char* invertDirection = "invertDirection";
 static const char* slewRate = "slewRate";
 static const char* brakeHold = "brakeHold";
 static const char* brakeHoldLevel = "brakeHoldLevel";
+static const char* cruiseUseRpm = "cruiseUseRpm";
+static const char* cruiseSpeedStep = "cruiseSpeedStep";
+static const char* cruiseSpeedSet = "cruiseSpeedSet";
 
 static const char* maxMechanicalPowerMotor = "maxMechPowerMotor";
 static const char* maxMechanicalPowerRegen = "maxMechPowerRegen";
@@ -194,7 +197,8 @@ static const char* enableHeater = "enableHeater";
 static const char* powerSteering = "powerSteering";
 static const char* enableCreep = "enableCreep";
 static const char* chargeInputLevels = "chargeInputLevels";
-static const char* cruiseSpeed = "cruiseSpeed";
+static const char* cruiseControlSpeed = "cruiseSpeed";
+static const char* cruiseControlEnabled = "cruiseControlEnabled";
 
 static const char* packResistance = "packResistance";
 static const char* packHealth = "packHealth";

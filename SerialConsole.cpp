@@ -113,6 +113,9 @@ void SerialConsole::printMenuMotorController()
         Logger::console("CRUISEP=%f - Kp value for cruise control (default 1.0, entered as 1000)", config->cruiseKp);
         Logger::console("CRUISEI=%f - Ki value for cruise control (default 0.2, entered as 200)", config->cruiseKi);
         Logger::console("CRUISED=%f - Kd value for cruise control (default 0.1, enteres as 100)", config->cruiseKd);
+        Logger::console("CRUISEL=%d - Delta in rpm/kph to actual speed while pressing +/- button > 1sec (default 500)", config->cruiseLongPressDelta);
+        Logger::console("CRUISES=%d - Delta in rpm/kph to target speed when pressing +/- button < 1 sec (default 300)", config->cruiseStepDelta);
+        Logger::console("CRUISER=%d - use rpm or vehicle speed to control cruise speed (default 1, 1=rpm/0=speed)", config->cruiseUseRpm);
         if (motorController->getId() == BRUSA_DMC5) {
             BrusaDMC5Configuration *dmc5Config = (BrusaDMC5Configuration *) config;
             Logger::console("MOMVMN=%d - minimum DC voltage limit for motoring (in 0.1V)", dmc5Config->dcVoltLimitMotor);
@@ -468,6 +471,18 @@ bool SerialConsole::handleConfigCmdMotorController(String command, long value)
     } else if (command == String("CRUISED")) {
         Logger::console("Setting cruise control Kd value to %f", value / 1000.0f);
         config->cruiseKd = value / 1000.0f;
+    } else if (command == String("CRUISEL")) {
+        value = constrain(value, 1, 9000);
+        Logger::console("Setting delta in rpm/kph to actual speed to %d", value);
+        config->cruiseLongPressDelta = value;
+    } else if (command == String("CRUISES")) {
+        value = constrain(value, 1, 9000);
+        Logger::console("Setting delta in rpm/kph to target speed to %d", value);
+        config->cruiseStepDelta = value;
+    } else if (command == String("CRUISER")) {
+        value = constrain(value, 0, 1);
+        Logger::console("Setting cruise control method to '%s'", (value == 1 ? "rpm" : "vehicle speed"));
+        config->cruiseUseRpm = value;
     } else {
         return false;
     }

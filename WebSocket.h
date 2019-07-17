@@ -58,7 +58,8 @@ struct ParamCache {
     bool enableRegen;
     bool enableHeater;
     bool enableCreep;
-    int16_t cruiseSpeed;
+    int16_t cruiseControlSpeed;
+    bool cruiseControlEnable;
 
     uint16_t packResistance;
     uint8_t packHealth;
@@ -111,6 +112,7 @@ private:
     int16_t dcCurrentMax;
     int16_t temperatureMotorMax;
     int16_t temperatureControllerMax;
+    uint32_t timeStamp;
 
     void processConnectionRequest(char *input);
     String prepareConnectionRequestResponse();
@@ -133,6 +135,7 @@ private:
     void addLimit(char *min, char *max, const char *name);
     char *getTimeRunning();
     void initParamCache();
+    bool checkTime();
 };
 
 
