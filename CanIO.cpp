@@ -42,6 +42,7 @@ void CanIO::setup()
     dcdcConverter = deviceManager.getDcDcConverter();
 
     canHandlerEv.attach(this, CAN_MASKED_ID, CAN_MASK, false);
+    canHandlerCar.attach(this, CAN_MASKED_ID_CAR, CAN_MASK_CAR, false);
 
     ready = true;
     running = true;
@@ -86,7 +87,41 @@ void CanIO::handleCanFrame(CAN_FRAME *frame)
         status.heaterPower = frame->data.bytes[0] << 8 | frame->data.bytes[1];
         status.heaterTemperature = frame->data.bytes[2];
         break;
+    case CAN_ID_CRUISE_CONTROL: // buttons on the steering wheel
+    	motorController->handleCruiseControlButton(getCruiseControlButton(frame->data.byte));
+    	break;
+    case CAN_ID_VEHICLE_SPEED:
+    	//TODO read vehicle speed
+    	break;
     }
+}
+
+
+/**
+ * Identify pressed cruise control button
+ *
+ * NOTE: This is currently specific to a Volvo S80 Y08, implementation would need to be adjusted to support other car types
+ *
+ *                   not pressed       pressed
+ * Cruise enable:    byte5,bit2 (42)   byte7,bit2(58)
+ * +:                byte5,bit7 (47)   byte7,bit7(63)
+ * -:                byte4,bit0 (32)   byte6,bit0(48)
+ * recall:           byte5,bit5 (45)   byte7,bit5(61)
+ * 0:                byte5,bit4 (44)   byte7,bit4(60)
+ *
+ */
+MotorController::CruiseControlButton CanIO::getCruiseControlButton(uint8_t data[]) {
+	if ((data[7] & 1<<2) && !(data[5] & 1<<2))
+		return MotorController::TOGGLE;
+	if ((data[7] & 1<<7) && !(data[5] & 1<<7))
+		return MotorController::PLUS;
+	if ((data[6] & 1<<0) && !(data[4] & 1<<0))
+		return MotorController::MINUS;
+	if ((data[7] & 1<<5) && !(data[5] & 1<<5))
+		return MotorController::RECALL;
+	if ((data[7] & 1<<4) && !(data[5] & 1<<4))
+		return MotorController::DISENGAGE;
+	return MotorController::NONE;
 }
 
 /**
