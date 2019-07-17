@@ -32,8 +32,8 @@ Logger::LogLevel Logger::logLevel = CFG_DEFAULT_LOGLEVEL;
 uint32_t Logger::lastLogTime = 0;
 bool Logger::debugging = false;
 Logger::LogLevel *Logger::deviceLoglevel = new Logger::LogLevel[deviceIdsSize];
-char *Logger::msgBuffer = new char[CFG_LOG_BUFFER_SIZE];
-char *Logger::lastMsgBuffer = new char[CFG_LOG_BUFFER_SIZE];
+char *Logger::msgBuffer = new char[LOG_BUFFER_SIZE];
+char *Logger::lastMsgBuffer = new char[LOG_BUFFER_SIZE];
 uint16_t Logger::lastMsgRepeated = 0;
 uint32_t Logger::repeatStart = 0;
 
@@ -174,7 +174,7 @@ void Logger::console(char *message, ...)
 {
     va_list args;
     va_start(args, message);
-    vsnprintf(msgBuffer, CFG_LOG_BUFFER_SIZE, message, args);
+    vsnprintf(msgBuffer, LOG_BUFFER_SIZE, message, args);
     SerialUSB.println(msgBuffer);
     va_end(args);
 }
@@ -273,7 +273,7 @@ void Logger::log(char *deviceName, LogLevel level, char *format, va_list args)
             logLevel = "ERROR";
             break;
     }
-    vsnprintf(msgBuffer, CFG_LOG_BUFFER_SIZE, format, args);
+    vsnprintf(msgBuffer, LOG_BUFFER_SIZE, format, args);
 
     // print to serial USB
     SerialUSB.print(lastLogTime);
