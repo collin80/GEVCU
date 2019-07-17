@@ -1185,7 +1185,7 @@ void ICHIPWIFI::loadParametersMotor()
                 setParam(Constants::enableOscillationLimiter, (uint8_t)(dmc5Config->enableOscillationLimiter ? 1 : 0));
             }
             String sets;
-            for (uint8_t i; i < CFG_CRUISE_SIZE_SPEED_SET && config->speedSet[i] != 0; i++) {
+            for (uint8_t i = 0; i < CFG_CRUISE_SIZE_SPEED_SET && config->speedSet[i] != 0; i++) {
                 if (i != 0) {
                     sets += ",";
                 }
