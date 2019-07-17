@@ -627,9 +627,9 @@ void MotorController::loadConfiguration()
         config->creepSpeed = 0;
         config->brakeHold = 0;
         config->gearChangeSupport = false;
-        config->cruiseKp = 1.0f;
-        config->cruiseKi = .20f;
-        config->cruiseKd = .10f;
+        config->cruiseKp = .5f;
+        config->cruiseKi = .2f;
+        config->cruiseKd = .02f;
         config->cruiseLongPressDelta = 500;
         config->cruiseStepDelta = 300;
         config->cruiseUseRpm = true;
