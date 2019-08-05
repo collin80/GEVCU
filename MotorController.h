@@ -135,7 +135,6 @@ protected:
     int16_t temperatureController; // temperature of controller in 0.1 degree C
 
     bool rolling; // flag wether to save power consumption to eeprom
-    uint32_t lastTick;
     void reportActivity();
 
 private:
@@ -165,7 +164,7 @@ private:
     void processThrottleLevel();
     void updateGear();
     int16_t processBrakeHold(MotorControllerConfiguration *config, int16_t throttleLevel, int16_t brakeLevel);
-    void processAbsOrGearChange(bool gearChangeSupport);
+    void processGearChange();
     bool checkBatteryTemperatureForRegen();
 };
 

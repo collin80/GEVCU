@@ -89,6 +89,7 @@ Status::Status()
     interlockPresent    = false;
     reverseInput        = false;
     absActive           = false;
+    gearChangeActive    = false;
     statusLight         = false;
     brakeHold           = false;
 
@@ -140,6 +141,7 @@ Status::Status()
 
     stateOfCharge = 0;
     dcdcRunning = false;
+    stateTimestamp = 0;
 }
 
 /*
@@ -217,6 +219,7 @@ Status::SystemState Status::setSystemState(SystemState newSystemState)
     }
     if (systemState == newSystemState) {
         Logger::info("switching to system state '%s'", systemStateToStr(systemState));
+        stateTimestamp = millis();
     } else {
         Logger::error("switching from system state '%s' to '%s' is not allowed", systemStateToStr(systemState), systemStateToStr(newSystemState));
         systemState = error;

@@ -105,6 +105,7 @@ public:
     bool interlockPresent; // is the interlock circuit closed and the signal available ?
     bool reverseInput; // is the reverse signal present ?
     bool absActive; // is ABS or another source active to disable any power output to the motor
+    bool gearChangeActive; // is a gear change in progress ?
     bool enableRegen; // is regen currently activated ?
     bool enableCreep; // is creep activated ?
 
@@ -151,6 +152,7 @@ public:
     bool bmsDtcLowCellVolage;
     bool bmsDtcHVIsolationFault;
     bool bmsDtcVoltageRedundancyFault;
+    uint32_t stateTimestamp; // time stamp of last state change
 
     Status();
     SystemState getSystemState();

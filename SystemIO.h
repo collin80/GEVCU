@@ -55,6 +55,7 @@ public:
     uint8_t interlockInput; // # of input to signal if the interlock circuit is closed and HV voltage can be applied
     uint8_t reverseInput; // # of input to signal if reverse mode is selected
     uint8_t absInput; // # of input to signal if ABS system is active
+    uint8_t gearChangeInput; // # of intput to signal that a gear change is in progress
 
     uint16_t prechargeMillis; // milliseconds required for the pre-charge cycle
     uint8_t prechargeRelayOutput; // # of output to use for the pre-charge relay or 255 if not used
@@ -107,6 +108,7 @@ public:
     bool isInterlockPresent();
     bool isReverseSignalPresent();
     bool isABSActive();
+    bool isGearChangeActive();
 
     void setEnableMotor(bool);
     void setEnableCharger(bool);

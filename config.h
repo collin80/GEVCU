@@ -66,6 +66,7 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #define CFG_TICK_INTERVAL_MEM_CACHE                 40000
 #define CFG_TICK_INTERVAL_STATUS                    40000
 #define CFG_TICK_INTERVAL_BMS_THINK                 500000
+#define CFG_TICK_INTERVAL_BMS_ORION                 500000
 #define CFG_TICK_INTERVAL_DCDC_BSC6                 100000
 #define CFG_TICK_INTERVAL_CHARGE_NLG5               100000
 #define CFG_TICK_INTERVAL_WIFI                      100000
@@ -100,6 +101,7 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #define CFG_ADC_OFFSET 0 // ADC offset from zero - ADC reads 12 bit so the offset will be [0,4095] - Offset is subtracted from read ADC value
 #define CFG_THROTTLE_MAX_ERROR 150 //tenths of percentage allowable deviation between pedals
 #define CFG_WEBSOCKET_MAX_TIME 25 // maximum processing time when assembling websocket message (in ms) - prevents interruptions when sending messages to controller
+#define CFG_CHARGED_SHUTDOWN_TIME 600000 // ms after status changed to charged when shutting-down the system
 
 /*
  * HARD CODED PARAMETERS

@@ -197,6 +197,7 @@ void SerialConsole::printMenuSystemIO()
         Logger::console("INTERLI=%d - Digital input to use for interlock signal (255 to disable)", config->interlockInput);
         Logger::console("REVIN=%d - Digital input to reverse motor rotation (255 to disable)\n", config->reverseInput);
         Logger::console("ABSIN=%d - Digital input to indicate active ABS system (255 to disable)\n", config->absInput);
+        Logger::console("GEARIN=%d - Digital input to indicate active gear change (255 to disable)\n", config->gearChangeInput);
 
         Logger::console("PREDELAY=%d - Precharge delay time (in milliseconds)", config->prechargeMillis);
         Logger::console("PRELAY=%d - Digital output to use for precharge contactor (255 to disable)", config->prechargeRelayOutput);
@@ -622,6 +623,9 @@ bool SerialConsole::handleConfigCmdSystemIO(String command, long value)
     } else if (command == String("ABSIN")) {
         config->absInput = value;
         Logger::console("ABS signal set to input %d.", value);
+    } else if (command == String("GEARIN")) {
+        config->gearChangeInput = value;
+        Logger::console("Gear change signal set to input %d.", value);
     } else if (command == String("PREDELAY")) {
         value = constrain(value, 0, 100000);
         Logger::console("Setting precharge time to %dms", value);
@@ -923,8 +927,6 @@ bool SerialConsole::handleConfigCmdWifi(String command, String parameter)
     } else {
         return false;
     }
-    deviceManager.sendMessage(DEVICE_WIFI, ICHIP2128, MSG_COMMAND, (void *) "DOWN");
-
     return true;
 }
 

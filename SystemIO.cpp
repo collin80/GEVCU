@@ -308,7 +308,7 @@ void SystemIO::handleCharging() {
                 state = status.setSystemState(Status::batteryHeating);
             }
         }
-        if (state == Status::charged) {
+        if (state == Status::charged && (status.stateTimestamp + CFG_CHARGED_SHUTDOWN_TIME < millis())) {
             state = status.setSystemState(Status::shutdown);
             powerDownSystem();
         }
@@ -423,9 +423,21 @@ bool SystemIO::isReverseSignalPresent() {
     return flag;
 }
 
+/*
+ * Get the input signal which indicates if the car's ABS is active (car skidding -> no torque)
+ */
 bool SystemIO::isABSActive() {
     bool flag = getDigitalIn(configuration->absInput);
     status.absActive = flag;
+    return flag;
+}
+
+/*
+ * Get the input signal which indicates that a gear change is in progress (e.g. by switch on gear stick) - to adjust motor speed
+ */
+bool SystemIO::isGearChangeActive() {
+    bool flag = getDigitalIn(configuration->gearChangeInput);
+    status.gearChangeActive = flag;
     return flag;
 }
 
@@ -1127,6 +1139,7 @@ void SystemIO::loadConfiguration() {
         prefsHandler->read(EESIO_CHARGE_POWER_AVAILABLE_INPUT, &configuration->chargePowerAvailableInput);
         prefsHandler->read(EESIO_INTERLOCK_INPUT, &configuration->interlockInput);
         prefsHandler->read(EESIO_REVERSE_INPUT, &configuration->reverseInput);
+        prefsHandler->read(EESIO_GEAR_CHANGE_INPUT, &configuration->gearChangeInput);
         prefsHandler->read(EESIO_ABS_INPUT, &configuration->absInput);
 
         prefsHandler->read(EESIO_PRECHARGE_MILLIS, &configuration->prechargeMillis);
@@ -1167,6 +1180,7 @@ void SystemIO::loadConfiguration() {
         configuration->interlockInput = CFG_OUTPUT_NONE;
         configuration->reverseInput = CFG_OUTPUT_NONE;
         configuration->absInput = CFG_OUTPUT_NONE;
+        configuration->gearChangeInput = CFG_OUTPUT_NONE;
 
         configuration->prechargeMillis = 3000;
         configuration->prechargeRelayOutput = 4;
@@ -1203,7 +1217,7 @@ void SystemIO::loadConfiguration() {
         saveConfiguration();
     }
     Logger::info("enable input: %d, charge power avail input: %d, interlock input: %d, reverse input: %d, abs input: %d", configuration->enableInput, configuration->chargePowerAvailableInput, configuration->interlockInput, configuration->reverseInput, configuration->absInput);
-    Logger::info("pre-charge milliseconds: %d, pre-charge relay: %d, main contactor: %d", configuration->prechargeMillis, configuration->prechargeRelayOutput, configuration->mainContactorOutput);
+    Logger::info("pre-charge milliseconds: %d, pre-charge relay: %d, main contactor: %d, gear change input: %d", configuration->prechargeMillis, configuration->prechargeRelayOutput, configuration->mainContactorOutput, configuration->gearChangeInput);
     Logger::info("secondary contactor: %d, fast charge contactor: %d", configuration->secondaryContactorOutput, configuration->fastChargeContactorOutput);
     Logger::info("enable motor: %d, enable charger: %d, enable DCDC: %d, enable heater: %d, heater temp on: %d deg C", configuration->enableMotorOutput, configuration->enableChargerOutput, configuration->enableDcDcOutput, configuration->enableHeaterOutput, configuration->heaterTemperatureOn);
     Logger::info("heater valve: %d, heater pump: %d", configuration->heaterValveOutput, configuration->heaterPumpOutput);
@@ -1218,6 +1232,7 @@ void SystemIO::saveConfiguration() {
     prefsHandler->write(EESIO_CHARGE_POWER_AVAILABLE_INPUT, configuration->chargePowerAvailableInput);
     prefsHandler->write(EESIO_INTERLOCK_INPUT, configuration->interlockInput);
     prefsHandler->write(EESIO_REVERSE_INPUT, configuration->reverseInput);
+    prefsHandler->write(EESIO_GEAR_CHANGE_INPUT, configuration->gearChangeInput);
     prefsHandler->write(EESIO_ABS_INPUT, configuration->absInput);
 
     prefsHandler->write(EESIO_PRECHARGE_MILLIS, configuration->prechargeMillis);

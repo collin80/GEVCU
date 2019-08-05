@@ -47,7 +47,6 @@ MotorController::MotorController() :
     dcVoltage = 0;
     dcCurrent = 0;
     acCurrent = 0;
-    lastTick = 0;
     slewTimestamp = millis();
     gearChangeTimestamp = 0;
     rolling = false;
@@ -173,36 +172,36 @@ int16_t MotorController::processBrakeHold(MotorControllerConfiguration *config, 
  * /brief In case ABS is active, apply no power to wheels to prevent loss of control through regen forces. If gear shift support is enabled, additionally
  * the motor will be spun up/down to the next
  */
-void MotorController::processAbsOrGearChange(bool gearChangeSupport)
+void MotorController::processGearChange()
 {
-    if (systemIO.isABSActive()) {
-        torqueRequested = 0;
-        speedRequested = 0;
-        Logger::info(this, "ABS active");
+    if (systemIO.isGearChangeActive()) {
+        throttleLevel = 0;
 
-        if (gearChangeSupport) {
-            if (gearChangeTimestamp == 0) {
-                Logger::info(this, "Start gear change cycle");
-                gearChangeTimestamp = millis();
-                return;
-            }
+        if (gearChangeTimestamp == 0) {
+            Logger::info("Starting gear change cycle");
+            gearChangeTimestamp = millis();
+            return;
+        }
 
-            uint32_t duration = millis() - gearChangeTimestamp;
-            // break/accel  with about 20Nm after 500ms for 500ms
-            if (duration > 500 && duration < 1000) {
-                Logger::info(this, "Adjusting motor speed");
-                speedRequested = 2500;
-                torqueRequested = 200; // TODO positive and negative?
-                return;
+        //TODO move values to eeprom parameters
+        uint32_t duration = millis() - gearChangeTimestamp;
+        if (duration > 750 && duration < 1250 && speedActual > 100) {
+            speedRequested = 2500; //TODO calculate correct speed according to vehicle speed and estimated gear change
+            Logger::info("Adjusting motor speed to %drpm", speedRequested);
+
+            if (speedActual > speedRequested) {
+                throttleLevel = -100; // -10% throttle to slow down motor
+            } else {
+                throttleLevel = 100; // 10% throttle to accelerate motor
             }
+            return;
         }
     } else {
-        if (gearChangeTimestamp) {
-            Logger::info(this, "Gear change cycle finished");
+        if (gearChangeTimestamp > 0) {
+//            Logger::info("Gear change cycle finished");
             gearChangeTimestamp = 0;
         }
     }
-
 }
 
 /**
@@ -216,7 +215,7 @@ bool MotorController::checkBatteryTemperatureForRegen()
 
     if (lowestBatteryTemperature != CFG_NO_TEMPERATURE_DATA && (lowestBatteryTemperature * 10) < minimumBatteryTemperature) {
         status.enableRegen = false;
-        Logger::info(this, "No regenerative braking due to low battery temperature! (%f < %f)", lowestBatteryTemperature / 10.0f,
+        Logger::info("No regenerative braking due to low battery temperature! (%f < %f)", lowestBatteryTemperature / 10.0f,
                 minimumBatteryTemperature / 10.0f);
         return false;
     }
@@ -259,6 +258,9 @@ void MotorController::processThrottleLevel()
             torqueRequested = config->torqueMax;
         } else {  // torque mode
             speedRequested = config->speedMax;
+            if (config->gearChangeSupport) {
+                processGearChange(); // will adjust the speedRequested and throttleLevel
+            }
             int32_t torqueTarget = throttleLevel * config->torqueMax / 1000;
 
             if (config->slewRate == 0 || brakeHoldActive) {
@@ -286,7 +288,10 @@ void MotorController::processThrottleLevel()
         torqueRequested = 0;
     }
 
-    processAbsOrGearChange(config->gearChangeSupport);
+    if (systemIO.isABSActive()) {
+        torqueRequested = 0;
+        Logger::warn("ABS active !!");
+    }
 }
 
 void MotorController::updateGear()
@@ -300,7 +305,7 @@ void MotorController::updateGear()
 
 void MotorController::cruiseControlToggle()
 {
-    if (cruisePid == NULL) {
+    if (cruisePid == NULL && speedActual > 1) {
         MotorControllerConfiguration *config = (MotorControllerConfiguration*) getConfiguration();
 
         //TODO add implementation for vehicleSpeed (config->cruiseUserpm)
@@ -311,7 +316,7 @@ void MotorController::cruiseControlToggle()
         }
         cruiseThrottle = throttleLevel + 1000.0f; // because PID can't handle negative numbers, cruiseThrottle is offset by +1000 (0-2000)
 
-        Logger::info(this, "Enabling cruise control with speed %f", cruiseSpeedTarget);
+        Logger::info("Setting cruise control speed to %frpm", cruiseSpeedTarget);
 
         cruisePid = new PID(&cruiseSpeedActual, &cruiseThrottle, &cruiseSpeedTarget, config->cruiseKp, config->cruiseKi, config->cruiseKd, DIRECT);
         cruisePid->SetOutputLimits(0, 2000);
@@ -356,7 +361,7 @@ void MotorController::cruiseControlDisengage()
     if (cruisePid == NULL)
         return;
 
-    Logger::info(this, "Cruise control disengaged.");
+    Logger::info("Cruise control disengaged");
     cruisePid = NULL;
     cruiseSpeedActual = 0;
     cruiseSpeedTarget = 0;
@@ -385,7 +390,7 @@ void MotorController::handleCruiseControlButton(CruiseControlButton button)
     case RECALL:
         if (cruiseSpeedLast > 0) {
             cruiseControlSetSpeed(cruiseSpeedLast);
-            Logger::info(this, "Resume cruise control, speed: %d", getCruiseControlSpeed());
+            Logger::info("Resuming cruise control, speed: %d", getCruiseControlSpeed());
         }
         break;
     case PLUS:
