@@ -144,19 +144,15 @@ void BrusaNLG5::handleCanFrame(CAN_FRAME *frame)
         case CAN_ID_STATUS:
             processStatus(frame->data.bytes);
             break;
-
         case CAN_ID_VALUES_1:
             processValues1(frame->data.bytes);
             break;
-
         case CAN_ID_VALUES_2:
             processValues2(frame->data.bytes);
             break;
-
         case CAN_ID_TEMPERATURE:
             processTemperature(frame->data.bytes);
             break;
-
         case CAN_ID_ERROR:
             processError(frame->data.bytes);
             break;

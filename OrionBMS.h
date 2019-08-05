@@ -93,6 +93,7 @@ public:
     OrionBMS();
     void setup();
     void tearDown();
+    void handleTick();
     void handleCanFrame(CAN_FRAME *frame);
     DeviceId getId();
     bool hasPackVoltage();
@@ -108,13 +109,19 @@ public:
     bool hasPackHealth();
     bool hasPackCycles();
     bool hasPackResistance();
+    bool hasChargerEnabled();
 
 protected:
 private:
     uint8_t relayStatus, flags;
     uint16_t currentLimit;
     uint16_t packSummedVoltage;
-    void sendKeepAlive();
+    uint8_t canTickCounter;
+    void processPack(uint8_t data[]);
+    void processLimitsSoc(uint8_t data[]);
+    void processCellVoltage(uint8_t data[]);
+    void processCellResistance(uint8_t data[]);
+    void processHealth(uint8_t data[]);
 };
 
 #endif

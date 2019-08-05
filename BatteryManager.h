@@ -57,6 +57,7 @@ public:
     virtual bool hasPackHealth();
     virtual bool hasPackCycles();
     virtual bool hasPackResistance();
+    virtual bool hasChargerEnabled();
 
     uint16_t getPackVoltage(); // in 0.1V
     int16_t getPackCurrent(); // in 0.1A
@@ -65,6 +66,7 @@ public:
     uint16_t getChargeLimit(); // in 1A
     bool isChargeAllowed();
     bool isDischargeAllowed();
+    bool isChargerEnabled();
     int16_t getLowestCellTemp(); // in 0.1C
     int16_t getHighestCellTemp(); // in 0.1C
     uint16_t getLowestCellVolts(); // in mV
@@ -101,6 +103,7 @@ protected:
     uint8_t packHealth; // pack health (1%)
     uint16_t packCycles; // number of total pack cycles
     uint16_t packResistance; // pack resistance (1 mOhm)
+    bool chargerEnabled; // flag if true the charger may be enabled/engaged, if false charger must shut-down
 private:
 };
 

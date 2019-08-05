@@ -46,6 +46,7 @@ BatteryManager::BatteryManager() :
     lowestCellResistanceId = highestCellResistanceId = ID_UNKNOWN;
     packHealth = 0;
     packCycles = packResistance = 0;
+    chargerEnabled = false;
 }
 
 void BatteryManager::setup()
@@ -62,6 +63,7 @@ void BatteryManager::tearDown()
     allowDischarge = false;
     chargeLimit = 0;
     dischargeLimit = 0;
+    chargerEnabled = false;
 }
 
 DeviceType BatteryManager::getType()
@@ -135,6 +137,11 @@ bool BatteryManager::hasPackCycles()
 }
 
 bool BatteryManager::hasPackResistance()
+{
+    return false;
+}
+
+bool BatteryManager::hasChargerEnabled()
 {
     return false;
 }
@@ -262,4 +269,9 @@ uint16_t BatteryManager::getPackResistance()
 uint8_t BatteryManager::getSystemTemperature()
 {
     return systemTemperature;
+}
+
+bool BatteryManager::isChargerEnabled()
+{
+    return chargerEnabled;
 }
