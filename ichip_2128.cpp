@@ -900,6 +900,11 @@ bool ICHIPWIFI::processParameterChangeCharger(char *key, char *value)
     if (charger) {
         ChargerConfiguration *config = (ChargerConfiguration *) charger->getConfiguration();
 
+        if (!strcmp(key, Constants::maximumSolarCurrent)) {
+            charger->setMaximumSolarCurrent(atof(value) * 10);
+            return true;
+        }
+
         if (config) {
             if (!strcmp(key, Constants::maximumInputCurrent)) {
                 config->maximumInputCurrent = atof(value) * 10;
@@ -1398,9 +1403,9 @@ void ICHIPWIFI::factoryDefaults() {
     sendCmd("WPP0=verysecret", IDLE);// WPA2 password
     delay(25000); // it really takes that long to calculate the key !!
 #endif
-    sendCmd("RPG=secret", IDLE);// set the configuration password for /ichip
+    sendCmd("RPG=*", IDLE);// allow everybody to update the params - no PW-Authentication
     delay(1000);
-    sendCmd("WPWD=secret", IDLE);// set the password to update config params
+    sendCmd("WPWD=*", IDLE);// no password required to update params
     delay(1000);
     sendCmd("AWS=3", IDLE);//turn on web server for 3 concurrent connections
     delay(1000);

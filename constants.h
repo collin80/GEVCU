@@ -131,6 +131,7 @@ static const char* deratingRate = "deratingRate";
 static const char* deratingReferenceTemperature = "deratingReferenceTmp";
 static const char* hystereseStopTemperature = "hystereseStopTemp";
 static const char* hystereseResumeTemperature = "hystereseResumeTemp";
+static const char* maximumSolarCurrent = "maximumSolarCurrent";
 
 // dc dc converter
 static const char* dcDcMode = "dcDcMode";

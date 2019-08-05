@@ -38,6 +38,7 @@ Charger::Charger() : Device()
     ampereMilliSeconds = 0;
     chargeStartTime = 0;
     requestedOutputCurrent = 0;
+    maximumSolarCurrent = -1;
     lastTick = 0;
 }
 
@@ -73,6 +74,7 @@ void Charger::handleStateChange(Status::SystemState oldState, Status::SystemStat
         batteryVoltage = 0;
         batteryCurrent = 0;
         ampereMilliSeconds = 0;
+        maximumSolarCurrent = -1; // must be overridden via wifi to get enabled during charge
         chargeStartTime = millis();
         lastTick = millis();
 
@@ -123,11 +125,23 @@ uint16_t Charger::calculateOutputCurrent()
         }
         if (batteryManager) {
             if (batteryManager->hasChargeLimit()) {
-                requestedOutputCurrent = min(batteryManager->getChargeLimit() * 10, requestedOutputCurrent); // don't allow it to fluctuate up and down, stay down
+                uint16_t chargeLimit = batteryManager->getChargeLimit() * 10;
+                if (chargeLimit > requestedOutputCurrent) {
+                    requestedOutputCurrent++; // only increase in small steps (0.1A per 100ms) to reduce fluctuations
+                }
+                if (chargeLimit < requestedOutputCurrent) {
+                    requestedOutputCurrent = chargeLimit; // don't allow it to fluctuate up and down, stay down
+                }
             } else if (batteryManager->hasAllowCharging() && !batteryManager->isChargeAllowed()) {
                 requestedOutputCurrent = 0;
                 Logger::info(this, "BMS terminated charging");
             }
+            if (batteryManager->hasChargerEnabled() && !batteryManager->isChargerEnabled()) {
+                status.setSystemState(Status::charged);
+            }
+        }
+        if (maximumSolarCurrent != -1 && requestedOutputCurrent > maximumSolarCurrent) {
+            requestedOutputCurrent = maximumSolarCurrent;
         }
         if (requestedOutputCurrent < config->terminateCurrent ||
                 ((millis() - chargeStartTime) > 5000 && batteryCurrent < config->terminateCurrent)) { // give the charger 5sec to ramp up the current
@@ -207,6 +221,15 @@ int16_t Charger::getTemperature()
 void Charger::setMaximumInputCurrent(uint16_t current) {
     ChargerConfiguration *config = (ChargerConfiguration *) getConfiguration();
     config->maximumInputCurrent = current;
+}
+
+void Charger::setMaximumSolarCurrent(int16_t current) {
+    maximumSolarCurrent = current;
+}
+
+int16_t Charger::getMaximumSolarCurrent()
+{
+    return maximumSolarCurrent;
 }
 
 /*

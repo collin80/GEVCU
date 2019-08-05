@@ -44,6 +44,7 @@ struct ParamCache {
     uint16_t chargerBatteryVoltage;
     uint16_t chargerBatteryCurrent;
     int16_t chargerTemperature;
+    int16_t maximumSolarCurrent;
     uint16_t chargeHoursRemain;
     uint16_t chargeMinsRemain;
     uint16_t chargeLevel;

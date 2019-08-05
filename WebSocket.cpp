@@ -81,6 +81,7 @@ void WebSocket::initParamCache()
     paramCache.chargerBatteryVoltage = 0;
     paramCache.chargerBatteryCurrent = 0;
     paramCache.chargerTemperature = 0;
+    paramCache.maximumSolarCurrent = -1;
     paramCache.flowCoolant = 0;
     paramCache.flowHeater = 0;
     paramCache.heaterPower = 0;
@@ -449,6 +450,7 @@ String WebSocket::generateUpdate()
                     processParameter(&paramCache.chargeLevel, batteryManager->getSoc() * 50, Constants::chargeLevel, 100);
                 else
                     processParameter(&paramCache.chargeLevel, map (secs, 0 , 28800, 0, 100), Constants::chargeLevel);
+                processParameter(&paramCache.maximumSolarCurrent, charger->getMaximumSolarCurrent(), Constants::maximumSolarCurrent, 10);
             }
         }
 
