@@ -103,13 +103,13 @@ void StatusIndicator::handleMessage(uint32_t messageType, void* message)
         char *param = (char *) message;
 
         if (!strcmp("on", param)) {
-            setMode(255, 0, 5, 5, 1, 0);
+            setMode(220, 0, 5, 5, 1, 0);
             increment = true;
         } else if (!strcmp("off", param)) {
-            setMode(255, 0, 3, 3, 0, 1);
+            setMode(220, 0, 3, 3, 0, 1);
             increment = false;
         } else if (!strcmp("blink", param)) {
-            setMode(250, 6, 4, 3, -1, -1);
+            setMode(220, 6, 4, 3, -1, -1);
         } else if (!strcmp("pulse", param)) {
             setMode(45, 4, 1, 1, -1, -1);
         }
@@ -127,7 +127,9 @@ void StatusIndicator::setMode(uint8_t maxLevel, uint8_t minLevel, uint8_t increm
     cfg.cyclesUp = cyclesUp;
     cfg.cyclesDown = cyclesDown;
 
-    tickHandler.attach(this, CFG_TICK_INTERVAL_STATUS);
+    if (!tickHandler.isAttached(this, CFG_TICK_INTERVAL_STATUS)) {
+        tickHandler.attach(this, CFG_TICK_INTERVAL_STATUS);
+    }
 }
 
 DeviceType StatusIndicator::getType()
