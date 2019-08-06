@@ -180,6 +180,7 @@ void MotorController::processGearChange()
         if (gearChangeTimestamp == 0) {
             Logger::info("Starting gear change cycle");
             gearChangeTimestamp = millis();
+            cruiseControlDisengage();
             return;
         }
 
@@ -190,9 +191,9 @@ void MotorController::processGearChange()
             Logger::info("Adjusting motor speed to %drpm", speedRequested);
 
             if (speedActual > speedRequested) {
-                throttleLevel = -100; // -10% throttle to slow down motor
+                throttleLevel = -150; // -10% throttle to slow down motor
             } else {
-                throttleLevel = 100; // 10% throttle to accelerate motor
+                throttleLevel = 150; // 10% throttle to accelerate motor
             }
             return;
         }
