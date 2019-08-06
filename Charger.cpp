@@ -56,6 +56,11 @@ void Charger::handleTick()
     uint32_t timeStamp = millis();
     ampereMilliSeconds += (timeStamp - lastTick) * batteryCurrent;
     lastTick = timeStamp;
+
+    if (maximumSolarCurrent != -1) {
+        ChargerConfiguration *config = (ChargerConfiguration *) getConfiguration();
+        config->maximumInputCurrent = maximumSolarCurrent;
+    }
 }
 
 /**
@@ -139,9 +144,6 @@ uint16_t Charger::calculateOutputCurrent()
             if (batteryManager->hasChargerEnabled() && !batteryManager->isChargerEnabled()) {
                 status.setSystemState(Status::charged);
             }
-        }
-        if (maximumSolarCurrent != -1 && requestedOutputCurrent > maximumSolarCurrent) {
-            requestedOutputCurrent = maximumSolarCurrent;
         }
         if (requestedOutputCurrent < config->terminateCurrent ||
                 ((millis() - chargeStartTime) > 5000 && batteryCurrent < config->terminateCurrent)) { // give the charger 5sec to ramp up the current

@@ -901,7 +901,7 @@ bool ICHIPWIFI::processParameterChangeCharger(char *key, char *value)
         ChargerConfiguration *config = (ChargerConfiguration *) charger->getConfiguration();
 
         if (!strcmp(key, Constants::maximumSolarCurrent)) {
-            charger->setMaximumSolarCurrent(atof(value) * 10);
+            charger->setMaximumSolarCurrent(atof(value));
             return true;
         }
 
