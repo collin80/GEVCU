@@ -32,10 +32,8 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #ifndef CONFIG_H_
 #define CONFIG_H_
 
-#include <due_can.h>
-
-#define CFG_BUILD_NUM	1066        //increment this every time a git commit is done.
-#define CFG_VERSION "GEVCU 2019-04-07"
+#define CFG_BUILD_NUM	1070        //increment this every time a git commit is done.
+#define CFG_VERSION "GEVCU 2020-04-11"
 #define CFG_DEFAULT_LOGLEVEL Logger::Info
 
 //define this to add in latency and efficiency calculations. Comment it out for builds you're going to 
@@ -137,8 +135,8 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #define CFG_OUTPUT_NONE    				255
 #define CFG_IO_BLINK_LED       			13 // 13 is L, 73 is TX, 72 is RX
 #define CFG_EEPROM_WRITE_PROTECT		19 // pin used to control the write-enable signal for the eeprom, (19=GEVCU >=3, 18=GEVCU 2.x)
-#define CFG_WIFI_ENABLE                 42 // pin used to enable wifi chip
 #define CFG_WIFI_RESET                  18 // pin to reset wifi chip (18=GEVCU >=3, 17=GEVCU 2)
+#define CFG_WIFI_ENABLE                 42 // pin used to enable wifi chip
 
 
 #define CFG_NUMBER_ANALOG_INPUTS  4
