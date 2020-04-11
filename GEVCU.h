@@ -52,7 +52,6 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include "DeviceManager.h"
 #include "SerialConsole.h"
 #include "ELM327_Emu.h"
-#include "ichip_2128.h"
 #include "Sys_Messages.h"
 #include "PerfTimer.h"
 #include "CodaMotorController.h"
@@ -60,6 +59,8 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include "CanIO.h"
 #include "CanOBD2.h"
 #include "StatusIndicator.h"
+#include "WifiEsp32.h"
+#include "WifiIchip2128.h"
 
 #ifdef __cplusplus
 extern "C" {
