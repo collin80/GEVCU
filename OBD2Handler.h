@@ -35,7 +35,6 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include "DeviceManager.h"
 #include "TickHandler.h"
 #include "CanHandler.h"
-#include "constants.h"
 
 class OBD2Handler
 {

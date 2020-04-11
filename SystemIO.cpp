@@ -97,7 +97,7 @@ bool SystemIO::handleState() {
     }
 
     if (!isInterlockPresent()) {
-        Logger::error("Interlock circuit open - security risk, disabling HV !!");
+        logger.error("Interlock circuit open - security risk, disabling HV !!");
         state = status.setSystemState(Status::error);
     }
 
@@ -186,7 +186,7 @@ void SystemIO::powerDownSystem() {
  */
 void SystemIO::handlePreCharge() {
     if (configuration->prechargeMillis == 0) { // we don't want to pre-charge
-        Logger::info("Pre-charging not enabled");
+        logger.info("Pre-charging not enabled");
         setMainContactor(true);
         status.setSystemState(Status::preCharged);
         return;
@@ -194,7 +194,7 @@ void SystemIO::handlePreCharge() {
 
     if (preChargeStart == 0) {
         if (millis() > CFG_PRE_CHARGE_START) {
-            Logger::info("Starting pre-charge sequence");
+            logger.info("Starting pre-charge sequence");
             printIOStatus();
 
             preChargeStart = millis();
@@ -213,7 +213,7 @@ void SystemIO::handlePreCharge() {
             setPrechargeRelay(false);
 
             status.setSystemState(Status::preCharged);
-            Logger::info("Pre-charge sequence complete after %i milliseconds", millis() - preChargeStart);
+            logger.info("Pre-charge sequence complete after %i milliseconds", millis() - preChargeStart);
         }
     }
 }
@@ -229,7 +229,7 @@ void SystemIO::logPreCharge() {
         voltsDcDc = deviceManager.getDcDcConverter()->getHvVoltage();
     if (deviceManager.getBatteryManager())
         voltsBms = deviceManager.getBatteryManager()->getPackVoltage();
-    Logger::info("pre-charge info: time: %dms, motor: %dV, dcdc: %dV, bms: %dV", millis() - preChargeStart, voltsMotor, voltsDcDc, voltsBms);
+    logger.info("pre-charge info: time: %dms, motor: %dV, dcdc: %dV, bms: %dV", millis() - preChargeStart, voltsMotor, voltsDcDc, voltsBms);
 }
 
 /**
@@ -237,11 +237,11 @@ void SystemIO::logPreCharge() {
  */
 void SystemIO::measurePreCharge() {
     setPrechargeRelay(true);
-    Logger::info("closing pre-charge relay");
+    logger.info("closing pre-charge relay");
 #ifdef CFG_THREE_CONTACTOR_PRECHARGE
     delay(CFG_PRE_CHARGE_RELAY_DELAY);
     setSecondaryContactor(true);
-    Logger::info("closing secondary contactor");
+    logger.info("closing secondary contactor");
 #endif
     preChargeStart = millis();
     while (millis() < preChargeStart + 10000) {
@@ -649,7 +649,7 @@ void SystemIO::ADCPoll() {
             }
         }
 
-        //for (int i = 0; i < 256;i++) Logger::debug("%i - %i", i, adcBuf[obufn][i]);
+        //for (int i = 0; i < 256;i++) logger.debug("%i - %i", i, adcBuf[obufn][i]);
 
         //now, all of the ADC values are summed over 32/64 readings. So, divide by 32/64 (shift by 5/6) to get the average
         //then add that to the old value we had stored and divide by two to average those. Lots of averaging going on.
@@ -662,7 +662,7 @@ void SystemIO::ADCPoll() {
             for (int j = 0; j < 8; j++) {
                 adcValues[j] += (tempbuff[j] >> 5);
                 adcValues[j] = adcValues[j] >> 1;
-                //Logger::debug("A%i: %i", j, adc_values[j]);
+                //logger.debug("A%i: %i", j, adc_values[j]);
             }
         }
 
@@ -853,12 +853,12 @@ void SystemIO::initializePinTables() {
     }
 
     if (useRawADC) {
-        Logger::info("Using raw ADC mode");
+        logger.info("Using raw ADC mode");
     }
 }
 
 void SystemIO::initGevcu2PinTable() {
-    Logger::info("Running on GEVCU2/DUED hardware.");
+    logger.info("Running on GEVCU2/DUED hardware.");
     dig[0] = 9;
     dig[1] = 11;
     dig[2] = 12;
@@ -883,7 +883,7 @@ void SystemIO::initGevcu2PinTable() {
 }
 
 void SystemIO::initGevcu3PinTable() {
-    Logger::info("Running on GEVCU3 hardware");
+    logger.info("Running on GEVCU3 hardware");
     dig[0] = 48;
     dig[1] = 49;
     dig[2] = 50;
@@ -908,7 +908,7 @@ void SystemIO::initGevcu3PinTable() {
 }
 
 void SystemIO::initGevcu4PinTable() {
-    Logger::info("Running on GEVCU 4.x hardware");
+    logger.info("Running on GEVCU 4.x hardware");
     dig[0] = 48;
     dig[1] = 49;
     dig[2] = 50;
@@ -933,7 +933,7 @@ void SystemIO::initGevcu4PinTable() {
 }
 
 void SystemIO::initGevcuLegacyPinTable() {
-    Logger::info("Running on legacy hardware?");
+    logger.info("Running on legacy hardware?");
     dig[0] = 11;
     dig[1] = 9;
     dig[2] = 13;
@@ -1041,14 +1041,14 @@ void SystemIO::setupFastADC() {
     ADC->ADC_PTCR = 1; //enable dma mode
     ADC->ADC_CR = 2; //start conversions
 
-    Logger::debug("Fast ADC Mode Enabled");
+    logger.debug("Fast ADC Mode Enabled");
 }
 
 void SystemIO::printIOStatus() {
-    if (Logger::isDebug()) {
-        Logger::debug("AIN0: %d, AIN1: %d, AIN2: %d, AIN3: %d", getAnalogIn(0), getAnalogIn(1), getAnalogIn(2), getAnalogIn(3));
-        Logger::debug("DIN0: %d, DIN1: %d, DIN2: %d, DIN3: %d", getDigitalIn(0), getDigitalIn(1), getDigitalIn(2), getDigitalIn(3));
-        Logger::debug("DOUT0: %d, DOUT1: %d, DOUT2: %d, DOUT3: %d,DOUT4: %d, DOUT5: %d, DOUT6: %d, DOUT7: %d", getDigitalOut(0), getDigitalOut(1),
+    if (logger.isDebug()) {
+        logger.debug("AIN0: %d, AIN1: %d, AIN2: %d, AIN3: %d", getAnalogIn(0), getAnalogIn(1), getAnalogIn(2), getAnalogIn(3));
+        logger.debug("DIN0: %d, DIN1: %d, DIN2: %d, DIN3: %d", getDigitalIn(0), getDigitalIn(1), getDigitalIn(2), getDigitalIn(3));
+        logger.debug("DOUT0: %d, DOUT1: %d, DOUT2: %d, DOUT3: %d,DOUT4: %d, DOUT5: %d, DOUT6: %d, DOUT7: %d", getDigitalOut(0), getDigitalOut(1),
                 getDigitalOut(2), getDigitalOut(3), getDigitalOut(4), getDigitalOut(5), getDigitalOut(6), getDigitalOut(7));
     }
 }
@@ -1128,7 +1128,7 @@ SystemIOConfiguration *SystemIO::getConfiguration() {
 }
 
 void SystemIO::loadConfiguration() {
-    Logger::info("System I/O configuration:");
+    logger.info("System I/O configuration:");
 
 #ifdef USE_HARD_CODED
     if (false) {
@@ -1173,7 +1173,7 @@ void SystemIO::loadConfiguration() {
 
         prefsHandler->read(EESIO_SYSTEM_TYPE, (uint8_t *) &configuration->systemType);
         prefsHandler->read(EESIO_LOG_LEVEL, (uint8_t *) &configuration->logLevel);
-        Logger::setLoglevel((Logger::LogLevel) configuration->logLevel);
+        logger.setLoglevel((Logger::LogLevel) configuration->logLevel);
     } else { //checksum invalid. Reinitialize values and store to EEPROM
         configuration->enableInput = 0;
         configuration->chargePowerAvailableInput = 1;
@@ -1212,19 +1212,19 @@ void SystemIO::loadConfiguration() {
         configuration->statusLightOutput = CFG_OUTPUT_NONE;
 
         configuration->systemType = GEVCU2;
-        configuration->logLevel = Logger::Info;
+        configuration->logLevel = logger.Info;
 
         saveConfiguration();
     }
-    Logger::info("enable input: %d, charge power avail input: %d, interlock input: %d, reverse input: %d, abs input: %d", configuration->enableInput, configuration->chargePowerAvailableInput, configuration->interlockInput, configuration->reverseInput, configuration->absInput);
-    Logger::info("pre-charge milliseconds: %d, pre-charge relay: %d, main contactor: %d, gear change input: %d", configuration->prechargeMillis, configuration->prechargeRelayOutput, configuration->mainContactorOutput, configuration->gearChangeInput);
-    Logger::info("secondary contactor: %d, fast charge contactor: %d", configuration->secondaryContactorOutput, configuration->fastChargeContactorOutput);
-    Logger::info("enable motor: %d, enable charger: %d, enable DCDC: %d, enable heater: %d, heater temp on: %d deg C", configuration->enableMotorOutput, configuration->enableChargerOutput, configuration->enableDcDcOutput, configuration->enableHeaterOutput, configuration->heaterTemperatureOn);
-    Logger::info("heater valve: %d, heater pump: %d", configuration->heaterValveOutput, configuration->heaterPumpOutput);
-    Logger::info("cooling pump: %d, cooling fan: %d, cooling temperature ON: %d, cooling tempreature Off: %d", configuration->coolingPumpOutput, configuration->coolingFanOutput, configuration->coolingTempOn, configuration->coolingTempOff);
-    Logger::info("brake light: %d, reverse light: %d, power steering: %d, unused: %d", configuration->brakeLightOutput, configuration->reverseLightOutput, configuration->powerSteeringOutput, configuration->unusedOutput);
-    Logger::info("warning: %d, power limitation: %d, soc: %d, status: %d", configuration->warningOutput, configuration->powerLimitationOutput, configuration->stateOfChargeOutput, configuration->statusLightOutput);
-    Logger::info("sys type: %d, log level: %d", configuration->systemType, configuration->logLevel);
+    logger.info("enable input: %d, charge power avail input: %d, interlock input: %d, reverse input: %d, abs input: %d", configuration->enableInput, configuration->chargePowerAvailableInput, configuration->interlockInput, configuration->reverseInput, configuration->absInput);
+    logger.info("pre-charge milliseconds: %d, pre-charge relay: %d, main contactor: %d, gear change input: %d", configuration->prechargeMillis, configuration->prechargeRelayOutput, configuration->mainContactorOutput, configuration->gearChangeInput);
+    logger.info("secondary contactor: %d, fast charge contactor: %d", configuration->secondaryContactorOutput, configuration->fastChargeContactorOutput);
+    logger.info("enable motor: %d, enable charger: %d, enable DCDC: %d, enable heater: %d, heater temp on: %d deg C", configuration->enableMotorOutput, configuration->enableChargerOutput, configuration->enableDcDcOutput, configuration->enableHeaterOutput, configuration->heaterTemperatureOn);
+    logger.info("heater valve: %d, heater pump: %d", configuration->heaterValveOutput, configuration->heaterPumpOutput);
+    logger.info("cooling pump: %d, cooling fan: %d, cooling temperature ON: %d, cooling tempreature Off: %d", configuration->coolingPumpOutput, configuration->coolingFanOutput, configuration->coolingTempOn, configuration->coolingTempOff);
+    logger.info("brake light: %d, reverse light: %d, power steering: %d, unused: %d", configuration->brakeLightOutput, configuration->reverseLightOutput, configuration->powerSteeringOutput, configuration->unusedOutput);
+    logger.info("warning: %d, power limitation: %d, soc: %d, status: %d", configuration->warningOutput, configuration->powerLimitationOutput, configuration->stateOfChargeOutput, configuration->statusLightOutput);
+    logger.info("sys type: %d, log level: %d", configuration->systemType, configuration->logLevel);
 }
 
 void SystemIO::saveConfiguration() {

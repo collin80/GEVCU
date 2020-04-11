@@ -3,9 +3,9 @@
     	
     <storageModule moduleId="org.eclipse.cdt.core.settings">
         		
-        <cconfiguration id="io.sloeber.core.toolChain.release.1356880323">
+        <cconfiguration id="io.sloeber.core.toolChain.release.1108340858">
             			
-            <storageModule buildSystemId="org.eclipse.cdt.managedbuilder.core.configurationDataProvider" id="io.sloeber.core.toolChain.release.1356880323" moduleId="org.eclipse.cdt.core.settings" name="Release">
+            <storageModule buildSystemId="org.eclipse.cdt.managedbuilder.core.configurationDataProvider" id="io.sloeber.core.toolChain.release.1108340858" moduleId="org.eclipse.cdt.core.settings" name="Release">
                 				
                 <externalSettings/>
                 				
@@ -25,89 +25,89 @@
             			
             <storageModule moduleId="cdtBuildSystem" version="4.0.0">
                 				
-                <configuration artifactName="${ProjName}" buildProperties="" description="" id="io.sloeber.core.toolChain.release.1356880323" name="Release" parent="org.eclipse.cdt.build.core.emptycfg">
+                <configuration artifactName="${ProjName}" buildProperties="" description="" id="io.sloeber.core.toolChain.release.1108340858" name="Release" parent="org.eclipse.cdt.build.core.emptycfg">
                     					
-                    <folderInfo id="io.sloeber.core.toolChain.release.1356880323.782278449" name="/" resourcePath="">
+                    <folderInfo id="io.sloeber.core.toolChain.release.1108340858.1215992724" name="/" resourcePath="">
                         						
-                        <toolChain id="io.sloeber.core.toolChain.release.811173976" name="Arduino Toolchain (Sloeber edition)" superClass="io.sloeber.core.toolChain.release">
+                        <toolChain id="io.sloeber.core.toolChain.release.1690617875" name="Arduino Toolchain (Sloeber edition)" superClass="io.sloeber.core.toolChain.release">
                             							
-                            <targetPlatform archList="all" binaryParser="org.eclipse.cdt.core.ELF" id="io.sloeber.targetplatform.1051512777" name="Arduino Target" osList="all" superClass="io.sloeber.targetplatform"/>
+                            <targetPlatform archList="all" binaryParser="org.eclipse.cdt.core.ELF" id="io.sloeber.targetplatform.1292187849" name="Arduino Target" osList="all" superClass="io.sloeber.targetplatform"/>
                             							
-                            <builder buildPath="${workspace_loc:/GEVCU}/Release" id="io.sloeber.sketch.builder.1755470259" keepEnvironmentInBuildfile="false" managedBuildOn="true" name="Arduino sketch builder" superClass="io.sloeber.sketch.builder"/>
+                            <builder buildPath="${workspace_loc:/GEVCU}/Release" id="io.sloeber.sketch.builder.1294486331" keepEnvironmentInBuildfile="false" managedBuildOn="true" name="Arduino sketch builder" superClass="io.sloeber.sketch.builder"/>
                             							
-                            <tool id="io.sloeber.tool.sketch.compiler.cpp.142594770" name="Arduino C++ Compiler" superClass="io.sloeber.tool.sketch.compiler.cpp">
+                            <tool id="io.sloeber.tool.sketch.compiler.cpp.1019503325" name="Arduino C++ Compiler" superClass="io.sloeber.tool.sketch.compiler.cpp">
                                 								
-                                <option IS_BUILTIN_EMPTY="false" IS_VALUE_EMPTY="false" id="io.sloeber.compiler.cpp.sketch.option.incpath.889054267" name="Include Paths (-I)" superClass="io.sloeber.compiler.cpp.sketch.option.incpath" valueType="includePath">
+                                <option IS_BUILTIN_EMPTY="false" IS_VALUE_EMPTY="false" id="io.sloeber.compiler.cpp.sketch.option.incpath.1058103948" name="Include Paths (-I)" superClass="io.sloeber.compiler.cpp.sketch.option.incpath" valueType="includePath">
                                     									
                                     <listOptionValue builtIn="false" value="&quot;${workspace_loc:/GEVCU/core/core}&quot;"/>
                                     									
                                     <listOptionValue builtIn="false" value="&quot;${workspace_loc:/GEVCU/core/variant}&quot;"/>
-                                    									
-                                    <listOptionValue builtIn="false" value="&quot;${workspace_loc:/GEVCU/libraries/due_can}&quot;"/>
                                     									
                                     <listOptionValue builtIn="false" value="&quot;${workspace_loc:/GEVCU/libraries/DueTimer}&quot;"/>
                                     									
                                     <listOptionValue builtIn="false" value="&quot;${workspace_loc:/GEVCU/libraries/due_wire}&quot;"/>
                                     									
                                     <listOptionValue builtIn="false" value="&quot;${workspace_loc:/GEVCU/libraries/PID}&quot;"/>
+                                    									
+                                    <listOptionValue builtIn="false" value="&quot;${workspace_loc:/GEVCU/libraries/due_can}&quot;"/>
                                     								
                                 </option>
                                 								
-                                <inputType id="io.sloeber.compiler.cpp.sketch.input.821379888" name="CPP source files" superClass="io.sloeber.compiler.cpp.sketch.input"/>
+                                <inputType id="io.sloeber.compiler.cpp.sketch.input.1650738002" name="CPP source files" superClass="io.sloeber.compiler.cpp.sketch.input"/>
                                 							
                             </tool>
                             							
-                            <tool id="io.sloeber.tool.compiler.c.2028766448" name="Arduino C Compiler" superClass="io.sloeber.tool.compiler.c">
+                            <tool id="io.sloeber.tool.compiler.c.332287823" name="Arduino C Compiler" superClass="io.sloeber.tool.compiler.c">
                                 								
-                                <option IS_BUILTIN_EMPTY="false" IS_VALUE_EMPTY="false" id="io.sloeber.compiler.c.sketch.option.incpath.577707914" name="Include Paths (-I)" superClass="io.sloeber.compiler.c.sketch.option.incpath" valueType="includePath">
+                                <option IS_BUILTIN_EMPTY="false" IS_VALUE_EMPTY="false" id="io.sloeber.compiler.c.sketch.option.incpath.351409332" name="Include Paths (-I)" superClass="io.sloeber.compiler.c.sketch.option.incpath" valueType="includePath">
                                     									
                                     <listOptionValue builtIn="false" value="&quot;${workspace_loc:/GEVCU/core/core}&quot;"/>
                                     									
                                     <listOptionValue builtIn="false" value="&quot;${workspace_loc:/GEVCU/core/variant}&quot;"/>
-                                    									
-                                    <listOptionValue builtIn="false" value="&quot;${workspace_loc:/GEVCU/libraries/due_can}&quot;"/>
                                     									
                                     <listOptionValue builtIn="false" value="&quot;${workspace_loc:/GEVCU/libraries/DueTimer}&quot;"/>
                                     									
                                     <listOptionValue builtIn="false" value="&quot;${workspace_loc:/GEVCU/libraries/due_wire}&quot;"/>
                                     									
                                     <listOptionValue builtIn="false" value="&quot;${workspace_loc:/GEVCU/libraries/PID}&quot;"/>
+                                    									
+                                    <listOptionValue builtIn="false" value="&quot;${workspace_loc:/GEVCU/libraries/due_can}&quot;"/>
                                     								
                                 </option>
                                 								
-                                <inputType id="io.sloeber.compiler.c.sketch.input.274727756" name="C Source Files" superClass="io.sloeber.compiler.c.sketch.input"/>
+                                <inputType id="io.sloeber.compiler.c.sketch.input.1061308427" name="C Source Files" superClass="io.sloeber.compiler.c.sketch.input"/>
                                 							
                             </tool>
                             							
-                            <tool id="io.sloeber.tool.sketch.compiler.s.2018185930" name="Arduino Assembler" superClass="io.sloeber.tool.sketch.compiler.s">
+                            <tool id="io.sloeber.tool.sketch.compiler.s.2011424326" name="Arduino Assembler" superClass="io.sloeber.tool.sketch.compiler.s">
                                 								
-                                <option IS_BUILTIN_EMPTY="false" IS_VALUE_EMPTY="false" id="io.sloeber.compiler.asm.sketch.option.incpath.1177149587" name="Include Paths (-I)" superClass="io.sloeber.compiler.asm.sketch.option.incpath" valueType="includePath">
+                                <option IS_BUILTIN_EMPTY="false" IS_VALUE_EMPTY="false" id="io.sloeber.compiler.asm.sketch.option.incpath.288441820" name="Include Paths (-I)" superClass="io.sloeber.compiler.asm.sketch.option.incpath" valueType="includePath">
                                     									
                                     <listOptionValue builtIn="false" value="&quot;${workspace_loc:/GEVCU/core/core}&quot;"/>
                                     									
                                     <listOptionValue builtIn="false" value="&quot;${workspace_loc:/GEVCU/core/variant}&quot;"/>
-                                    									
-                                    <listOptionValue builtIn="false" value="&quot;${workspace_loc:/GEVCU/libraries/due_can}&quot;"/>
                                     									
                                     <listOptionValue builtIn="false" value="&quot;${workspace_loc:/GEVCU/libraries/DueTimer}&quot;"/>
                                     									
                                     <listOptionValue builtIn="false" value="&quot;${workspace_loc:/GEVCU/libraries/due_wire}&quot;"/>
                                     									
                                     <listOptionValue builtIn="false" value="&quot;${workspace_loc:/GEVCU/libraries/PID}&quot;"/>
+                                    									
+                                    <listOptionValue builtIn="false" value="&quot;${workspace_loc:/GEVCU/libraries/due_can}&quot;"/>
                                     								
                                 </option>
                                 								
-                                <inputType id="io.sloeber.compiler.S.sketch.input.1096440820" name="Assembly source files" superClass="io.sloeber.compiler.S.sketch.input"/>
+                                <inputType id="io.sloeber.compiler.S.sketch.input.2035241542" name="Assembly source files" superClass="io.sloeber.compiler.S.sketch.input"/>
                                 							
                             </tool>
                             							
-                            <tool id="io.sloeber.tool.ar.1537903834" name="Arduino archiver" superClass="io.sloeber.tool.ar"/>
+                            <tool id="io.sloeber.tool.ar.1027879069" name="Arduino archiver" superClass="io.sloeber.tool.ar"/>
                             							
-                            <tool id="io.sloeber.tool.combine.1978064444" name="Arduino combiner" superClass="io.sloeber.tool.combine"/>
+                            <tool id="io.sloeber.tool.combine.1487814300" name="Arduino combiner" superClass="io.sloeber.tool.combine"/>
                             							
-                            <tool id="io.sloeber.tool.objcopy.eep.868735425" name="Arduino tool Create eeprom" superClass="io.sloeber.tool.objcopy.eep"/>
+                            <tool id="io.sloeber.tool.objcopy.eep.1898812434" name="Arduino tool objcopy command" superClass="io.sloeber.tool.objcopy.eep"/>
                             							
-                            <tool id="io.sloeber.tool.size.1597094075" name="Arduino tool Print Size" superClass="io.sloeber.tool.size"/>
+                            <tool id="io.sloeber.tool.size.846078291" name="Arduino tool Print Size" superClass="io.sloeber.tool.size"/>
                             						
                         </toolChain>
                         					
@@ -115,7 +115,7 @@
                     					
                     <sourceEntries>
                         						
-                        <entry excluding="libraries/due_wire/.git|libraries/due_wire/.settings|libraries/due_wire/arduino|libraries/due_wire/Release|libraries/?*/**/?xamples/**|libraries/?*/**/?xtras/**|libraries/?*/**/test*/**|libraries/?*/**/third-party/**|libraries**/._*|libraries/?*/c*/?*|libraries/?*/d*/?*|libraries/?*/D*/?*" flags="VALUE_WORKSPACE_PATH" kind="sourcePath" name=""/>
+                        <entry excluding="libraries/DueTimer/arduino|libraries/DueTimer/.settings|libraries/DueTimer/.git|libraries/due_can/.git|libraries/due_wire/.git|libraries/due_wire/.settings|libraries/due_wire/arduino|libraries/due_wire/Release|libraries/?*/**/?xamples/**|libraries/?*/**/?xtras/**|libraries/?*/**/test*/**|libraries/?*/**/third-party/**|libraries/**/._*|libraries/?*/utility/*/*" flags="VALUE_WORKSPACE_PATH" kind="sourcePath" name=""/>
                         					
                     </sourceEntries>
                     				
@@ -131,7 +131,7 @@
     	
     <storageModule moduleId="cdtBuildSystem" version="4.0.0">
         		
-        <project id="GEVCU.null.374462252" name="GEVCU"/>
+        <project id="GEVCU.null.1943897010" name="GEVCU"/>
         	
     </storageModule>
     	
@@ -143,8 +143,8 @@
     	
     <storageModule moduleId="org.eclipse.cdt.core.LanguageSettingsProviders"/>
     	
-    <storageModule moduleId="refreshScope"/>
-    	
     <storageModule moduleId="org.eclipse.cdt.make.core.buildtargets"/>
+    	
+    <storageModule moduleId="refreshScope"/>
     
 </cproject>

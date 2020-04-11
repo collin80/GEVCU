@@ -125,8 +125,8 @@ void ELM327Emu::loop()
                 incomingBuffer[ibWritePtr] = 0; //null terminate the string
                 ibWritePtr = 0; //reset the write pointer
 
-                if (Logger::isDebug()) {
-                    Logger::debug(this, incomingBuffer);
+                if (logger.isDebug()) {
+                    logger.debug(this, incomingBuffer);
                 }
 
                 processCmd();
@@ -152,10 +152,10 @@ void ELM327Emu::processCmd()
 
     serialInterface->print(retString);
 
-    if (Logger::isDebug()) {
+    if (logger.isDebug()) {
         char buff[30];
         retString.toCharArray(buff, 30);
-        Logger::debug(this, buff);
+        logger.debug(this, buff);
     }
 
 }
@@ -172,7 +172,7 @@ DeviceId ELM327Emu::getId()
 
 void ELM327Emu::loadConfiguration()
 {
-    ELM327Configuration *config = (ELM327Configuration *) getConfiguration();
+//    ELM327Configuration *config = (ELM327Configuration *) getConfiguration();
 
     if (prefsHandler->checksumValid()) { //checksum is good, read in the values stored in EEPROM
         //TODO: implement processing of config params for WIFI
@@ -184,7 +184,7 @@ void ELM327Emu::loadConfiguration()
 
 void ELM327Emu::saveConfiguration()
 {
-    ELM327Configuration *config = (ELM327Configuration *) getConfiguration();
+//    ELM327Configuration *config = (ELM327Configuration *) getConfiguration();
 
     //TODO: implement processing of config params for WIFI
 //  prefsHandler->write(EESYS_WIFI0_SSID, config->ssid);

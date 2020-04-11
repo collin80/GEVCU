@@ -64,7 +64,7 @@ void Device::setup()
 
     loadConfiguration();
 
-    Logger::info(this, "device started");
+    logger.info(this, "device started");
 }
 
 /**
@@ -78,13 +78,13 @@ void Device::tearDown()
     running = false;
     powerOn = false;
 
-    Logger::info(this, "device stopped");
+    logger.info(this, "device stopped");
 }
 
 /**
  * Retrieve the common name of the device.
  */
-char* Device::getCommonName()
+String Device::getCommonName()
 {
     return commonName;
 }
@@ -106,7 +106,7 @@ void Device::enable()
     }
     if (prefsHandler != NULL && prefsHandler->setEnabled(true)) {
         prefsHandler->suggestCacheWrite(); //just in case someone power cycles quickly
-        Logger::info(this, "Successfully enabled device %s.(%#x)", commonName, getId());
+        logger.info(this, "Successfully enabled device %s.(%#x)", commonName.c_str(), getId());
     }
     setup();
 }
@@ -121,7 +121,7 @@ void Device::disable()
     }
     if (prefsHandler != NULL && prefsHandler->setEnabled(false)) {
         prefsHandler->suggestCacheWrite(); //just in case someone power cycles quickly
-        Logger::info(this, "Successfully disabled device %s.(%#x)", commonName, getId());
+        logger.info(this, "Successfully disabled device %s.(%#x)", commonName.c_str(), getId());
     }
     tearDown();
 }
@@ -199,13 +199,15 @@ void Device::handleStateChange(Status::SystemState oldState, Status::SystemState
     case Status::shutdown: // stop all devices
         this->tearDown();
         break;
+    default:
+        break;
     }
 }
 
 /**
  * If a flag is set in a bitfield, add a message part to a message
  */
-void Device::appendMessage(String &message, uint32_t bitfield, uint32_t flag, char *part) {
+void Device::appendMessage(String &message, uint32_t bitfield, uint32_t flag, String part) {
     if (bitfield & flag) {
         if (message.length() > 0) {
             message.concat(", ");

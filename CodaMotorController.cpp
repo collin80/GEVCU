@@ -66,8 +66,8 @@ void CodaMotorController::handleCanFrame(CAN_FRAME *frame) {
     //TODO: running should only be set to true if the controller reports that its power-stageis up and running.
     running = true;
 
-    if (Logger::isDebug()) {
-        Logger::debug(this, "msg: %#02x   %#02x   %#02x   %#02x   %#02x   %#02x   %#02x   %#02x  %#02x", frame->id, frame->data.bytes[0], frame->data.bytes[1],
+    if (logger.isDebug()) {
+        logger.debug(this, "msg: %#02x   %#02x   %#02x   %#02x   %#02x   %#02x   %#02x   %#02x  %#02x", frame->id, frame->data.bytes[0], frame->data.bytes[1],
             frame->data.bytes[2], frame->data.bytes[3], frame->data.bytes[4], frame->data.bytes[5], frame->data.bytes[6], frame->data.bytes[7]);
     }
 
@@ -78,29 +78,29 @@ void CodaMotorController::handleCanFrame(CAN_FRAME *frame) {
         dcVoltage = (((frame->data.bytes[3] * 256) + frame->data.bytes[2]) - 32128);
         dcCurrent = (((frame->data.bytes[5] * 256) + frame->data.bytes[4]) - 32128);
         speedActual = abs((((frame->data.bytes[7] * 256) + frame->data.bytes[6]) - 32128) / 2);
-        if (Logger::isDebug()) {
-            Logger::debug(this, "Actual Torque: %d DC Voltage: %d Amps: %d RPM: %d", torqueActual / 10, dcVoltage / 10, dcCurrent / 10, speedActual);
+        if (logger.isDebug()) {
+            logger.debug(this, "Actual Torque: %d DC Voltage: %d Amps: %d RPM: %d", torqueActual / 10, dcVoltage / 10, dcCurrent / 10, speedActual);
         }
         reportActivity();
         break;
 
     case 0x20A:    //System Status Message
-        Logger::debug(this, "20A System Status Message Received");
+        logger.debug(this, "20A System Status Message Received");
         reportActivity();
         break;
 
     case 0x20B:    //Emergency Fuel Cutback Message
-        Logger::debug(this, "20B Emergency Fuel Cutback Message Received");
+        logger.debug(this, "20B Emergency Fuel Cutback Message Received");
         reportActivity();
         break;
 
     case 0x20C:    //Reserved Message
-        Logger::debug(this, "20C Reserved Message Received");
+        logger.debug(this, "20C Reserved Message Received");
         reportActivity();
         break;
 
     case 0x20D:    //Limited Torque Percentage Message
-        Logger::debug(this, "20D Limited Torque Percentage Message Received");
+        logger.debug(this, "20D Limited Torque Percentage Message Received");
         reportActivity();
         break;
 
@@ -110,14 +110,14 @@ void CodaMotorController::handleCanFrame(CAN_FRAME *frame) {
         statorTemp = frame->data.bytes[4];
         temperatureController = (invTemp - 40) * 10;
         temperatureMotor = (max(rotorTemp, statorTemp) - 40) * 10;
-        if (Logger::isDebug()) {
-            Logger::debug(this, "Inverter temp: %d Motor temp: %d", temperatureController, temperatureMotor);
+        if (logger.isDebug()) {
+            logger.debug(this, "Inverter temp: %d Motor temp: %d", temperatureController, temperatureMotor);
         }
         reportActivity();
         break;
 
     case 0x20F:    //CAN Watchdog Status Message
-        Logger::debug(this, "20F CAN Watchdog status error");
+        logger.debug(this, "20F CAN Watchdog status error");
         status.warning = true;
         running = false;
         sendCmd2(); //If we get a Watchdog status, we need to respond with Watchdog reset
@@ -168,7 +168,7 @@ void CodaMotorController::sendCmd1() {
         output.data.bytes[1] = 0x40; //0100 0000 disable
     }
 
-    if (getGear() == GEAR_REVERSE ^ config->invertDirection) {
+    if (getGear() == (GEAR_REVERSE ^ config->invertDirection)) {
         output.data.bytes[1] |= 0x10; //xx01 0000 reverse
     } else {
         output.data.bytes[1] |= 0x20; //xx10 0000 forward
@@ -196,16 +196,14 @@ void CodaMotorController::sendCmd1() {
 
     canHandlerEv.sendFrame(output);  //Mail it.
 
-    if (Logger::isDebug()) {
-        Logger::debug(this, "Torque command: %#x   %#x  ControlByte: %#x  LSB %#x  MSB: %#x  CRC: %#x", output.id, output.data.bytes[0],
+    if (logger.isDebug()) {
+        logger.debug(this, "Torque command: %#x   %#x  ControlByte: %#x  LSB %#x  MSB: %#x  CRC: %#x", output.id, output.data.bytes[0],
             output.data.bytes[1], output.data.bytes[2], output.data.bytes[3], output.data.bytes[4]);
     }
 
 }
 
 void CodaMotorController::sendCmd2() {
-    CodaMotorControllerConfiguration *config = (CodaMotorControllerConfiguration *) getConfiguration();
-
     /*In the CODA CAN bus capture logs, this command, defined in the UQM manual as a
      207 watchdog reset, is sent every 480msec.  It also always occurs after the last count of
      a sequence ie 57, 67, 97, or A7.  But this may just be coincidence.
@@ -220,8 +218,8 @@ void CodaMotorController::sendCmd2() {
     output.data.bytes[2] = 0x5a;
 
     canHandlerEv.sendFrame(output);
-    if (Logger::isDebug()) {
-        Logger::debug(this, "Watchdog reset: %#x  %#x  %#x", output.data.bytes[0], output.data.bytes[1], output.data.bytes[2]);
+    if (logger.isDebug()) {
+        logger.debug(this, "Watchdog reset: %#x  %#x  %#x", output.data.bytes[0], output.data.bytes[1], output.data.bytes[2]);
     }
 
     status.warning = false;

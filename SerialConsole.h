@@ -41,8 +41,8 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include "BrusaDMC5.h"
 #include "BrusaBSC6.h"
 #include "ThrottleDetector.h"
-#include "ichip_2128.h"
 #include "CanOBD2.h"
+#include "WifiIchip2128.h"
 
 class SerialConsole
 {

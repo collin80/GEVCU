@@ -96,6 +96,9 @@ protected:
     uint16_t normalizeAndConstrainInput(int32_t, int32_t, int32_t);
     int32_t normalizeInput(int32_t, int32_t, int32_t);
 
+    const String VALUE_OUT_OF_RANGE = "value out of range: %ld";
+    const String NORMAL_OPERATION = "normal operation restored";
+
 private:
     int16_t level; // the final signed throttle level. [-1000, 1000] in permille of maximum
 };

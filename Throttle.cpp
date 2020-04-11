@@ -65,8 +65,8 @@ void Throttle::handleTick()
         level = 0;
         running = false;
     }
-    if(Logger::isDebug()) {
-        Logger::debug(this, "raw: %d, level: %d, running: %d", rawSignals->input1, level, running);
+    if(logger.isDebug()) {
+        logger.debug(this, "raw: %d, level: %d, running: %d", rawSignals->input1, level, running);
     }
 }
 
@@ -134,7 +134,7 @@ int16_t Throttle::mapPedalPosition(int16_t pedalPosition)
         }
     }
 
-    //Logger::debug("throttle level: %d", throttleLevel);
+    //logger.debug("throttle level: %d", throttleLevel);
 
     //A bit of a kludge. Normally it isn't really possible to ever get to
     //100% output. This next line just fudges the numbers a bit to make it
@@ -219,7 +219,7 @@ void Throttle::loadConfiguration()
     ThrottleConfiguration *config = (ThrottleConfiguration *) getConfiguration();
 
     Device::loadConfiguration(); // call parent
-    Logger::info(this, "Throttle configuration:");
+    logger.info(this, "Throttle configuration:");
 
 #ifdef USE_HARD_CODED
 
@@ -247,10 +247,10 @@ void Throttle::loadConfiguration()
         config->maximumRegen = 50;
     }
 
-    Logger::info(this, "RegenMax: %ld RegenMin: %ld Fwd: %ld Map: %ld", config->positionRegenMaximum, config->positionRegenMinimum,
+    logger.info(this, "RegenMax: %ld RegenMin: %ld Fwd: %ld Map: %ld", config->positionRegenMaximum, config->positionRegenMinimum,
                   config->positionForwardMotionStart, config->positionHalfPower);
-    Logger::info(this, "MinRegen: %d MaxRegen: %d", config->minimumRegen, config->maximumRegen);
-    Logger::info(this, "T1 MIN: %ld, T1 MAX: %ld", config->minimumLevel, config->maximumLevel);
+    logger.info(this, "MinRegen: %d MaxRegen: %d", config->minimumRegen, config->maximumRegen);
+    logger.info(this, "T1 MIN: %ld, T1 MAX: %ld", config->minimumLevel, config->maximumLevel);
 }
 
 /*

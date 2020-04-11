@@ -157,7 +157,7 @@ public:
     Status();
     SystemState getSystemState();
     SystemState setSystemState(SystemState);
-    char *systemStateToStr(SystemState);
+    String systemStateToStr(SystemState);
     uint32_t getBitFieldMotor();
     uint32_t getBitFieldBms();
     uint32_t getBitFieldIO();

@@ -39,13 +39,13 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include "CRC8.h"
 
 // CAN bus id's for frames received from Orion BMS
-#define CAN_ID_PACK             0x6b0 // receive actual values information       110 1011 0000
-#define CAN_ID_LIMITS_SOC       0x6b1 // receive actual values information       110 1011 0001
-#define CAN_ID_CELL_VOLTAGE     0x6b2 // receive actual values information       110 1011 0010
-#define CAN_ID_CELL_RESISTANCE  0x6b3 // receive actual values information       110 1011 0011
-#define CAN_ID_HEALTH           0x6b4 // receive actual values information       110 1011 0100
-#define CAN_MASK                0x7f8 // mask for above id's                     111 1111 1000
-#define CAN_MASKED_ID           0x6b0 // masked id for above id's                110 1011 0000
+#define ORION_CAN_ID_PACK             0x6b0 // receive actual values information       110 1011 0000
+#define ORION_CAN_ID_LIMITS_SOC       0x6b1 // receive actual values information       110 1011 0001
+#define ORION_CAN_ID_CELL_VOLTAGE     0x6b2 // receive actual values information       110 1011 0010
+#define ORION_CAN_ID_CELL_RESISTANCE  0x6b3 // receive actual values information       110 1011 0011
+#define ORION_CAN_ID_HEALTH           0x6b4 // receive actual values information       110 1011 0100
+#define ORION_CAN_MASK                0x7f8 // mask for above id's                     111 1111 1000
+#define ORION_CAN_MASKED_ID           0x6b0 // masked id for above id's                110 1011 0000
 
 class OrionBMS : public BatteryManager, CanObserver
 {

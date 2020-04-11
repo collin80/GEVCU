@@ -109,7 +109,7 @@ void DcDcConverter::loadConfiguration()
     }
 
     Device::loadConfiguration(); // call parent
-    Logger::info(this, "DC-DC converter configuration:");
+    logger.info(this, "DC-DC converter configuration:");
 
 #ifdef USE_HARD_CODED
 
@@ -117,7 +117,6 @@ void DcDcConverter::loadConfiguration()
 #else
     if (prefsHandler->checksumValid()) { //checksum is good, read in the values stored in EEPROM
 #endif
-        uint8_t temp;
         prefsHandler->read(EEDC_BOOST_MODE, &config->mode);
         prefsHandler->read(EEDC_LOW_VOLTAGE, &config->lowVoltageCommand);
         prefsHandler->read(EEDC_HV_UNDERVOLTAGE_LIMIT, &config->hvUndervoltageLimit);
@@ -140,9 +139,9 @@ void DcDcConverter::loadConfiguration()
         saveConfiguration();
     }
 
-    Logger::info(this, "operation mode: %s", (config->mode ? "boost" : "buck"));
-    Logger::info(this, "buck : LV command %.1fV (max %dA), HV min %dV (max %.1fA)", (float) config->lowVoltageCommand / 10.0F, config->lvBuckModeCurrentLimit, config->hvUndervoltageLimit, (float) config->hvBuckModeCurrentLimit / 10.0F);
-    Logger::info(this, "boost: HV command %dV (max %.1fA), LV min %.1fV (max %dA)", config->highVoltageCommand, (float) config->hvBoostModeCurrentLimit / 10.0, (float) config->lvUndervoltageLimit / 10.0F, config->lvBoostModeCurrentLinit);
+    logger.info(this, "operation mode: %s", (config->mode ? "boost" : "buck"));
+    logger.info(this, "buck : LV command %.1fV (max %dA), HV min %dV (max %.1fA)", (float) config->lowVoltageCommand / 10.0F, config->lvBuckModeCurrentLimit, config->hvUndervoltageLimit, (float) config->hvBuckModeCurrentLimit / 10.0F);
+    logger.info(this, "boost: HV command %dV (max %.1fA), LV min %.1fV (max %dA)", config->highVoltageCommand, (float) config->hvBoostModeCurrentLimit / 10.0, (float) config->lvUndervoltageLimit / 10.0F, config->lvBoostModeCurrentLinit);
 }
 
 /*

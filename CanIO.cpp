@@ -41,8 +41,8 @@ void CanIO::setup()
     motorController = deviceManager.getMotorController();
     dcdcConverter = deviceManager.getDcDcConverter();
 
-    canHandlerEv.attach(this, CAN_MASKED_ID, CAN_MASK, false);
-    canHandlerCar.attach(this, CAN_MASKED_ID_CAR, CAN_MASK_CAR, false);
+    canHandlerEv.attach(this, IO_CAN_MASKED_ID, IO_CAN_MASK, false);
+    canHandlerCar.attach(this, IO_CAN_MASKED_ID_CAR, IO_CAN_MASK_CAR, false);
 
     ready = true;
     running = true;
@@ -58,7 +58,7 @@ void CanIO::tearDown()
     Device::tearDown();
     sendIOStatus(); // so the error state is transmitted
 
-    canHandlerEv.detach(this, CAN_MASKED_ID, CAN_MASK);
+    canHandlerEv.detach(this, IO_CAN_MASKED_ID, IO_CAN_MASK);
 }
 
 void CanIO::handleTick()
@@ -74,23 +74,23 @@ void CanIO::handleTick()
 void CanIO::handleCanFrame(CAN_FRAME *frame)
 {
     switch (frame->id) {
-    case CAN_ID_GEVCU_EXT_TEMPERATURE:
+    case IO_CAN_ID_GEVCU_EXT_TEMPERATURE:
         processTemperature(frame->data.byte);
         break;
-    case CAN_ID_GEVCU_EXT_FLOW_COOL:
+    case IO_CAN_ID_GEVCU_EXT_FLOW_COOL:
         status.flowCoolant = frame->data.high;
         break;
-    case CAN_ID_GEVCU_EXT_FLOW_HEAT:
+    case IO_CAN_ID_GEVCU_EXT_FLOW_HEAT:
         status.flowHeater = frame->data.high;
         break;
-    case CAN_ID_GEVCU_EXT_HEATER:
+    case IO_CAN_ID_GEVCU_EXT_HEATER:
         status.heaterPower = frame->data.bytes[0] << 8 | frame->data.bytes[1];
         status.heaterTemperature = frame->data.bytes[2];
         break;
-    case CAN_ID_CRUISE_CONTROL: // buttons on the steering wheel
+    case IO_CAN_ID_CRUISE_CONTROL: // buttons on the steering wheel
     	motorController->handleCruiseControlButton(getCruiseControlButton(frame->data.byte));
     	break;
-    case CAN_ID_VEHICLE_SPEED:
+    case IO_CAN_ID_VEHICLE_SPEED:
     	//TODO read vehicle speed
     	break;
     }
@@ -146,7 +146,7 @@ void CanIO::handleMessage(uint32_t msgType, void* message)
  */
 void CanIO::sendIOStatus()
 {
-    canHandlerEv.prepareOutputFrame(&outputFrame, CAN_ID_GEVCU_STATUS);
+    canHandlerEv.prepareOutputFrame(&outputFrame, IO_CAN_ID_GEVCU_STATUS);
 
     uint16_t rawIO = 0;
     rawIO |= status.digitalInput[0] ? digitalIn1 : 0;
@@ -197,7 +197,7 @@ void CanIO::sendIOStatus()
  */
 void CanIO::sendAnalogData()
 {
-    canHandlerEv.prepareOutputFrame(&outputFrame, CAN_ID_GEVCU_ANALOG_IO);
+    canHandlerEv.prepareOutputFrame(&outputFrame, IO_CAN_ID_GEVCU_ANALOG_IO);
     outputFrame.data.s0 = systemIO.getAnalogIn(0);
     outputFrame.data.s1 = systemIO.getAnalogIn(1);
     outputFrame.data.s2 = systemIO.getAnalogIn(2);
@@ -210,7 +210,7 @@ void CanIO::sendAnalogData()
  */
 void CanIO::sendMotorData()
 {
-    canHandlerCar.prepareOutputFrame(&outputFrame, CAN_ID_GEVCU_MOTOR_DATA);
+    canHandlerCar.prepareOutputFrame(&outputFrame, IO_CAN_ID_GEVCU_MOTOR_DATA);
     if (motorController != NULL) {
         outputFrame.data.s0 = max(motorController->getSpeedActual(), 0);
     }
@@ -224,14 +224,14 @@ void CanIO::processTemperature(byte bytes[])
 {
     for (int i = 0; i < CFG_NUMBER_BATTERY_TEMPERATURE_SENSORS; i++) {
         status.temperatureBattery[i] = (bytes[i] == 0 ? CFG_NO_TEMPERATURE_DATA : (bytes[i] - CFG_CAN_TEMPERATURE_OFFSET) * 10);
-        if (Logger::isDebug()) {
-            Logger::debug(this, "battery temperature %d: %.1f", i, status.temperatureBattery[i] / 10.0f);
+        if (logger.isDebug()) {
+            logger.debug(this, "battery temperature %d: %.1f", i, status.temperatureBattery[i] / 10.0f);
         }
     }
     status.temperatureCoolant = (bytes[6] == 0 ? CFG_NO_TEMPERATURE_DATA : (bytes[6] - CFG_CAN_TEMPERATURE_OFFSET) * 10);
     status.temperatureExterior = (bytes[7] == 0 ? CFG_NO_TEMPERATURE_DATA : (bytes[7] - CFG_CAN_TEMPERATURE_OFFSET) * 10);
-    if (Logger::isDebug()) {
-        Logger::debug(this, "coolant temperature: %.1f, exterior temperature %.1f", status.temperatureCoolant / 10.0f,
+    if (logger.isDebug()) {
+        logger.debug(this, "coolant temperature: %.1f, exterior temperature %.1f", status.temperatureCoolant / 10.0f,
                 status.temperatureExterior / 10.0f);
     }
 }
@@ -256,7 +256,7 @@ void CanIO::loadConfiguration()
     }
 
     Device::loadConfiguration(); // call parent
-    Logger::info(this, "CAN I/O configuration:");
+    logger.info(this, "CAN I/O configuration:");
 
 #ifdef USE_HARD_CODED
     if (false) {
@@ -268,7 +268,7 @@ void CanIO::loadConfiguration()
 //        config-> = 0;
         saveConfiguration();
     }
-//    Logger::info(getId(), "xyz: %d", config->);
+//    logger.info(getId(), "xyz: %d", config->);
 }
 
 void CanIO::saveConfiguration()

@@ -59,7 +59,7 @@ BrusaBSC6::BrusaBSC6() : DcDcConverter()
 void BrusaBSC6::tearDown()
 {
     DcDcConverter::tearDown();
-    canHandlerEv.detach(this, CAN_MASKED_ID, CAN_MASK);
+    canHandlerEv.detach(this, BSC6_CAN_MASKED_ID, BSC6_CAN_MASK);
     sendControl(); // as powerOn is false now, send last command to deactivate controller
 }
 
@@ -72,7 +72,7 @@ void BrusaBSC6::handleStateChange(Status::SystemState oldState, Status::SystemSt
     if (powerOnBefore != powerOn) {
         if (powerOn) {
             // register ourselves as observer of 0x26a-0x26f can frames
-            canHandlerEv.attach(this, CAN_MASKED_ID, CAN_MASK, false);
+            canHandlerEv.attach(this, BSC6_CAN_MASKED_ID, BSC6_CAN_MASK, false);
             tickHandler.attach(this, CFG_TICK_INTERVAL_DCDC_BSC6);
         } else {
             tearDown();
@@ -129,16 +129,16 @@ void BrusaBSC6::sendLimits()
 void BrusaBSC6::handleCanFrame(CAN_FRAME *frame)
 {
     switch (frame->id) {
-        case CAN_ID_VALUES_1:
+        case BSC6_CAN_ID_VALUES_1:
             processValues1(frame->data.bytes);
             break;
-        case CAN_ID_VALUES_2:
+        case BSC6_CAN_ID_VALUES_2:
             processValues2(frame->data.bytes);
             break;
-        case CAN_ID_DEBUG_1:
+        case BSC6_CAN_ID_DEBUG_1:
             processDebug1(frame->data.bytes);
             break;
-        case CAN_ID_DEBUG_2:
+        case BSC6_CAN_ID_DEBUG_2:
             processDebug2(frame->data.bytes);
             break;
     }
@@ -167,8 +167,8 @@ void BrusaBSC6::processValues1(uint8_t data[])
     lvCurrent = (int16_t)(data[6] | (data[5] << 8)) - 280;
     mode = (data[7] & 0xF0) >> 4;
 
-    if (Logger::isDebug()) {
-        Logger::debug(this, "status bitfield: %#08x, ready: %d, running: %d, HV: %fV %fA, LV: %fV %dA, mode %d", bitfield, ready, running, (float) hvVoltage / 10.0F, (float) hvCurrent / 10.0F, (float) lvVoltage / 10.0F, lvCurrent, mode);
+    if (logger.isDebug()) {
+        logger.debug(this, "status bitfield: %#08x, ready: %d, running: %d, HV: %fV %fA, LV: %fV %dA, mode %d", bitfield, ready, running, (float) hvVoltage / 10.0F, (float) hvCurrent / 10.0F, (float) lvVoltage / 10.0F, lvCurrent, mode);
     }
 }
 
@@ -209,10 +209,10 @@ void BrusaBSC6::processValues2(uint8_t data[])
         appendMessage(error, bitfield, crcErrorNVSRAM, "CRC error NVSRAM");
         appendMessage(error, bitfield, brokenTemperatureSensor, "broken temp sensor");
 
-        Logger::error(this, "error (%#08x): %s", bitfield, error.c_str());
+        logger.error(this, "error (%#08x): %s", bitfield, error.c_str());
     }
-    if (Logger::isDebug()) {
-        Logger::debug(this, "LV current avail: %dA, maximum Temperature: %.1fC", lvCurrentAvailable, (float) temperature / 10.0F);
+    if (logger.isDebug()) {
+        logger.debug(this, "LV current avail: %dA, maximum Temperature: %.1fC", lvCurrentAvailable, (float) temperature / 10.0F);
     }
 }
 
@@ -232,11 +232,11 @@ void BrusaBSC6::processDebug1(uint8_t data[])
     temperatureTransformerCoil1 = (uint8_t)data[6];
     temperatureTransformerCoil2 = (uint8_t)data[7];
 
-    if (Logger::isDebug()) {
-        Logger::debug(this, "Temp buck/boost switch 1: %d�C, switch 2: %d�C", temperatureBuckBoostSwitch1, temperatureBuckBoostSwitch2);
-        Logger::debug(this, "Temp HV trafostage switch 1: %d�C, switch 2: %d�C", temperatureHvTrafostageSwitch1, temperatureHvTrafostageSwitch2);
-        Logger::debug(this, "Temp LV trafostage switch 1: %d�C, switch 2: %d�C", temperatureLvTrafostageSwitch1, temperatureLvTrafostageSwitch2);
-        Logger::debug(this, "Temp transformer coil 1: %d�C, coil 2: %d�C", temperatureTransformerCoil1, temperatureTransformerCoil2);
+    if (logger.isDebug()) {
+        logger.debug(this, "Temp buck/boost switch 1: %d�C, switch 2: %d�C", temperatureBuckBoostSwitch1, temperatureBuckBoostSwitch2);
+        logger.debug(this, "Temp HV trafostage switch 1: %d�C, switch 2: %d�C", temperatureHvTrafostageSwitch1, temperatureHvTrafostageSwitch2);
+        logger.debug(this, "Temp LV trafostage switch 1: %d�C, switch 2: %d�C", temperatureLvTrafostageSwitch1, temperatureLvTrafostageSwitch2);
+        logger.debug(this, "Temp transformer coil 1: %d�C, coil 2: %d�C", temperatureTransformerCoil1, temperatureTransformerCoil2);
     }
 }
 
@@ -253,10 +253,10 @@ void BrusaBSC6::processDebug2(uint8_t data[])
     lsCommandedCurrent = (int16_t)data[3] - 6000;
     internalOperationState = (uint8_t)data[4];
 
-    if (Logger::isDebug()) {
-        Logger::debug(this, "internal 12V supply: %.1fV, LS actual voltage: %.1fV", (float) internal12VSupplyVoltage / 10.0F, (float) lsActualVoltage / 10.0F);
-        Logger::debug(this, "LS actual current: %.2fA, LS commanded current: %.2fA", (float) internal12VSupplyVoltage / 200.0F, (float) lsActualVoltage / 200.0F);
-        Logger::debug(this, "internal power state: %d", internalOperationState);
+    if (logger.isDebug()) {
+        logger.debug(this, "internal 12V supply: %.1fV, LS actual voltage: %.1fV", (float) internal12VSupplyVoltage / 10.0F, (float) lsActualVoltage / 10.0F);
+        logger.debug(this, "LS actual current: %.2fA, LS commanded current: %.2fA", (float) internal12VSupplyVoltage / 200.0F, (float) lsActualVoltage / 200.0F);
+        logger.debug(this, "internal power state: %d", internalOperationState);
     }
 }
 
@@ -267,12 +267,12 @@ void BrusaBSC6::prepareCanMessages()
 {
     BrusaBSC6Configuration *config = (BrusaBSC6Configuration *) getConfiguration();
 
-    canHandlerEv.prepareOutputFrame(&outputFrameControl, CAN_ID_COMMAND);
+    canHandlerEv.prepareOutputFrame(&outputFrameControl, BSC6_CAN_ID_COMMAND);
     outputFrameControl.data.bytes[1] = constrain(config->lowVoltageCommand, 80, 160); // 8-16V in 0.1V, offset = 0V
     outputFrameControl.data.bytes[2] = constrain(config->highVoltageCommand - 170, 20, 255); // 190-425V in 1V, offset = 170V
     outputFrameControl.length = 3;
 
-    canHandlerEv.prepareOutputFrame(&outputFrameLimits, CAN_ID_LIMIT);
+    canHandlerEv.prepareOutputFrame(&outputFrameLimits, BSC6_CAN_ID_LIMIT);
     outputFrameLimits.data.bytes[0] = constrain(config->hvUndervoltageLimit - 170, 0, 255);
     outputFrameLimits.data.bytes[1] = constrain(config->lvBuckModeCurrentLimit, 0, 250);
     outputFrameLimits.data.bytes[2] = constrain(config->hvBuckModeCurrentLimit, 0, 250);
@@ -319,7 +319,7 @@ void BrusaBSC6::loadConfiguration()
         config->debugMode = false; // no debug messages
         saveConfiguration();
     }
-    Logger::info(this, "debug: %d", config->debugMode);
+    logger.info(this, "debug: %d", config->debugMode);
 
     prepareCanMessages();
 }

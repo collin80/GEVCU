@@ -61,7 +61,7 @@ bool Heartbeat::getThrottleDebug()
 void Heartbeat::handleTick()
 {
     // Print a dot if no other output has been made since the last tick
-    if (Logger::getLastLogTime() < lastTickTime) {
+    if (logger.getLastLogTime() < lastTickTime) {
         SerialUSB.print('.');
 
         if ((++dotCount % 80) == 0) {
@@ -80,25 +80,24 @@ void Heartbeat::handleTick()
     led = !led;
 
     if (throttleDebug) {
-        MotorController *motorController = deviceManager.getMotorController();
         Throttle *accelerator = deviceManager.getAccelerator();
         Throttle *brake = deviceManager.getBrake();
 
-        Logger::console("");
+        logger.console("");
 
-        Logger::console("System State: %s", status.systemStateToStr(status.getSystemState()));
+        logger.console("System State: %s", status.systemStateToStr(status.getSystemState()).c_str());
         systemIO.printIOStatus();
 
         if (accelerator) {
-            Logger::console("Throttle Status: isFaulted: %d level: %i", accelerator->isFaulted(), accelerator->getLevel());
+            logger.console("Throttle Status: isFaulted: %d level: %i", accelerator->isFaulted(), accelerator->getLevel());
             RawSignalData *rawSignal = accelerator->acquireRawSignal();
-            Logger::console("Throttle rawSignal1: %d, rawSignal2: %d", rawSignal->input1, rawSignal->input2);
+            logger.console("Throttle rawSignal1: %d, rawSignal2: %d", rawSignal->input1, rawSignal->input2);
         }
 
         if (brake) {
-            Logger::console("Brake Output: %i", brake->getLevel());
+            logger.console("Brake Output: %i", brake->getLevel());
             RawSignalData *rawSignal = brake->acquireRawSignal();
-            Logger::console("Brake rawSignal1: %d", rawSignal->input1);
+            logger.console("Brake rawSignal1: %d", rawSignal->input1);
         }
     }
 }

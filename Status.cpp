@@ -215,13 +215,16 @@ Status::SystemState Status::setSystemState(SystemState newSystemState)
                 systemState = newSystemState;
             }
             break;
+        case shutdown:
+        case error:
+            break;
         }
     }
     if (systemState == newSystemState) {
-        Logger::info("switching to system state '%s'", systemStateToStr(systemState));
+        logger.info("switching to system state '%s'", systemStateToStr(systemState).c_str());
         stateTimestamp = millis();
     } else {
-        Logger::error("switching from system state '%s' to '%s' is not allowed", systemStateToStr(systemState), systemStateToStr(newSystemState));
+        logger.error("switching from system state '%s' to '%s' is not allowed", systemStateToStr(systemState).c_str(), systemStateToStr(newSystemState).c_str());
         systemState = error;
     }
 
@@ -254,7 +257,7 @@ int16_t Status::getHighestBatteryTemperature() {
 /*
  * Convert the current state into a string.
  */
-char *Status::systemStateToStr(SystemState state)
+String Status::systemStateToStr(SystemState state)
 {
     switch (state) {
     case startup:
@@ -280,7 +283,7 @@ char *Status::systemStateToStr(SystemState state)
     case shutdown:
         return "shut-down";
     }
-    Logger::error("the system state is invalid, contact your support!");
+    logger.error("the system state is invalid, contact your support!");
     return "invalid";
 }
 

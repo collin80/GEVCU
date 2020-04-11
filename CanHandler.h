@@ -34,7 +34,7 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include <DueTimer.h>
 #include "Logger.h"
 
-class CanObserver
+class CanObserver // @suppress("Class has a virtual method and non-virtual destructor")
 {
 public:
     virtual void handleCanFrame(CAN_FRAME *frame);

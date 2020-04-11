@@ -31,28 +31,28 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include <Arduino.h>
 #include "config.h"
 #include "Status.h"
+#include "Logger.h"
 #include "MotorController.h"
 #include "SystemIO.h"
 #include "TickHandler.h"
 #include "DeviceManager.h"
-#include "ichip_2128.h"
 #include "DeviceTypes.h"
 
 // CAN bus id's for frames sent to DMC5
 
-#define CAN_ID_CONTROL      0x210 // send commands (DMC_CTRL)
-#define CAN_ID_LIMIT        0x211 // send limitations (DMC_LIM)
-#define CAN_ID_CONTROL_2    0x212 // send commands (DMC_CTRL2)
+#define DMC5_CAN_ID_CONTROL      0x210 // send commands (DMC_CTRL)
+#define DMC5_CAN_ID_LIMIT        0x211 // send limitations (DMC_LIM)
+#define DMC5_CAN_ID_CONTROL_2    0x212 // send commands (DMC_CTRL2)
 
 // CAN bus id's for frames received from DMC5
 
-#define CAN_ID_STATUS           0x258 // receive (limit) status message (DMC_TRQS)      01001011000
-#define CAN_ID_ACTUAL_VALUES    0x259 // receive actual values (DMC_ACTV)               01001011001
-#define CAN_ID_ERRORS           0x25a // receive error codes (DMC_ERR)                  01001011010
-#define CAN_ID_TORQUE_LIMIT     0x268 // receive torque limit information (DMC_TRQS2)   01001101000
-#define CAN_ID_TEMP             0x458 // receive temperature information (DMC_TEMP)     10001011000
-#define CAN_MASK                0x1cc // mask for above id's                            00111001100
-#define CAN_MASKED_ID           0x048 // masked id for id's from 0x258 to 0x268         00001001000
+#define DMC5_CAN_ID_STATUS           0x258 // receive (limit) status message (DMC_TRQS)      01001011000
+#define DMC5_CAN_ID_ACTUAL_VALUES    0x259 // receive actual values (DMC_ACTV)               01001011001
+#define DMC5_CAN_ID_ERRORS           0x25a // receive error codes (DMC_ERR)                  01001011010
+#define DMC5_CAN_ID_TORQUE_LIMIT     0x268 // receive torque limit information (DMC_TRQS2)   01001101000
+#define DMC5_CAN_ID_TEMP             0x458 // receive temperature information (DMC_TEMP)     10001011000
+#define DMC5_CAN_MASK                0x1cc // mask for above id's                            00111001100
+#define DMC5_CAN_MASKED_ID           0x048 // masked id for id's from 0x258 to 0x268         00001001000
 
 class BrusaDMC5Configuration : public MotorControllerConfiguration
 {
@@ -157,7 +157,7 @@ public:
     void handleStateChange(Status::SystemState, Status::SystemState);
     void tearDown();
     DeviceId getId();
-    int32_t getMechanicalPower();
+    int16_t getMechanicalPower();
 
     void loadConfiguration();
     void saveConfiguration();

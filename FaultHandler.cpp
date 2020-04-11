@@ -43,7 +43,7 @@ void FaultHandler::setup()
 {
     tickHandler.detach(this);
 
-    Logger::info("Initializing Fault Handler", FAULTSYS, this);
+    logger.info("Initializing Fault Handler", FAULTSYS, this);
 
     loadFromEEPROM();
 
@@ -96,7 +96,7 @@ void FaultHandler::raiseFault(uint16_t device, uint16_t code, bool ongoing = fal
         //Cause the page to be immediately fully aged so that it is written very soon.
         memCache.AgeFullyAddress(EE_FAULT_LOG + EEFAULT_WRITEPTR);
         //Also announce fault on the console
-        Logger::error("Fault %#x raised by device %#x at uptime %i", code, device, globalTime);
+        logger.error("Fault %#x raised by device %#x at uptime %i", code, device, globalTime);
     }
 }
 

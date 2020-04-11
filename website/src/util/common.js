@@ -43,7 +43,6 @@ function loadPage(pageId) {
 			ajaxCall("config/dashboard.js", function (response) {
 				var data = JSON.parse(response);
 				generateGauges(data);
-				dashboard.addChargeOptions(data);
 				dashboard.setCruiseData(data);
 			});
 			loadPage("annunciator");

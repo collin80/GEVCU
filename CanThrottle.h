@@ -32,7 +32,6 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include "Throttle.h"
 #include "TickHandler.h"
 #include "CanHandler.h"
-#include "constants.h"
 #include "DeviceManager.h"
 
 enum CanCarType {

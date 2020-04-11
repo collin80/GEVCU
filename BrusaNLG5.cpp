@@ -56,7 +56,7 @@ void BrusaNLG5::tearDown()
 {
     Charger::tearDown();
 
-    canHandlerEv.detach(this, CAN_MASKED_ID, CAN_MASK);
+    canHandlerEv.detach(this, NLG5_CAN_MASKED_ID, NLG5_CAN_MASK);
     sendControl();
 }
 
@@ -86,7 +86,7 @@ void BrusaNLG5::handleTick()
 void BrusaNLG5::sendControl()
 {
     BrusaNLG5Configuration *config = (BrusaNLG5Configuration *) getConfiguration();
-    canHandlerEv.prepareOutputFrame(&outputFrame, CAN_ID_COMMAND);
+    canHandlerEv.prepareOutputFrame(&outputFrame, NLG5_CAN_ID_COMMAND);
 
     if (powerOn && (ready || running)) {
         outputFrame.data.bytes[0] |= enable;
@@ -122,7 +122,7 @@ void BrusaNLG5::handleStateChange(Status::SystemState oldState, Status::SystemSt
     if ((newState == Status::charging || newState == Status::batteryHeating) &&
             oldState != Status::charging && oldState != Status::batteryHeating) {
         tickHandler.attach(this, CFG_TICK_INTERVAL_CHARGE_NLG5);
-        canHandlerEv.attach(this, CAN_MASKED_ID, CAN_MASK, false);
+        canHandlerEv.attach(this, NLG5_CAN_MASKED_ID, NLG5_CAN_MASK, false);
         canTickCounter = 0;
     } else {
         if (oldState == Status::charging) {
@@ -141,19 +141,19 @@ void BrusaNLG5::handleStateChange(Status::SystemState oldState, Status::SystemSt
 void BrusaNLG5::handleCanFrame(CAN_FRAME *frame)
 {
     switch (frame->id) {
-        case CAN_ID_STATUS:
+        case NLG5_CAN_ID_STATUS:
             processStatus(frame->data.bytes);
             break;
-        case CAN_ID_VALUES_1:
+        case NLG5_CAN_ID_VALUES_1:
             processValues1(frame->data.bytes);
             break;
-        case CAN_ID_VALUES_2:
+        case NLG5_CAN_ID_VALUES_2:
             processValues2(frame->data.bytes);
             break;
-        case CAN_ID_TEMPERATURE:
+        case NLG5_CAN_ID_TEMPERATURE:
             processTemperature(frame->data.bytes);
             break;
-        case CAN_ID_ERROR:
+        case NLG5_CAN_ID_ERROR:
             processError(frame->data.bytes);
             break;
     }
@@ -176,7 +176,7 @@ void BrusaNLG5::processStatus(uint8_t data[])
     if ((bitfield & error) && powerOn) {
         errorPresent = true;
         if (millis() > 10000) {
-            Logger::error(this, "Charger reported an error, terminating charge.");
+            logger.error(this, "Charger reported an error, terminating charge.");
             status.setSystemState(Status::error);
         }
     }
@@ -206,8 +206,8 @@ void BrusaNLG5::processStatus(uint8_t data[])
 //    limitMaximumOutputCurrent
 //    limitMaximumMainsCurrent
 
-    if (Logger::isDebug()) {
-        Logger::debug(this, "status bitfield: %#08x", bitfield);
+    if (logger.isDebug()) {
+        logger.debug(this, "status bitfield: %#08x", bitfield);
     }
 }
 
@@ -223,8 +223,8 @@ void BrusaNLG5::processValues1(uint8_t data[])
     batteryVoltage = (uint16_t)(data[5] | (data[4] << 8));
     batteryCurrent = (uint16_t)(data[7] | (data[6] << 8));
 
-    if (Logger::isDebug()) {
-        Logger::debug(this, "mains: %.1fV, %.1fA, battery: %.1fV, %.1fA", (float) inputVoltage / 10.0F, (float) inputCurrent / 100.0F, (float) batteryVoltage / 10.0F, (float) batteryCurrent / 100.0F);
+    if (logger.isDebug()) {
+        logger.debug(this, "mains: %.1fV, %.1fA, battery: %.1fV, %.1fA", (float) inputVoltage / 10.0F, (float) inputCurrent / 100.0F, (float) batteryVoltage / 10.0F, (float) batteryCurrent / 100.0F);
     }
 }
 
@@ -241,9 +241,9 @@ void BrusaNLG5::processValues2(uint8_t data[])
     extChargeBalance = (uint16_t)(data[5] | (data[4] << 8));
     boosterOutputCurrent = (uint16_t)(data[7] | (data[6] << 8));
 
-    if (Logger::isDebug()) {
-        Logger::debug(this, "current limit by control pilot: %.1fA, by power indicator: %.1fA", (float) currentLimitControlPilot / 10.0F, (float) currentLimitPowerIndicator / 10.0F);
-        Logger::debug(this, "aux battery: %fV, external charge balance: %.1fAh, booster output; %.1fA", (float) auxBatteryVoltage / 10.0F, (float) extChargeBalance / 100.0F, (float) boosterOutputCurrent / 100.0F);
+    if (logger.isDebug()) {
+        logger.debug(this, "current limit by control pilot: %.1fA, by power indicator: %.1fA", (float) currentLimitControlPilot / 10.0F, (float) currentLimitPowerIndicator / 10.0F);
+        logger.debug(this, "aux battery: %fV, external charge balance: %.1fAh, booster output; %.1fA", (float) auxBatteryVoltage / 10.0F, (float) extChargeBalance / 100.0F, (float) boosterOutputCurrent / 100.0F);
     }
 }
 
@@ -259,9 +259,9 @@ void BrusaNLG5::processTemperature(uint8_t data[])
     temperatureExtSensor2 = (uint16_t)(data[5] | (data[4] << 8));
     temperatureExtSensor3 = (uint16_t)(data[7] | (data[6] << 8));
 
-    if (Logger::isDebug()) {
-        Logger::debug(this, "Temp power stage: %.1fC, Temp ext sensor 1: %.1fC", (float) temperature / 10.0F, (float) temperatureExtSensor1 / 10.0F);
-        Logger::debug(this, "Temp ext sensor 2: %.1fC, Temp ext sensor 3: %.1fC", (float) temperatureExtSensor2 / 10.0F, (float) temperatureExtSensor3 / 10.0F);
+    if (logger.isDebug()) {
+        logger.debug(this, "Temp power stage: %.1fC, Temp ext sensor 1: %.1fC", (float) temperature / 10.0F, (float) temperatureExtSensor1 / 10.0F);
+        logger.debug(this, "Temp ext sensor 2: %.1fC, Temp ext sensor 3: %.1fC", (float) temperatureExtSensor2 / 10.0F, (float) temperatureExtSensor3 / 10.0F);
     }
 }
 
@@ -308,7 +308,7 @@ void BrusaNLG5::processError(uint8_t data[])
         appendMessage(error, bitfield, crcNVSRAM, "CRC NVSRAM");
         appendMessage(error, bitfield, crcFlashMemory, "CRC flash memory");
 
-        Logger::error(this, "error (%#08x): %s", bitfield, error.c_str());
+        logger.error(this, "error (%#08x): %s", bitfield, error.c_str());
     }
 
     bitfield = (uint32_t)data[4];
@@ -323,7 +323,7 @@ void BrusaNLG5::processError(uint8_t data[])
         appendMessage(warning, bitfield, limitLowBatteryVoltage, "limit low battery voltage");
         appendMessage(warning, bitfield, limitLowMainsVoltage, "limit low mains voltage");
 
-        Logger::warn(this, "limit (%#08x): %s", bitfield, warning.c_str());
+        logger.warn(this, "limit (%#08x): %s", bitfield, warning.c_str());
     }
 }
 
@@ -365,7 +365,7 @@ void BrusaNLG5::loadConfiguration()
  */
 void BrusaNLG5::saveConfiguration()
 {
-    BrusaNLG5Configuration *config = (BrusaNLG5Configuration *) getConfiguration();
+//    BrusaNLG5Configuration *config = (BrusaNLG5Configuration *) getConfiguration();
 
     Charger::saveConfiguration(); // call parent
 

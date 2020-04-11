@@ -50,7 +50,7 @@ PrefHandler::PrefHandler(DeviceId id_in)
             enabled = true;
         }
         base_address = EE_DEVICES_BASE + (EE_DEVICE_SIZE * position);
-        Logger::debug("Device ID %#x was found in device table at entry %i", (int) deviceId, position);
+        logger.debug("Device ID %#x was found in device table at entry %i", (int) deviceId, position);
         return;
     }
 
@@ -61,13 +61,13 @@ PrefHandler::PrefHandler(DeviceId id_in)
         base_address = EE_DEVICES_BASE + (EE_DEVICE_SIZE * position);
         lkg_address = EE_MAIN_OFFSET;
         memCache.Write(EE_DEVICE_TABLE + (2 * position), (uint16_t)deviceId);
-        Logger::debug("Device ID: %#x was placed into device table at entry: %i", (int) deviceId, position);
+        logger.debug("Device ID: %#x was placed into device table at entry: %i", (int) deviceId, position);
         return;
     }
 
     //we found no matches and could not allocate a space. This is bad. Error out here
     base_address = 0xF0F0;
-    Logger::error("PrefManager - Device Table Full (Device ID: %#x) !!!", deviceId);
+    logger.error("PrefManager - Device Table Full (Device ID: %#x) !!!", deviceId);
 }
 
 PrefHandler::~PrefHandler()
@@ -86,7 +86,7 @@ void PrefHandler::initDeviceTable()
         return;
     }
 
-    Logger::debug("Initializing EEPROM device table");
+    logger.debug("Initializing EEPROM device table");
 
     //initialize table with zeros
     id = 0;
@@ -257,10 +257,10 @@ bool PrefHandler::checksumValid()
     memCache.Read(EE_CHECKSUM + base_address + lkg_address, &stored_chk);
     calc_chk = calcChecksum();
     if (stored_chk == calc_chk) {
-        Logger::debug("%#x valid checksum, using stored config values", deviceId);
+        logger.debug("%#x valid checksum, using stored config values", deviceId);
         return true;
     } else {
-        Logger::warn("#x invalid checksum, using hard coded config values (stored: %#x, calc: %#x", deviceId, stored_chk, calc_chk);
+        logger.warn("#x invalid checksum, using hard coded config values (stored: %#x, calc: %#x", deviceId, stored_chk, calc_chk);
         return false;
     }
 }

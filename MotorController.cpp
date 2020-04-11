@@ -133,7 +133,7 @@ int16_t MotorController::processBrakeHold(MotorControllerConfiguration *config, 
             if (brakeLvl == 0) { // engage brake hold once the brake is released
                 brakeHoldStart = millis();
                 brakeHoldLevel = 0;
-                Logger::debug("brake hold engaged for %dms",
+                logger.debug("brake hold engaged for %dms",
                 CFG_BRAKE_HOLD_MAX_TIME);
             }
         } else {
@@ -144,7 +144,7 @@ int16_t MotorController::processBrakeHold(MotorControllerConfiguration *config, 
                 brakeHoldStart = 0;
                 throttleLvl = 0;
                 slewTimestamp = millis(); // this should re-activate slew --> slowly reduce to 0 torque
-                Logger::debug("brake hold deactivated");
+                logger.debug("brake hold deactivated");
             } else {
                 uint16_t delta = abs(speedActual) * 2 / config->brakeHoldForceCoefficient + 1; // make sure it's always bigger than 0
                 if (speedActual < 0 && brakeHoldLevel < config->brakeHold * 10) {
@@ -162,7 +162,7 @@ int16_t MotorController::processBrakeHold(MotorControllerConfiguration *config, 
         if (brakeLvl < 0 && speedActual == 0) { // init brake hold at stand-still when brake is pressed
             brakeHoldActive = true;
             brakeHoldStart = 0;
-            Logger::debug("brake hold activated");
+            logger.debug("brake hold activated");
         }
     }
     return throttleLvl;
@@ -178,7 +178,7 @@ void MotorController::processGearChange()
         throttleLevel = 0;
 
         if (gearChangeTimestamp == 0) {
-            Logger::info("Starting gear change cycle");
+            logger.info("Starting gear change cycle");
             gearChangeTimestamp = millis();
             cruiseControlDisengage();
             return;
@@ -188,7 +188,7 @@ void MotorController::processGearChange()
         uint32_t duration = millis() - gearChangeTimestamp;
         if (duration > 750 && duration < 1250 && speedActual > 100) {
             speedRequested = 2500; //TODO calculate correct speed according to vehicle speed and estimated gear change
-            Logger::info("Adjusting motor speed to %drpm", speedRequested);
+            logger.info("Adjusting motor speed to %drpm", speedRequested);
 
             if (speedActual > speedRequested) {
                 throttleLevel = -150; // -10% throttle to slow down motor
@@ -199,7 +199,7 @@ void MotorController::processGearChange()
         }
     } else {
         if (gearChangeTimestamp > 0) {
-//            Logger::info("Gear change cycle finished");
+//            logger.info("Gear change cycle finished");
             gearChangeTimestamp = 0;
         }
     }
@@ -216,7 +216,7 @@ bool MotorController::checkBatteryTemperatureForRegen()
 
     if (lowestBatteryTemperature != CFG_NO_TEMPERATURE_DATA && (lowestBatteryTemperature * 10) < minimumBatteryTemperature) {
         status.enableRegen = false;
-        Logger::info("No regenerative braking due to low battery temperature! (%f < %f)", lowestBatteryTemperature / 10.0f,
+        logger.info("No regenerative braking due to low battery temperature! (%f < %f)", lowestBatteryTemperature / 10.0f,
                 minimumBatteryTemperature / 10.0f);
         return false;
     }
@@ -255,7 +255,7 @@ void MotorController::processThrottleLevel()
             throttleLevel = 0;
         }
         if (config->powerMode == modeSpeed) {
-            int32_t speedTarget = throttleLevel * config->speedMax / 1000;
+            speedRequested = throttleLevel * config->speedMax / 1000;
             torqueRequested = config->torqueMax;
         } else {  // torque mode
             speedRequested = config->speedMax;
@@ -291,7 +291,7 @@ void MotorController::processThrottleLevel()
 
     if (systemIO.isABSActive()) {
         torqueRequested = 0;
-        Logger::warn("ABS active !!");
+        logger.warn("ABS active !!");
     }
 }
 
@@ -317,7 +317,7 @@ void MotorController::cruiseControlToggle()
         }
         cruiseThrottle = throttleLevel + 1000.0f; // because PID can't handle negative numbers, cruiseThrottle is offset by +1000 (0-2000)
 
-        Logger::info("Setting cruise control speed to %frpm", cruiseSpeedTarget);
+        logger.info("Setting cruise control speed to %frpm", cruiseSpeedTarget);
 
         cruisePid = new PID(&cruiseSpeedActual, &cruiseThrottle, &cruiseSpeedTarget, config->cruiseKp, config->cruiseKi, config->cruiseKd, DIRECT);
         cruisePid->SetOutputLimits(0, 2000);
@@ -362,7 +362,7 @@ void MotorController::cruiseControlDisengage()
     if (cruisePid == NULL)
         return;
 
-    Logger::info("Cruise control disengaged");
+    logger.info("Cruise control disengaged");
     cruisePid = NULL;
     cruiseSpeedActual = 0;
     cruiseSpeedTarget = 0;
@@ -391,7 +391,7 @@ void MotorController::handleCruiseControlButton(CruiseControlButton button)
     case RECALL:
         if (cruiseSpeedLast > 0) {
             cruiseControlSetSpeed(cruiseSpeedLast);
-            Logger::info("Resuming cruise control, speed: %d", getCruiseControlSpeed());
+            logger.info("Resuming cruise control, speed: %d", getCruiseControlSpeed());
         }
         break;
     case PLUS:
@@ -552,7 +552,7 @@ uint16_t MotorController::getAcCurrent()
 /**
  * Return mechanical power in Watts
  */
-int32_t MotorController::getMechanicalPower()
+int16_t MotorController::getMechanicalPower()
 {
     return dcVoltage * dcCurrent / 100;
 }
@@ -582,7 +582,7 @@ void MotorController::loadConfiguration()
     MotorControllerConfiguration *config = (MotorControllerConfiguration*) getConfiguration();
 
     Device::loadConfiguration(); // call parent
-    Logger::info(this, "Motor controller configuration:");
+    logger.info(this, "Motor controller configuration:");
 
 #ifdef USE_HARD_CODED
 
@@ -651,13 +651,13 @@ void MotorController::loadConfiguration()
     config->speedSet[6] = 0;
     config->speedSet[7] = 0;
 
-    Logger::info(this, "Power mode: %s, Max torque: %i", (config->powerMode == modeTorque ? "torque" : "speed"), config->torqueMax);
-    Logger::info(this, "Max RPM: %i, Slew rate: %i", config->speedMax, config->slewRate);
-    Logger::info(this, "Max mech power motor: %fkW, Max mech power regen: %fkW", config->maxMechanicalPowerMotor / 10.0f,
+    logger.info(this, "Power mode: %s, Max torque: %i", (config->powerMode == modeTorque ? "torque" : "speed"), config->torqueMax);
+    logger.info(this, "Max RPM: %i, Slew rate: %i", config->speedMax, config->slewRate);
+    logger.info(this, "Max mech power motor: %fkW, Max mech power regen: %fkW", config->maxMechanicalPowerMotor / 10.0f,
             config->maxMechanicalPowerRegen / 10.0f);
-    Logger::info(this, "Creep level: %i, Creep speed: %i, Brake Hold: %d, Gear Change Support: %d", config->creepLevel, config->creepSpeed,
+    logger.info(this, "Creep level: %i, Creep speed: %i, Brake Hold: %d, Gear Change Support: %d", config->creepLevel, config->creepSpeed,
             config->brakeHold, config->gearChangeSupport);
-    Logger::info(this, "Cruise Kp: %f, Ki: %f, Kd: %f, long delta: %d, step delta: %d, rpm: %d", config->cruiseKp, config->cruiseKi, config->cruiseKd,
+    logger.info(this, "Cruise Kp: %f, Ki: %f, Kd: %f, long delta: %d, step delta: %d, rpm: %d", config->cruiseKp, config->cruiseKi, config->cruiseKd,
             config->cruiseLongPressDelta, config->cruiseStepDelta, config->cruiseUseRpm);
 }
 

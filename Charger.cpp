@@ -87,7 +87,7 @@ void Charger::handleStateChange(Status::SystemState oldState, Status::SystemStat
         powerOn = true;
     } else {
         if (powerOn) {
-            Logger::info(this, "Charging finished after %d min, %.2f Ah", (millis() - chargeStartTime) / 60000, (float) ampereMilliSeconds / 360000000.0f);
+            logger.info(this, "Charging finished after %d min, %.2f Ah", (millis() - chargeStartTime) / 60000, (float) ampereMilliSeconds / 360000000.0f);
         }
         requestedOutputCurrent = 0;
         powerOn = false;
@@ -139,7 +139,7 @@ uint16_t Charger::calculateOutputCurrent()
                 }
             } else if (batteryManager->hasAllowCharging() && !batteryManager->isChargeAllowed()) {
                 requestedOutputCurrent = 0;
-                Logger::info(this, "BMS terminated charging");
+                logger.info(this, "BMS terminated charging");
             }
             if (batteryManager->hasChargerEnabled() && !batteryManager->isChargerEnabled()) {
                 status.setSystemState(Status::charged);
@@ -148,39 +148,39 @@ uint16_t Charger::calculateOutputCurrent()
         if (requestedOutputCurrent < config->terminateCurrent ||
                 ((millis() - chargeStartTime) > 5000 && batteryCurrent < config->terminateCurrent)) { // give the charger 5sec to ramp up the current
             requestedOutputCurrent = 0;
-            Logger::info(this, "Reached end of normal charge cycle");
+            logger.info(this, "Reached end of normal charge cycle");
             status.setSystemState(Status::charged);
         }
         if ((millis() - chargeStartTime) > (uint32_t) config->maximumChargeTime * 60000) {
             requestedOutputCurrent = 0;
-            Logger::error(this, "Maximum charge time exceeded (%dmin)", (millis() - chargeStartTime) / 60000);
+            logger.error(this, "Maximum charge time exceeded (%dmin)", (millis() - chargeStartTime) / 60000);
             status.setSystemState(Status::error);
         }
         if (batteryVoltage > config->maximumBatteryVoltage) {
             requestedOutputCurrent = 0;
-            Logger::error(this, "Maximum battery voltage exceeded (%.1fV)", (float) batteryVoltage / 10.0f);
+            logger.error(this, "Maximum battery voltage exceeded (%.1fV)", (float) batteryVoltage / 10.0f);
             status.setSystemState(Status::error);
         }
         if ((batteryVoltage < config->minimumBatteryVoltage) && (millis() - chargeStartTime) > 5000) {
             requestedOutputCurrent = 0;
-            Logger::error(this, "Battery voltage too low (%.1fV)", (float) batteryVoltage / 10.0f);
+            logger.error(this, "Battery voltage too low (%.1fV)", (float) batteryVoltage / 10.0f);
             status.setSystemState(Status::error);
         }
         if (ampereMilliSeconds / 36000000 > config->maximumAmpereHours) {
             requestedOutputCurrent = 0;
-            Logger::error(this, "Maximum ampere hours exceeded (%.2f)", (float) ampereMilliSeconds / 360000000.0f);
+            logger.error(this, "Maximum ampere hours exceeded (%.2f)", (float) ampereMilliSeconds / 360000000.0f);
             status.setSystemState(Status::error);
         }
         temperature = status.getHighestBatteryTemperature();
         if (temperature != CFG_NO_TEMPERATURE_DATA && temperature > config->maximumTemperature) {
             requestedOutputCurrent = 0;
-            Logger::error(this, "Battery temperature too high (%.1fC)", (float) temperature / 10.0f);
+            logger.error(this, "Battery temperature too high (%.1fC)", (float) temperature / 10.0f);
             status.setSystemState(Status::error);
         }
         temperature = status.getLowestBatteryTemperature();
         if (temperature != CFG_NO_TEMPERATURE_DATA && temperature < config->minimumTemperature && temperature != 0) {
             requestedOutputCurrent = 0;
-            Logger::warn(this, "Battery temperature too low (%.1fC)", (float) temperature / 10.0f);
+            logger.warn(this, "Battery temperature too low (%.1fC)", (float) temperature / 10.0f);
         }
         return requestedOutputCurrent;
     }
@@ -249,7 +249,7 @@ void Charger::loadConfiguration()
     }
 
     Device::loadConfiguration(); // call parent
-    Logger::info(this, "Charger configuration:");
+    logger.info(this, "Charger configuration:");
 
 #ifdef USE_HARD_CODED
 
@@ -289,8 +289,8 @@ void Charger::loadConfiguration()
         saveConfiguration();
     }
 
-    Logger::info(this, "max input current: %.1fA, constant current: %.1fA, constant voltage: %.1fV", (float) config->maximumInputCurrent / 10.0F, (float) config->constantCurrent / 10.0F, (float) config->constantVoltage / 10.0F);
-    Logger::info(this, "terminate current: %.1fA, battery min: %.1fV max: %.1fV", (float) config->terminateCurrent / 10.0F, (float) config->minimumBatteryVoltage / 10.0F, (float) config->maximumBatteryVoltage / 10.0F);
+    logger.info(this, "max input current: %.1fA, constant current: %.1fA, constant voltage: %.1fV", (float) config->maximumInputCurrent / 10.0F, (float) config->constantCurrent / 10.0F, (float) config->constantVoltage / 10.0F);
+    logger.info(this, "terminate current: %.1fA, battery min: %.1fV max: %.1fV", (float) config->terminateCurrent / 10.0F, (float) config->minimumBatteryVoltage / 10.0F, (float) config->maximumBatteryVoltage / 10.0F);
 }
 
 /*

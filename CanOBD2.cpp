@@ -48,11 +48,11 @@ void CanOBD2::setup()
     Device::setup();
 
     if (canHandlerRespond != NULL) {
-        canHandlerRespond->attach(this, CAN_MASKED_ID_REQUEST, CAN_MASK_REQUEST, false);
+        canHandlerRespond->attach(this, OBD2_CAN_MASKED_ID_REQUEST, OBD2_CAN_MASK_REQUEST, false);
     }
     // if we use the same bus for both, no need to register again as below IDs are covered by those above
     if (canHandlerPoll != NULL && canHandlerPoll != canHandlerRespond) {
-        canHandlerPoll->attach(this, CAN_MASKED_ID_POLL_RESPONSE, CAN_MASK_POLL_RESPONSE, false);
+        canHandlerPoll->attach(this, OBD2_CAN_MASKED_ID_POLL_RESPONSE, OBD2_CAN_MASK_POLL_RESPONSE, false);
     }
 
     ready = true;
@@ -68,10 +68,10 @@ void CanOBD2::tearDown()
     Device::tearDown();
 
     if (canHandlerRespond != NULL) {
-        canHandlerRespond->detach(this, CAN_MASKED_ID_REQUEST, CAN_MASK_REQUEST);
+        canHandlerRespond->detach(this, OBD2_CAN_MASKED_ID_REQUEST, OBD2_CAN_MASK_REQUEST);
     }
     if (canHandlerPoll != NULL && canHandlerPoll != canHandlerRespond) {
-        canHandlerPoll->detach(this, CAN_MASKED_ID_POLL_RESPONSE, CAN_MASK_POLL_RESPONSE);
+        canHandlerPoll->detach(this, OBD2_CAN_MASKED_ID_POLL_RESPONSE, OBD2_CAN_MASK_POLL_RESPONSE);
     }
 }
 
@@ -86,9 +86,9 @@ void CanOBD2::handleTick()
     if (lastRequestAnswered && canHandlerPoll != NULL) {
         CanOBD2Configuration *config = (CanOBD2Configuration *) getConfiguration();
 
-        Logger::debug(this, "sending request for PID %X", pids[arrayPos]);
+        logger.debug(this, "sending request for PID %X", pids[arrayPos]);
 
-        canHandlerPoll->prepareOutputFrame(&pollFrame, config->canIdOffsetPoll == 255 ? CAN_ID_BROADCAST : CAN_ID_REQUEST + config->canIdOffsetPoll);
+        canHandlerPoll->prepareOutputFrame(&pollFrame, config->canIdOffsetPoll == 255 ? OBD2_CAN_ID_BROADCAST : OBD2_CAN_ID_REQUEST + config->canIdOffsetPoll);
         pollFrame.data.bytes[0] = 2; // 2 following bytes
         pollFrame.data.bytes[1] = 1; // show current data
         pollFrame.data.bytes[2] = pids[arrayPos++];
@@ -110,9 +110,9 @@ void CanOBD2::processRequest(CAN_FRAME *frame)
     CanOBD2Configuration *config = (CanOBD2Configuration *) getConfiguration();
     CAN_FRAME outputFrame;
 
-    Logger::debug(this, "received OBD2 request for GEVCU data");
+    logger.debug(this, "received OBD2 request for GEVCU data");
     if (canHandlerRespond != NULL) {
-        canHandlerRespond->prepareOutputFrame(&outputFrame, CAN_ID_RESPONSE + config->canIdOffsetRespond);
+        canHandlerRespond->prepareOutputFrame(&outputFrame, OBD2_CAN_ID_RESPONSE + config->canIdOffsetRespond);
         if (OBD2Handler::getInstance()->processRequest(frame->data.bytes, outputFrame.data.bytes)) {
             canHandlerRespond->sendFrame(outputFrame);
         }
@@ -130,22 +130,22 @@ void CanOBD2::processResponse(CAN_FRAME *frame)
         uint8_t* b = frame->data.bytes;
         uint8_t pid = b[2];
 
-        if(Logger::isDebug()) {
-            Logger::debug("received pid response: len=%d, mode=%X, pid=%X, data=%d %d %d %d", b[0], b[1], b[2], b[3], b[4], b[5], b[6]);
+        if(logger.isDebug()) {
+            logger.debug("received pid response: len=%d, mode=%X, pid=%X, data=%d %d %d %d", b[0], b[1], b[2], b[3], b[4], b[5], b[6]);
         }
 
         switch(pid) {
         case PID_VEHICLE_SPEED:
             status.vehicleSpeed = b[3];
-    Logger::debug("v speed: %d kmh, motor speed: %d, ratio (rpm/kmh): %f", status.vehicleSpeed, deviceManager.getMotorController()->getSpeedActual(), deviceManager.getMotorController()->getSpeedActual() / status.vehicleSpeed);
+    logger.debug("v speed: %d kmh, motor speed: %d, ratio (rpm/kmh): %f", status.vehicleSpeed, deviceManager.getMotorController()->getSpeedActual(), deviceManager.getMotorController()->getSpeedActual() / status.vehicleSpeed);
             break;
         case PID_AMBIENT_TEMP:
             status.temperatureExterior = (b[3] - 40) * 10;
-    Logger::debug("ext temp: %.1f C", status.temperatureExterior / 10.0f);
+    logger.debug("ext temp: %.1f C", status.temperatureExterior / 10.0f);
             break;
         case PID_BAROMETRIC_PRESSURE:
             status.barometricPressure = b[3];
-   Logger::debug("baro: %d kPa", status.barometricPressure);
+   logger.debug("baro: %d kPa", status.barometricPressure);
             break;
         }
         lastRequestAnswered = true;
@@ -157,11 +157,11 @@ void CanOBD2::handleCanFrame(CAN_FRAME *frame)
     CanOBD2Configuration *config = (CanOBD2Configuration *) getConfiguration();
 
     // a request from CAN bus for OBD2 data (e.g. from a diagnostic tool)
-    if ((frame->id == CAN_ID_REQUEST + config->canIdOffsetRespond) || (frame->id == CAN_ID_BROADCAST)) {
+    if ((frame->id == OBD2_CAN_ID_REQUEST + config->canIdOffsetRespond) || (frame->id == OBD2_CAN_ID_BROADCAST)) {
         processRequest(frame);
     }
     // a response to our poll for OBD2 data (e.g. containing the vehicle speed)
-    if (frame->id >= CAN_ID_RESPONSE && frame->id < CAN_ID_RESPONSE + 8) {
+    if (frame->id >= OBD2_CAN_ID_RESPONSE && frame->id < OBD2_CAN_ID_RESPONSE + 8) {
         processResponse(frame);
     }
 }
@@ -181,7 +181,7 @@ void CanOBD2::loadConfiguration()
     }
 
     Device::loadConfiguration(); // call parent
-    Logger::info(this, "CanOBD2 configuration:");
+    logger.info(this, "CanOBD2 configuration:");
 
 #ifdef USE_HARD_CODED
     if (false) {
@@ -207,7 +207,7 @@ void CanOBD2::loadConfiguration()
         canHandlerRespond = (config->canBusRespond == 1 ? &canHandlerCar : &canHandlerEv);
     }
 
-    Logger::info(this, "bus respond: %d, respond id offset: %d, bus poll: %d, poll id offset: %d", config->canBusRespond, config->canIdOffsetRespond,
+    logger.info(this, "bus respond: %d, respond id offset: %d, bus poll: %d, poll id offset: %d", config->canBusRespond, config->canIdOffsetRespond,
             config->canBusPoll, config->canIdOffsetPoll);
 }
 

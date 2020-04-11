@@ -30,7 +30,6 @@
 #include <Arduino.h>
 #include "config.h"
 #include "DeviceTypes.h"
-#include "constants.h"
 
 class Device;
 
@@ -45,32 +44,35 @@ public:
         Error = 3,
         Off = 4
     };
-    static void debug(char *, ...);
-    static void debug(Device *, char *, ...);
-    static void info(char *, ...);
-    static void info(Device *, char *, ...);
-    static void warn(char *, ...);
-    static void warn(Device *, char *, ...);
-    static void error(char *, ...);
-    static void error(Device *, char *, ...);
-    static void console(char *, ...);
-    static void setLoglevel(LogLevel);
-    static void setLoglevel(Device *, LogLevel);
-    static LogLevel getLogLevel();
-    static LogLevel getLogLevel(Device *);
-    static uint32_t getLastLogTime();
-    static boolean isDebug();
+    Logger();
+    void debug(String, ...);
+    void debug(Device *, String, ...);
+    void info(String, ...);
+    void info(Device *, String, ...);
+    void warn(String, ...);
+    void warn(Device *, String, ...);
+    void error(String, ...);
+    void error(Device *, String, ...);
+    void console(String, ...);
+    void setLoglevel(LogLevel);
+    void setLoglevel(Device *, LogLevel);
+    LogLevel getLogLevel();
+    LogLevel getLogLevel(Device *);
+    uint32_t getLastLogTime();
+    boolean isDebug();
 private:
-    static LogLevel logLevel;
-    static uint32_t lastLogTime;
-    static bool debugging;
-    static LogLevel *deviceLoglevel;
-    static char *msgBuffer;
-    static char *lastMsgBuffer;
-    static uint16_t lastMsgRepeated;
-    static uint32_t repeatStart;
+    LogLevel logLevel;
+    uint32_t lastLogTime;
+    bool debugging;
+    LogLevel *deviceLoglevel;
+    char *msgBuffer;
+    char *lastMsgBuffer;
+    uint16_t lastMsgRepeated;
+    uint32_t repeatStart;
 
-    static void log(char *, LogLevel, char *format, va_list);
+    void log(String, LogLevel, String format, va_list);
 };
+
+extern Logger logger;
 
 #endif /* LOGGER_H_ */

@@ -74,7 +74,7 @@ void CanBrake::setup()
             break;
 
         default:
-            Logger::error(this, "no valid car type defined.");
+            logger.error(this, "no valid car type defined.");
     }
 }
 
@@ -157,7 +157,7 @@ bool CanBrake::validateSignal(RawSignalData* rawSignal)
 
     if (ticksNoResponse >= CFG_CANTHROTTLE_MAX_NUM_LOST_MSG) {
         if (throttleStatus == OK) {
-            Logger::error(this, "no response on position request received: %d ", ticksNoResponse);
+            logger.error(this, "no response on position request received: %d ", ticksNoResponse);
         }
 
         throttleStatus = ERR_MISC;
@@ -166,7 +166,7 @@ bool CanBrake::validateSignal(RawSignalData* rawSignal)
 
     if (rawSignal->input1 > (config->maximumLevel + CFG_THROTTLE_TOLERANCE)) {
         if (throttleStatus == OK) {
-            Logger::error(this, (char *) Constants::valueOutOfRange, rawSignal->input1);
+            logger.error(this, VALUE_OUT_OF_RANGE, rawSignal->input1);
         }
 
         throttleStatus = ERR_HIGH_T1;
@@ -175,7 +175,7 @@ bool CanBrake::validateSignal(RawSignalData* rawSignal)
 
     if (rawSignal->input1 < (config->minimumLevel - CFG_THROTTLE_TOLERANCE)) {
         if (throttleStatus == OK) {
-            Logger::error(this, (char *) Constants::valueOutOfRange, rawSignal->input1);
+            logger.error(this, VALUE_OUT_OF_RANGE, rawSignal->input1);
         }
 
         throttleStatus = ERR_LOW_T1;
@@ -184,7 +184,7 @@ bool CanBrake::validateSignal(RawSignalData* rawSignal)
 
     // all checks passed -> brake is working
     if (throttleStatus != OK) {
-        Logger::info(this, (char *) Constants::normalOperation);
+        logger.info(this, NORMAL_OPERATION);
     }
 
     throttleStatus = OK;
@@ -259,7 +259,7 @@ void CanBrake::loadConfiguration()
         saveConfiguration();
     }
 
-    Logger::info(this, "T1 MIN: %ld MAX: %ld Type: %d", config->minimumLevel, config->maximumLevel, config->carType);
+    logger.info(this, "T1 MIN: %ld MAX: %ld Type: %d", config->minimumLevel, config->maximumLevel, config->carType);
 }
 
 /*

@@ -59,7 +59,7 @@ TickHandler::TickHandler()
 void TickHandler::attach(TickObserver* observer, uint32_t interval)
 {
     if (isAttached(observer, interval)) {
-        Logger::warn("TickObserver %#x is already attached with interval %d", observer, interval);
+        logger.warn("TickObserver %#x is already attached with interval %d", observer, interval);
         return;
     }
 
@@ -69,7 +69,7 @@ void TickHandler::attach(TickObserver* observer, uint32_t interval)
         timer = findTimer(0);   // no timer with given tick interval exist -> look for unused (interval == 0)
 
         if (timer == -1) {
-            Logger::error("No free timer available for interval=%d", interval);
+            logger.error("No free timer available for interval=%d", interval);
             return;
         }
 
@@ -79,12 +79,12 @@ void TickHandler::attach(TickObserver* observer, uint32_t interval)
     int observerIndex = findObserver(timer, 0);
 
     if (observerIndex == -1) {
-        Logger::error("No free observer slot for timer %d with interval %d", timer, timerEntry[timer].interval);
+        logger.error("No free observer slot for timer %d with interval %d", timer, timerEntry[timer].interval);
         return;
     }
 
     timerEntry[timer].observer[observerIndex] = observer;
-    Logger::debug("attached TickObserver (%#x) as number %d to timer %d, %lu interval", observer, observerIndex, timer, interval);
+    logger.debug("attached TickObserver (%#x) as number %d to timer %d, %lu interval", observer, observerIndex, timer, interval);
 
     switch (timer) { // restarting a timer which would already be running is no problem (see DueTimer.cpp)
         case 0:
@@ -165,7 +165,7 @@ void TickHandler::detach(TickObserver* observer)
     for (int timer = 0; timer < NUM_TIMERS; timer++) {
         for (int observerIndex = 0; observerIndex < CFG_TIMER_NUM_OBSERVERS; observerIndex++) {
             if (timerEntry[timer].observer[observerIndex] == observer) {
-                Logger::debug("removing TickObserver (%#x) as number %d from timer %d", observer, observerIndex, timer);
+                logger.debug("removing TickObserver (%#x) as number %d from timer %d", observer, observerIndex, timer);
                 timerEntry[timer].observer[observerIndex] = NULL;
             }
         }
@@ -208,9 +208,9 @@ void TickHandler::process()
 {
     while (bufferHead != bufferTail) {
         if (tickBuffer[bufferTail] == NULL) {
-            Logger::error("tickBuffer pointer mismatch");
+            logger.error("tickBuffer pointer mismatch");
         } else {
-//            Logger::debug("tickHandler->process, bufferHead=%d bufferTail=%d", bufferHead, bufferTail);
+//            logger.debug("tickHandler->process, bufferHead=%d bufferTail=%d", bufferHead, bufferTail);
             tickBuffer[bufferTail]->handleTick();
             tickBuffer[bufferTail] = NULL;
         }
@@ -233,7 +233,7 @@ void TickHandler::handleInterrupt(int timerNumber)
         if (timerEntry[timerNumber].observer[i] != NULL) {
             tickBuffer[bufferHead] = timerEntry[timerNumber].observer[i];
             bufferHead = (bufferHead + 1) % CFG_TIMER_BUFFER_SIZE;
-//            Logger::debug("tickHandler->handle bufferHead=%d, bufferTail=%d, observer=%d", bufferHead, bufferTail, timerEntry[timerNumber].observer[i]);
+//            logger.debug("tickHandler->handle bufferHead=%d, bufferTail=%d, observer=%d", bufferHead, bufferTail, timerEntry[timerNumber].observer[i]);
         }
     }
 }
@@ -308,5 +308,5 @@ void timer8Interrupt()
  */
 void TickObserver::handleTick()
 {
-    Logger::error("TickObserver does not implement handleTick()");
+    logger.error("TickObserver does not implement handleTick()");
 }

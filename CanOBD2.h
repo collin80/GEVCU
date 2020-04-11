@@ -31,18 +31,17 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include "config.h"
 #include "TickHandler.h"
 #include "CanHandler.h"
-#include "constants.h"
 #include "OBD2Handler.h"
 #include "DeviceManager.h"
 
-#define CAN_ID_BROADCAST      0x7df // broadcast address for requests         11111011111
-#define CAN_ID_REQUEST        0x7e0 // to 0x7e7, specific request address     11111100000 - 11111100111
-#define CAN_MASK_REQUEST      0x7c0 // mask for above id's                    11111000000
-#define CAN_MASKED_ID_REQUEST 0x7c0 // masked id for id's 0x7df, 0x7e0-0x7e7  11111000000
+#define OBD2_CAN_ID_BROADCAST      0x7df // broadcast address for requests         11111011111
+#define OBD2_CAN_ID_REQUEST        0x7e0 // to 0x7e7, specific request address     11111100000 - 11111100111
+#define OBD2_CAN_MASK_REQUEST      0x7c0 // mask for above id's                    11111000000
+#define OBD2_CAN_MASKED_ID_REQUEST 0x7c0 // masked id for id's 0x7df, 0x7e0-0x7e7  11111000000
 
-#define CAN_ID_RESPONSE             0x7e8 // to 7ef, response to PID request  11111101000 - 11111101111
-#define CAN_MASK_POLL_RESPONSE      0x7f0 // mask for above id's              11111110000
-#define CAN_MASKED_ID_POLL_RESPONSE 0x7e0 // masked id for id's 0x7e8-0x7ef   11111100000
+#define OBD2_CAN_ID_RESPONSE             0x7e8 // to 7ef, response to PID request  11111101000 - 11111101111
+#define OBD2_CAN_MASK_POLL_RESPONSE      0x7f0 // mask for above id's              11111110000
+#define OBD2_CAN_MASKED_ID_POLL_RESPONSE 0x7e0 // masked id for id's 0x7e8-0x7ef   11111100000
 
 //                                 PID  LEN DESCRIPTION                MIN  MAX  UNITS  FORMULA
 #define PID_SUPPORTED_01_20       0x00 // 4 PIDs supported [01 - 20]                    Bit encoded [A7..D0] == [PID $01..PID $20

@@ -118,7 +118,7 @@ public:
     uint16_t getDcVoltage();
     int16_t getDcCurrent();
     uint16_t getAcCurrent();
-    int32_t getMechanicalPower();
+    int16_t getMechanicalPower();
     int16_t getTemperatureMotor();
     int16_t getTemperatureController();
     int16_t getNominalVolt();

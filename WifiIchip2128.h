@@ -78,25 +78,19 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 #include <Arduino.h>
 #include "config.h"
-#include "constants.h"
 #include "DeviceManager.h"
-#include "PotThrottle.h"
 #include "Sys_Messages.h"
 #include "DeviceTypes.h"
 #include "ELM327Processor.h"
-#include "BrusaDMC5.h"
 #include "WebSocket.h"
 #include "SocketProcessor.h"
+#include "Wifi.h"
+
+static const String ichipErrorString = "I/ERROR";
+static const String disconnect = "_DISCONNECT_";
+
 
 enum ICHIP_COMM_STATE {IDLE, GET_PARAM, SET_PARAM, START_TCP_LISTENER, GET_ACTIVE_SOCKETS, POLL_SOCKET, SEND_SOCKET, GET_SOCKET};
-
-/*
- * The extended configuration class with additional parameters for ichip WLAN
- */
-class WifiConfiguration : public DeviceConfiguration
-{
-public:
-};
 
 struct Socket {
     int8_t handle;
@@ -109,12 +103,11 @@ struct SendBuff {
     Socket *socket;
 };
 
-class ICHIPWIFI : public Device
+class WifiIchip2128 : public Wifi
 {
 public:
-
-    ICHIPWIFI();
-    ICHIPWIFI(USARTClass *which);
+    WifiIchip2128();
+    WifiIchip2128(USARTClass *which);
     void setup(); //initialization on start up
     void tearDown();
     void handleTick(); //periodic processes
@@ -122,13 +115,33 @@ public:
     void handleStateChange(Status::SystemState, Status::SystemState);
     DeviceType getType();
     DeviceId getId();
-    void loop();
-
-    void loadConfiguration();
-    void saveConfiguration();
+    void process();
 
 private:
-    USARTClass* serialInterface; //Allows for retargetting which serial port we use
+    void requestNextParam(); //get next changed parameter
+    void requestParamValue(String paramName);  //try to retrieve the value of the given parameter
+    void setParam(String paramName, String value);  //set the given parameter with the given string
+    void sendCmd(String cmd);
+    void sendCmd(String cmd, ICHIP_COMM_STATE cmdstate);
+    void sendCmd(String cmd, ICHIP_COMM_STATE cmdstate, Socket *socket);
+    void sendBufferedCommand();
+    void sendToSocket(Socket *socket, String data);
+    void sendSocketUpdate();
+    void processStartSocketListenerRepsonse();
+    void processActiveSocketListResponse();
+    void processIncomingSocketData();
+    void processSocketSendResponse();
+    void processParameterChange(char *buffer);
+    void closeAllSockets();
+    void closeSocket(Socket *socket);
+
+    void reset();
+    void factoryDefaults();
+    void processSocketResponseSize();
+    void requestIncomingSocketData();
+    void requestActiveSocketList();
+    void startSocketListener();
+
     char incomingBuffer[CFG_WIFI_BUFFER_SIZE]; //storage for one incoming line
     int ibWritePtr; //write position into above buffer
     SendBuff sendBuffer[CFG_SERIAL_SEND_BUFFER_SIZE];
@@ -147,51 +160,8 @@ private:
     uint8_t watchdogCounter; // a counter to find out if ichip has crashed
     Socket socket[CFG_WIFI_NUM_SOCKETS];
 
-    void requestNextParam(); //get next changed parameter
-    void requestParamValue(String paramName);  //try to retrieve the value of the given parameter
-    void setParam(String paramName, String value);  //set the given parameter with the given string
-    void setParam(String paramName, int32_t value);
-    void setParam(String paramName, int16_t value);
-    void setParam(String paramName, uint32_t value);
-    void setParam(String paramName, uint16_t value);
-    void setParam(String paramName, uint8_t value);
-    void setParam(String paramName, float value, int precision);
-    void sendCmd(String cmd);
-    void sendCmd(String cmd, ICHIP_COMM_STATE cmdstate);
-    void sendCmd(String cmd, ICHIP_COMM_STATE cmdstate, Socket *socket);
-    void sendBufferedCommand();
-    void sendToSocket(Socket *socket, String data);
-    void sendSocketUpdate();
-    void processStartSocketListenerRepsonse();
-    void processActiveSocketListResponse();
-    void processIncomingSocketData();
-    void processSocketSendResponse();
-    void closeAllSockets();
-    void closeSocket(Socket *socket);
-
-    void processParameterChange(char *response);
-    bool processParameterChangeThrottle(char *key, char *value);
-    bool processParameterChangeBrake(char *key, char *value);
-    bool processParameterChangeMotor(char *key, char *value);
-    bool processParameterChangeCharger(char *key, char *value);
-    bool processParameterChangeDcDc(char *key, char *value);
-    bool processParameterChangeSystemIO(char *key, char *value);
-    bool processParameterChangeDevices(char *key, char *value);
-    void loadParameters();
-    void loadParametersThrottle();
-    void loadParametersBrake();
-    void loadParametersMotor();
-    void loadParametersCharger();
-    void loadParametersDcDc();
-    void loadParametersSystemIO();
-    void loadParametersDevices();
-    void loadParametersDashboard();
-    void reset();
-    void factoryDefaults();
-    void processSocketResponseSize();
-    void requestIncomingSocketData();
-    void requestActiveSocketList();
-    void startSocketListener();
+    const String disconnect = "_DISCONNECT_";
+    const String ichipCommandPrefix = "AT+i";
 };
 
 #endif

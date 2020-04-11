@@ -43,7 +43,7 @@ void MemCache::setup()
 {
     tickHandler.detach(this);
 
-    Logger::info("add MemCache (id: %#x, %#x)", MEMCACHE, &memCache);
+    logger.info("add MemCache (id: %#x, %#x)", MEMCACHE, &memCache);
 
     Wire.begin();
     for (U8 c = 0; c < NUM_CACHED_PAGES; c++) {
@@ -54,7 +54,7 @@ void MemCache::setup()
 
     //WriteTimer = 0;
 
-    //digital pin 18 is connected to the write protect function of the EEPROM. It is active high so set it low to enable writes
+    //digital pin 18 (GEVCU 2) 19 (GEVCU>=3) is connected to the write protect function of the EEPROM. It is active high so set it low to enable writes
     pinMode(CFG_EEPROM_WRITE_PROTECT, OUTPUT);
     digitalWrite(CFG_EEPROM_WRITE_PROTECT, LOW);
 
@@ -71,6 +71,7 @@ void MemCache::handleTick()
 
     for (c = 0; c < NUM_CACHED_PAGES; c++) {
         if ((pages[c].age == MAX_AGE) && (pages[c].dirty)) {
+            logger.info("flushing page %X", c);
             FlushPage(c);
             return;
         }
@@ -468,7 +469,7 @@ uint8_t MemCache::cache_readpage(uint32_t addr)
     c = cache_findpage();
 
     if (c != 0xFF) {
-        Logger::debug("reading page %d from eeprom address %d", c, addr);
+        logger.debug("reading page %d from eeprom address %d", c, addr);
 
         buffer[0] = ((address & 0xFF00) >> 8);
         //buffer[1] = (address & 0x00FF);
@@ -510,7 +511,7 @@ boolean MemCache::cache_writepage(uint8_t page)
     buffer[1] = 0; //pages are 256 bytes so LSB is always 0 for the start of a page
     i2c_id = 0b01010000 + ((addr >> 16) & 0x03);  //10100 is the chip ID then the two upper bits of the address
 
-    Logger::debug("flushing page %d to eeprom address %d", page, pages[page].address);
+    logger.debug("flushing page %d to eeprom address %d", page, pages[page].address);
 
     for (d = 0; d < 256; d++) {
         buffer[d + 2] = pages[page].data[d];

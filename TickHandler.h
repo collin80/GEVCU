@@ -36,7 +36,7 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 #define NUM_TIMERS 9
 
-class TickObserver
+class TickObserver // @suppress("Class has a virtual method and non-virtual destructor")
 {
 public:
     virtual void handleTick();

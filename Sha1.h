@@ -16,7 +16,7 @@ union _state {
   uint32_t w[HASH_LENGTH/4];
 };
 
-class Sha1Class : public Print
+class Sha1Class : public Print // @suppress("Class has a virtual method and non-virtual destructor")
 {
   public:
     void init(void);

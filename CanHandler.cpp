@@ -59,7 +59,7 @@ void CanHandler::setup()
     // Initialize the canbus at the specified baudrate
     bus->begin(canBusNode == CAN_BUS_EV ? CFG_CAN0_SPEED : CFG_CAN1_SPEED, 255);
     bus->setNumTXBoxes(canBusNode == CAN_BUS_EV ? CFG_CAN0_NUM_TX_MAILBOXES : CFG_CAN1_NUM_TX_MAILBOXES);
-    Logger::info("CAN%d init ok", (canBusNode == CAN_BUS_EV ? 0 : 1));
+    logger.info("CAN%d init ok", (canBusNode == CAN_BUS_EV ? 0 : 1));
 }
 
 /*
@@ -75,21 +75,21 @@ void CanHandler::setup()
 void CanHandler::attach(CanObserver* observer, uint32_t id, uint32_t mask, bool extended)
 {
     if (isAttached(observer, id, mask)) {
-        Logger::warn("CanObserver %#x is already attached with id %#x and mask %#x on bus %d", observer, id, mask, canBusNode);
+        logger.warn("CanObserver %#x is already attached with id %#x and mask %#x on bus %d", observer, id, mask, canBusNode);
         return;
     }
 
     int8_t pos = findFreeObserverData();
 
     if (pos == -1) {
-        Logger::error("no free space in CanHandler::observerData, increase its size via CFG_CAN_NUM_OBSERVERS");
+        logger.error("no free space in CanHandler::observerData, increase its size via CFG_CAN_NUM_OBSERVERS");
         return;
     }
 
     int mailbox = bus->findFreeRXMailbox();
 
     if (mailbox == -1) {
-        Logger::error("no free CAN mailbox on bus %d", canBusNode);
+        logger.error("no free CAN mailbox on bus %d", canBusNode);
         return;
     }
 
@@ -101,7 +101,7 @@ void CanHandler::attach(CanObserver* observer, uint32_t id, uint32_t mask, bool 
 
     bus->setRXFilter((uint8_t) mailbox, id, mask, extended);
 
-    Logger::debug("attached CanObserver (%#x) for id=%#x, mask=%#x, mailbox=%d", observer, id, mask, mailbox);
+    logger.debug("attached CanObserver (%#x) for id=%#x, mask=%#x, mailbox=%d", observer, id, mask, mailbox);
 }
 
 /*
@@ -150,8 +150,8 @@ void CanHandler::detach(CanObserver* observer, uint32_t id, uint32_t mask)
  */
 void CanHandler::logFrame(CAN_FRAME& frame)
 {
-    if (Logger::isDebug()) {
-        Logger::debug("CAN: dlc=%#x fid=%#x id=%#x ide=%#x rtr=%#x data=%#x,%#x,%#x,%#x,%#x,%#x,%#x,%#x",
+    if (logger.isDebug()) {
+        logger.debug("CAN: dlc=%#x fid=%#x id=%#x ide=%#x rtr=%#x data=%#x,%#x,%#x,%#x,%#x,%#x,%#x,%#x",
                       frame.length, frame.fid, frame.id, frame.extended, frame.rtr,
                       frame.data.bytes[0], frame.data.bytes[1], frame.data.bytes[2], frame.data.bytes[3],
                       frame.data.bytes[4], frame.data.bytes[5], frame.data.bytes[6], frame.data.bytes[7]);
@@ -222,5 +222,5 @@ void CanHandler::sendFrame(CAN_FRAME& frame)
  */
 void CanObserver::handleCanFrame(CAN_FRAME *frame)
 {
-    Logger::error("CanObserver does not implement handleCanFrame(), frame.id=%d", frame->id);
+    logger.error("CanObserver does not implement handleCanFrame(), frame.id=%d", frame->id);
 }

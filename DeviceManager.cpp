@@ -58,7 +58,7 @@ DeviceManager::DeviceManager()
  */
 void DeviceManager::addDevice(Device *device)
 {
-    Logger::info(device, "add device: %s (id: %#x)", device->getCommonName(), device->getId());
+    logger.info(device, "add device: %s (id: %#x)", device->getCommonName().c_str(), device->getId());
 
     if (findDevice(device) == -1) {
         int8_t i = findDevice(NULL);
@@ -66,7 +66,7 @@ void DeviceManager::addDevice(Device *device)
         if (i != -1) {
             devices[i] = device;
         } else {
-            Logger::error(device, "unable to register device, max number of devices reached.");
+            logger.error(device, "unable to register device, max number of devices reached.");
         }
     }
 }
@@ -93,6 +93,8 @@ void DeviceManager::removeDevice(Device *device)
 
         case DEVICE_MOTORCTRL:
             motorController = NULL;
+            break;
+        default:
             break;
     }
 }
@@ -129,8 +131,8 @@ bool DeviceManager::sendMessage(DeviceType devType, DeviceId devId, uint32_t msg
         if (devices[i] && (devices[i]->isEnabled() || msgType == MSG_ENABLE)) { //does this object exist and is it enabled?
             if (devType == DEVICE_ANY || devType == devices[i]->getType()) {
                 if (devId == INVALID || devId == devices[i]->getId()) {
-                    if (Logger::isDebug()) {
-                        Logger::debug("Sending msg %#x to device %#x", msgType, devices[i]->getId());
+                    if (logger.isDebug()) {
+                        logger.debug("Sending msg %#x to device %#x", msgType, devices[i]->getId());
                     }
                     devices[i]->handleMessage(msgType, message);
                     foundDevice = true;
@@ -217,7 +219,7 @@ Device *DeviceManager::getDeviceByID(DeviceId id)
         }
     }
 
-    Logger::debug("getDeviceByID - No device with ID: %#x", (int) id);
+    logger.debug("getDeviceByID - No device with ID: %#x", (int) id);
     return NULL;
 }
 
@@ -254,19 +256,19 @@ int8_t DeviceManager::findDevice(Device *device)
 
 void DeviceManager::printDeviceList()
 {
-    Logger::console("Currently enabled devices: (DISABLE= to disable)");
+    logger.console("Currently enabled devices: (DISABLE= to disable)");
 
     for (int i = 0; i < CFG_DEV_MGR_MAX_DEVICES; i++) {
         if (devices[i] && devices[i]->isEnabled()) {
-            Logger::console("     %#x     %s", devices[i]->getId(), devices[i]->getCommonName());
+            logger.console("     %#x     %s", devices[i]->getId(), devices[i]->getCommonName().c_str());
         }
     }
 
-    Logger::console("Currently disabled devices: (ENABLE= to enable)");
+    logger.console("Currently disabled devices: (ENABLE= to enable)");
 
     for (int i = 0; i < CFG_DEV_MGR_MAX_DEVICES; i++) {
         if (devices[i] && !devices[i]->isEnabled()) {
-            Logger::console("     %#x     %s", devices[i]->getId(), devices[i]->getCommonName());
+            logger.console("     %#x     %s", devices[i]->getId(), devices[i]->getCommonName().c_str());
         }
     }
 }

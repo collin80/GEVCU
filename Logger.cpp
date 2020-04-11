@@ -28,21 +28,25 @@
 #include "Device.h"
 #include "DeviceManager.h"
 
-Logger::LogLevel Logger::logLevel = CFG_DEFAULT_LOGLEVEL;
-uint32_t Logger::lastLogTime = 0;
-bool Logger::debugging = false;
-Logger::LogLevel *Logger::deviceLoglevel = new Logger::LogLevel[deviceIdsSize];
-char *Logger::msgBuffer = new char[LOG_BUFFER_SIZE];
-char *Logger::lastMsgBuffer = new char[LOG_BUFFER_SIZE];
-uint16_t Logger::lastMsgRepeated = 0;
-uint32_t Logger::repeatStart = 0;
+Logger logger;
+
+Logger::Logger() {
+    logLevel = CFG_DEFAULT_LOGLEVEL;
+    lastLogTime = 0;
+    debugging = false;
+    deviceLoglevel = new Logger::LogLevel[deviceIdsSize];
+    msgBuffer = new char[LOG_BUFFER_SIZE];
+    lastMsgBuffer = new char[LOG_BUFFER_SIZE];
+    lastMsgRepeated = 0;
+    repeatStart = 0;
+}
 
 /*
  * Output a debug message with a variable amount of parameters.
  * printf() style, see Logger::log()
  *
  */
-void Logger::debug(char *message, ...)
+void Logger::debug(String message, ...)
 {
     if (logLevel > Debug) {
         return;
@@ -50,7 +54,7 @@ void Logger::debug(char *message, ...)
 
     va_list args;
     va_start(args, message);
-    Logger::log(NULL, Debug, message, args);
+    log("", Debug, message, args);
     va_end(args);
 }
 
@@ -58,7 +62,7 @@ void Logger::debug(char *message, ...)
  * Output a debug message with the name of a device appended before the message
  * printf() style, see Logger::log()
  */
-void Logger::debug(Device *device, char *message, ...)
+void Logger::debug(Device *device, String message, ...)
 {
     if (getLogLevel(device) > Debug) {
         return;
@@ -66,7 +70,7 @@ void Logger::debug(Device *device, char *message, ...)
 
     va_list args;
     va_start(args, message);
-    Logger::log(device->getCommonName(), Debug, message, args);
+    log(device->getCommonName(), Debug, message, args);
     va_end(args);
 }
 
@@ -74,7 +78,7 @@ void Logger::debug(Device *device, char *message, ...)
  * Output a info message with a variable amount of parameters
  * printf() style, see Logger::log()
  */
-void Logger::info(char *message, ...)
+void Logger::info(String message, ...)
 {
     if (logLevel > Info) {
         return;
@@ -82,7 +86,7 @@ void Logger::info(char *message, ...)
 
     va_list args;
     va_start(args, message);
-    Logger::log(NULL, Info, message, args);
+    log("", Info, message, args);
     va_end(args);
 }
 
@@ -90,7 +94,7 @@ void Logger::info(char *message, ...)
  * Output a info message with the name of a device appended before the message
  * printf() style, see Logger::log()
  */
-void Logger::info(Device *device, char *message, ...)
+void Logger::info(Device *device, String message, ...)
 {
     if (getLogLevel(device) > Info) {
         return;
@@ -106,7 +110,7 @@ void Logger::info(Device *device, char *message, ...)
  * Output a warning message with a variable amount of parameters
  * printf() style, see Logger::log()
  */
-void Logger::warn(char *message, ...)
+void Logger::warn(String message, ...)
 {
     if (logLevel > Warn) {
         return;
@@ -114,7 +118,7 @@ void Logger::warn(char *message, ...)
 
     va_list args;
     va_start(args, message);
-    Logger::log(NULL, Warn, message, args);
+    log("", Warn, message, args);
     va_end(args);
 }
 
@@ -122,7 +126,7 @@ void Logger::warn(char *message, ...)
  * Output a warning message with the name of a device appended before the message
  * printf() style, see Logger::log()
  */
-void Logger::warn(Device *device, char *message, ...)
+void Logger::warn(Device *device, String message, ...)
 {
     if (getLogLevel(device) > Warn) {
         return;
@@ -130,7 +134,7 @@ void Logger::warn(Device *device, char *message, ...)
 
     va_list args;
     va_start(args, message);
-    Logger::log(device->getCommonName(), Warn, message, args);
+    log(device->getCommonName(), Warn, message, args);
     va_end(args);
 }
 
@@ -138,7 +142,7 @@ void Logger::warn(Device *device, char *message, ...)
  * Output a error message with a variable amount of parameters
  * printf() style, see Logger::log()
  */
-void Logger::error(char *message, ...)
+void Logger::error(String message, ...)
 {
     if (logLevel > Error) {
         return;
@@ -146,7 +150,7 @@ void Logger::error(char *message, ...)
 
     va_list args;
     va_start(args, message);
-    Logger::log(NULL, Error, message, args);
+    log("", Error, message, args);
     va_end(args);
 }
 
@@ -154,7 +158,7 @@ void Logger::error(char *message, ...)
  * Output a error message with the name of a device appended before the message
  * printf() style, see Logger::log()
  */
-void Logger::error(Device *device, char *message, ...)
+void Logger::error(Device *device, String message, ...)
 {
     if (getLogLevel(device) > Error) {
         return;
@@ -162,7 +166,7 @@ void Logger::error(Device *device, char *message, ...)
 
     va_list args;
     va_start(args, message);
-    Logger::log(device->getCommonName(), Error, message, args);
+    log(device->getCommonName(), Error, message, args);
     va_end(args);
 }
 
@@ -170,11 +174,11 @@ void Logger::error(Device *device, char *message, ...)
  * Output a comnsole message with a variable amount of parameters
  * printf() style, see Logger::logMessage()
  */
-void Logger::console(char *message, ...)
+void Logger::console(String message, ...)
 {
     va_list args;
     va_start(args, message);
-    vsnprintf(msgBuffer, LOG_BUFFER_SIZE, message, args);
+    vsnprintf(msgBuffer, LOG_BUFFER_SIZE, message.c_str(), args);
     SerialUSB.println(msgBuffer);
     va_end(args);
 }
@@ -257,9 +261,9 @@ boolean Logger::isDebug()
  *
  * Supports printf() syntax
  */
-void Logger::log(char *deviceName, LogLevel level, char *format, va_list args)
+void Logger::log(String deviceName, LogLevel level, String format, va_list args)
 {
-    char *logLevel = "DEBUG";
+    String logLevel = "DEBUG";
     lastLogTime = millis();
 
     switch (level) {
@@ -273,14 +277,14 @@ void Logger::log(char *deviceName, LogLevel level, char *format, va_list args)
             logLevel = "ERROR";
             break;
     }
-    vsnprintf(msgBuffer, LOG_BUFFER_SIZE, format, args);
+    vsnprintf(msgBuffer, LOG_BUFFER_SIZE, format.c_str(), args);
 
     // print to serial USB
     SerialUSB.print(lastLogTime);
     SerialUSB.print(" - ");
     SerialUSB.print(logLevel);
     SerialUSB.print(": ");
-    if (deviceName) {
+    if (deviceName.length() > 0) {
         SerialUSB.print(deviceName);
         SerialUSB.print(" - ");
     }
@@ -296,14 +300,14 @@ void Logger::log(char *deviceName, LogLevel level, char *format, va_list args)
     	} else {
     		if (lastMsgRepeated > 1) {
     			sprintf(lastMsgBuffer, "Last message repeated %d times", lastMsgRepeated);
-        		char *params[] = { "INFO", NULL, lastMsgBuffer };
+        		String params[] = { "INFO", "", lastMsgBuffer };
         		deviceManager.sendMessage(DEVICE_WIFI, INVALID, MSG_LOG, params);
         		lastMsgRepeated = 0;
         		repeatStart = 0;
         		lastMsgBuffer[0] = 0;
     		}
 
-    		char *params[] = { logLevel, deviceName, msgBuffer };
+    		String params[] = { logLevel, deviceName, msgBuffer };
     		deviceManager.sendMessage(DEVICE_WIFI, INVALID, MSG_LOG, params);
     		strcpy(lastMsgBuffer, msgBuffer);
     	}

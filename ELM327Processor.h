@@ -3,7 +3,6 @@
 
 #include <Arduino.h>
 #include "config.h"
-#include "constants.h"
 #include "Sys_Messages.h"
 #include "DeviceTypes.h"
 #include "OBD2Handler.h"

@@ -33,7 +33,6 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include "TickHandler.h"
 #include "CanHandler.h"
 #include "CanThrottle.h"
-#include "constants.h"
 
 class CanBrakeConfiguration : public ThrottleConfiguration
 {

@@ -39,7 +39,7 @@ ThrottleDetector::ThrottleDetector(Throttle *throttle)
     config = (PotThrottleConfiguration *) throttle->getConfiguration();
     state = DoNothing;
     maxThrottleReadingDeviationPercent = 100; // 10% in 0-1000 scale
-    Logger::debug("ThrottleDetector constructed with throttle %d", throttle);
+    logger.debug("ThrottleDetector constructed with throttle %d", throttle);
     resetValues();
 }
 
@@ -84,7 +84,7 @@ void ThrottleDetector::handleTick()
  */
 void ThrottleDetector::detect()
 {
-    Logger::console("Throttle detection starting. Do NOT press the pedal until instructed.");
+    logger.console("Throttle detection starting. Do NOT press the pedal until instructed.");
 
     resetValues();
 
@@ -134,8 +134,8 @@ void ThrottleDetector::detectMinCalibrate()
         throttle2MinRest = throttle2Min;
         throttle2MaxRest = throttle2Max;
 
-        Logger::console("\nSmoothly depress the pedal to full acceleration");
-        Logger::console("and hold the pedal until complete");
+        logger.console("\nSmoothly depress the pedal to full acceleration");
+        logger.console("and hold the pedal until complete");
 
         // wait for 5 seconds so they can react and then still get some readings
         startTime = millis();
@@ -208,7 +208,7 @@ void ThrottleDetector::detectMaxCalibrate()
             throttle2Min = throttle2MinRest;
         }
 
-        Logger::debug("Inverse: %s, throttle2Min: %d, throttle2Max: %d", (throttle2Inverse ? "true" : "false"), throttle2Min, throttle2Max);
+        logger.debug("Inverse: %s, throttle2Min: %d, throttle2Max: %d", (throttle2Inverse ? "true" : "false"), throttle2Min, throttle2Max);
 
         // fluctuation percentages - make sure not to divide by zero
 	if (!(throttle1Max == throttle1Min)) 
@@ -243,7 +243,7 @@ void ThrottleDetector::detectMaxCalibrate()
             linearCount += checkLinear(value1, value2);
             inverseCount += checkInverse(value1, value2);
 
-            //Logger::debug("T1: %d, T2: %d = NT1: %d, NT2: %d, L: %d, I: %d", throttle1Values[i], throttle2Values[i], value1, value2, linearCount, inverseCount);
+            //logger.debug("T1: %d, T2: %d = NT1: %d, NT2: %d, L: %d, I: %d", throttle1Values[i], throttle2Values[i], value1, value2, linearCount, inverseCount);
         }
 
         throttleSubType = 0;
@@ -264,7 +264,7 @@ void ThrottleDetector::detectMaxCalibrate()
             }
         }
 
-        char *type = "UNKNOWN";
+        String type = "UNKNOWN";
 
         if (throttleSubType == 1) {
             type = "Linear";
@@ -272,32 +272,32 @@ void ThrottleDetector::detectMaxCalibrate()
             type = "Inverse";
         }
 
-        if (Logger::isDebug()) {
-            Logger::console("\n----- RAW values ----");
+        if (logger.isDebug()) {
+            logger.console("\n----- RAW values ----");
 
             for (int i = 0; i < sampleCount; i++) {
-                Logger::console("T1: %d, T2: %d", throttle1Values[i], throttle2Values[i]);
+                logger.console("T1: %d, T2: %d", throttle1Values[i], throttle2Values[i]);
             }
         }
 
-        Logger::console("\n=======================================");
-        Logger::console("Detection complete");
-        Logger::console("Num samples taken: %d", sampleCount);
-        Logger::console("Num potentiometers found: %d", potentiometerCount);
-        Logger::console("T1: %d to %d %s", (throttle1HighLow ? throttle1Max : throttle1Min), (throttle1HighLow ? throttle1Min : throttle1Max),
+        logger.console("\n=======================================");
+        logger.console("Detection complete");
+        logger.console("Num samples taken: %d", sampleCount);
+        logger.console("Num potentiometers found: %d", potentiometerCount);
+        logger.console("T1: %d to %d %s", (throttle1HighLow ? throttle1Max : throttle1Min), (throttle1HighLow ? throttle1Min : throttle1Max),
                         (throttle1HighLow ? "HIGH-LOW" : "LOW-HIGH"));
-        Logger::console("T1: rest fluctuation %d%%, full throttle fluctuation %d%%", throttle1MinFluctuationPercent, throttle1MaxFluctuationPercent);
+        logger.console("T1: rest fluctuation %d%%, full throttle fluctuation %d%%", throttle1MinFluctuationPercent, throttle1MaxFluctuationPercent);
 
         if (potentiometerCount > 1) {
-            Logger::console("T2: %d to %d %s %s", (throttle2HighLow ? throttle2Max : throttle2Min), (throttle2HighLow ? throttle2Min : throttle2Max),
+            logger.console("T2: %d to %d %s %s", (throttle2HighLow ? throttle2Max : throttle2Min), (throttle2HighLow ? throttle2Min : throttle2Max),
                             (throttle2HighLow ? "HIGH-LOW" : "LOW-HIGH"), (throttle2Inverse ? " (Inverse of T1)" : ""));
-            Logger::console("T2: rest fluctuation %d%%, full throttle fluctuation %d%%", throttle2MinFluctuationPercent, throttle2MaxFluctuationPercent);
-            Logger::console("Num linear throttle matches: %d", linearCount);
-            Logger::console("Num inverse throttle matches: %d", inverseCount);
+            logger.console("T2: rest fluctuation %d%%, full throttle fluctuation %d%%", throttle2MinFluctuationPercent, throttle2MaxFluctuationPercent);
+            logger.console("Num linear throttle matches: %d", linearCount);
+            logger.console("Num inverse throttle matches: %d", inverseCount);
         }
 
-        Logger::console("Throttle type: %s", type);
-        Logger::console("========================================");
+        logger.console("Throttle type: %s", type.c_str());
+        logger.console("========================================");
 
         // update the throttle's configuration (without storing it yet)
         config->minimumLevel = throttle1Min;
@@ -400,10 +400,10 @@ int ThrottleDetector::checkInverse(uint16_t throttle1Value, uint16_t throttle2Va
 
 void ThrottleDetector::displayCalibratedValues(bool minPedal)
 {
-    Logger::console("\nAt %s T1: %d to %d", (minPedal ? "MIN" : "MAX"), throttle1Min, throttle1Max);
+    logger.console("\nAt %s T1: %d to %d", (minPedal ? "MIN" : "MAX"), throttle1Min, throttle1Max);
     //if (potentiometerCount > 1)
-    Logger::console(" T2: %d to %d", throttle2Min, throttle2Max);
-    Logger::console("");
+    logger.console(" T2: %d to %d", throttle2Min, throttle2Max);
+    logger.console("");
 }
 
 /**

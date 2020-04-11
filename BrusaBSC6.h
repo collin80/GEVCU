@@ -39,17 +39,17 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 // CAN bus id's for frames sent to BSC6
 
-#define CAN_ID_COMMAND      0x260 // send commands (BSC6COM)
-#define CAN_ID_LIMIT        0x261 // send limitations (BSC6LIM)
+#define BSC6_CAN_ID_COMMAND      0x260 // send commands (BSC6COM)
+#define BSC6_CAN_ID_LIMIT        0x261 // send limitations (BSC6LIM)
 
 // CAN bus id's for frames received from BSC6
 
-#define CAN_ID_VALUES_1     0x26a // receive actual values and status info (BSC6VAL1)   01001101010
-#define CAN_ID_VALUES_2     0x26b // receive actual values and error codes (BSC6VAL2)   01001101011
-#define CAN_ID_DEBUG_1      0X26e // receive debug information (BSC6DBG1)               01001101110
-#define CAN_ID_DEBUG_2      0X26f // receive debug information (BSC6DBG2)               01001101111
-#define CAN_MASK            0x7fa // mask for above id's                                11111111010
-#define CAN_MASKED_ID       0x26a // masked id for id's from 0x26a to 0x26f             01001101010
+#define BSC6_CAN_ID_VALUES_1     0x26a // receive actual values and status info (BSC6VAL1)   01001101010
+#define BSC6_CAN_ID_VALUES_2     0x26b // receive actual values and error codes (BSC6VAL2)   01001101011
+#define BSC6_CAN_ID_DEBUG_1      0X26e // receive debug information (BSC6DBG1)               01001101110
+#define BSC6_CAN_ID_DEBUG_2      0X26f // receive debug information (BSC6DBG2)               01001101111
+#define BSC6_CAN_MASK            0x7fa // mask for above id's                                11111111010
+#define BSC6_CAN_MASKED_ID       0x26a // masked id for id's from 0x26a to 0x26f             01001101010
 
 class BrusaBSC6Configuration : public DcDcConverterConfiguration
 {

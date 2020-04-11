@@ -40,17 +40,17 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 // CAN bus id's for frames sent to NLG5
 
-#define CAN_ID_COMMAND      0x618 // send commands (NLG5_CTL)
+#define NLG5_CAN_ID_COMMAND      0x618 // send commands (NLG5_CTL)
 
 // CAN bus id's for frames received from NLG5
 
-#define CAN_ID_STATUS       0x610 // receive status information (NLG5_ST)               11000010000
-#define CAN_ID_VALUES_1     0X611 // receive actual values information (NLG5_ACT_I)     11000010001
-#define CAN_ID_VALUES_2     0X612 // receive actual values information (NLG5_ACT_II)    11000010010
-#define CAN_ID_TEMPERATURE  0X613 // receive debug information (NLG5_TEMP)              11000010011
-#define CAN_ID_ERROR        0X614 // receive debug information (NLG5_ERR)               11000010100
-#define CAN_MASK            0x7f8 // mask for above id's                                11111111000
-#define CAN_MASKED_ID       0x610 // masked id for id's from 0x610 to 0x614             11000010000
+#define NLG5_CAN_ID_STATUS       0x610 // receive status information (NLG5_ST)               11000010000
+#define NLG5_CAN_ID_VALUES_1     0X611 // receive actual values information (NLG5_ACT_I)     11000010001
+#define NLG5_CAN_ID_VALUES_2     0X612 // receive actual values information (NLG5_ACT_II)    11000010010
+#define NLG5_CAN_ID_TEMPERATURE  0X613 // receive debug information (NLG5_TEMP)              11000010011
+#define NLG5_CAN_ID_ERROR        0X614 // receive debug information (NLG5_ERR)               11000010100
+#define NLG5_CAN_MASK            0x7f8 // mask for above id's                                11111111000
+#define NLG5_CAN_MASKED_ID       0x610 // masked id for id's from 0x610 to 0x614             11000010000
 
 class BrusaNLG5Configuration : public ChargerConfiguration
 {

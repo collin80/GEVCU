@@ -91,6 +91,8 @@ void StatusIndicator::handleStateChange(Status::SystemState oldState, Status::Sy
     case Status::running:
         handleMessage(MSG_UPDATE, (void *) "on");
         break;
+    default:
+        break;
     }
 }
 

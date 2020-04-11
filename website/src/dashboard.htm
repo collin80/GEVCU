@@ -84,8 +84,9 @@
 		<span id="chargeLevel">--</span>%
 	</div>
 	<div id="inputCurrentSelector">
-		Max. input current: <select id="chargeInputLevel" onChange="dashboard.sendMsg('chargeInput=' + value)"></select> A
-		(<span id="maximumSolarCurrent">~maximumSolarCurrent~</span> A solar)
+		Max. input current: 
+		<input id="maximumInputCurrentLevel" type="range" min="0" max="56" step="1" onchange="dashboard.sendMsg('chargeInput=' + value)" onmousemove="document.getElementById('maximumInputCurrent').innerHTML = value">
+		<span id="maximumInputCurrent">-</span> A
 	</div>
 	<div class="subInfo">
 		<span class="subInfoCell">Charger: <span id="chargerTemperature">--.-</span> &#176;C</span>

@@ -96,7 +96,6 @@ public:
     SystemIO();
     virtual ~SystemIO();
     void setup();
-    void handleCanFrame(CAN_FRAME *frame);
     void handleTick();
 
     void loadConfiguration();

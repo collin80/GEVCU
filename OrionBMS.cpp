@@ -45,7 +45,7 @@ void OrionBMS::setup()
     BatteryManager::setup();
 
     tickHandler.attach(this, CFG_TICK_INTERVAL_BMS_ORION);
-    canHandlerEv.attach(this, CAN_MASKED_ID, CAN_MASK, false);
+    canHandlerEv.attach(this, ORION_CAN_MASKED_ID, ORION_CAN_MASK, false);
     ready = true;
 }
 
@@ -55,7 +55,7 @@ void OrionBMS::setup()
 void OrionBMS::tearDown()
 {
     BatteryManager::tearDown();
-    canHandlerEv.detach(this, CAN_MASKED_ID, CAN_MASK);
+    canHandlerEv.detach(this, ORION_CAN_MASKED_ID, ORION_CAN_MASK);
 }
 
 /*
@@ -72,7 +72,7 @@ void OrionBMS::handleTick()
         ready = false;
         running = false;
         if (status.getSystemState() == Status::charging) {
-            Logger::error(this, "no message from BMS received for 10sec");
+            logger.error(this, "no message from BMS received for 10sec");
             status.setSystemState(Status::error);
         }
     }
@@ -80,22 +80,20 @@ void OrionBMS::handleTick()
 
 void OrionBMS::handleCanFrame(CAN_FRAME *frame)
 {
-    byte *data = frame->data.bytes;
-
     switch (frame->id) {
-    case CAN_ID_PACK:
+    case ORION_CAN_ID_PACK:
         processPack(frame->data.bytes);
         break;
-    case CAN_ID_LIMITS_SOC:
+    case ORION_CAN_ID_LIMITS_SOC:
         processLimitsSoc(frame->data.bytes);
         break;
-    case CAN_ID_CELL_VOLTAGE:
+    case ORION_CAN_ID_CELL_VOLTAGE:
         processCellVoltage(frame->data.bytes);
         break;
-    case CAN_ID_CELL_RESISTANCE:
+    case ORION_CAN_ID_CELL_RESISTANCE:
         processCellResistance(frame->data.bytes);
         break;
-    case CAN_ID_HEALTH:
+    case ORION_CAN_ID_HEALTH:
         processHealth(frame->data.bytes);
         break;
     }
@@ -117,8 +115,8 @@ void OrionBMS::processPack(uint8_t data[])
     status.bmsDtcHVIsolationFault = (flags & dtcHVIsolationFault) ? true : false;
     status.bmsDtcVoltageRedundancyFault = (flags & dtcVoltageRedundancyFault) ? true : false;
     systemTemperature = data[7]; // byte 7: temperature of BMS (1C)
-    if (Logger::isDebug()) {
-        Logger::debug(this, "pack current: %fA, voltage: %fV (summed: %fV), flags: %#08x, temp: %dC", (float) packCurrent / 10.0F,
+    if (logger.isDebug()) {
+        logger.debug(this, "pack current: %fA, voltage: %fV (summed: %fV), flags: %#08x, temp: %dC", (float) packCurrent / 10.0F,
                 (float) packVoltage / 10.0F, (float) packSummedVoltage / 10.0F, flags, systemTemperature);
     }
 }
@@ -151,8 +149,8 @@ void OrionBMS::processLimitsSoc(uint8_t data[])
     chargerEnabled = (relayStatus & chagerSafety) ? true : false; // Bit #3 (0x04): Charger safety enabled
     status.bmsChagerSafety = chargerEnabled;
     status.bmsDtcPresent = (relayStatus & dtcPresent) ? true : false; // Bit #4 (0x08): Malfunction indicator active (DTC status)
-    if (Logger::isDebug()) {
-        Logger::debug(this, "discharge limit: %dA, charge limit: %dA, limit flags: %#08x, relay: %#08x", dischargeLimit, chargeLimit, currentLimit,
+    if (logger.isDebug()) {
+        logger.debug(this, "discharge limit: %dA, charge limit: %dA, limit flags: %#08x, relay: %#08x", dischargeLimit, chargeLimit, currentLimit,
                 relayStatus);
     }
 }
@@ -165,8 +163,8 @@ void OrionBMS::processCellVoltage(uint8_t data[])
     highestCellVolts = ((data[3] << 8) | data[4]); // byte 3+4: high cell voltage (0.0001V)
     highestCellVoltsId = data[5]; // byte 5: high cell voltage ID (0-180)
     averageCellVolts = ((data[6] << 8) | data[7]); // byte 6+7: average cell voltage (0.0001V)
-    if (Logger::isDebug()) {
-        Logger::debug(this, "low cell: %fV (%d), high cell: %fV (%d), avg: %fV", (float) lowestCellVolts / 10000.0F, lowestCellVoltsId,
+    if (logger.isDebug()) {
+        logger.debug(this, "low cell: %fV (%d), high cell: %fV (%d), avg: %fV", (float) lowestCellVolts / 10000.0F, lowestCellVoltsId,
                 (float) highestCellVolts / 10000.0F, highestCellVoltsId, (float) averageCellVolts / 10000.0F);
     }
 }
@@ -179,8 +177,8 @@ void OrionBMS::processCellResistance(uint8_t data[])
     highestCellResistance = ((data[3] << 8) | data[4]); // byte 3+4: high cell resistance (0.01 mOhm)
     highestCellResistanceId = data[5]; // byte 5: high cell resistance ID (0-180)
     averageCellResistance = ((data[6] << 8) | data[7]); // byte 6+7: average cell resistance (0.01 mOhm)
-    if (Logger::isDebug()) {
-        Logger::debug(this, "low cell: %fmOhm (%d), high cell: %fmOhm (%d), avg: %fmOhm", (float) lowestCellResistance / 100.0F,
+    if (logger.isDebug()) {
+        logger.debug(this, "low cell: %fmOhm (%d), high cell: %fmOhm (%d), avg: %fmOhm", (float) lowestCellResistance / 100.0F,
                 lowestCellResistanceId, (float) highestCellResistance / 100.0F, highestCellResistanceId, (float) averageCellResistance / 100.0F);
     }
 }
@@ -193,8 +191,8 @@ void OrionBMS::processHealth(uint8_t data[])
     lowestCellTemp = data[5] * 10;
     highestCellTemp = data[6] * 10;
     soc = data[7]; // byte 7: pack state of charge (0.5%)
-    if (Logger::isDebug()) {
-        Logger::debug(this, "pack health: %d, pack cycles: %d, pack Resistance: %dmOhm, low temp: %d, high temp: %d, soc: %.1f", packHealth,
+    if (logger.isDebug()) {
+        logger.debug(this, "pack health: %d, pack cycles: %d, pack Resistance: %dmOhm, low temp: %d, high temp: %d, soc: %.1f", packHealth,
                 packCycles, packResistance, lowestCellTemp, highestCellTemp, (float) soc / 2.0F);
     }
 }

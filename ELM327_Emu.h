@@ -52,7 +52,6 @@ AT RV (adapter voltage) - Send something like 14.4V
 
 #include <Arduino.h>
 #include "config.h"
-#include "constants.h"
 #include "DeviceManager.h"
 #include "Sys_Messages.h"
 #include "DeviceTypes.h"

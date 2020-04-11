@@ -94,6 +94,6 @@ void PerfTimer::reset()
 
 void PerfTimer::printValues()
 {
-	Logger::console("Min/Max/Avg (uS) -> %i/%i/%i", getMin(), getMax(), getAvg());
-	Logger::console("Min/Max/Avg (approx cycles) -> %i/%i/%i", getMin() * 84, getMax() * 84, getAvg() * 84);
+	logger.console("Min/Max/Avg (uS) -> %i/%i/%i", getMin(), getMax(), getAvg());
+	logger.console("Min/Max/Avg (approx cycles) -> %i/%i/%i", getMin() * 84, getMax() * 84, getAvg() * 84);
 }
