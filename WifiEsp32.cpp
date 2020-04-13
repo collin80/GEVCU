@@ -253,6 +253,8 @@ void WifiEsp32::processIncomingSocketData(String input)
             connected = true;
         } else if (input.equals("disconnected")) {
             connected = false;
+        } else if (input.equals("loadConfig")) {
+            didParamLoad = false;
         }
     }
 }
