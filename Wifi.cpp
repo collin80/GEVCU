@@ -109,6 +109,21 @@ bool Wifi::processParameterChangeThrottle(String key, String value)
                 config->minimumRegen = value.toInt();
             } else if (maximumRegen.equals(key)) {
                 config->maximumRegen = value.toInt();
+            } else if (throttle->getId() == POTACCELPEDAL) {
+                if (throttleAdcPin1.equals(key)) {
+                    config->AdcPin1 = value.toInt();
+                } else if (throttleAdcPin2.equals(key)) {
+                    config->AdcPin2 = value.toInt();
+                } else {
+                    return false;
+                }
+            } else if (throttle->getId() == CANACCELPEDAL) {
+                CanThrottleConfiguration *canThrottleConfig = (CanThrottleConfiguration *) config;
+                if (carType.equals(key)) {
+                    canThrottleConfig->carType = value.toInt();
+                } else {
+                    return false;
+                }
             } else {
                 return false;
             }
@@ -142,6 +157,14 @@ bool Wifi::processParameterChangeBrake(String key, String value)
                 config->minimumRegen = value.toInt();
             } else if (brakeMaximumRegen.equals(key)) {
                 config->maximumRegen = value.toInt();
+            } else if (brake->getId() == POTBRAKEPEDAL) {
+                if (brakeAdcPin1.equals(key)) {
+                    config->AdcPin1 = value.toInt();
+                } else if (brakeAdcPin2.equals(key)) {
+                    config->AdcPin2 = value.toInt();
+                } else {
+                    return false;
+                }
             } else {
                 return false;
             }
@@ -189,8 +212,24 @@ bool Wifi::processParameterChangeMotor(String key, String value)
                 config->creepSpeed = value.toInt();
             } else if (brakeHold.equals(key)) {
                 config->brakeHold = value.toInt();
-            } else if (brakeHoldLevel.equals(key)) {
-                config->brakeHold = value.toInt();
+            } else if (brakeHoldForceCoefficient.equals(key)) {
+                config->brakeHoldForceCoefficient = value.toInt();
+            } else if (reversePercent.equals(key)) {
+                config->reversePercent = value.toInt();
+            } else if (gearChangeSupport.equals(key)) {
+                config->gearChangeSupport = value.toInt();
+            } else if (cruiseKp.equals(key)) {
+                config->cruiseKp = value.toInt();
+            } else if (cruiseKi.equals(key)) {
+                config->cruiseKi = value.toInt();
+            } else if (cruiseKd.equals(key)) {
+                config->cruiseKd = value.toInt();
+            } else if (cruiseUseRpm.equals(key)) {
+                config->cruiseUseRpm = value.toInt();
+            } else if (cruiseLongPressDelta.equals(key)) {
+                config->cruiseLongPressDelta = value.toInt();
+            } else if (cruiseStepDelta.equals(key)) {
+                config->cruiseStepDelta = value.toInt();
             } else if (motorController->getId() == BRUSA_DMC5) {
                 BrusaDMC5Configuration *dmc5Config = (BrusaDMC5Configuration *) config;
                 if (dcVoltLimitMotor.equals(key)) {
@@ -338,6 +377,8 @@ bool Wifi::processParameterChangeSystemIO(String key, String value)
         config->reverseInput = value.toInt();
     } else if (absInput.equals(key)) {
         config->absInput = value.toInt();
+    } else if (gearChangeInput.equals(key)) {
+        config->gearChangeInput = value.toInt();
     } else if (prechargeMillis.equals(key)) {
         config->prechargeMillis = value.toInt();
     } else if (prechargeRelayOutput.equals(key)) {
@@ -374,6 +415,12 @@ bool Wifi::processParameterChangeSystemIO(String key, String value)
         config->brakeLightOutput = value.toInt();
     } else if (reverseLightOutput.equals(key)) {
         config->reverseLightOutput = value.toInt();
+    } else if (powerSteeringOutput.equals(key)) {
+        config->powerSteeringOutput = value.toInt();
+    } else if (stateOfChargeOutput.equals(key)) {
+        config->stateOfChargeOutput = value.toInt();
+    } else if (statusLightOutput.equals(key)) {
+        config->statusLightOutput = value.toInt();
     } else if (warningOutput.equals(key)) {
         config->warningOutput = value.toInt();
     } else if (powerLimitationOutput.equals(key)) {
@@ -443,11 +490,21 @@ void Wifi::loadParametersThrottle()
                 setParam(throttleSubType, potThrottleConfig->throttleSubType);
                 setParam(minimumLevel2, potThrottleConfig->minimumLevel2);
                 setParam(maximumLevel2, potThrottleConfig->maximumLevel2);
+                setParam(throttleAdcPin1, potThrottleConfig->AdcPin1);
+                setParam(throttleAdcPin2, potThrottleConfig->AdcPin2);
             } else { // set reasonable values so the config page can be saved
                 setParam(numberPotMeters, (uint8_t) 1);
                 setParam(throttleSubType, (uint8_t)0);
                 setParam(minimumLevel2, (uint16_t) 50);
                 setParam(maximumLevel2, (uint16_t) 4095);
+                setParam(throttleAdcPin1, (uint8_t)CFG_OUTPUT_NONE);
+                setParam(throttleAdcPin2, (uint8_t)CFG_OUTPUT_NONE);
+            }
+            if (throttle->getId() == POTACCELPEDAL) {
+                CanThrottleConfiguration *canThrottleConfig = (CanThrottleConfiguration *) throttleConfig;
+                setParam(carType, canThrottleConfig->carType);
+            } else {
+                setParam(carType, (uint8_t)0);
             }
             setParam(minimumLevel, throttleConfig->minimumLevel);
             setParam(maximumLevel, throttleConfig->maximumLevel);
@@ -472,6 +529,14 @@ void Wifi::loadParametersBrake()
     if (brake) {
         ThrottleConfiguration *brakeConfig = (ThrottleConfiguration *) brake->getConfiguration();
 
+        if (brake->getId() == POTBRAKEPEDAL) {
+            PotBrakeConfiguration *potBrakeConfig = (PotBrakeConfiguration *) brakeConfig;
+            setParam(brakeAdcPin1, potBrakeConfig->AdcPin1);
+            setParam(brakeAdcPin2, potBrakeConfig->AdcPin2);
+        } else {
+            setParam(brakeAdcPin1, (uint8_t)CFG_OUTPUT_NONE);
+            setParam(brakeAdcPin2, (uint8_t)CFG_OUTPUT_NONE);
+        }
         if (brakeConfig) {
             setParam(brakeMinimumLevel, brakeConfig->minimumLevel);
             setParam(brakeMaximumLevel, brakeConfig->maximumLevel);
@@ -483,6 +548,8 @@ void Wifi::loadParametersBrake()
         setParam(brakeMaximumLevel, (uint8_t)100);
         setParam(brakeMinimumRegen, (uint8_t)0);
         setParam(brakeMaximumRegen, (uint8_t)0);
+        setParam(brakeAdcPin1, (uint8_t)CFG_OUTPUT_NONE);
+        setParam(brakeAdcPin2, (uint8_t)CFG_OUTPUT_NONE);
     }
 }
 
@@ -509,8 +576,15 @@ void Wifi::loadParametersMotor()
             setParam(creepLevel, config->creepLevel);
             setParam(creepSpeed, config->creepSpeed);
             setParam(brakeHold, config->brakeHold);
+            setParam(brakeHoldForceCoefficient, config->brakeHoldForceCoefficient);
+            setParam(reversePercent, config->reversePercent);
+            setParam(gearChangeSupport, (uint8_t)(config->gearChangeSupport ? 1 : 0));
+            setParam(cruiseKp, config->cruiseKp);
+            setParam(cruiseKi, config->cruiseKi);
+            setParam(cruiseKd, config->cruiseKd);
             setParam(cruiseUseRpm, (uint8_t)(config->cruiseUseRpm ? 1 : 0));
-            setParam(cruiseSpeedStep, config->cruiseStepDelta);
+            setParam(cruiseLongPressDelta, config->cruiseLongPressDelta);
+            setParam(cruiseStepDelta, config->cruiseStepDelta);
 
             if (motorController->getId() == BRUSA_DMC5) {
                 BrusaDMC5Configuration *dmc5Config = (BrusaDMC5Configuration *) config;
@@ -527,7 +601,8 @@ void Wifi::loadParametersMotor()
                 }
                 sets += config->speedSet[i];
             }
-            setParam((String)cruiseSpeedSet, sets);
+            setParam(cruiseSpeedSet, sets);
+            setParam(cruiseSpeedStep, (uint16_t)300);
         }
     }
 }
@@ -601,6 +676,7 @@ void Wifi::loadParametersSystemIO()
         setParam(interlockInput, config->interlockInput);
         setParam(reverseInput, config->reverseInput);
         setParam(absInput, config->absInput);
+        setParam(gearChangeInput, config->gearChangeInput);
 
         setParam(prechargeMillis, config->prechargeMillis);
         setParam(prechargeRelayOutput, config->prechargeRelayOutput);
@@ -623,8 +699,11 @@ void Wifi::loadParametersSystemIO()
 
         setParam(brakeLightOutput, config->brakeLightOutput);
         setParam(reverseLightOutput, config->reverseLightOutput);
+        setParam(powerSteeringOutput, config->powerSteeringOutput);
         setParam(warningOutput, config->warningOutput);
         setParam(powerLimitationOutput, config->powerLimitationOutput);
+        setParam(stateOfChargeOutput, config->stateOfChargeOutput);
+        setParam(statusLightOutput, config->statusLightOutput);
     }
 }
 
@@ -758,6 +837,19 @@ void Wifi::setParam(String paramName, float value, int precision)
     char format[10];
     sprintf(format, "%%.%df", precision);
     sprintf(buffer, format, value);
+    setParam(paramName, buffer);
+}
+
+/**
+ * \brief Set a parameter to the given float value
+ *
+ * \param paramName the name of the parameter
+ * \param value the value to set
+ * \param precision the number of digits after the decimal sign
+ */
+void Wifi::setParam(String paramName, double value)
+{
+    sprintf(buffer, "%f", value);
     setParam(paramName, buffer);
 }
 

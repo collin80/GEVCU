@@ -33,6 +33,8 @@
 #include "config.h"
 #include "DeviceManager.h"
 #include "PotThrottle.h"
+#include "CanThrottle.h"
+#include "PotBrake.h"
 #include "Sys_Messages.h"
 #include "DeviceTypes.h"
 #include "ELM327Processor.h"
@@ -82,6 +84,7 @@ private:
     void setParam(String paramName, uint16_t value);
     void setParam(String paramName, uint8_t value);
     void setParam(String paramName, float value, int precision);
+    void setParam(String paramName, double value);
 
     char buffer[30]; // a buffer for various string conversions
 
@@ -103,6 +106,11 @@ private:
     const String positionHalfPower = "positionHalfPower";
     const String minimumRegen = "minimumRegen";
     const String maximumRegen = "maximumRegen";
+    const String throttleAdcPin1 = "throttleAdcPin1";
+    const String throttleAdcPin2 = "throttleAdcPin2";
+    const String brakeAdcPin1 = "brakeAdcPin1";
+    const String brakeAdcPin2 = "brakeAdcPin2";
+    const String carType = "carType";
     const String creepLevel = "creepLevel";
     const String creepSpeed = "creepSpeed";
     const String brakeMinimumLevel = "brakeMinimumLevel";
@@ -118,10 +126,17 @@ private:
     const String invertDirection = "invertDirection";
     const String slewRate = "slewRate";
     const String brakeHold = "brakeHold";
-    const String brakeHoldLevel = "brakeHoldLevel";
+    const String brakeHoldForceCoefficient = "brakeHoldForceCoef";
+    const String reversePercent = "reversePercent";
+    const String gearChangeSupport = "gearChangeSupport";
+    const String cruiseKp = "cruiseKp";
+    const String cruiseKi = "cruiseKi";
+    const String cruiseKd = "cruiseKd";
     const String cruiseUseRpm = "cruiseUseRpm";
-    const String cruiseSpeedStep = "cruiseSpeedStep";
+    const String cruiseStepDelta = "cruiseStepDelta";
+    const String cruiseLongPressDelta = "cruiseLongPressDelta";
     const String cruiseSpeedSet = "cruiseSpeedSet";
+    const String cruiseSpeedStep = "cruiseSpeedStep";
 
     const String maxMechanicalPowerMotor = "maxMechPowerMotor";
     const String maxMechanicalPowerRegen = "maxMechPowerRegen";
@@ -131,6 +146,7 @@ private:
     const String dcCurrentLimitRegen = "dcCurrentLimitRegen";
     const String enableOscillationLimiter = "enableOscLimiter";
     // input
+    const String gearChangeInput = "gearChange";
     const String absInput = "abs";
     const String reverseInput = "reverse";
     const String enableInput = "enable";
@@ -140,7 +156,8 @@ private:
     const String brakeLightOutput = "brakeLight";
     const String reverseLightOutput = "reverseLight";
     const String powerSteeringOutput = "powerSteering";
-    const String unusedOutput = "unused";
+    const String stateOfChargeOutput = "stateOfCharge";
+    const String statusLightOutput = "statusLight";
     const String prechargeMillis = "prechargeMillis";
     const String prechargeRelayOutput = "prechargeRelay";
     const String mainContactorOutput = "mainContactor";
