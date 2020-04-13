@@ -5,11 +5,11 @@
  *      Author: michaeln
  */
 
-#include "ParamCache.h"
+#include "ValueCache.h"
 
-ParamCache paramCache;
+ValueCache valueCache;
 
-ParamCache::ParamCache()
+ValueCache::ValueCache()
 {
     clear();
 }
@@ -18,7 +18,7 @@ ParamCache::ParamCache()
  * \brief Initialize parameter cache so all params are sent when connecting
  *
  */
-void ParamCache::clear()
+void ValueCache::clear()
 {
     systemState = 0;
     timeRunning = millis(); // this way less important data is sent one second later
@@ -68,7 +68,7 @@ void ParamCache::clear()
     enableHeater = false;
     enableCreep = false;
     cruiseControlSpeed = 0;
-    cruiseControlEnable = false;
+    enableCruiseControl = false;
 
     soc = 0;
     dischargeLimit = 0;

@@ -118,7 +118,7 @@ String WebSocket::prepareConnectionRequestResponse() {
         response.concat("Sec-WebSocket-Accept: ");
         response.concat(acceptHash);
         response.concat("\r\n\r\n");
-        paramCache.clear();
+        valueCache.clear();
         webSocketKey = NULL;
         connected = true;
     }
@@ -263,142 +263,142 @@ String WebSocket::generateUpdate()
     isFirst = true;
 
     if (motorController) {
-        processParameter(&paramCache.throttle, motorController->getThrottleLevel(), throttle, 10);
-        processParameter(&paramCache.torqueActual, motorController->getTorqueActual(), torqueActual, 10);
+        processValue(&valueCache.throttle, motorController->getThrottleLevel(), throttle, 10);
+        processValue(&valueCache.torqueActual, motorController->getTorqueActual(), torqueActual, 10);
         if (updateCounter == 0 || updateCounter == 5) { // very fluctuating values which would unnecessarily strain the cpu (of a tablet)
-            processParameter(&paramCache.speedActual, motorController->getSpeedActual(), speedActual);
+            processValue(&valueCache.speedActual, motorController->getSpeedActual(), speedActual);
             if (batteryManager && batteryManager->hasPackVoltage()) {
-                processParameter(&paramCache.dcVoltage, batteryManager->getPackVoltage(), dcVoltage, 10);
+                processValue(&valueCache.dcVoltage, batteryManager->getPackVoltage(), dcVoltage, 10);
             } else {
-                processParameter(&paramCache.dcVoltage, motorController->getDcVoltage(), dcVoltage, 10);
+                processValue(&valueCache.dcVoltage, motorController->getDcVoltage(), dcVoltage, 10);
                 processLimits(&dcVoltageMin, &dcVoltageMax, motorController->getDcVoltage(), dcVoltage);
             }
             if (batteryManager && batteryManager->hasPackCurrent()) {
-                processParameter(&paramCache.dcCurrent, batteryManager->getPackCurrent(), dcCurrent, 10);
+                processValue(&valueCache.dcCurrent, batteryManager->getPackCurrent(), dcCurrent, 10);
             } else {
-                processParameter(&paramCache.dcCurrent, motorController->getDcCurrent(), dcCurrent, 10);
+                processValue(&valueCache.dcCurrent, motorController->getDcCurrent(), dcCurrent, 10);
                 processLimits(&dcCurrentMin, &dcCurrentMax, motorController->getDcCurrent(), dcCurrent);
             }
-            processParameter(&paramCache.temperatureMotor, motorController->getTemperatureMotor(), temperatureMotor, 10);
+            processValue(&valueCache.temperatureMotor, motorController->getTemperatureMotor(), temperatureMotor, 10);
             processLimits(NULL, &temperatureMotorMax, motorController->getTemperatureMotor(), temperatureMotor);
-            processParameter(&paramCache.temperatureController, motorController->getTemperatureController(), temperatureController, 10);
+            processValue(&valueCache.temperatureController, motorController->getTemperatureController(), temperatureController, 10);
             processLimits(NULL, &temperatureControllerMax, motorController->getTemperatureController(), temperatureController);
-			processParameter(&paramCache.cruiseControlSpeed, motorController->getCruiseControlSpeed(), cruiseControlSpeed);
-			processParameter(&paramCache.cruiseControlEnable, motorController->isCruiseControlEnabled(), cruiseControlEnabled);
+			processValue(&valueCache.cruiseControlSpeed, motorController->getCruiseControlSpeed(), cruiseControlSpeed);
+			processValue(&valueCache.enableCruiseControl, motorController->isCruiseControlEnabled(), enableCruiseControl);
         }
     }
 
     if (checkTime()) {
-		processParameter(&paramCache.bitfieldMotor, status.getBitFieldMotor(), bitfieldMotor);
-		processParameter(&paramCache.bitfieldBms, status.getBitFieldBms(), bitfieldBms);
-		processParameter(&paramCache.bitfieldIO, status.getBitFieldIO(), bitfieldIO);
+		processValue(&valueCache.bitfieldMotor, status.getBitFieldMotor(), bitfieldMotor);
+		processValue(&valueCache.bitfieldBms, status.getBitFieldBms(), bitfieldBms);
+		processValue(&valueCache.bitfieldIO, status.getBitFieldIO(), bitfieldIO);
     }
 
-    if (timeStamp > paramCache.timeRunning + 900) { // just update this every second or so
-        paramCache.timeRunning = timeStamp;
-        addParam(timeRunning, getTimeRunning(), false);
-        processParameter(&paramCache.systemState, (int16_t) status.getSystemState(), systemState);
+    if (timeStamp > valueCache.timeRunning + 900) { // just update this every second or so
+        valueCache.timeRunning = timeStamp;
+        addValue(timeRunning, getTimeRunning(), false);
+        processValue(&valueCache.systemState, (int16_t) status.getSystemState(), systemState);
 
         if (batteryManager && checkTime()) {
             if (batteryManager->hasSoc())
-                processParameter(&paramCache.soc, (uint16_t)(batteryManager->getSoc() * 50), soc, 100);
+                processValue(&valueCache.soc, (uint16_t)(batteryManager->getSoc() * 50), soc, 100);
             if (batteryManager->hasDischargeLimit()) {
-                processParameter(&paramCache.dischargeLimit, batteryManager->getDischargeLimit(), dischargeLimit);
+                processValue(&valueCache.dischargeLimit, batteryManager->getDischargeLimit(), dischargeLimit);
                 if (batteryManager->getDischargeLimit() != dcCurrentMin || batteryManager->getChargeLimit() != dcCurrentMax) {
                     dcCurrentMax = batteryManager->getDischargeLimit();
                     dcCurrentMin = batteryManager->getChargeLimit() * -1;
                     addLimit((char *)String(dcCurrentMin).c_str(), (char *)String(dcCurrentMax).c_str(), dcCurrent);
                 }
             } else {
-                processParameter(&paramCache.dischargeAllowed, batteryManager->isDischargeAllowed(), dischargeAllowed);
+                processValue(&valueCache.dischargeAllowed, batteryManager->isDischargeAllowed(), dischargeAllowed);
             }
             if (batteryManager->hasChargeLimit())
-                processParameter(&paramCache.chargeLimit, batteryManager->getChargeLimit(), chargeLimit);
+                processValue(&valueCache.chargeLimit, batteryManager->getChargeLimit(), chargeLimit);
             else
-                processParameter(&paramCache.chargeAllowed, batteryManager->isChargeAllowed(), chargeAllowed);
+                processValue(&valueCache.chargeAllowed, batteryManager->isChargeAllowed(), chargeAllowed);
             if (batteryManager->hasCellTemperatures() && checkTime()) {
-                processParameter(&paramCache.lowestCellTemp, batteryManager->getLowestCellTemp(), lowestCellTemp, 10);
-                processParameter(&paramCache.highestCellTemp, batteryManager->getHighestCellTemp(), highestCellTemp, 10);
-                processParameter(&paramCache.lowestCellTempId, batteryManager->getLowestCellTempId(), lowestCellTempId);
-                processParameter(&paramCache.highestCellTempId, batteryManager->getHighestCellTempId(), highestCellTempId);
+                processValue(&valueCache.lowestCellTemp, batteryManager->getLowestCellTemp(), lowestCellTemp, 10);
+                processValue(&valueCache.highestCellTemp, batteryManager->getHighestCellTemp(), highestCellTemp, 10);
+                processValue(&valueCache.lowestCellTempId, batteryManager->getLowestCellTempId(), lowestCellTempId);
+                processValue(&valueCache.highestCellTempId, batteryManager->getHighestCellTempId(), highestCellTempId);
             }
             if (batteryManager->hasCellVoltages() && checkTime()) {
-                processParameter(&paramCache.lowestCellVolts, batteryManager->getLowestCellVolts(), lowestCellVolts, 10000);
-                processParameter(&paramCache.highestCellVolts, batteryManager->getHighestCellVolts(), highestCellVolts, 10000);
-                processParameter(&paramCache.averageCellVolts, batteryManager->getAverageCellVolts(), averageCellVolts, 10000);
-                processParameter(&paramCache.deltaCellVolts, batteryManager->getHighestCellVolts() - batteryManager->getLowestCellVolts(), deltaCellVolts, 10000);
-                processParameter(&paramCache.lowestCellVoltsId, batteryManager->getLowestCellVoltsId(), lowestCellVoltsId);
-                processParameter(&paramCache.highestCellVoltsId, batteryManager->getHighestCellVoltsId(), highestCellVoltsId);
+                processValue(&valueCache.lowestCellVolts, batteryManager->getLowestCellVolts(), lowestCellVolts, 10000);
+                processValue(&valueCache.highestCellVolts, batteryManager->getHighestCellVolts(), highestCellVolts, 10000);
+                processValue(&valueCache.averageCellVolts, batteryManager->getAverageCellVolts(), averageCellVolts, 10000);
+                processValue(&valueCache.deltaCellVolts, batteryManager->getHighestCellVolts() - batteryManager->getLowestCellVolts(), deltaCellVolts, 10000);
+                processValue(&valueCache.lowestCellVoltsId, batteryManager->getLowestCellVoltsId(), lowestCellVoltsId);
+                processValue(&valueCache.highestCellVoltsId, batteryManager->getHighestCellVoltsId(), highestCellVoltsId);
             }
             if (batteryManager->hasCellResistance() && checkTime()) {
-                processParameter(&paramCache.lowestCellResistance, batteryManager->getLowestCellResistance(), lowestCellResistance, 100);
-                processParameter(&paramCache.highestCellResistance, batteryManager->getHighestCellResistance(), highestCellResistance, 100);
-                processParameter(&paramCache.averageCellResistance, batteryManager->getAverageCellResistance(), averageCellResistance, 100);
-                processParameter(&paramCache.deltaCellResistance, (batteryManager->getHighestCellResistance() - batteryManager->getLowestCellResistance()), deltaCellResistance, 100);
-                processParameter(&paramCache.lowestCellResistanceId, batteryManager->getLowestCellResistanceId(), lowestCellResistanceId);
-                processParameter(&paramCache.highestCellResistanceId, batteryManager->getHighestCellResistanceId(), highestCellResistanceId);
+                processValue(&valueCache.lowestCellResistance, batteryManager->getLowestCellResistance(), lowestCellResistance, 100);
+                processValue(&valueCache.highestCellResistance, batteryManager->getHighestCellResistance(), highestCellResistance, 100);
+                processValue(&valueCache.averageCellResistance, batteryManager->getAverageCellResistance(), averageCellResistance, 100);
+                processValue(&valueCache.deltaCellResistance, (batteryManager->getHighestCellResistance() - batteryManager->getLowestCellResistance()), deltaCellResistance, 100);
+                processValue(&valueCache.lowestCellResistanceId, batteryManager->getLowestCellResistanceId(), lowestCellResistanceId);
+                processValue(&valueCache.highestCellResistanceId, batteryManager->getHighestCellResistanceId(), highestCellResistanceId);
             }
             if (checkTime()) {
 				if (batteryManager->hasPackResistance()) {
-					processParameter(&paramCache.packResistance, batteryManager->getPackResistance(), packResistance);
+					processValue(&valueCache.packResistance, batteryManager->getPackResistance(), packResistance);
 				}
 				if (batteryManager->hasPackHealth()) {
-					processParameter(&paramCache.packHealth, batteryManager->getPackHealth(), packHealth);
+					processValue(&valueCache.packHealth, batteryManager->getPackHealth(), packHealth);
 				}
 				if (batteryManager->hasPackCycles()) {
-					processParameter(&paramCache.packCycles, batteryManager->getPackCycles(), packCycles);
+					processValue(&valueCache.packCycles, batteryManager->getPackCycles(), packCycles);
 				}
             }
-            processParameter(&paramCache.bmsTemperature, batteryManager->getSystemTemperature(), bmsTemp);
+            processValue(&valueCache.bmsTemperature, batteryManager->getSystemTemperature(), bmsTemp);
         }
 
         DcDcConverter* dcDcConverter = deviceManager.getDcDcConverter();
         if (dcDcConverter && checkTime()) {
-            processParameter(&paramCache.dcDcHvVoltage, dcDcConverter->getHvVoltage(), dcDcHvVoltage, 10);
-            processParameter(&paramCache.dcDcHvCurrent, dcDcConverter->getHvCurrent(), dcDcHvCurrent, 10);
-            processParameter(&paramCache.dcDcLvVoltage, dcDcConverter->getLvVoltage(), dcDcLvVoltage, 10);
-            processParameter(&paramCache.dcDcLvCurrent, dcDcConverter->getLvCurrent(), dcDcLvCurrent);
-            processParameter(&paramCache.dcDcTemperature, dcDcConverter->getTemperature(), dcDcTemperature, 10);
+            processValue(&valueCache.dcDcHvVoltage, dcDcConverter->getHvVoltage(), dcDcHvVoltage, 10);
+            processValue(&valueCache.dcDcHvCurrent, dcDcConverter->getHvCurrent(), dcDcHvCurrent, 10);
+            processValue(&valueCache.dcDcLvVoltage, dcDcConverter->getLvVoltage(), dcDcLvVoltage, 10);
+            processValue(&valueCache.dcDcLvCurrent, dcDcConverter->getLvCurrent(), dcDcLvCurrent);
+            processValue(&valueCache.dcDcTemperature, dcDcConverter->getTemperature(), dcDcTemperature, 10);
         }
 
         if (status.getSystemState() == Status::charging || status.getSystemState() == Status::charged) {
             Charger* charger = deviceManager.getCharger();
             if (charger && checkTime()) {
-                processParameter(&paramCache.chargerInputVoltage, charger->getInputVoltage(), chargerInputVoltage, 10);
-                processParameter(&paramCache.chargerInputCurrent, charger->getInputCurrent(), chargerInputCurrent, 100);
-                processParameter(&paramCache.chargerBatteryVoltage, charger->getBatteryVoltage(), chargerBatteryVoltage, 10);
-                processParameter(&paramCache.chargerBatteryCurrent, charger->getBatteryCurrent(), chargerBatteryCurrent, 100);
-                processParameter(&paramCache.chargerTemperature, charger->getTemperature(), chargerTemperature, 10);
+                processValue(&valueCache.chargerInputVoltage, charger->getInputVoltage(), chargerInputVoltage, 10);
+                processValue(&valueCache.chargerInputCurrent, charger->getInputCurrent(), chargerInputCurrent, 100);
+                processValue(&valueCache.chargerBatteryVoltage, charger->getBatteryVoltage(), chargerBatteryVoltage, 10);
+                processValue(&valueCache.chargerBatteryCurrent, charger->getBatteryCurrent(), chargerBatteryCurrent, 100);
+                processValue(&valueCache.chargerTemperature, charger->getTemperature(), chargerTemperature, 10);
 
                 uint16_t secs = millis() / 1000; //TODO calc mins
-                processParameter(&paramCache.chargeHoursRemain, secs / 60, chargeHoursRemain);
-                processParameter(&paramCache.chargeMinsRemain, secs % 60, chargeMinsRemain);
+                processValue(&valueCache.chargeHoursRemain, secs / 60, chargeHoursRemain);
+                processValue(&valueCache.chargeMinsRemain, secs % 60, chargeMinsRemain);
                 if (batteryManager && batteryManager->hasSoc())
-                    processParameter(&paramCache.chargeLevel, batteryManager->getSoc() * 50, chargeLevel, 100);
+                    processValue(&valueCache.chargeLevel, batteryManager->getSoc() * 50, chargeLevel, 100);
                 else
-                    processParameter(&paramCache.chargeLevel, map (secs, 0 , 28800, 0, 100), chargeLevel);
-                processParameter(&paramCache.maximumSolarCurrent, charger->getMaximumSolarCurrent(), maximumSolarCurrent, 10);
+                    processValue(&valueCache.chargeLevel, map (secs, 0 , 28800, 0, 100), chargeLevel);
+                processValue(&valueCache.maximumSolarCurrent, charger->getMaximumSolarCurrent(), maximumSolarCurrent, 10);
             }
         }
 
         if (checkTime()) {
-			processParameter(&paramCache.heaterPower, status.heaterPower, heaterPower);
-			processParameter(&paramCache.flowCoolant, status.flowCoolant * 6, flowCoolant, 100);
-			processParameter(&paramCache.flowHeater, status.flowHeater * 6, flowHeater, 100);
+			processValue(&valueCache.heaterPower, status.heaterPower, heaterPower);
+			processValue(&valueCache.flowCoolant, status.flowCoolant * 6, flowCoolant, 100);
+			processValue(&valueCache.flowHeater, status.flowHeater * 6, flowHeater, 100);
 			for (int i = 0; i < CFG_NUMBER_BATTERY_TEMPERATURE_SENSORS; i++) {
-				processParameter(&paramCache.temperatureBattery[i], status.temperatureBattery[i], temperatureBattery[i], 10);
+				processValue(&valueCache.temperatureBattery[i], status.temperatureBattery[i], temperatureBattery[i], 10);
 			}
-			processParameter(&paramCache.temperatureCoolant, status.temperatureCoolant, temperatureCoolant, 10);
-			processParameter(&paramCache.temperatureHeater, status.heaterTemperature, temperatureHeater);
+			processValue(&valueCache.temperatureCoolant, status.temperatureCoolant, temperatureCoolant, 10);
+			processValue(&valueCache.temperatureHeater, status.heaterTemperature, temperatureHeater);
 			if (status.temperatureExterior != CFG_NO_TEMPERATURE_DATA) {
-				processParameter(&paramCache.temperatureExterior, status.temperatureExterior, temperatureExterior, 10);
+				processValue(&valueCache.temperatureExterior, status.temperatureExterior, temperatureExterior, 10);
 			}
         }
         if (checkTime()) {
-			processParameter(&paramCache.enableRegen, status.enableRegen, enableRegen);
-			processParameter(&paramCache.enableHeater, status.enableHeater, enableHeater);
-			processParameter(&paramCache.powerSteering, status.powerSteering, powerSteering);
-			processParameter(&paramCache.enableCreep, status.enableCreep, enableCreep);
+			processValue(&valueCache.enableRegen, status.enableRegen, enableRegen);
+			processValue(&valueCache.enableHeater, status.enableHeater, enableHeater);
+			processValue(&valueCache.powerSteering, status.powerSteering, powerSteering);
+			processValue(&valueCache.enableCreep, status.enableCreep, enableCreep);
         }
 
         if (limits.length() > 0) {
@@ -406,7 +406,7 @@ String WebSocket::generateUpdate()
             out.concat("{");
             out.concat(limits.substring(0, limits.length() - 1));
             out.concat("}");
-            addParam("limits", (char *)out.c_str(), true);
+            addValue("limits", (char *)out.c_str(), true);
         }
     }
 
@@ -483,7 +483,7 @@ String WebSocket::prepareWebSocketFrame(uint8_t opcode, String data)
 }
 
 /**
- * \brief Add a parameter to the JSON data object
+ * \brief Add a value to the JSON data object
  *
  * It's important that the last entry has no trailing ',' sign and the strings
  * are encapsulated with "" - otherwise the JSON parser will fail.
@@ -492,7 +492,7 @@ String WebSocket::prepareWebSocketFrame(uint8_t opcode, String data)
  * \param value the value to be added
  * \param isNumeric an indication if the value is to be treated as numeric or string
  */
-void WebSocket::addParam(const String key, char *value, bool isNumeric)
+void WebSocket::addValue(const String key, char *value, bool isNumeric)
 {
     if (isFirst) {
         data.concat("{"); // open JSON object
@@ -513,176 +513,176 @@ void WebSocket::addParam(const String key, char *value, bool isNumeric)
 }
 
 /**
- * \brief Add a parameter to the response data if it has changed against the cached parameter
+ * \brief Add a value to the response data if it has changed against the cached value
  *
- * \param cacheParam a pointer to the cached value against which the value is compared
+ * \param cacheValue a pointer to the cached value against which the value is compared
  * \param value the current value to be analyzed / added
- * \param name the name of the parameter
+ * \param name the name of the value
  */
-void WebSocket::processParameter(uint8_t *cacheParam, uint8_t value, const String name)
+void WebSocket::processValue(uint8_t *cacheValue, uint8_t value, const String name)
 {
-    if (*cacheParam == value)
+    if (*cacheValue == value)
         return;
-    *cacheParam = value;
+    *cacheValue = value;
     sprintf(buffer, "%u", value);
-    addParam(name, buffer, true);
+    addValue(name, buffer, true);
 }
 
 /**
- * \brief Add a parameter to the response data if it has changed against the cached parameter
+ * \brief Add a value to the response data if it has changed against the cached value
  *
- * \param cacheParam a pointer to the cached value against which the value is compared
+ * \param cacheValue a pointer to the cached value against which the value is compared
  * \param value the current value to be analyzed / added
- * \param name the name of the parameter
+ * \param name the name of the value
  */
-void WebSocket::processParameter(int16_t *cacheParam, int16_t value, const String name)
+void WebSocket::processValue(int16_t *cacheValue, int16_t value, const String name)
 {
-    if (*cacheParam == value)
+    if (*cacheValue == value)
         return;
-    *cacheParam = value;
+    *cacheValue = value;
     sprintf(buffer, "%d", value);
-    addParam(name, buffer, true);
+    addValue(name, buffer, true);
 }
 
 /**
- * \brief Add a parameter to the response data if it has changed against the cached parameter
+ * \brief Add a value to the response data if it has changed against the cached value
  *
- * \param cacheParam a pointer to the cached value against which the value is compared
+ * \param cacheValue a pointer to the cached value against which the value is compared
  * \param value the current value to be analyzed / added
- * \param name the name of the parameter
+ * \param name the name of the value
  */
-void WebSocket::processParameter(uint16_t *cacheParam, uint16_t value, const String name)
+void WebSocket::processValue(uint16_t *cacheValue, uint16_t value, const String name)
 {
-    if (*cacheParam == value)
+    if (*cacheValue == value)
         return;
-    *cacheParam = value;
+    *cacheValue = value;
     sprintf(buffer, "%u", value);
-    addParam(name, buffer, true);
+    addValue(name, buffer, true);
 }
 
 /**
- * \brief Add a parameter to the response data if it has changed against the cached parameter
+ * \brief Add a value to the response data if it has changed against the cached value
  *
- * \param cacheParam a pointer to the cached value against which the value is compared
+ * \param cacheValue a pointer to the cached value against which the value is compared
  * \param value the current value to be analyzed / added
- * \param name the name of the parameter
+ * \param name the name of the value
  */
-void WebSocket::processParameter(int32_t *cacheParam, int32_t value, const String name)
+void WebSocket::processValue(int32_t *cacheValue, int32_t value, const String name)
 {
-    if (*cacheParam == value)
+    if (*cacheValue == value)
         return;
-    *cacheParam = value;
+    *cacheValue = value;
     sprintf(buffer, "%ld", value);
-    addParam(name, buffer, true);
+    addValue(name, buffer, true);
 }
 
 /**
- * \brief Add a parameter to the response data if it has changed against the cached parameter
+ * \brief Add a value to the response data if it has changed against the cached value
  *
- * \param cacheParam a pointer to the cached value against which the value is compared
+ * \param cacheValue a pointer to the cached value against which the value is compared
  * \param value the current value to be analyzed / added
- * \param name the name of the parameter
+ * \param name the name of the value
  */
-void WebSocket::processParameter(uint32_t *cacheParam, uint32_t value, const String name)
+void WebSocket::processValue(uint32_t *cacheValue, uint32_t value, const String name)
 {
-    if (*cacheParam == value)
+    if (*cacheValue == value)
         return;
-    *cacheParam = value;
+    *cacheValue = value;
     sprintf(buffer, "%lu", value);
-    addParam(name, buffer, true);
+    addValue(name, buffer, true);
 }
 
 /**
- * \brief Add a parameter to the response data if it has changed against the cached parameter
+ * \brief Add a value to the response data if it has changed against the cached value
  *
- * \param cacheParam a pointer to the cached value against which the value is compared
+ * \param cacheValue a pointer to the cached value against which the value is compared
  * \param value the current value to be analyzed / added
- * \param name the name of the parameter
+ * \param name the name of the value
  * \param divisor by which the value should be divided to a float value
  */
-void WebSocket::processParameter(int16_t *cacheParam, int16_t value, const String name, int divisor)
+void WebSocket::processValue(int16_t *cacheValue, int16_t value, const String name, int divisor)
 {
-    if (*cacheParam == value)
+    if (*cacheValue == value)
         return;
-    *cacheParam = value;
+    *cacheValue = value;
     char format[10];
     sprintf(format, "%%.%ldf", round(log10(divisor)));
     sprintf(buffer, format, static_cast<float>(value) / divisor);
-    addParam(name, buffer, true);
+    addValue(name, buffer, true);
 }
 
 /**
- * \brief Add a parameter to the response data if it has changed against the cached parameter
+ * \brief Add a value to the response data if it has changed against the cached value
  *
- * \param cacheParam a pointer to the cached value against which the value is compared
+ * \param cacheValue a pointer to the cached value against which the value is compared
  * \param value the current value to be analyzed / added
- * \param name the name of the parameter
+ * \param name the name of the value
  * \param divisor by which the value should be divided to a float value
  */
-void WebSocket::processParameter(uint16_t *cacheParam, uint16_t value, const String name, int divisor)
+void WebSocket::processValue(uint16_t *cacheValue, uint16_t value, const String name, int divisor)
 {
-    if (*cacheParam == value)
+    if (*cacheValue == value)
         return;
-    *cacheParam = value;
+    *cacheValue = value;
     char format[10];
     sprintf(format, "%%.%ldf", round(log10(divisor)));
     sprintf(buffer, format, static_cast<float>(value) / divisor);
-    addParam(name, buffer, true);
+    addValue(name, buffer, true);
 }
 
 /**
- * \brief Add a parameter to the response data if it has changed against the cached parameter
+ * \brief Add a value to the response data if it has changed against the cached value
  *
- * \param cacheParam a pointer to the cached value against which the value is compared
+ * \param cacheValue a pointer to the cached value against which the value is compared
  * \param value the current value to be analyzed / added
- * \param name the name of the parameter
+ * \param name the name of the value
  * \param divisor by which the value should be divided to a float value
  */
-void WebSocket::processParameter(int32_t *cacheParam, int32_t value, const String name, int divisor)
+void WebSocket::processValue(int32_t *cacheValue, int32_t value, const String name, int divisor)
 {
-    if (*cacheParam == value)
+    if (*cacheValue == value)
         return;
-    *cacheParam = value;
+    *cacheValue = value;
     char format[10];
     sprintf(format, "%%.%ldf", round(log10(divisor)));
     sprintf(buffer, format, static_cast<float>(value) / divisor);
-    addParam(name, buffer, true);
+    addValue(name, buffer, true);
 }
 
 /**
- * \brief Add a parameter to the response data if it has changed against the cached parameter
+ * \brief Add a value to the response data if it has changed against the cached value
  *
- * \param cacheParam a pointer to the cached value against which the value is compared
+ * \param cacheValue a pointer to the cached value against which the value is compared
  * \param value the current value to be analyzed / added
- * \param name the name of the parameter
+ * \param name the name of the value
  * \param divisor by which the value should be divided to a float value
  */
-void WebSocket::processParameter(uint32_t *cacheParam, uint32_t value, const String name, int divisor)
+void WebSocket::processValue(uint32_t *cacheValue, uint32_t value, const String name, int divisor)
 {
-    if (*cacheParam == value)
+    if (*cacheValue == value)
         return;
-    *cacheParam = value;
+    *cacheValue = value;
 
     char format[10];
     sprintf(format, "%%.%ldf", round(log10(divisor)));
     sprintf(buffer, format, static_cast<float>(value) / divisor);
-    addParam(name, buffer, true);
+    addValue(name, buffer, true);
 }
 
 /**
- * \brief Add a parameter to the response data if it has changed against the cached parameter
+ * \brief Add a value to the response data if it has changed against the cached value
  *
- * \param cacheParam a pointer to the cached value against which the value is compared
+ * \param cacheValue a pointer to the cached value against which the value is compared
  * \param value the current value to be analyzed / added
- * \param name the name of the parameter
+ * \param name the name of the value
  */
-void WebSocket::processParameter(bool *cacheParam, bool value, const String name)
+void WebSocket::processValue(bool *cacheValue, bool value, const String name)
 {
-    if (*cacheParam == value)
+    if (*cacheValue == value)
         return;
-    *cacheParam = value;
+    *cacheValue = value;
     strcpy(buffer, (value ? "true" : "false"));
-    addParam(name, buffer, true);
+    addValue(name, buffer, true);
 }
 
 void WebSocket::processLimits(int16_t *min, int16_t *max, int16_t value, const String name) {

@@ -26,12 +26,37 @@ void Wifi::setParam(String key, String value) {
 }
 
 /**
+ * \brief Process the parameter update we received from a form submit.
+ *
+ * The response usually looks like this : key="value", so the key can be isolated
+ * by looking for the '=' sign and the leading/trailing '"' have to be ignored.
+ *
+ * \param key and value pair of changed parameter
+ */
+void Wifi::processParameterChange(String input)
+{
+    int pos = input.indexOf('=');
+    if (pos < 1) {
+        return;
+    }
+
+    String key = input.substring(0, pos);
+    String value = input.substring(pos + 1);
+
+    if (value.charAt(0) == '"' && value.charAt(value.length() - 1) == '"') {
+        value = value.substring(1, value.length() - 2); // cut leading/trailing '"' characters
+    }
+
+    processParameterChange(key, value);
+}
+
+/**
  * \brief Process the parameter update.
  *
  * \param key of changed parameter
  * \param value of changed parameter
  */
-void Wifi::processParameterChange(char *key, char *value)
+void Wifi::processParameterChange(String key, String value)
 {
     if (key && value) {
         if (processParameterChangeThrottle(key, value) || processParameterChangeBrake(key, value) ||
@@ -39,7 +64,7 @@ void Wifi::processParameterChange(char *key, char *value)
                 processParameterChangeDcDc(key, value) || processParameterChangeDevices(key, value) ||
                 processParameterChangeSystemIO(key, value)) {
             if (logger.isDebug()) {
-                logger.debug(this, "parameter change: %s = %s", key, value);
+                logger.debug(this, "parameter change: %s = %s", key.c_str(), value.c_str());
             }
         }
     }
@@ -52,7 +77,7 @@ void Wifi::processParameterChange(char *key, char *value)
  * \param value the value of the parameter
  * \return true if the parameter was processed
  */
-bool Wifi::processParameterChangeThrottle(char *key, char *value)
+bool Wifi::processParameterChangeThrottle(String key, String value)
 {
     Throttle *throttle = deviceManager.getAccelerator();
 
@@ -61,29 +86,29 @@ bool Wifi::processParameterChangeThrottle(char *key, char *value)
 
         if(config) {
             if (numberPotMeters.equals(key)) {
-                config->numberPotMeters = atol(value);
+                config->numberPotMeters = value.toInt();
             } else if (throttleSubType.equals(key)) {
-                config->throttleSubType = atol(value);
+                config->throttleSubType = value.toInt();
             } else if (minimumLevel.equals(key)) {
-                config->minimumLevel = atol(value);
+                config->minimumLevel = value.toInt();
             } else if (minimumLevel2.equals(key)) {
-                config->minimumLevel2 = atol(value);
+                config->minimumLevel2 = value.toInt();
             } else if (maximumLevel.equals(key)) {
-                config->maximumLevel = atol(value);
+                config->maximumLevel = value.toInt();
             } else if (maximumLevel2.equals(key)) {
-                config->maximumLevel2 = atol(value);
+                config->maximumLevel2 = value.toInt();
             } else if (positionRegenMaximum.equals(key)) {
-                config->positionRegenMaximum = atof(value) * 10;
+                config->positionRegenMaximum = value.toDouble() * 10;
             } else if (positionRegenMinimum.equals(key)) {
-                config->positionRegenMinimum = atof(value) * 10;
+                config->positionRegenMinimum = value.toDouble() * 10;
             } else if (positionForwardMotionStart.equals(key)) {
-                config->positionForwardMotionStart = atof(value) * 10;
+                config->positionForwardMotionStart = value.toDouble() * 10;
             } else if (positionHalfPower.equals(key)) {
-                config->positionHalfPower = atof(value) * 10;
+                config->positionHalfPower = value.toDouble() * 10;
             } else if (minimumRegen.equals(key)) {
-                config->minimumRegen = atol(value);
+                config->minimumRegen = value.toInt();
             } else if (maximumRegen.equals(key)) {
-                config->maximumRegen = atol(value);
+                config->maximumRegen = value.toInt();
             } else {
                 return false;
             }
@@ -101,7 +126,7 @@ bool Wifi::processParameterChangeThrottle(char *key, char *value)
  * \param value the value of the parameter
  * \return true if the parameter was processed
  */
-bool Wifi::processParameterChangeBrake(char *key, char *value)
+bool Wifi::processParameterChangeBrake(String key, String value)
 {
     Throttle *brake = deviceManager.getBrake();
 
@@ -110,13 +135,13 @@ bool Wifi::processParameterChangeBrake(char *key, char *value)
 
         if (config) {
             if (brakeMinimumLevel.equals(key)) {
-                config->minimumLevel = atol(value);
+                config->minimumLevel = value.toInt();
             } else if (brakeMaximumLevel.equals(key)) {
-                config->maximumLevel = atol(value);
+                config->maximumLevel = value.toInt();
             } else if (brakeMinimumRegen.equals(key)) {
-                config->minimumRegen = atol(value);
+                config->minimumRegen = value.toInt();
             } else if (brakeMaximumRegen.equals(key)) {
-                config->maximumRegen = atol(value);
+                config->maximumRegen = value.toInt();
             } else {
                 return false;
             }
@@ -134,7 +159,7 @@ bool Wifi::processParameterChangeBrake(char *key, char *value)
  * \param value the value of the parameter
  * \return true if the parameter was processed
  */
-bool Wifi::processParameterChangeMotor(char *key, char *value)
+bool Wifi::processParameterChangeMotor(String key, String value)
 {
     MotorController *motorController = deviceManager.getMotorController();
 
@@ -143,41 +168,41 @@ bool Wifi::processParameterChangeMotor(char *key, char *value)
 
         if (config) {
             if (speedMax.equals(key)) {
-                config->speedMax = atol(value);
+                config->speedMax = value.toInt();
             } else if (torqueMax.equals(key)) {
-                config->torqueMax = atof(value) * 10;
+                config->torqueMax = value.toDouble() * 10;
             } else if (nominalVolt.equals(key)) {
-                config->nominalVolt = atof(value) * 10;
+                config->nominalVolt = value.toDouble() * 10;
             } else if (motorMode.equals(key)) {
-                config->powerMode = (atol(value) ? modeSpeed : modeTorque);
+                config->powerMode = (value.toInt() ? modeSpeed : modeTorque);
             } else if (invertDirection.equals(key)) {
-                config->invertDirection = atol(value);
+                config->invertDirection = value.toInt();
             } else if (slewRate.equals(key)) {
-                config->slewRate = atof(value) * 10;
+                config->slewRate = value.toDouble() * 10;
             } else if (maxMechanicalPowerMotor.equals(key)) {
-                config->maxMechanicalPowerMotor = atof(value) * 10;
+                config->maxMechanicalPowerMotor = value.toDouble() * 10;
             } else if (maxMechanicalPowerRegen.equals(key)) {
-                config->maxMechanicalPowerRegen = atof(value) * 10;
+                config->maxMechanicalPowerRegen = value.toDouble() * 10;
             } else if (creepLevel.equals(key)) {
-                config->creepLevel = atol(value);
+                config->creepLevel = value.toInt();
             } else if (creepSpeed.equals(key)) {
-                config->creepSpeed = atol(value);
+                config->creepSpeed = value.toInt();
             } else if (brakeHold.equals(key)) {
-                config->brakeHold = atol(value);
+                config->brakeHold = value.toInt();
             } else if (brakeHoldLevel.equals(key)) {
-                config->brakeHold = atol(value);
+                config->brakeHold = value.toInt();
             } else if (motorController->getId() == BRUSA_DMC5) {
                 BrusaDMC5Configuration *dmc5Config = (BrusaDMC5Configuration *) config;
                 if (dcVoltLimitMotor.equals(key)) {
-                    dmc5Config->dcVoltLimitMotor = atof(value) * 10;
+                    dmc5Config->dcVoltLimitMotor = value.toDouble() * 10;
                 } else if (dcVoltLimitRegen.equals(key)) {
-                    dmc5Config->dcVoltLimitRegen = atof(value) * 10;
+                    dmc5Config->dcVoltLimitRegen = value.toDouble() * 10;
                 } else if (dcCurrentLimitMotor.equals(key)) {
-                    dmc5Config->dcCurrentLimitMotor = atof(value) * 10;
+                    dmc5Config->dcCurrentLimitMotor = value.toDouble() * 10;
                 } else if (dcCurrentLimitRegen.equals(key)) {
-                    dmc5Config->dcCurrentLimitRegen = atof(value) * 10;
+                    dmc5Config->dcCurrentLimitRegen = value.toDouble() * 10;
                 } else if (enableOscillationLimiter.equals(key)) {
-                    dmc5Config->enableOscillationLimiter = atol(value);
+                    dmc5Config->enableOscillationLimiter = value.toInt();
                 } else {
                     return false;
                 }
@@ -198,7 +223,7 @@ bool Wifi::processParameterChangeMotor(char *key, char *value)
  * \param value the value of the parameter
  * \return true if the parameter was processed
  */
-bool Wifi::processParameterChangeCharger(char *key, char *value)
+bool Wifi::processParameterChangeCharger(String key, String value)
 {
     Charger *charger = deviceManager.getCharger();
 
@@ -206,39 +231,39 @@ bool Wifi::processParameterChangeCharger(char *key, char *value)
         ChargerConfiguration *config = (ChargerConfiguration *) charger->getConfiguration();
 
         if (maximumSolarCurrent.equals(key)) {
-            charger->setMaximumSolarCurrent(atof(value));
+            charger->setMaximumSolarCurrent(value.toDouble());
             return true;
         }
 
         if (config) {
             if (maximumInputCurrent.equals(key)) {
-                config->maximumInputCurrent = atof(value) * 10;
+                config->maximumInputCurrent = value.toDouble() * 10;
             } else if (constantCurrent.equals(key)) {
-                config->constantCurrent = atof(value) * 10;
+                config->constantCurrent = value.toDouble() * 10;
             } else if (constantVoltage.equals(key)) {
-                config->constantVoltage = atof(value) * 10;
+                config->constantVoltage = value.toDouble() * 10;
             } else if (terminateCurrent.equals(key)) {
-                config->terminateCurrent = atof(value) * 10;
+                config->terminateCurrent = value.toDouble() * 10;
             } else if (minimumBatteryVoltage.equals(key)) {
-                config->minimumBatteryVoltage = atof(value) * 10;
+                config->minimumBatteryVoltage = value.toDouble() * 10;
             } else if (maximumBatteryVoltage.equals(key)) {
-                config->maximumBatteryVoltage = atof(value) * 10;
+                config->maximumBatteryVoltage = value.toDouble() * 10;
             } else if (minimumTemperature.equals(key)) {
-                config->minimumTemperature = atof(value) * 10;
+                config->minimumTemperature = value.toDouble() * 10;
             } else if (maximumTemperature.equals(key)) {
-                config->maximumTemperature = atof(value) * 10;
+                config->maximumTemperature = value.toDouble() * 10;
             } else if (maximumAmpereHours.equals(key)) {
-                config->maximumAmpereHours = atof(value) * 10;
+                config->maximumAmpereHours = value.toDouble() * 10;
             } else if (maximumChargeTime.equals(key)) {
-                config->maximumChargeTime = atol(value);
+                config->maximumChargeTime = value.toInt();
             } else if (deratingRate.equals(key)) {
-                config->deratingRate = atof(value) * 10;
+                config->deratingRate = value.toDouble() * 10;
             } else if (deratingReferenceTemperature.equals(key)) {
-                config->deratingReferenceTemperature = atof(value) * 10;
+                config->deratingReferenceTemperature = value.toDouble() * 10;
             } else if (hystereseStopTemperature.equals(key)) {
-                config->hystereseStopTemperature = atof(value) * 10;
+                config->hystereseStopTemperature = value.toDouble() * 10;
             } else if (hystereseResumeTemperature.equals(key)) {
-                config->hystereseResumeTemperature = atof(value) * 10;
+                config->hystereseResumeTemperature = value.toDouble() * 10;
             } else {
                 return false;
             }
@@ -256,7 +281,7 @@ bool Wifi::processParameterChangeCharger(char *key, char *value)
  * \param value the value of the parameter
  * \return true if the parameter was processed
  */
-bool Wifi::processParameterChangeDcDc(char *key, char *value)
+bool Wifi::processParameterChangeDcDc(String key, String value)
 {
     DcDcConverter *dcDcConverter = deviceManager.getDcDcConverter();
 
@@ -265,23 +290,23 @@ bool Wifi::processParameterChangeDcDc(char *key, char *value)
 
         if (config) {
             if (dcDcMode.equals(key)) {
-                config->mode = atol(value);
+                config->mode = value.toInt();
             } else if (lowVoltageCommand.equals(key)) {
-                config->lowVoltageCommand = atof(value) * 10;
+                config->lowVoltageCommand = value.toDouble() * 10;
             } else if (hvUndervoltageLimit.equals(key)) {
-                config->hvUndervoltageLimit = atof(value);
+                config->hvUndervoltageLimit = value.toDouble();
             } else if (lvBuckModeCurrentLimit.equals(key)) {
-                config->lvBuckModeCurrentLimit = atol(value);
+                config->lvBuckModeCurrentLimit = value.toInt();
             } else if (hvBuckModeCurrentLimit.equals(key)) {
-                config->hvBuckModeCurrentLimit = atof(value) * 10;
+                config->hvBuckModeCurrentLimit = value.toDouble() * 10;
             } else if (highVoltageCommand.equals(key)) {
-                config->highVoltageCommand = atol(value);
+                config->highVoltageCommand = value.toInt();
             } else if (lvUndervoltageLimit.equals(key)) {
-                config->lvUndervoltageLimit = atof(value) * 10;
+                config->lvUndervoltageLimit = value.toDouble() * 10;
             } else if (lvBoostModeCurrentLimit.equals(key)) {
-                config->lvBoostModeCurrentLinit = atol(value);
+                config->lvBoostModeCurrentLinit = value.toInt();
             } else if (hvBoostModeCurrentLimit.equals(key)) {
-                config->hvBoostModeCurrentLimit = atof(value) * 10;
+                config->hvBoostModeCurrentLimit = value.toDouble() * 10;
             } else {
                 return false;
             }
@@ -299,58 +324,60 @@ bool Wifi::processParameterChangeDcDc(char *key, char *value)
  * \param value the value of the parameter
  * \return true if the parameter was processed
  */
-bool Wifi::processParameterChangeSystemIO(char *key, char *value)
+bool Wifi::processParameterChangeSystemIO(String key, String value)
 {
     SystemIOConfiguration *config = (SystemIOConfiguration *) systemIO.getConfiguration();
 
     if (enableInput.equals(key)) {
-        config->enableInput = atol(value);
+        config->enableInput = value.toInt();
     } else if (chargePowerAvailableInput.equals(key)) {
-        config->chargePowerAvailableInput = atol(value);
+        config->chargePowerAvailableInput = value.toInt();
     } else if (interlockInput.equals(key)) {
-        config->interlockInput = atol(value);
+        config->interlockInput = value.toInt();
     } else if (reverseInput.equals(key)) {
-        config->reverseInput = atol(value);
+        config->reverseInput = value.toInt();
     } else if (absInput.equals(key)) {
-        config->absInput = atol(value);
+        config->absInput = value.toInt();
     } else if (prechargeMillis.equals(key)) {
-        config->prechargeMillis = atol(value);
+        config->prechargeMillis = value.toInt();
     } else if (prechargeRelayOutput.equals(key)) {
-        config->prechargeRelayOutput = atol(value);
+        config->prechargeRelayOutput = value.toInt();
     } else if (mainContactorOutput.equals(key)) {
-        config->mainContactorOutput = atol(value);
+        config->mainContactorOutput = value.toInt();
     } else if (secondaryContactorOutput.equals(key)) {
-        config->secondaryContactorOutput = atol(value);
+        config->secondaryContactorOutput = value.toInt();
     } else if (fastChargeContactorOutput.equals(key)) {
-        config->fastChargeContactorOutput = atol(value);
+        config->fastChargeContactorOutput = value.toInt();
     } else if (enableMotorOutput.equals(key)) {
-        config->enableMotorOutput = atol(value);
+        config->enableMotorOutput = value.toInt();
     } else if (enableChargerOutput.equals(key)) {
-        config->enableChargerOutput = atol(value);
+        config->enableChargerOutput = value.toInt();
     } else if (enableDcDcOutput.equals(key)) {
-        config->enableDcDcOutput = atol(value);
+        config->enableDcDcOutput = value.toInt();
     } else if (enableHeaterOutput.equals(key)) {
-        config->enableHeaterOutput = atol(value);
+        config->enableHeaterOutput = value.toInt();
     } else if (heaterValveOutput.equals(key)) {
-        config->heaterValveOutput = atol(value);
+        config->heaterValveOutput = value.toInt();
     } else if (heaterPumpOutput.equals(key)) {
-        config->heaterPumpOutput = atol(value);
+        config->heaterPumpOutput = value.toInt();
+    } else if (heaterTemperatureOn.equals(key)) {
+        config->heaterTemperatureOn = value.toInt();
     } else if (coolingPumpOutput.equals(key)) {
-        config->coolingPumpOutput = atol(value);
+        config->coolingPumpOutput = value.toInt();
     } else if (coolingFanOutput.equals(key)) {
-        config->coolingFanOutput = atol(value);
+        config->coolingFanOutput = value.toInt();
     } else if (coolingTempOn.equals(key)) {
-        config->coolingTempOn = atol(value);
+        config->coolingTempOn = value.toInt();
     } else if (coolingTempOff.equals(key)) {
-        config->coolingTempOff = atol(value);
+        config->coolingTempOff = value.toInt();
     } else if (brakeLightOutput.equals(key)) {
-        config->brakeLightOutput = atol(value);
+        config->brakeLightOutput = value.toInt();
     } else if (reverseLightOutput.equals(key)) {
-        config->reverseLightOutput = atol(value);
+        config->reverseLightOutput = value.toInt();
     } else if (warningOutput.equals(key)) {
-        config->warningOutput = atol(value);
+        config->warningOutput = value.toInt();
     } else if (powerLimitationOutput.equals(key)) {
-        config->powerLimitationOutput = atol(value);
+        config->powerLimitationOutput = value.toInt();
     } else {
         return false;
     }
@@ -365,15 +392,17 @@ bool Wifi::processParameterChangeSystemIO(char *key, char *value)
  * \param value the value of the parameter
  * \return true if the parameter was processed
  */
-bool Wifi::processParameterChangeDevices(char *key, char *value)
+bool Wifi::processParameterChangeDevices(String key, String value)
 {
     if (logLevel.equals(key)) {
-        Logger::LogLevel logLevel = (Logger::LogLevel) atoi(value);
+        Logger::LogLevel logLevel = (Logger::LogLevel) value.toInt();
         logger.setLoglevel(logLevel);
         systemIO.setLogLevel(logLevel);
-    } else if (key[0] == 'x' && atol(&key[1]) > 0) {
-        long deviceId = strtol(key + 1, 0, 16);
-        deviceManager.sendMessage(DEVICE_ANY, (DeviceId) deviceId, (atol(value) ? MSG_ENABLE : MSG_DISABLE), NULL);
+    } else if (systemType.equals(key)) {
+        systemIO.setSystemType((SystemType) value.toInt());
+    } else if (key.charAt(0) == 'x' && key.substring(1).toInt() > 0) {
+        long deviceId = strtol(key.c_str() + 1, 0, 16);
+        deviceManager.sendMessage(DEVICE_ANY, (DeviceId) deviceId, (value.toInt() ? MSG_ENABLE : MSG_DISABLE), NULL);
         return true;
     }
     return false;
@@ -586,6 +615,7 @@ void Wifi::loadParametersSystemIO()
 
         setParam(heaterValveOutput, config->heaterValveOutput);
         setParam(heaterPumpOutput, config->heaterPumpOutput);
+        setParam(heaterTemperatureOn, config->heaterTemperatureOn);
         setParam(coolingPumpOutput, config->coolingPumpOutput);
         setParam(coolingFanOutput, config->coolingFanOutput);
         setParam(coolingTempOn, config->coolingTempOn);
@@ -609,6 +639,7 @@ void Wifi::loadParametersDevices()
     int size = sizeof(deviceIds) / sizeof(DeviceId);
 
     setParam(logLevel, (uint8_t) logger.getLogLevel());
+    setParam(systemType, (uint8_t) systemIO.getSystemType());
     for (int i = 0; i < size; i++) {
         sprintf(idHex, "x%x", deviceIds[i]);
         device = deviceManager.getDeviceByID(deviceIds[i]);

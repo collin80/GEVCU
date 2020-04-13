@@ -623,34 +623,6 @@ void WifiIchip2128::setParam(String paramName, String value)
 }
 
 /**
- * \brief Process the parameter update from ichip we received as a response to AT+iWNXT.
- *
- * The response usually looks like this : key="value", so the key can be isolated
- * by looking for the '=' sign and the leading/trailing '"' have to be ignored.
- *
- * \param key and value pair of changed parameter
- */
-void WifiIchip2128::processParameterChange(char *key)
-{
-    char *value = strchr(key, '=');
-
-    if (!value) {
-        return;
-    }
-
-    value[0] = 0; // replace the '=' sign with a 0
-    value++;
-
-    if (value[0] == '"') {
-        value++;    // if the value starts with a '"', advance one character
-    }
-    if (value[strlen(value) - 1] == '"') {
-        value[strlen(value) - 1] = 0;    // if the value ends with a '"' character, replace it with 0
-    }
-    Wifi::processParameterChange(key, value);
-}
-
-/**
  * \brief Reset the ichip to overcome a crash
  *
  */

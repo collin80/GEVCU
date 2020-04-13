@@ -131,7 +131,6 @@ private:
     void processActiveSocketListResponse();
     void processIncomingSocketData();
     void processSocketSendResponse();
-    void processParameterChange(char *buffer);
     void closeAllSockets();
     void closeSocket(Socket *socket);
 

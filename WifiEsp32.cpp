@@ -37,10 +37,11 @@ WifiEsp32::WifiEsp32() : Wifi()
     commonName = "WIFI (ESP32)";
 
     didParamLoad = false;
-    tickCounter = watchdogCounter = 0;
-    ibWritePtr = psWritePtr = psReadPtr = 0;
-    lastSendTime = timeStarted = 0;
-    remainingSocketRead = -1;
+    connected = false;
+    inPos = outPos = 0;
+    timeStarted = 0;
+    dataPointCount = 0;
+    psWritePtr = psReadPtr = 0;
 
     pinMode(CFG_WIFI_RESET, OUTPUT);
     pinMode(CFG_WIFI_ENABLE, OUTPUT);
@@ -56,10 +57,11 @@ void WifiEsp32::setup()
     digitalWrite(CFG_WIFI_ENABLE, HIGH);
 
     didParamLoad = false;
-    tickCounter = watchdogCounter = 0;
-    ibWritePtr = psWritePtr = psReadPtr = 0;
-    remainingSocketRead = -1;
-    lastSendTime = timeStarted = millis();
+    connected = false;
+    inPos = outPos = 0;
+    timeStarted = 0;
+    dataPointCount = 0;
+    psWritePtr = psReadPtr = 0;
 
     // don't try to re-attach if called from reset() - to avoid warning message
     if (!tickHandler.isAttached(this, CFG_TICK_INTERVAL_WIFI)) {
@@ -91,105 +93,9 @@ void WifiEsp32::sendCmd(String cmd)
 {
     serialInterface->print(cmd);
     serialInterface->write(13);
-    lastSendTime = millis();
     if (logger.isDebug()) {
         logger.debug(this, "Send cmd: %s", cmd.c_str());
     }
-}
-
-/**
- * \brief Send update to all active sockets
- *
- * The message to be sent is created by the assigned SocketProcessor
- *
- */
-void WifiEsp32::sendSocketUpdate()
-{
-/*    { 0, 2, true, 0, "systemState" }, // uint16_t
-    { 1, 2, false, 10, "torqueActual" }, // int16_t
-    { 2, 2, false, 0, "speedActual" }, // int16_t
-    { 3, 2, false, 10, "throttle" }, // int16_t
-
-    { 10, 2, true, 10, "dcVoltage" }, // uint16_t
-    { 11, 2, false, 10, "dcCurrent" }, // int16_t
-    { 12, 2, false, 0, "acCurrent" }, // int16_t
-    { 13, 2, false, 10, "temperatureMotor" }, // int16_t
-    { 14, 2, false, 10, "temperatureController" }, // int16_t
-    { 15, 2, false, 0, "mechanicalPower" }, // int16_t
-
-    { 20, 4, true, 0, "bitfieldMotor" }, // uint32_t
-    { 21, 4, true, 0, "bitfieldBms" }, // uint32_t
-    { 22, 4, true, 0, "bitfieldIO" }, // uint32_t
-
-    { 30, 2, true, 10, "dcDcHvVoltage" }, // uint16_t
-    { 31, 2, true, 10, "dcDcLvVoltage" }, // uint16_t
-    { 32, 2, false, 10, "dcDcHvCurrent" }, // int16_t
-    { 33, 2, false, 0, "dcDcLvCurrent" }, // int16_t
-    { 34, 2, false, 10, "dcDcTemperature" }, // int16_t
-
-    { 40, 2, true, 10, "chargerInputVoltage" }, // uint16_t
-    { 41, 2, true, 100, "chargerInputCurrent" }, // uint16_t
-    { 42, 2, true, 10, "chargerBatteryVoltage" }, // uint16_t
-    { 43, 2, true, 100, "chargerBatteryCurrent" }, // uint16_t
-    { 44, 2, false, 10, "chargerTemperature" }, // int16_t
-    { 45, 2, false, 10, "maximumSolarCurrent" }, // int16_t
-    { 46, 2, true, 10, "chargeHoursRemain" }, // uint16_t
-    { 47, 2, true, 10, "chargeMinsRemain" }, // uint16_t
-    { 48, 2, true, 100, "chargeLevel" }, // uint16_t
-
-    { 50, 4, true, 100, "flowCoolant" }, // uint32_t
-    { 51, 4, true, 100, "flowHeater" }, // uint32_t
-    { 52, 2, true, 0, "heaterPower" }, // uint16_t
-    { 53, 2, false, 10, "temperatureBattery1" }, // int16_t
-    { 54, 2, false, 10, "temperatureBattery2" }, // int16_t
-    { 55, 2, false, 10, "temperatureBattery3" }, // int16_t
-    { 56, 2, false, 10, "temperatureBattery4" }, // int16_t
-    { 57, 2, false, 10, "temperatureBattery5" }, // int16_t
-    { 58, 2, false, 10, "temperatureBattery6" }, // int16_t
-    { 59, 2, false, 10, "temperatureCoolant" }, // int16_t
-    { 60, 2, false, 0, "temperatureHeater" }, // int16_t
-    { 61, 2, false, 10, "temperatureExterior" }, // int16_t
-
-    { 70, 1, true, 0, "powerSteering" }, // bool
-    { 71, 1, true, 0, "enableRegen" }, // bool
-    { 72, 1, true, 0, "enableHeater" }, // bool
-    { 73, 1, true, 0, "enableCreep" }, // bool
-    { 74, 2, false, 0, "cruiseControlSpeed" }, // int16_t
-    { 75, 1, true, 0, "cruiseControlEnable" }, // bool
-
-    { 80, 2, true, 0, "packResistance" }, // uint16_t
-    { 81, 2, true, 0, "packHealth" }, // uint8_t
-    { 82, 2, true, 0, "packCycles" }, // uint16_t
-    { 83, 2, true, 100, "soc" }, // uint16_t
-    { 84, 2, true, 0, "dischargeLimit" }, // uint16_t
-    { 85, 2, true, 0, "chargeLimit" }, // uint16_t
-    { 86, 1, true, 0, "chargeAllowed" }, // bool
-    { 87, 1, true, 0, "dischargeAllowed" }, // bool
-    { 88, 2, false, 10, "lowestCellTemp" }, // int16_t
-    { 89, 2, false, 10, "highestCellTemp" }, // int16_t
-    { 90, 2, true, 10000, "lowestCellVolts" }, // uint16_t
-    { 91, 2, true, 10000, "highestCellVolts" }, // uint16_t
-    { 92, 2, true, 10000, "averageCellVolts" }, // uint16_t
-    { 93, 2, true, 10000, "deltaCellVolts" }, // uint16_t
-    { 94, 2, true, 100, "lowestCellResistance" }, // uint16_t
-    { 95, 2, true, 100, "highestCellResistance" }, // uint16_t
-    { 96, 2, true, 100, "averageCellResistance" }, // uint16_t
-    { 97, 2, true, 100, "deltaCellResistance" }, // uint16_t
-    { 98, 1, true, 0, "lowestCellTempId" }, // uint8_t
-    { 99, 1, true, 0, "highestCellTempId" }, // uint8_t
-    { 100, 1, true, 0, "lowestCellVoltsId" }, // uint8_t
-    { 101, 1, true, 0, "highestCellVoltsId" }, // uint8_t
-    { 102, 1, true, 0, "lowestCellResistanceId" }, // uint8_t
-    { 103, 1, true, 0, "highestCellResistanceId" }, // uint8_t
-    { 104, 1, true, 0, "bmsTemperature" } // uint8_t
-*/
-
-/*    for (int i = 0; i < CFG_WIFI_NUM_SOCKETS; i++) {
-        if (socket[i].handle != -1 && socket[i].processor != NULL) {
-            String data = socket[i].processor->generateUpdate();
-            sendToSocket(&socket[i], data);
-        }
-    }*/
 }
 
 /**
@@ -207,7 +113,9 @@ void WifiEsp32::handleTick()
         return;
     }
 */
-    sendSocketUpdate();
+    if (connected) {
+        sendSocketUpdate();
+    }
 
     if (!didParamLoad && millis() > 3000 + timeStarted) {
         loadParameters();
@@ -242,9 +150,8 @@ void WifiEsp32::handleMessage(uint32_t messageType, void* message)
         break;
 
     case MSG_LOG:
-        char **params = (char **) message;
-//            String data = socket[i].processor->generateLogEntry(params[0], params[1], params[2]);
-//            sendToSocket(&socket[i], data);
+        String *params = (String *) message;
+        sendLogMessage(params[0], params[1], params[2]);
         break;
     }
 }
@@ -276,18 +183,24 @@ void WifiEsp32::process()
             return;
         }
 
-        if (incoming == 13 || ibWritePtr > (CFG_WIFI_BUFFER_SIZE - 2)) {
-            incomingBuffer[ibWritePtr] = 0;
-            ibWritePtr = 0;
+        if (incoming == 13 || inPos > (CFG_WIFI_BUFFER_SIZE - 2)) {
+            inBuffer[inPos] = 0;
+            inPos = 0;
 
             if (logger.isDebug()) {
-                logger.debug(this, "incoming: '%s'", incomingBuffer);
+                logger.debug(this, "incoming: '%s'", inBuffer);
+            }
+            String input = inBuffer;
+            if (input.startsWith("cfg:")) {
+                processParameterChange(input.substring(4));
+            } else if (input.startsWith("cmd:")) {
+                processIncomingSocketData(input.substring(4));
             }
 
             return; // before processing the next line, return to the loop() to allow other devices to process.
         } else { // add more characters
             if (incoming != 10) { // don't add a LF character
-                incomingBuffer[ibWritePtr++] = (char) incoming;
+                inBuffer[inPos++] = (char) incoming;
             }
         }
     }
@@ -295,15 +208,53 @@ void WifiEsp32::process()
 
 /**
  * \brief Process incoming data from a socket
- *
- * The data is forwarded to the socket's assigned SocketProcessor. The processor prepares a
- * response which is sent back to the client via the socket.
- *
  */
-void WifiEsp32::processIncomingSocketData()
+void WifiEsp32::processIncomingSocketData(String input)
 {
     logger.debug(this, "processing incoming socket data");
 
+    int pos = input.indexOf('=');
+    if (pos > 0) {
+        String key = input.substring(0, pos);
+        String value = input.substring(pos + 1);
+
+        if (key.equals("cruise")) {
+            int num = value.toInt();
+            if (value.charAt(0) == '-' || value.charAt(0) == '+') {
+                deviceManager.getMotorController()->cruiseControlAdjust(num);
+            } else {
+                deviceManager.getMotorController()->cruiseControlSetSpeed(num);
+            }
+        } else if (key.equals("regen")) {
+            status.enableRegen = value.equals("true");
+            logger.info("Regen is now switched %s", (status.enableRegen ? "on" : "off"));
+        } else if (key.equals("creep")) {
+            status.enableCreep = value.equals("true");;
+            logger.info("Creep is now switched %s", (status.enableCreep ? "on" : "off"));
+        } else if (key.equals("ehps")) {
+            systemIO.setPowerSteering(value.equals("true"));
+            logger.info("EHPS is now switched %s", (status.powerSteering ? "on" : "off"));
+        } else if (key.equals("heater")) {
+            bool flag = value.equals("true");
+            systemIO.setEnableHeater(flag);
+            systemIO.setHeaterPump(flag);
+            logger.info("Heater is now switched %s", (status.enableHeater ? "on" : "off"));
+        } else if (key.equals("chargeInput")) {
+            logger.info("Setting charge level to %d Amps", value.toInt());
+            deviceManager.getCharger()->setMaximumInputCurrent(value.toInt() * 10);
+        }
+    } else {
+        if (input.equals("stopCharge")) {
+            status.setSystemState(Status::charged);
+        } else if (input.equals("cruiseToggle")) {
+            deviceManager.getMotorController()->cruiseControlToggle();
+        } else if (input.equals("connected")) {
+            valueCache.clear(); // new connection -> clear the cache to have all values sent
+            connected = true;
+        } else if (input.equals("disconnected")) {
+            connected = false;
+        }
+    }
 }
 
 /**
@@ -315,6 +266,240 @@ void WifiEsp32::processIncomingSocketData()
 void WifiEsp32::setParam(String paramName, String value)
 {
     serialInterface->println("cfg:" + paramName + "=" + value);
+}
+
+/**
+ * \brief send log message as JSON
+ *
+ * \param logLevel the level of the log entry
+ * \param deviceName name of the device which created the log entry
+ * \param message the log message
+ * \return the prepared log message which can be sent to the socket
+ *
+ */
+void WifiEsp32::sendLogMessage(String logLevel, String deviceName, String message)
+{
+    String data = "json:{\"logMessage\": {\"level\": \"";
+    data.concat(logLevel);
+    data.concat("\",\"message\": \"");
+    if (deviceName.length() > 0) {
+        data.concat(deviceName);
+        data.concat(": ");
+    }
+    data.concat(message);
+    data.concat("\"}}");
+
+    serialInterface->println(data);
+}
+
+/**
+ * \brief Send update to all active sockets
+ *
+ * The message to be sent is created by the assigned SocketProcessor
+ *
+ */
+void WifiEsp32::sendSocketUpdate()
+{
+    MotorController* motorController = deviceManager.getMotorController();
+    DcDcConverter* dcDcConverter = deviceManager.getDcDcConverter();
+    BatteryManager* batteryManager = deviceManager.getBatteryManager();
+    outPos = 0;
+    dataPointCount = 0;
+
+    processValue(&valueCache.systemState, (uint8_t) status.getSystemState(), systemState);
+
+    if (motorController) {
+        processValue(&valueCache.torqueActual, motorController->getTorqueActual(), torqueActual);
+        processValue(&valueCache.speedActual, motorController->getSpeedActual(), speedActual);
+        processValue(&valueCache.throttle, motorController->getThrottleLevel(), throttle);
+        if (batteryManager && batteryManager->hasPackVoltage()) {
+            processValue(&valueCache.dcVoltage, batteryManager->getPackVoltage(), dcVoltage);
+        } else {
+            processValue(&valueCache.dcVoltage, motorController->getDcVoltage(), dcVoltage);
+//            processLimits(&dcVoltageMin, &dcVoltageMax, motorController->getDcVoltage(), dcVoltage);
+        }
+        if (batteryManager && batteryManager->hasPackCurrent()) {
+            processValue(&valueCache.dcCurrent, batteryManager->getPackCurrent(), dcCurrent);
+        } else {
+            processValue(&valueCache.dcCurrent, motorController->getDcCurrent(), dcCurrent);
+//            processLimits(&dcCurrentMin, &dcCurrentMax, motorController->getDcCurrent(), dcCurrent);
+        }
+        processValue(&valueCache.temperatureMotor, motorController->getTemperatureMotor(), temperatureMotor);
+//        processLimits(NULL, &temperatureMotorMax, motorController->getTemperatureMotor(), temperatureMotor);
+        processValue(&valueCache.temperatureController, motorController->getTemperatureController(), temperatureController);
+//        processLimits(NULL, &temperatureControllerMax, motorController->getTemperatureController(), temperatureController);
+        processValue(&valueCache.mechanicalPower, motorController->getMechanicalPower(), mechanicalPower);
+        processValue(&valueCache.cruiseControlSpeed, motorController->getCruiseControlSpeed(), cruiseControlSpeed);
+        processValue(&valueCache.enableCruiseControl, motorController->isCruiseControlEnabled(), enableCruiseControl);
+    }
+
+    processValue(&valueCache.bitfieldMotor, status.getBitFieldMotor(), bitfieldMotor);
+    processValue(&valueCache.bitfieldBms, status.getBitFieldBms(), bitfieldBms);
+    processValue(&valueCache.bitfieldIO, status.getBitFieldIO(), bitfieldIO);
+
+    if (dcDcConverter) {
+        processValue(&valueCache.dcDcHvVoltage, dcDcConverter->getHvVoltage(), dcDcHvVoltage);
+        processValue(&valueCache.dcDcHvCurrent, dcDcConverter->getHvCurrent(), dcDcHvCurrent);
+        processValue(&valueCache.dcDcLvVoltage, dcDcConverter->getLvVoltage(), dcDcLvVoltage);
+        processValue(&valueCache.dcDcLvCurrent, dcDcConverter->getLvCurrent(), dcDcLvCurrent);
+        processValue(&valueCache.dcDcTemperature, dcDcConverter->getTemperature(), dcDcTemperature);
+    }
+
+    if (status.getSystemState() == Status::charging || status.getSystemState() == Status::charged) {
+        Charger* charger = deviceManager.getCharger();
+        if (charger) {
+            processValue(&valueCache.chargerInputVoltage, charger->getInputVoltage(), chargerInputVoltage);
+            processValue(&valueCache.chargerInputCurrent, charger->getInputCurrent(), chargerInputCurrent);
+            processValue(&valueCache.chargerBatteryVoltage, charger->getBatteryVoltage(), chargerBatteryVoltage);
+            processValue(&valueCache.chargerBatteryCurrent, charger->getBatteryCurrent(), chargerBatteryCurrent);
+            processValue(&valueCache.chargerTemperature, charger->getTemperature(), chargerTemperature);
+            processValue(&valueCache.maximumSolarCurrent, charger->getMaximumSolarCurrent(), maximumSolarCurrent);
+
+            uint16_t secs = millis() / 1000; //TODO calc mins
+            processValue(&valueCache.chargeHoursRemain, secs / 60, chargeHoursRemain);
+            processValue(&valueCache.chargeMinsRemain, secs % 60, chargeMinsRemain);
+            if (batteryManager && batteryManager->hasSoc())
+                processValue(&valueCache.chargeLevel, batteryManager->getSoc() * 50, chargeLevel);
+            else
+                processValue(&valueCache.chargeLevel, map (secs, 0 , 28800, 0, 100), chargeLevel);
+        }
+    }
+
+    processValue(&valueCache.flowCoolant, status.flowCoolant * 6, flowCoolant);
+    processValue(&valueCache.flowHeater, status.flowHeater * 6, flowHeater);
+    processValue(&valueCache.heaterPower, status.heaterPower, heaterPower);
+    for (int i = 0; i < CFG_NUMBER_BATTERY_TEMPERATURE_SENSORS; i++) {
+        processValue(&valueCache.temperatureBattery[i], status.temperatureBattery[i], (DataPointCode)(temperatureBattery1 + i));
+    }
+    processValue(&valueCache.temperatureCoolant, status.temperatureCoolant, temperatureCoolant);
+    processValue(&valueCache.temperatureHeater, status.heaterTemperature, temperatureHeater);
+    if (status.temperatureExterior != CFG_NO_TEMPERATURE_DATA) {
+        processValue(&valueCache.temperatureExterior, status.temperatureExterior, temperatureExterior);
+    }
+
+    processValue(&valueCache.powerSteering, status.powerSteering, powerSteering);
+    processValue(&valueCache.enableRegen, status.enableRegen, enableRegen);
+    processValue(&valueCache.enableHeater, status.enableHeater, enableHeater);
+    processValue(&valueCache.enableCreep, status.enableCreep, enableCreep);
+
+    if (batteryManager) {
+        if (batteryManager->hasSoc())
+            processValue(&valueCache.soc, (uint16_t)(batteryManager->getSoc() * 50), soc);
+        if (batteryManager->hasDischargeLimit()) {
+            processValue(&valueCache.dischargeLimit, batteryManager->getDischargeLimit(), dischargeLimit);
+//            if (batteryManager->getDischargeLimit() != dcCurrentMin || batteryManager->getChargeLimit() != dcCurrentMax) {
+//                dcCurrentMax = batteryManager->getDischargeLimit();
+//                dcCurrentMin = batteryManager->getChargeLimit() * -1;
+//                addLimit((char *)String(dcCurrentMin).c_str(), (char *)String(dcCurrentMax).c_str(), dcCurrent);
+//            }
+        } else {
+            processValue(&valueCache.dischargeAllowed, batteryManager->isDischargeAllowed(), dischargeAllowed);
+        }
+        if (batteryManager->hasChargeLimit())
+            processValue(&valueCache.chargeLimit, batteryManager->getChargeLimit(), chargeLimit);
+        else
+            processValue(&valueCache.chargeAllowed, batteryManager->isChargeAllowed(), chargeAllowed);
+        if (batteryManager->hasCellTemperatures()) {
+            processValue(&valueCache.lowestCellTemp, batteryManager->getLowestCellTemp(), lowestCellTemp);
+            processValue(&valueCache.highestCellTemp, batteryManager->getHighestCellTemp(), highestCellTemp);
+            processValue(&valueCache.lowestCellTempId, batteryManager->getLowestCellTempId(), lowestCellTempId);
+            processValue(&valueCache.highestCellTempId, batteryManager->getHighestCellTempId(), highestCellTempId);
+        }
+        if (batteryManager->hasCellVoltages()) {
+            processValue(&valueCache.lowestCellVolts, batteryManager->getLowestCellVolts(), lowestCellVolts);
+            processValue(&valueCache.highestCellVolts, batteryManager->getHighestCellVolts(), highestCellVolts);
+            processValue(&valueCache.averageCellVolts, batteryManager->getAverageCellVolts(), averageCellVolts);
+            processValue(&valueCache.deltaCellVolts, batteryManager->getHighestCellVolts() - batteryManager->getLowestCellVolts(), deltaCellVolts);
+            processValue(&valueCache.lowestCellVoltsId, batteryManager->getLowestCellVoltsId(), lowestCellVoltsId);
+            processValue(&valueCache.highestCellVoltsId, batteryManager->getHighestCellVoltsId(), highestCellVoltsId);
+        }
+        if (batteryManager->hasCellResistance()) {
+            processValue(&valueCache.lowestCellResistance, batteryManager->getLowestCellResistance(), lowestCellResistance);
+            processValue(&valueCache.highestCellResistance, batteryManager->getHighestCellResistance(), highestCellResistance);
+            processValue(&valueCache.averageCellResistance, batteryManager->getAverageCellResistance(), averageCellResistance);
+            processValue(&valueCache.deltaCellResistance, (batteryManager->getHighestCellResistance() - batteryManager->getLowestCellResistance()), deltaCellResistance);
+            processValue(&valueCache.lowestCellResistanceId, batteryManager->getLowestCellResistanceId(), lowestCellResistanceId);
+            processValue(&valueCache.highestCellResistanceId, batteryManager->getHighestCellResistanceId(), highestCellResistanceId);
+        }
+        if (batteryManager->hasPackResistance()) {
+            processValue(&valueCache.packResistance, batteryManager->getPackResistance(), packResistance);
+        }
+        if (batteryManager->hasPackHealth()) {
+            processValue(&valueCache.packHealth, batteryManager->getPackHealth(), packHealth);
+        }
+        if (batteryManager->hasPackCycles()) {
+            processValue(&valueCache.packCycles, batteryManager->getPackCycles(), packCycles);
+        }
+        processValue(&valueCache.bmsTemperature, batteryManager->getSystemTemperature(), bmsTemperature);
+    }
+
+    if (outPos > 0) {
+        String header = "data:";
+        header.concat(dataPointCount);
+        serialInterface->print(header); // indicate that we will send a binary data stream of x bytes
+        serialInterface->write(13); // CR
+        serialInterface->write(outBuffer, outPos); // send the binary data
+    }
+}
+
+void WifiEsp32::processValue(bool *cacheValue, bool value, DataPointCode code) {
+    if (*cacheValue == value)
+        return;
+    *cacheValue = value;
+
+    outBuffer[outPos++] = DATA_POINT_START;
+    outBuffer[outPos++] = code;
+    outBuffer[outPos++] = (value ? 1 : 0);
+    dataPointCount++;
+}
+
+void WifiEsp32::processValue(uint8_t *cacheValue, uint8_t value, DataPointCode code) {
+    if (*cacheValue == value)
+        return;
+    *cacheValue = value;
+
+    outBuffer[outPos++] = DATA_POINT_START;
+    outBuffer[outPos++] = code;
+    outBuffer[outPos++] = value;
+    dataPointCount++;
+}
+
+void WifiEsp32::processValue(uint16_t *cacheValue, uint16_t value, DataPointCode code) {
+    if (*cacheValue == value)
+        return;
+    *cacheValue = value;
+
+    outBuffer[outPos++] = DATA_POINT_START;
+    outBuffer[outPos++] = code;
+    outBuffer[outPos++] = value & 0xFF00 >> 8;
+    outBuffer[outPos++] = value & 0x00FF;
+    dataPointCount++;
+}
+
+void WifiEsp32::processValue(int16_t *cacheValue, int16_t value, DataPointCode code) {
+    if (*cacheValue == value)
+        return;
+    *cacheValue = value;
+
+    outBuffer[outPos++] = DATA_POINT_START;
+    outBuffer[outPos++] = code;
+    outBuffer[outPos++] = value & 0xFF00 >> 8;
+    outBuffer[outPos++] = value & 0x00FF;
+    dataPointCount++;
+}
+
+void WifiEsp32::processValue(uint32_t *cacheValue, uint32_t value, DataPointCode code) {
+    if (*cacheValue == value)
+        return;
+    *cacheValue = value;
+
+    outBuffer[outPos++] = DATA_POINT_START;
+    outBuffer[outPos++] = code;
+    outBuffer[outPos++] = value & 0xFF000000 >> 24;
+    outBuffer[outPos++] = value & 0x00FF0000 >> 16;
+    outBuffer[outPos++] = value & 0x0000FF00 >> 8;
+    outBuffer[outPos++] = value & 0x000000FF;
+    dataPointCount++;
 }
 
 /**

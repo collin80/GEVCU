@@ -78,7 +78,7 @@ var dashboard = dashboard || {};
 					target.value = data;
 				}
 				setNodeValue(name, data);
-				if (name == 'cruiseControlEnabled') {
+				if (name == 'enableCruiseControl') {
 					showHideCruiseControl(data);
 				}
 			}

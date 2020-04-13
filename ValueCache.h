@@ -1,26 +1,28 @@
 /*
- * ParamCache.h
+ * ValueCache.h
  *
  *  Created on: 10 Apr 2020
  *      Author: michaeln
  */
 
-#ifndef PARAMCACHE_H_
-#define PARAMCACHE_H_
+#ifndef VALUECACHE_H_
+#define VALUECACHE_H_
 
 #include <Arduino.h>
 #include "config.h"
 
 /**
  * Cache of param values to avoid sending an update unless changed
+ *
+ * NOTE: Keep the order and content in line with Websocket.cpp and WifiEsp32.cpp/.h and GEVCU_ESP32Web's code.
  */
-class ParamCache
+class ValueCache
 {
 public:
-    ParamCache();
+    ValueCache();
     void clear();
 
-    uint16_t systemState;
+    uint8_t systemState;
     uint32_t timeRunning;
     int16_t torqueActual;
     int16_t speedActual;
@@ -66,7 +68,7 @@ public:
     bool enableHeater;
     bool enableCreep;
     int16_t cruiseControlSpeed;
-    bool cruiseControlEnable;
+    bool enableCruiseControl;
 
     uint16_t soc;
     uint16_t dischargeLimit;
@@ -95,6 +97,6 @@ public:
     uint8_t bmsTemperature;
 };
 
-extern ParamCache paramCache;
+extern ValueCache valueCache;
 
-#endif /* PARAMCACHE_H_ */
+#endif /* VALUECACHE_H_ */

@@ -11,10 +11,10 @@
 #include "SocketProcessor.h"
 #include "config.h"
 #include "MotorController.h"
-#include "ParamCache.h"
 #include "Throttle.h"
 #include "Base64.h"
 #include "Sha1.h"
+#include "ValueCache.h"
 
 class WebSocket: public SocketProcessor
 {
@@ -30,17 +30,17 @@ private:
     String processData(char *input);
     String prepareWebSocketFrame(uint8_t opcode, String data);
     String getResponseKey(String key);
-    void processParameter(uint8_t *cacheParam, uint8_t value, const String key);
-    void processParameter(int16_t *cacheParam, int16_t value, const String key);
-    void processParameter(uint16_t *cacheParam, uint16_t value, const String key);
-    void processParameter(int32_t *cacheParam, int32_t value, const String key);
-    void processParameter(uint32_t *cacheParam, uint32_t value, const String key);
-    void processParameter(int16_t *cacheParam, int16_t value, const String key, int divisor);
-    void processParameter(uint16_t *cacheParam, uint16_t value, const String key, int divisor);
-    void processParameter(int32_t *cacheParam, int32_t value, const String key, int divisor);
-    void processParameter(uint32_t *cacheParam, uint32_t value, const String key, int divisor);
-    void processParameter(bool *cacheParam, bool value, const String name);
-    void addParam(const String key, char *value, bool isNumeric);
+    void processValue(uint8_t *cacheValue, uint8_t value, const String key);
+    void processValue(int16_t *cacheValue, int16_t value, const String key);
+    void processValue(uint16_t *cacheValue, uint16_t value, const String key);
+    void processValue(int32_t *cacheValue, int32_t value, const String key);
+    void processValue(uint32_t *cacheValue, uint32_t value, const String key);
+    void processValue(int16_t *cacheValue, int16_t value, const String key, int divisor);
+    void processValue(uint16_t *cacheValue, uint16_t value, const String key, int divisor);
+    void processValue(int32_t *cacheValue, int32_t value, const String key, int divisor);
+    void processValue(uint32_t *cacheValue, uint32_t value, const String key, int divisor);
+    void processValue(bool *cacheValue, bool value, const String name);
+    void addValue(const String key, char *value, bool isNumeric);
     void processLimits(int16_t *min, int16_t *max, int16_t value, const String key);
     void processLimits(uint16_t *min, uint16_t *max, uint16_t value, const String key);
     void addLimit(char *min, char *max, const String name);
@@ -122,7 +122,7 @@ private:
     const String enableHeater = "enableHeater";
     const String enableCreep = "enableCreep";
     const String cruiseControlSpeed = "cruiseSpeed";
-    const String cruiseControlEnabled = "cruiseControlEnabled";
+    const String enableCruiseControl = "enableCruiseControl";
 
     const String soc = "soc";
     const String dischargeLimit = "dischargeLimit";

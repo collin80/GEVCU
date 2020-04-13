@@ -37,7 +37,7 @@
 #include "DeviceTypes.h"
 #include "ELM327Processor.h"
 #include "BrusaDMC5.h"
-#include "ParamCache.h"
+#include "ValueCache.h"
 
 class WifiConfiguration: public DeviceConfiguration
 {
@@ -53,21 +53,21 @@ public:
     void saveConfiguration();
 
 protected:
-    void processParameterChange(char *key, char *value);
+    void processParameterChange(String input);
+    void processParameterChange(String key, String value);
     void loadParameters();
     virtual void setParam(String paramName, String value);
 
     USARTClass *serialInterface; //Allows to retarget the serial port we use
-    ParamCache paramCache;
 
 private:
-    bool processParameterChangeThrottle(char *key, char *value);
-    bool processParameterChangeBrake(char *key, char *value);
-    bool processParameterChangeMotor(char *key, char *value);
-    bool processParameterChangeCharger(char *key, char *value);
-    bool processParameterChangeDcDc(char *key, char *value);
-    bool processParameterChangeSystemIO(char *key, char *value);
-    bool processParameterChangeDevices(char *key, char *value);
+    bool processParameterChangeThrottle(String key, String value);
+    bool processParameterChangeBrake(String key, String value);
+    bool processParameterChangeMotor(String key, String value);
+    bool processParameterChangeCharger(String key, String value);
+    bool processParameterChangeDcDc(String key, String value);
+    bool processParameterChangeSystemIO(String key, String value);
+    bool processParameterChangeDevices(String key, String value);
     void loadParametersThrottle();
     void loadParametersBrake();
     void loadParametersMotor();
@@ -112,6 +112,7 @@ private:
     const String speedMax = "speedMax";
     const String torqueMax = "torqueMax";
     const String logLevel = "logLevel";
+    const String systemType = "systemType";
     const String nominalVolt = "nominalVolt";
     const String motorMode = "motorMode";
     const String invertDirection = "invertDirection";
@@ -130,33 +131,34 @@ private:
     const String dcCurrentLimitRegen = "dcCurrentLimitRegen";
     const String enableOscillationLimiter = "enableOscLimiter";
     // input
-    const String absInput = "absInput";
-    const String reverseInput = "reverseInput";
-    const String enableInput = "enableInput";
-    const String chargePowerAvailableInput = "chargePwrAvailInput";
-    const String interlockInput = "interlockInput";
+    const String absInput = "abs";
+    const String reverseInput = "reverse";
+    const String enableInput = "enable";
+    const String chargePowerAvailableInput = "chargePwrAvail";
+    const String interlockInput = "interlock";
     // output
-    const String brakeLightOutput = "brakeLightOutput";
-    const String reverseLightOutput = "reverseLightOutput";
-    const String powerSteeringOutput = "powerSteeringOutput";
-    const String unusedOutput = "unusedOutput";
+    const String brakeLightOutput = "brakeLight";
+    const String reverseLightOutput = "reverseLight";
+    const String powerSteeringOutput = "powerSteering";
+    const String unusedOutput = "unused";
     const String prechargeMillis = "prechargeMillis";
-    const String prechargeRelayOutput = "prechargeRelayOutput";
-    const String mainContactorOutput = "mainContactorOutput";
-    const String secondaryContactorOutput = "secondaryContOutput";
-    const String enableMotorOutput = "enableMotorOutput";
-    const String coolingFanOutput = "coolingFanOutput";
+    const String prechargeRelayOutput = "prechargeRelay";
+    const String mainContactorOutput = "mainContactor";
+    const String secondaryContactorOutput = "secondaryCont";
+    const String enableMotorOutput = "enableMotor";
+    const String coolingFanOutput = "coolingFan";
     const String coolingTempOn = "coolingTempOn";
     const String coolingTempOff = "coolingTempOff";
-    const String fastChargeContactorOutput = "fastChargeContOutput";
-    const String enableChargerOutput = "enableChargerOutput";
-    const String enableDcDcOutput = "enableDcDcOutput";
-    const String enableHeaterOutput = "enableHeaterOutput";
-    const String heaterValveOutput = "heaterValveOutput";
-    const String heaterPumpOutput = "heaterPumpOutput";
-    const String coolingPumpOutput = "coolingPumpOutput";
-    const String warningOutput = "warningOutput";
-    const String powerLimitationOutput = "powerLimitOutput";
+    const String fastChargeContactorOutput = "fastChargeCont";
+    const String enableChargerOutput = "enableCharger";
+    const String enableDcDcOutput = "enableDcDc";
+    const String enableHeaterOutput = "enableHeater";
+    const String heaterValveOutput = "heaterValve";
+    const String heaterPumpOutput = "heaterPump";
+    const String heaterTemperatureOn = "heaterTemperatureOn";
+    const String coolingPumpOutput = "coolingPump";
+    const String warningOutput = "warning";
+    const String powerLimitationOutput = "powerLimit";
     // charger
     const String maximumInputCurrent = "maximumInputCurrent";
     const String constantCurrent = "constantCurrent";
