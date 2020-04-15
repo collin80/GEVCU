@@ -473,7 +473,7 @@ void WifiEsp32::processValue(uint16_t *cacheValue, uint16_t value, DataPointCode
 
     outBuffer[outPos++] = DATA_POINT_START;
     outBuffer[outPos++] = code;
-    outBuffer[outPos++] = value & 0xFF00 >> 8;
+    outBuffer[outPos++] = (value & 0xFF00) >> 8;
     outBuffer[outPos++] = value & 0x00FF;
     dataPointCount++;
 }
@@ -485,7 +485,7 @@ void WifiEsp32::processValue(int16_t *cacheValue, int16_t value, DataPointCode c
 
     outBuffer[outPos++] = DATA_POINT_START;
     outBuffer[outPos++] = code;
-    outBuffer[outPos++] = value & 0xFF00 >> 8;
+    outBuffer[outPos++] = (value & 0xFF00) >> 8;
     outBuffer[outPos++] = value & 0x00FF;
     dataPointCount++;
 }
@@ -497,9 +497,9 @@ void WifiEsp32::processValue(uint32_t *cacheValue, uint32_t value, DataPointCode
 
     outBuffer[outPos++] = DATA_POINT_START;
     outBuffer[outPos++] = code;
-    outBuffer[outPos++] = value & 0xFF000000 >> 24;
-    outBuffer[outPos++] = value & 0x00FF0000 >> 16;
-    outBuffer[outPos++] = value & 0x0000FF00 >> 8;
+    outBuffer[outPos++] = (value & 0xFF000000) >> 24;
+    outBuffer[outPos++] = (value & 0x00FF0000) >> 16;
+    outBuffer[outPos++] = (value & 0x0000FF00) >> 8;
     outBuffer[outPos++] = value & 0x000000FF;
     dataPointCount++;
 }
