@@ -34,17 +34,9 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include "CanHandler.h"
 #include "DeviceManager.h"
 
-enum CanCarType {
-    OBD2 = 0x00,
-    Volvo_S80_Gas = 0x01,
-    Volvo_V50_Diesel = 0x02,
-    unkown = 0xff
-};
-
 class CanThrottleConfiguration : public ThrottleConfiguration
 {
 public:
-    uint16_t carType; // the type of car, so we know how to interpret which bytes
 };
 
 class CanThrottle: public Throttle, CanObserver

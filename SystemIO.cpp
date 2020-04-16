@@ -838,13 +838,13 @@ uint16_t SystemIO::getRawADC(uint8_t which) {
 void SystemIO::initializePinTables() {
 //    numberADCSamples = 64;
     switch (getSystemType()) {
-    case GEVCU2:
+    case SystemIOConfiguration::GEVCU2:
         initGevcu2PinTable();
         break;
-    case GEVCU3:
+    case SystemIOConfiguration::GEVCU3:
         initGevcu3PinTable();
         break;
-    case GEVCU4:
+    case SystemIOConfiguration::GEVCU4:
         initGevcu4PinTable();
         break;
     default:
@@ -1079,14 +1079,23 @@ void ADC_Handler() {
     }
 }
 
-void SystemIO::setSystemType(SystemType systemType) {
+void SystemIO::setSystemType(SystemIOConfiguration::SystemType systemType) {
     SystemIOConfiguration *config = (SystemIOConfiguration *) getConfiguration();
     config->systemType = systemType;
     saveConfiguration();
 }
-SystemType SystemIO::getSystemType() {
+SystemIOConfiguration::SystemType SystemIO::getSystemType() {
     SystemIOConfiguration *config = (SystemIOConfiguration *) getConfiguration();
     return config->systemType;
+}
+void SystemIO::setCarType(SystemIOConfiguration::CarType carType) {
+    SystemIOConfiguration *config = (SystemIOConfiguration *) getConfiguration();
+    config->carType = carType;
+    saveConfiguration();
+}
+SystemIOConfiguration::CarType SystemIO::getCarType() {
+    SystemIOConfiguration *config = (SystemIOConfiguration *) getConfiguration();
+    return config->carType;
 }
 void SystemIO::setLogLevel(Logger::LogLevel logLevel) {
     SystemIOConfiguration *config = (SystemIOConfiguration *) getConfiguration();
@@ -1164,7 +1173,6 @@ void SystemIO::loadConfiguration() {
         prefsHandler->read(EESIO_BRAKE_LIGHT_OUTPUT, &configuration->brakeLightOutput);
         prefsHandler->read(EESIO_REVERSE_LIGHT_OUTPUT, &configuration->reverseLightOutput);
         prefsHandler->read(EESIO_POWER_STEERING_OUTPUT, &configuration->powerSteeringOutput);
-        prefsHandler->read(EESIO_UNUSED_OUTPUT, &configuration->unusedOutput);
 
         prefsHandler->read(EESIO_WARNING_OUTPUT, &configuration->warningOutput);
         prefsHandler->read(EESIO_POWER_LIMITATION_OUTPUT, &configuration->powerLimitationOutput);
@@ -1172,6 +1180,7 @@ void SystemIO::loadConfiguration() {
         prefsHandler->read(EESIO_STATUS_LIGHT_OUTPUT, &configuration->statusLightOutput);
 
         prefsHandler->read(EESIO_SYSTEM_TYPE, (uint8_t *) &configuration->systemType);
+        prefsHandler->read(EESIO_CAR_TYPE, (uint8_t *) &configuration->carType);
         prefsHandler->read(EESIO_LOG_LEVEL, (uint8_t *) &configuration->logLevel);
         logger.setLoglevel((Logger::LogLevel) configuration->logLevel);
     } else { //checksum invalid. Reinitialize values and store to EEPROM
@@ -1211,7 +1220,8 @@ void SystemIO::loadConfiguration() {
         configuration->stateOfChargeOutput = CFG_OUTPUT_NONE;
         configuration->statusLightOutput = CFG_OUTPUT_NONE;
 
-        configuration->systemType = GEVCU2;
+        configuration->systemType = SystemIOConfiguration::GEVCU4;
+        configuration->carType = SystemIOConfiguration::OBD2;
         configuration->logLevel = logger.Info;
 
         saveConfiguration();
@@ -1224,7 +1234,7 @@ void SystemIO::loadConfiguration() {
     logger.info("cooling pump: %d, cooling fan: %d, cooling temperature ON: %d, cooling tempreature Off: %d", configuration->coolingPumpOutput, configuration->coolingFanOutput, configuration->coolingTempOn, configuration->coolingTempOff);
     logger.info("brake light: %d, reverse light: %d, power steering: %d, unused: %d", configuration->brakeLightOutput, configuration->reverseLightOutput, configuration->powerSteeringOutput, configuration->unusedOutput);
     logger.info("warning: %d, power limitation: %d, soc: %d, status: %d", configuration->warningOutput, configuration->powerLimitationOutput, configuration->stateOfChargeOutput, configuration->statusLightOutput);
-    logger.info("sys type: %d, log level: %d", configuration->systemType, configuration->logLevel);
+    logger.info("sys type: %d, car type: %d, log level: %d", configuration->systemType, configuration->carType, configuration->logLevel);
 }
 
 void SystemIO::saveConfiguration() {
@@ -1257,7 +1267,6 @@ void SystemIO::saveConfiguration() {
     prefsHandler->write(EESIO_BRAKE_LIGHT_OUTPUT, configuration->brakeLightOutput);
     prefsHandler->write(EESIO_REVERSE_LIGHT_OUTPUT, configuration->reverseLightOutput);
     prefsHandler->write(EESIO_POWER_STEERING_OUTPUT, configuration->powerSteeringOutput);
-    prefsHandler->write(EESIO_UNUSED_OUTPUT, configuration->unusedOutput);
 
     prefsHandler->write(EESIO_WARNING_OUTPUT, configuration->warningOutput);
     prefsHandler->write(EESIO_POWER_LIMITATION_OUTPUT, configuration->powerLimitationOutput);
@@ -1265,6 +1274,7 @@ void SystemIO::saveConfiguration() {
     prefsHandler->write(EESIO_STATUS_LIGHT_OUTPUT, configuration->statusLightOutput);
 
     prefsHandler->write(EESIO_SYSTEM_TYPE, (uint8_t) configuration->systemType);
+    prefsHandler->write(EESIO_CAR_TYPE, (uint8_t) configuration->carType);
     prefsHandler->write(EESIO_LOG_LEVEL, (uint8_t) configuration->logLevel);
 
     prefsHandler->saveChecksum();

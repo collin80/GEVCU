@@ -108,7 +108,6 @@ void SerialConsole::printMenuMotorController()
         logger.console("MORWMX=%d - maximal mechanical power of regen (in 100W steps)", config->maxMechanicalPowerRegen);
         logger.console("MOBRHD=%d - percentage of max torque to apply for brake hold (in 1%%)", config->brakeHold);
         logger.console("MOBRHQ=%d - coefficient for brake hold, the higher the smoother brake hold force will be applied (1-255, 10=default)", config->brakeHoldForceCoefficient);
-        logger.console("MOGCHS=%d - enable gear change support (1=aproximate rpm at gear shift, 0=off)", config->gearChangeSupport);
         logger.console("NOMV=%d - Fully charged pack voltage that automatically resets the kWh counter (in 0.1V)", config->nominalVolt);
         logger.console("CRUISEP=%f - Kp value for cruise control (default 1.0, entered as 1000)", config->cruiseKp);
         logger.console("CRUISEI=%f - Ki value for cruise control (default 0.2, entered as 200)", config->cruiseKi);
@@ -153,7 +152,6 @@ void SerialConsole::printMenuThrottle()
             CanThrottleConfiguration *canConfig = (CanThrottleConfiguration *) config;
             logger.console("T1MN=%d - Set throttle 1 min value", canConfig->minimumLevel);
             logger.console("T1MX=%d - Set throttle 1 max value", canConfig->maximumLevel);
-            logger.console("TCTP=%d - Set car type", canConfig->carType);
         }
         logger.console("TRGNMAX=%d - Pedal position where regen is at max (in 0.1%%)", config->positionRegenMaximum);
         logger.console("TRGNMIN=%d - Pedal position where regen is at min (in 0.1%%)", config->positionRegenMinimum);
@@ -175,10 +173,6 @@ void SerialConsole::printMenuBrake()
             PotBrakeConfiguration *potConfig = (PotBrakeConfiguration *) config;
             logger.console("B1ADC=%d - Set brake ADC pin", potConfig->AdcPin1);
         }
-        if (brake->getId() == CANBRAKEPEDAL) {
-            CanBrakeConfiguration *canConfig = (CanBrakeConfiguration *) config;
-            logger.console("BCTP=%d - Set car type", canConfig->carType);
-        }
         logger.console("B1MN=%d - Set brake min value", config->minimumLevel);
         logger.console("B1MX=%d - Set brake max value", config->maximumLevel);
         logger.console("BMINR=%d - Torque for start of brake regen (in 1%%)", config->minimumRegen);
@@ -192,6 +186,7 @@ void SerialConsole::printMenuSystemIO()
 
     if (config) {
         logger.console("\nSYSTEM I/O\n");
+        logger.console("CTP=%d - Set car type (0=OBD2 compatible, 1=Volvo S80, 2=Volvo V50)", config->carType);
         logger.console("ENABLEI=%d - Digital input to use for enable signal (255 to disable)", config->enableInput);
         logger.console("CHARGEI=%d - Digital input to use for charger signal (255 to disable)", config->chargePowerAvailableInput);
         logger.console("INTERLI=%d - Digital input to use for interlock signal (255 to disable)", config->interlockInput);
@@ -442,10 +437,6 @@ bool SerialConsole::handleConfigCmdMotorController(String command, long value)
         value = constrain(value, 1, 255);
         logger.console("Setting brake hold force coefficient to %d", value);
         config->brakeHoldForceCoefficient = value;
-    } else if (command == String("MOGCHS")) {
-        value = constrain(value, 0, 1);
-        logger.console("Setting gear change support to '%s'", (value == 1 ? "on" : "off"));
-        config->gearChangeSupport = value;
     } else if (command == String("MOMVMN") && (motorController->getId() == BRUSA_DMC5)) {
         logger.console("Setting minimum DC voltage limit for motoring to %fV", value / 10.0f);
         ((BrusaDMC5Configuration *) config)->dcVoltLimitMotor = value;
@@ -520,9 +511,6 @@ bool SerialConsole::handleConfigCmdThrottle(String command, long value)
     } else if (command == String("T2MX") && (throttle->getId() == POTACCELPEDAL)) {
         logger.console("Setting throttle 2 max to %d", value);
         ((PotThrottleConfiguration *) config)->maximumLevel2 = value;
-    } else if (command == String("TCTP") && (throttle->getId() == CANACCELPEDAL)) {
-        logger.console("Setting car type to %d", value);
-        ((CanThrottleConfiguration *) config)->carType = value;
     } else if (command == String("T1MN")) {
         logger.console("Setting throttle 1 min to %d", value);
         config->minimumLevel = value;
@@ -570,10 +558,7 @@ bool SerialConsole::handleConfigCmdBrake(String command, long value)
     }
     config = (ThrottleConfiguration *) brake->getConfiguration();
 
-    if (command == String("BCTP") && (brake->getId() == CANBRAKEPEDAL)) {
-        logger.console("Setting brake car type to %d", value);
-        ((CanBrakeConfiguration *) config)->carType = value;
-    } else if (command == String("B1MN")) {
+    if (command == String("B1MN")) {
         logger.console("Setting brake min to %d", value);
         config->minimumLevel = value;
     } else if (command == String("B1MX")) {
@@ -601,7 +586,10 @@ bool SerialConsole::handleConfigCmdSystemIO(String command, long value)
 {
     SystemIOConfiguration *config = systemIO.getConfiguration();
 
-    if (command == String("ENABLEI")) {
+    if (command == String("CTP")) {
+        logger.console("Setting car type to %d", value);
+        config->carType = (SystemIOConfiguration::CarType) value;
+    } else if (command == String("ENABLEI")) {
         if (value <= CFG_NUMBER_DIGITAL_INPUTS && value >= 0) {
             logger.console("Setting enable signal to input %d.", value);
             config->enableInput = value;
@@ -879,7 +867,7 @@ bool SerialConsole::handleConfigCmdSystem(String command, long value, char *para
             logger.console("Invalid device ID (%#x, %d)", value, value);
         }
     } else if (command == String("SYSTYPE")) {
-        systemIO.setSystemType((SystemType) constrain(value, GEVCU1, GEVCU4));
+        systemIO.setSystemType((SystemIOConfiguration::SystemType) constrain(value, SystemIOConfiguration::GEVCU1, SystemIOConfiguration::GEVCU4));
         logger.console("System type updated. Power cycle to apply.");
     } else if (command == String("LOGLEVEL")) {
         if (strchr(parameter, ',') == NULL) {

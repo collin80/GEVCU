@@ -12,7 +12,7 @@
  */
 Wifi::Wifi() : Device()
 {
-    if (systemIO.getSystemType() == GEVCU3 || systemIO.getSystemType() == GEVCU4) {
+    if (systemIO.getSystemType() == SystemIOConfiguration::GEVCU3 || systemIO.getSystemType() == SystemIOConfiguration::GEVCU4) {
         serialInterface = &Serial2;
     } else { //older hardware used this instead
         serialInterface = &Serial3;
@@ -117,13 +117,6 @@ bool Wifi::processParameterChangeThrottle(String key, String value)
                 } else {
                     return false;
                 }
-            } else if (throttle->getId() == CANACCELPEDAL) {
-                CanThrottleConfiguration *canThrottleConfig = (CanThrottleConfiguration *) config;
-                if (carType.equals(key)) {
-                    canThrottleConfig->carType = value.toInt();
-                } else {
-                    return false;
-                }
             } else {
                 return false;
             }
@@ -158,10 +151,8 @@ bool Wifi::processParameterChangeBrake(String key, String value)
             } else if (brakeMaximumRegen.equals(key)) {
                 config->maximumRegen = value.toInt();
             } else if (brake->getId() == POTBRAKEPEDAL) {
-                if (brakeAdcPin1.equals(key)) {
+                if (brakeAdcPin.equals(key)) {
                     config->AdcPin1 = value.toInt();
-                } else if (brakeAdcPin2.equals(key)) {
-                    config->AdcPin2 = value.toInt();
                 } else {
                     return false;
                 }
@@ -216,14 +207,12 @@ bool Wifi::processParameterChangeMotor(String key, String value)
                 config->brakeHoldForceCoefficient = value.toInt();
             } else if (reversePercent.equals(key)) {
                 config->reversePercent = value.toInt();
-            } else if (gearChangeSupport.equals(key)) {
-                config->gearChangeSupport = value.toInt();
             } else if (cruiseKp.equals(key)) {
-                config->cruiseKp = value.toInt();
+                config->cruiseKp = value.toDouble();
             } else if (cruiseKi.equals(key)) {
-                config->cruiseKi = value.toInt();
+                config->cruiseKi = value.toDouble();
             } else if (cruiseKd.equals(key)) {
-                config->cruiseKd = value.toInt();
+                config->cruiseKd = value.toDouble();
             } else if (cruiseUseRpm.equals(key)) {
                 config->cruiseUseRpm = value.toInt();
             } else if (cruiseLongPressDelta.equals(key)) {
@@ -367,7 +356,23 @@ bool Wifi::processParameterChangeSystemIO(String key, String value)
 {
     SystemIOConfiguration *config = (SystemIOConfiguration *) systemIO.getConfiguration();
 
-    if (enableInput.equals(key)) {
+    if (logLevel.equals(key)) {
+        Logger::LogLevel logLevel = (Logger::LogLevel) value.toInt();
+        logger.setLoglevel(logLevel);
+        systemIO.setLogLevel(logLevel);
+    } else if (systemType.equals(key)) {
+        systemIO.setSystemType((SystemIOConfiguration::SystemType) value.toInt());
+    } else if (carType.equals(key)) {
+        config->carType = (SystemIOConfiguration::CarType) value.toInt();
+    } else if (prechargeMillis.equals(key)) {
+        config->prechargeMillis = value.toInt();
+    } else if (heaterTemperatureOn.equals(key)) {
+        config->heaterTemperatureOn = value.toInt();
+    } else if (coolingTempOn.equals(key)) {
+        config->coolingTempOn = value.toInt();
+    } else if (coolingTempOff.equals(key)) {
+        config->coolingTempOff = value.toInt();
+    } else if (enableInput.equals(key)) {
         config->enableInput = value.toInt();
     } else if (chargePowerAvailableInput.equals(key)) {
         config->chargePowerAvailableInput = value.toInt();
@@ -379,8 +384,6 @@ bool Wifi::processParameterChangeSystemIO(String key, String value)
         config->absInput = value.toInt();
     } else if (gearChangeInput.equals(key)) {
         config->gearChangeInput = value.toInt();
-    } else if (prechargeMillis.equals(key)) {
-        config->prechargeMillis = value.toInt();
     } else if (prechargeRelayOutput.equals(key)) {
         config->prechargeRelayOutput = value.toInt();
     } else if (mainContactorOutput.equals(key)) {
@@ -401,16 +404,10 @@ bool Wifi::processParameterChangeSystemIO(String key, String value)
         config->heaterValveOutput = value.toInt();
     } else if (heaterPumpOutput.equals(key)) {
         config->heaterPumpOutput = value.toInt();
-    } else if (heaterTemperatureOn.equals(key)) {
-        config->heaterTemperatureOn = value.toInt();
     } else if (coolingPumpOutput.equals(key)) {
         config->coolingPumpOutput = value.toInt();
     } else if (coolingFanOutput.equals(key)) {
         config->coolingFanOutput = value.toInt();
-    } else if (coolingTempOn.equals(key)) {
-        config->coolingTempOn = value.toInt();
-    } else if (coolingTempOff.equals(key)) {
-        config->coolingTempOff = value.toInt();
     } else if (brakeLightOutput.equals(key)) {
         config->brakeLightOutput = value.toInt();
     } else if (reverseLightOutput.equals(key)) {
@@ -441,13 +438,7 @@ bool Wifi::processParameterChangeSystemIO(String key, String value)
  */
 bool Wifi::processParameterChangeDevices(String key, String value)
 {
-    if (logLevel.equals(key)) {
-        Logger::LogLevel logLevel = (Logger::LogLevel) value.toInt();
-        logger.setLoglevel(logLevel);
-        systemIO.setLogLevel(logLevel);
-    } else if (systemType.equals(key)) {
-        systemIO.setSystemType((SystemType) value.toInt());
-    } else if (key.charAt(0) == 'x' && key.substring(1).toInt() > 0) {
+    if (key.charAt(0) == 'x' && key.substring(1).toInt() > 0) {
         long deviceId = strtol(key.c_str() + 1, 0, 16);
         deviceManager.sendMessage(DEVICE_ANY, (DeviceId) deviceId, (value.toInt() ? MSG_ENABLE : MSG_DISABLE), NULL);
         return true;
@@ -500,12 +491,6 @@ void Wifi::loadParametersThrottle()
                 setParam(throttleAdcPin1, (uint8_t)CFG_OUTPUT_NONE);
                 setParam(throttleAdcPin2, (uint8_t)CFG_OUTPUT_NONE);
             }
-            if (throttle->getId() == POTACCELPEDAL) {
-                CanThrottleConfiguration *canThrottleConfig = (CanThrottleConfiguration *) throttleConfig;
-                setParam(carType, canThrottleConfig->carType);
-            } else {
-                setParam(carType, (uint8_t)0);
-            }
             setParam(minimumLevel, throttleConfig->minimumLevel);
             setParam(maximumLevel, throttleConfig->maximumLevel);
             setParam(positionRegenMaximum, (uint16_t) (throttleConfig->positionRegenMaximum / 10));
@@ -531,11 +516,9 @@ void Wifi::loadParametersBrake()
 
         if (brake->getId() == POTBRAKEPEDAL) {
             PotBrakeConfiguration *potBrakeConfig = (PotBrakeConfiguration *) brakeConfig;
-            setParam(brakeAdcPin1, potBrakeConfig->AdcPin1);
-            setParam(brakeAdcPin2, potBrakeConfig->AdcPin2);
+            setParam(brakeAdcPin, potBrakeConfig->AdcPin1);
         } else {
-            setParam(brakeAdcPin1, (uint8_t)CFG_OUTPUT_NONE);
-            setParam(brakeAdcPin2, (uint8_t)CFG_OUTPUT_NONE);
+            setParam(brakeAdcPin, (uint8_t)CFG_OUTPUT_NONE);
         }
         if (brakeConfig) {
             setParam(brakeMinimumLevel, brakeConfig->minimumLevel);
@@ -548,8 +531,7 @@ void Wifi::loadParametersBrake()
         setParam(brakeMaximumLevel, (uint8_t)100);
         setParam(brakeMinimumRegen, (uint8_t)0);
         setParam(brakeMaximumRegen, (uint8_t)0);
-        setParam(brakeAdcPin1, (uint8_t)CFG_OUTPUT_NONE);
-        setParam(brakeAdcPin2, (uint8_t)CFG_OUTPUT_NONE);
+        setParam(brakeAdcPin, (uint8_t)CFG_OUTPUT_NONE);
     }
 }
 
@@ -578,7 +560,6 @@ void Wifi::loadParametersMotor()
             setParam(brakeHold, config->brakeHold);
             setParam(brakeHoldForceCoefficient, config->brakeHoldForceCoefficient);
             setParam(reversePercent, config->reversePercent);
-            setParam(gearChangeSupport, (uint8_t)(config->gearChangeSupport ? 1 : 0));
             setParam(cruiseKp, config->cruiseKp);
             setParam(cruiseKi, config->cruiseKi);
             setParam(cruiseKd, config->cruiseKd);
@@ -671,6 +652,14 @@ void Wifi::loadParametersSystemIO()
     SystemIOConfiguration *config = (SystemIOConfiguration *) systemIO.getConfiguration();
 
     if (config) {
+        setParam(logLevel, (uint8_t) logger.getLogLevel());
+        setParam(systemType, (uint8_t) systemIO.getSystemType());
+        setParam(carType, (uint8_t)config->carType);
+        setParam(prechargeMillis, config->prechargeMillis);
+        setParam(heaterTemperatureOn, config->heaterTemperatureOn);
+        setParam(coolingTempOn, config->coolingTempOn);
+        setParam(coolingTempOff, config->coolingTempOff);
+
         setParam(enableInput, config->enableInput);
         setParam(chargePowerAvailableInput, config->chargePowerAvailableInput);
         setParam(interlockInput, config->interlockInput);
@@ -678,7 +667,6 @@ void Wifi::loadParametersSystemIO()
         setParam(absInput, config->absInput);
         setParam(gearChangeInput, config->gearChangeInput);
 
-        setParam(prechargeMillis, config->prechargeMillis);
         setParam(prechargeRelayOutput, config->prechargeRelayOutput);
         setParam(mainContactorOutput, config->mainContactorOutput);
         setParam(secondaryContactorOutput, config->secondaryContactorOutput);
@@ -691,11 +679,8 @@ void Wifi::loadParametersSystemIO()
 
         setParam(heaterValveOutput, config->heaterValveOutput);
         setParam(heaterPumpOutput, config->heaterPumpOutput);
-        setParam(heaterTemperatureOn, config->heaterTemperatureOn);
         setParam(coolingPumpOutput, config->coolingPumpOutput);
         setParam(coolingFanOutput, config->coolingFanOutput);
-        setParam(coolingTempOn, config->coolingTempOn);
-        setParam(coolingTempOff, config->coolingTempOff);
 
         setParam(brakeLightOutput, config->brakeLightOutput);
         setParam(reverseLightOutput, config->reverseLightOutput);
@@ -717,8 +702,6 @@ void Wifi::loadParametersDevices()
     char idHex[10];
     int size = sizeof(deviceIds) / sizeof(DeviceId);
 
-    setParam(logLevel, (uint8_t) logger.getLogLevel());
-    setParam(systemType, (uint8_t) systemIO.getSystemType());
     for (int i = 0; i < size; i++) {
         sprintf(idHex, "x%x", deviceIds[i]);
         device = deviceManager.getDeviceByID(deviceIds[i]);

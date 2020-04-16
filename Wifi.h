@@ -108,8 +108,7 @@ private:
     const String maximumRegen = "maximumRegen";
     const String throttleAdcPin1 = "throttleAdcPin1";
     const String throttleAdcPin2 = "throttleAdcPin2";
-    const String brakeAdcPin1 = "brakeAdcPin1";
-    const String brakeAdcPin2 = "brakeAdcPin2";
+    const String brakeAdcPin = "brakeAdcPin";
     const String carType = "carType";
     const String creepLevel = "creepLevel";
     const String creepSpeed = "creepSpeed";
@@ -128,7 +127,6 @@ private:
     const String brakeHold = "brakeHold";
     const String brakeHoldForceCoefficient = "brakeHoldForceCoef";
     const String reversePercent = "reversePercent";
-    const String gearChangeSupport = "gearChangeSupport";
     const String cruiseKp = "cruiseKp";
     const String cruiseKi = "cruiseKi";
     const String cruiseKd = "cruiseKd";

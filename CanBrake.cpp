@@ -48,10 +48,10 @@ void CanBrake::setup()
     requestFrame.rtr = 0x00;
     requestFrame.extended = 0x00;
 
-    CanBrakeConfiguration *config = (CanBrakeConfiguration *) getConfiguration();
+    SystemIOConfiguration *config = (SystemIOConfiguration *) getConfiguration();
 
     switch (config->carType) {
-        case Volvo_S80_Gas:
+        case SystemIOConfiguration::Volvo_S80_Gas:
             // Request: dlc=0x8 fid=0x760 id=0x760 ide=0x0 rtr=0x0 data=0x03,0x22,0x2B,0x0D,0x00,0x00,0x00,0x00 (vida: [0x00, 0x00, 0x07, 0x60, 0x22, 0x2B, 0x0D])
             // Response: dlc=0x8 fid=0x768 id=0x768 ide=0x0 rtr=0x0 data=0x05,0x62,0x2B,0x0D,0x00,0x01,0x00,0x00 (vida: [0x00, 0x00, 0x07, 0x68, 0x62, 0x2B, 0x0D, 0x00, 0x01]), 6th byte
             requestFrame.id = 0x760;
@@ -62,7 +62,7 @@ void CanBrake::setup()
             ready = true;
             break;
 
-        case Volvo_V50_Diesel:
+        case SystemIOConfiguration::Volvo_V50_Diesel:
             // Request: dlc=0x08 fid=0xFFFFE id=0x3FFFE ide=0x01 rtr=0x00 data=0xCD,0x11,0xA6,0x00,0x24,0x01,0x00,0x00 ([0x00, 0xf, 0xff, 0xfe, 0xcd, 0x11, 0xa6, 0x00, 0x24, 0x01, 0x00, 0x00])
             // Response: dlc=0x08 fid=0x400021 id=0x21 ide=0x01 rtr=0x00 data=0xCE,0x11,0xE6,0x00,0x24,0x03,0xFD,0x00 (vida: [0x00, 0x40, 0x00, 0x21, 0xce, 0x11, 0xe6, 0x00, 0x24, 0x03, 0xfd, 0x00])
 //      requestFrame.id = 0x3FFFE;
@@ -128,15 +128,15 @@ void CanBrake::handleTick()
  */
 void CanBrake::handleCanFrame(CAN_FRAME *frame)
 {
-    CanBrakeConfiguration *config = (CanBrakeConfiguration *) getConfiguration();
+    SystemIOConfiguration *config = (SystemIOConfiguration *) systemIO.getConfiguration();
 
     if (frame->id == responseId) {
         switch (config->carType) {
-            case Volvo_S80_Gas:
+            case SystemIOConfiguration::Volvo_S80_Gas:
                 rawSignal.input1 = frame->data.bytes[5];
                 break;
 
-            case Volvo_V50_Diesel:
+            case SystemIOConfiguration::Volvo_V50_Diesel:
 //              rawSignal.input1 = (frame->data.bytes[5] + 1) * frame->data.bytes[6];
                 break;
         }
@@ -253,13 +253,10 @@ void CanBrake::loadConfiguration()
 
     if (prefsHandler->checksumValid()) { //checksum is good, read in the values stored in EEPROM
 #endif
-        prefsHandler->read(EETH_CAR_TYPE, &config->carType);
-    } else { //checksum invalid. Reinitialize values and store to EEPROM
-        config->carType = Volvo_S80_Gas;
         saveConfiguration();
     }
 
-    logger.info(this, "T1 MIN: %ld MAX: %ld Type: %d", config->minimumLevel, config->maximumLevel, config->carType);
+    logger.info(this, "T1 MIN: %ld MAX: %ld", config->minimumLevel, config->maximumLevel);
 }
 
 /*
@@ -271,6 +268,5 @@ void CanBrake::saveConfiguration()
 
     Throttle::saveConfiguration(); // call parent
 
-    prefsHandler->write(EETH_CAR_TYPE, config->carType);
     prefsHandler->saveChecksum();
 }

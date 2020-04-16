@@ -232,6 +232,7 @@ bool MotorController::checkBatteryTemperatureForRegen()
 void MotorController::processThrottleLevel()
 {
     MotorControllerConfiguration *config = (MotorControllerConfiguration*) getConfiguration();
+    SystemIOConfiguration *sysConfig = systemIO.getConfiguration();
     Throttle *accelerator = deviceManager.getAccelerator();
     Throttle *brake = deviceManager.getBrake();
 
@@ -259,7 +260,7 @@ void MotorController::processThrottleLevel()
             torqueRequested = config->torqueMax;
         } else {  // torque mode
             speedRequested = config->speedMax;
-            if (config->gearChangeSupport) {
+            if (sysConfig->gearChangeInput != CFG_OUTPUT_NONE) {
                 processGearChange(); // will adjust the speedRequested and throttleLevel
             }
             int32_t torqueTarget = throttleLevel * config->torqueMax / 1000;
@@ -607,8 +608,6 @@ void MotorController::loadConfiguration()
         prefsHandler->read(EEMC_CREEP_SPEED, &config->creepSpeed);
         prefsHandler->read(EEMC_BRAKE_HOLD, &config->brakeHold);
         prefsHandler->read(EEMC_BRAKE_HOLD_COEFF, &config->brakeHoldForceCoefficient);
-        prefsHandler->read(EEMC_GEAR_CHANGE_SUPPORT, &temp);
-        config->gearChangeSupport = temp;
         prefsHandler->read(EEMC_CRUISE_KP, &value);
         config->cruiseKp = value / 1000.0f;
         prefsHandler->read(EEMC_CRUISE_KI, &value);
@@ -632,7 +631,6 @@ void MotorController::loadConfiguration()
         config->creepLevel = 0;
         config->creepSpeed = 0;
         config->brakeHold = 0;
-        config->gearChangeSupport = false;
         config->cruiseKp = .5f;
         config->cruiseKi = .2f;
         config->cruiseKd = .02f;
@@ -655,8 +653,8 @@ void MotorController::loadConfiguration()
     logger.info(this, "Max RPM: %i, Slew rate: %i", config->speedMax, config->slewRate);
     logger.info(this, "Max mech power motor: %fkW, Max mech power regen: %fkW", config->maxMechanicalPowerMotor / 10.0f,
             config->maxMechanicalPowerRegen / 10.0f);
-    logger.info(this, "Creep level: %i, Creep speed: %i, Brake Hold: %d, Gear Change Support: %d", config->creepLevel, config->creepSpeed,
-            config->brakeHold, config->gearChangeSupport);
+    logger.info(this, "Creep level: %i, Creep speed: %i, Brake Hold: %d", config->creepLevel, config->creepSpeed,
+            config->brakeHold);
     logger.info(this, "Cruise Kp: %f, Ki: %f, Kd: %f, long delta: %d, step delta: %d, rpm: %d", config->cruiseKp, config->cruiseKi, config->cruiseKd,
             config->cruiseLongPressDelta, config->cruiseStepDelta, config->cruiseUseRpm);
 }
@@ -680,7 +678,6 @@ void MotorController::saveConfiguration()
     prefsHandler->write(EEMC_CREEP_SPEED, config->creepSpeed);
     prefsHandler->write(EEMC_BRAKE_HOLD, config->brakeHold);
     prefsHandler->write(EEMC_BRAKE_HOLD_COEFF, config->brakeHoldForceCoefficient);
-    prefsHandler->write(EEMC_GEAR_CHANGE_SUPPORT, (uint8_t) (config->gearChangeSupport ? 1 : 0));
     prefsHandler->write(EEMC_CRUISE_KP, (uint16_t) (config->cruiseKp * 1000));
     prefsHandler->write(EEMC_CRUISE_KI, (uint16_t) (config->cruiseKi * 1000));
     prefsHandler->write(EEMC_CRUISE_KD, (uint16_t) (config->cruiseKd * 1000));

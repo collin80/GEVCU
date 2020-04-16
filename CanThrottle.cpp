@@ -48,16 +48,16 @@ void CanThrottle::setup()
     requestFrame.rtr = 0x00;
     requestFrame.extended = 0x00;
 
-    CanThrottleConfiguration *config = (CanThrottleConfiguration *) getConfiguration();
+    SystemIOConfiguration *config = (SystemIOConfiguration *) getConfiguration();
 
     switch (config->carType) {
-    case OBD2:
+    case SystemIOConfiguration::OBD2:
         requestFrame.id = 0x7df; // OBD2 broadcast (or specific address from 0x7e0 to 0x7e7)
         memcpy(requestFrame.data.bytes, (const uint8_t[] ) { 0x02, 0x01, 0x4c, 0x00, 0x00, 0x00, 0x00, 0x00 }, 8); // 2=data bytes, 1=current data, 4c=throttle commanded
         responseId = 0x7e8; // usually ECU responds on 0x7e8 (possible range: 0x7e8 to 0x7ef)
         ready = true;
         break;
-    case Volvo_S80_Gas:
+    case SystemIOConfiguration::Volvo_S80_Gas:
         // Request: dlc=0x08 fid=0x7e0 id=0x7e0 ide=0x00 rtr=0x00 data=0x03,0x22,0xEE,0xCB,0x00,0x00,0x00,0x00 (vida: [0x00, 0x00, 0x07, 0xe0, 0x22, 0xee, 0xcb])
         // Raw response: dlc=0x08 fid=0x7e8 id=0x7e8 ide=0x00 rtr=0x00 data=0x04,0x62,0xEE,0xCB,0x14,0x00,0x00,0x00 (vida: [0x00, 0x00, 0x07, 0xe8, 0x62, 0xee, 0xcb, 0x14])
         requestFrame.id = 0x7e0;
@@ -66,7 +66,7 @@ void CanThrottle::setup()
         ready = true;
         break;
 
-    case Volvo_V50_Diesel:
+    case SystemIOConfiguration::Volvo_V50_Diesel:
         // Request: dlc=0x08 fid=0xFFFFE id=0x3FFFE ide=0x01 rtr=0x00 data=0xCD,0x11,0xA6,0x00,0x24,0x01,0x00,0x00 (vida: [0x00, 0xf, 0xff, 0xfe, 0xcd, 0x11, 0xa6, 0x00, 0x24, 0x01, 0x00, 0x00])
         // Response: dlc=0x08 fid=0x400021 id=0x21 ide=0x01 rtr=0x00 data=0xCE,0x11,0xE6,0x00,0x24,0x03,0xFD,0x00 (vida: [0x00, 0x40, 0x00, 0x21, 0xce, 0x11, 0xe6, 0x00, 0x24, 0x03, 0xfd, 0x00])
         requestFrame.id = 0x3FFFE;
@@ -133,17 +133,17 @@ void CanThrottle::handleTick()
  */
 void CanThrottle::handleCanFrame(CAN_FRAME *frame)
 {
-    CanThrottleConfiguration *config = (CanThrottleConfiguration *) getConfiguration();
+    SystemIOConfiguration *config = (SystemIOConfiguration *) getConfiguration();
 
     if (frame->id == responseId) {
         switch (config->carType) {
-        case OBD2:
+        case SystemIOConfiguration::OBD2:
             if (frame->data.bytes[0] == 0x3 && frame->data.bytes[1] == 0x41 && frame->data.bytes[2] == 0x4c) { // [0]=num data bytes, [1]=mode + 0x40, [2]=PID
                 rawSignal.input1 = frame->data.bytes[3];
                 ticksNoResponse = 0;
             }
             break;
-        case Volvo_S80_Gas:
+        case SystemIOConfiguration::Volvo_S80_Gas:
             // only evaluate messages with payload 0x04,0x62,0xEE,0xCB as other ECU data is also sent by with 0x738
             if (frame->data.bytes[0] == 0x04 && frame->data.bytes[1] == 0x62 && frame->data.bytes[2] == 0xee && frame->data.bytes[3] == 0xcb) {
                 rawSignal.input1 = frame->data.bytes[4];
@@ -151,7 +151,7 @@ void CanThrottle::handleCanFrame(CAN_FRAME *frame)
             }
             break;
 
-        case Volvo_V50_Diesel:
+        case SystemIOConfiguration::Volvo_V50_Diesel:
             // only evaluate messages with payload 0xCE,0x11,0xE6,0x00,0x2
             if (frame->data.bytes[0] == 0xce && frame->data.bytes[1] == 0x11 && frame->data.bytes[2] == 0x6E && frame->data.bytes[3] == 0x00
                     && frame->data.bytes[4] == 0x02) {
@@ -238,13 +238,11 @@ void CanThrottle::loadConfiguration()
 
     if (prefsHandler->checksumValid()) { //checksum is good, read in the values stored in EEPROM
 #endif
-        prefsHandler->read(EETH_CAR_TYPE, &config->carType);
     } else {
-        config->carType = Volvo_S80_Gas;
         saveConfiguration();
     }
 
-    logger.info(this, "MIN: %ld MAX: %ld Type: %d", config->minimumLevel, config->maximumLevel, config->carType);
+    logger.info(this, "MIN: %ld MAX: %ld", config->minimumLevel, config->maximumLevel);
 }
 
 /*
@@ -256,6 +254,5 @@ void CanThrottle::saveConfiguration()
 
     Throttle::saveConfiguration(); // call parent
 
-    prefsHandler->write(EETH_CAR_TYPE, config->carType);
     prefsHandler->saveChecksum();
 }

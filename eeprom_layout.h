@@ -124,7 +124,7 @@ the end of the stardard data. The below numbers are offsets from the device's ee
 #define EEMC_CREEP_LEVEL                    69 // 1 byte - percentage of throttle used to simulate creep
 #define EEMC_CREEP_SPEED                    70 // 2 bytes - max speed for creep
 #define EEMC_BRAKE_HOLD                     72 // 1 byte - percentage of max torque to achieve brake hold (0=off)
-#define EEMC_GEAR_CHANGE_SUPPORT            73 // 1 byte - flag, true if gear chaning support is enabled
+#define EEMC_UNUSED3                        73 // 1 byte - unused
 #define EEMC_BRAKE_HOLD_COEFF               74 // 1 byte - brake hold force coefficient
 #define EEMC_CRUISE_KP                      75 // 2 byte - Kp value for cruise control PID
 #define EEMC_CRUISE_KI                      77 // 2 byte - Ki value for cruise control PID
@@ -151,7 +151,7 @@ the end of the stardard data. The below numbers are offsets from the device's ee
 #define EETH_MIN_ACCEL_REGEN                46 //2 bytes - the starting level for accelerator regen as a percentage of throttle
 #define EETH_REGEN_MAX                      48 //2 bytes - unsigned int - tenths of a percent (0-1000) of pedal position where regen is at maximum
 #define EETH_UNUSED                         50 //2 bytes -
-#define EETH_CAR_TYPE                       52 //1 byte - type of car for querying the throttle position via CAN bus
+#define EETH_UNUSED                         52 //1 byte - unused
 #define EETH_ADC_1                          53 //1 byte - which ADC port to use for first throttle input
 #define EETH_ADC_2                          54 //1 byte - which ADC port to use for second throttle input
 
@@ -211,9 +211,9 @@ the end of the stardard data. The below numbers are offsets from the device's ee
 #define EESIO_POWER_LIMITATION_OUTPUT       67 // 1 byte - digital output for power limitation signal (255 = no output)
 #define EESIO_REVERSE_INPUT                 68 // 1 byte - digital input for reverse signal (255 = no input)
 #define EESIO_POWER_STEERING_OUTPUT         69 // 1 byte - digital output for power steering
-#define EESIO_UNUSED_OUTPUT                 70 // 1 byte - digital output for ...
+#define EESIO_CAR_TYPE                      70 // 1 byte - car type
 #define EESIO_STATE_OF_CHARGE_OUTPUT        71 // 1 byte - digital output for indication of SoC (255 = no output)
-#define EESIO_GEAR_CHANGE_INPUT             72 // 1 byte - digital input for gear change signal (255 = no output)
+#define EESIO_GEAR_CHANGE_INPUT             72 // 1 byte - digital input for gear change signal (255 = no input)
 #define EESIO_STATUS_LIGHT_OUTPUT           73 // 1 byte - digital oupt for PWM operated status light
 #define EESIO_HEATER_TEMPERATURE_ON         74 // 1 byte - temp in deg C where heater is enabled
 #define EESIO_ABS_INPUT                     75 // 1 byte - digital input for ABS signal (255 = no output)

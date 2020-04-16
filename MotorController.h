@@ -67,7 +67,6 @@ public:
     uint16_t creepSpeed; // max speed for creep
     uint8_t brakeHold; // percentage of max torque to achieve brake hold (0 = off)
     uint8_t brakeHoldForceCoefficient; // quotient by which the negative rpm is divided to get the force increase/decrease during brake hold (must NOT be 0!)
-    bool gearChangeSupport; // flag indication if gear change support (adjusting rpm) is on
     double cruiseKp, cruiseKi, cruiseKd; // PID parameter for cruise control
 	uint16_t cruiseLongPressDelta; // delta in rpm/kph to increase/decrease target speed for cc during long button press
 	uint16_t cruiseStepDelta; // delta in rpm/kph to increase/decrease target speed for cc at short button press

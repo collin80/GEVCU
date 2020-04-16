@@ -41,7 +41,7 @@ ELM327Emu::ELM327Emu()
     prefsHandler = new PrefHandler(ELM327EMU);
     elmProc = new ELM327Processor();
 
-    if (systemIO.getSystemType() == GEVCU3 || GEVCU4) {
+    if (systemIO.getSystemType() == SystemIOConfiguration::GEVCU3 || SystemIOConfiguration::GEVCU4) {
         serialInterface = &Serial2;
     } else { //older hardware used this instead
         serialInterface = &Serial3;

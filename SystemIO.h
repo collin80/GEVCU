@@ -40,16 +40,23 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 class Status;
 
-enum SystemType {
-    GEVCU1 = 1,
-    GEVCU2 = 2,
-    GEVCU3 = 3,
-    GEVCU4 = 4
-};
-
 class SystemIOConfiguration
 {
 public:
+    enum SystemType {
+        GEVCU1 = 1,
+        GEVCU2 = 2,
+        GEVCU3 = 3,
+        GEVCU4 = 4
+    };
+
+    enum CarType {
+        OBD2 = 0x00,
+        Volvo_S80_Gas = 0x01,
+        Volvo_V50_Diesel = 0x02,
+        unkown = 0xff
+    };
+
     uint8_t enableInput; // # of input for enable signal - required so that GEVCU enables the controller and requests torque/speed > 0
     uint8_t chargePowerAvailableInput; // # of input to signal availability of charging power (shore power)
     uint8_t interlockInput; // # of input to signal if the interlock circuit is closed and HV voltage can be applied
@@ -87,6 +94,7 @@ public:
     uint8_t statusLightOutput; // #of output for the status light or 255 if not used
 
     SystemType systemType; // the system type
+    CarType carType; // the type of car, so we know how to interpret which bytes
     Logger::LogLevel logLevel; // the system's loglevel
 };
 
@@ -136,8 +144,10 @@ public:
     uint32_t getNextADCBuffer();
     void printIOStatus();
 
-    void setSystemType(SystemType);
-    SystemType getSystemType();
+    void setSystemType(SystemIOConfiguration::SystemType);
+    SystemIOConfiguration::SystemType getSystemType();
+    void setCarType(SystemIOConfiguration::CarType);
+    SystemIOConfiguration::CarType getCarType();
     void setLogLevel(Logger::LogLevel);
     Logger::LogLevel getLogLevel();
     void measurePreCharge();
