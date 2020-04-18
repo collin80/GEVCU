@@ -150,8 +150,8 @@ the end of the stardard data. The below numbers are offsets from the device's ee
 #define EETH_MIN_BRAKE_REGEN                44 //2 bytes - the starting level for brake regen as a percentage of throttle
 #define EETH_MIN_ACCEL_REGEN                46 //2 bytes - the starting level for accelerator regen as a percentage of throttle
 #define EETH_REGEN_MAX                      48 //2 bytes - unsigned int - tenths of a percent (0-1000) of pedal position where regen is at maximum
-#define EETH_UNUSED                         50 //2 bytes -
-#define EETH_UNUSED                         52 //1 byte - unused
+#define EETH_UNUSED1                        50 //2 bytes -
+#define EETH_UNUSED2                        52 //1 byte - unused
 #define EETH_ADC_1                          53 //1 byte - which ADC port to use for first throttle input
 #define EETH_ADC_2                          54 //1 byte - which ADC port to use for second throttle input
 

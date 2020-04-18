@@ -72,7 +72,7 @@ void delayStart(uint8_t seconds) {
 void setup()
 {
     SerialUSB.begin(CFG_SERIAL_SPEED);
-    delayStart(10);
+//    delayStart(3);
     SerialUSB.println(CFG_VERSION);
 
     // resets CPU when power drops below 2.8V --> give the EEPROM enough time to finish an ongoing write at power-down

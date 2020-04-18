@@ -48,7 +48,7 @@ void CanBrake::setup()
     requestFrame.rtr = 0x00;
     requestFrame.extended = 0x00;
 
-    SystemIOConfiguration *config = (SystemIOConfiguration *) getConfiguration();
+    SystemIOConfiguration *config = (SystemIOConfiguration *) systemIO.getConfiguration();
 
     switch (config->carType) {
         case SystemIOConfiguration::Volvo_S80_Gas:

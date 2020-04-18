@@ -48,7 +48,7 @@ void CanThrottle::setup()
     requestFrame.rtr = 0x00;
     requestFrame.extended = 0x00;
 
-    SystemIOConfiguration *config = (SystemIOConfiguration *) getConfiguration();
+    SystemIOConfiguration *config = (SystemIOConfiguration *) systemIO.getConfiguration();
 
     switch (config->carType) {
     case SystemIOConfiguration::OBD2:
@@ -133,7 +133,7 @@ void CanThrottle::handleTick()
  */
 void CanThrottle::handleCanFrame(CAN_FRAME *frame)
 {
-    SystemIOConfiguration *config = (SystemIOConfiguration *) getConfiguration();
+    SystemIOConfiguration *config = (SystemIOConfiguration *) systemIO.getConfiguration();
 
     if (frame->id == responseId) {
         switch (config->carType) {
