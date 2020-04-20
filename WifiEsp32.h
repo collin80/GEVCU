@@ -143,12 +143,16 @@ private:
     void processActiveSocketListResponse();
     void processIncomingSocketData(String data);
     void processSocketSendResponse();
+    void prepareMotorControllerData();
+    void prepareDcDcConverterData();
+    void prepareChargerData();
+    void prepareSystemData();
+    void prepareBatteryManagerData();
     void processValue(bool *cacheValue, bool value, DataPointCode code);
     void processValue(uint8_t *cacheValue, uint8_t value, DataPointCode code);
     void processValue(uint16_t *cacheValue, uint16_t value, DataPointCode code);
     void processValue(int16_t *cacheValue, int16_t value, DataPointCode code);
     void processValue(uint32_t *cacheValue, uint32_t value, DataPointCode code);
-    void reset();
 
     char inBuffer[CFG_WIFI_BUFFER_SIZE]; //storage for incoming data
     byte outBuffer[CFG_WIFI_BUFFER_SIZE]; // buffer to compose and send data to ESP32
@@ -160,6 +164,7 @@ private:
     bool didParamLoad;
     bool connected; // is a client connected via websocket ?
     uint32_t timeStarted;
+    uint8_t updateCount;
     static const int DATA_POINT_START = 0xaa;
 };
 

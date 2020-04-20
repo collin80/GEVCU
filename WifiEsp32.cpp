@@ -42,9 +42,7 @@ WifiEsp32::WifiEsp32() : Wifi()
     timeStarted = 0;
     dataPointCount = 0;
     psWritePtr = psReadPtr = 0;
-
-    pinMode(CFG_WIFI_RESET, OUTPUT);
-    pinMode(CFG_WIFI_ENABLE, OUTPUT);
+    updateCount = 0;
 }
 
 /**
@@ -53,9 +51,6 @@ WifiEsp32::WifiEsp32() : Wifi()
  */
 void WifiEsp32::setup()
 {
-    digitalWrite(CFG_WIFI_RESET, HIGH);
-    digitalWrite(CFG_WIFI_ENABLE, HIGH);
-
     didParamLoad = false;
     connected = false;
     inPos = outPos = 0;
@@ -79,7 +74,6 @@ void WifiEsp32::setup()
 void WifiEsp32::tearDown()
 {
     Device::tearDown();
-    digitalWrite(CFG_WIFI_ENABLE, LOW);
 }
 
 /**
@@ -93,9 +87,6 @@ void WifiEsp32::sendCmd(String cmd)
 {
     serialInterface->print(cmd);
     serialInterface->write(13);
-    if (logger.isDebug()) {
-        logger.debug(this, "Send cmd: %s", cmd.c_str());
-    }
 }
 
 /**
@@ -107,12 +98,6 @@ void WifiEsp32::sendCmd(String cmd)
  */
 void WifiEsp32::handleTick()
 {
-/*    if (watchdogCounter++ > 250) { // after 250 * 100ms no reception, reset esp
-        logger.warn(this, "watchdog: no response from Esp32");
-        reset();
-        return;
-    }
-*/
     if (connected) {
         sendSocketUpdate();
     }
@@ -146,7 +131,6 @@ void WifiEsp32::handleMessage(uint32_t messageType, void* message)
 
     case MSG_COMMAND:
         sendCmd((char *) message);
-        loop();
         break;
 
     case MSG_LOG:
@@ -249,9 +233,11 @@ void WifiEsp32::processIncomingSocketData(String input)
         } else if (input.equals("cruiseToggle")) {
             deviceManager.getMotorController()->cruiseControlToggle();
         } else if (input.equals("connected")) {
+            logger.debug("Client connected, clearing value cache");
             valueCache.clear(); // new connection -> clear the cache to have all values sent
             connected = true;
         } else if (input.equals("disconnected")) {
+            logger.debug("Client disconnected");
             connected = false;
         } else if (input.equals("loadConfig")) {
             didParamLoad = false;
@@ -302,15 +288,37 @@ void WifiEsp32::sendLogMessage(String logLevel, String deviceName, String messag
  */
 void WifiEsp32::sendSocketUpdate()
 {
-    MotorController* motorController = deviceManager.getMotorController();
-    DcDcConverter* dcDcConverter = deviceManager.getDcDcConverter();
-    BatteryManager* batteryManager = deviceManager.getBatteryManager();
     outPos = 0;
     dataPointCount = 0;
 
-    processValue(&valueCache.systemState, (uint8_t) status.getSystemState(), systemState);
+    prepareSystemData();
+    prepareMotorControllerData();
+    prepareBatteryManagerData();
+    if (updateCount == 0) {
+        prepareDcDcConverterData();
+    }
+    if (status.getSystemState() == Status::charging || status.getSystemState() == Status::charged) {
+        prepareChargerData();
+    }
+
+    if (outPos > 0) {
+        String header = "data:";
+        header.concat(dataPointCount);
+        serialInterface->print(header); // indicate that we will send a binary data stream of x bytes
+        serialInterface->write(13); // CR
+        serialInterface->write(outBuffer, outPos); // send the binary data
+    }
+    if (++updateCount > 5)
+        updateCount = 0;
+}
+
+void WifiEsp32::prepareMotorControllerData() {
+    MotorController* motorController = deviceManager.getMotorController();
+    BatteryManager* batteryManager = deviceManager.getBatteryManager();
 
     if (motorController) {
+        processValue(&valueCache.bitfieldMotor, status.getBitFieldMotor(), bitfieldMotor);
+
         processValue(&valueCache.torqueActual, motorController->getTorqueActual(), torqueActual);
         processValue(&valueCache.speedActual, motorController->getSpeedActual(), speedActual);
         processValue(&valueCache.throttle, motorController->getThrottleLevel(), throttle);
@@ -330,14 +338,14 @@ void WifiEsp32::sendSocketUpdate()
 //        processLimits(NULL, &temperatureMotorMax, motorController->getTemperatureMotor(), temperatureMotor);
         processValue(&valueCache.temperatureController, motorController->getTemperatureController(), temperatureController);
 //        processLimits(NULL, &temperatureControllerMax, motorController->getTemperatureController(), temperatureController);
-        processValue(&valueCache.mechanicalPower, motorController->getMechanicalPower(), mechanicalPower);
+//        processValue(&valueCache.mechanicalPower, motorController->getMechanicalPower(), mechanicalPower);
         processValue(&valueCache.cruiseControlSpeed, motorController->getCruiseControlSpeed(), cruiseControlSpeed);
         processValue(&valueCache.enableCruiseControl, motorController->isCruiseControlEnabled(), enableCruiseControl);
     }
+}
 
-    processValue(&valueCache.bitfieldMotor, status.getBitFieldMotor(), bitfieldMotor);
-    processValue(&valueCache.bitfieldBms, status.getBitFieldBms(), bitfieldBms);
-    processValue(&valueCache.bitfieldIO, status.getBitFieldIO(), bitfieldIO);
+void WifiEsp32::prepareDcDcConverterData() {
+    DcDcConverter* dcDcConverter = deviceManager.getDcDcConverter();
 
     if (dcDcConverter) {
         processValue(&valueCache.dcDcHvVoltage, dcDcConverter->getHvVoltage(), dcDcHvVoltage);
@@ -346,26 +354,33 @@ void WifiEsp32::sendSocketUpdate()
         processValue(&valueCache.dcDcLvCurrent, dcDcConverter->getLvCurrent(), dcDcLvCurrent);
         processValue(&valueCache.dcDcTemperature, dcDcConverter->getTemperature(), dcDcTemperature);
     }
+}
 
-    if (status.getSystemState() == Status::charging || status.getSystemState() == Status::charged) {
-        Charger* charger = deviceManager.getCharger();
-        if (charger) {
-            processValue(&valueCache.chargerInputVoltage, charger->getInputVoltage(), chargerInputVoltage);
-            processValue(&valueCache.chargerInputCurrent, charger->getInputCurrent(), chargerInputCurrent);
-            processValue(&valueCache.chargerBatteryVoltage, charger->getBatteryVoltage(), chargerBatteryVoltage);
-            processValue(&valueCache.chargerBatteryCurrent, charger->getBatteryCurrent(), chargerBatteryCurrent);
-            processValue(&valueCache.chargerTemperature, charger->getTemperature(), chargerTemperature);
-            processValue(&valueCache.maximumSolarCurrent, charger->getMaximumSolarCurrent(), maximumSolarCurrent);
+void WifiEsp32::prepareChargerData() {
+    Charger* charger = deviceManager.getCharger();
+    BatteryManager* batteryManager = deviceManager.getBatteryManager();
 
-            uint16_t secs = millis() / 1000; //TODO calc mins
-            processValue(&valueCache.chargeHoursRemain, secs / 60, chargeHoursRemain);
-            processValue(&valueCache.chargeMinsRemain, secs % 60, chargeMinsRemain);
-            if (batteryManager && batteryManager->hasSoc())
-                processValue(&valueCache.chargeLevel, batteryManager->getSoc() * 50, chargeLevel);
-            else
-                processValue(&valueCache.chargeLevel, map (secs, 0 , 28800, 0, 100), chargeLevel);
-        }
+    if (charger) {
+        processValue(&valueCache.chargerInputVoltage, charger->getInputVoltage(), chargerInputVoltage);
+        processValue(&valueCache.chargerInputCurrent, charger->getInputCurrent(), chargerInputCurrent);
+        processValue(&valueCache.chargerBatteryVoltage, charger->getBatteryVoltage(), chargerBatteryVoltage);
+        processValue(&valueCache.chargerBatteryCurrent, charger->getBatteryCurrent(), chargerBatteryCurrent);
+        processValue(&valueCache.chargerTemperature, charger->getTemperature(), chargerTemperature);
+        processValue(&valueCache.maximumSolarCurrent, charger->getMaximumSolarCurrent(), maximumSolarCurrent);
+
+        uint16_t secs = millis() / 1000; //TODO calc mins
+        processValue(&valueCache.chargeHoursRemain, secs / 60, chargeHoursRemain);
+        processValue(&valueCache.chargeMinsRemain, secs % 60, chargeMinsRemain);
+        if (batteryManager && batteryManager->hasSoc())
+            processValue(&valueCache.chargeLevel, batteryManager->getSoc() * 50, chargeLevel);
+        else
+            processValue(&valueCache.chargeLevel, map (secs, 0 , 28800, 0, 100), chargeLevel);
     }
+}
+
+void WifiEsp32::prepareSystemData() {
+    processValue(&valueCache.systemState, (uint8_t) status.getSystemState(), systemState);
+    processValue(&valueCache.bitfieldIO, status.getBitFieldIO(), bitfieldIO);
 
     processValue(&valueCache.flowCoolant, status.flowCoolant * 6, flowCoolant);
     processValue(&valueCache.flowHeater, status.flowHeater * 6, flowHeater);
@@ -383,8 +398,14 @@ void WifiEsp32::sendSocketUpdate()
     processValue(&valueCache.enableRegen, status.enableRegen, enableRegen);
     processValue(&valueCache.enableHeater, status.enableHeater, enableHeater);
     processValue(&valueCache.enableCreep, status.enableCreep, enableCreep);
+}
+
+void WifiEsp32::prepareBatteryManagerData() {
+    BatteryManager* batteryManager = deviceManager.getBatteryManager();
 
     if (batteryManager) {
+        processValue(&valueCache.bitfieldBms, status.getBitFieldBms(), bitfieldBms);
+
         if (batteryManager->hasSoc())
             processValue(&valueCache.soc, (uint16_t)(batteryManager->getSoc() * 50), soc);
         if (batteryManager->hasDischargeLimit()) {
@@ -434,14 +455,6 @@ void WifiEsp32::sendSocketUpdate()
         }
         processValue(&valueCache.bmsTemperature, batteryManager->getSystemTemperature(), bmsTemperature);
     }
-
-    if (outPos > 0) {
-        String header = "data:";
-        header.concat(dataPointCount);
-        serialInterface->print(header); // indicate that we will send a binary data stream of x bytes
-        serialInterface->write(13); // CR
-        serialInterface->write(outBuffer, outPos); // send the binary data
-    }
 }
 
 void WifiEsp32::processValue(bool *cacheValue, bool value, DataPointCode code) {
@@ -459,6 +472,10 @@ void WifiEsp32::processValue(uint8_t *cacheValue, uint8_t value, DataPointCode c
     if (*cacheValue == value)
         return;
     *cacheValue = value;
+
+if (code == systemState) {
+logger.info("sysState set, cache: %d, value: %d", *cacheValue, value);
+}
 
     outBuffer[outPos++] = DATA_POINT_START;
     outBuffer[outPos++] = code;
@@ -503,21 +520,6 @@ void WifiEsp32::processValue(uint32_t *cacheValue, uint32_t value, DataPointCode
     outBuffer[outPos++] = value & 0x000000FF;
     dataPointCount++;
 }
-
-/**
- * \brief Reset the ichip to overcome a crash
- *
- */
-void WifiEsp32::reset()
-{
-    logger.info(this, "resetting the Esp32Wifi");
-
-    // cycle reset pin (next tick() will activate it again
-    digitalWrite(CFG_WIFI_RESET, LOW);
-    running = false;
-    ready = false;
-}
-
 
 /**
  * \brief Get the device type
