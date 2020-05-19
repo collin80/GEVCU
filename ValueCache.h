@@ -39,6 +39,13 @@ public:
     uint32_t bitfieldBms;
     uint32_t bitfieldIO;
 
+    uint16_t dcVoltageMin;
+    uint16_t dcVoltageMax;
+    int16_t dcCurrentMin;
+    int16_t dcCurrentMax;
+    int16_t temperatureMotorMax;
+    int16_t temperatureControllerMax;
+
     uint16_t dcDcHvVoltage;
     uint16_t dcDcLvVoltage;
     int16_t dcDcHvCurrent;

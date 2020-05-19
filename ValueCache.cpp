@@ -37,6 +37,13 @@ void ValueCache::clear()
     bitfieldBms = 0;
     bitfieldIO = 0;
 
+    dcVoltageMin = 0;
+    dcVoltageMax = 0;
+    dcCurrentMin = 0;
+    dcCurrentMax = 0;
+    temperatureMotorMax = 0;
+    temperatureControllerMax = 0;
+
     dcDcHvVoltage = 0;
     dcDcLvVoltage = 0;
     dcDcHvCurrent = 0;

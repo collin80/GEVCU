@@ -322,23 +322,20 @@ void WifiEsp32::prepareMotorControllerData() {
         processValue(&valueCache.torqueActual, motorController->getTorqueActual(), torqueActual);
         processValue(&valueCache.speedActual, motorController->getSpeedActual(), speedActual);
         processValue(&valueCache.throttle, motorController->getThrottleLevel(), throttle);
-        if (batteryManager && batteryManager->hasPackVoltage()) {
-            processValue(&valueCache.dcVoltage, batteryManager->getPackVoltage(), dcVoltage);
-        } else {
+        if (!batteryManager || !batteryManager->hasPackVoltage()) {
             processValue(&valueCache.dcVoltage, motorController->getDcVoltage(), dcVoltage);
-//            processLimits(&dcVoltageMin, &dcVoltageMax, motorController->getDcVoltage(), dcVoltage);
+            processLimits(&valueCache.dcVoltageMin, motorController->getDcVoltage(), dcVoltageMin, false);
+            processLimits(&valueCache.dcVoltageMax, motorController->getDcVoltage(), dcVoltageMax, true);
         }
-        if (batteryManager && batteryManager->hasPackCurrent()) {
-            processValue(&valueCache.dcCurrent, batteryManager->getPackCurrent(), dcCurrent);
-        } else {
+        if (!batteryManager || !batteryManager->hasPackCurrent()) {
             processValue(&valueCache.dcCurrent, motorController->getDcCurrent(), dcCurrent);
-//            processLimits(&dcCurrentMin, &dcCurrentMax, motorController->getDcCurrent(), dcCurrent);
+            processLimits(&valueCache.dcCurrentMin, motorController->getDcCurrent(), dcCurrentMin, false);
+            processLimits(&valueCache.dcCurrentMax, motorController->getDcCurrent(), dcCurrentMax, true);
         }
-        processValue(&valueCache.temperatureMotor, motorController->getTemperatureMotor(), temperatureMotor);
-//        processLimits(NULL, &temperatureMotorMax, motorController->getTemperatureMotor(), temperatureMotor);
+        processValue(&valueCache.temperatureMotor, motorController->getTemperatureMotor(), tempMotorMax);
+        processLimits(&valueCache.temperatureMotorMax, motorController->getTemperatureMotor(), temperatureMotor, true);
         processValue(&valueCache.temperatureController, motorController->getTemperatureController(), temperatureController);
-//        processLimits(NULL, &temperatureControllerMax, motorController->getTemperatureController(), temperatureController);
-//        processValue(&valueCache.mechanicalPower, motorController->getMechanicalPower(), mechanicalPower);
+        processLimits(&valueCache.temperatureControllerMax, motorController->getTemperatureController(), tempControllerMax, true);
         processValue(&valueCache.cruiseControlSpeed, motorController->getCruiseControlSpeed(), cruiseControlSpeed);
         processValue(&valueCache.enableCruiseControl, motorController->isCruiseControlEnabled(), enableCruiseControl);
     }
@@ -408,20 +405,25 @@ void WifiEsp32::prepareBatteryManagerData() {
 
         if (batteryManager->hasSoc())
             processValue(&valueCache.soc, (uint16_t)(batteryManager->getSoc() * 50), soc);
+        if (batteryManager->hasPackVoltage()) {
+            processValue(&valueCache.dcVoltage, batteryManager->getPackVoltage(), dcVoltage);
+            processLimits(&valueCache.dcVoltageMin, batteryManager->getPackVoltage(), dcVoltageMin, false);
+            processLimits(&valueCache.dcVoltageMax, batteryManager->getPackVoltage(), dcVoltageMax, true);
+        }
+        if (batteryManager->hasPackCurrent())
+            processValue(&valueCache.dcCurrent, batteryManager->getPackCurrent(), dcCurrent);
         if (batteryManager->hasDischargeLimit()) {
             processValue(&valueCache.dischargeLimit, batteryManager->getDischargeLimit(), dischargeLimit);
-//            if (batteryManager->getDischargeLimit() != dcCurrentMin || batteryManager->getChargeLimit() != dcCurrentMax) {
-//                dcCurrentMax = batteryManager->getDischargeLimit();
-//                dcCurrentMin = batteryManager->getChargeLimit() * -1;
-//                addLimit((char *)String(dcCurrentMin).c_str(), (char *)String(dcCurrentMax).c_str(), dcCurrent);
-//            }
+            processValue(&valueCache.dcCurrentMax, batteryManager->getDischargeLimit() * 10, dcCurrentMax);
         } else {
             processValue(&valueCache.dischargeAllowed, batteryManager->isDischargeAllowed(), dischargeAllowed);
         }
-        if (batteryManager->hasChargeLimit())
+        if (batteryManager->hasChargeLimit()) {
             processValue(&valueCache.chargeLimit, batteryManager->getChargeLimit(), chargeLimit);
-        else
+            processValue(&valueCache.dcCurrentMin, batteryManager->getChargeLimit() * -10, dcCurrentMin);
+        } else {
             processValue(&valueCache.chargeAllowed, batteryManager->isChargeAllowed(), chargeAllowed);
+        }
         if (batteryManager->hasCellTemperatures()) {
             processValue(&valueCache.lowestCellTemp, batteryManager->getLowestCellTemp(), lowestCellTemp);
             processValue(&valueCache.highestCellTemp, batteryManager->getHighestCellTemp(), highestCellTemp);
@@ -473,10 +475,6 @@ void WifiEsp32::processValue(uint8_t *cacheValue, uint8_t value, DataPointCode c
         return;
     *cacheValue = value;
 
-if (code == systemState) {
-logger.info("sysState set, cache: %d, value: %d", *cacheValue, value);
-}
-
     outBuffer[outPos++] = DATA_POINT_START;
     outBuffer[outPos++] = code;
     outBuffer[outPos++] = value;
@@ -520,6 +518,25 @@ void WifiEsp32::processValue(uint32_t *cacheValue, uint32_t value, DataPointCode
     outBuffer[outPos++] = value & 0x000000FF;
     dataPointCount++;
 }
+
+void WifiEsp32::processLimits(uint16_t *cacheValue, uint16_t value, DataPointCode code, boolean maximum) {
+    if (maximum && cacheValue && value > *cacheValue) {
+        processValue(cacheValue, value, code);
+    }
+    if (!maximum && cacheValue && value < *cacheValue) {
+        processValue(cacheValue, value, code);
+    }
+}
+
+void WifiEsp32::processLimits(int16_t *cacheValue, int16_t value, DataPointCode code, boolean maximum) {
+    if (maximum && cacheValue && value > *cacheValue) {
+        processValue(cacheValue, value, code);
+    }
+    if (!maximum && cacheValue && value < *cacheValue) {
+        processValue(cacheValue, value, code);
+    }
+}
+
 
 /**
  * \brief Get the device type

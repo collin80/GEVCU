@@ -68,6 +68,12 @@ public:
         bitfieldMotor = 20,
         bitfieldBms = 21,
         bitfieldIO = 22,
+        dcCurrentMin = 23,
+        dcCurrentMax = 24,
+        dcVoltageMin = 25,
+        dcVoltageMax = 26,
+        tempMotorMax = 27,
+        tempControllerMax = 28,
 
         dcDcHvVoltage = 30,
         dcDcLvVoltage = 31,
@@ -153,6 +159,8 @@ private:
     void processValue(uint16_t *cacheValue, uint16_t value, DataPointCode code);
     void processValue(int16_t *cacheValue, int16_t value, DataPointCode code);
     void processValue(uint32_t *cacheValue, uint32_t value, DataPointCode code);
+    void processLimits(uint16_t *cacheValue, uint16_t value, DataPointCode code, boolean maximum);
+    void processLimits(int16_t *cacheValue, int16_t value, DataPointCode code, boolean maximum);
 
     char inBuffer[CFG_WIFI_BUFFER_SIZE]; //storage for incoming data
     byte outBuffer[CFG_WIFI_BUFFER_SIZE]; // buffer to compose and send data to ESP32
