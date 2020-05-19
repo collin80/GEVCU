@@ -188,14 +188,17 @@ void BrusaDMC5::sendLimits()
     if (batteryManager) {
         if (batteryManager->hasDischargeLimit()) {
             currentLimitMotor = batteryManager->getDischargeLimit() * 10;
- //           logger.info(this, "Motor power limited by BMS to %dA (instead %dA)", batteryManager->getDischargeLimit(), currentLimitMotor/10);
         } else if (batteryManager->hasAllowDischarging() && !batteryManager->isDischargeAllowed()) {
             currentLimitMotor = 0;
             logger.info(this, "Motor power limited by BMS to 0");
         }
 
         if (batteryManager->hasChargeLimit()) {
-            currentLimitRegen = batteryManager->getChargeLimit() * 10;
+            if (batteryManager->getChargeLimit() > 32) {
+                currentLimitRegen = batteryManager->getChargeLimit() * 10;
+            } else {
+                currentLimitRegen = 0; // prevent regen if BMS limits charge power to below 32A to prevent oscillation by current limiter
+            }
         } else if (batteryManager->hasAllowCharging() && !batteryManager->isChargeAllowed()) {
             currentLimitRegen = 0;
         }
