@@ -147,6 +147,12 @@ void BrusaDMC5::sendControl()
             if (config->enableOscillationLimiter) {
                 outputFrameControl.data.bytes[0] |= enableOscillationLimiter;
             }
+            if (torqueCommand < 0 && speedActual < 1000) {
+                BatteryManager *batteryManager = deviceManager.getBatteryManager();
+                if (batteryManager && batteryManager->hasChargeLimit() && batteryManager->getChargeLimit() < 32) {
+                    torqueCommand = 0; // prevent regen if BMS limits charge power to below 32A to prevent oscillation by current limiter
+                }
+            }
 
             speedCommand = constrain(speedCommand, -32760, 32760);
             // set the speed in rpm, the values are constrained to prevent a fatal overflow
@@ -194,11 +200,7 @@ void BrusaDMC5::sendLimits()
         }
 
         if (batteryManager->hasChargeLimit()) {
-            if (batteryManager->getChargeLimit() > 32) {
-                currentLimitRegen = batteryManager->getChargeLimit() * 10;
-            } else {
-                currentLimitRegen = 0; // prevent regen if BMS limits charge power to below 32A to prevent oscillation by current limiter
-            }
+            currentLimitRegen = batteryManager->getChargeLimit() * 10;
         } else if (batteryManager->hasAllowCharging() && !batteryManager->isChargeAllowed()) {
             currentLimitRegen = 0;
         }
