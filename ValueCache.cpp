@@ -25,6 +25,7 @@ void ValueCache::clear()
     torqueActual = -1;
     speedActual = -1;
     throttle = -1;
+    torqueAvailable = 0;
 
     dcVoltage = -1;
     dcCurrent = -1;

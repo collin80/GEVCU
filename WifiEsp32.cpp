@@ -320,6 +320,7 @@ void WifiEsp32::prepareMotorControllerData() {
         processValue(&valueCache.bitfieldMotor, status.getBitFieldMotor(), bitfieldMotor);
 
         processValue(&valueCache.torqueActual, motorController->getTorqueActual(), torqueActual);
+        processValue(&valueCache.torqueAvailable, motorController->getTorqueAvailable(), torqueAvailable);
         processValue(&valueCache.speedActual, motorController->getSpeedActual(), speedActual);
         processValue(&valueCache.throttle, motorController->getThrottleLevel(), throttle);
         if (!batteryManager || !batteryManager->hasPackVoltage()) {

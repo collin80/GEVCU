@@ -57,6 +57,7 @@ public:
         torqueActual = 1,
         speedActual = 2,
         throttle = 3,
+        torqueAvailable = 4,
 
         dcVoltage = 10,
         dcCurrent = 11,

@@ -27,6 +27,7 @@ public:
     int16_t torqueActual;
     int16_t speedActual;
     int16_t throttle;
+    int16_t torqueAvailable;
 
     uint16_t dcVoltage;
     int16_t dcCurrent;
