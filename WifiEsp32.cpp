@@ -332,8 +332,8 @@ void WifiEsp32::prepareMotorControllerData() {
             processLimits(&valueCache.dcCurrentMin, motorController->getDcCurrent(), dcCurrentMin, false);
             processLimits(&valueCache.dcCurrentMax, motorController->getDcCurrent(), dcCurrentMax, true);
         }
-        processValue(&valueCache.temperatureMotor, motorController->getTemperatureMotor(), tempMotorMax);
-        processLimits(&valueCache.temperatureMotorMax, motorController->getTemperatureMotor(), temperatureMotor, true);
+        processValue(&valueCache.temperatureMotor, motorController->getTemperatureMotor(), temperatureMotor);
+        processLimits(&valueCache.temperatureMotorMax, motorController->getTemperatureMotor(), tempMotorMax, true);
         processValue(&valueCache.temperatureController, motorController->getTemperatureController(), temperatureController);
         processLimits(&valueCache.temperatureControllerMax, motorController->getTemperatureController(), tempControllerMax, true);
         processValue(&valueCache.cruiseControlSpeed, motorController->getCruiseControlSpeed(), cruiseControlSpeed);

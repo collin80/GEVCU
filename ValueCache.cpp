@@ -37,7 +37,7 @@ void ValueCache::clear()
     bitfieldBms = 0;
     bitfieldIO = 0;
 
-    dcVoltageMin = 0;
+    dcVoltageMin = 9999;
     dcVoltageMax = 0;
     dcCurrentMin = 0;
     dcCurrentMax = 0;
