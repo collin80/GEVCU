@@ -98,7 +98,7 @@ void SerialConsole::printMenuMotorController()
         logger.console("\nMOTOR CONTROLS\n");
         logger.console("TORQ=%d - Set torque upper limit (in 0.1Nm)", config->torqueMax);
         logger.console("RPMS=%d - Set maximum speed (in RPMs)", config->speedMax);
-        logger.console("MOMODE=%d - Set power mode (0=torque, 1=speed, default=0)", config->torqueMax);
+        logger.console("MOMODE=%d - Set power mode (0=torque, 1=speed, default=0)", config->powerMode);
         logger.console("CRLVL=%d - Torque to use for creep (0=disable) (in 1%%)", config->creepLevel);
         logger.console("CRSPD=%d - maximal speed until creep is applied (in RPMs)", config->creepSpeed);
         logger.console("REVLIM=%d - How much torque to allow in reverse (in 0.1%%)", config->reversePercent);
@@ -402,9 +402,11 @@ bool SerialConsole::handleConfigCmdMotorController(String command, long value)
     } else if (command == String("MOMODE")) {
         value = constrain(value, 0, 1);
         logger.console("Setting power mode to %s", (value == 0 ? "torque" : "speed (be careful !!)"));
+        config->powerMode = (PowerMode)value;
     } else if (command == String("CRLVL")) {
         value = constrain(value, 0, 100);
         logger.console("Setting creep level to %d%%", value);
+        config->creepLevel = value;
     } else if (command == String("CRSPD")) {
         value = constrain(value, 0, config->speedMax);
         logger.console("Setting creep speed to %drpm", value);
