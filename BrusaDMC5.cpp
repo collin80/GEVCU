@@ -134,6 +134,18 @@ void BrusaDMC5::sendControl()
 
             outputFrameControl.data.bytes[0] |= (config->invertDirection ^ (getGear() == GEAR_REVERSE) ? enableNegativeTorqueSpeed : enablePositiveTorqueSpeed);
 
+            // prevent regen if BMS limits charge power to below 32A to prevent oscillation by current limiter
+            if (torqueCommand < 0 && speedActual < 2000) {
+                BatteryManager *batteryManager = deviceManager.getBatteryManager();
+                if (batteryManager && batteryManager->hasChargeLimit() && batteryManager->getChargeLimit() < 32) {
+                    if (speedActual > 1500) {
+                        torqueCommand = torqueCommand * (speedActual - 1500) / 500;
+                    } else {
+                        torqueCommand = 0;
+                    }
+                }
+            }
+
             if (config->powerMode == modeSpeed) {
                 outputFrameControl.data.bytes[0] |= enableSpeedMode;
                 if (config->invertDirection ^ (getGear() == GEAR_REVERSE)) { // reverse the motor direction if specified
@@ -146,12 +158,6 @@ void BrusaDMC5::sendControl()
             }
             if (config->enableOscillationLimiter) {
                 outputFrameControl.data.bytes[0] |= enableOscillationLimiter;
-            }
-            if (torqueCommand < 0 && speedActual < 1000) {
-                BatteryManager *batteryManager = deviceManager.getBatteryManager();
-                if (batteryManager && batteryManager->hasChargeLimit() && batteryManager->getChargeLimit() < 32) {
-                    torqueCommand = 0; // prevent regen if BMS limits charge power to below 32A to prevent oscillation by current limiter
-                }
             }
 
             speedCommand = constrain(speedCommand, -32760, 32760);
@@ -292,7 +298,7 @@ void BrusaDMC5::processStatus(uint8_t data[])
 
     if (logger.isDebug()) {
         logger.debug(this, "status: %#08x, ready: %d, running: %d, torque avail: %.2fNm, actual : %.2fNm, speed actual: %drpm", bitfield,
-                ready, running, torqueAvailable / 100.0F, torqueActual / 100.0F, speedActual);
+                ready, running, torqueAvailable / 10.0F, torqueActual / 10.0F, speedActual);
     }
 }
 
