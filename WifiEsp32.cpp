@@ -40,9 +40,13 @@ WifiEsp32::WifiEsp32() : Wifi()
     connected = false;
     inPos = outPos = 0;
     timeStarted = 0;
+    timeHeartBeat = 0;
     dataPointCount = 0;
     psWritePtr = psReadPtr = 0;
     updateCount = 0;
+
+    pinMode(CFG_WIFI_ENABLE, OUTPUT);
+    digitalWrite(CFG_WIFI_ENABLE, LOW);
 }
 
 /**
@@ -51,10 +55,12 @@ WifiEsp32::WifiEsp32() : Wifi()
  */
 void WifiEsp32::setup()
 {
+    digitalWrite(CFG_WIFI_ENABLE, HIGH);
+
     didParamLoad = false;
     connected = false;
     inPos = outPos = 0;
-    timeStarted = 0;
+    timeStarted = timeHeartBeat = millis();
     dataPointCount = 0;
     psWritePtr = psReadPtr = 0;
 
@@ -74,6 +80,7 @@ void WifiEsp32::setup()
 void WifiEsp32::tearDown()
 {
     Device::tearDown();
+    digitalWrite(CFG_WIFI_ENABLE, LOW);
 }
 
 /**
@@ -105,6 +112,16 @@ void WifiEsp32::handleTick()
     if (!didParamLoad && millis() > 3000 + timeStarted) {
         loadParameters();
         didParamLoad = true;
+    }
+
+    if (timeHeartBeat + 10000 < millis()) {
+        logger.error(this, "No heartbeat received from ESP32, resetting.");
+        reset();
+    }
+
+    if (!ready && !running && (timeHeartBeat + 1000 < millis())) {
+        logger.info("Re-initializing ESP32 after reset.");
+        setup(); // re-init after reset
     }
 }
 
@@ -178,7 +195,9 @@ void WifiEsp32::process()
             if (input.startsWith("cfg:")) {
                 processParameterChange(input.substring(4));
             } else if (input.startsWith("cmd:")) {
-                processIncomingSocketData(input.substring(4));
+                processIncomingSocketCommand(input.substring(4));
+            } else if (input.startsWith("hb:")) {
+                timeHeartBeat = millis();
             }
 
             return; // before processing the next line, return to the loop() to allow other devices to process.
@@ -193,9 +212,9 @@ void WifiEsp32::process()
 /**
  * \brief Process incoming data from a socket
  */
-void WifiEsp32::processIncomingSocketData(String input)
+void WifiEsp32::processIncomingSocketCommand(String input)
 {
-    logger.debug(this, "processing incoming socket data");
+    logger.debug(this, "processing incoming socket command");
 
     int pos = input.indexOf('=');
     if (pos > 0) {
@@ -536,6 +555,14 @@ void WifiEsp32::processLimits(int16_t *cacheValue, int16_t value, DataPointCode 
     if (!maximum && cacheValue && value < *cacheValue) {
         processValue(cacheValue, value, code);
     }
+}
+
+void WifiEsp32::reset() {
+    running = false;
+    ready = false;
+
+    digitalWrite(CFG_WIFI_ENABLE, LOW);
+    timeHeartBeat = millis();
 }
 
 

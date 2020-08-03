@@ -148,7 +148,7 @@ private:
     void sendSocketUpdate();
     void processStartSocketListenerRepsonse();
     void processActiveSocketListResponse();
-    void processIncomingSocketData(String data);
+    void processIncomingSocketCommand(String data);
     void processSocketSendResponse();
     void prepareMotorControllerData();
     void prepareDcDcConverterData();
@@ -162,6 +162,7 @@ private:
     void processValue(uint32_t *cacheValue, uint32_t value, DataPointCode code);
     void processLimits(uint16_t *cacheValue, uint16_t value, DataPointCode code, boolean maximum);
     void processLimits(int16_t *cacheValue, int16_t value, DataPointCode code, boolean maximum);
+    void reset();
 
     char inBuffer[CFG_WIFI_BUFFER_SIZE]; //storage for incoming data
     byte outBuffer[CFG_WIFI_BUFFER_SIZE]; // buffer to compose and send data to ESP32
@@ -172,7 +173,7 @@ private:
     int psReadPtr;
     bool didParamLoad;
     bool connected; // is a client connected via websocket ?
-    uint32_t timeStarted;
+    uint32_t timeStarted, timeHeartBeat;
     uint8_t updateCount;
     static const int DATA_POINT_START = 0xaa;
 };
