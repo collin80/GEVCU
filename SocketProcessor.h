@@ -37,7 +37,7 @@ class SocketProcessor
 public:
     virtual ~SocketProcessor() {}
     virtual String generateUpdate() = 0; // generate socket specific update message which gets sent on a regular basis
-    virtual String generateLogEntry(char *logLevel, char *deviceName, char *message) = 0; // convert a log message to a socket specific message
+    virtual String generateLogEntry(String logLevel, String deviceName, String message) = 0; // convert a log message to a socket specific message
     virtual String processInput(char *input) = 0; // process input from a socket and return data (NULL means disconnect socket)
 private:
 

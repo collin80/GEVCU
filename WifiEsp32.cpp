@@ -92,6 +92,9 @@ void WifiEsp32::tearDown()
  */
 void WifiEsp32::sendCmd(String cmd)
 {
+    if (logger.isDebug()) {
+        logger.debug(this, "sending: %s\n", cmd.c_str());
+    }
     serialInterface->print(cmd);
     serialInterface->write(13);
 }
@@ -176,15 +179,15 @@ void WifiEsp32::handleStateChange(Status::SystemState oldState, Status::SystemSt
  */
 void WifiEsp32::process()
 {
-    int incoming;
+    int ch;
     while (serialInterface->available()) {
-        incoming = serialInterface->read();
-//SerialUSB.print((char)incoming);
-        if (incoming == -1) { //and there is no reason it should be -1
+        ch = serialInterface->read();
+//SerialUSB.print((char)ch);
+        if (ch == -1) { //and there is no reason it should be -1
             return;
         }
 
-        if (incoming == 13 || inPos > (CFG_WIFI_BUFFER_SIZE - 2)) {
+        if (ch == 13 || inPos > (CFG_WIFI_BUFFER_SIZE - 2)) {
             inBuffer[inPos] = 0;
             inPos = 0;
 
@@ -201,10 +204,8 @@ void WifiEsp32::process()
             }
 
             return; // before processing the next line, return to the loop() to allow other devices to process.
-        } else { // add more characters
-            if (incoming != 10) { // don't add a LF character
-                inBuffer[inPos++] = (char) incoming;
-            }
+        } else if (ch != 10) { // don't add a LF character
+            inBuffer[inPos++] = (char) ch;
         }
     }
 }
@@ -260,6 +261,8 @@ void WifiEsp32::processIncomingSocketCommand(String input)
             connected = false;
         } else if (input.equals("loadConfig")) {
             didParamLoad = false;
+        } else if (input.equals("getLog")) {
+            logger.printHistory(*serialInterface);
         }
     }
 }
@@ -272,6 +275,9 @@ void WifiEsp32::processIncomingSocketCommand(String input)
  */
 void WifiEsp32::setParam(String paramName, String value)
 {
+    if (logger.isDebug()) {
+        logger.debug(this, "setParam: cfg:%s=%s", paramName.c_str(), value.c_str());
+    }
     serialInterface->println("cfg:" + paramName + "=" + value);
 }
 

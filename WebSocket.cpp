@@ -431,7 +431,7 @@ String WebSocket::generateUpdate()
  * \return the prepared log message which can be sent to the socket
  *
  */
-String WebSocket::generateLogEntry(char *logLevel, char *deviceName, char *message)
+String WebSocket::generateLogEntry(String logLevel, String deviceName, String message)
 {
     data = String();
 

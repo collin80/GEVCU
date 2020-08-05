@@ -13,7 +13,7 @@ class ELM327Processor : public SocketProcessor
 public:
     ELM327Processor();
     String generateUpdate();
-    String generateLogEntry(char *logLevel, char *deviceName, char *message);
+    String generateLogEntry(String logLevel, String deviceName, String message);
     String processInput(char *input);
 
 private:

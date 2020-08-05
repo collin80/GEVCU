@@ -32,13 +32,11 @@ Logger logger;
 
 Logger::Logger() {
     logLevel = CFG_DEFAULT_LOGLEVEL;
-    lastLogTime = 0;
     debugging = false;
     deviceLoglevel = new Logger::LogLevel[deviceIdsSize];
-    msgBuffer = new char[LOG_BUFFER_SIZE];
-    lastMsgBuffer = new char[LOG_BUFFER_SIZE];
     lastMsgRepeated = 0;
     repeatStart = 0;
+    historyPtr = 0;
 }
 
 /*
@@ -234,14 +232,6 @@ Logger::LogLevel Logger::getLogLevel(Device *device)
 }
 
 /*
- * Return a timestamp when the last log entry was made.
- */
-uint32_t Logger::getLastLogTime()
-{
-    return lastLogTime;
-}
-
-/*
  * Returns if debug log level is enabled. This can be used in time critical
  * situations to prevent unnecessary string concatenation (if the message won't
  * be logged in the end).
@@ -258,58 +248,102 @@ boolean Logger::isDebug()
 
 /*
  * Output a log message (called by debug(), info(), warn(), error(), console())
- *
- * Supports printf() syntax
  */
 void Logger::log(String deviceName, LogLevel level, String format, va_list args)
 {
-    String logLevel = "DEBUG";
-    lastLogTime = millis();
+    vsnprintf(msgBuffer, LOG_BUFFER_SIZE, format.c_str(), args);
+    LogEntry logEntry = createLogEntry(level, deviceName, String(msgBuffer));
 
+    logToPrinter(SerialUSB, logEntry);
+    logToWifi(logEntry);
+}
+
+Logger::LogEntry &Logger::createLogEntry(Logger::LogLevel level, String deviceName, String message)
+{
+    LogEntry &entry = history[historyPtr++];
+
+    if (historyPtr > HISTORY_SIZE - 1) {
+        historyPtr = 0;
+    }
+
+    entry.time = millis();
+    entry.level = level;
+    entry.deviceName = deviceName;
+    entry.message = message;
+
+    return entry;
+}
+
+String Logger::logLevelToString(Logger::LogLevel level)
+{
     switch (level) {
         case Info:
-            logLevel = "INFO";
-            break;
+            return "INFO";
         case Warn:
-            logLevel = "WARNING";
-            break;
+            return "WARNING";
         case Error:
-            logLevel = "ERROR";
-            break;
+            return "ERROR";
+        case Debug:
+            return "DEBUG";
     }
-    vsnprintf(msgBuffer, LOG_BUFFER_SIZE, format.c_str(), args);
+    return "";
+}
 
-    // print to serial USB
-    SerialUSB.print(lastLogTime);
-    SerialUSB.print(" - ");
-    SerialUSB.print(logLevel);
-    SerialUSB.print(": ");
-    if (deviceName.length() > 0) {
-        SerialUSB.print(deviceName);
-        SerialUSB.print(" - ");
+void Logger::logToPrinter(Print &printer, LogEntry &logEntry)
+{
+    printer.print(logEntry.time);
+    printer.print(" - ");
+    printer.print(logLevelToString(logEntry.level));
+    printer.print(": ");
+    if (logEntry.deviceName.length() > 0) {
+        printer.print(logEntry.deviceName);
+        printer.print(" - ");
     }
-    SerialUSB.println(msgBuffer);
+    printer.println(logEntry.message);
+}
 
-    // send to wifi
-    if (level != Debug) {
-    	if (strcmp(msgBuffer, lastMsgBuffer) == 0 && (repeatStart == 0 || (repeatStart + CFG_LOG_REPEAT_MSG_TIME) > millis())) {
-    		if (lastMsgRepeated == 0) {
-    			repeatStart = millis();
-    		}
-    		lastMsgRepeated++;
-    	} else {
-    		if (lastMsgRepeated > 1) {
-    			sprintf(lastMsgBuffer, "Last message repeated %d times", lastMsgRepeated);
-        		String params[] = { "INFO", "", lastMsgBuffer };
-        		deviceManager.sendMessage(DEVICE_WIFI, INVALID, MSG_LOG, params);
-        		lastMsgRepeated = 0;
-        		repeatStart = 0;
-        		lastMsgBuffer[0] = 0;
-    		}
+void Logger::logToWifi(LogEntry &logEntry)
+{
+    if (logEntry.level > Debug) {
+        LogEntry lastEntry = history[(historyPtr == 0 ? HISTORY_SIZE - 1 : historyPtr - 1)];
+        if (logEntry.message.equals(lastEntry.message) && (repeatStart == 0 || (repeatStart + CFG_LOG_REPEAT_MSG_TIME) > millis())) {
+            if (lastMsgRepeated == 0) {
+                repeatStart = millis();
+            }
+            lastMsgRepeated++;
+        } else {
+            if (lastMsgRepeated > 1) {
+                String info = String("Last message repeated ");
+                info.concat(lastMsgRepeated);
+                info.concat(" times");
+                String params[] = { "INFO", "", info };
+                deviceManager.sendMessage(DEVICE_WIFI, INVALID, MSG_LOG, params);
+                lastMsgRepeated = 0;
+                repeatStart = 0;
+            }
 
-    		String params[] = { logLevel, deviceName, msgBuffer };
-    		deviceManager.sendMessage(DEVICE_WIFI, INVALID, MSG_LOG, params);
-    		strcpy(lastMsgBuffer, msgBuffer);
-    	}
+            String params[] = { logLevelToString(logEntry.level), logEntry.deviceName, logEntry.message };
+            deviceManager.sendMessage(DEVICE_WIFI, INVALID, MSG_LOG, params);
+        }
     }
+}
+
+void Logger::printHistory(Print &printer) {
+    printer.println("LOG START");
+    for (uint16_t i = historyPtr; i < HISTORY_SIZE - 1 && history[i].time > 0; i++) {
+        logToPrinter(printer, history[i]);
+        handOff();
+    }
+    for (uint16_t i = 0; i < historyPtr; i++) {
+        logToPrinter(printer, history[i]);
+        handOff();
+    }
+    printer.println("LOG END");
+}
+
+// dirty but we need avoid a timeout in controllers due to long serial processing
+void Logger::handOff() {
+    tickHandler.process();
+    canHandlerEv.process();
+    canHandlerCar.process();
 }

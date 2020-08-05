@@ -21,7 +21,7 @@ class WebSocket: public SocketProcessor
 public:
     WebSocket();
     String generateUpdate();
-    String generateLogEntry(char *logLevel, char *deviceName, char *message);
+    String generateLogEntry(String logLevel, String deviceName, String message);
     String processInput(char *input);
 
 private:

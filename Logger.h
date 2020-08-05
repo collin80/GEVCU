@@ -31,6 +31,8 @@
 #include "config.h"
 #include "DeviceTypes.h"
 
+#define HISTORY_SIZE 100
+
 class Device;
 
 class Logger
@@ -43,6 +45,12 @@ public:
         Warn = 2,
         Error = 3,
         Off = 4
+    };
+    struct LogEntry {
+        uint32_t time;
+        LogLevel level;
+        String deviceName;
+        String message;
     };
     Logger();
     void debug(String, ...);
@@ -58,19 +66,24 @@ public:
     void setLoglevel(Device *, LogLevel);
     LogLevel getLogLevel();
     LogLevel getLogLevel(Device *);
-    uint32_t getLastLogTime();
+    LogEntry &createLogEntry(LogLevel level, String deviceName, String message);
+    String logLevelToString(LogLevel level);
     boolean isDebug();
+    void printHistory(Print &printer);
 private:
     LogLevel logLevel;
-    uint32_t lastLogTime;
     bool debugging;
     LogLevel *deviceLoglevel;
-    char *msgBuffer;
-    char *lastMsgBuffer;
+    char msgBuffer[LOG_BUFFER_SIZE];
     uint16_t lastMsgRepeated;
     uint32_t repeatStart;
+    LogEntry history[HISTORY_SIZE];
+    uint16_t historyPtr;
 
     void log(String, LogLevel, String format, va_list);
+    void logToPrinter(Print &printer, LogEntry &logEntry);
+    void logToWifi(LogEntry &logEntry);
+    void handOff();
 };
 
 extern Logger logger;

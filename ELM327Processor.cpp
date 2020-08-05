@@ -12,7 +12,7 @@ String ELM327Processor::generateUpdate()
     return "";
 }
 
-String ELM327Processor::generateLogEntry(char *logLevel, char *deviceName, char *message)
+String ELM327Processor::generateLogEntry(String logLevel, String deviceName, String message)
 {
     return "";
 }
