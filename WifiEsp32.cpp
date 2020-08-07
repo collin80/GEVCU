@@ -44,6 +44,7 @@ WifiEsp32::WifiEsp32() : Wifi()
     dataPointCount = 0;
     psWritePtr = psReadPtr = 0;
     updateCount = 0;
+    heartBeatEnabled = true;
 
     pinMode(CFG_WIFI_ENABLE, OUTPUT);
     digitalWrite(CFG_WIFI_ENABLE, LOW);
@@ -117,7 +118,7 @@ void WifiEsp32::handleTick()
         didParamLoad = true;
     }
 
-    if (timeHeartBeat + 10000 < millis()) {
+    if (heartBeatEnabled && timeHeartBeat + 10000 < millis()) {
         logger.error(this, "No heartbeat received from ESP32, resetting.");
         reset();
     }
@@ -201,6 +202,11 @@ void WifiEsp32::process()
                 processIncomingSocketCommand(input.substring(4));
             } else if (input.startsWith("hb:")) {
                 timeHeartBeat = millis();
+                if (input.indexOf("stop") != -1) {
+                    heartBeatEnabled = false;
+                } else if (input.indexOf("start") != -1) {
+                    heartBeatEnabled = true;
+                }
             }
 
             return; // before processing the next line, return to the loop() to allow other devices to process.
@@ -245,7 +251,7 @@ void WifiEsp32::processIncomingSocketCommand(String input)
             logger.info("Heater is now switched %s", (status.enableHeater ? "on" : "off"));
         } else if (key.equals("chargeInput")) {
             logger.info("Setting charge level to %d Amps", value.toInt());
-            deviceManager.getCharger()->setMaximumInputCurrent(value.toInt() * 10);
+            deviceManager.getCharger()->overrideMaximumInputCurrent(value.toInt() * 10);
         }
     } else {
         if (input.equals("stopCharge")) {
@@ -389,7 +395,7 @@ void WifiEsp32::prepareChargerData() {
         processValue(&valueCache.chargerBatteryVoltage, charger->getBatteryVoltage(), chargerBatteryVoltage);
         processValue(&valueCache.chargerBatteryCurrent, charger->getBatteryCurrent(), chargerBatteryCurrent);
         processValue(&valueCache.chargerTemperature, charger->getTemperature(), chargerTemperature);
-        processValue(&valueCache.maximumSolarCurrent, charger->getMaximumSolarCurrent(), maximumSolarCurrent);
+        processValue(&valueCache.maximumInputCurrent, charger->getMaximumInputCurrent(), maximumInputCurrent);
 
         uint16_t secs = millis() / 1000; //TODO calc mins
         processValue(&valueCache.chargeHoursRemain, secs / 60, chargeHoursRemain);

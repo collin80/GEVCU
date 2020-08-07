@@ -210,7 +210,7 @@ private:
     const String socRange = "socRange";
     const String powerRange = "powerRange";
     const String chargeInputLevels = "chargeInputLevels";
-    const String maximumSolarCurrent = "maximumSolarCurrent";
+    const String overrideInputCurrent = "overrideInputCurrent";
 };
 
 #endif

@@ -95,8 +95,9 @@ void BrusaNLG5::sendControl()
         outputFrame.data.bytes[0] |= errorLatch;
         clearErrorLatch = false;
     }
-    outputFrame.data.bytes[1] = (constrain(config->maximumInputCurrent, 0, 500) & 0xFF00) >> 8;
-    outputFrame.data.bytes[2] = (constrain(config->maximumInputCurrent, 0, 500) & 0x00FF);
+    uint16_t maxInputCurrent = constrain(getMaximumInputCurrent(), 0, 500);
+    outputFrame.data.bytes[1] = (maxInputCurrent & 0xFF00) >> 8;
+    outputFrame.data.bytes[2] = (maxInputCurrent & 0x00FF);
 
     uint16_t voltage = calculateOutputVoltage();
     outputFrame.data.bytes[3] = (constrain(voltage, 0, 10000) & 0xFF00) >> 8;

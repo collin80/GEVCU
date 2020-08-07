@@ -87,7 +87,7 @@ public:
         chargerBatteryVoltage = 42,
         chargerBatteryCurrent = 43,
         chargerTemperature = 44,
-        maximumSolarCurrent = 45,
+        maximumInputCurrent = 45,
         chargeHoursRemain = 46,
         chargeMinsRemain = 47,
         chargeLevel = 48,
@@ -174,6 +174,7 @@ private:
     bool didParamLoad;
     bool connected; // is a client connected via websocket ?
     uint32_t timeStarted, timeHeartBeat;
+    bool heartBeatEnabled;
     uint8_t updateCount;
     static const int DATA_POINT_START = 0xaa;
 };

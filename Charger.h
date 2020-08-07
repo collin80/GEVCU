@@ -71,9 +71,8 @@ public:
     uint16_t getInputCurrent();
     uint16_t getInputVoltage();
     int16_t getTemperature();
-    void setMaximumInputCurrent(uint16_t current);
-    void setMaximumSolarCurrent(int16_t current);
-    int16_t getMaximumSolarCurrent();
+    void overrideMaximumInputCurrent(uint16_t current);
+    uint16_t getMaximumInputCurrent();
 
 protected:
     uint16_t inputCurrent; // the reported input current in 0.01A
@@ -89,7 +88,7 @@ protected:
 private:
     uint64_t ampereMilliSeconds; // ampere hours put into the battery in 1 ampere-milliseconds (divide by 3600000 to get Ah)
     uint16_t requestedOutputCurrent; // calculated current to be delivered by the charger (in 0.1A), use getOutputCurrent() to retrieve this value - never use it directly !!
-    int16_t maximumSolarCurrent; // the maximum current to be drawn from a solar power plant to avoid overload or draw from battery/mains power (-1 = ignore, in 0.1A)
+    uint16_t maximumInputCurrentOverride; // the maximum current to be drawn (e.g. from a solar power plant or manually specified in dashboard) (-1 = ignore, in 0.1A)
 };
 
 #endif

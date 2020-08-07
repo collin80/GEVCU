@@ -38,7 +38,7 @@ Charger::Charger() : Device()
     ampereMilliSeconds = 0;
     chargeStartTime = 0;
     requestedOutputCurrent = 0;
-    maximumSolarCurrent = -1;
+    maximumInputCurrentOverride = -1;
     lastTick = 0;
 }
 
@@ -56,11 +56,6 @@ void Charger::handleTick()
     uint32_t timeStamp = millis();
     ampereMilliSeconds += (timeStamp - lastTick) * batteryCurrent;
     lastTick = timeStamp;
-
-    if (maximumSolarCurrent != -1) {
-        ChargerConfiguration *config = (ChargerConfiguration *) getConfiguration();
-        config->maximumInputCurrent = maximumSolarCurrent;
-    }
 }
 
 /**
@@ -79,7 +74,7 @@ void Charger::handleStateChange(Status::SystemState oldState, Status::SystemStat
         batteryVoltage = 0;
         batteryCurrent = 0;
         ampereMilliSeconds = 0;
-        maximumSolarCurrent = -1; // must be overridden via wifi to get enabled during charge
+        maximumInputCurrentOverride = -1; // must be overridden via wifi to get enabled during charge
         chargeStartTime = millis();
         lastTick = millis();
 
@@ -220,18 +215,14 @@ int16_t Charger::getTemperature()
     return temperature;
 }
 
-void Charger::setMaximumInputCurrent(uint16_t current) {
-    ChargerConfiguration *config = (ChargerConfiguration *) getConfiguration();
-    config->maximumInputCurrent = current;
+void Charger::overrideMaximumInputCurrent(uint16_t current) {
+    maximumInputCurrentOverride = current;
 }
 
-void Charger::setMaximumSolarCurrent(int16_t current) {
-    maximumSolarCurrent = current;
-}
-
-int16_t Charger::getMaximumSolarCurrent()
+uint16_t Charger::getMaximumInputCurrent()
 {
-    return maximumSolarCurrent;
+    ChargerConfiguration *config = (ChargerConfiguration *) getConfiguration();
+    return (maximumInputCurrentOverride != -1 ? min(maximumInputCurrentOverride, config->maximumInputCurrent) : config->maximumInputCurrent);
 }
 
 /*

@@ -258,8 +258,9 @@ bool Wifi::processParameterChangeCharger(String key, String value)
     if (charger) {
         ChargerConfiguration *config = (ChargerConfiguration *) charger->getConfiguration();
 
-        if (maximumSolarCurrent.equals(key)) {
-            charger->setMaximumSolarCurrent(value.toDouble());
+        // this one doesn't change the config but is volatile information sent from a solar inverter to adjust the consumption
+        if (overrideInputCurrent.equals(key)) {
+            charger->overrideMaximumInputCurrent(value.toDouble());
             return true;
         }
 
@@ -720,6 +721,7 @@ void Wifi::loadParametersDevices()
 void Wifi::loadParametersDashboard()
 {
     MotorController *motorController = deviceManager.getMotorController();
+    Charger *charger = deviceManager.getCharger();
 
     if (motorController) {
         MotorControllerConfiguration *config = (MotorControllerConfiguration *) motorController->getConfiguration();
@@ -744,7 +746,14 @@ void Wifi::loadParametersDashboard()
         setParam(motorTempRange, "0,90,120");
         setParam(controllerTempRange, "0,60,80");
         setParam(socRange, "0,20,100");
-        setParam(chargeInputLevels, "6,7,8,9,10,13,16,20,32,40,56");
+    }
+
+    if (charger) {
+        ChargerConfiguration *config = (ChargerConfiguration *)charger->getConfiguration();
+        sprintf(buffer, "0,%d", config->maximumInputCurrent);
+        setParam(chargeInputLevels, buffer);
+    } else {
+        setParam(chargeInputLevels, "4,128");
     }
 }
 

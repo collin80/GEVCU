@@ -56,7 +56,7 @@ void ValueCache::clear()
     chargerBatteryVoltage = 0;
     chargerBatteryCurrent = 0;
     chargerTemperature = 0;
-    maximumSolarCurrent = -1;
+    maximumInputCurrent = -1;
     chargeHoursRemain = 0;
     chargeMinsRemain = 0;
     chargeLevel = 0;

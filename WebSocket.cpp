@@ -220,7 +220,7 @@ String WebSocket::processData(char *input)
             logger.info("Heater is now switched %s", (flag ? "on" : "off"));
         } else if (strstr(text, "chargeInput=")) {
             logger.info("Setting charge level to %d Amps", value);
-            deviceManager.getCharger()->setMaximumInputCurrent(value * 10);
+            deviceManager.getCharger()->overrideMaximumInputCurrent(value * 10);
         }
         break;
     }
@@ -377,7 +377,7 @@ String WebSocket::generateUpdate()
                     processValue(&valueCache.chargeLevel, batteryManager->getSoc() * 50, chargeLevel, 100);
                 else
                     processValue(&valueCache.chargeLevel, map (secs, 0 , 28800, 0, 100), chargeLevel);
-                processValue(&valueCache.maximumSolarCurrent, charger->getMaximumSolarCurrent(), maximumSolarCurrent, 10);
+                processValue(&valueCache.maximumInputCurrent, charger->getMaximumInputCurrent(), maximumInputCurrent, 10);
             }
         }
 
