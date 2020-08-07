@@ -260,7 +260,7 @@ bool Wifi::processParameterChangeCharger(String key, String value)
 
         // this one doesn't change the config but is volatile information sent from a solar inverter to adjust the consumption
         if (overrideInputCurrent.equals(key)) {
-            charger->overrideMaximumInputCurrent(value.toDouble());
+            charger->overrideMaximumInputCurrent(value.toInt());
             return true;
         }
 
@@ -293,6 +293,12 @@ bool Wifi::processParameterChangeCharger(String key, String value)
                 config->hystereseStopTemperature = value.toDouble() * 10;
             } else if (hystereseResumeTemperature.equals(key)) {
                 config->hystereseResumeTemperature = value.toDouble() * 10;
+            } else if (measureTime.equals(key)) {
+                config->measureTime = value.toInt();
+            } else if (measureCurrent.equals(key)) {
+                config->measureCurrent = value.toDouble() * 10;
+            } else if (voltageDrop.equals(key)) {
+                config->voltageDrop = value.toInt();
             } else {
                 return false;
             }
@@ -615,6 +621,9 @@ void Wifi::loadParametersCharger()
             setParam(deratingReferenceTemperature, config->deratingReferenceTemperature / 10.0f, 1);
             setParam(hystereseStopTemperature, config->hystereseStopTemperature / 10.0f, 1);
             setParam(hystereseResumeTemperature, config->hystereseResumeTemperature / 10.0f, 1);
+            setParam(measureTime, config->measureTime);
+            setParam(measureCurrent, config->measureCurrent / 10.0f, 1);
+            setParam(voltageDrop, config->voltageDrop);
         }
     }
 }
@@ -750,7 +759,7 @@ void Wifi::loadParametersDashboard()
 
     if (charger) {
         ChargerConfiguration *config = (ChargerConfiguration *)charger->getConfiguration();
-        sprintf(buffer, "0,%d", config->maximumInputCurrent);
+        sprintf(buffer, "0,%.1f", config->maximumInputCurrent / 10.0f);
         setParam(chargeInputLevels, buffer);
     } else {
         setParam(chargeInputLevels, "4,128");

@@ -95,7 +95,7 @@ void BrusaNLG5::sendControl()
         outputFrame.data.bytes[0] |= errorLatch;
         clearErrorLatch = false;
     }
-    uint16_t maxInputCurrent = constrain(getMaximumInputCurrent(), 0, 500);
+    uint16_t maxInputCurrent = constrain(calculateMaximumInputCurrent(), 0, 500);
     outputFrame.data.bytes[1] = (maxInputCurrent & 0xFF00) >> 8;
     outputFrame.data.bytes[2] = (maxInputCurrent & 0x00FF);
 

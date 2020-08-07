@@ -251,7 +251,7 @@ void WifiEsp32::processIncomingSocketCommand(String input)
             logger.info("Heater is now switched %s", (status.enableHeater ? "on" : "off"));
         } else if (key.equals("chargeInput")) {
             logger.info("Setting charge level to %d Amps", value.toInt());
-            deviceManager.getCharger()->overrideMaximumInputCurrent(value.toInt() * 10);
+            deviceManager.getCharger()->overrideMaximumInputCurrent(value.toDouble() * 10);
         }
     } else {
         if (input.equals("stopCharge")) {
@@ -395,7 +395,7 @@ void WifiEsp32::prepareChargerData() {
         processValue(&valueCache.chargerBatteryVoltage, charger->getBatteryVoltage(), chargerBatteryVoltage);
         processValue(&valueCache.chargerBatteryCurrent, charger->getBatteryCurrent(), chargerBatteryCurrent);
         processValue(&valueCache.chargerTemperature, charger->getTemperature(), chargerTemperature);
-        processValue(&valueCache.maximumInputCurrent, charger->getMaximumInputCurrent(), maximumInputCurrent);
+        processValue(&valueCache.maximumInputCurrent, charger->calculateMaximumInputCurrent(), maximumInputCurrent);
 
         uint16_t secs = millis() / 1000; //TODO calc mins
         processValue(&valueCache.chargeHoursRemain, secs / 60, chargeHoursRemain);

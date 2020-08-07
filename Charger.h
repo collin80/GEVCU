@@ -52,6 +52,10 @@ public:
     uint16_t deratingReferenceTemperature; // 0.1 deg Celsius where derating will reach 0 Amp (0=disable)
     uint16_t hystereseStopTemperature; // 0.1 deg Celsius where charging will stop in hysterese mode (0=disable)
     uint16_t hystereseResumeTemperature; // 0.1 deg Celsius where charging is resumed
+
+    uint16_t measureTime; // time to measure input voltage at idle in ms
+    uint16_t measureCurrent; // current to apply during input voltage measurement (required by some chargers, e.g. NLG5 needs 2A) in 0.1A
+    uint8_t voltageDrop; // divisor by which the input voltage may drop when current is ramped up (e.g. 33 if it may drop 3%, 230V / 33 = 7V)
 };
 
 class Charger : public Device
@@ -72,7 +76,7 @@ public:
     uint16_t getInputVoltage();
     int16_t getTemperature();
     void overrideMaximumInputCurrent(uint16_t current);
-    uint16_t getMaximumInputCurrent();
+    uint16_t calculateMaximumInputCurrent();
 
 protected:
     uint16_t inputCurrent; // the reported input current in 0.01A
@@ -89,6 +93,8 @@ private:
     uint64_t ampereMilliSeconds; // ampere hours put into the battery in 1 ampere-milliseconds (divide by 3600000 to get Ah)
     uint16_t requestedOutputCurrent; // calculated current to be delivered by the charger (in 0.1A), use getOutputCurrent() to retrieve this value - never use it directly !!
     uint16_t maximumInputCurrentOverride; // the maximum current to be drawn (e.g. from a solar power plant or manually specified in dashboard) (-1 = ignore, in 0.1A)
+    uint16_t maximumInputCurrent; // the calculated maximum input current (limited by override, config or power line conditions)
+    uint16_t inputVoltageStart; // input voltage with (almost) no load in 0.1V
 };
 
 #endif

@@ -189,6 +189,10 @@ private:
     const String deratingReferenceTemperature = "deratingReferenceTmp";
     const String hystereseStopTemperature = "hystereseStopTemp";
     const String hystereseResumeTemperature = "hystereseResumeTemp";
+    const String measureTime = "measureTime";
+    const String measureCurrent = "measureCurrent";
+    const String voltageDrop = "voltageDrop";
+
     // dc dc converter
     const String dcDcMode = "dcDcMode";
     const String lowVoltageCommand = "lowVoltageCommand";

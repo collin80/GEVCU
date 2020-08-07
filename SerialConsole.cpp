@@ -247,6 +247,9 @@ void SerialConsole::printMenuCharger()
         logger.console("CHTDRS=%d - Reference temperature for derating (in 0.1 deg C)", config->deratingReferenceTemperature);
         logger.console("CHTHYS=%d - Hysterese temperature where charging will be stopped (in 0.1 deg C)", config->hystereseStopTemperature);
         logger.console("CHTHYR=%d - Hysterese temperature where charging will resume (in 0.1 deg C)", config->hystereseResumeTemperature);
+        logger.console("CHMT=%d - Input voltage measurement time (in ms)", config->measureTime);
+        logger.console("CHMC=%d - Input voltage measurement current (in 0.1 A)", config->measureCurrent);
+        logger.console("CHVD=%d - Input voltage drop factor (V / CHVD = allowed voltage drop)", config->voltageDrop);
     }
 }
 
@@ -789,6 +792,18 @@ bool SerialConsole::handleConfigCmdCharger(String command, long value)
         value = constrain(value, 0, config->hystereseStopTemperature);
         logger.console("Setting hysterese temp to resume charging to %f deg C", value / 10.0f);
         config->hystereseResumeTemperature = value;
+    } else if (command == String("CHMT")) {
+        value = constrain(value, 0, 10000);
+        logger.console("Setting measure time to %d ms", value);
+        config->measureTime = value;
+    } else if (command == String("CHMC")) {
+        value = constrain(value, 0, 2000);
+        logger.console("Setting measure current to %f A", value / 10.0f);
+        config->measureCurrent = value;
+    } else if (command == String("CHVD")) {
+        value = constrain(value, 1, 100);
+        logger.console("Setting voltage drop divisor to %d", value);
+        config->voltageDrop = value;
     } else {
         return false;
     }

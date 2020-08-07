@@ -377,7 +377,7 @@ String WebSocket::generateUpdate()
                     processValue(&valueCache.chargeLevel, batteryManager->getSoc() * 50, chargeLevel, 100);
                 else
                     processValue(&valueCache.chargeLevel, map (secs, 0 , 28800, 0, 100), chargeLevel);
-                processValue(&valueCache.maximumInputCurrent, charger->getMaximumInputCurrent(), maximumInputCurrent, 10);
+                processValue(&valueCache.maximumInputCurrent, charger->calculateMaximumInputCurrent(), maximumInputCurrent, 10);
             }
         }
 

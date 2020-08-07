@@ -38,7 +38,9 @@ Charger::Charger() : Device()
     ampereMilliSeconds = 0;
     chargeStartTime = 0;
     requestedOutputCurrent = 0;
-    maximumInputCurrentOverride = -1;
+    maximumInputCurrentOverride = 0xffff;
+    maximumInputCurrent = 0;
+    inputVoltageStart = 0xffff;
     lastTick = 0;
 }
 
@@ -74,7 +76,9 @@ void Charger::handleStateChange(Status::SystemState oldState, Status::SystemStat
         batteryVoltage = 0;
         batteryCurrent = 0;
         ampereMilliSeconds = 0;
-        maximumInputCurrentOverride = -1; // must be overridden via wifi to get enabled during charge
+        maximumInputCurrentOverride = 0xffff; // must be overridden via wifi to get enabled during charge
+        maximumInputCurrent = 0;
+        inputVoltageStart = 0xffff;
         chargeStartTime = millis();
         lastTick = millis();
 
@@ -217,12 +221,29 @@ int16_t Charger::getTemperature()
 
 void Charger::overrideMaximumInputCurrent(uint16_t current) {
     maximumInputCurrentOverride = current;
+    logger.info(this, "maximum input current: %.1f", maximumInputCurrentOverride);
 }
 
-uint16_t Charger::getMaximumInputCurrent()
+uint16_t Charger::calculateMaximumInputCurrent()
 {
     ChargerConfiguration *config = (ChargerConfiguration *) getConfiguration();
-    return (maximumInputCurrentOverride != -1 ? min(maximumInputCurrentOverride, config->maximumInputCurrent) : config->maximumInputCurrent);
+
+    // start with 2A during first 5sec to measure line voltage
+    if (chargeStartTime + config->measureTime > millis()) {
+        if (inputVoltage != 0) {
+            inputVoltageStart = (inputVoltageStart == 0xffff ? inputVoltage : (inputVoltageStart + inputVoltage) / 2);
+        }
+        return config->measureCurrent;
+    }
+
+    uint16_t maxTarget = (maximumInputCurrentOverride != 0xffff ? min(maximumInputCurrentOverride, config->maximumInputCurrent) : config->maximumInputCurrent);
+
+    // if input voltage drop is less than 3%, increase until maxTarget, otherwise protect input line from over-heating
+    if (inputVoltageStart - inputVoltage < inputVoltageStart / config->voltageDrop) {
+        maximumInputCurrent++;
+    }
+
+    return min(maxTarget, maximumInputCurrent);
 }
 
 /*
@@ -262,6 +283,9 @@ void Charger::loadConfiguration()
         prefsHandler->read(EECH_DERATING_REFERENCE, &config->deratingReferenceTemperature);
         prefsHandler->read(EECH_HYSTERESE_STOP, &config->hystereseStopTemperature);
         prefsHandler->read(EECH_HYSTERESE_RESUME, &config->hystereseResumeTemperature);
+        prefsHandler->read(EECH_MEASURE_TIME, &config->measureTime);
+        prefsHandler->read(EECH_MEASURE_CURRENT, &config->measureCurrent);
+        prefsHandler->read(EECH_VOLTAGE_DROP, &config->voltageDrop);
     } else { //checksum invalid. Reinitialize values and store to EEPROM
         config->maximumInputCurrent = 100;
         config->constantCurrent = 100;
@@ -277,6 +301,9 @@ void Charger::loadConfiguration()
         config->deratingReferenceTemperature = 500;
         config->hystereseStopTemperature = 600;
         config->hystereseResumeTemperature = 500;
+        config->measureTime = 5000;
+        config->measureCurrent = 20;
+        config->voltageDrop = 33;
         saveConfiguration();
     }
 
@@ -307,6 +334,9 @@ void Charger::saveConfiguration()
     prefsHandler->write(EECH_DERATING_REFERENCE, config->deratingReferenceTemperature);
     prefsHandler->write(EECH_HYSTERESE_STOP, config->hystereseStopTemperature);
     prefsHandler->write(EECH_HYSTERESE_RESUME, config->hystereseResumeTemperature);
+    prefsHandler->write(EECH_MEASURE_TIME, config->measureTime);
+    prefsHandler->write(EECH_MEASURE_CURRENT, config->measureCurrent);
+    prefsHandler->write(EECH_VOLTAGE_DROP, config->voltageDrop);
 
     prefsHandler->saveChecksum();
 }
