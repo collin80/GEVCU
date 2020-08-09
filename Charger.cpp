@@ -221,14 +221,14 @@ int16_t Charger::getTemperature()
 
 void Charger::overrideMaximumInputCurrent(uint16_t current) {
     maximumInputCurrentOverride = current;
-    logger.info(this, "maximum input current: %.1f", maximumInputCurrentOverride);
+    logger.info(this, "maximum input current: %.1f", maximumInputCurrentOverride / 10.0f);
 }
 
 uint16_t Charger::calculateMaximumInputCurrent()
 {
     ChargerConfiguration *config = (ChargerConfiguration *) getConfiguration();
 
-    // start with 2A during first 5sec to measure line voltage
+    // start with a low current (e.g. 2A) during first couple of seconds to measure base line voltage
     if (chargeStartTime + config->measureTime > millis()) {
         if (inputVoltage != 0) {
             inputVoltageStart = (inputVoltageStart == 0xffff ? inputVoltage : (inputVoltageStart + inputVoltage) / 2);
@@ -236,14 +236,14 @@ uint16_t Charger::calculateMaximumInputCurrent()
         return config->measureCurrent;
     }
 
-    uint16_t maxTarget = (maximumInputCurrentOverride != 0xffff ? min(maximumInputCurrentOverride, config->maximumInputCurrent) : config->maximumInputCurrent);
+    uint16_t maxTargetCurrent = (maximumInputCurrentOverride != 0xffff ? min(maximumInputCurrentOverride, config->maximumInputCurrent) : config->maximumInputCurrent);
 
-    // if input voltage drop is less than 3%, increase until maxTarget, otherwise protect input line from over-heating
+    // if input voltage drop is less than e.g. 3%, increase up to maxTargetCurrent, otherwise protect input line from over-heating
     if (inputVoltageStart - inputVoltage < inputVoltageStart / config->voltageDrop) {
         maximumInputCurrent++;
     }
 
-    return min(maxTarget, maximumInputCurrent);
+    return min(maxTargetCurrent, maximumInputCurrent);
 }
 
 /*
