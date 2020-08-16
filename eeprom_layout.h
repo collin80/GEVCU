@@ -184,7 +184,7 @@ the end of the stardard data. The below numbers are offsets from the device's ee
 #define EECH_HYSTERESE_RESUME               46 // 2 bytes, temperature where chargin is resumed in 0.1deg C
 #define EECH_MEASURE_TIME                   48 // 2 bytes, time to measure input voltage at idle in ms
 #define EECH_MEASURE_CURRENT                50 // 2 bytes, current to apply during voltage measurement in 0.1V
-#define EECH_VOLTAGE_DROP                   51 // 1 byte, divisor of input voltage by which it may drop
+#define EECH_VOLTAGE_DROP                   52 // 1 byte, divisor of input voltage by which it may drop
 
 // System I/O
 #define EESIO_SYSTEM_TYPE                   10 //1 byte - 1 = Old school protoboards 2 = GEVCU2/DUED 3 = GEVCU3 - Defaults to 2 if invalid or not set up
