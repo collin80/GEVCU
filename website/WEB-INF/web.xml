@@ -36,7 +36,8 @@
 		<init-param><param-name>~motorMode~</param-name><param-value>1</param-value></init-param>
 		<init-param><param-name>~nominalVolt~</param-name><param-value>399</param-value></init-param>
 		<init-param><param-name>~invertDirection~</param-name><param-value>1</param-value></init-param>
-		<init-param><param-name>~slewRate~</param-name><param-value>100</param-value></init-param>
+		<init-param><param-name>~slewRateMotor~</param-name><param-value>100</param-value></init-param>
+		<init-param><param-name>~slewRateRegen~</param-name><param-value>10</param-value></init-param>
 	
 		<init-param><param-name>~maxMechPowerMotor~</param-name><param-value>110</param-value></init-param>
 		<init-param><param-name>~maxMechPowerRegen~</param-name><param-value>109</param-value></init-param>

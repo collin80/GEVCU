@@ -9,7 +9,8 @@
 	"creepSpeed": ~creepSpeed~,
 	"brakeMinimumRegen": ~brakeMinimumRegen~,
 	"brakeMaximumRegen": ~brakeMaximumRegen~,
-	"slewRate": ~slewRate~,
+	"slewRateMotor": ~slewRateMotor~,
+	"slewRateRegen": ~slewRateRegen~,
 	"brakeHold": ~brakeHold~,
 
 	"device_x1000": ~x1000~,

@@ -123,7 +123,8 @@ private:
     const String nominalVolt = "nominalVolt";
     const String motorMode = "motorMode";
     const String invertDirection = "invertDirection";
-    const String slewRate = "slewRate";
+    const String slewRateMotor = "slewRateMotor";
+    const String slewRateRegen = "slewRateRegen";
     const String brakeHold = "brakeHold";
     const String brakeHoldForceCoefficient = "brakeHoldForceCoef";
     const String reversePercent = "reversePercent";

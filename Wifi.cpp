@@ -191,8 +191,10 @@ bool Wifi::processParameterChangeMotor(String key, String value)
                 config->powerMode = (value.toInt() ? modeSpeed : modeTorque);
             } else if (invertDirection.equals(key)) {
                 config->invertDirection = value.toInt();
-            } else if (slewRate.equals(key)) {
-                config->slewRate = value.toDouble() * 10;
+            } else if (slewRateMotor.equals(key)) {
+                config->slewRateMotor = value.toDouble() * 10;
+            } else if (slewRateRegen.equals(key)) {
+                config->slewRateRegen = value.toDouble() * 10;
             } else if (maxMechanicalPowerMotor.equals(key)) {
                 config->maxMechanicalPowerMotor = value.toDouble() * 10;
             } else if (maxMechanicalPowerRegen.equals(key)) {
@@ -559,7 +561,8 @@ void Wifi::loadParametersMotor()
             setParam(torqueMax, config->torqueMax / 10.0f, 1);
             setParam(motorMode, (uint8_t) config->powerMode);
             setParam(invertDirection, (uint8_t)(config->invertDirection ? 1 : 0));
-            setParam(slewRate, config->slewRate / 10.0f, 1);
+            setParam(slewRateMotor, config->slewRateMotor / 10.0f, 1);
+            setParam(slewRateRegen, config->slewRateRegen / 10.0f, 1);
             setParam(maxMechanicalPowerMotor, config->maxMechanicalPowerMotor / 10.0f, 1);
             setParam(maxMechanicalPowerRegen, config->maxMechanicalPowerRegen / 10.0f, 1);
             setParam(creepLevel, config->creepLevel);

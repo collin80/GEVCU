@@ -57,7 +57,8 @@ public:
     bool invertDirection; // should an AC motor run in reverse mode? (e.g. negative speed for forward motion)
     uint16_t speedMax; // in rpm
     uint16_t torqueMax; // maximum torque in 0.1 Nm
-    uint16_t slewRate; // slew rate of torque/speed value in 0.1 percent/sec
+    uint16_t slewRateMotor; // slew rate of torque/speed value for motoring in 0.1 percent/sec
+    uint16_t slewRateRegen; // slew rate of torque/speed value for regen in 0.1 percent/sec
     uint16_t maxMechanicalPowerMotor; // maximal mechanical power of motor in 100W steps
     uint16_t maxMechanicalPowerRegen; // maximal mechanical power of regen in 100W steps
     uint8_t reversePercent;

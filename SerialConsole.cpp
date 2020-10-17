@@ -103,7 +103,8 @@ void SerialConsole::printMenuMotorController()
         logger.console("CRSPD=%d - maximal speed until creep is applied (in RPMs)", config->creepSpeed);
         logger.console("REVLIM=%d - How much torque to allow in reverse (in 0.1%%)", config->reversePercent);
         logger.console("MOINVD=%d - invert the direction of the motor (0=normal, 1=invert)", config->invertDirection);
-        logger.console("MOSLEW=%d - slew rate (in 0.1 percent/sec, 0=disabled)", config->slewRate);
+        logger.console("MOSLEWM=%d - slew rate for motoring (in 0.1 percent/sec, 0=disabled)", config->slewRateMotor);
+        logger.console("MOSLEWR=%d - slew rate for regen (in 0.1 percent/sec, 0=disabled)", config->slewRateRegen);
         logger.console("MOMWMX=%d - maximal mechanical power of motor (in 100W steps)", config->maxMechanicalPowerMotor);
         logger.console("MORWMX=%d - maximal mechanical power of regen (in 100W steps)", config->maxMechanicalPowerRegen);
         logger.console("MOBRHD=%d - percentage of max torque to apply for brake hold (in 1%%)", config->brakeHold);
@@ -426,9 +427,12 @@ bool SerialConsole::handleConfigCmdMotorController(String command, long value)
         value = constrain(value, 0, 1);
         logger.console("Setting motor direction to %s", (value ? "inverted" : "normal"));
         config->invertDirection = value;
-    } else if (command == String("MOSLEW")) {
-        logger.console("Setting slew rate to %f percent/sec", value / 10.0f);
-        config->slewRate = value;
+    } else if (command == String("MOSLEWM")) {
+        logger.console("Setting slew rate motoring to %f percent/sec", value / 10.0f);
+        config->slewRateMotor = value;
+    } else if (command == String("MOSLEWR")) {
+        logger.console("Setting slew regen rate to %f percent/sec", value / 10.0f);
+        config->slewRateRegen = value;
     } else if (command == String("MOMWMX")) {
         logger.console("Setting maximal mechanical power of motor to %fkW", value / 10.0f);
         config->maxMechanicalPowerMotor = value;

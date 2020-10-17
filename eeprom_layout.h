@@ -109,9 +109,8 @@ the end of the stardard data. The below numbers are offsets from the device's ee
 #define EEMC_MAX_TORQUE                     22 //2 bytes, unsigned int - maximum torque in tenths of a Nm
 #define EEMC_NOMINAL_V                      46 //2 bytes - nominal system voltage to expect (in tenths of a volt)
 #define EEMC_REVERSE_LIMIT                  48 //2 bytes - a percentage to knock the requested torque down by while in reverse.
-#define EEMC_UNUSED1                        50 //1 byte - unused
-#define EEMC_UNUSED2                        51 // 1 byte - unused
-#define EEMC_SLEW_RATE                      52 // 2 bytes - slew rate
+#define EEMC_SLEW_RATE_REGEN                50 // 2 bytes - slew rate regen/brake
+#define EEMC_SLEW_RATE_MOTOR                52 // 2 bytes - slew rate motoring
 #define EEMC_MAX_MECH_POWER_MOTOR           54 // 2 bytes - max mechanical power motoring in 4W steps
 #define EEMC_MAX_MECH_POWER_REGEN           56 // 2 bytes - max mechanical power regen in 4W steps
 #define EEMC_DC_VOLT_LIMIT_MOTOR            58 // 2 bytes - DC volt limit for motoring in 0.1V
