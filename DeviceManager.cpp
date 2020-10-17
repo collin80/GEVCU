@@ -58,7 +58,7 @@ DeviceManager::DeviceManager()
  */
 void DeviceManager::addDevice(Device *device)
 {
-    logger.info(device, "add device: %s (id: %#x)", device->getCommonName().c_str(), device->getId());
+    logger.debug(device, "add device: %s (id: %#x)", device->getCommonName().c_str(), device->getId());
 
     if (findDevice(device) == -1) {
         int8_t i = findDevice(NULL);

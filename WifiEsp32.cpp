@@ -237,20 +237,20 @@ void WifiEsp32::processIncomingSocketCommand(String input)
             }
         } else if (key.equals("regen")) {
             status.enableRegen = value.equals("true");
-            logger.info("Regen is now switched %s", (status.enableRegen ? "on" : "off"));
+            logger.debug("Regen is now switched %s", (status.enableRegen ? "on" : "off"));
         } else if (key.equals("creep")) {
             status.enableCreep = value.equals("true");;
-            logger.info("Creep is now switched %s", (status.enableCreep ? "on" : "off"));
+            logger.debug("Creep is now switched %s", (status.enableCreep ? "on" : "off"));
         } else if (key.equals("ehps")) {
             systemIO.setPowerSteering(value.equals("true"));
-            logger.info("EHPS is now switched %s", (status.powerSteering ? "on" : "off"));
+            logger.debug("EHPS is now switched %s", (status.powerSteering ? "on" : "off"));
         } else if (key.equals("heater")) {
             bool flag = value.equals("true");
             systemIO.setEnableHeater(flag);
             systemIO.setHeaterPump(flag);
-            logger.info("Heater is now switched %s", (status.enableHeater ? "on" : "off"));
+            logger.debug("Heater is now switched %s", (status.enableHeater ? "on" : "off"));
         } else if (key.equals("chargeInput")) {
-            logger.info("Setting charge level to %d Amps", value.toInt());
+            logger.debug("Setting charge level to %d Amps", value.toInt());
             deviceManager.getCharger()->overrideMaximumInputCurrent(value.toDouble() * 10);
         }
     } else {

@@ -221,7 +221,7 @@ Status::SystemState Status::setSystemState(SystemState newSystemState)
         }
     }
     if (systemState == newSystemState) {
-        logger.info("switching to system state '%s'", systemStateToStr(systemState).c_str());
+        logger.debug("switching to system state '%s'", systemStateToStr(systemState).c_str());
         stateTimestamp = millis();
     } else {
         logger.error("switching from system state '%s' to '%s' is not allowed", systemStateToStr(systemState).c_str(), systemStateToStr(newSystemState).c_str());

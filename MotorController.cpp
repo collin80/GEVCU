@@ -178,7 +178,7 @@ void MotorController::processGearChange()
         throttleLevel = 0;
 
         if (gearChangeTimestamp == 0) {
-            logger.info("Starting gear change cycle");
+            logger.debug("Starting gear change cycle");
             gearChangeTimestamp = millis();
             cruiseControlDisengage();
             return;
@@ -188,7 +188,7 @@ void MotorController::processGearChange()
         uint32_t duration = millis() - gearChangeTimestamp;
         if (duration > 750 && duration < 1250 && speedActual > 100) {
             speedRequested = 2500; //TODO calculate correct speed according to vehicle speed and estimated gear change
-            logger.info("Adjusting motor speed to %drpm", speedRequested);
+            logger.debug("Adjusting motor speed to %drpm", speedRequested);
 
             if (speedActual > speedRequested) {
                 throttleLevel = -150; // -10% throttle to slow down motor
@@ -199,7 +199,7 @@ void MotorController::processGearChange()
         }
     } else {
         if (gearChangeTimestamp > 0) {
-//            logger.info("Gear change cycle finished");
+            logger.debug("Gear change cycle finished");
             gearChangeTimestamp = 0;
         }
     }
@@ -319,7 +319,7 @@ void MotorController::cruiseControlToggle()
         }
         cruiseThrottle = throttleLevel + 1000.0f; // because PID can't handle negative numbers, cruiseThrottle is offset by +1000 (0-2000)
 
-        logger.info("Setting cruise control speed to %frpm", cruiseSpeedTarget);
+        logger.debug("Setting cruise control speed to %frpm", cruiseSpeedTarget);
 
         cruisePid = new PID(&cruiseSpeedActual, &cruiseThrottle, &cruiseSpeedTarget, config->cruiseKp, config->cruiseKi, config->cruiseKd, DIRECT);
         cruisePid->SetOutputLimits(0, 2000);
@@ -364,7 +364,7 @@ void MotorController::cruiseControlDisengage()
     if (cruisePid == NULL)
         return;
 
-    logger.info("Cruise control disengaged");
+    logger.debug("Cruise control disengaged");
     cruisePid = NULL;
     cruiseSpeedActual = 0;
     cruiseSpeedTarget = 0;
@@ -393,7 +393,7 @@ void MotorController::handleCruiseControlButton(CruiseControlButton button)
     case RECALL:
         if (cruiseSpeedLast > 0) {
             cruiseControlSetSpeed(cruiseSpeedLast);
-            logger.info("Resuming cruise control, speed: %d", getCruiseControlSpeed());
+            logger.debug("Resuming cruise control, speed: %d", getCruiseControlSpeed());
         }
         break;
     case PLUS:

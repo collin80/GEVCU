@@ -207,19 +207,19 @@ String WebSocket::processData(char *input)
             }
         } else if (strstr(text, "regen=")) {
             status.enableRegen = flag;
-            logger.info("Regen is now switched %s", (flag ? "on" : "off"));
+            logger.debug("Regen is now switched %s", (flag ? "on" : "off"));
         } else if (strstr(text, "creep=")) {
             status.enableCreep = flag;
-            logger.info("Creep is now switched %s", (flag ? "on" : "off"));
+            logger.debug("Creep is now switched %s", (flag ? "on" : "off"));
         } else if (strstr(text, "ehps=")) {
             systemIO.setPowerSteering(flag);
-            logger.info("EHPS is now switched %s", (flag ? "on" : "off"));
+            logger.debug("EHPS is now switched %s", (flag ? "on" : "off"));
         } else if (strstr(text, "heater=")) {
             systemIO.setEnableHeater(flag);
             systemIO.setHeaterPump(flag);
-            logger.info("Heater is now switched %s", (flag ? "on" : "off"));
+            logger.debug("Heater is now switched %s", (flag ? "on" : "off"));
         } else if (strstr(text, "chargeInput=")) {
-            logger.info("Setting charge level to %d Amps", value);
+            logger.debug("Setting charge level to %d Amps", value);
             deviceManager.getCharger()->overrideMaximumInputCurrent(value * 10);
         }
         break;

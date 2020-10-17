@@ -43,7 +43,7 @@ void MemCache::setup()
 {
     tickHandler.detach(this);
 
-    logger.info("add MemCache (id: %#x, %#x)", MEMCACHE, &memCache);
+    logger.debug("add MemCache (id: %#x, %#x)", MEMCACHE, &memCache);
 
     Wire.begin();
     for (U8 c = 0; c < NUM_CACHED_PAGES; c++) {
@@ -71,7 +71,7 @@ void MemCache::handleTick()
 
     for (c = 0; c < NUM_CACHED_PAGES; c++) {
         if ((pages[c].age == MAX_AGE) && (pages[c].dirty)) {
-            logger.info("flushing page %X", c);
+            logger.debug("flushing page %X", c);
             FlushPage(c);
             return;
         }
