@@ -111,9 +111,11 @@ uint16_t Charger::calculateOutputVoltage()
  */
 uint16_t Charger::calculateOutputCurrent()
 {
-    if (powerOn && running) {
+    BatteryManager *batteryManager = deviceManager.getBatteryManager();
+
+    if (powerOn && running &&
+            (!batteryManager || !batteryManager->hasChargerEnabled() || batteryManager->isChargerEnabled())) {
         ChargerConfiguration *config = (ChargerConfiguration *) getConfiguration();
-        BatteryManager *batteryManager = deviceManager.getBatteryManager();
         int16_t temperature;
 
 //TODO inmplement temp hysterese / derating according to the following config variables:
@@ -139,9 +141,6 @@ uint16_t Charger::calculateOutputCurrent()
             } else if (batteryManager->hasAllowCharging() && !batteryManager->isChargeAllowed()) {
                 requestedOutputCurrent = 0;
                 logger.info(this, "BMS terminated charging");
-            }
-            if (batteryManager->hasChargerEnabled() && !batteryManager->isChargerEnabled()) {
-                status.setSystemState(Status::charged);
             }
         }
         if (requestedOutputCurrent < config->terminateCurrent ||
