@@ -90,6 +90,11 @@ bool BatteryManager::hasSoc()
     return false;
 }
 
+bool BatteryManager::hasAmpHours()
+{
+    return false;
+}
+
 bool BatteryManager::hasChargeLimit()
 {
     return false;
@@ -159,6 +164,11 @@ int16_t BatteryManager::getPackCurrent()
 uint8_t BatteryManager::getSoc()
 {
     return soc;
+}
+
+uint16_t BatteryManager::getAmpHours()
+{
+    return packAmphours;
 }
 
 uint16_t BatteryManager::getDischargeLimit()

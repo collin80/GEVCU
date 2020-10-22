@@ -84,8 +84,8 @@ void OrionBMS::handleCanFrame(CAN_FRAME *frame)
     case ORION_CAN_ID_PACK:
         processPack(frame->data.bytes);
         break;
-    case ORION_CAN_ID_LIMITS_SOC:
-        processLimitsSoc(frame->data.bytes);
+    case ORION_CAN_ID_LIMITS:
+        processLimits(frame->data.bytes);
         break;
     case ORION_CAN_ID_CELL_VOLTAGE:
         processCellVoltage(frame->data.bytes);
@@ -95,6 +95,9 @@ void OrionBMS::handleCanFrame(CAN_FRAME *frame)
         break;
     case ORION_CAN_ID_HEALTH:
         processHealth(frame->data.bytes);
+        break;
+    case ORION_CAN_ID_TEMPERATURE:
+        processTemperature(frame->data.bytes);
         break;
     }
 }
@@ -114,14 +117,14 @@ void OrionBMS::processPack(uint8_t data[])
     status.bmsDtcLowCellVolage = (flags & dtcLowCellVolage) ? true : false;
     status.bmsDtcHVIsolationFault = (flags & dtcHVIsolationFault) ? true : false;
     status.bmsDtcVoltageRedundancyFault = (flags & dtcVoltageRedundancyFault) ? true : false;
-    systemTemperature = data[7]; // byte 7: temperature of BMS (1C)
+    soc = data[7]; // byte 7: temperature of BMS (1C)
     if (logger.isDebug()) {
-        logger.debug(this, "pack current: %fA, voltage: %fV (summed: %fV), flags: %#08x, temp: %dC", (float) packCurrent / 10.0F,
-                (float) packVoltage / 10.0F, (float) packSummedVoltage / 10.0F, flags, systemTemperature);
+        logger.debug(this, "pack current: %fA, voltage: %fV (summed: %fV), flags: %#08x, soc: %.1f", (float) packCurrent / 10.0F,
+                (float) packVoltage / 10.0F, (float) packSummedVoltage / 10.0F, flags, (float) soc / 2.0F);
     }
 }
 
-void OrionBMS::processLimitsSoc(uint8_t data[])
+void OrionBMS::processLimits(uint8_t data[])
 {
     canTickCounter = 0;
     dischargeLimit = ((data[0] << 8) | data[1]); // byte 0+1: pack discharge current limit (DCL) (1A)
@@ -182,18 +185,31 @@ void OrionBMS::processCellResistance(uint8_t data[])
                 lowestCellResistanceId, (float) highestCellResistance / 100.0F, highestCellResistanceId, (float) averageCellResistance / 100.0F);
     }
 }
+
 void OrionBMS::processHealth(uint8_t data[])
 {
     canTickCounter = 0;
     packHealth = data[0]; // byte 0: pack health (1%)
     packCycles = ((data[1] << 8) | data[2]); // byte 1+2: number of total pack cycles
     packResistance = ((data[3] << 8) | data[4]); // byte 3+4: pack resistance (1 mOhm)
-    lowestCellTemp = data[5] * 10;
-    highestCellTemp = data[6] * 10;
-    soc = data[7]; // byte 7: pack state of charge (0.5%)
+    packAmphours = ((data[5] << 8) | data[6]); // byte 3+4: pack resistance (1 mOhm)
     if (logger.isDebug()) {
-        logger.debug(this, "pack health: %d, pack cycles: %d, pack Resistance: %dmOhm, low temp: %d, high temp: %d, soc: %.1f", packHealth,
-                packCycles, packResistance, lowestCellTemp, highestCellTemp, (float) soc / 2.0F);
+        logger.debug(this, "pack health: %d, pack cycles: %d, pack Resistance: %dmOhm, pack charge: %.1fAh", packHealth,
+                packCycles, packResistance, (float) packAmphours / 10.0F);
+    }
+}
+
+void OrionBMS::processTemperature(uint8_t data[])
+{
+    canTickCounter = 0;
+    lowestCellTemp = data[0] * 10;
+    lowestCellTempId = data[1];
+    highestCellTemp = data[2] * 10;
+    highestCellTempId = data[3];
+    systemTemperature = data[4] * 10;
+    if (logger.isDebug()) {
+        logger.debug(this, "low temp: %dC (%d), high temp: %dC (%d), sys temp: %dC", lowestCellTemp, lowestCellTempId,
+        		highestCellTemp, highestCellTempId, systemTemperature);
     }
 }
 
@@ -218,6 +234,11 @@ bool OrionBMS::hasCellTemperatures()
 }
 
 bool OrionBMS::hasSoc()
+{
+    return true;
+}
+
+bool OrionBMS::hasAmpHours()
 {
     return true;
 }

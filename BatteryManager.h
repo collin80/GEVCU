@@ -47,6 +47,7 @@ public:
     virtual bool hasPackVoltage();
     virtual bool hasPackCurrent();
     virtual bool hasSoc();
+    virtual bool hasAmpHours();
     virtual bool hasChargeLimit();
     virtual bool hasDischargeLimit();
     virtual bool hasAllowCharging();
@@ -62,6 +63,7 @@ public:
     uint16_t getPackVoltage(); // in 0.1V
     int16_t getPackCurrent(); // in 0.1A
     uint8_t getSoc(); // in 0.5%
+    uint16_t getAmpHours(); // in 0.1Ah
     uint16_t getDischargeLimit(); // in 1A
     uint16_t getChargeLimit(); // in 1A
     bool isChargeAllowed();

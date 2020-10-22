@@ -264,7 +264,7 @@ void MotorController::processThrottleLevel()
                 processGearChange(); // will adjust the speedRequested and throttleLevel
             }
             int32_t torqueTarget = throttleLevel * config->torqueMax / 1000;
-            uint16_t slewRate = (torqueTarget > 0 ? config->slewRateMotor : config->slewRateRegen);
+            uint16_t slewRate = (torqueTarget > 0  || torqueRequested > 0 ? config->slewRateMotor : config->slewRateRegen);
 
             if (slewRate == 0 || brakeHoldActive) {
                 torqueRequested = torqueTarget;
