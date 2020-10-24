@@ -59,8 +59,8 @@ public:
     uint16_t chargerBatteryCurrent;
     int16_t chargerTemperature;
     int16_t maximumInputCurrent;
-    uint16_t chargeHoursRemain;
-    uint16_t chargeMinsRemain;
+    uint8_t chargeHoursRemain;
+    uint8_t chargeMinsRemain;
     uint16_t chargeLevel;
 
     uint32_t flowCoolant;

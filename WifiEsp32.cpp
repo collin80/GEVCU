@@ -397,13 +397,11 @@ void WifiEsp32::prepareChargerData() {
         processValue(&valueCache.chargerTemperature, charger->getTemperature(), chargerTemperature);
         processValue(&valueCache.maximumInputCurrent, charger->calculateMaximumInputCurrent(), maximumInputCurrent);
 
-        uint16_t secs = millis() / 1000; //TODO calc mins
-        processValue(&valueCache.chargeHoursRemain, secs / 60, chargeHoursRemain);
-        processValue(&valueCache.chargeMinsRemain, secs % 60, chargeMinsRemain);
+        uint16_t minutesRemaining = charger->calculateTimeRemaining();
+        processValue(&valueCache.chargeHoursRemain, (uint8_t)(minutesRemaining / 60), chargeHoursRemain);
+        processValue(&valueCache.chargeMinsRemain, (uint8_t)(minutesRemaining % 60), chargeMinsRemain);
         if (batteryManager && batteryManager->hasSoc())
             processValue(&valueCache.chargeLevel, batteryManager->getSoc() * 50, chargeLevel);
-        else
-            processValue(&valueCache.chargeLevel, map (secs, 0 , 28800, 0, 100), chargeLevel);
     }
 }
 

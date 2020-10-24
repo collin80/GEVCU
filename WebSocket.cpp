@@ -370,13 +370,11 @@ String WebSocket::generateUpdate()
                 processValue(&valueCache.chargerBatteryCurrent, charger->getBatteryCurrent(), chargerBatteryCurrent, 100);
                 processValue(&valueCache.chargerTemperature, charger->getTemperature(), chargerTemperature, 10);
 
-                uint16_t secs = millis() / 1000; //TODO calc mins
-                processValue(&valueCache.chargeHoursRemain, secs / 60, chargeHoursRemain);
-                processValue(&valueCache.chargeMinsRemain, secs % 60, chargeMinsRemain);
+                uint16_t minutesRemaining = charger->calculateTimeRemaining();
+                processValue(&valueCache.chargeHoursRemain, minutesRemaining / 60, chargeHoursRemain);
+                processValue(&valueCache.chargeMinsRemain, minutesRemaining % 60, chargeMinsRemain);
                 if (batteryManager && batteryManager->hasSoc())
                     processValue(&valueCache.chargeLevel, batteryManager->getSoc() * 50, chargeLevel, 100);
-                else
-                    processValue(&valueCache.chargeLevel, map (secs, 0 , 28800, 0, 100), chargeLevel);
                 processValue(&valueCache.maximumInputCurrent, charger->calculateMaximumInputCurrent(), maximumInputCurrent, 10);
             }
         }

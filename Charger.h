@@ -77,6 +77,7 @@ public:
     int16_t getTemperature();
     void overrideMaximumInputCurrent(uint16_t current);
     uint16_t calculateMaximumInputCurrent();
+    uint16_t calculateTimeRemaining();
 
 protected:
     uint16_t inputCurrent; // the reported input current in 0.01A

@@ -57,8 +57,8 @@ void ValueCache::clear()
     chargerBatteryCurrent = 0;
     chargerTemperature = 0;
     maximumInputCurrent = -1;
-    chargeHoursRemain = 0;
-    chargeMinsRemain = 0;
+    chargeHoursRemain = 255;
+    chargeMinsRemain = 255;
     chargeLevel = 0;
 
     flowCoolant = 0;

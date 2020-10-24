@@ -107,6 +107,22 @@ uint16_t Charger::calculateOutputVoltage()
 }
 
 /**
+ * Based on the current SOC, battery capacity and charge current reported by the BMS the remaining
+ * time to fully charge the battery is calculated (Note: tapering down at end of charge is not reflected)
+ * Formula: remaining Ah to charge = Pack remaining Ah * (100 - SOC) / SOC
+ *          remaining minutes = remaining Ah / charge Amps * 60
+ */
+uint16_t Charger::calculateTimeRemaining()
+{
+    BatteryManager *batteryManager = deviceManager.getBatteryManager();
+
+    if (batteryManager && batteryManager->hasSoc() && batteryManager->hasAmpHours() && batteryCurrent != 0 && batteryManager->getSoc() != 0) {
+    	return batteryManager->getAmpHours() * (200 - batteryManager->getSoc()) / batteryManager->getSoc() * 600 / batteryCurrent;
+    }
+    return 0;
+}
+
+/**
  * Calculate desired output current to battery in 0.1A
  */
 uint16_t Charger::calculateOutputCurrent()
@@ -220,7 +236,7 @@ int16_t Charger::getTemperature()
 
 void Charger::overrideMaximumInputCurrent(uint16_t current) {
     maximumInputCurrentOverride = current;
-    logger.info(this, "maximum input current: %.1f", maximumInputCurrentOverride / 10.0f);
+    logger.debug(this, "maximum input current: %.1f", maximumInputCurrentOverride / 10.0f);
 }
 
 uint16_t Charger::calculateMaximumInputCurrent()
