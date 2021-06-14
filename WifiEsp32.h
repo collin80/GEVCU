@@ -145,6 +145,7 @@ private:
     void setParam(String paramName, String value);  //set the given parameter with the given string
     void sendLogMessage(String logLevel, String deviceName, String message);
     void sendCmd(String cmd);
+    void sendBufferedCommand();
     void sendSocketUpdate();
     void processStartSocketListenerRepsonse();
     void processActiveSocketListResponse();

@@ -94,10 +94,26 @@ void WifiEsp32::tearDown()
 void WifiEsp32::sendCmd(String cmd)
 {
     if (logger.isDebug()) {
-        logger.debug(this, "sending: %s\n", cmd.c_str());
+        logger.debug(this, "buffer: %s\n", cmd.c_str());
     }
-    serialInterface->print(cmd);
-    serialInterface->write(13);
+    sendBuffer[psWritePtr++] = cmd;
+    if (psWritePtr >= CFG_SERIAL_SEND_BUFFER_SIZE) {
+        psWritePtr = 0;
+    }
+}
+
+/**
+ * \brief Try to send a buffered command to ESP32
+ */
+void WifiEsp32::sendBufferedCommand()
+{
+    if (psReadPtr != psWritePtr) {
+        serialInterface->print(sendBuffer[psReadPtr++]);
+        serialInterface->write(13);
+        if (psReadPtr >= CFG_SERIAL_SEND_BUFFER_SIZE) {
+            psReadPtr = 0;
+        }
+    }
 }
 
 /**
@@ -175,11 +191,14 @@ void WifiEsp32::handleStateChange(Status::SystemState oldState, Status::SystemSt
 
 /**
  * \brief Process serial input waiting from the wifi module.
+ * or send next buffered command
  *
  * The method is called by the main loop
  */
 void WifiEsp32::process()
 {
+	sendBufferedCommand();
+
     int ch;
     while (serialInterface->available()) {
         ch = serialInterface->read();
@@ -284,7 +303,7 @@ void WifiEsp32::setParam(String paramName, String value)
     if (logger.isDebug()) {
         logger.debug(this, "setParam: cfg:%s=%s", paramName.c_str(), value.c_str());
     }
-    serialInterface->println("cfg:" + paramName + "=" + value);
+    sendCmd("cfg:" + paramName + "=" + value);
 }
 
 /**
@@ -308,7 +327,7 @@ void WifiEsp32::sendLogMessage(String logLevel, String deviceName, String messag
     data.concat(message);
     data.concat("\"}}");
 
-    serialInterface->println(data);
+    sendCmd(data);
 }
 
 /**
