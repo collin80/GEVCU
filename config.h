@@ -32,8 +32,8 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #ifndef CONFIG_H_
 #define CONFIG_H_
 
-#define CFG_BUILD_NUM	1070        //increment this every time a git commit is done.
-#define CFG_VERSION "GEVCU 2020-04-11"
+#define CFG_BUILD_NUM	1071        //increment this every time a git commit is done.
+#define CFG_VERSION "GEVCU 2021-08-07"
 #define CFG_DEFAULT_LOGLEVEL Logger::Info
 
 //define this to add in latency and efficiency calculations. Comment it out for builds you're going to 
