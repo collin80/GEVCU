@@ -237,7 +237,8 @@ void SerialConsole::printMenuCharger()
         logger.console("CHCC=%d - Constant current (in 0.1A)", config->constantCurrent);
         logger.console("CHCV=%d - Constant voltage (in 0.1V)", config->constantVoltage);
         logger.console("CHTC=%d - Terminate current (in 0.1A)", config->terminateCurrent);
-        logger.console("CHICMX=%d - Maximum Input current (in 0.1A)", config->maximumInputCurrent);
+        logger.console("CHICMX=%d - Maximum input current (in 0.1A)", config->maximumInputCurrent);
+        logger.console("CHICIN=%d - Initial input current (in 0.1A)", config->initialInputCurrent);
         logger.console("CHBVMN=%d - Minimum battery voltage (in 0.1V)", config->minimumBatteryVoltage);
         logger.console("CHBVMX=%d - Maximum battery voltage (in 0.1V)", config->maximumBatteryVoltage);
         logger.console("CHTPMN=%d - Minimum battery temperature for charging (in 0.1 deg C)", config->minimumTemperature);
@@ -756,6 +757,10 @@ bool SerialConsole::handleConfigCmdCharger(String command, long value)
         value = constrain(value, 0, 100000);
         logger.console("Setting max input current to %fV", value / 10.0f);
         config->maximumInputCurrent = value;
+    } else if (command == String("CHICIN")) {
+        value = constrain(value, 0, 100000);
+        logger.console("Setting initial input current to %fV", value / 10.0f);
+        config->initialInputCurrent = value;
     } else if (command == String("CHBVMN")) {
         value = constrain(value, 0, config->maximumBatteryVoltage);
         logger.console("Setting min battery voltage to %fV", value / 10.0f);

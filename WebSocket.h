@@ -103,7 +103,7 @@ private:
     const String chargerBatteryVoltage = "chargerBatteryVoltage";
     const String chargerBatteryCurrent = "chargerBatteryCurrent";
     const String chargerTemperature = "chargerTemperature";
-    const String maximumInputCurrent = "maximumInputCurrent";
+    const String chargerInputCurrentTarget = "chargerInputCurrentTarget";
     const String chargeHoursRemain = "chargeHoursRemain";
     const String chargeMinsRemain = "chargeMinsRemain";
     const String chargeLevel = "chargeLevel";

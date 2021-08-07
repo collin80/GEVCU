@@ -1,5 +1,6 @@
 {
 	"maximumInputCurrent": ~maximumInputCurrent~,
+	"initialInputCurrent": ~initialInputCurrent~,
 	"constantCurrent": ~constantCurrent~,
 	"constantVoltage": ~constantVoltage~,
 	"terminateCurrent": ~terminateCurrent~,

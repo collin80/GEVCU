@@ -87,7 +87,7 @@ public:
         chargerBatteryVoltage = 42,
         chargerBatteryCurrent = 43,
         chargerTemperature = 44,
-        maximumInputCurrent = 45,
+        chargerInputCurrentTarget = 45,
         chargeHoursRemain = 46,
         chargeMinsRemain = 47,
         chargeLevel = 48,

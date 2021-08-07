@@ -177,6 +177,7 @@ private:
     const String powerLimitationOutput = "powerLimit";
     // charger
     const String maximumInputCurrent = "maximumInputCurrent";
+    const String initialInputCurrent = "initialInputCurrent";
     const String constantCurrent = "constantCurrent";
     const String constantVoltage = "constantVoltage";
     const String terminateCurrent = "terminateCurrent";

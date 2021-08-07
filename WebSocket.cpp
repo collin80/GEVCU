@@ -218,9 +218,9 @@ String WebSocket::processData(char *input)
             systemIO.setEnableHeater(flag);
             systemIO.setHeaterPump(flag);
             logger.debug("Heater is now switched %s", (flag ? "on" : "off"));
-        } else if (strstr(text, "chargeInput=")) {
-            logger.debug("Setting charge level to %d Amps", value);
-            deviceManager.getCharger()->overrideMaximumInputCurrent(value * 10);
+        } else if (strstr(text, "chargerInputCurrentTarget=")) {
+            logger.debug("Setting charge level to %.1f Amps", value);
+            deviceManager.getCharger()->setInputCurrentTarget(value * 10);
         }
         break;
     }
@@ -375,7 +375,7 @@ String WebSocket::generateUpdate()
                 processValue(&valueCache.chargeMinsRemain, minutesRemaining % 60, chargeMinsRemain);
                 if (batteryManager && batteryManager->hasSoc())
                     processValue(&valueCache.chargeLevel, batteryManager->getSoc() * 50, chargeLevel, 100);
-                processValue(&valueCache.maximumInputCurrent, charger->calculateMaximumInputCurrent(), maximumInputCurrent, 10);
+                processValue(&valueCache.chargerInputCurrentTarget, charger->calculateMaximumInputCurrent(), chargerInputCurrentTarget, 10);
             }
         }
 

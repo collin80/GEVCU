@@ -24,7 +24,7 @@ CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT,
 TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
 SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
- */
+*/
 
 #include "Charger.h"
 
@@ -38,7 +38,7 @@ Charger::Charger() : Device()
     ampereMilliSeconds = 0;
     chargeStartTime = 0;
     requestedOutputCurrent = 0;
-    maximumInputCurrentOverride = 0xffff;
+    inputCurrentTarget = 0xffff;
     maximumInputCurrent = 0;
     inputVoltageStart = 0xffff;
     lastTick = 0;
@@ -76,7 +76,7 @@ void Charger::handleStateChange(Status::SystemState oldState, Status::SystemStat
         batteryVoltage = 0;
         batteryCurrent = 0;
         ampereMilliSeconds = 0;
-        maximumInputCurrentOverride = 0xffff; // must be overridden via wifi to get enabled during charge
+        inputCurrentTarget = (config->initialInputCurrent > 0 ? config->initialInputCurrent : 0xffff); // if 0xffff must be overridden via wifi to get enabled during charge
         maximumInputCurrent = 0;
         inputVoltageStart = 0xffff;
         chargeStartTime = millis();
@@ -234,9 +234,13 @@ int16_t Charger::getTemperature()
     return temperature;
 }
 
-void Charger::overrideMaximumInputCurrent(uint16_t current) {
-    maximumInputCurrentOverride = current;
-    logger.debug(this, "maximum input current: %.1f", maximumInputCurrentOverride / 10.0f);
+void Charger::setInputCurrentTarget(uint16_t current) {
+	if (current > maximumInputCurrent) {
+		current = maximumInputCurrent;
+		logger.info("Current limited to %.1fA due to power line safety", current / 10.0f);
+	}
+	inputCurrentTarget = current;
+	logger.debug(this, "input current target: %.1f", inputCurrentTarget / 10.0f);
 }
 
 uint16_t Charger::calculateMaximumInputCurrent()
@@ -251,7 +255,7 @@ uint16_t Charger::calculateMaximumInputCurrent()
         return config->measureCurrent;
     }
 
-    uint16_t maxTargetCurrent = (maximumInputCurrentOverride != 0xffff ? min(maximumInputCurrentOverride, config->maximumInputCurrent) : config->maximumInputCurrent);
+    uint16_t maxTargetCurrent = (inputCurrentTarget != 0xffff ? min(inputCurrentTarget, config->maximumInputCurrent) : config->maximumInputCurrent);
 
     // if input voltage drop is less than e.g. 3%, increase up to maxTargetCurrent, otherwise protect input line from over-heating
     if (inputVoltageStart - inputVoltage < inputVoltageStart / config->voltageDrop) {
@@ -285,6 +289,7 @@ void Charger::loadConfiguration()
     if (prefsHandler->checksumValid()) { //checksum is good, read in the values stored in EEPROM
 #endif
         prefsHandler->read(EECH_MAX_INPUT_CURRENT, &config->maximumInputCurrent);
+        prefsHandler->read(EECH_INITIAL_INPUT_CURRENT, &config->initialInputCurrent);
         prefsHandler->read(EECH_CONSTANT_CURRENT, &config->constantCurrent);
         prefsHandler->read(EECH_CONSTANT_VOLTAGE, &config->constantVoltage);
         prefsHandler->read(EECH_TERMINATE_CURRENT, &config->terminateCurrent);
@@ -303,6 +308,7 @@ void Charger::loadConfiguration()
         prefsHandler->read(EECH_VOLTAGE_DROP, &config->voltageDrop);
     } else { //checksum invalid. Reinitialize values and store to EEPROM
         config->maximumInputCurrent = 100;
+        config->initialInputCurrent = 0;
         config->constantCurrent = 100;
         config->constantVoltage = 4165;
         config->terminateCurrent = 50;
@@ -323,7 +329,7 @@ void Charger::loadConfiguration()
     }
 
     logger.info(this, "max input current: %.1fA, constant current: %.1fA, constant voltage: %.1fV", (float) config->maximumInputCurrent / 10.0F, (float) config->constantCurrent / 10.0F, (float) config->constantVoltage / 10.0F);
-    logger.info(this, "terminate current: %.1fA, battery min: %.1fV max: %.1fV", (float) config->terminateCurrent / 10.0F, (float) config->minimumBatteryVoltage / 10.0F, (float) config->maximumBatteryVoltage / 10.0F);
+    logger.info(this, "terminate current: %.1fA, battery min: %.1fV max: %.1fV, initial input current: %.1fA", (float) config->terminateCurrent / 10.0F, (float) config->minimumBatteryVoltage / 10.0F, (float) config->maximumBatteryVoltage / 10.0F, config->initialInputCurrent / 10.0f);
 }
 
 /*
@@ -336,6 +342,7 @@ void Charger::saveConfiguration()
     Device::saveConfiguration(); // call parent
 
     prefsHandler->write(EECH_MAX_INPUT_CURRENT, config->maximumInputCurrent);
+    prefsHandler->write(EECH_INITIAL_INPUT_CURRENT, config->initialInputCurrent);
     prefsHandler->write(EECH_CONSTANT_CURRENT, config->constantCurrent);
     prefsHandler->write(EECH_CONSTANT_VOLTAGE, config->constantVoltage);
     prefsHandler->write(EECH_TERMINATE_CURRENT, config->terminateCurrent);

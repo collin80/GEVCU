@@ -37,6 +37,7 @@ class ChargerConfiguration : public DeviceConfiguration
 {
 public:
     uint16_t maximumInputCurrent; // maximum input current in 0.1A (e.g. from 230V mains)
+    uint16_t initialInputCurrent; // initial setting for max input current in 0.1A - 0=disable (e.g. to start with 8A and not with 16A)
     uint16_t constantCurrent; // current in 0.1A during constant current phase
     uint16_t constantVoltage; // voltage in 0.1V during constant voltage phase and point where switching from constant current to constant voltage
     uint16_t terminateCurrent; // current in 0.1A at which to terminate the charge process
@@ -75,7 +76,7 @@ public:
     uint16_t getInputCurrent();
     uint16_t getInputVoltage();
     int16_t getTemperature();
-    void overrideMaximumInputCurrent(uint16_t current);
+    void setInputCurrentTarget(uint16_t current);
     uint16_t calculateMaximumInputCurrent();
     uint16_t calculateTimeRemaining();
 
@@ -93,8 +94,8 @@ protected:
 private:
     uint64_t ampereMilliSeconds; // ampere hours put into the battery in 1 ampere-milliseconds (divide by 3600000 to get Ah)
     uint16_t requestedOutputCurrent; // calculated current to be delivered by the charger (in 0.1A), use getOutputCurrent() to retrieve this value - never use it directly !!
-    uint16_t maximumInputCurrentOverride; // the maximum current to be drawn (e.g. from a solar power plant or manually specified in dashboard) (-1 = ignore, in 0.1A)
-    uint16_t maximumInputCurrent; // the calculated maximum input current (limited by override, config or power line conditions)
+    uint16_t inputCurrentTarget; // the target current to be drawn (e.g. from a solar power plant or manually specified in dashboard) (-1 = ignore, in 0.1A)
+    uint16_t maximumInputCurrent; // the calculated maximum input current (limited by config or power line conditions)
     uint16_t inputVoltageStart; // input voltage with (almost) no load in 0.1V
 };
 

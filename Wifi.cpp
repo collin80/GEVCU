@@ -260,15 +260,11 @@ bool Wifi::processParameterChangeCharger(String key, String value)
     if (charger) {
         ChargerConfiguration *config = (ChargerConfiguration *) charger->getConfiguration();
 
-        // this one doesn't change the config but is volatile information sent from a solar inverter to adjust the consumption
-        if (overrideInputCurrent.equals(key)) {
-            charger->overrideMaximumInputCurrent(value.toInt());
-            return true;
-        }
-
         if (config) {
             if (maximumInputCurrent.equals(key)) {
                 config->maximumInputCurrent = value.toDouble() * 10;
+            } else if (initialInputCurrent.equals(key)) {
+                config->initialInputCurrent = value.toDouble() * 10;
             } else if (constantCurrent.equals(key)) {
                 config->constantCurrent = value.toDouble() * 10;
             } else if (constantVoltage.equals(key)) {
@@ -611,6 +607,7 @@ void Wifi::loadParametersCharger()
 
         if (config) {
             setParam(maximumInputCurrent, config->maximumInputCurrent / 10.0f, 1);
+            setParam(initialInputCurrent, config->initialInputCurrent / 10.0f, 1);
             setParam(constantCurrent, config->constantCurrent / 10.0f, 1);
             setParam(constantVoltage, config->constantVoltage / 10.0f, 1);
             setParam(terminateCurrent, config->terminateCurrent / 10.0f, 1);
