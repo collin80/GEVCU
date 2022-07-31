@@ -168,7 +168,8 @@ void CanIO::sendIOStatus()
     logicIO |= status.preChargeRelay ? preChargeRelay : 0;
     logicIO |= status.mainContactor ? mainContactor : 0;
     logicIO |= status.secondaryContactor ? secondaryContactor : 0;
-    logicIO |= status.fastChargeContactor ? fastChargeContactor : 0;
+//    logicIO |= status.fastChargeContactor ? fastChargeContactor : 0;
+    logicIO |= status.enableHeater ? fastChargeContactor : 0; // re-purpose contactor for heater
 
     logicIO |= status.enableMotor ? enableMotor : 0;
     logicIO |= status.enableCharger ? enableCharger : 0;
