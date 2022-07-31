@@ -1,0 +1,15 @@
+Config.Release.board.BOARD.ID=arduino_due_x
+Config.Release.board.BOARD.TXT=${SLOEBER_HOME}/arduinoPlugin/packages/arduino/hardware/sam/1.6.12/boards.txt
+Config.Release.board.PROGRAMMER.NAME=Default
+Config.Release.board.UPLOAD.PORT=/dev/cu.usbmodem14101
+Config.Release.compile.sloeber.extra.all=
+Config.Release.compile.sloeber.extra.archive=
+Config.Release.compile.sloeber.extra.assembly=
+Config.Release.compile.sloeber.extra.c.compile=
+Config.Release.compile.sloeber.extra.compile=
+Config.Release.compile.sloeber.extra.cpp.compile=
+Config.Release.compile.sloeber.extra.link=
+Config.Release.compile.sloeber.size.switch=false
+Config.Release.compile.sloeber.warning_level=ALL
+Config.Release.compile.sloeber.warning_level.custom=
+Config.Release.other.IS_VERSION_CONTROLLED=false
